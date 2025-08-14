@@ -1,0 +1,390 @@
+/* Page Layout */
+.STLTV-table-section {
+  min-height: 100vh;
+  padding: 1.5rem;
+  box-sizing: border-box;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+/* View Toggle Section */
+.STLTV-view-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 2rem;
+  margin-bottom: 2rem;
+  padding: 2rem;
+  background: rgba(255, 245, 245, 0.95);
+  border-radius: 16px;
+  box-shadow: 0 4px 6px -1px rgba(239, 68, 68, 0.11);
+  backdrop-filter: blur(10px);
+  border: 1px solid #fca5a5;
+}
+
+/* Back Button */
+.STLTV-back-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.875rem 1.5rem;
+  background: linear-gradient(135deg, #b91c1c, #f87171);
+  color: #ffffff;
+  border: none;
+  border-radius: 10px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 6px -1px rgba(239, 68, 68, 0.11);
+  font-size: 0.875rem;
+  position: relative;
+  overflow: hidden;
+}
+.STLTV-back-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px -5px rgba(239, 68, 68, 0.18);
+  background: linear-gradient(135deg, #b91c1c, #7f1d1d);
+}
+
+/* Refresh Button */
+.STLTV-refresh-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.875rem 1.5rem;
+  background: linear-gradient(90deg, #f87171 0%, #ef4444 100%);
+  color: #ffffff;
+  border: none;
+  border-radius: 10px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 6px -1px rgba(239, 68, 68, 0.13);
+  font-size: 0.875rem;
+  position: relative;
+  overflow: hidden;
+}
+.STLTV-refresh-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px -5px rgba(239, 68, 68, 0.18);
+  background: linear-gradient(90deg, #ef4444 0%, #dc2626 100%);
+}
+.STLTV-refresh-icon {
+  width: 1rem;
+  height: 1rem;
+  transition: transform 0.3s ease;
+}
+.STLTV-refresh-btn:hover .STLTV-refresh-icon {
+  transform: rotate(180deg);
+}
+
+/* Table Title */
+.STLTV-table-title {
+  font-size: 2.25rem;
+  font-weight: 700;
+  color: #b91c1c;
+  margin: 0 0 2rem 0;
+  letter-spacing: -0.025em;
+  line-height: 1.1;
+  background: linear-gradient(135deg, #b91c1c, #f87171);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  text-align: center;
+}
+
+/* Empty State */
+.STLTV-table-empty {
+  text-align: center;
+  padding: 4rem 2rem;
+  background: rgba(255, 245, 245, 0.95);
+  border-radius: 16px;
+  border: 2px dashed #fecaca;
+  box-shadow: 0 4px 6px -1px rgba(239, 68, 68, 0.11);
+  backdrop-filter: blur(10px);
+  font-size: 1.125rem;
+  color: #b91c1c;
+  font-weight: 500;
+}
+
+/* Table Container */
+.STLTV-table-wrapper {
+  background: rgba(255, 245, 245, 0.95);
+  border-radius: 16px;
+  box-shadow: 0 4px 6px -1px rgba(239, 68, 68, 0.11);
+  backdrop-filter: blur(10px);
+  border: 1px solid #fecaca;
+  overflow: hidden;
+  overflow-x: auto;
+}
+
+.STLTV-transactions-table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 2400px;
+}
+
+.STLTV-table-head {
+  background: linear-gradient(90deg, #f87171 0%, #ef4444 100%);
+}
+
+.STLTV-table-header-row {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.STLTV-table-header {
+  padding: 1rem 1.5rem;
+  text-align: left;
+  font-weight: 600;
+  color: #ffffff;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-size: 0.875rem;
+  white-space: nowrap;
+  border-right: 1px solid rgba(255, 255, 255, 0.1);
+}
+.STLTV-table-header:last-child {
+  border-right: none;
+}
+
+.STLTV-table-body {
+  background: #fff5f5;
+}
+
+.STLTV-table-row {
+  transition: all 0.2s ease;
+}
+
+.STLTV-table-row:nth-child(even) {
+  background: #fdeaea;
+}
+
+.STLTV-table-row:nth-child(odd) {
+  background: #fff5f5;
+}
+
+.STLTV-table-row:hover {
+  background: #fca5a5 !important;
+  transform: scale(1.001);
+}
+
+.STLTV-table-cell {
+  padding: 1rem 1.5rem;
+  border-bottom: 1px solid #fecaca;
+  border-right: 1px solid #fecaca;
+  font-size: 0.875rem;
+  color: #b91c1c;
+  white-space: nowrap;
+  vertical-align: middle;
+}
+.STLTV-table-cell:last-child {
+  border-right: none;
+}
+
+.STLTV-table-row:last-child .STLTV-table-cell {
+  border-bottom: none;
+}
+
+/* Specific Cell Styling */
+.STLTV-table-row .STLTV-table-cell:first-child {
+  font-weight: 600;
+  color: #b91c1c;
+  font-family: monospace;
+  background: #fdeaea;
+  text-align: center;
+}
+.STLTV-table-row .STLTV-table-cell:nth-child(2) {
+  font-weight: 600;
+  color: #b91c1c;
+}
+.STLTV-table-row .STLTV-table-cell:nth-child(5),
+.STLTV-table-row .STLTV-table-cell:nth-child(6),
+.STLTV-table-row .STLTV-table-cell:nth-child(7),
+.STLTV-table-row .STLTV-table-cell:nth-child(8),
+.STLTV-table-row .STLTV-table-cell:nth-child(9),
+.STLTV-table-row .STLTV-table-cell:nth-child(10),
+.STLTV-table-row .STLTV-table-cell:nth-child(11),
+.STLTV-table-row .STLTV-table-cell:nth-child(12),
+.STLTV-table-row .STLTV-table-cell:nth-child(13),
+.STLTV-table-row .STLTV-table-cell:nth-child(19),
+.STLTV-table-row .STLTV-table-cell:nth-child(22),
+.STLTV-table-row .STLTV-table-cell:nth-child(23) {
+  font-family: monospace;
+  font-weight: 500;
+  text-align: right;
+  color: #b91c1c;
+}
+.STLTV-table-row .STLTV-table-cell:nth-child(16),
+.STLTV-table-row .STLTV-table-cell:nth-child(17) {
+  font-family: monospace;
+  color: #b91c1c;
+  font-size: 0.8rem;
+}
+
+/* Loading Animation */
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+.STLTV-table-empty {
+  animation: pulse 2s ease-in-out infinite;
+}
+
+/* Responsive Design */
+@media (max-width: 1200px) {
+  .STLTV-table-section {
+    padding: 1rem;
+  }
+  .STLTV-view-toggle {
+    gap: 1.5rem;
+    padding: 1.5rem;
+  }
+  .STLTV-table-title {
+    font-size: 2rem;
+  }
+}
+@media (max-width: 768px) {
+  .STLTV-table-section {
+    padding: 0.5rem;
+  }
+  .STLTV-view-toggle {
+    flex-direction: column;
+    justify-content: center;
+    gap: 1rem;
+    align-items: stretch;
+    padding: 1.5rem 1rem;
+  }
+  .STLTV-table-title {
+    font-size: 1.75rem;
+  }
+  .STLTV-table-header {
+    padding: 0.75rem 1rem;
+    font-size: 0.8rem;
+  }
+  .STLTV-table-cell {
+    padding: 0.75rem 1rem;
+    font-size: 0.8rem;
+  }
+  .STLTV-transactions-table {
+    min-width: 2800px;
+  }
+}
+@media (max-width: 480px) {
+  .STLTV-view-toggle {
+    padding: 1rem;
+  }
+  .STLTV-table-title {
+    font-size: 1.5rem;
+  }
+  .STLTV-back-btn,
+  .STLTV-refresh-btn {
+    padding: 0.625rem 1rem;
+    font-size: 0.75rem;
+  }
+  .STLTV-refresh-icon {
+    width: 0.875rem;
+    height: 0.875rem;
+  }
+  .STLTV-table-header {
+    padding: 0.5rem 0.75rem;
+    font-size: 0.75rem;
+  }
+  .STLTV-table-cell {
+    padding: 0.5rem 0.75rem;
+    font-size: 0.75rem;
+  }
+}
+/* Scrollbar Styling */
+.STLTV-table-wrapper::-webkit-scrollbar {
+  height: 8px;
+}
+.STLTV-table-wrapper::-webkit-scrollbar-track {
+  background: #fdeaea;
+  border-radius: 4px;
+}
+.STLTV-table-wrapper::-webkit-scrollbar-thumb {
+  background: linear-gradient(135deg, #fecaca, #fca5a5);
+  border-radius: 4px;
+}
+.STLTV-table-wrapper::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(135deg, #fca5a5, #f87171);
+}
+
+/* FIFO Allocation Button */
+.STLTV-fifo-btn {
+  padding: 1rem 2.5rem;
+  background: linear-gradient(135deg, #b91c1c, #f87171);
+  color: white;
+  border: none;
+  border-radius: 12px;
+  font-size: 1.125rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 8px 25px -5px rgba(239, 68, 68, 0.25);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  position: relative;
+  overflow: hidden;
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.STLTV-fifo-btn:hover {
+  background: linear-gradient(135deg, #7f1d1d, #ef4444);
+  transform: translateY(-3px);
+  box-shadow: 0 12px 35px -5px rgba(239, 68, 68, 0.35);
+}
+
+.STLTV-fifo-btn:active {
+  transform: translateY(-1px);
+  box-shadow: 0 8px 25px -5px rgba(239, 68, 68, 0.25);
+}
+
+.STLTV-fifo-btn:disabled {
+  background: linear-gradient(135deg, #d1d5db, #9ca3af);
+  color: #6b7280;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.STLTV-fifo-btn:disabled:hover {
+  background: linear-gradient(135deg, #d1d5db, #9ca3af);
+  transform: none;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+/* Add a subtle shine animation */
+.STLTV-fifo-btn::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+  transition: left 0.6s;
+}
+
+.STLTV-fifo-btn:hover::before {
+  left: 100%;
+}
+
+/* Responsive design for FIFO button */
+@media (max-width: 768px) {
+  .STLTV-fifo-btn {
+    padding: 0.875rem 2rem;
+    font-size: 1rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .STLTV-fifo-btn {
+    padding: 0.75rem 1.5rem;
+    font-size: 0.9rem;
+    letter-spacing: 0.25px;
+  }
+}

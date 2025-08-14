@@ -1,0 +1,203 @@
+body {
+  margin: 0;
+  padding: 0;
+  font-family: 'Inter', sans-serif;
+  background-color: #f5f7fa;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+/* DASHBOARD LAYOUT */
+.dashboard-root {
+  display: flex;
+  min-height: 100vh;
+  width: 100vw;
+  position: relative;
+}
+
+.dashboard-main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  background: #f5f7fa;
+  margin-left: 320px; /* Account for sidebar width */
+  transition: margin-left 0.3s ease;
+  position: relative;
+  z-index: 1;
+}
+
+/* NAVBAR POSITIONING - Make it start where sidebar ends */
+.navbar {
+  position: fixed;
+  top: 0;
+  left: 320px; /* Start where sidebar ends */
+  right: 0; /* Extend to the right edge */
+  height: 80px; /* Match the margin-top in .dashboard-content */
+  background: white;
+  border-bottom: 1px solid #e2e8f0;
+  z-index: 100; /* Above content but below sidebar if needed */
+  display: flex;
+  align-items: center;
+  padding: 0 2rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  transition: left 0.3s ease; /* Smooth transition */
+}
+
+/* Put the main content in a neat container */
+.dashboard-content {
+  flex: 1;
+  padding: 2.5rem 2.5rem 2rem 2.5rem;
+  max-width: 1100px;
+  margin: 0 auto;
+  width: 100%;
+  margin-top: 80px; /* Account for fixed navbar height */
+}
+
+/* Example container for forms/cards */
+.container {
+  max-width: 800px;
+  margin: 0 auto;
+  background-color: white;
+  padding: 2rem;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.10);
+}
+
+h2 {
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+/* GRID FOR FORM INPUTS */
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 1rem;
+}
+
+input,
+select,
+textarea {
+  padding: 10px;
+  font-size: 14px;
+  width: 100%;
+  border: 1px solid #cfd8dc;
+  border-radius: 4px;
+  background: #f8fafc;
+  transition: border 0.15s, background 0.15s;
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+  border: 1.5px solid #2563eb;
+  background: #f1f5fe;
+  outline: none;
+}
+
+textarea {
+  grid-column: span 2;
+  min-height: 100px;
+  resize: vertical;
+}
+
+.status-switch {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding-top: 10px;
+}
+
+.status-switch input[type="checkbox"] {
+  transform: scale(1.2);
+}
+
+/* BUTTONS */
+.button-group {
+  grid-column: span 2;
+  display: flex;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 1rem;
+}
+
+.button-group button {
+  padding: 10px 20px;
+  font-size: 14px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.button-group button:nth-child(1) {
+  background-color: #2563eb;
+  color: white;
+}
+
+.button-group button:nth-child(2) {
+  background-color: #f0f0f0;
+}
+
+.button-group button:nth-child(3) {
+  background-color: #e0e0e0;
+}
+
+/* Responsive tweaks */
+@media (max-width: 1200px) {
+  .dashboard-main {
+    margin-left: 280px;
+  }
+  
+  .navbar {
+    left: 280px; /* Match sidebar width at this breakpoint */
+  }
+  
+  .dashboard-content {
+    padding: 2rem 1rem;
+  }
+}
+
+@media (max-width: 900px) {
+  .dashboard-main {
+    margin-left: 260px;
+  }
+  
+  .navbar {
+    left: 260px; /* Match sidebar width at this breakpoint */
+  }
+}
+
+@media (max-width: 800px) {
+  .container {
+    padding: 1.2rem;
+  }
+  .dashboard-content {
+    padding: 1rem 0.5rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .dashboard-main {
+    margin-left: 0; /* No margin when sidebar is hidden */
+    width: 100%;
+  }
+  
+  .navbar {
+    left: 0; /* Full width when sidebar is hidden */
+  }
+  
+  .dashboard-content {
+    margin-top: 140px; /* More space for stacked navbar on mobile */
+  }
+}
+
+@media (max-width: 700px) {
+  .dashboard-content {
+    padding: 1rem 0.5rem;
+  }
+}

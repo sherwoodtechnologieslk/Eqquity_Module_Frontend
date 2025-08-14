@@ -1,0 +1,328 @@
+.cost-method-page-container {
+  min-height: 100vh;
+  padding: 2rem 1rem;
+  background: #f8fafc;
+  box-sizing: border-box;
+}
+
+/* Full width content wrapper to match Account Master */
+.cost-method-content-wrapper {
+  max-width: 1200px;
+  margin: 0 auto;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+/* HEADER SECTION: left aligned, full width */
+.cost-method-header-section {
+  display: flex;
+  align-items: flex-start;
+  gap: 2rem;
+  margin-bottom: 2rem;
+  padding: 2rem 0;
+  background: transparent;
+  width: 100%;
+  justify-content: flex-start;
+}
+
+/* Icon box */
+.cost-method-header-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 5.5rem;
+  height: 5.5rem;
+  background: linear-gradient(135deg, #60a5fa, #2563eb);
+  border-radius: 0.18rem;
+  margin: 0;
+  box-shadow: 0 8px 32px 0 rgba(59, 130, 246, 0.09), 0 2px 8px 0 rgba(59, 130, 246, 0.04);
+  flex-shrink: 0;
+}
+.cost-method-icon {
+  width: 2.8rem;
+  height: 2.8rem;
+  color: #fff;
+}
+
+/* Title and subtitle group */
+.cost-method-header-text-group {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.25rem;
+}
+
+.cost-method-main-title {
+  font-size: 2.5rem;
+  font-weight: 800;
+  color: #1f2937;
+  margin: 0 0 0.5rem 0;
+  letter-spacing: -0.01em;
+  line-height: 1.1;
+}
+.cost-method-subtitle {
+  color: #475569;
+  font-size: 1.4rem;
+  font-weight: 400;
+  margin: 0;
+  margin-bottom: 0.1rem;
+  letter-spacing: 0.01em;
+}
+
+/* Blue stripe section to match Account Master */
+.cost-method-blue-stripe {
+  background: linear-gradient(135deg, #3b82f6, #2563eb);
+  color: white;
+  padding: 1.5rem 2rem;
+  border-radius: 0.2rem;
+  margin-bottom: 2rem;
+  box-shadow: 0 4px 16px 0 rgba(59, 130, 246, 0.15);
+  width: 600px;
+  max-width: 100%;
+}
+
+.cost-method-stripe-title {
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin: 0;
+  color: white;
+  text-align: center;
+}
+
+/* --- FORM CARD --- */
+.cost-method-form-card {
+  background: #fff;
+  border-radius: 0.18rem;
+  box-shadow: 0 12px 28px -8px rgba(0,0,0,0.11);
+  border: 1px solid #dbeafe;
+  padding: 2rem 2rem 1.5rem 2rem;
+  margin-bottom: 2.5rem;
+  width: 600px;
+  max-width: 100%;
+}
+.cost-method-form-content {
+  display: flex;
+  flex-direction: column;
+}
+.cost-method-form-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 2rem;
+  margin-bottom: 2rem;
+}
+.cost-method-field-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.7rem;
+}
+.cost-method-field-label {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #374151;
+}
+.cost-method-form-select {
+  padding: 0.72rem 0.9rem;
+  border: 1px solid #dbeafe;
+  border-radius: 0.14rem;
+  font-size: 1rem;
+  background-color: #f4faff;
+  transition: all 0.2s;
+  box-shadow:
+    inset 0 2px 8px 0 rgba(59, 130, 246, 0.16),
+    0 0.5px 2px 0 rgba(37, 99, 235, 0.03);
+}
+.cost-method-form-select:focus {
+  outline: none;
+  border-color: #2563eb;
+  background: #f9fbfe;
+  box-shadow:
+    0 0 0 2.5px rgba(59, 130, 246, 0.12),
+    inset 0 4px 20px 2px rgba(59, 130, 246, 0.21);
+}
+.cost-method-options {
+  display: flex;
+  flex-direction: column;
+  gap: 0.7rem;
+}
+.cost-method-radio-label {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.65rem;
+  padding: 0.5rem 1rem;
+  background: #f4faff;
+  border-radius: 0.15rem;
+  border: 1px solid #dbeafe;
+  transition: box-shadow 0.16s, border-color 0.16s, background 0.16s;
+  cursor: pointer;
+  font-weight: 500;
+}
+.cost-method-radio-label.selected, .cost-method-radio-label:hover {
+  border-color: #2563eb;
+  background: linear-gradient(90deg, #dbeafe 60%, #f0f6ff 100%);
+  box-shadow: 0 2px 8px 0 rgba(59, 130, 246, 0.06);
+}
+.cost-method-radio {
+  accent-color: #2563eb;
+  width: 1.15rem;
+  height: 1.15rem;
+}
+
+/* Radio descriptions under each radio */
+.cost-method-radio-desc {
+  display: block;
+  font-size: 0.95rem;
+  color: #64748b;
+  margin-top: 0.18rem;
+  margin-left: 1.4rem; /* indent for description */
+  font-weight: 400;
+  line-height: 1.35;
+}
+
+.cost-method-warning-box {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.6rem;
+  background: linear-gradient(135deg, #fef9c3, #fef3c7);
+  border: 1px solid #fde68a;
+  color: #92400e;
+  font-size: 1rem;
+  padding: 0.85rem 1.1rem;
+  border-radius: 0.14rem;
+  margin-bottom: 1.2rem;
+  margin-top: 0.7rem;
+}
+.cost-method-warning-icon {
+  font-weight: 900;
+  font-size: 1.22rem;
+  background: #fde68a;
+  color: #eab308;
+  border-radius: 50%;
+  width: 1.75rem;
+  height: 1.75rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 0.2rem;
+  margin-top: 0.06rem;
+}
+
+.cost-method-message {
+  margin-bottom: 1.2rem;
+  padding: 0.85rem 1.2rem;
+  border-radius: 0.13rem;
+  font-weight: 500;
+  font-size: 1rem;
+}
+.cost-method-success {
+  background: linear-gradient(135deg, #dcfce7, #bbf7d0);
+  border: 1px solid #86efac;
+  color: #166534;
+}
+.cost-method-error {
+  background: linear-gradient(135deg, #fee2e2, #fecaca);
+  border: 1px solid #f87171;
+  color: #991b1b;
+}
+.cost-method-button-section {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 0.3rem;
+}
+.cost-method-btn {
+  padding: 0.7rem 2.2rem;
+  border: none;
+  border-radius: 0.15rem;
+  font-size: 1rem;
+  font-weight: 600;
+  background: linear-gradient(90deg, #3b82f6 0%, #2563eb 100%);
+  color: white;
+  cursor: pointer;
+  box-shadow: 0 2px 10px 0 rgba(37,99,235,0.07);
+  transition: all 0.18s;
+}
+.cost-method-btn:focus,
+.cost-method-btn:hover {
+  background: linear-gradient(90deg, #2563eb 0%, #1e40af 100%);
+  box-shadow: 0 8px 15px -5px rgba(59,130,246,0.10);
+}
+
+/* Cancel Button */
+.cost-method-btn-secondary {
+  background: #f3f4f6;
+  color: #1f2937;
+  font-weight: 600;
+  border: 1px solid #dbeafe;
+  transition: background 0.16s, border-color 0.16s;
+}
+.cost-method-btn-secondary:focus,
+.cost-method-btn-secondary:hover {
+  background: #e5e7eb;
+  border-color: #a5b4fc;
+  color: #1e40af;
+}
+
+.cost-method-footer-section {
+  text-align: center;
+  margin-top: 2rem;
+  color: #6b7280;
+  font-size: 0.88rem;
+}
+.cost-method-footer-section p {
+  margin: 0;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .cost-method-content-wrapper {
+    max-width: 98vw;
+  }
+  .cost-method-header-section {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+    padding-top: 1rem;
+    padding-bottom: 1rem;
+  }
+  .cost-method-header-icon {
+    margin-bottom: 0.5rem;
+  }
+  .cost-method-main-title {
+    font-size: 1.5rem;
+  }
+  .cost-method-form-card {
+    width: 100%;
+  }
+  .cost-method-blue-stripe {
+    padding: 1rem 1.5rem;
+    width: 100%;
+  }
+  .cost-method-stripe-title {
+    font-size: 1.1rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .cost-method-header-icon {
+    width: 3rem;
+    height: 3rem;
+  }
+  .cost-method-icon {
+    width: 1.5rem;
+    height: 1.5rem;
+  }
+  .cost-method-main-title {
+    font-size: 1.25rem;
+  }
+  .cost-method-subtitle {
+    font-size: 0.875rem;
+  }
+  .cost-method-blue-stripe {
+    padding: 1rem;
+    width: 100%;
+  }
+  .cost-method-stripe-title {
+    font-size: 1rem;
+  }
+}

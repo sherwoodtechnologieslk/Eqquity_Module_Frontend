@@ -1,0 +1,528 @@
+* { box-sizing: border-box; }
+
+.sell-page {
+  min-height: 100vh;
+  padding: 2rem 1rem;
+}
+
+.sell-content-wrapper {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+/* Header (outside card) */
+.sell-header-section {
+  display: flex;
+  align-items: center;
+  gap: 2rem;
+  margin-bottom: 2.5rem;
+  text-align: left;
+  padding-top: 2rem;
+  padding-bottom: 2rem;
+}
+
+.sell-header-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 5.5rem;
+  height: 5.5rem;
+  background: linear-gradient(135deg, #f87171, #b91c1c);
+  border-radius: 0.32rem;  /* LESS ROUND */
+  margin: 0;
+  box-shadow: 0 8px 32px 0 rgba(239, 68, 68, 0.11), 0 2px 8px 0 rgba(248, 113, 113, 0.09);
+  flex-shrink: 0;
+}
+
+.sell-header-icon svg {
+  width: 2.8rem;
+  height: 2.8rem;
+  color: white;
+}
+
+.sell-header-text-group {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.25rem;
+}
+
+.sell-main-title {
+  font-size: 2.5rem;
+  font-weight: 800;
+  color: #1f2937;
+  margin: 0 0 0.5rem 0;
+  letter-spacing: -0.01em;
+  line-height: 1.1;
+}
+
+.sell-subtitle {
+  color: #475569;
+  font-size: 1.4rem;
+  font-weight: 400;
+  margin: 0;
+  margin-bottom: 0.1rem;
+  letter-spacing: 0.01em;
+}
+
+/* Card Container */
+.sell-container {
+  background: linear-gradient(120deg, #fff5f5 0%, #fce7e7 100%);
+  border-radius: 0.25rem; /* LESS ROUND */
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+  border: 1px solid #ecdddd;
+  overflow: hidden;
+  margin-bottom: 2rem;
+}
+
+/* Card Header */
+.sell-card-header {
+  background: linear-gradient(90deg, #f87171 0%, #ef4444 100%);
+  padding: 1.5rem 2rem;
+  border-top-left-radius: 0.25rem;   /* LESS ROUND */
+  border-top-right-radius: 0.25rem;
+}
+
+.sell-card-title {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: white;
+  margin: 0;
+}
+
+/* Card Content */
+.sell-form-content {
+  padding: 2rem;
+  background: rgba(255, 255, 255, 0.7);
+}
+
+/* Section Headers */
+.sell-section-header {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 1.5rem;
+  margin-top: 2rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 2px solid #f3f4f6;
+}
+.sell-section-header:first-of-type { margin-top: 0; }
+
+.sell-section-icon {
+  width: 2.5rem; height: 2.5rem;
+  background: linear-gradient(135deg, #f87171, #b91c1c);
+  border-radius: 0.18rem; /* LESS ROUND */
+  display: flex; align-items: center; justify-content: center;
+  box-shadow: 0 4px 6px -1px rgba(248,113,113,0.14);
+}
+.sell-section-icon-svg { width: 1.25rem; height: 1.25rem; color: white; }
+.sell-section-title { font-size: 1.125rem; font-weight: 600; color: #1f2937; margin: 0; }
+
+/* Form Grid */
+.sell-form-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+/* Form Group + Label */
+.sell-form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+.sell-form-group label {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #374151;
+  display: block;
+}
+
+/* Inset Drowning Effect for Inputs, Selects, Textareas */
+.sell-form-input,
+.sell-form-select,
+.sell-form-textarea {
+  width: 100%;
+  padding: 0.72rem 0.9rem;
+  border: 1px solid #fecaca;
+  border-radius: 0.18rem; /* LESS ROUND */
+  font-size: 1rem;
+  background-color: #fff5f5;
+  transition: all 0.23s cubic-bezier(0.23, 1, 0.32, 1);
+  box-sizing: border-box;
+  /* Glassy drowning effect */
+  box-shadow:
+    inset 0 2px 9px 0 rgba(239, 68, 68, 0.15),
+    inset 0 1.5px 13px 1px rgba(248, 113, 113, 0.16),
+    inset 0 -3px 13px 2px rgba(239,68,68, 0.07),
+    0 0.5px 2px 0 rgba(248, 113, 113, 0.03);
+}
+.sell-form-input:hover,
+.sell-form-select:hover,
+.sell-form-textarea:hover {
+  border-color: #fb7185;
+  background: #ffe4e6;
+  box-shadow:
+    inset 0 4px 20px 0 rgba(239, 68, 68, 0.17),
+    inset 0 8px 28px 4px rgba(248, 113, 113, 0.19),
+    inset 0 -6px 18px 2px rgba(239,68,68, 0.13),
+    0 0.5px 2px 0 rgba(248, 113, 113, 0.06);
+}
+.sell-form-input:focus,
+.sell-form-select:focus,
+.sell-form-textarea:focus {
+  outline: none;
+  border-color: #ef4444;
+  background-color: #fff0f0;
+  box-shadow:
+    0 0 0 2.5px rgba(239, 68, 68, 0.15),
+    inset 0 4px 20px 2px rgba(239,68,68,0.23),
+    inset 0 8px 34px 4px rgba(248,113,113,0.14),
+    inset 0 -8px 32px 2px rgba(239,68,68,0.15),
+    0 0.5px 2px 0 rgba(239,68,68,0.10);
+}
+
+/* Error Styling */
+.sell-form-input.sell-error { border-color: #ef4444; background: rgba(254,242,242,0.5); }
+.sell-form-input.sell-error:focus { border-color: #ef4444; box-shadow: 0 0 0 2px rgba(239,68,68,0.2);}
+
+/* Equity Selector */
+.sell-equity-selector {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.sell-equity-selector .sell-form-input {
+  flex: 1;
+  border-top-right-radius: 0;
+  border-bottom-right-radius: 0;
+}
+
+.sell-equity-select-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1rem;
+  background: linear-gradient(135deg, #f87171, #ef4444);
+  color: white;
+  border: none;
+  border-radius: 0 0.375rem 0.375rem 0;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+  min-width: 80px;
+}
+
+.sell-equity-select-btn:hover:not(:disabled) {
+  background: linear-gradient(135deg, #ef4444, #dc2626);
+  transform: translateY(-1px);
+}
+
+.sell-equity-select-btn:active {
+  transform: translateY(0);
+}
+
+.sell-equity-select-btn:disabled {
+  background: #9ca3af;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.sell-equity-select-icon {
+  width: 1rem;
+  height: 1rem;
+}
+
+/* Read-only Styling */
+.sell-readonly-input {
+  background-color: #f3f4f6 !important;
+  color: #6b7280 !important;
+  cursor: not-allowed !important;
+  border-color: #d1d5db !important;
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.06) !important;
+}
+
+.sell-readonly-input:hover {
+  background-color: #f3f4f6 !important;
+  border-color: #d1d5db !important;
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.06) !important;
+}
+
+.sell-readonly-input:focus {
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.06) !important;
+  border-color: #d1d5db !important;
+  background-color: #f3f4f6 !important;
+}
+
+.sell-field-note {
+  font-size: 0.75rem;
+  color: #60676e;
+  margin-top: 0.25rem;
+  font-style: italic;
+}
+.sell-error-text {
+  color: #ef4444;
+  font-size: 0.75rem;
+  margin-top: 0.5rem;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+/* Calculated Fields */
+.sell-calculated-field {
+  background: linear-gradient(135deg, #fecaca, #fca5a5) !important;
+  border-color: #ef4444 !important;
+  color: #b91c1c !important;
+  font-weight: 500;
+  border-radius: 0.18rem !important;
+  box-shadow:
+    inset 0 4px 20px 0 rgba(239, 68, 68, 0.16),
+    inset 0 8px 28px 4px rgba(252, 165, 165, 0.12);
+}
+.sell-disabled-field:disabled,
+input.sell-disabled-field:disabled {
+  background-color: #e0e0e0 !important;
+  color: #555 !important;
+  cursor: not-allowed;
+  border: 1px solid #ccc;
+  border-radius: 0.18rem !important;
+  box-shadow: none !important;
+}
+
+/* Profit/Loss Card */
+.sell-profit-loss-section {
+  margin: 2.5rem 0;
+  display: flex;
+  justify-content: flex-start;
+}
+.sell-profit-loss-card {
+  background: linear-gradient(135deg, #fb7185, #f87171);
+  padding: 1.25rem 1.5rem;
+  border-radius: 0.23rem; /* LESS ROUND */
+  text-align: left;
+  box-shadow: 0 10px 16px -4px rgba(0,0,0,0.08);
+  border: 1px solid rgba(255,255,255,0.18);
+  min-width: 220px;
+  max-width: 320px;
+  width: 100%;
+  margin-left: 0;
+}
+.sell-profit-loss-card label {
+  color: rgba(255,255,255,0.95);
+  font-size: 0.92rem;
+  font-weight: 500;
+  margin-bottom: 0.5rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+.sell-profit-loss-input {
+  color: #4c4949;
+  font-size: 1.75rem !important;
+  font-weight: 800 !important;
+  text-shadow: 0 2px 8px rgba(0,0,0,0.10);
+  background: none !important;
+  border: none !important;
+  text-align: left;
+  padding: 0;
+  outline: none;
+  margin-bottom: 0.5rem;
+  width: 100%;
+  z-index: 1;
+  box-shadow: none !important;
+}
+
+/* Buttons */
+.sell-form-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  justify-content: flex-end;
+  padding-top: 1.5rem;
+  border-top: 1px solid #fdeaea;
+}
+.sell-btn {
+  padding: 0.75rem 1.5rem;
+  font-size: 1rem;
+  font-weight: 500;
+  border-radius: 0.18rem; /* LESS ROUND */
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: auto;
+}
+.sell-btn:focus { outline: none; box-shadow: 0 0 0 2px rgba(239, 68, 68, 0.2);}
+.sell-btn-secondary { background-color: #f3f4f6; color: #374151;}
+.sell-btn-secondary:hover { background-color: #fdeaea;}
+.sell-btn-primary {
+  background: linear-gradient(90deg, #f87171 0%, #ef4444 100%);
+  color: white;
+  padding: 0.75rem 2rem;
+  box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -1px rgba(0,0,0,0.06);
+  border-radius: 0.18rem; /* LESS ROUND */
+}
+.sell-btn-primary:hover {
+  background: linear-gradient(90deg, #ef4444 0%, #dc2626 100%);
+  box-shadow: 0 10px 15px -3px rgba(239,68,68,0.18), 0 4px 6px -2px rgba(239,68,68,0.08);
+  transform: translateY(-1px);
+}
+.sell-btn-tertiary {
+  background-color: #fdeaea;
+  color: #b91c1c;
+}
+.sell-btn-tertiary:hover {
+  background-color: #fca5a5;
+}
+
+/* Field Notes - removed duplicate rule, using the one defined earlier */
+.sell-profit-loss-card .sell-field-note {
+  color: #ffe4e6;
+  font-size: 1rem;
+  margin-top: 0.5rem;
+  font-style: normal;
+  z-index: 1;
+}
+
+/* Success Banner */
+.sell-success-banner {
+  background: linear-gradient(135deg, #f87171, #fb7185);
+  color: white;
+  padding: 1rem 1.5rem;
+  border-radius: 0.23rem; /* LESS ROUND */
+  margin-bottom: 2rem;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  animation: sell-slideDown 0.5s ease-out;
+  box-shadow: 0 8px 25px rgba(248,113,113,0.2);
+}
+.sell-success-icon {
+  width: 24px; height: 24px;
+  background: rgba(255,255,255,0.18);
+  border-radius: 0.18rem;
+  display: flex; align-items: center; justify-content: center;
+  font-weight: bold; flex-shrink: 0;
+}
+@keyframes sell-slideDown {
+  from { opacity: 0; transform: translateY(-20px);}
+  to { opacity: 1; transform: translateY(0);}
+}
+
+/* Responsive Design */
+@media (max-width: 1100px) {
+  .sell-header-section {
+    gap: 1.2rem;
+    padding-top: 1.2rem;
+    padding-bottom: 1.2rem;
+  }
+  .sell-main-title {
+    font-size: 2.2rem;
+  }
+  .sell-header-icon {
+    width: 4rem;
+    height: 4rem;
+  }
+  .sell-header-icon svg {
+    width: 2rem;
+    height: 2rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .sell-page { padding: 1rem; }
+  .sell-header-section {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+    padding-top: 1rem;
+    padding-bottom: 1rem;
+  }
+  .sell-header-icon { margin-bottom: 0.5rem; }
+  .sell-main-title { font-size: 1.5rem; }
+  .sell-form-content { padding: 1.5rem; }
+  .sell-form-grid { grid-template-columns: 1fr; gap: 1rem; }
+  .sell-section-header { flex-direction: column; text-align: center; gap: 0.5rem;}
+  .sell-profit-loss-card { min-width: 0; width: 100%; }
+  .sell-profit-loss-input { font-size: 1.5rem !important;}
+  .sell-form-actions { flex-direction: column; align-items: stretch; }
+  .sell-btn { width: 100%; justify-content: center; }
+  .sell-card-header { padding: 1rem 1.5rem; }
+  
+  /* Mobile equity selector */
+  .sell-equity-selector {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+  
+  .sell-equity-selector .sell-form-input {
+    border-radius: 0.375rem;
+  }
+  
+  .sell-equity-select-btn {
+    border-radius: 0.375rem;
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+@media (max-width: 480px) {
+  .sell-header-icon { width: 3rem; height: 3rem; }
+  .sell-header-icon svg { width: 1.5rem; height: 1.5rem; }
+  .sell-main-title { font-size: 1.25rem; }
+  .sell-subtitle { font-size: 0.875rem; }
+  .sell-section-icon { width: 2rem; height: 2rem; }
+  .sell-form-input:disabled { background-color: #f9f9f9; color: #999; cursor: not-allowed; }
+}
+
+#remainingShares.sell-form-input {
+  background-color: #e0e0e0 !important;
+  color: #555 !important;
+  cursor: not-allowed;
+  border: 1px solid #ccc;
+  border-radius: 0.18rem !important;
+  box-shadow: none !important;
+}
+
+/* Capital Gain Row with View Details Button */
+.sell-capital-gain-row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.sell-capital-gain-row .sell-form-input {
+  flex: 1;
+}
+
+.sell-view-details-btn {
+  padding: 0.75rem 1.5rem;
+  background: linear-gradient(135deg, #fca5a5, #ef4444);
+  color: white;
+  border: none;
+  border-radius: 0.25rem;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 4px rgba(239, 68, 68, 0.2);
+  white-space: nowrap;
+}
+
+.sell-view-details-btn:hover {
+  background: linear-gradient(135deg, #ef4444, #dc2626);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(239, 68, 68, 0.3);
+}
+
+.sell-view-details-btn:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 4px rgba(239, 68, 68, 0.2);
+}

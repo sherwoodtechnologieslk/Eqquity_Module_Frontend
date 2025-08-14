@@ -1,0 +1,192 @@
+/* AccountListView.css */
+
+/* Page Layout */
+.acct-list-container {
+  min-height: 100vh;
+  padding: 2rem 1rem;
+  box-sizing: border-box;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.acct-loading {
+  text-align: center;
+  padding: 3rem;
+  font-size: 1.1rem;
+  color: #6b7280;
+  background: #fff;
+  border-radius: 0.18rem;
+  box-shadow: 0 25px 50px -12px rgba(0,0,0,0.22);
+  border: 1px solid #dbeafe;
+}
+
+.acct-error-message {
+  background: linear-gradient(135deg, #fee2e2, #fecaca);
+  border: 1px solid #f87171;
+  color: #991b1b;
+  padding: 1rem 1.5rem;
+  border-radius: 0.18rem;
+  margin-bottom: 1.5rem;
+  font-weight: 500;
+  box-shadow: 0 4px 6px -1px rgba(239, 68, 68, 0.1);
+}
+
+.acct-empty-state {
+  text-align: center;
+  padding: 3rem;
+  background: #fff;
+  border-radius: 0.18rem;
+  border: 2px dashed #d1d5db;
+  box-shadow: 0 25px 50px -12px rgba(0,0,0,0.22);
+  border: 1px solid #dbeafe;
+}
+
+.acct-empty-state p {
+  color: #6b7280;
+  font-size: 1.1rem;
+  margin: 0;
+}
+
+/* Table Card */
+.acct-table-container {
+  background: #fff;
+  border-radius: 0.18rem;
+  box-shadow: 0 25px 50px -12px rgba(0,0,0,0.22);
+  border: 1px solid #dbeafe;
+  overflow: hidden;
+}
+
+.acct-list-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.acct-list-table th,
+.acct-list-table td {
+  padding: 1rem;
+  text-align: left;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.acct-list-table th {
+  background: linear-gradient(90deg, #3b82f6 0%, #2563eb 100%);
+  font-weight: 600;
+  color: white;
+  font-size: 0.875rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 1.25rem 1rem;
+}
+
+.acct-list-table tr:hover {
+  background: #f8fafc;
+  transition: background-color 0.2s ease;
+}
+
+.acct-list-table tr:last-child td {
+  border-bottom: none;
+}
+
+.acct-delete-btn {
+  padding: 0.5rem 1rem;
+  background: linear-gradient(135deg, #ef4444, #dc2626);
+  color: white;
+  border: none;
+  border-radius: 0.15rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  box-shadow: 0 2px 4px rgba(239, 68, 68, 0.2);
+}
+
+.acct-delete-btn:hover {
+  background: linear-gradient(135deg, #dc2626, #b91c1c);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+}
+
+/* Responsive Design */
+@media (max-width: 1100px) {
+  .acct-list-header {
+    gap: 1.5rem;
+  }
+  
+  .acct-main-title {
+    font-size: 2rem;
+  }
+  
+  .acct-header-icon {
+    width: 4.5rem;
+    height: 4.5rem;
+  }
+  
+  .acct-icon {
+    width: 2.2rem;
+    height: 2.2rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .acct-list-container {
+    padding: 1rem;
+  }
+  
+  .acct-list-header {
+    flex-direction: column;
+    gap: 1rem;
+    align-items: flex-start;
+    text-align: center;
+  }
+  
+  .acct-header-text-group {
+    align-items: center;
+  }
+  
+  .acct-main-title {
+    font-size: 1.75rem;
+  }
+  
+  .acct-subtitle {
+    font-size: 1.1rem;
+  }
+  
+  .acct-table-container {
+    overflow-x: auto;
+  }
+  
+  .acct-list-table {
+    min-width: 600px;
+  }
+
+  .acct-list-table th,
+  .acct-list-table td {
+    padding: 0.75rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .acct-header-icon {
+    width: 3.5rem;
+    height: 3.5rem;
+  }
+  
+  .acct-icon {
+    width: 1.8rem;
+    height: 1.8rem;
+  }
+
+  .acct-main-title {
+    font-size: 1.5rem;
+  }
+
+  .acct-subtitle {
+    font-size: 1rem;
+  }
+
+  .acct-refresh-btn {
+    width: 100%;
+    padding: 0.75rem;
+    text-align: center;
+  }
+} 

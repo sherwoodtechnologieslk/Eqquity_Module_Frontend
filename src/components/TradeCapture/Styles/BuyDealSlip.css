@@ -1,0 +1,39 @@
+/* src/components/BuyDealSlip.css */
+.buy-slip-container {
+  background: #f0fdf4;
+  border: 1px solid #a7f3d0;
+  border-radius: 0.5rem;
+  padding: 2rem;
+  box-shadow: 0 8px 24px rgba(16, 185, 129, 0.15);
+  font-family: 'Segoe UI', sans-serif;
+  color: #065f46;
+  margin: 2rem auto;
+  max-width: 900px;
+}
+
+.buy-slip-title {
+  font-size: 2rem;
+  color: #047857;
+  font-weight: bold;
+  margin-bottom: 1.5rem;
+  text-align: center;
+}
+
+.buy-slip-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 1rem;
+  font-size: 1rem;
+}
+
+.buy-slip-grid div {
+  background: #d1fae5;
+  padding: 1rem;
+  border-radius: 0.4rem;
+  box-shadow: inset 0 1px 3px rgba(16, 185, 129, 0.1);
+  line-height: 1.4;
+}
+
+.buy-slip-grid strong {
+  color: #065f46;
+}

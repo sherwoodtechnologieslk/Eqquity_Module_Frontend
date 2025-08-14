@@ -1,0 +1,643 @@
+/* Page Layout */
+.eqt-list-container {
+  min-height: 100vh;
+  padding: 1.5rem;
+  box-sizing: border-box;
+  max-width: 1400px;
+  margin: 0 auto;
+
+}
+
+/* Loading State */
+.eqt-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 4rem 2rem;
+  background: rgba(255, 255, 255, 0.9);
+  border-radius: 16px;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.eqt-loading-spinner {
+  width: 3rem;
+  height: 3rem;
+  border: 3px solid #e5e7eb;
+  border-top: 3px solid #3b82f6;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-bottom: 1rem;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.eqt-loading p {
+  font-size: 1.1rem;
+  color: #64748b;
+  margin: 0;
+  font-weight: 500;
+}
+
+/* Error Message */
+.eqt-error-message {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  background: linear-gradient(135deg, #fee2e2, #fecaca);
+  border: 1px solid #f87171;
+  color: #991b1b;
+  padding: 1rem 1.5rem;
+  border-radius: 12px;
+  margin-bottom: 1.5rem;
+  font-weight: 500;
+  box-shadow: 0 4px 6px -1px rgba(239, 68, 68, 0.1);
+}
+
+.eqt-error-icon {
+  width: 1.25rem;
+  height: 1.25rem;
+  flex-shrink: 0;
+}
+
+/* Empty State */
+.eqt-empty-state {
+  text-align: center;
+  padding: 4rem 2rem;
+  background: rgba(255, 255, 255, 0.9);
+  border-radius: 16px;
+  border: 2px dashed #d1d5db;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  backdrop-filter: blur(10px);
+}
+
+.eqt-empty-icon {
+  width: 4rem;
+  height: 4rem;
+  margin: 0 auto 1.5rem;
+  color: #9ca3af;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #f3f4f6, #e5e7eb);
+  border-radius: 50%;
+}
+
+.eqt-empty-icon svg {
+  width: 2rem;
+  height: 2rem;
+}
+
+.eqt-empty-state h3 {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #374151;
+  margin: 0 0 0.5rem 0;
+}
+
+.eqt-empty-state p {
+  color: #6b7280;
+  font-size: 1rem;
+  margin: 0;
+  line-height: 1.5;
+}
+
+/* Table Container */
+.eqt-table-container {
+  background: rgba(255, 255, 255, 0.9);
+  border-radius: 16px;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  overflow: hidden;
+}
+
+
+
+.eqt-table-wrapper {
+  overflow-x: auto;
+}
+
+.eqt-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.eqt-table th,
+.eqt-table td {
+  padding: 1rem 1.5rem;
+  text-align: left;
+  border-bottom: 1px solid #e2e8f0;
+  font-size: 0.875rem;
+}
+
+.eqt-table th {
+  background: linear-gradient(135deg, #3b82f6, #2563eb);
+  font-weight: 600;
+  color: white;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.eqt-table th:first-child {
+  border-top-left-radius: 0;
+}
+
+.eqt-table th:last-child {
+  border-top-right-radius: 0;
+}
+
+.eqt-row-even {
+  background: rgba(248, 250, 252, 0.5);
+}
+
+.eqt-row-odd {
+  background: rgba(255, 255, 255, 0.8);
+}
+
+.eqt-table tr:hover {
+  background: rgba(59, 130, 246, 0.05) !important;
+  transform: scale(1.001);
+  transition: all 0.2s ease;
+}
+
+.eqt-table tr:last-child td {
+  border-bottom: none;
+}
+
+/* Table Cell Styles */
+.eqt-cell-id {
+  font-weight: 600;
+  color: #1e293b;
+  font-family: monospace;
+  border-radius: 6px;
+  margin: 0.25rem 0;
+  padding: 0.5rem 0.75rem !important;
+  min-width: 2rem;
+  text-align: center;
+}
+
+.eqt-cell-name {
+  font-weight: 600;
+  color: #1e293b;
+}
+
+.eqt-cell-symbol {
+  font-weight: 500;
+  font-family: monospace;
+  border-radius: 4px;
+  padding: 0.25rem 0.5rem;
+}
+
+.eqt-cell-isin {
+  font-family: monospace;
+  color: #64748b;
+  font-size: 0.8rem;
+}
+
+.eqt-cell-sector,
+.eqt-cell-market,
+.eqt-cell-country,
+.eqt-cell-currency {
+  color: #475569;
+  font-weight: 500;
+}
+
+.eqt-cell-status {
+  padding: 0.5rem 0;
+}
+
+/* Status Badge */
+.eqt-status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  transition: all 0.2s ease;
+}
+
+.eqt-status-dot {
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.eqt-status-badge.active {
+  background: linear-gradient(135deg, #dcfce7, #bbf7d0);
+  color: #166534;
+  border: 1px solid #86efac;
+}
+
+.eqt-status-badge.active .eqt-status-dot {
+  background: #22c55e;
+  box-shadow: 0 0 0 2px #dcfce7;
+}
+
+.eqt-status-badge.inactive {
+  background: linear-gradient(135deg, #fee2e2, #fecaca);
+  color: #991b1b;
+  border: 1px solid #fca5a5;
+}
+
+.eqt-status-badge.inactive .eqt-status-dot {
+  background: #ef4444;
+  box-shadow: 0 0 0 2px #fee2e2;
+}
+
+/* Delete Button */
+.eqt-delete-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  background: linear-gradient(135deg, #ef4444, #dc2626);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 4px rgba(239, 68, 68, 0.2);
+  position: relative;
+  overflow: hidden;
+}
+
+.eqt-delete-btn::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  transition: left 0.6s ease;
+}
+
+.eqt-delete-btn:hover::before {
+  left: 100%;
+}
+
+.eqt-delete-btn:hover {
+  background: linear-gradient(135deg, #dc2626, #b91c1c);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+}
+
+.eqt-delete-icon {
+  width: 0.875rem;
+  height: 0.875rem;
+  transition: transform 0.2s ease;
+}
+
+.eqt-delete-btn:hover .eqt-delete-icon {
+  transform: scale(1.1);
+}
+
+/* Responsive Design */
+
+/* Unique Search Bar Styles */
+.eqt-search-container {
+  margin-bottom: 2rem;
+  position: relative;
+}
+
+.eqt-search-wrapper {
+  position: relative;
+  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+  border-radius: 12px;
+  padding: 4px;
+  box-shadow: 0 8px 32px rgba(59, 130, 246, 0.3);
+  transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  overflow: hidden;
+}
+
+.eqt-search-wrapper::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  transition: left 0.8s ease;
+}
+
+.eqt-search-wrapper:hover::before {
+  left: 100%;
+}
+
+.eqt-search-wrapper.focused {
+  transform: scale(1.02);
+  box-shadow: 0 12px 40px rgba(59, 130, 246, 0.4);
+  background: linear-gradient(135deg, #2563eb 0%, #3b82f6 100%);
+}
+
+.eqt-search-wrapper.focused .eqt-search-ripple {
+  animation: rippleEffect 0.6s ease-out;
+}
+
+.eqt-search-icon-container {
+  position: absolute;
+  left: 20px;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 2;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 50%;
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.eqt-search-icon {
+  width: 18px;
+  height: 18px;
+  color: rgba(255, 255, 255, 0.9);
+  transition: all 0.3s ease;
+}
+
+.eqt-search-wrapper.focused .eqt-search-icon {
+  color: white;
+  transform: scale(1.1);
+}
+
+.eqt-search-input {
+  width: 100%;
+  padding: 18px 60px 18px 60px;
+  background: rgba(255, 255, 255, 0.95);
+  border: none;
+  border-radius: 8px;
+  font-size: 16px;
+  color: #1e293b;
+  outline: none;
+  transition: all 0.3s ease;
+  backdrop-filter: blur(10px);
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.eqt-search-input::placeholder {
+  color: #94a3b8;
+  font-weight: 400;
+  transition: color 0.3s ease;
+}
+
+.eqt-search-input:focus::placeholder {
+  color: #cbd5e1;
+}
+
+.eqt-search-clear {
+  position: absolute;
+  right: 20px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: rgba(239, 68, 68, 0.1);
+  border: none;
+  border-radius: 50%;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  z-index: 2;
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(239, 68, 68, 0.2);
+}
+
+.eqt-search-clear:hover {
+  background: rgba(239, 68, 68, 0.2);
+  transform: translateY(-50%) scale(1.1);
+  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+}
+
+.eqt-search-clear svg {
+  width: 16px;
+  height: 16px;
+  color: #ef4444;
+  transition: transform 0.2s ease;
+}
+
+.eqt-search-clear:hover svg {
+  transform: rotate(90deg);
+}
+
+.eqt-search-ripple {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.3);
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+}
+
+@keyframes rippleEffect {
+  0% {
+    width: 0;
+    height: 0;
+    opacity: 1;
+  }
+  100% {
+    width: 300px;
+    height: 300px;
+    opacity: 0;
+  }
+}
+
+.eqt-search-results-info {
+  margin-top: 1rem;
+  text-align: center;
+  animation: slideDown 0.4s ease-out;
+}
+
+.eqt-search-count {
+  display: inline-block;
+  background: linear-gradient(135deg, #dbeafe, #bfdbfe);
+  color: #1e40af;
+  padding: 8px 16px;
+  border-radius: 20px;
+  font-size: 14px;
+  font-weight: 500;
+  border: 1px solid #93c5fd;
+  box-shadow: 0 2px 8px rgba(59, 130, 246, 0.15);
+  backdrop-filter: blur(10px);
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Enhanced hover effects for search wrapper */
+.eqt-search-wrapper:hover {
+  transform: translateY(-2px);
+}
+
+.eqt-search-wrapper:hover .eqt-search-icon-container {
+  background: rgba(255, 255, 255, 0.2);
+  border-color: rgba(255, 255, 255, 0.3);
+}
+
+/* Search input focus effects */
+.eqt-search-input:focus {
+  background: rgba(255, 255, 255, 1);
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.05), 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+/* Floating label effect on focus */
+.eqt-search-wrapper.focused .eqt-search-icon-container {
+  animation: iconFloat 0.3s ease-out;
+}
+
+@keyframes iconFloat {
+  0%, 100% {
+    transform: translateY(-50%);
+  }
+  50% {
+    transform: translateY(-50%) translateY(-2px);
+  }
+}
+
+/* Responsive adjustments for search bar */
+@media (max-width: 768px) {
+  .eqt-search-wrapper {
+    border-radius: 10px;
+  }
+  
+  .eqt-search-input {
+    padding: 16px 50px 16px 50px;
+    font-size: 14px;
+  }
+  
+  .eqt-search-icon-container {
+    left: 15px;
+    width: 20px;
+    height: 20px;
+  }
+  
+  .eqt-search-icon {
+    width: 14px;
+    height: 14px;
+  }
+  
+  .eqt-search-clear {
+    right: 15px;
+    width: 28px;
+    height: 28px;
+  }
+  
+  .eqt-search-clear svg {
+    width: 14px;
+    height: 14px;
+  }
+}
+
+@media (max-width: 480px) {
+  .eqt-search-input {
+    padding: 14px 45px 14px 45px;
+    font-size: 13px;
+  }
+  
+  .eqt-search-icon-container {
+    left: 12px;
+    width: 18px;
+    height: 18px;
+  }
+  
+  .eqt-search-icon {
+    width: 12px;
+    height: 12px;
+  }
+  
+  .eqt-search-clear {
+    right: 12px;
+    width: 24px;
+    height: 24px;
+  }
+  
+  .eqt-search-clear svg {
+    width: 12px;
+    height: 12px;
+  }
+}
+
+@media (max-width: 1200px) {
+  .eqt-list-container {
+    padding: 1rem;
+  }
+  
+  .eqt-list-header {
+    gap: 1.5rem;
+    padding: 1.5rem;
+  }
+  
+  .eqt-main-title {
+    font-size: 2rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .eqt-list-container {
+    padding: 0.5rem;
+  }
+  
+  .eqt-table-wrapper {
+    overflow-x: auto;
+  }
+  
+  .eqt-table {
+    min-width: 900px;
+  }
+  
+  .eqt-table th,
+  .eqt-table td {
+    padding: 0.75rem 1rem;
+    font-size: 0.8rem;
+  }
+  
+  .eqt-cell-symbol {
+    padding: 0.25rem 0.375rem;
+    font-size: 0.75rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .eqt-delete-btn {
+    padding: 0.375rem 0.625rem;
+    font-size: 0.6875rem;
+  }
+  
+  .eqt-delete-icon {
+    width: 0.75rem;
+    height: 0.75rem;
+  }
+}
