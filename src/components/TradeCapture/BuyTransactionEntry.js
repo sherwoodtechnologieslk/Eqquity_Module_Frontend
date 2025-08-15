@@ -140,7 +140,8 @@ const BuyTransactionEntry = () => {
       try {
         const calc = await tradeSummaryAPI.calculateBuyTransaction({
           quantity: name === 'quantity' ? value : updatedForm.quantity,
-          price: name === 'price' ? value : updatedForm.price
+          price: name === 'price' ? value : updatedForm.price,
+          costOfFunds: updatedForm.costOfFunds
         });
         setForm({
           ...updatedForm,
@@ -153,7 +154,8 @@ const BuyTransactionEntry = () => {
           stl: calc.stl,
           netValue: calc.netValue,
           cashFlowOnSettlement: calc.netValue,
-          stepUp: calc.stepUp
+          stepUp: calc.stepUp,
+          moneyGenerationCost: calc.moneyGenerationCost ?? ''
         });
       } catch (err) {
         setForm(updatedForm);
