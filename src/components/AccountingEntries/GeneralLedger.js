@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { generalLedgerAPI } from '../../services/api';
 import './Styles/GeneralLedger.css';
 
 const GeneralLedger = () => {
@@ -6,96 +7,39 @@ const GeneralLedger = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [filters, setFilters] = useState({
-    accountCode: '',
+    account_code: '',
     dateFrom: '',
     dateTo: '',
-    transactionType: '',
+    transaction_type: '',
     status: ''
   });
   const [searchTerm, setSearchTerm] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const [entriesPerPage] = useState(20);
 
-  // Mock data for demonstration
-  useEffect(() => {
-    const mockData = [
-      {
-        id: 1,
-        date: '2024-01-15',
-        accountCode: '1-001-01-01-01',
-        accountName: 'Asset Motor Vehicles',
-        description: 'Purchase of company vehicle',
-        debit: 2500000.00,
-        credit: 0.00,
-        balance: 2500000.00,
-        reference: 'INV-2024-001',
-        transactionType: 'Asset Purchase',
-        status: 'Posted',
-        period: '2024-01'
-      },
-      {
-        id: 2,
-        date: '2024-01-15',
-        accountCode: '1-002-01-01-01',
-        accountName: 'Asset Office Computers',
-        description: 'Computer equipment purchase',
-        debit: 850000.00,
-        credit: 0.00,
-        balance: 850000.00,
-        reference: 'INV-2024-002',
-        transactionType: 'Asset Purchase',
-        status: 'Posted',
-        period: '2024-01'
-      },
-      {
-        id: 3,
-        date: '2024-01-16',
-        accountCode: '2-001-01-01-01',
-        accountName: 'Liability Bank Loan',
-        description: 'Bank loan disbursement',
-        debit: 0.00,
-        credit: 5000000.00,
-        balance: -5000000.00,
-        reference: 'LOAN-2024-001',
-        transactionType: 'Loan',
-        status: 'Posted',
-        period: '2024-01'
-      },
-      {
-        id: 4,
-        date: '2024-01-17',
-        accountCode: '3-001-01-01-01',
-        accountName: 'Revenue Trading Income',
-        description: 'Sale of securities',
-        debit: 0.00,
-        credit: 1250000.00,
-        balance: -1250000.00,
-        reference: 'SALE-2024-001',
-        transactionType: 'Revenue',
-        status: 'Posted',
-        period: '2024-01'
-      },
-      {
-        id: 5,
-        date: '2024-01-18',
-        accountCode: '4-001-01-01-01',
-        accountName: 'Expense Office Rent',
-        description: 'Monthly office rent payment',
-        debit: 150000.00,
-        credit: 0.00,
-        balance: 150000.00,
-        reference: 'EXP-2024-001',
-        transactionType: 'Expense',
-        status: 'Posted',
-        period: '2024-01'
-      }
-    ];
-
-    setTimeout(() => {
-      setLedgerEntries(mockData);
+  // Fetch real data from API
+  const fetchLedgerEntries = async () => {
+    try {
+      setLoading(true);
+      setError('');
+      
+      console.log('Fetching general ledger entries...');
+      const data = await generalLedgerAPI.getAllEntries();
+      console.log('Received ledger entries:', data);
+      
+      setLedgerEntries(data);
       setLoading(false);
-    }, 1000);
+    } catch (error) {
+      console.error('Error fetching ledger entries:', error);
+      setError('Failed to fetch ledger entries: ' + error.message);
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchLedgerEntries();
   }, []);
+
 
   const handleFilterChange = (e) => {
     const { name, value } = e.target;
@@ -113,16 +57,16 @@ const GeneralLedger = () => {
 
   const filteredEntries = ledgerEntries.filter(entry => {
     const matchesSearch = 
-      entry.accountCode.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      entry.accountName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      entry.account_code.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      entry.account_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       entry.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
       entry.reference.toLowerCase().includes(searchTerm.toLowerCase());
 
     const matchesFilters = 
-      (!filters.accountCode || entry.accountCode.includes(filters.accountCode)) &&
+      (!filters.account_code || entry.account_code.includes(filters.account_code)) &&
       (!filters.dateFrom || entry.date >= filters.dateFrom) &&
       (!filters.dateTo || entry.date <= filters.dateTo) &&
-      (!filters.transactionType || entry.transactionType === filters.transactionType) &&
+      (!filters.transaction_type || entry.transaction_type === filters.transaction_type) &&
       (!filters.status || entry.status === filters.status);
 
     return matchesSearch && matchesFilters;
@@ -195,8 +139,8 @@ const GeneralLedger = () => {
                 <label className="gl-filter-label">Account Code</label>
                 <input
                   type="text"
-                  name="accountCode"
-                  value={filters.accountCode}
+                  name="account_code"
+                  value={filters.account_code}
                   onChange={handleFilterChange}
                   placeholder="Enter account code"
                   className="gl-filter-input"
@@ -228,12 +172,15 @@ const GeneralLedger = () => {
               <div className="gl-filter-group">
                 <label className="gl-filter-label">Transaction Type</label>
                 <select
-                  name="transactionType"
-                  value={filters.transactionType}
+                  name="transaction_type"
+                  value={filters.transaction_type}
                   onChange={handleFilterChange}
                   className="gl-filter-select"
                 >
                   <option value="">All Types</option>
+                  <option value="Investment Purchase">Investment Purchase</option>
+                  <option value="Trading Expense">Trading Expense</option>
+                  <option value="Bank Payment">Bank Payment</option>
                   <option value="Asset Purchase">Asset Purchase</option>
                   <option value="Loan">Loan</option>
                   <option value="Revenue">Revenue</option>
@@ -261,10 +208,10 @@ const GeneralLedger = () => {
                 <button
                   onClick={() => {
                     setFilters({
-                      accountCode: '',
+                      account_code: '',
                       dateFrom: '',
                       dateTo: '',
-                      transactionType: '',
+                      transaction_type: '',
                       status: ''
                     });
                     setSearchTerm('');
@@ -305,6 +252,16 @@ const GeneralLedger = () => {
           <div className="gl-card-header">
             <h2 className="gl-card-title">Ledger Entries ({filteredEntries.length} records)</h2>
             <div className="gl-table-actions">
+                             <button 
+                 className="gl-refresh-btn" 
+                 onClick={() => {
+                   setLoading(true);
+                   fetchLedgerEntries();
+                 }}
+                 disabled={loading}
+               >
+                 {loading ? 'Refreshing...' : 'Refresh'}
+               </button>
               <button className="gl-export-btn">Export to Excel</button>
               <button className="gl-print-btn">Print Report</button>
             </div>
@@ -338,8 +295,8 @@ const GeneralLedger = () => {
                     {currentEntries.map(entry => (
                       <tr key={entry.id} className="gl-table-row">
                         <td className="gl-date">{formatDate(entry.date)}</td>
-                        <td className="gl-account-code">{entry.accountCode}</td>
-                        <td className="gl-account-name">{entry.accountName}</td>
+                        <td className="gl-account-code">{entry.account_code}</td>
+                        <td className="gl-account-name">{entry.account_name}</td>
                         <td className="gl-description">{entry.description}</td>
                         <td className="gl-reference">{entry.reference}</td>
                         <td className="gl-debit">{entry.debit > 0 ? formatCurrency(entry.debit) : '-'}</td>
@@ -347,7 +304,7 @@ const GeneralLedger = () => {
                         <td className={`gl-balance ${entry.balance >= 0 ? 'positive' : 'negative'}`}>
                           {formatCurrency(Math.abs(entry.balance))}
                         </td>
-                        <td className="gl-type">{entry.transactionType}</td>
+                        <td className="gl-type">{entry.transaction_type}</td>
                         <td>
                           <span className={`gl-status ${entry.status.toLowerCase()}`}>
                             {entry.status}

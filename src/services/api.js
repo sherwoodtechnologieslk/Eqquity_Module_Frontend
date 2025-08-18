@@ -447,6 +447,79 @@ export const getEquities = async () => {
   return await res.json();
 };
 
+// API service for general ledger operations
+export const generalLedgerAPI = {
+  // Get all general ledger entries
+  getAllEntries: async () => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/general-ledger`);
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      return await response.json();
+    } catch (error) {
+      console.error('Error fetching general ledger entries:', error);
+      throw error;
+    }
+  },
+
+  // Get general ledger entries by buy transaction ID
+  getByBuyTransactionId: async (buyTransactionId) => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/general-ledger/buy-transaction/${buyTransactionId}`);
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      return await response.json();
+    } catch (error) {
+      console.error('Error fetching general ledger entries for buy transaction:', error);
+      throw error;
+    }
+  },
+
+  // Get general ledger entries by account code
+  getByAccountCode: async (accountCode) => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/general-ledger/account/${accountCode}`);
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      return await response.json();
+    } catch (error) {
+      console.error('Error fetching general ledger entries by account code:', error);
+      throw error;
+    }
+  },
+
+  // Get general ledger entries by date range
+  getByDateRange: async (startDate, endDate) => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/general-ledger/date-range?startDate=${startDate}&endDate=${endDate}`);
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      return await response.json();
+    } catch (error) {
+      console.error('Error fetching general ledger entries by date range:', error);
+      throw error;
+    }
+  },
+
+  // Get general ledger summary
+  getSummary: async () => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/general-ledger/summary`);
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      return await response.json();
+    } catch (error) {
+      console.error('Error fetching general ledger summary:', error);
+      throw error;
+    }
+  }
+};
+
 export const transactionEntryAPI = {
   getByPortfolio: async (portfolioName) => {
     try {
