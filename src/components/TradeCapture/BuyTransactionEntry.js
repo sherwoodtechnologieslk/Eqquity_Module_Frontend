@@ -11,6 +11,18 @@ const STORAGE_KEY = 'buy_transactions';
 
 const getToday = () => new Date().toISOString().slice(0, 10);
 
+// Function to generate unique deal numbers
+const generateDealNumber = () => {
+  const date = new Date();
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  const hour = String(date.getHours()).padStart(2, '0');
+  const minute = String(date.getMinutes()).padStart(2, '0');
+  const second = String(date.getSeconds()).padStart(2, '0');
+  return `BUY-${year}${month}${day}-${hour}${minute}${second}`;
+};
+
 const BuyTransactionEntry = () => {
   // Equities for dropdown
   const [equities, setEquities] = useState([]);
@@ -31,7 +43,8 @@ const BuyTransactionEntry = () => {
     symbol: '', // <-- Add symbol to form state
     portfolio: '',
     portfolioId: '', // <-- Add this field
-    dealNumber: '',
+    dealNumber: generateDealNumber(), // <-- Auto-generate deal number
+    description: '', // <-- Add description field
     quantity: '',
     price: '',
     grossValue: '',
@@ -60,6 +73,11 @@ const BuyTransactionEntry = () => {
 
   const [showListView, setShowListView] = useState(false);
   const [showEquitySelector, setShowEquitySelector] = useState(false);
+
+  // Function to regenerate deal number
+  const regenerateDealNumber = () => {
+    setForm(prev => ({ ...prev, dealNumber: generateDealNumber() }));
+  };
 
   // Fetch active cost of funds on mount
   useEffect(() => {
@@ -219,12 +237,19 @@ const BuyTransactionEntry = () => {
       settlementDate: form.settlementDate || today
     };
 
+    // Debug logging
+    console.log('Submitting form data:', JSON.stringify(submitForm, null, 2));
+
     try {
-      await tradeSummaryAPI.saveBuyTransaction(submitForm);
+      const result = await tradeSummaryAPI.saveBuyTransaction(submitForm);
+      console.log('Save transaction result:', result);
       alert('Buy Transaction submitted successfully!');
       handleReset();
+      // Generate new deal number for next transaction
+      setForm(prev => ({ ...prev, dealNumber: generateDealNumber() }));
     } catch (err) {
-      alert('Failed to save transaction. Please try again.');
+      console.error('Error saving transaction:', err);
+      alert(`Failed to save transaction: ${err.message || 'Unknown error'}`);
     }
   };
 
@@ -234,13 +259,15 @@ const BuyTransactionEntry = () => {
       symbol: '',
       portfolio: '',
       portfolioId: '',
-      dealNumber: '',
+      dealNumber: generateDealNumber(), // <-- Generate new deal number on reset
+      description: '',
       quantity: '',
       price: '',
       grossValue: '',
       brokerage: '',
       cdsFees: '',
       cseFees: '',
+      clearingFees: '', // <-- Added missing field
       sec: '',
       stl: '',
       netValue: '',
@@ -411,6 +438,35 @@ const BuyTransactionEntry = () => {
                     name="contractNumber"
                     placeholder="Enter contract number"
                     value={form.contractNumber}
+                    onChange={handleChange}
+                    className="buy-form-input"
+                  />
+                </div>
+                <div className="buy-field-group">
+                  <label className="buy-field-label">Deal Number</label>
+                  <div className="deal-number-container">
+                    <input
+                      name="dealNumber"
+                      value={form.dealNumber}
+                      readOnly
+                      className="buy-form-input deal-number-input"
+                      placeholder="Auto-generated"
+                    />
+                    <button
+                      type="button"
+                      onClick={regenerateDealNumber}
+                      className="buy-btn buy-btn-tertiary regenerate-deal-number-btn"
+                    >
+                      Regenerate
+                    </button>
+                  </div>
+                </div>
+                <div className="buy-field-group">
+                  <label className="buy-field-label">Description</label>
+                  <input
+                    name="description"
+                    placeholder="Enter description (optional)"
+                    value={form.description}
                     onChange={handleChange}
                     className="buy-form-input"
                   />
