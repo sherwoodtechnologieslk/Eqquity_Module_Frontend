@@ -63,6 +63,24 @@ export const authService = {
         return !!token;
     },
 
+    // Validate stored token with backend
+    validateStoredToken: async () => {
+        const token = localStorage.getItem('token');
+        if (!token) {
+            return false;
+        }
+
+        try {
+            const response = await authAPI.get('/auth/me');
+            return true;
+        } catch (error) {
+            // Token is invalid or expired, clear it
+            localStorage.removeItem('token');
+            localStorage.removeItem('user');
+            return false;
+        }
+    },
+
     // Get stored user data
     getStoredUser: () => {
         const user = localStorage.getItem('user');

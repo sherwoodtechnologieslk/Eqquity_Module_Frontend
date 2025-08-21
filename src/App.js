@@ -32,11 +32,12 @@ import TradeReport from './components/TradeSummary/TradeReport';
 function App() {
   const [activeTab, setActiveTab] = useState('Equity Master');
   const [activeSidebarItem, setActiveSidebarItem] = useState(0);
-  const [visibleTabs, setVisibleTabs] = useState(['Equity Master', 'Issuer Details', 'Exchange Information']);
+  const [visibleTabs, setVisibleTabs] = useState(['Equity Master', 'Account Master', 'Valuation Method', 'Portfolio Master', 'Strategy Master']);
   const [fifoParams, setFifoParams] = useState(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [user, setUser] = useState(null);
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   
 
 
@@ -48,8 +49,6 @@ function App() {
     'Portfolio Master': <PortfolioMaster/>,
     'Valuation Method': <CostingMethodSelection/>,
 
-    'Issuer Details': <div style={{ padding: '2rem' }}><h3>Issuer Details</h3><p>Coming Soon...</p></div>,
-    'Exchange Information': <div style={{ padding: '2rem' }}><h3>Exchange Information</h3><p>Coming Soon...</p></div>,
     'Buy': <BuyTransactionEntry />,
     'Sell': <SellTransactionEntry setFifoParams={setFifoParams} setActiveTab={setActiveTab} />,
     'Market Price Feed': <TradeSummaryUpload />,
@@ -94,12 +93,12 @@ function App() {
 
   // Check authentication status on app load
   useEffect(() => {
-    const checkAuth = () => {
-      if (authService.isAuthenticated()) {
-        const storedUser = authService.getStoredUser();
-        setUser(storedUser);
-        setIsAuthenticated(true);
-      }
+    const checkAuth = async () => {
+      // Always clear any stored authentication data on app startup
+      authService.logout();
+      setIsAuthenticated(false);
+      setUser(null);
+      setIsLoading(false);
     };
     
     checkAuth();
@@ -108,7 +107,7 @@ function App() {
   // Optional: Set default visible tabs on first load
   useEffect(() => {
     if (isAuthenticated) {
-      setVisibleTabs(['Equity Master', 'Issuer Details', 'Exchange Information']);
+      setVisibleTabs(['Equity Master', 'Account Master', 'Valuation Method', 'Portfolio Master', 'Strategy Master']);
       setActiveTab('Equity Master');
     }
   }, [isAuthenticated]);
@@ -126,10 +125,14 @@ function App() {
     setIsAuthenticated(false);
     setUser(null);
     setActiveTab('Equity Master');
-    setVisibleTabs(['Equity Master', 'Issuer Details', 'Exchange Information']);
+    setVisibleTabs(['Equity Master', 'Account Master', 'Valuation Method', 'Portfolio Master', 'Strategy Master']);
   };
 
   // If not authenticated, show auth container
+  if (isLoading) {
+    return <div className="loading-screen">Loading...</div>;
+  }
+
   if (!isAuthenticated) {
     return <AuthContainer onAuthSuccess={handleAuthSuccess} />;
   }
