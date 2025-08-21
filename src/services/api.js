@@ -267,6 +267,31 @@ export const tradeSummaryAPI = {
       throw error;
     }
   },
+
+  // Extract text from PDF file
+  extractPdfText: async (file) => {
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+      
+      const response = await fetch(`${API_BASE_URL}/trade-summary/extract-pdf-text`, {
+        method: 'POST',
+        body: formData,
+      });
+      
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        const error = new Error(`HTTP error! status: ${response.status}`);
+        error.response = { data: errorData, status: response.status };
+        throw error;
+      }
+      
+      return await response.json();
+    } catch (error) {
+      console.error('Error extracting PDF text:', error);
+      throw error;
+    }
+  },
 }; 
 
 // API service for portfolio operations

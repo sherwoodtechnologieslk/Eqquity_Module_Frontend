@@ -78,7 +78,7 @@ const Login = ({ onLogin, switchToSignup }) => {
     return (
         <div className="auth-container">
             <div className="auth-card">
-                <h2>Welcome Back</h2>
+                <h2>Sign In to Equity Module</h2>
                 <p className="auth-subtitle">Sign in to your account</p>
                 
                 {serverError && (
