@@ -27,6 +27,13 @@ const GeneralLedger = () => {
       const data = await generalLedgerAPI.getAllEntries();
       console.log('Received ledger entries:', data);
       
+      // Debug: Check the structure of first entry
+      if (data && data.length > 0) {
+        console.log('First entry structure:', data[0]);
+        console.log('First entry debit:', data[0].debit, 'Type:', typeof data[0].debit);
+        console.log('First entry credit:', data[0].credit, 'Type:', typeof data[0].credit);
+      }
+      
       setLedgerEntries(data);
       setLoading(false);
     } catch (error) {
@@ -72,8 +79,16 @@ const GeneralLedger = () => {
     return matchesSearch && matchesFilters;
   });
 
-  const totalDebits = filteredEntries.reduce((sum, entry) => sum + entry.debit, 0);
-  const totalCredits = filteredEntries.reduce((sum, entry) => sum + entry.credit, 0);
+  const totalDebits = filteredEntries.reduce((sum, entry) => {
+    const debitValue = parseFloat(entry.debit) || 0;
+    return sum + debitValue;
+  }, 0);
+  
+  const totalCredits = filteredEntries.reduce((sum, entry) => {
+    const creditValue = parseFloat(entry.credit) || 0;
+    return sum + creditValue;
+  }, 0);
+  
   const netBalance = totalCredits - totalDebits;
 
   const indexOfLastEntry = currentPage * entriesPerPage;

@@ -368,8 +368,10 @@ const TradeReport = () => {
     }
   });
 
-  const [selectedView, setSelectedView] = useState('overview');
+  const [selectedView, setSelectedView] = useState('documents');
   const [selectedEquity, setSelectedEquity] = useState('all');
+  const [uploadedFiles, setUploadedFiles] = useState([]);
+  const [dragActive, setDragActive] = useState(false);
 
   const formatCurrency = (amount) => {
     return new Intl.NumberFormat('en-US', {
@@ -649,6 +651,161 @@ const TradeReport = () => {
     </div>
   );
 
+  const handleFileUpload = (files) => {
+    const newFiles = Array.from(files).map(file => ({
+      id: Date.now() + Math.random(),
+      name: file.name,
+      size: file.size,
+      type: file.type,
+      uploadDate: new Date().toLocaleDateString(),
+      file: file
+    }));
+    
+    setUploadedFiles(prev => [...prev, ...newFiles]);
+  };
+
+  const handleDrag = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (e.type === "dragenter" || e.type === "dragover") {
+      setDragActive(true);
+    } else if (e.type === "dragleave") {
+      setDragActive(false);
+    }
+  };
+
+  const handleDrop = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setDragActive(false);
+    
+    if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+      handleFileUpload(e.dataTransfer.files);
+    }
+  };
+
+  const handleFileInput = (e) => {
+    if (e.target.files && e.target.files[0]) {
+      handleFileUpload(e.target.files);
+    }
+  };
+
+  const removeFile = (fileId) => {
+    setUploadedFiles(prev => prev.filter(file => file.id !== fileId));
+  };
+
+  const formatFileSize = (bytes) => {
+    if (bytes === 0) return '0 Bytes';
+    const k = 1024;
+    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+  };
+
+  const renderDocuments = () => (
+    <div className="tr-documents-section">
+      <h3>Document Management</h3>
+      <p className="tr-documents-description">
+        Upload and manage PDF documents related to this trade report. Supported formats: PDF files only.
+      </p>
+      
+      <div className="tr-upload-section">
+        <div 
+          className={`tr-file-drop-zone ${dragActive ? 'tr-drag-active' : ''}`}
+          onDragEnter={handleDrag}
+          onDragLeave={handleDrag}
+          onDragOver={handleDrag}
+          onDrop={handleDrop}
+        >
+          <div className="tr-upload-icon">
+            <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M21 15V19C21 19.5304 20.7893 20.0391 20.4142 20.4142C20.0391 20.7893 19.5304 21 19 21H5C4.46957 21 3.96086 20.7893 3.58579 20.4142C3.21071 20.0391 3 19.5304 3 19V15" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+              <path d="M7 10L12 15L17 10" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+              <path d="M12 15V3" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+          </div>
+          <div className="tr-upload-text">
+            <h4>Drag & Drop PDF files here</h4>
+            <p>or</p>
+            <label htmlFor="file-upload" className="tr-upload-button">
+              Choose Files
+              <input
+                id="file-upload"
+                type="file"
+                multiple
+                accept=".pdf"
+                onChange={handleFileInput}
+                style={{ display: 'none' }}
+              />
+            </label>
+          </div>
+        </div>
+      </div>
+
+      {uploadedFiles.length > 0 && (
+        <div className="tr-uploaded-files">
+          <h4>Uploaded Documents ({uploadedFiles.length})</h4>
+          <div className="tr-files-list">
+            {uploadedFiles.map((file) => (
+              <div key={file.id} className="tr-file-item">
+                <div className="tr-file-info">
+                  <div className="tr-file-icon">
+                    <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                      <path d="M14 2H6C5.46957 2 4.96086 2.21071 4.58579 2.58579C4.21071 2.96086 4 3.46957 4 4V20C4 20.5304 4.21071 21.0391 4.58579 21.4142C4.96086 21.7893 5.46957 22 6 22H18C18.5304 22 19.0391 21.7893 19.4142 21.4142C19.7893 21.0391 20 20.5304 20 20V8L14 2Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                      <path d="M14 2V8H20" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                      <path d="M16 13H8" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                      <path d="M16 17H8" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                      <path d="M10 9H9H8" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                    </svg>
+                  </div>
+                  <div className="tr-file-details">
+                    <span className="tr-file-name">{file.name}</span>
+                    <span className="tr-file-meta">
+                      {formatFileSize(file.size)} • Uploaded on {file.uploadDate}
+                    </span>
+                  </div>
+                </div>
+                <div className="tr-file-actions">
+                  <button 
+                    className="tr-download-btn"
+                    onClick={() => window.open(URL.createObjectURL(file.file), '_blank')}
+                    title="Download file"
+                  >
+                    <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                      <path d="M21 15V19C21 19.5304 20.7893 20.0391 20.4142 20.4142C20.0391 20.7893 19.5304 21 19 21H5C4.46957 21 3.96086 20.7893 3.58579 20.4142C3.21071 20.0391 3 19.5304 3 19V15" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                      <path d="M7 10L12 15L17 10" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                      <path d="M12 15V3" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                    </svg>
+                  </button>
+                  <button 
+                    className="tr-remove-btn"
+                    onClick={() => removeFile(file.id)}
+                    title="Remove file"
+                  >
+                    <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                      <path d="M18 6L6 18" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                      <path d="M6 6L18 18" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                    </svg>
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      <div className="tr-documents-info">
+        <h4>Document Guidelines</h4>
+        <ul>
+          <li>Only PDF files are supported</li>
+          <li>Maximum file size: 10MB per file</li>
+          <li>Uploaded documents are stored locally in your browser</li>
+          <li>Documents are not automatically saved to the server</li>
+        </ul>
+      </div>
+    </div>
+  );
+
   return (
     <div className="tr-equity-module-main-container">
       <div className="tr-page-header-section">
@@ -667,6 +824,12 @@ const TradeReport = () => {
 
       <div className="tr-controls-section">
         <div className="tr-view-tabs">
+          <button 
+            className={selectedView === 'documents' ? 'tr-active' : ''}
+            onClick={() => setSelectedView('documents')}
+          >
+            Documents
+          </button>
           <button 
             className={selectedView === 'overview' ? 'tr-active' : ''}
             onClick={() => setSelectedView('overview')}
@@ -709,6 +872,7 @@ const TradeReport = () => {
       </div>
 
       <div className="tr-report-content">
+        {selectedView === 'documents' && renderDocuments()}
         {selectedView === 'overview' && renderOverview()}
         {selectedView === 'sales' && renderSales()}
         {selectedView === 'purchases' && renderPurchases()}
