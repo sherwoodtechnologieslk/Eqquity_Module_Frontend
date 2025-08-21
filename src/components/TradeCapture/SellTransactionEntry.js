@@ -101,11 +101,11 @@ const SellTransactionEntry = ({ setFifoParams, setActiveTab }) => {
         .then(companies => setFilteredCompanies(companies))
         .catch(() => setFilteredCompanies([]))
         .finally(() => setCompaniesLoading(false));
-      // Optionally clear companyName if portfolio changes
-      setForm(prev => ({ ...prev, companyName: '' }));
+      // Clear companyName and symbol if portfolio changes
+      setForm(prev => ({ ...prev, companyName: '', symbol: '' }));
     } else {
       setFilteredCompanies([]);
-      setForm(prev => ({ ...prev, companyName: '' }));
+      setForm(prev => ({ ...prev, companyName: '', symbol: '' }));
     }
   }, [form.portfolioName]);
 
@@ -323,10 +323,16 @@ const SellTransactionEntry = ({ setFifoParams, setActiveTab }) => {
 
   // Handle equity selection from modal
   const handleEquitySelect = (companyName) => {
+    // Find the equity record to get the symbol
+    const selectedEquity = equities.find(equity => equity.name === companyName);
+    const symbol = selectedEquity ? selectedEquity.symbol : '';
+    
     setForm(prev => ({
       ...prev,
-      companyName: companyName
+      companyName: companyName,
+      symbol: symbol
     }));
+    
     // Clear any existing errors
     if (errors.companyName) {
       setErrors(prev => ({ ...prev, companyName: '' }));

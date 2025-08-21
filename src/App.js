@@ -2,6 +2,10 @@ import React, { useState, useEffect } from 'react';
 import './App.css';
 import Navbar from './components/Home/Navbar';
 import Sidebar from './components/Home/Sidebar';
+import AuthContainer from './components/Auth/AuthContainer';
+import ProtectedRoute from './components/Auth/ProtectedRoute';
+import UserProfileModal from './components/Auth/UserProfileModal';
+import { authService } from './services/authService';
 import EquityMasterEntry from './components/MasterDataManagement/EquityMasterEntry';
 import BuyTransactionEntry from './components/TradeCapture/BuyTransactionEntry';
 import SellTransactionEntry from './components/TradeCapture/SellTransactionEntry';
@@ -30,6 +34,11 @@ function App() {
   const [activeSidebarItem, setActiveSidebarItem] = useState(0);
   const [visibleTabs, setVisibleTabs] = useState(['Equity Master', 'Issuer Details', 'Exchange Information']);
   const [fifoParams, setFifoParams] = useState(null);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [user, setUser] = useState(null);
+  const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
+  
+
 
   // Tab component mappings
   const tabToComponent = {
@@ -83,23 +92,63 @@ function App() {
     setActiveTab(tabName);
   };
 
+  // Check authentication status on app load
+  useEffect(() => {
+    const checkAuth = () => {
+      if (authService.isAuthenticated()) {
+        const storedUser = authService.getStoredUser();
+        setUser(storedUser);
+        setIsAuthenticated(true);
+      }
+    };
+    
+    checkAuth();
+  }, []);
+
   // Optional: Set default visible tabs on first load
   useEffect(() => {
-    setVisibleTabs(['Equity Master', 'Issuer Details', 'Exchange Information']);
+    if (isAuthenticated) {
+      setVisibleTabs(['Equity Master', 'Issuer Details', 'Exchange Information']);
+      setActiveTab('Equity Master');
+    }
+  }, [isAuthenticated]);
+
+  // Handle authentication success
+  const handleAuthSuccess = (userData, token) => {
+    setUser(userData);
+    setIsAuthenticated(true);
+    authService.setAuth(userData, token);
+  };
+
+  // Handle logout
+  const handleLogout = () => {
+    authService.logout();
+    setIsAuthenticated(false);
+    setUser(null);
     setActiveTab('Equity Master');
-  }, []);
+    setVisibleTabs(['Equity Master', 'Issuer Details', 'Exchange Information']);
+  };
+
+  // If not authenticated, show auth container
+  if (!isAuthenticated) {
+    return <AuthContainer onAuthSuccess={handleAuthSuccess} />;
+  }
 
   return (
     <div className="dashboard-root">
       <Sidebar
         onSelect={handleSidebarSelect}
         activeIndex={activeSidebarItem}
+        onLogout={handleLogout}
       />
       <div className="dashboard-main">
         <Navbar
           activeTab={activeTab}
           onTabChange={handleTabChange}
           visibleTabs={visibleTabs}
+          user={user}
+          onLogout={handleLogout}
+          onOpenProfile={() => setIsProfileModalOpen(true)}
         />
         <div className="dashboard-content">
           {tabToComponent[activeTab] || (
@@ -110,6 +159,15 @@ function App() {
           )}
         </div>
       </div>
+      
+      {/* User Profile Modal */}
+      <UserProfileModal
+        user={user}
+        isOpen={isProfileModalOpen}
+        onClose={() => setIsProfileModalOpen(false)}
+      />
+      
+
     </div>
   );
 }

@@ -236,7 +236,7 @@ const menuItems = [
   
 ];
 
-const Sidebar = ({ onSelect, activeIndex = 0 }) => {
+const Sidebar = ({ onSelect, activeIndex = 0, onLogout }) => {
   const [active, setActive] = useState(activeIndex);
 
   // When a sidebar item is clicked, provide both its index and its subTopics to parent
@@ -290,10 +290,19 @@ const Sidebar = ({ onSelect, activeIndex = 0 }) => {
       {/* Footer */}
       <div className="sidebar-footer">
         <div className="footer-content">
-          <div className="status-indicator">
-            <div className="status-dot"></div>
-            <span className="status-text">System Online</span>
-          </div>
+          {onLogout && (
+            <button 
+              className="sidebar-logout-button" 
+              onClick={onLogout}
+              title="Logout"
+            >
+              <svg className="logout-icon" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zM9 6c0-1.66 1.34-3 3-3s3 1.34 3 3v2H9V6zm9 14H6V10h12v10z"/>
+                <circle cx="12" cy="15" r="2"/>
+              </svg>
+              <span className="logout-text">Logout</span>
+            </button>
+          )}
         </div>
       </div>
     </aside>

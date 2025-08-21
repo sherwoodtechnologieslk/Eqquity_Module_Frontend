@@ -1,0 +1,613 @@
+/* User Profile Modal - Modern Blue Theme with Unique Classnames */
+.upm-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10000;
+  padding: 20px;
+  backdrop-filter: blur(4px);
+}
+
+.upm-modal-content {
+  background: white;
+  border-radius: 0.18rem;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+  width: 100%;
+  max-width: 600px;
+  max-height: 90vh;
+  overflow-y: auto;
+  animation: upm-modalSlideIn 0.3s cubic-bezier(0.23, 1, 0.32, 1);
+  border: 1px solid #dbeafe;
+}
+
+@keyframes upm-modalSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-20px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* Header Section - Enhanced Modern Design */
+.upm-modal-header {
+  background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+  color: white;
+  padding: 2.5rem 2rem 2.5rem 2.5rem;
+  border-top-left-radius: 0.18rem;
+  border-top-right-radius: 0.18rem;
+  position: relative;
+  box-shadow: 0 8px 32px rgba(59, 130, 246, 0.3);
+  overflow: hidden;
+}
+
+.upm-modal-header::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(45deg, transparent 30%, rgba(255, 255, 255, 0.1) 50%, transparent 70%);
+  animation: upm-headerShine 4s ease-in-out infinite;
+}
+
+@keyframes upm-headerShine {
+  0%, 100% { transform: translateX(-100%); }
+  50% { transform: translateX(100%); }
+}
+
+.upm-header-content {
+  display: flex;
+  align-items: center;
+  gap: 1.75rem;
+  position: relative;
+  z-index: 2;
+  justify-content: flex-start;
+  width: 100%;
+  margin-right: 4rem;
+}
+
+.upm-header-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 4.5rem;
+  height: 4.5rem;
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 0.75rem;
+  backdrop-filter: blur(20px);
+  flex-shrink: 0;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s cubic-bezier(0.23, 1, 0.32, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+.upm-header-icon::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0.05) 100%);
+  border-radius: 0.75rem;
+}
+
+.upm-header-icon:hover {
+  transform: scale(1.05);
+  background: rgba(255, 255, 255, 0.2);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
+}
+
+.upm-header-icon svg {
+  width: 2.25rem;
+  height: 2.25rem;
+  color: white;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
+  z-index: 1;
+  position: relative;
+}
+
+.upm-header-text {
+  flex: 1;
+  text-align: left;
+  margin-left: 0;
+}
+
+.upm-header-text h2 {
+  margin: 0 0 0.75rem 0;
+  font-size: 2rem;
+  font-weight: 800;
+  color: white;
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  letter-spacing: -0.02em;
+  line-height: 1.2;
+  text-align: left;
+  padding-left: 0;
+}
+
+.upm-header-text p {
+  margin: 0;
+  color: rgba(255, 255, 255, 0.95);
+  font-size: 1rem;
+  font-weight: 500;
+  line-height: 1.4;
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+  opacity: 0.9;
+}
+
+.upm-close-button {
+  position: absolute;
+  top: 1.75rem;
+  right: 1.75rem;
+  background: rgba(255, 255, 255, 0.15);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: white;
+  cursor: pointer;
+  padding: 0.75rem;
+  border-radius: 0.5rem;
+  transition: all 0.3s cubic-bezier(0.23, 1, 0.32, 1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  backdrop-filter: blur(20px);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+  z-index: 2;
+  overflow: hidden;
+}
+
+.upm-close-button::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0.05) 100%);
+  border-radius: 0.5rem;
+  transition: all 0.3s ease;
+}
+
+.upm-close-button:hover {
+  background: rgba(255, 255, 255, 0.25);
+  transform: scale(1.1);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+}
+
+.upm-close-button:hover::before {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.2) 0%, rgba(255, 255, 255, 0.1) 100%);
+}
+
+.upm-close-button:active {
+  transform: scale(0.95);
+}
+
+.upm-close-button svg {
+  width: 1.5rem;
+  height: 1.5rem;
+  z-index: 1;
+  position: relative;
+  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.1));
+}
+
+/* Body Section - Enhanced Styling */
+.upm-modal-body {
+  padding: 2rem;
+  background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+}
+
+/* Profile Section - Card-like Design */
+.upm-profile-section {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+  padding: 1.5rem;
+  border-radius: 0.25rem;
+  background: white;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  border: 1px solid #e5e7eb;
+  position: relative;
+  overflow: hidden;
+}
+
+.upm-profile-section::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, #60a5fa 0%, #2563eb 100%);
+}
+
+.upm-profile-avatar {
+  width: 5rem;
+  height: 5rem;
+  background: linear-gradient(135deg, #60a5fa 0%, #2563eb 100%);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: white;
+  box-shadow: 0 8px 24px rgba(37, 99, 235, 0.3);
+  flex-shrink: 0;
+  position: relative;
+  overflow: hidden;
+}
+
+.upm-profile-avatar::after {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: linear-gradient(45deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+  animation: upm-shine 3s infinite;
+}
+
+@keyframes upm-shine {
+  0% { transform: translateX(-100%) translateY(-100%) rotate(45deg); }
+  100% { transform: translateX(100%) translateY(100%) rotate(45deg); }
+}
+
+.upm-profile-info h3 {
+  margin: 0 0 0.5rem 0;
+  color: #1f2937;
+  font-size: 1.5rem;
+  font-weight: 600;
+}
+
+.upm-user-role {
+  color: #6b7280;
+  font-size: 0.875rem;
+  background: linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%);
+  padding: 0.25rem 0.75rem;
+  border-radius: 1rem;
+  display: inline-block;
+  font-weight: 500;
+  border: 1px solid #d1d5db;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+/* Form Section - Enhanced Card Design */
+.upm-form-section {
+  background: white;
+  border-radius: 0.25rem;
+  padding: 1.5rem;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  border: 1px solid #e5e7eb;
+  position: relative;
+  overflow: hidden;
+}
+
+.upm-form-section::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, #60a5fa 0%, #2563eb 100%);
+}
+
+.upm-form-section h4 {
+  color: #1f2937;
+  margin: 0 0 1.5rem 0;
+  font-size: 1.125rem;
+  font-weight: 600;
+  padding-bottom: 0.75rem;
+  border-bottom: 2px solid #f3f4f6;
+  position: relative;
+}
+
+.upm-form-section h4::after {
+  content: '';
+  position: absolute;
+  bottom: -2px;
+  left: 0;
+  width: 60px;
+  height: 2px;
+  background: linear-gradient(90deg, #60a5fa 0%, #2563eb 100%);
+}
+
+.upm-form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.upm-form-group {
+  margin-bottom: 1.5rem;
+  position: relative;
+}
+
+.upm-form-group label {
+  display: block;
+  margin-bottom: 0.5rem;
+  color: #374151;
+  font-weight: 600;
+  font-size: 0.875rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  position: relative;
+}
+
+.upm-form-group label::before {
+  content: '●';
+  color: #60a5fa;
+  margin-right: 0.5rem;
+  font-size: 0.75rem;
+}
+
+.upm-readonly-input {
+  width: 100%;
+  padding: 1rem 1.25rem;
+  border: 2px solid #e5e7eb;
+  border-radius: 0.25rem;
+  font-size: 0.875rem;
+  background: linear-gradient(135deg, #f9fafb 0%, #f3f4f6 100%);
+  color: #374151;
+  cursor: not-allowed;
+  box-sizing: border-box;
+  transition: all 0.25s cubic-bezier(0.23, 1, 0.32, 1);
+  font-weight: 500;
+  position: relative;
+  overflow: hidden;
+}
+
+.upm-readonly-input::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(96, 165, 250, 0.1), transparent);
+  transition: left 0.5s ease;
+}
+
+.upm-readonly-input:hover {
+  background: linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%);
+  border-color: #d1d5db;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.upm-readonly-input:hover::before {
+  left: 100%;
+}
+
+/* Status Badge - Enhanced Design */
+.upm-status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%);
+  color: #065f46;
+  padding: 0.75rem 1.25rem;
+  border-radius: 0.25rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  border: 1px solid #a7f3d0;
+  box-shadow: 0 2px 8px rgba(16, 185, 129, 0.15);
+  position: relative;
+  overflow: hidden;
+}
+
+.upm-status-badge::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(45deg, transparent, rgba(16, 185, 129, 0.1), transparent);
+  animation: upm-statusGlow 2s infinite;
+}
+
+@keyframes upm-statusGlow {
+  0%, 100% { opacity: 0; }
+  50% { opacity: 1; }
+}
+
+.upm-status-dot {
+  width: 0.5rem;
+  height: 0.5rem;
+  background: #10b981;
+  border-radius: 50%;
+  animation: upm-pulse 2s infinite;
+  box-shadow: 0 0 8px rgba(16, 185, 129, 0.5);
+}
+
+@keyframes upm-pulse {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.7;
+    transform: scale(1.2);
+  }
+}
+
+
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .upm-modal-content {
+    margin: 10px;
+    max-height: 95vh;
+  }
+  
+  .upm-modal-header {
+    padding: 2rem 1.5rem;
+  }
+  
+  .upm-header-content {
+    flex-direction: column;
+    text-align: center;
+    gap: 1.25rem;
+  }
+  
+  .upm-header-icon {
+    width: 3.5rem;
+    height: 3.5rem;
+  }
+  
+  .upm-header-icon svg {
+    width: 1.75rem;
+    height: 1.75rem;
+  }
+  
+  .upm-close-button {
+    top: 1.25rem;
+    right: 1.25rem;
+    padding: 0.625rem;
+  }
+  
+  .upm-header-text h2 {
+    font-size: 1.75rem;
+  }
+  
+  .upm-header-text p {
+    font-size: 0.9rem;
+  }
+  
+  .upm-modal-body {
+    padding: 1.5rem;
+  }
+  
+  .upm-form-row {
+    grid-template-columns: 1fr;
+    gap: 0;
+  }
+  
+  .upm-profile-section {
+    flex-direction: column;
+    text-align: center;
+    gap: 1rem;
+  }
+  
+  .upm-profile-avatar {
+    width: 4rem;
+    height: 4rem;
+    font-size: 1.25rem;
+  }
+  
+  .upm-modal-footer {
+    padding: 1rem 1.5rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .upm-modal-overlay {
+    padding: 10px;
+  }
+  
+  .upm-modal-content {
+    max-width: none;
+    width: 100%;
+  }
+  
+  .upm-modal-header {
+    padding: 1.5rem 1rem;
+  }
+  
+  .upm-header-text h2 {
+    font-size: 1.5rem;
+  }
+  
+  .upm-header-text p {
+    font-size: 0.875rem;
+  }
+  
+  .upm-header-icon {
+    width: 3rem;
+    height: 3rem;
+  }
+  
+  .upm-header-icon svg {
+    width: 1.5rem;
+    height: 1.5rem;
+  }
+  
+  .upm-close-button {
+    top: 1rem;
+    right: 1rem;
+    padding: 0.5rem;
+  }
+  
+  .upm-modal-body {
+    padding: 1rem;
+  }
+  
+  .upm-profile-avatar {
+    width: 3.5rem;
+    height: 3.5rem;
+    font-size: 1.125rem;
+  }
+}
+
+/* Scrollbar Styling */
+.upm-modal-content::-webkit-scrollbar {
+  width: 6px;
+}
+
+.upm-modal-content::-webkit-scrollbar-track {
+  background: #f1f5f9;
+  border-radius: 3px;
+}
+
+.upm-modal-content::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 3px;
+}
+
+.upm-modal-content::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+/* Focus States for Accessibility */
+.upm-close-button:focus,
+.upm-btn-secondary:focus {
+  outline: 2px solid #2563eb;
+  outline-offset: 2px;
+}
+
+/* Print Styles */
+@media print {
+  .upm-modal-overlay {
+    position: static;
+    background: white;
+  }
+  
+  .upm-modal-content {
+    box-shadow: none;
+    border: 1px solid #000;
+  }
+  
+  .upm-modal-header {
+    background: white !important;
+    color: black !important;
+  }
+  
+  .upm-close-button {
+    display: none;
+  }
+}

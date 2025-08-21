@@ -198,6 +198,121 @@
   box-shadow: 0 0 0 2px #fee2e2;
 }
 
+/* Edit Input Styles */
+.portfolio-edit-input {
+  width: 100%;
+  padding: 0.5rem 0.75rem;
+  border: 2px solid #e2e8f0;
+  border-radius: 6px;
+  font-size: 0.875rem;
+  background: white;
+  transition: all 0.2s ease;
+  box-sizing: border-box;
+}
+
+.portfolio-edit-input:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.portfolio-edit-textarea {
+  resize: vertical;
+  min-height: 60px;
+  font-family: inherit;
+}
+
+/* Action Buttons */
+.portfolio-action-buttons {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.portfolio-edit-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  background: linear-gradient(135deg, #3b82f6, #2563eb);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 4px rgba(59, 130, 246, 0.2);
+}
+
+.portfolio-edit-btn:hover {
+  background: linear-gradient(135deg, #2563eb, #1d4ed8);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+}
+
+.portfolio-edit-icon {
+  width: 0.875rem;
+  height: 0.875rem;
+}
+
+/* Edit Actions */
+.portfolio-edit-actions {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.portfolio-save-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  background: linear-gradient(135deg, #10b981, #059669);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 4px rgba(16, 185, 129, 0.2);
+}
+
+.portfolio-save-btn:hover {
+  background: linear-gradient(135deg, #059669, #047857);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+}
+
+.portfolio-cancel-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  background: linear-gradient(135deg, #6b7280, #4b5563);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 4px rgba(107, 114, 128, 0.2);
+}
+
+.portfolio-cancel-btn:hover {
+  background: linear-gradient(135deg, #4b5563, #374151);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(107, 114, 128, 0.3);
+}
+
+.portfolio-save-icon,
+.portfolio-cancel-icon {
+  width: 0.875rem;
+  height: 0.875rem;
+}
+
 /* Delete Button */
 .portfolio-delete-btn {
   display: flex;
@@ -267,6 +382,18 @@
   .portfolio-table th,
   .portfolio-table td { padding: 0.75rem 1rem; font-size: 0.8rem; }
   .portfolio-cell-id { padding: 0.375rem 0.5rem !important; font-size: 0.75rem; }
+  .portfolio-action-buttons,
+  .portfolio-edit-actions {
+    flex-direction: column;
+    gap: 0.25rem;
+  }
+  .portfolio-edit-btn,
+  .portfolio-save-btn,
+  .portfolio-cancel-btn,
+  .portfolio-delete-btn {
+    padding: 0.375rem 0.625rem;
+    font-size: 0.6875rem;
+  }
 }
 @media (max-width: 480px) {
   .portfolio-list-header { padding: 1rem; }
