@@ -170,6 +170,77 @@
   border-color: #9ca3af;
 }
 
+/* Portfolio Status Indicator */
+.gl-portfolio-status {
+  background: #fff;
+  border-radius: 0.18rem;
+  box-shadow: 0 25px 50px -12px rgba(0,0,0,0.22);
+  border: 1px solid #dbeafe;
+  margin-bottom: 2rem;
+  padding: 1.5rem 2rem;
+  position: relative;
+  overflow: hidden;
+}
+
+.gl-portfolio-status::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, #3b82f6 0%, #2563eb 100%);
+}
+
+.gl-portfolio-status-all::before {
+  background: linear-gradient(90deg, #6b7280 0%, #9ca3af 100%);
+}
+
+.gl-portfolio-status-content {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  justify-content: space-between;
+  position: relative;
+  z-index: 1;
+}
+
+.gl-portfolio-status-text {
+  font-weight: 600;
+  flex: 1;
+  font-size: 1.1rem;
+  line-height: 1.4;
+  color: #374151;
+  text-align: center;
+}
+
+.gl-portfolio-status-text strong {
+  font-weight: 700;
+  background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  text-shadow: none;
+}
+
+.gl-portfolio-status-clear {
+  padding: 0.75rem 1.5rem;
+  background: #f3f4f6;
+  color: #374151;
+  border: 1px solid #d1d5db;
+  border-radius: 0.375rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.gl-portfolio-status-clear:hover {
+  background: #e5e7eb;
+  border-color: #9ca3af;
+  transform: translateY(-1px);
+}
+
 /* Summary Stats */
 .gl-summary-stats {
   display: grid;
