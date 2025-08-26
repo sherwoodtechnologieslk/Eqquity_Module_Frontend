@@ -7,6 +7,7 @@ import ProtectedRoute from './components/Auth/ProtectedRoute';
 import UserProfileModal from './components/Auth/UserProfileModal';
 import { authService } from './services/authService';
 import Dashboard from './components/Dashboard';
+import PortfolioOverview from './components/Dashboard/DashboardTabs/PortfolioOverview';
 import EquityMasterEntry from './components/MasterDataManagement/EquityMasterEntry';
 import BuyTransactionEntry from './components/TradeCapture/BuyTransactionEntry';
 import SellTransactionEntry from './components/TradeCapture/SellTransactionEntry';
@@ -45,7 +46,7 @@ function App() {
   // Tab component mappings
   const tabToComponent = {
     'Dashboard': <Dashboard />,
-    'Portfolio Overview': <Dashboard />,
+    'Portfolio Overview': <PortfolioOverview />,
     'Market Summary': <Dashboard />,
     'Recent Activity': <Dashboard />,
     'Performance Metrics': <Dashboard />,

@@ -7,6 +7,7 @@ const TradeSummaryData = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [selectedDate, setSelectedDate] = useState('');
+  const [searchTerm, setSearchTerm] = useState('');
   const [filteredData, setFilteredData] = useState([]);
 
   useEffect(() => {
@@ -45,18 +46,40 @@ const TradeSummaryData = () => {
 
   const handleDateFilter = (date) => {
     setSelectedDate(date);
+    applyFilters(date, searchTerm);
+  };
+
+  const handleSearch = (term) => {
+    setSearchTerm(term);
+    // Small delay to prevent excessive filtering on every keystroke
+    setTimeout(() => {
+      applyFilters(selectedDate, term);
+    }, 300);
+  };
+
+  const applyFilters = (date, search) => {
+    let filtered = tradeSummaries;
+    
+    // Apply date filter
     if (date) {
-      const filtered = tradeSummaries.filter(item => 
-        item.trade_date === date
-      );
-      setFilteredData(filtered);
-    } else {
-      setFilteredData(tradeSummaries);
+      filtered = filtered.filter(item => item.trade_date === date);
     }
+    
+    // Apply search filter
+    if (search) {
+      const searchLower = search.toLowerCase();
+      filtered = filtered.filter(item => 
+        item.company_name?.toLowerCase().includes(searchLower) ||
+        item.symbol?.toLowerCase().includes(searchLower)
+      );
+    }
+    
+    setFilteredData(filtered);
   };
 
   const clearFilters = () => {
     setSelectedDate('');
+    setSearchTerm('');
     setFilteredData(tradeSummaries);
   };
 
@@ -108,6 +131,17 @@ const TradeSummaryData = () => {
 
       <div className="tsd-controls-section">
         <div className="tsd-filter-controls-wrapper">
+          <div className="tsd-search-wrapper">
+            <label htmlFor="searchInput">Search:</label>
+            <input
+              type="text"
+              id="searchInput"
+              placeholder="Search by company name or symbol..."
+              value={searchTerm}
+              onChange={(e) => handleSearch(e.target.value)}
+              className="tsd-search-input"
+            />
+          </div>
           <label htmlFor="dateFilter">Filter by Date:</label>
           <input
             type="date"

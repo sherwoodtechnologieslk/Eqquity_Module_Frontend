@@ -6,16 +6,29 @@ const GeneralLedger = () => {
   const [ledgerEntries, setLedgerEntries] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [availablePortfolios, setAvailablePortfolios] = useState([]);
   const [filters, setFilters] = useState({
     account_code: '',
     dateFrom: '',
     dateTo: '',
     transaction_type: '',
-    status: ''
+    status: '',
+    portfolio: ''  // New portfolio filter
   });
   const [searchTerm, setSearchTerm] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const [entriesPerPage] = useState(20);
+
+  // Fetch available portfolios for filter dropdown
+  const fetchAvailablePortfolios = async () => {
+    try {
+      const portfolios = await generalLedgerAPI.getAvailablePortfolios();
+      setAvailablePortfolios(portfolios);
+    } catch (error) {
+      console.error('Error fetching available portfolios:', error);
+      // Don't set error state for this as it's not critical
+    }
+  };
 
   // Fetch real data from API
   const fetchLedgerEntries = async () => {
@@ -24,7 +37,7 @@ const GeneralLedger = () => {
       setError('');
       
       console.log('Fetching general ledger entries...');
-      const data = await generalLedgerAPI.getAllEntries();
+      const data = await generalLedgerAPI.getAllEntries(filters.portfolio || null);
       console.log('Received ledger entries:', data);
       
       // Debug: Check the structure of first entry
@@ -44,8 +57,16 @@ const GeneralLedger = () => {
   };
 
   useEffect(() => {
+    fetchAvailablePortfolios();
     fetchLedgerEntries();
   }, []);
+
+  // Refetch data when portfolio filter changes
+  useEffect(() => {
+    if (availablePortfolios.length > 0) {
+      fetchLedgerEntries();
+    }
+  }, [filters.portfolio]);
 
 
   const handleFilterChange = (e) => {
@@ -67,14 +88,17 @@ const GeneralLedger = () => {
       entry.account_code.toLowerCase().includes(searchTerm.toLowerCase()) ||
       entry.account_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       entry.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      entry.reference.toLowerCase().includes(searchTerm.toLowerCase());
+      entry.reference.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (entry.portfolio && entry.portfolio.toLowerCase().includes(searchTerm.toLowerCase())) ||
+      (entry.portfolioId && entry.portfolioId.toLowerCase().includes(searchTerm.toLowerCase()));
 
     const matchesFilters = 
       (!filters.account_code || entry.account_code.includes(filters.account_code)) &&
       (!filters.dateFrom || entry.date >= filters.dateFrom) &&
       (!filters.dateTo || entry.date <= filters.dateTo) &&
       (!filters.transaction_type || entry.transaction_type === filters.transaction_type) &&
-      (!filters.status || entry.status === filters.status);
+      (!filters.status || entry.status === filters.status) &&
+      (!filters.portfolio || entry.portfolio === filters.portfolio || entry.portfolioId === filters.portfolio);
 
     return matchesSearch && matchesFilters;
   });
@@ -142,7 +166,7 @@ const GeneralLedger = () => {
             <div className="gl-search-section">
               <input
                 type="text"
-                placeholder="Search by account code, name, description, or reference..."
+                placeholder="Search by account code, name, description, reference, or portfolio..."
                 value={searchTerm}
                 onChange={handleSearch}
                 className="gl-search-input"
@@ -220,6 +244,23 @@ const GeneralLedger = () => {
               </div>
 
               <div className="gl-filter-group">
+                <label className="gl-filter-label">Portfolio</label>
+                <select
+                  name="portfolio"
+                  value={filters.portfolio}
+                  onChange={handleFilterChange}
+                  className="gl-filter-select"
+                >
+                  <option value="">All Portfolios</option>
+                  {availablePortfolios.map(portfolio => (
+                    <option key={portfolio.portfolio || portfolio.portfolioId} value={portfolio.portfolio || portfolio.portfolioId}>
+                      {portfolio.portfolioName || portfolio.portfolio || portfolio.portfolioId}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="gl-filter-group">
                 <button
                   onClick={() => {
                     setFilters({
@@ -227,7 +268,8 @@ const GeneralLedger = () => {
                       dateFrom: '',
                       dateTo: '',
                       transaction_type: '',
-                      status: ''
+                      status: '',
+                      portfolio: ''
                     });
                     setSearchTerm('');
                   }}
@@ -239,6 +281,36 @@ const GeneralLedger = () => {
             </div>
           </div>
         </div>
+
+        {/* Portfolio Status Indicator */}
+        {filters.portfolio ? (
+          <div className="gl-portfolio-status">
+            <div className="gl-portfolio-status-content">
+              <span className="gl-portfolio-status-text">
+                Showing entries for portfolio: <strong>
+                  {availablePortfolios.find(p => 
+                    p.portfolio === filters.portfolio || 
+                    p.portfolioId === filters.portfolio
+                  )?.portfolioName || filters.portfolio}
+                </strong>
+              </span>
+              <button 
+                className="gl-portfolio-status-clear"
+                onClick={() => setFilters(prev => ({ ...prev, portfolio: '' }))}
+              >
+                Clear Portfolio Filter
+              </button>
+            </div>
+          </div>
+        ) : (
+          <div className="gl-portfolio-status gl-portfolio-status-all">
+            <div className="gl-portfolio-status-content">
+              <span className="gl-portfolio-status-text">
+                Showing entries for <strong>all portfolios</strong>
+              </span>
+            </div>
+          </div>
+        )}
 
         {/* Summary Stats */}
         <div className="gl-summary-stats">

@@ -476,15 +476,48 @@ export const getEquities = async () => {
 // API service for general ledger operations
 export const generalLedgerAPI = {
   // Get all general ledger entries
-  getAllEntries: async () => {
+  getAllEntries: async (portfolio = null) => {
     try {
-      const response = await fetch(`${API_BASE_URL}/general-ledger`);
+      let url = `${API_BASE_URL}/general-ledger`;
+      if (portfolio) {
+        url += `?portfolio=${encodeURIComponent(portfolio)}`;
+      }
+      
+      const response = await fetch(url);
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
       return await response.json();
     } catch (error) {
       console.error('Error fetching general ledger entries:', error);
+      throw error;
+    }
+  },
+
+  // Get general ledger entries by portfolio
+  getByPortfolio: async (portfolio) => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/general-ledger/portfolio/${encodeURIComponent(portfolio)}`);
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      return await response.json();
+    } catch (error) {
+      console.error('Error fetching general ledger entries by portfolio:', error);
+      throw error;
+    }
+  },
+
+  // Get all available portfolios for filtering
+  getAvailablePortfolios: async () => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/general-ledger/portfolios`);
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      return await response.json();
+    } catch (error) {
+      console.error('Error fetching available portfolios:', error);
       throw error;
     }
   },
