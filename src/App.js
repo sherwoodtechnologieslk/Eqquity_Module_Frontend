@@ -6,6 +6,7 @@ import AuthContainer from './components/Auth/AuthContainer';
 import ProtectedRoute from './components/Auth/ProtectedRoute';
 import UserProfileModal from './components/Auth/UserProfileModal';
 import { authService } from './services/authService';
+import Dashboard from './components/Dashboard';
 import EquityMasterEntry from './components/MasterDataManagement/EquityMasterEntry';
 import BuyTransactionEntry from './components/TradeCapture/BuyTransactionEntry';
 import SellTransactionEntry from './components/TradeCapture/SellTransactionEntry';
@@ -30,9 +31,9 @@ import TradeReport from './components/TradeSummary/TradeReport';
 
 
 function App() {
-  const [activeTab, setActiveTab] = useState('Equity Master');
+  const [activeTab, setActiveTab] = useState('Dashboard');
   const [activeSidebarItem, setActiveSidebarItem] = useState(0);
-  const [visibleTabs, setVisibleTabs] = useState(['Equity Master', 'Account Master', 'Valuation Method', 'Portfolio Master', 'Strategy Master']);
+  const [visibleTabs, setVisibleTabs] = useState(['Portfolio Overview', 'Market Summary', 'Recent Activity', 'Performance Metrics']);
   const [fifoParams, setFifoParams] = useState(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [user, setUser] = useState(null);
@@ -43,6 +44,11 @@ function App() {
 
   // Tab component mappings
   const tabToComponent = {
+    'Dashboard': <Dashboard />,
+    'Portfolio Overview': <Dashboard />,
+    'Market Summary': <Dashboard />,
+    'Recent Activity': <Dashboard />,
+    'Performance Metrics': <Dashboard />,
     'Equity Master': <EquityMasterEntry />,
     'Strategy Master':  <StrategyMaster/>,
     'Account Master': <AccountMaster/>,
@@ -107,8 +113,8 @@ function App() {
   // Optional: Set default visible tabs on first load
   useEffect(() => {
     if (isAuthenticated) {
-      setVisibleTabs(['Equity Master', 'Account Master', 'Valuation Method', 'Portfolio Master', 'Strategy Master']);
-      setActiveTab('Equity Master');
+      setVisibleTabs(['Portfolio Overview', 'Market Summary', 'Recent Activity', 'Performance Metrics']);
+      setActiveTab('Dashboard');
     }
   }, [isAuthenticated]);
 
@@ -117,6 +123,9 @@ function App() {
     setUser(userData);
     setIsAuthenticated(true);
     authService.setAuth(userData, token);
+    // Set default to Dashboard after login
+    setActiveTab('Dashboard');
+    setVisibleTabs(['Portfolio Overview', 'Market Summary', 'Recent Activity', 'Performance Metrics']);
   };
 
   // Handle logout
@@ -124,8 +133,8 @@ function App() {
     authService.logout();
     setIsAuthenticated(false);
     setUser(null);
-    setActiveTab('Equity Master');
-    setVisibleTabs(['Equity Master', 'Account Master', 'Valuation Method', 'Portfolio Master', 'Strategy Master']);
+    setActiveTab('Dashboard');
+    setVisibleTabs(['Portfolio Overview', 'Market Summary', 'Recent Activity', 'Performance Metrics']);
   };
 
   // If not authenticated, show auth container

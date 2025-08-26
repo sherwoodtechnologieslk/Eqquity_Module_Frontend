@@ -674,6 +674,12 @@ const TradeReport = () => {
       
       if (result.success) {
         setExtractedText(prev => prev + `\n\n--- ${fileObj.name} ---\n${result.text}`);
+        
+        // If we have parsed data, display it in a structured format
+        if (result.parsedData && !result.parsedData.error) {
+          const structuredData = formatParsedData(result.parsedData);
+          setExtractedText(prev => prev + `\n\n=== STRUCTURED DATA ===\n${structuredData}`);
+        }
       }
     } catch (error) {
       console.error('Error extracting PDF text:', error);
@@ -681,6 +687,59 @@ const TradeReport = () => {
     } finally {
       setIsExtracting(false);
     }
+  };
+
+  const formatParsedData = (parsedData) => {
+    let formatted = '';
+    
+    if (parsedData.header) {
+      formatted += 'HEADER INFORMATION:\n';
+      if (parsedData.header.brokerName) formatted += `Broker: ${parsedData.header.brokerName}\n`;
+      if (parsedData.header.address) formatted += `Address: ${parsedData.header.address}\n`;
+      if (parsedData.header.tel) formatted += `Tel: ${parsedData.header.tel}\n`;
+      if (parsedData.header.fax) formatted += `Fax: ${parsedData.header.fax}\n`;
+      if (parsedData.header.email) formatted += `Email: ${parsedData.header.email}\n`;
+      formatted += '\n';
+    }
+    
+    if (parsedData.clientInfo) {
+      formatted += 'CLIENT INFORMATION:\n';
+      if (parsedData.clientInfo.accountNo) formatted += `Account No: ${parsedData.clientInfo.accountNo}\n`;
+      if (parsedData.clientInfo.clientName) formatted += `Client Name: ${parsedData.clientInfo.clientName}\n`;
+      formatted += '\n';
+    }
+    
+    if (parsedData.metadata) {
+      formatted += 'TRADE METADATA:\n';
+      if (parsedData.metadata.tradeDate) formatted += `Trade Date: ${parsedData.metadata.tradeDate}\n`;
+      if (parsedData.metadata.settlementDate) formatted += `Settlement Date: ${parsedData.metadata.settlementDate}\n`;
+      formatted += '\n';
+    }
+    
+    if (parsedData.transactions && parsedData.transactions.length > 0) {
+      formatted += `TRANSACTIONS (${parsedData.transactions.length} found):\n`;
+      parsedData.transactions.forEach((txn, index) => {
+        formatted += `\nTransaction ${index + 1}:\n`;
+        formatted += `  Date: ${txn.tradeDate}\n`;
+        formatted += `  Contract: ${txn.contractNo}\n`;
+        formatted += `  Shares: ${txn.shares}\n`;
+        formatted += `  Price: ${txn.price}\n`;
+        formatted += `  Gross Amount: ${txn.grossAmount}\n`;
+        formatted += `  Net Amount: ${txn.netAmount}\n`;
+        formatted += `  Settlement: ${txn.settlementDate}\n`;
+      });
+      formatted += '\n';
+    }
+    
+    if (parsedData.summary) {
+      formatted += 'SUMMARY:\n';
+      if (parsedData.summary.totalShares) formatted += `Total Shares: ${parsedData.summary.totalShares}\n`;
+      if (parsedData.summary.totalGrossAmount) formatted += `Total Gross Amount: ${parsedData.summary.totalGrossAmount}\n`;
+      if (parsedData.summary.totalNetAmount) formatted += `Total Net Amount: ${parsedData.summary.totalNetAmount}\n`;
+      if (parsedData.summary.salesTotal) formatted += `Sales Total: ${parsedData.summary.salesTotal}\n`;
+    }
+    
+    return formatted;
   };
 
   const handleDrag = (e) => {
