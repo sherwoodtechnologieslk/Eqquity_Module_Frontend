@@ -107,7 +107,7 @@ const IPOEntry = () => {
                   />
                 </div>
                 <div className="ipo-field-group">
-                  <label className="ipo-field-label">Total Investment (Rs.) *</label>
+                  <label className="ipo-field-label">Total Investment *</label>
                   <input
                     name="totalInvestment"
                     type="number"

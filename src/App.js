@@ -27,8 +27,12 @@ import CostOfFundsDefinition from './components/TradeCapture/CostOfFundsDefiniti
 import ChartOfAccounts from './components/AccountingEntries/ChartOfAccounts';
 import GeneralLedger from './components/AccountingEntries/GeneralLedger';
 import MarkToMarketValuation from './components/ValuationAndMTM/MarkToMarketValuation';
+import RealizedPnL from './components/ValuationAndMTM/RealizedPnL';
 import TradeSummaryData from './components/ValuationAndMTM/TradeSummaryData';
 import TradeReport from './components/TradeSummary/TradeReport';
+import MarketSummary from './components/MarketSummary/MarketSummary';
+import RecentActivity from './components/RecentActivity/RecentActivity';
+import PerformanceMetrics from './components/PerformanceMetrics/PerformanceMetrics';
 
 
 function App() {
@@ -47,9 +51,9 @@ function App() {
   const tabToComponent = {
     'Dashboard': <Dashboard />,
     'Portfolio Overview': <PortfolioOverview />,
-    'Market Summary': <Dashboard />,
-    'Recent Activity': <Dashboard />,
-    'Performance Metrics': <Dashboard />,
+    'Market Summary': <MarketSummary />,
+    'Recent Activity': <RecentActivity />,
+    'Performance Metrics': <PerformanceMetrics />,
     'Equity Master': <EquityMasterEntry />,
     'Strategy Master':  <StrategyMaster/>,
     'Account Master': <AccountMaster/>,
@@ -60,6 +64,7 @@ function App() {
     'Sell': <SellTransactionEntry setFifoParams={setFifoParams} setActiveTab={setActiveTab} />,
     'Market Price Feed': <TradeSummaryUpload />,
     'Mark-to-Market Valuation': <MarkToMarketValuation />,
+    'Realized Gain/Loss Tracking': <RealizedPnL />,
     'Trade Summary Data': <TradeSummaryData />,
 
     'Dividend': <DividendEntry/>,

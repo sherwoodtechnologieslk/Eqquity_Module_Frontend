@@ -109,7 +109,7 @@ const PortfolioOverview = () => {
       {/* Portfolio Summary Cards */}
       <div className="summary-cards">
         <div className="summary-card primary">
-          <div className="card-icon">💰</div>
+          <div className="card-icon"></div>
           <div className="card-content">
             <h3>Total Portfolio Value</h3>
             <p className="card-value">{formatCurrency(portfolioData.summary.totalValue)}</p>
@@ -118,7 +118,7 @@ const PortfolioOverview = () => {
         </div>
 
         <div className="summary-card success">
-          <div className="card-icon">📈</div>
+          <div className="card-icon"></div>
           <div className="card-content">
             <h3>Total P&L</h3>
             <p className="card-value">{formatCurrency(portfolioData.summary.totalPnL)}</p>
@@ -127,7 +127,7 @@ const PortfolioOverview = () => {
         </div>
 
         <div className="summary-card info">
-          <div className="card-icon">📊</div>
+          <div className="card-icon"></div>
           <div className="card-content">
             <h3>Active Positions</h3>
             <p className="card-value">{portfolioData.summary.numberOfPositions}</p>
@@ -136,7 +136,7 @@ const PortfolioOverview = () => {
         </div>
 
         <div className="summary-card warning">
-          <div className="card-icon">💵</div>
+          <div className="card-icon"></div>
           <div className="card-content">
             <h3>Cash Balance</h3>
             <p className="card-value">{formatCurrency(portfolioData.summary.cashBalance)}</p>
@@ -152,7 +152,7 @@ const PortfolioOverview = () => {
         </div>
         <div className="allocation-cards">
           <div className="allocation-card equity">
-            <div className="allocation-icon">📈</div>
+            <div className="allocation-icon"></div>
             <div className="allocation-content">
               <h4>Equity</h4>
               <p className="allocation-value">{formatCurrency(portfolioData.assetAllocation.equity)}</p>
@@ -162,7 +162,7 @@ const PortfolioOverview = () => {
             </div>
           </div>
           <div className="allocation-card cash">
-            <div className="allocation-icon">💵</div>
+            <div className="allocation-icon"></div>
             <div className="allocation-content">
               <h4>Cash</h4>
               <p className="allocation-value">{formatCurrency(portfolioData.assetAllocation.cash)}</p>
