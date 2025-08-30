@@ -137,7 +137,7 @@ const IPOAllocation = () => {
               </div>
 
               <div className="ipo-field-group">
-                <label className="ipo-field-label">Refund Amount (Rs.)</label>
+                <label className="ipo-field-label">Refund Amount</label>
                 <input
                   name="refundAmount"
                   value={form.refundAmount}
