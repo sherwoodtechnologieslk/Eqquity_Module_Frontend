@@ -1,0 +1,248 @@
+/* Transaction View Styles */
+.transaction-view-container {
+  padding: 2rem;
+  background: #f8fafc;
+  min-height: 100vh;
+}
+
+.transaction-view-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+  padding-bottom: 1rem;
+  border-bottom: 2px solid #e2e8f0;
+}
+
+.transaction-view-title {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #1e293b;
+  margin: 0;
+}
+
+.transaction-refresh-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.5rem;
+  background: #3b82f6;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.transaction-refresh-btn:hover:not(:disabled) {
+  background: #2563eb;
+  transform: translateY(-1px);
+}
+
+.transaction-refresh-btn:disabled {
+  background: #94a3b8;
+  cursor: not-allowed;
+}
+
+.refresh-icon {
+  width: 1.25rem;
+  height: 1.25rem;
+}
+
+/* Tab Navigation */
+.transaction-tabs {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 2rem;
+  background: white;
+  padding: 0.5rem;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.transaction-tab {
+  flex: 1;
+  padding: 0.75rem 1.5rem;
+  background: transparent;
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  color: #64748b;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.transaction-tab:hover {
+  background: #f1f5f9;
+  color: #475569;
+}
+
+.transaction-tab.active {
+  background: #3b82f6;
+  color: white;
+  box-shadow: 0 2px 4px rgba(59, 130, 246, 0.3);
+}
+
+/* Table Container */
+.transaction-table-container {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+}
+
+.transaction-loading,
+.transaction-empty {
+  padding: 3rem;
+  text-align: center;
+  color: #64748b;
+  font-size: 1.125rem;
+}
+
+.transaction-table-wrapper {
+  overflow-x: auto;
+}
+
+.transaction-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.875rem;
+}
+
+.transaction-table-head {
+  background: #f8fafc;
+  border-bottom: 2px solid #e2e8f0;
+}
+
+.transaction-table-head th {
+  padding: 1rem 0.75rem;
+  text-align: left;
+  font-weight: 700;
+  color: #374151;
+  text-transform: uppercase;
+  font-size: 0.75rem;
+  letter-spacing: 0.05em;
+  white-space: nowrap;
+}
+
+.transaction-table-body {
+  background: white;
+}
+
+.transaction-row {
+  border-bottom: 1px solid #f1f5f9;
+  transition: background-color 0.2s ease;
+}
+
+.transaction-row:hover {
+  background: #f8fafc;
+}
+
+.transaction-row.buy-row {
+  border-left: 4px solid #10b981;
+}
+
+.transaction-row.sell-row {
+  border-left: 4px solid #ef4444;
+}
+
+.transaction-table-body td {
+  padding: 1rem 0.75rem;
+  vertical-align: middle;
+  white-space: nowrap;
+}
+
+/* Transaction Type Badge */
+.transaction-type-badge {
+  display: inline-block;
+  padding: 0.25rem 0.75rem;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.transaction-type-badge.buy {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.transaction-type-badge.sell {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+/* Cell Styling */
+.transaction-company-cell {
+  font-weight: 600;
+  color: #1e293b;
+}
+
+.transaction-portfolio-cell {
+  color: #64748b;
+}
+
+.transaction-deal-cell {
+  font-family: 'Courier New', monospace;
+  font-size: 0.8rem;
+  color: #475569;
+}
+
+.transaction-quantity-cell,
+.transaction-price-cell,
+.transaction-gross-cell,
+.transaction-net-cell,
+.transaction-money-gen-cell,
+.transaction-capital-gain-cell {
+  text-align: right;
+  font-family: 'Courier New', monospace;
+  font-weight: 600;
+}
+
+.transaction-trade-date-cell,
+.transaction-settlement-date-cell {
+  color: #64748b;
+  font-size: 0.8rem;
+}
+
+.transaction-broker-cell {
+  color: #475569;
+}
+
+.transaction-contract-cell {
+  font-family: 'Courier New', monospace;
+  font-size: 0.8rem;
+  color: #64748b;
+}
+
+/* Responsive Design */
+@media (max-width: 1200px) {
+  .transaction-view-container {
+    padding: 1rem;
+  }
+  
+  .transaction-table-head th,
+  .transaction-table-body td {
+    padding: 0.75rem 0.5rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .transaction-view-header {
+    flex-direction: column;
+    gap: 1rem;
+    align-items: stretch;
+  }
+  
+  .transaction-tabs {
+    flex-direction: column;
+  }
+  
+  .transaction-table-head th,
+  .transaction-table-body td {
+    padding: 0.5rem 0.25rem;
+    font-size: 0.75rem;
+  }
+}

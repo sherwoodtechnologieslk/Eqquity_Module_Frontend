@@ -726,18 +726,22 @@ const BuyTransactionEntry = () => {
                 </div>
                 <div className="buy-field-group">
                   <label className={`buy-field-label ${!isCostOfFundsEntered ? 'disabled' : ''}`}>
-                    Money Generation Cost (Rs.)
+                    Money Generation Cost (Daily) (Rs.)
                   </label>
                   <input
                     name="moneyGenerationCost"
                     type="number"
                     step="0.01"
-                    placeholder={isCostOfFundsEntered ? "Enter cost" : "Enter Cost of Funds first"}
+                    placeholder={isCostOfFundsEntered ? "Auto-calculated daily cost" : "Enter Cost of Funds first"}
                     value={form.moneyGenerationCost}
                     onChange={handleChange}
                     disabled={!isCostOfFundsEntered}
                     className={`buy-form-input ${!isCostOfFundsEntered ? 'disabled' : ''}`}
+                    readOnly
                   />
+                  <small className="buy-field-note">
+                    Daily cost calculated as (Net Value × Cost of Funds %) ÷ 365
+                  </small>
                 </div>
               </div>
 

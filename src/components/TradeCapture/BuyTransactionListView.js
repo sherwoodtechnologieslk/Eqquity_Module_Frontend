@@ -67,7 +67,7 @@ const BuyTransactionListView = ({ onBack }) => {
                 <th className="BTLV-table-header">Cash Flow On Settlement</th>
                 <th className="BTLV-table-header">Payment Method</th>
                 <th className="BTLV-table-header">Generate Payment</th>
-                <th className="BTLV-table-header">Money Generation Cost</th>
+                <th className="BTLV-table-header">Money Generation Cost (Daily)</th>
                 <th className="BTLV-table-header">Cost of Funds</th>
                 <th className="BTLV-table-header">Created At</th>
               </tr>

@@ -60,10 +60,10 @@ const menuItems = [
     subTopics: [
       "Buy",
       "Sell",
+      "Transactions",
       "Portfolio",
       "Deal Slip",
       "Cost of Funds"
-
     ]
   },
   {

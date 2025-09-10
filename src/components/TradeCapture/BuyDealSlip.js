@@ -29,7 +29,7 @@ const BuyDealSlip = ({ transaction }) => {
         <div><strong>Settlement Account:</strong> {transaction.settlementAccount}</div>
         <div><strong>Payment Method:</strong> {transaction.paymentMethod || '—'}</div>
         <div><strong>Cost of Funds (%):</strong> {transaction.costOfFunds || '—'}</div>
-        <div><strong>Money Generation Cost:</strong> Rs. {transaction.moneyGenerationCost || '—'}</div>
+        <div><strong>Money Generation Cost (Daily):</strong> Rs. {transaction.moneyGenerationCost || '—'}</div>
         <div><strong>Generate Payment:</strong> {transaction.generatePayment}</div>
       </div>
     </div>
