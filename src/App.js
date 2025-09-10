@@ -11,6 +11,7 @@ import PortfolioOverview from './components/Dashboard/DashboardTabs/PortfolioOve
 import EquityMasterEntry from './components/MasterDataManagement/EquityMasterEntry';
 import BuyTransactionEntry from './components/TradeCapture/BuyTransactionEntry';
 import SellTransactionEntry from './components/TradeCapture/SellTransactionEntry';
+import TransactionView from './components/TradeCapture/TransactionView';
 import TradeSummaryUpload from './components/ValuationAndMTM/TradeSummaryUpload';
 import DividendEntry from './components/CorporateActions/DividendEntry';
 import RightsIssueEntry from './components/VoluntaryCorporateActions/RightsIssueEntry';
@@ -62,6 +63,7 @@ function App() {
 
     'Buy': <BuyTransactionEntry />,
     'Sell': <SellTransactionEntry setFifoParams={setFifoParams} setActiveTab={setActiveTab} />,
+    'Transactions': <TransactionView />,
     'Market Price Feed': <TradeSummaryUpload />,
     'Mark-to-Market Valuation': <MarkToMarketValuation />,
     'Realized Gain/Loss Tracking': <RealizedPnL />,
