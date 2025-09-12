@@ -9,7 +9,15 @@ const Navbar = ({ activeTab, onTabChange, visibleTabs = [], user, onLogout, onOp
 
   // All possible tabs with their properties
   const allTabDefinitions = {
-    
+    'Dashboard': {
+      className: 'nav-dashboard',
+      description: 'Main dashboard overview',
+      icon: (
+        <svg className="tab-icon" fill="currentColor" viewBox="0 0 20 20">
+          <path d="M3 4a1 1 0 011-1h12a1 1 0 011 1v2a1 1 0 01-1 1H4a1 1 0 01-1-1V4zM3 10a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H4a1 1 0 01-1-1v-6zM14 9a1 1 0 00-1 1v6a1 1 0 001 1h2a1 1 0 001-1v-6a1 1 0 00-1-1h-2z" />
+        </svg>
+      )
+    },
     'Buy': {
       className: 'nav-buy',
       description: 'Purchase securities',
@@ -32,7 +40,12 @@ const Navbar = ({ activeTab, onTabChange, visibleTabs = [], user, onLogout, onOp
     // Add more entries as needed...
   };
 
-  const tabs = visibleTabs.map(name => ({
+  // Add Dashboard tab when Dashboard-related tabs are visible
+  const tabsWithDashboard = visibleTabs.length > 0 && visibleTabs.includes('Portfolio Overview') 
+    ? ['Dashboard', ...visibleTabs] 
+    : visibleTabs;
+
+  const tabs = tabsWithDashboard.map(name => ({
     name,
     className: allTabDefinitions[name]?.className || 'nav-default',
     icon: allTabDefinitions[name]?.icon || <></>,

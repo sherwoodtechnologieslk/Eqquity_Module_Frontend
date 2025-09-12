@@ -39,7 +39,7 @@ import PerformanceMetrics from './components/PerformanceMetrics/PerformanceMetri
 function App() {
   const [activeTab, setActiveTab] = useState('Dashboard');
   const [activeSidebarItem, setActiveSidebarItem] = useState(0);
-  const [visibleTabs, setVisibleTabs] = useState(['Portfolio Overview', 'Market Summary', 'Recent Activity', 'Performance Metrics']);
+  const [visibleTabs, setVisibleTabs] = useState(['Dashboard', 'Portfolio Overview', 'Market Summary', 'Recent Activity', 'Performance Metrics']);
   const [fifoParams, setFifoParams] = useState(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [user, setUser] = useState(null);
@@ -121,7 +121,7 @@ function App() {
   // Optional: Set default visible tabs on first load
   useEffect(() => {
     if (isAuthenticated) {
-      setVisibleTabs(['Portfolio Overview', 'Market Summary', 'Recent Activity', 'Performance Metrics']);
+      setVisibleTabs(['Dashboard', 'Portfolio Overview', 'Market Summary', 'Recent Activity', 'Performance Metrics']);
       setActiveTab('Dashboard');
     }
   }, [isAuthenticated]);
@@ -133,7 +133,7 @@ function App() {
     authService.setAuth(userData, token);
     // Set default to Dashboard after login
     setActiveTab('Dashboard');
-    setVisibleTabs(['Portfolio Overview', 'Market Summary', 'Recent Activity', 'Performance Metrics']);
+    setVisibleTabs(['Dashboard', 'Portfolio Overview', 'Market Summary', 'Recent Activity', 'Performance Metrics']);
   };
 
   // Handle logout
@@ -142,7 +142,7 @@ function App() {
     setIsAuthenticated(false);
     setUser(null);
     setActiveTab('Dashboard');
-    setVisibleTabs(['Portfolio Overview', 'Market Summary', 'Recent Activity', 'Performance Metrics']);
+    setVisibleTabs(['Dashboard', 'Portfolio Overview', 'Market Summary', 'Recent Activity', 'Performance Metrics']);
   };
 
   // If not authenticated, show auth container

@@ -3,9 +3,7 @@ import './Dashboard.css';
 
 const Dashboard = () => {
   const [dashboardData, setDashboardData] = useState({
-    portfolioValue: 0,
-    totalPnL: 0,
-    activePositions: 0,
+    activePortfolios: 0,
     recentTransactions: [],
     topPerformers: [],
     marketAlerts: []
@@ -20,62 +18,34 @@ const Dashboard = () => {
 
   const loadDashboardData = async () => {
     try {
-      // Fetch real data from backend API
-      const response = await fetch('http://localhost:8080/api/dashboard/overview', {
+      // Use the same API as Buy Transaction Entry to get active portfolios
+      const portfoliosResponse = await fetch('http://localhost:8080/api/portfolios/active', {
         method: 'GET',
         headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
+          'Content-Type': 'application/json'
         }
       });
 
-      if (!response.ok) {
-        throw new Error('Failed to fetch dashboard data');
-      }
-
-      const result = await response.json();
-      
-      if (result.success) {
-        const apiData = result.data;
+      if (portfoliosResponse.ok) {
+        const portfolios = await portfoliosResponse.json();
         setDashboardData({
-          portfolioValue: apiData.portfolio?.totalValue || 0,
-          totalPnL: apiData.portfolio?.totalPnL || 0,
-          activePositions: apiData.portfolio?.activePositions || 0,
-          recentTransactions: apiData.recentTransactions?.map(t => ({
-            id: t.id,
-            type: t.type,
-            symbol: t.symbol,
-            quantity: t.quantity,
-            price: t.price,
-            date: t.date
-          })) || [],
-          topPerformers: apiData.topPerformers?.map(p => ({
-            symbol: p.symbol,
-            return: Math.random() * 15, // Mock return for now
-            value: Math.random() * 200000 + 50000 // Mock value for now
-          })) || [],
-          marketAlerts: apiData.marketAlerts || []
+          activePortfolios: portfolios.length,
+          recentTransactions: [],
+          topPerformers: [],
+          marketAlerts: [
+            { type: 'info', message: `${portfolios.length} active portfolios found` },
+            { type: 'success', message: 'System is running normally' }
+          ]
         });
       } else {
         // Fallback to mock data if API fails
         const mockData = {
-          portfolioValue: 1250000,
-          totalPnL: 45000,
-          activePositions: 15,
-          recentTransactions: [
-            { id: 1, type: 'BUY', symbol: 'AAPL', quantity: 100, price: 150.25, date: '2024-01-15' },
-            { id: 2, type: 'SELL', symbol: 'GOOGL', quantity: 50, price: 2750.00, date: '2024-01-14' },
-            { id: 3, type: 'BUY', symbol: 'MSFT', quantity: 75, price: 320.50, date: '2024-01-13' }
-          ],
-          topPerformers: [
-            { symbol: 'NVDA', return: 12.5, value: 125000 },
-            { symbol: 'TSLA', return: 8.2, value: 89000 },
-            { symbol: 'META', return: 6.8, value: 156000 }
-          ],
+          activePortfolios: 0,
+          recentTransactions: [],
+          topPerformers: [],
           marketAlerts: [
-            { type: 'warning', message: 'Market volatility increased by 15%' },
-            { type: 'info', message: 'New dividend announcement for AAPL' },
-            { type: 'success', message: 'Portfolio rebalancing completed' }
+            { type: 'info', message: 'No active portfolios found. Create your first portfolio to get started.' },
+            { type: 'success', message: 'System is running normally' }
           ]
         };
         setDashboardData(mockData);
@@ -86,23 +56,12 @@ const Dashboard = () => {
       console.error('Error loading dashboard data:', error);
       // Fallback to mock data on error
       const mockData = {
-        portfolioValue: 1250000,
-        totalPnL: 45000,
-        activePositions: 15,
-        recentTransactions: [
-          { id: 1, type: 'BUY', symbol: 'AAPL', quantity: 100, price: 150.25, date: '2024-01-15' },
-          { id: 2, type: 'SELL', symbol: 'GOOGL', quantity: 50, price: 2750.00, date: '2024-01-14' },
-          { id: 3, type: 'BUY', symbol: 'MSFT', quantity: 75, price: 320.50, date: '2024-01-13' }
-        ],
-        topPerformers: [
-          { symbol: 'NVDA', return: 12.5, value: 125000 },
-          { symbol: 'TSLA', return: 8.2, value: 89000 },
-          { symbol: 'META', return: 6.8, value: 156000 }
-        ],
+        activePortfolios: 0,
+        recentTransactions: [],
+        topPerformers: [],
         marketAlerts: [
-          { type: 'warning', message: 'Market volatility increased by 15%' },
-          { type: 'info', message: 'New dividend announcement for AAPL' },
-          { type: 'success', message: 'Portfolio rebalancing completed' }
+          { type: 'info', message: 'No active portfolios found. Create your first portfolio to get started.' },
+          { type: 'success', message: 'System is running normally' }
         ]
       };
       setDashboardData(mockData);
@@ -122,41 +81,41 @@ const Dashboard = () => {
   return (
     <div className="dashboard">
       <div className="dashboard-header">
-        <h1>Welcome to Equity Module Dashboard</h1>
-        <p className="dashboard-subtitle">Your portfolio overview and market insights</p>
+        <div className="welcome-content">
+          <div className="welcome-icon">
+            <svg viewBox="0 0 24 24" fill="currentColor">
+              <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
+            </svg>
+          </div>
+          <div className="welcome-text">
+            <h1>Welcome to Equity Module</h1>
+            <p className="welcome-subtitle">Professional Portfolio Management Dashboard</p>
+          </div>
+        </div>
+        <div className="welcome-decoration">
+          <div className="decoration-dot"></div>
+          <div className="decoration-dot"></div>
+          <div className="decoration-dot"></div>
+        </div>
       </div>
 
       {/* Key Metrics Row */}
       <div className="metrics-row">
         <div className="metric-card primary">
-          <div className="metric-icon">💰</div>
+          <div className="metric-icon"></div>
           <div className="metric-content">
-            <h3>Portfolio Value</h3>
-            <p className="metric-value">${dashboardData.portfolioValue.toLocaleString()}</p>
-            <span className="metric-change positive">+2.3% today</span>
+            <h3>Active Portfolios</h3>
+            <p className="metric-value">{dashboardData.activePortfolios}</p>
+            <span className="metric-change positive">
+              {dashboardData.activePortfolios === 0 ? 'No portfolios yet' : `${dashboardData.activePortfolios} portfolios`}
+            </span>
           </div>
         </div>
 
-        <div className="metric-card success">
-          <div className="metric-icon">📈</div>
-          <div className="metric-content">
-            <h3>Total P&L</h3>
-            <p className="metric-value">${dashboardData.totalPnL.toLocaleString()}</p>
-            <span className="metric-change positive">+3.7% YTD</span>
-          </div>
-        </div>
 
-        <div className="metric-card info">
-          <div className="metric-icon">📊</div>
-          <div className="metric-content">
-            <h3>Active Positions</h3>
-            <p className="metric-value">{dashboardData.activePositions}</p>
-            <span className="metric-change">Across 8 sectors</span>
-          </div>
-        </div>
 
         <div className="metric-card warning">
-          <div className="metric-icon">⚡</div>
+          <div className="metric-icon"></div>
           <div className="metric-content">
             <h3>Market Status</h3>
             <p className="metric-value">Open</p>
@@ -218,9 +177,6 @@ const Dashboard = () => {
             {dashboardData.marketAlerts.map((alert, index) => (
               <div key={index} className={`alert-item ${alert.type}`}>
                 <div className="alert-icon">
-                  {alert.type === 'warning' && '⚠️'}
-                  {alert.type === 'info' && 'ℹ️'}
-                  {alert.type === 'success' && '✅'}
                 </div>
                 <div className="alert-message">{alert.message}</div>
               </div>

@@ -421,6 +421,37 @@
   border-color: rgba(255, 255, 255, 0.6);
 }
 
+/* Home Tab Styles */
+.nav-home.active {
+  background: linear-gradient(135deg, #fef3c7 0%, #f59e0b 100%);
+  color: #92400e !important;
+  box-shadow: 
+    0 8px 25px rgba(245, 158, 11, 0.3),
+    0 4px 12px rgba(146, 64, 14, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.9),
+    inset 0 -1px 0 rgba(245, 158, 11, 0.2);
+  border: 1px solid rgba(245, 158, 11, 0.3);
+}
+
+.nav-home.active .active-indicator {
+  background: radial-gradient(circle, #92400e 0%, #f59e0b 100%);
+  box-shadow: 0 0 12px rgba(245, 158, 11, 0.8);
+}
+
+.nav-home:hover {
+  color: #f59e0b;
+  transform: translateY(-2px);
+  box-shadow: 
+    0 8px 25px rgba(0, 0, 0, 0.2),
+    0 4px 10px rgba(245, 158, 11, 0.3);
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.nav-home:hover .tab-icon {
+  transform: scale(1.15) rotate(-5deg);
+  filter: drop-shadow(0 2px 4px rgba(245, 158, 11, 0.3));
+}
+
 /* Active Tab Custom Colors with Enhanced Effects */
 .nav-buy.active {
   background: linear-gradient(135deg, #d1fae5 0%, #10b981 100%);
