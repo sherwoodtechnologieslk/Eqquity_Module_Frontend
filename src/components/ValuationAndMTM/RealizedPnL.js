@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import './Styles/RealizedPnL.css';
 import { realizedPnLService } from '../../services/realizedPnLService';
+import { portfolioAPI } from '../../services/api';
 
 const RealizedPnL = () => {
   const [realizedData, setRealizedData] = useState({
@@ -26,10 +27,30 @@ const RealizedPnL = () => {
   const [activeTab, setActiveTab] = useState('overview');
   const [timeRange, setTimeRange] = useState('1Y');
   const [selectedPortfolio, setSelectedPortfolio] = useState('all');
+  const [portfolios, setPortfolios] = useState([]);
+  const [portfoliosLoading, setPortfoliosLoading] = useState(true);
 
   useEffect(() => {
     loadRealizedPnLData();
   }, [timeRange, selectedPortfolio]);
+
+  // Load active portfolios on component mount
+  useEffect(() => {
+    loadActivePortfolios();
+  }, []);
+
+  const loadActivePortfolios = async () => {
+    try {
+      setPortfoliosLoading(true);
+      const data = await portfolioAPI.getActivePortfolios();
+      setPortfolios(data);
+    } catch (error) {
+      console.error('Error loading active portfolios:', error);
+      setPortfolios([]);
+    } finally {
+      setPortfoliosLoading(false);
+    }
+  };
 
   const loadRealizedPnLData = async () => {
     try {
@@ -145,12 +166,19 @@ const RealizedPnL = () => {
           </div>
           <div className="portfolio-selector">
             <label>Portfolio:</label>
-            <select value={selectedPortfolio} onChange={(e) => setSelectedPortfolio(e.target.value)}>
+            <select 
+              value={selectedPortfolio} 
+              onChange={(e) => setSelectedPortfolio(e.target.value)}
+              disabled={portfoliosLoading}
+            >
               <option value="all">All Portfolios</option>
-              <option value="main">Main Portfolio</option>
-              <option value="growth">Growth Portfolio</option>
-              <option value="conservative">Conservative Portfolio</option>
+              {portfolios.map((portfolio) => (
+                <option key={portfolio.portfolioId} value={portfolio.portfolioId}>
+                  {portfolio.portfolioName}
+                </option>
+              ))}
             </select>
+            {portfoliosLoading && <span className="loading-text">Loading portfolios...</span>}
           </div>
         </div>
       </div>

@@ -40,12 +40,7 @@ const Navbar = ({ activeTab, onTabChange, visibleTabs = [], user, onLogout, onOp
     // Add more entries as needed...
   };
 
-  // Add Dashboard tab when Dashboard-related tabs are visible
-  const tabsWithDashboard = visibleTabs.length > 0 && visibleTabs.includes('Portfolio Overview') 
-    ? ['Dashboard', ...visibleTabs] 
-    : visibleTabs;
-
-  const tabs = tabsWithDashboard.map(name => ({
+  const tabs = visibleTabs.map(name => ({
     name,
     className: allTabDefinitions[name]?.className || 'nav-default',
     icon: allTabDefinitions[name]?.icon || <></>,

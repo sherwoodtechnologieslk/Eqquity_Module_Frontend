@@ -13,6 +13,7 @@ const menuItems = [
     ),
     name: "Dashboard",
     subTopics: [
+      "Dashboard",
       "Portfolio Overview",
       "Market Summary",
       "Recent Activity",

@@ -199,7 +199,7 @@
 /* Dashboard Grid */
 .dashboard-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+  grid-template-columns: 1fr;
   gap: 1.5rem;
 }
 
@@ -454,6 +454,24 @@
 @keyframes spin {
   0% { transform: rotate(0deg); }
   100% { transform: rotate(360deg); }
+}
+
+/* Empty States */
+.no-transactions {
+  text-align: center;
+  padding: 2rem;
+  color: #64748b;
+}
+
+.no-transactions p {
+  margin: 0;
+  font-size: 1rem;
+}
+
+.no-transactions-subtitle {
+  font-size: 0.875rem !important;
+  color: #94a3b8 !important;
+  margin-top: 0.5rem !important;
 }
 
 /* Responsive Design */

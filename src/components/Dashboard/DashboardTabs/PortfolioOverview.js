@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import './PortfolioOverview.css';
+import { portfolioAPI } from '../../../services/api';
 
 const PortfolioOverview = () => {
   const [portfolioData, setPortfolioData] = useState({
@@ -17,10 +18,27 @@ const PortfolioOverview = () => {
     }
   });
   const [isLoading, setIsLoading] = useState(true);
+  const [portfolios, setPortfolios] = useState([]);
+  const [selectedPortfolio, setSelectedPortfolio] = useState('all');
+  const [portfoliosLoading, setPortfoliosLoading] = useState(true);
 
   useEffect(() => {
     loadPortfolioData();
+    loadActivePortfolios();
   }, []);
+
+  const loadActivePortfolios = async () => {
+    try {
+      setPortfoliosLoading(true);
+      const data = await portfolioAPI.getActivePortfolios();
+      setPortfolios(data);
+    } catch (error) {
+      console.error('Error loading active portfolios:', error);
+      setPortfolios([]);
+    } finally {
+      setPortfoliosLoading(false);
+    }
+  };
 
   const loadPortfolioData = async () => {
     try {
@@ -108,6 +126,35 @@ const PortfolioOverview = () => {
 
       {/* Portfolio Summary Cards */}
       <div className="summary-cards">
+        <div className="summary-card secondary">
+          <div className="card-icon">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+            </svg>
+          </div>
+          <div className="card-content">
+            <h3>Select Portfolio</h3>
+            <div className="portfolio-selector">
+              <select 
+                value={selectedPortfolio} 
+                onChange={(e) => setSelectedPortfolio(e.target.value)}
+                disabled={portfoliosLoading}
+                className="portfolio-dropdown"
+              >
+                <option value="all">All Portfolios</option>
+                {portfolios.map((portfolio) => (
+                  <option key={portfolio.portfolioId} value={portfolio.portfolioId}>
+                    {portfolio.portfolioName}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <span className="card-change">
+              {portfoliosLoading ? 'Loading portfolios...' : `${portfolios.length} portfolios available`}
+            </span>
+          </div>
+        </div>
+
         <div className="summary-card primary">
           <div className="card-icon"></div>
           <div className="card-content">
