@@ -18,7 +18,7 @@ const Dashboard = () => {
 
   const loadDashboardData = async () => {
     try {
-      // Use the same API as Buy Transaction Entry to get active portfolios
+      // Get active portfolios count
       const portfoliosResponse = await fetch('http://localhost:8080/api/portfolios/active', {
         method: 'GET',
         headers: {
@@ -26,30 +26,52 @@ const Dashboard = () => {
         }
       });
 
+      // Get dashboard data with recent transactions
+      const dashboardResponse = await fetch('http://localhost:8080/api/dashboard/overview', {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      });
+
+      let activePortfolios = 0;
+      let recentTransactions = [];
+      let topPerformers = [];
+      let marketAlerts = [];
+
       if (portfoliosResponse.ok) {
         const portfolios = await portfoliosResponse.json();
-        setDashboardData({
-          activePortfolios: portfolios.length,
-          recentTransactions: [],
-          topPerformers: [],
-          marketAlerts: [
-            { type: 'info', message: `${portfolios.length} active portfolios found` },
-            { type: 'success', message: 'System is running normally' }
-          ]
-        });
-      } else {
-        // Fallback to mock data if API fails
-        const mockData = {
-          activePortfolios: 0,
-          recentTransactions: [],
-          topPerformers: [],
-          marketAlerts: [
-            { type: 'info', message: 'No active portfolios found. Create your first portfolio to get started.' },
-            { type: 'success', message: 'System is running normally' }
-          ]
-        };
-        setDashboardData(mockData);
+        activePortfolios = portfolios.length;
       }
+
+      if (dashboardResponse.ok) {
+        const dashboardData = await dashboardResponse.json();
+        if (dashboardData.success) {
+          recentTransactions = dashboardData.data?.recentTransactions || [];
+          topPerformers = dashboardData.data?.topPerformers || [];
+          marketAlerts = dashboardData.data?.marketAlerts || [];
+          console.log('Dashboard API data:', dashboardData.data);
+          console.log('Recent transactions:', recentTransactions);
+        }
+      } else {
+        console.log('Dashboard API failed:', dashboardResponse.status);
+      }
+
+      setDashboardData({
+        activePortfolios,
+        recentTransactions,
+        topPerformers: topPerformers.map(performer => ({
+          symbol: performer.symbol || 'N/A',
+          name: performer.name || 'Unknown',
+          return: performer.return || 0,
+          value: performer.value || 0,
+          transactionCount: performer.transactionCount || 0
+        })),
+        marketAlerts: [
+          { type: 'info', message: `${activePortfolios} active portfolios found` },
+          ...marketAlerts
+        ]
+      });
       
       setIsLoading(false);
     } catch (error) {
@@ -133,19 +155,32 @@ const Dashboard = () => {
             <button className="view-all-btn">View All</button>
           </div>
           <div className="transactions-list">
-            {dashboardData.recentTransactions.map(transaction => (
-              <div key={transaction.id} className="transaction-item">
-                <div className={`transaction-type ${transaction.type.toLowerCase()}`}>
-                  {transaction.type}
+            {dashboardData.recentTransactions && dashboardData.recentTransactions.length > 0 ? (
+              dashboardData.recentTransactions.map(transaction => (
+                <div key={transaction.id} className="transaction-item">
+                  <div className={`transaction-type ${(transaction.type || 'BUY').toLowerCase()}`}>
+                    {transaction.type || 'BUY'}
+                  </div>
+                  <div className="transaction-details">
+                    <span className="symbol">{transaction.symbol || 'N/A'}</span>
+                    <span className="quantity">{transaction.quantity || 0} shares</span>
+                    <span className="price">{transaction.price || 0}</span>
+                  </div>
+                  <div className="transaction-date">
+                    {transaction.date ? new Date(transaction.date).toLocaleDateString('en-US', {
+                      year: 'numeric',
+                      month: 'short',
+                      day: 'numeric'
+                    }) : 'N/A'}
+                  </div>
                 </div>
-                <div className="transaction-details">
-                  <span className="symbol">{transaction.symbol}</span>
-                  <span className="quantity">{transaction.quantity} shares</span>
-                  <span className="price">${transaction.price}</span>
-                </div>
-                <div className="transaction-date">{transaction.date}</div>
+              ))
+            ) : (
+              <div className="no-transactions">
+                <p>No recent transactions found</p>
+                <p className="no-transactions-subtitle">Start trading to see your transaction history here</p>
               </div>
-            ))}
+            )}
           </div>
         </div>
 
@@ -159,9 +194,9 @@ const Dashboard = () => {
             {dashboardData.topPerformers.map((performer, index) => (
               <div key={index} className="performer-item">
                 <div className="performer-rank">{index + 1}</div>
-                <div className="performer-symbol">{performer.symbol}</div>
-                <div className="performer-return positive">+{performer.return}%</div>
-                <div className="performer-value">${performer.value.toLocaleString()}</div>
+                <div className="performer-symbol">{performer.symbol || 'N/A'}</div>
+                <div className="performer-return positive">+{performer.return || 0}%</div>
+                <div className="performer-value">{(performer.value || 0).toLocaleString()}</div>
               </div>
             ))}
           </div>

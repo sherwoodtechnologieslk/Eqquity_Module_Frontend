@@ -87,6 +87,10 @@
   border-left: 4px solid #f59e0b;
 }
 
+.summary-card.secondary {
+  border-left: 4px solid #8b5cf6;
+}
+
 .card-icon {
   font-size: 2rem;
   width: 60px;
@@ -116,6 +120,11 @@
 .summary-card.warning .card-icon {
   background: #fef3c7;
   color: #f59e0b;
+}
+
+.summary-card.secondary .card-icon {
+  background: #f3e8ff;
+  color: #8b5cf6;
 }
 
 .card-content h3 {
@@ -309,6 +318,41 @@
   color: #64748b;
   font-size: 0.8rem;
   text-transform: capitalize;
+}
+
+/* Portfolio Selector Styles */
+.portfolio-selector {
+  margin: 0.5rem 0;
+}
+
+.portfolio-dropdown {
+  width: 100%;
+  padding: 0.5rem;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  background-color: white;
+  color: #1e293b;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.portfolio-dropdown:focus {
+  outline: none;
+  border-color: #8b5cf6;
+  box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.1);
+}
+
+.portfolio-dropdown:disabled {
+  background-color: #f8fafc;
+  color: #94a3b8;
+  cursor: not-allowed;
+}
+
+.portfolio-dropdown option {
+  padding: 0.5rem;
+  color: #1e293b;
 }
 
 /* Responsive Design */
