@@ -52,6 +52,10 @@ const SellTransactionEntry = ({ setFifoParams, setActiveTab }) => {
   const [showListView, setShowListView] = useState(false);
   const [showTransactionDetails, setShowTransactionDetails] = useState(false);
   const [showEquitySelector, setShowEquitySelector] = useState(false);
+  
+  // Add state for available deal numbers
+  const [availableDealNumbers, setAvailableDealNumbers] = useState([]);
+  const [dealNumbersLoading, setDealNumbersLoading] = useState(false);
 
   // Fetch active cost of funds on mount
   useEffect(() => {
@@ -155,6 +159,7 @@ const SellTransactionEntry = ({ setFifoParams, setActiveTab }) => {
 
   useEffect(() => {
     if (form.portfolioName && form.companyName) {
+      // Fetch total quantity
       transactionEntryAPI.getTotalQuantity(form.portfolioName, form.companyName)
         .then(res => {
           setTotalShares(res.total_quantity || '');
@@ -162,8 +167,31 @@ const SellTransactionEntry = ({ setFifoParams, setActiveTab }) => {
         .catch(() => {
           setTotalShares('');
         });
+
+      // Fetch available deal numbers
+      setDealNumbersLoading(true);
+      transactionEntryAPI.getAvailableBuyLots(form.portfolioName, form.companyName)
+        .then(buyLots => {
+          // Extract deal numbers from buy lots
+          const dealNumbers = buyLots.map(lot => ({
+            value: lot.deal_number || lot.contract_number || lot.id,
+            label: lot.deal_number || lot.contract_number || `Transaction ${lot.id}`,
+            id: lot.id,
+            quantity: lot.remaining_quantity || lot.quantity,
+            price: lot.price
+          }));
+          setAvailableDealNumbers(dealNumbers);
+        })
+        .catch(error => {
+          console.error('Error fetching deal numbers:', error);
+          setAvailableDealNumbers([]);
+        })
+        .finally(() => {
+          setDealNumbersLoading(false);
+        });
     } else {
       setTotalShares('');
+      setAvailableDealNumbers([]);
     }
   }, [form.portfolioName, form.companyName]);
 
@@ -661,19 +689,32 @@ const SellTransactionEntry = ({ setFifoParams, setActiveTab }) => {
                   {errors.settlementDate && <span className="sell-error-text">{errors.settlementDate}</span>}
                 </div>
                 <div className="sell-form-group">
-                  <label htmlFor="buyContract">Related Buy Contract</label>
+                  <label htmlFor="buyContract">Related Deal Number</label>
                   <select
                     id="buyContract"
                     name="buyContract"
                     value={form.buyContract}
                     onChange={handleChange}
                     className="sell-form-input"
+                    disabled={!form.companyName || !form.portfolioName || dealNumbersLoading}
                   >
-                    <option value="">Select Contract</option>
-                    <option value="236354">236354</option>
-                    <option value="345897">345897</option>
-                    <option value="456789">456789</option>
+                    <option value="">
+                      {dealNumbersLoading ? 'Loading deal numbers...' : 
+                       !form.companyName || !form.portfolioName ? 'Select Company and Portfolio first' :
+                       availableDealNumbers.length === 0 ? 'No deal numbers available' :
+                       'Select Deal Number'}
+                    </option>
+                    {availableDealNumbers.map((deal) => (
+                      <option key={deal.id} value={deal.value}>
+                        {deal.label} (Qty: {deal.quantity}, Price: {deal.price})
+                      </option>
+                    ))}
                   </select>
+                  {availableDealNumbers.length > 0 && (
+                    <small className="sell-field-note">
+                      {availableDealNumbers.length} deal number(s) available for {form.companyName}
+                    </small>
+                  )}
                 </div>
                 <div className="sell-form-group">
                   <label htmlFor="hdays">Holding Days</label>

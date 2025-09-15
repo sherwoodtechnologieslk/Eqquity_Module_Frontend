@@ -47,10 +47,74 @@ function App() {
   const [isLoading, setIsLoading] = useState(true);
   
 
+  // Handle tab selection from Navbar
+  const handleTabChange = (tabName) => {
+    setActiveTab(tabName);
+    
+    // Update sidebar to reflect the current tab
+    // Find which sidebar section contains this tab
+    const sidebarSections = [
+      {
+        index: 0,
+        name: "Dashboard",
+        subTopics: ["Dashboard", "Portfolio Overview", "Market Summary", "Recent Activity", "Performance Metrics"]
+      },
+      {
+        index: 1,
+        name: "Master Data Management", 
+        subTopics: ["Equity Master", "Account Master", "Valuation Method", "Portfolio Master", "Strategy Master"]
+      },
+      {
+        index: 2,
+        name: "Accounting Entries",
+        subTopics: ["Journal Entries", "General Ledger", "Trial Balance", "Account Reconciliation", "Chart Of Accounts"]
+      },
+      {
+        index: 3,
+        name: "Trade Capture",
+        subTopics: ["Buy", "Sell", "Transactions", "Portfolio", "Deal Slip", "Cost of Funds"]
+      },
+      {
+        index: 4,
+        name: "Trade Summary",
+        subTopics: ["Trade Report", "Trade Confirmation"]
+      },
+      {
+        index: 5,
+        name: "Settlement and Accounting",
+        subTopics: ["Settlement Instructions", "Cash Flow Mapping", "GL Mapping"]
+      },
+      {
+        index: 6,
+        name: "Valuation and MTM",
+        subTopics: ["Mark-to-Market Valuation", "Realized Gain/Loss Tracking", "Trade Summary Data", "Market Price Feed"]
+      },
+      {
+        index: 7,
+        name: "Corporate Actions",
+        subTopics: ["Dividend", "Rights Issue", "Stock Split"]
+      },
+      {
+        index: 8,
+        name: "IPO Management",
+        subTopics: ["IPO Entry", "IPO Allocation"]
+      }
+    ];
+    
+    // Find the section that contains this tab
+    const section = sidebarSections.find(section => 
+      section.subTopics.includes(tabName)
+    );
+    
+    if (section) {
+      setActiveSidebarItem(section.index);
+      setVisibleTabs(section.subTopics);
+    }
+  };
 
   // Tab component mappings
   const tabToComponent = {
-    'Dashboard': <Dashboard />,
+    'Dashboard': <Dashboard onTabChange={handleTabChange} />,
     'Portfolio Overview': <PortfolioOverview />,
     'Market Summary': <MarketSummary />,
     'Recent Activity': <RecentActivity />,
@@ -98,11 +162,6 @@ function App() {
       setVisibleTabs([]);
       setActiveTab('');
     }
-  };
-
-  // Handle tab selection from Navbar
-  const handleTabChange = (tabName) => {
-    setActiveTab(tabName);
   };
 
   // Check authentication status on app load
