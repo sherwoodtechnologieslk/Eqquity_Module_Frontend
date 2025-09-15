@@ -1,7 +1,7 @@
 
 // Sidebar.js
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import './Styles/Sidebar.css';
 
 const menuItems = [
@@ -253,6 +253,11 @@ const menuItems = [
 
 const Sidebar = ({ onSelect, activeIndex = 0, onLogout }) => {
   const [active, setActive] = useState(activeIndex);
+
+  // Sync internal state with prop changes
+  useEffect(() => {
+    setActive(activeIndex);
+  }, [activeIndex]);
 
   // When a sidebar item is clicked, provide both its index and its subTopics to parent
   const handleClick = (i) => {

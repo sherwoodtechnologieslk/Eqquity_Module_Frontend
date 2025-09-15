@@ -108,6 +108,24 @@ const PortfolioOverview = () => {
     return `${((value / total) * 100).toFixed(1)}%`;
   };
 
+  const getSectorColor = (sector) => {
+    const colors = {
+      'Technology': '#3b82f6',
+      'Healthcare': '#10b981',
+      'Financials': '#f59e0b',
+      'Energy': '#ef4444',
+      'Consumer': '#8b5cf6',
+      'Industrial': '#06b6d4',
+      'Materials': '#84cc16',
+      'Utilities': '#f97316',
+      'Real Estate': '#ec4899',
+      'Communication': '#6366f1',
+      'Financial': '#f59e0b',
+      'Unknown': '#64748b'
+    };
+    return colors[sector] || colors['Unknown'];
+  };
+
   if (isLoading) {
     return (
       <div className="portfolio-overview-loading">
@@ -188,6 +206,171 @@ const PortfolioOverview = () => {
             <h3>Cash Balance</h3>
             <p className="card-value">{formatCurrency(portfolioData.summary.cashBalance)}</p>
             <span className="card-change">{formatPercentage(portfolioData.summary.cashBalance, portfolioData.summary.totalValue)} of portfolio</span>
+          </div>
+        </div>
+      </div>
+
+      {/* Quick Performance Metrics */}
+      <div className="performance-metrics-section">
+        <div className="section-header">
+          <h3>Quick Performance</h3>
+          <p className="section-subtitle">Key performance indicators</p>
+        </div>
+        <div className="metrics-grid">
+          <div className="metric-item">
+            <div className="metric-icon best-performer">📈</div>
+            <div className="metric-content">
+              <h4>Best Performer</h4>
+              <p className="metric-value">
+                {portfolioData.holdings.length > 0 
+                  ? portfolioData.holdings.reduce((best, holding) => 
+                      holding.pnl > best.pnl ? holding : best
+                    ).symbol
+                  : 'N/A'
+                }
+              </p>
+              <span className="metric-change positive">
+                {portfolioData.holdings.length > 0 
+                  ? `+${formatCurrency(portfolioData.holdings.reduce((best, holding) => 
+                      holding.pnl > best.pnl ? holding : best
+                    ).pnl)}`
+                  : 'No data'
+                }
+              </span>
+            </div>
+          </div>
+
+          <div className="metric-item">
+            <div className="metric-icon worst-performer">📉</div>
+            <div className="metric-content">
+              <h4>Worst Performer</h4>
+              <p className="metric-value">
+                {portfolioData.holdings.length > 0 
+                  ? portfolioData.holdings.reduce((worst, holding) => 
+                      holding.pnl < worst.pnl ? holding : worst
+                    ).symbol
+                  : 'N/A'
+                }
+              </p>
+              <span className="metric-change negative">
+                {portfolioData.holdings.length > 0 
+                  ? `${formatCurrency(portfolioData.holdings.reduce((worst, holding) => 
+                      holding.pnl < worst.pnl ? holding : worst
+                    ).pnl)}`
+                  : 'No data'
+                }
+              </span>
+            </div>
+          </div>
+
+          <div className="metric-item">
+            <div className="metric-icon total-return">💰</div>
+            <div className="metric-content">
+              <h4>Total Return</h4>
+              <p className="metric-value">
+                {formatPercentage(portfolioData.summary.totalPnL, portfolioData.summary.totalCost)}
+              </p>
+              <span className="metric-change">
+                {formatCurrency(portfolioData.summary.totalPnL)}
+              </span>
+            </div>
+          </div>
+
+          <div className="metric-item">
+            <div className="metric-icon win-rate">🎯</div>
+            <div className="metric-content">
+              <h4>Win Rate</h4>
+              <p className="metric-value">
+                {portfolioData.holdings.length > 0 
+                  ? `${((portfolioData.holdings.filter(h => h.pnl > 0).length / portfolioData.holdings.length) * 100).toFixed(1)}%`
+                  : '0%'
+                }
+              </p>
+              <span className="metric-change">
+                {portfolioData.holdings.filter(h => h.pnl > 0).length} of {portfolioData.holdings.length} positions
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Sector Distribution Pie Chart */}
+      <div className="sector-chart-section">
+        <div className="section-header">
+          <h3>Sector Distribution</h3>
+          <p className="section-subtitle">Portfolio allocation by sector</p>
+        </div>
+        <div className="chart-container">
+          <div className="pie-chart">
+            <svg width="300" height="300" viewBox="0 0 300 300">
+              {portfolioData.holdings.reduce((acc, holding, index) => {
+                const sector = holding.sector || 'Unknown';
+                const existingSector = acc.find(item => item.sector === sector);
+                if (existingSector) {
+                  existingSector.value += holding.marketValue;
+                } else {
+                  acc.push({ sector, value: holding.marketValue, color: getSectorColor(sector) });
+                }
+                return acc;
+              }, []).map((sectorData, index, array) => {
+                const totalValue = array.reduce((sum, item) => sum + item.value, 0);
+                const percentage = (sectorData.value / totalValue) * 100;
+                const startAngle = array.slice(0, index).reduce((sum, item) => sum + (item.value / totalValue) * 360, 0);
+                const endAngle = startAngle + (sectorData.value / totalValue) * 360;
+                
+                const startAngleRad = (startAngle - 90) * Math.PI / 180;
+                const endAngleRad = (endAngle - 90) * Math.PI / 180;
+                
+                const largeArcFlag = endAngle - startAngle <= 180 ? "0" : "1";
+                
+                const x1 = 150 + 100 * Math.cos(startAngleRad);
+                const y1 = 150 + 100 * Math.sin(startAngleRad);
+                const x2 = 150 + 100 * Math.cos(endAngleRad);
+                const y2 = 150 + 100 * Math.sin(endAngleRad);
+                
+                const pathData = [
+                  `M 150 150`,
+                  `L ${x1} ${y1}`,
+                  `A 100 100 0 ${largeArcFlag} 1 ${x2} ${y2}`,
+                  `Z`
+                ].join(' ');
+                
+                return (
+                  <path
+                    key={sectorData.sector}
+                    d={pathData}
+                    fill={sectorData.color}
+                    stroke="white"
+                    strokeWidth="2"
+                  />
+                );
+              })}
+            </svg>
+          </div>
+          <div className="chart-legend">
+            {portfolioData.holdings.reduce((acc, holding) => {
+              const sector = holding.sector || 'Unknown';
+              const existingSector = acc.find(item => item.sector === sector);
+              if (existingSector) {
+                existingSector.value += holding.marketValue;
+              } else {
+                acc.push({ sector, value: holding.marketValue, color: getSectorColor(sector) });
+              }
+              return acc;
+            }, []).sort((a, b) => b.value - a.value).map((sectorData, index) => {
+              const totalValue = portfolioData.holdings.reduce((sum, holding) => sum + holding.marketValue, 0);
+              const percentage = ((sectorData.value / totalValue) * 100).toFixed(1);
+              
+              return (
+                <div key={sectorData.sector} className="legend-item">
+                  <div className="legend-color" style={{ backgroundColor: sectorData.color }}></div>
+                  <div className="legend-content">
+                    <span className="legend-label">{sectorData.sector}</span>
+                    <span className="legend-value">{formatCurrency(sectorData.value)} ({percentage}%)</span>
+                  </div>
+                </div>
+              );
+            })}
           </div>
         </div>
       </div>

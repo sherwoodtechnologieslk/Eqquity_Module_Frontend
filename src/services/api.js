@@ -626,6 +626,18 @@ export const transactionEntryAPI = {
       throw error;
     }
   },
+  getAvailableBuyLots: async (portfolioName, companyName) => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/transaction-entries/buy-lots?portfolio=${encodeURIComponent(portfolioName)}&company=${encodeURIComponent(companyName)}`);
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      return await response.json();
+    } catch (error) {
+      console.error('Error fetching available buy lots:', error);
+      throw error;
+    }
+  },
   saveSellTransaction: async (data) => {
     try {
       const response = await fetch(`${API_BASE_URL}/transaction-entries/sell`, {
