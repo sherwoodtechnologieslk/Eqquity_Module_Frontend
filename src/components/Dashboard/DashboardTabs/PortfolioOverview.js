@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import './PortfolioOverview.css';
 import { portfolioAPI } from '../../../services/api';
 
@@ -22,11 +22,6 @@ const PortfolioOverview = () => {
   const [selectedPortfolio, setSelectedPortfolio] = useState('all');
   const [portfoliosLoading, setPortfoliosLoading] = useState(true);
 
-  useEffect(() => {
-    loadPortfolioData();
-    loadActivePortfolios();
-  }, []);
-
   const loadActivePortfolios = async () => {
     try {
       setPortfoliosLoading(true);
@@ -40,16 +35,24 @@ const PortfolioOverview = () => {
     }
   };
 
-  const loadPortfolioData = async () => {
+  const loadPortfolioData = useCallback(async () => {
     try {
-              // Fetch portfolio data from backend
-                const response = await fetch('http://localhost:8080/api/portfolios/overview', {
-          method: 'GET',
-          headers: {
-            'Content-Type': 'application/json'
-            // Removed Authorization header since backend doesn't require it for now
-          }
-        });
+      setIsLoading(true);
+      
+      // Build URL with portfolio parameter
+      let url = 'http://localhost:8080/api/portfolios/overview';
+      if (selectedPortfolio && selectedPortfolio !== 'all') {
+        url += `?portfolioId=${selectedPortfolio}`;
+      }
+      
+      // Fetch portfolio data from backend
+      const response = await fetch(url, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json'
+          // Removed Authorization header since backend doesn't require it for now
+        }
+      });
 
       if (response.ok) {
         const result = await response.json();
@@ -70,7 +73,17 @@ const PortfolioOverview = () => {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [selectedPortfolio]);
+
+  useEffect(() => {
+    loadActivePortfolios();
+  }, []);
+
+  useEffect(() => {
+    if (portfolios.length > 0) {
+      loadPortfolioData();
+    }
+  }, [selectedPortfolio, portfolios, loadPortfolioData]);
 
   const setMockData = () => {
     const mockData = {
@@ -108,22 +121,130 @@ const PortfolioOverview = () => {
     return `${((value / total) * 100).toFixed(1)}%`;
   };
 
-  const getSectorColor = (sector) => {
-    const colors = {
-      'Technology': '#3b82f6',
-      'Healthcare': '#10b981',
-      'Financials': '#f59e0b',
-      'Energy': '#ef4444',
-      'Consumer': '#8b5cf6',
-      'Industrial': '#06b6d4',
-      'Materials': '#84cc16',
-      'Utilities': '#f97316',
-      'Real Estate': '#ec4899',
-      'Communication': '#6366f1',
-      'Financial': '#f59e0b',
-      'Unknown': '#64748b'
-    };
-    return colors[sector] || colors['Unknown'];
+  // Sector data processing functions
+  const getSectorData = (holdings) => {
+    const sectorMap = {};
+    
+    holdings.forEach(holding => {
+      const sector = holding.sector || 'Unknown';
+      if (sectorMap[sector]) {
+        sectorMap[sector] += holding.marketValue;
+      } else {
+        sectorMap[sector] = holding.marketValue;
+      }
+    });
+
+    return Object.entries(sectorMap)
+      .map(([name, value]) => ({ name, value }))
+      .sort((a, b) => b.value - a.value);
+  };
+
+  const getTotalSectorValue = (holdings) => {
+    return holdings.reduce((total, holding) => total + holding.marketValue, 0);
+  };
+
+  const getSectorColor = (index) => {
+    const colors = [
+      '#3B82F6', // Blue
+      '#10B981', // Green
+      '#F59E0B', // Amber
+      '#EF4444', // Red
+      '#8B5CF6', // Purple
+      '#06B6D4', // Cyan
+      '#84CC16', // Lime
+      '#F97316', // Orange
+      '#EC4899', // Pink
+      '#6B7280'  // Gray
+    ];
+    return colors[index % colors.length];
+  };
+
+  // Sector Pie Chart Component
+  const SectorPieChart = ({ data }) => {
+    const sectorData = getSectorData(data);
+    const totalValue = getTotalSectorValue(data);
+    
+    if (sectorData.length === 0) {
+      return (
+        <div className="no-data-message">
+          <p>No sector data available</p>
+        </div>
+      );
+    }
+
+    let cumulativePercentage = 0;
+    const radius = 80;
+    const centerX = 100;
+    const centerY = 100;
+
+    return (
+      <svg width="200" height="200" viewBox="0 0 200 200" className="sector-pie-chart">
+        {sectorData.map((sector, index) => {
+          const percentage = (sector.value / totalValue) * 100;
+          const startAngle = (cumulativePercentage / 100) * 360;
+          const endAngle = ((cumulativePercentage + percentage) / 100) * 360;
+          
+          const startAngleRad = (startAngle - 90) * (Math.PI / 180);
+          const endAngleRad = (endAngle - 90) * (Math.PI / 180);
+          
+          const x1 = centerX + radius * Math.cos(startAngleRad);
+          const y1 = centerY + radius * Math.sin(startAngleRad);
+          const x2 = centerX + radius * Math.cos(endAngleRad);
+          const y2 = centerY + radius * Math.sin(endAngleRad);
+          
+          const largeArcFlag = percentage > 50 ? 1 : 0;
+          
+          const pathData = [
+            `M ${centerX} ${centerY}`,
+            `L ${x1} ${y1}`,
+            `A ${radius} ${radius} 0 ${largeArcFlag} 1 ${x2} ${y2}`,
+            'Z'
+          ].join(' ');
+
+          cumulativePercentage += percentage;
+
+          return (
+            <path
+              key={index}
+              d={pathData}
+              fill={getSectorColor(index)}
+              stroke="#fff"
+              strokeWidth="2"
+              className="sector-slice"
+            />
+          );
+        })}
+        <circle
+          cx={centerX}
+          cy={centerY}
+          r="30"
+          fill="#fff"
+          stroke="#e5e7eb"
+          strokeWidth="2"
+        />
+        <text
+          x={centerX}
+          y={centerY - 5}
+          textAnchor="middle"
+          className="pie-center-text"
+          fontSize="12"
+          fontWeight="600"
+          fill="#374151"
+        >
+          {sectorData.length}
+        </text>
+        <text
+          x={centerX}
+          y={centerY + 10}
+          textAnchor="middle"
+          className="pie-center-text"
+          fontSize="10"
+          fill="#6B7280"
+        >
+          Sectors
+        </text>
+      </svg>
+    );
   };
 
   if (isLoading) {
@@ -146,12 +267,12 @@ const PortfolioOverview = () => {
       <div className="summary-cards">
         <div className="summary-card secondary">
           <div className="card-icon">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="currentColor">
               <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
             </svg>
           </div>
           <div className="card-content">
-            <h3>Select Portfolio</h3>
+            <h3>Portfolio Selection</h3>
             <div className="portfolio-selector">
               <select 
                 value={selectedPortfolio} 
@@ -174,7 +295,11 @@ const PortfolioOverview = () => {
         </div>
 
         <div className="summary-card primary">
-          <div className="card-icon"></div>
+          <div className="card-icon">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+            </svg>
+          </div>
           <div className="card-content">
             <h3>Total Portfolio Value</h3>
             <p className="card-value">{formatCurrency(portfolioData.summary.totalValue)}</p>
@@ -183,7 +308,11 @@ const PortfolioOverview = () => {
         </div>
 
         <div className="summary-card success">
-          <div className="card-icon"></div>
+          <div className="card-icon">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M16 6l2.29 2.29-4.88 4.88-4-4L2 16.59 3.41 18l6-6 4 4 6.3-6.29L22 12V6z"/>
+            </svg>
+          </div>
           <div className="card-content">
             <h3>Total P&L</h3>
             <p className="card-value">{formatCurrency(portfolioData.summary.totalPnL)}</p>
@@ -192,7 +321,11 @@ const PortfolioOverview = () => {
         </div>
 
         <div className="summary-card info">
-          <div className="card-icon"></div>
+          <div className="card-icon">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8V11h-8v10zm0-18v6h8V3h-8z"/>
+            </svg>
+          </div>
           <div className="card-content">
             <h3>Active Positions</h3>
             <p className="card-value">{portfolioData.summary.numberOfPositions}</p>
@@ -201,176 +334,15 @@ const PortfolioOverview = () => {
         </div>
 
         <div className="summary-card warning">
-          <div className="card-icon"></div>
+          <div className="card-icon">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+            </svg>
+          </div>
           <div className="card-content">
             <h3>Cash Balance</h3>
             <p className="card-value">{formatCurrency(portfolioData.summary.cashBalance)}</p>
             <span className="card-change">{formatPercentage(portfolioData.summary.cashBalance, portfolioData.summary.totalValue)} of portfolio</span>
-          </div>
-        </div>
-      </div>
-
-      {/* Quick Performance Metrics */}
-      <div className="performance-metrics-section">
-        <div className="section-header">
-          <h3>Quick Performance</h3>
-          <p className="section-subtitle">Key performance indicators</p>
-        </div>
-        <div className="metrics-grid">
-          <div className="metric-item">
-            <div className="metric-icon best-performer">📈</div>
-            <div className="metric-content">
-              <h4>Best Performer</h4>
-              <p className="metric-value">
-                {portfolioData.holdings.length > 0 
-                  ? portfolioData.holdings.reduce((best, holding) => 
-                      holding.pnl > best.pnl ? holding : best
-                    ).symbol
-                  : 'N/A'
-                }
-              </p>
-              <span className="metric-change positive">
-                {portfolioData.holdings.length > 0 
-                  ? `+${formatCurrency(portfolioData.holdings.reduce((best, holding) => 
-                      holding.pnl > best.pnl ? holding : best
-                    ).pnl)}`
-                  : 'No data'
-                }
-              </span>
-            </div>
-          </div>
-
-          <div className="metric-item">
-            <div className="metric-icon worst-performer">📉</div>
-            <div className="metric-content">
-              <h4>Worst Performer</h4>
-              <p className="metric-value">
-                {portfolioData.holdings.length > 0 
-                  ? portfolioData.holdings.reduce((worst, holding) => 
-                      holding.pnl < worst.pnl ? holding : worst
-                    ).symbol
-                  : 'N/A'
-                }
-              </p>
-              <span className="metric-change negative">
-                {portfolioData.holdings.length > 0 
-                  ? `${formatCurrency(portfolioData.holdings.reduce((worst, holding) => 
-                      holding.pnl < worst.pnl ? holding : worst
-                    ).pnl)}`
-                  : 'No data'
-                }
-              </span>
-            </div>
-          </div>
-
-          <div className="metric-item">
-            <div className="metric-icon total-return">💰</div>
-            <div className="metric-content">
-              <h4>Total Return</h4>
-              <p className="metric-value">
-                {formatPercentage(portfolioData.summary.totalPnL, portfolioData.summary.totalCost)}
-              </p>
-              <span className="metric-change">
-                {formatCurrency(portfolioData.summary.totalPnL)}
-              </span>
-            </div>
-          </div>
-
-          <div className="metric-item">
-            <div className="metric-icon win-rate">🎯</div>
-            <div className="metric-content">
-              <h4>Win Rate</h4>
-              <p className="metric-value">
-                {portfolioData.holdings.length > 0 
-                  ? `${((portfolioData.holdings.filter(h => h.pnl > 0).length / portfolioData.holdings.length) * 100).toFixed(1)}%`
-                  : '0%'
-                }
-              </p>
-              <span className="metric-change">
-                {portfolioData.holdings.filter(h => h.pnl > 0).length} of {portfolioData.holdings.length} positions
-              </span>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Sector Distribution Pie Chart */}
-      <div className="sector-chart-section">
-        <div className="section-header">
-          <h3>Sector Distribution</h3>
-          <p className="section-subtitle">Portfolio allocation by sector</p>
-        </div>
-        <div className="chart-container">
-          <div className="pie-chart">
-            <svg width="300" height="300" viewBox="0 0 300 300">
-              {portfolioData.holdings.reduce((acc, holding, index) => {
-                const sector = holding.sector || 'Unknown';
-                const existingSector = acc.find(item => item.sector === sector);
-                if (existingSector) {
-                  existingSector.value += holding.marketValue;
-                } else {
-                  acc.push({ sector, value: holding.marketValue, color: getSectorColor(sector) });
-                }
-                return acc;
-              }, []).map((sectorData, index, array) => {
-                const totalValue = array.reduce((sum, item) => sum + item.value, 0);
-                const percentage = (sectorData.value / totalValue) * 100;
-                const startAngle = array.slice(0, index).reduce((sum, item) => sum + (item.value / totalValue) * 360, 0);
-                const endAngle = startAngle + (sectorData.value / totalValue) * 360;
-                
-                const startAngleRad = (startAngle - 90) * Math.PI / 180;
-                const endAngleRad = (endAngle - 90) * Math.PI / 180;
-                
-                const largeArcFlag = endAngle - startAngle <= 180 ? "0" : "1";
-                
-                const x1 = 150 + 100 * Math.cos(startAngleRad);
-                const y1 = 150 + 100 * Math.sin(startAngleRad);
-                const x2 = 150 + 100 * Math.cos(endAngleRad);
-                const y2 = 150 + 100 * Math.sin(endAngleRad);
-                
-                const pathData = [
-                  `M 150 150`,
-                  `L ${x1} ${y1}`,
-                  `A 100 100 0 ${largeArcFlag} 1 ${x2} ${y2}`,
-                  `Z`
-                ].join(' ');
-                
-                return (
-                  <path
-                    key={sectorData.sector}
-                    d={pathData}
-                    fill={sectorData.color}
-                    stroke="white"
-                    strokeWidth="2"
-                  />
-                );
-              })}
-            </svg>
-          </div>
-          <div className="chart-legend">
-            {portfolioData.holdings.reduce((acc, holding) => {
-              const sector = holding.sector || 'Unknown';
-              const existingSector = acc.find(item => item.sector === sector);
-              if (existingSector) {
-                existingSector.value += holding.marketValue;
-              } else {
-                acc.push({ sector, value: holding.marketValue, color: getSectorColor(sector) });
-              }
-              return acc;
-            }, []).sort((a, b) => b.value - a.value).map((sectorData, index) => {
-              const totalValue = portfolioData.holdings.reduce((sum, holding) => sum + holding.marketValue, 0);
-              const percentage = ((sectorData.value / totalValue) * 100).toFixed(1);
-              
-              return (
-                <div key={sectorData.sector} className="legend-item">
-                  <div className="legend-color" style={{ backgroundColor: sectorData.color }}></div>
-                  <div className="legend-content">
-                    <span className="legend-label">{sectorData.sector}</span>
-                    <span className="legend-value">{formatCurrency(sectorData.value)} ({percentage}%)</span>
-                  </div>
-                </div>
-              );
-            })}
           </div>
         </div>
       </div>
@@ -382,7 +354,11 @@ const PortfolioOverview = () => {
         </div>
         <div className="allocation-cards">
           <div className="allocation-card equity">
-            <div className="allocation-icon"></div>
+            <div className="allocation-icon">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+              </svg>
+            </div>
             <div className="allocation-content">
               <h4>Equity</h4>
               <p className="allocation-value">{formatCurrency(portfolioData.assetAllocation.equity)}</p>
@@ -392,7 +368,11 @@ const PortfolioOverview = () => {
             </div>
           </div>
           <div className="allocation-card cash">
-            <div className="allocation-icon"></div>
+            <div className="allocation-icon">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+              </svg>
+            </div>
             <div className="allocation-content">
               <h4>Cash</h4>
               <p className="allocation-value">{formatCurrency(portfolioData.assetAllocation.cash)}</p>
@@ -400,6 +380,35 @@ const PortfolioOverview = () => {
                 {formatPercentage(portfolioData.assetAllocation.cash, portfolioData.summary.totalValue)}
               </span>
             </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Sector Distribution Chart */}
+      <div className="sector-chart-section">
+        <div className="section-header">
+          <h3>Sector Distribution</h3>
+          <p className="section-subtitle">Portfolio allocation by sector</p>
+        </div>
+        <div className="chart-container">
+          <div className="pie-chart">
+            <SectorPieChart data={portfolioData.holdings} />
+          </div>
+          <div className="chart-legend">
+            {getSectorData(portfolioData.holdings).map((sector, index) => (
+              <div key={index} className="legend-item">
+                <div 
+                  className="legend-color" 
+                  style={{ backgroundColor: getSectorColor(index) }}
+                ></div>
+                <div className="legend-content">
+                  <div className="legend-label">{sector.name}</div>
+                  <div className="legend-value">
+                    {formatCurrency(sector.value)} ({formatPercentage(sector.value, getTotalSectorValue(portfolioData.holdings))})
+                  </div>
+                </div>
+              </div>
+            ))}
           </div>
         </div>
       </div>
