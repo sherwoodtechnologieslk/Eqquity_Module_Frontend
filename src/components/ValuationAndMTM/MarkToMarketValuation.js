@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { portfolioAPI } from '../../services/api';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import { portfolioAPI, tradeSummaryAPI } from '../../services/api';
 import './Styles/MarkToMarketValuation.css';
 
 const MarkToMarketValuation = () => {
@@ -10,9 +10,13 @@ const MarkToMarketValuation = () => {
   const [portfoliosLoading, setPortfoliosLoading] = useState(true);
   const [portfoliosError, setPortfoliosError] = useState('');
   const [lastUpdated, setLastUpdated] = useState(new Date());
+  const [activeTab, setActiveTab] = useState('overview');
+  const [companies, setCompanies] = useState([]);
+  const [selectedCompany, setSelectedCompany] = useState('');
+  const [companiesLoading, setCompaniesLoading] = useState(false);
 
   // Mock data for MTM - replace with actual API calls when available
-  const mockMtmData = [
+  const mockMtmData = useMemo(() => [
     {
       id: 1,
       companyName: 'John Keells Holdings PLC',
@@ -52,7 +56,37 @@ const MarkToMarketValuation = () => {
       gainLossPercentage: 5.49,
       lastPriceUpdate: '2024-01-15 14:30:00'
     }
-  ];
+  ], []);
+
+  // Mock performance data for line chart - will be used when implementing dynamic chart
+  // const mockPerformanceData = [
+  //   { date: '2024-01-01', portfolioValue: 100000, marketValue: 100000 },
+  //   { date: '2024-01-02', portfolioValue: 101200, marketValue: 101200 },
+  //   { date: '2024-01-03', portfolioValue: 99800, marketValue: 99800 },
+  //   { date: '2024-01-04', portfolioValue: 102500, marketValue: 102500 },
+  //   { date: '2024-01-05', portfolioValue: 101800, marketValue: 101800 },
+  //   { date: '2024-01-08', portfolioValue: 103200, marketValue: 103200 },
+  //   { date: '2024-01-09', portfolioValue: 100500, marketValue: 100500 },
+  //   { date: '2024-01-10', portfolioValue: 104000, marketValue: 104000 },
+  //   { date: '2024-01-11', portfolioValue: 102800, marketValue: 102800 },
+  //   { date: '2024-01-12', portfolioValue: 105500, marketValue: 105500 },
+  //   { date: '2024-01-15', portfolioValue: 106250, marketValue: 106250 }
+  // ];
+
+  // Load MTM data function
+  const loadMtmData = useCallback(async (portfolioId) => {
+    setLoading(true);
+    try {
+      // Simulate API call
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      setMtmData(mockMtmData);
+      setLastUpdated(new Date());
+    } catch (error) {
+      console.error('Error loading MTM data:', error);
+    } finally {
+      setLoading(false);
+    }
+  }, [mockMtmData]);
 
   // Fetch active portfolios from backend
   const fetchPortfolios = async () => {
@@ -73,29 +107,33 @@ const MarkToMarketValuation = () => {
     }
   };
 
+  // Fetch companies from trade summaries
+  const fetchCompanies = async () => {
+    try {
+      setCompaniesLoading(true);
+      const data = await tradeSummaryAPI.getCompanyList();
+      setCompanies(data);
+      if (data.length > 0) {
+        setSelectedCompany(data[0].symbol);
+      }
+    } catch (error) {
+      console.error('Error fetching companies:', error);
+      setCompanies([]);
+    } finally {
+      setCompaniesLoading(false);
+    }
+  };
+
   useEffect(() => {
     fetchPortfolios();
+    fetchCompanies();
   }, []);
 
   useEffect(() => {
     if (selectedPortfolio) {
       loadMtmData(selectedPortfolio);
     }
-  }, [selectedPortfolio]);
-
-  const loadMtmData = async (portfolioId) => {
-    setLoading(true);
-    try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      setMtmData(mockMtmData);
-      setLastUpdated(new Date());
-    } catch (error) {
-      console.error('Error loading MTM data:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
+  }, [selectedPortfolio, loadMtmData]);
 
   const refreshMtmData = () => {
     loadMtmData(selectedPortfolio);
@@ -127,7 +165,7 @@ const MarkToMarketValuation = () => {
   // Helper function to get selected portfolio name
   const getSelectedPortfolioName = () => {
     if (!selectedPortfolio) return '';
-    const portfolio = portfolios.find(p => p.id == selectedPortfolio);
+    const portfolio = portfolios.find(p => p.id === selectedPortfolio);
     return portfolio ? portfolio.portfolioName : '';
   };
 
@@ -271,6 +309,210 @@ const MarkToMarketValuation = () => {
                 {lastUpdated.toLocaleTimeString()}
               </p>
             </div>
+          </div>
+        </div>
+
+        {/* Performance Analysis Section */}
+        <div className="mtm-performance-section">
+          <div className="mtm-performance-header">
+            <h2>Performance Analysis</h2>
+            <p>Track portfolio performance over time with interactive charts</p>
+          </div>
+
+          {/* Tab Navigation */}
+          <div className="mtm-tab-navigation">
+            <button 
+              className={`mtm-tab ${activeTab === 'overview' ? 'active' : ''}`}
+              onClick={() => setActiveTab('overview')}
+            >
+              Overview
+            </button>
+            <button 
+              className={`mtm-tab ${activeTab === 'performance' ? 'active' : ''}`}
+              onClick={() => setActiveTab('performance')}
+            >
+              Performance Analysis
+            </button>
+            <button 
+              className={`mtm-tab ${activeTab === 'trade-history' ? 'active' : ''}`}
+              onClick={() => setActiveTab('trade-history')}
+            >
+              Trade History
+            </button>
+            <button 
+              className={`mtm-tab ${activeTab === 'tax-summary' ? 'active' : ''}`}
+              onClick={() => setActiveTab('tax-summary')}
+            >
+              Tax Summary
+            </button>
+          </div>
+
+          {/* Tab Content */}
+          <div className="mtm-tab-content">
+            {activeTab === 'performance' && (
+              <div className="mtm-chart-container">
+                <div className="mtm-chart-header">
+                  <h3>
+                    {selectedCompany ? 
+                      `${companies.find(c => c.symbol === selectedCompany)?.company_name || 'Company'} Performance Trend` : 
+                      'Portfolio Value Trend'
+                    }
+                  </h3>
+                  <div className="mtm-chart-controls">
+                    <div className="mtm-chart-control-group">
+                      <label htmlFor="companySelect">Company:</label>
+                      <select 
+                        id="companySelect"
+                        value={selectedCompany}
+                        onChange={(e) => setSelectedCompany(e.target.value)}
+                        className="mtm-chart-company-select"
+                        disabled={companiesLoading}
+                      >
+                        {companiesLoading ? (
+                          <option value="">Loading companies...</option>
+                        ) : companies.length === 0 ? (
+                          <option value="">No companies found</option>
+                        ) : (
+                          companies.map((company, index) => (
+                            <option key={index} value={company.symbol}>
+                              {company.company_name} ({company.symbol})
+                            </option>
+                          ))
+                        )}
+                      </select>
+                    </div>
+                    <div className="mtm-chart-control-group">
+                      <label htmlFor="periodSelect">Period:</label>
+                      <select id="periodSelect" className="mtm-chart-period">
+                        <option value="1M">1 Month</option>
+                        <option value="3M">3 Months</option>
+                        <option value="6M">6 Months</option>
+                        <option value="1Y">1 Year</option>
+                      </select>
+                    </div>
+                  </div>
+                </div>
+                <div className="mtm-line-chart">
+                  <svg width="100%" height="300" viewBox="0 0 800 300">
+                    {/* Chart background */}
+                    <rect width="100%" height="100%" fill="#f8fafc" />
+                    
+                    {/* Grid lines */}
+                    <defs>
+                      <pattern id="grid" width="40" height="30" patternUnits="userSpaceOnUse">
+                        <path d="M 40 0 L 0 0 0 30" fill="none" stroke="#e2e8f0" strokeWidth="1"/>
+                      </pattern>
+                    </defs>
+                    <rect width="100%" height="100%" fill="url(#grid)" />
+                    
+                    {/* Chart area */}
+                    <g transform="translate(60, 20)">
+                      {/* Y-axis labels */}
+                      <text x="-10" y="10" textAnchor="end" fontSize="12" fill="#6b7280">120k</text>
+                      <text x="-10" y="60" textAnchor="end" fontSize="12" fill="#6b7280">110k</text>
+                      <text x="-10" y="110" textAnchor="end" fontSize="12" fill="#6b7280">100k</text>
+                      <text x="-10" y="160" textAnchor="end" fontSize="12" fill="#6b7280">90k</text>
+                      <text x="-10" y="210" textAnchor="end" fontSize="12" fill="#6b7280">80k</text>
+                      
+                      {/* X-axis labels */}
+                      <text x="0" y="240" textAnchor="middle" fontSize="10" fill="#6b7280">Jan 1</text>
+                      <text x="70" y="240" textAnchor="middle" fontSize="10" fill="#6b7280">Jan 3</text>
+                      <text x="140" y="240" textAnchor="middle" fontSize="10" fill="#6b7280">Jan 5</text>
+                      <text x="210" y="240" textAnchor="middle" fontSize="10" fill="#6b7280">Jan 8</text>
+                      <text x="280" y="240" textAnchor="middle" fontSize="10" fill="#6b7280">Jan 10</text>
+                      <text x="350" y="240" textAnchor="middle" fontSize="10" fill="#6b7280">Jan 12</text>
+                      <text x="420" y="240" textAnchor="middle" fontSize="10" fill="#6b7280">Jan 15</text>
+                      
+                      {/* Performance line */}
+                      <polyline
+                        fill="none"
+                        stroke="#3b82f6"
+                        strokeWidth="3"
+                        points="0,110 14,100 28,120 42,80 56,90 70,70 84,110 98,100 112,60 126,80 140,40 154,30"
+                      />
+                      
+                      {/* Data points */}
+                      <circle cx="0" cy="110" r="4" fill="#3b82f6" />
+                      <circle cx="14" cy="100" r="4" fill="#3b82f6" />
+                      <circle cx="28" cy="120" r="4" fill="#3b82f6" />
+                      <circle cx="42" cy="80" r="4" fill="#3b82f6" />
+                      <circle cx="56" cy="90" r="4" fill="#3b82f6" />
+                      <circle cx="70" cy="70" r="4" fill="#3b82f6" />
+                      <circle cx="84" cy="110" r="4" fill="#3b82f6" />
+                      <circle cx="98" cy="100" r="4" fill="#3b82f6" />
+                      <circle cx="112" cy="60" r="4" fill="#3b82f6" />
+                      <circle cx="126" cy="80" r="4" fill="#3b82f6" />
+                      <circle cx="140" cy="40" r="4" fill="#3b82f6" />
+                      <circle cx="154" cy="30" r="4" fill="#3b82f6" />
+                      
+                      {/* Area under curve */}
+                      <polygon
+                        fill="url(#gradient)"
+                        points="0,110 14,100 28,120 42,80 56,90 70,70 84,110 98,100 112,60 126,80 140,40 154,30 154,200 0,200"
+                      />
+                    </g>
+                    
+                    {/* Gradient definition */}
+                    <defs>
+                      <linearGradient id="gradient" x1="0%" y1="0%" x2="0%" y2="100%">
+                        <stop offset="0%" stopColor="#3b82f6" stopOpacity="0.3"/>
+                        <stop offset="100%" stopColor="#3b82f6" stopOpacity="0.05"/>
+                      </linearGradient>
+                    </defs>
+                  </svg>
+                </div>
+                
+                {/* Chart legend and stats */}
+                <div className="mtm-chart-footer">
+                  <div className="mtm-chart-legend">
+                    <div className="mtm-legend-item">
+                      <div className="mtm-legend-color" style={{backgroundColor: '#3b82f6'}}></div>
+                      <span>
+                        {selectedCompany ? 
+                          `${companies.find(c => c.symbol === selectedCompany)?.company_name || 'Company'} Value` : 
+                          'Portfolio Value'
+                        }
+                      </span>
+                    </div>
+                  </div>
+                  <div className="mtm-chart-stats">
+                    <div className="mtm-stat-item">
+                      <span className="mtm-stat-label">Current Value:</span>
+                      <span className="mtm-stat-value">{formatCurrency(106250)}</span>
+                    </div>
+                    <div className="mtm-stat-item">
+                      <span className="mtm-stat-label">Total Return:</span>
+                      <span className="mtm-stat-value positive">+6.25%</span>
+                    </div>
+                    <div className="mtm-stat-item">
+                      <span className="mtm-stat-label">Period:</span>
+                      <span className="mtm-stat-value">15 days</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+            
+            {activeTab === 'overview' && (
+              <div className="mtm-overview-content">
+                <h3>Portfolio Overview</h3>
+                <p>This section will contain portfolio overview information and key metrics.</p>
+              </div>
+            )}
+            
+            {activeTab === 'trade-history' && (
+              <div className="mtm-trade-history-content">
+                <h3>Trade History</h3>
+                <p>This section will contain detailed trade history and transaction records.</p>
+              </div>
+            )}
+            
+            {activeTab === 'tax-summary' && (
+              <div className="mtm-tax-summary-content">
+                <h3>Tax Summary</h3>
+                <p>This section will contain tax-related calculations and summaries.</p>
+              </div>
+            )}
           </div>
         </div>
 
