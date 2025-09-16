@@ -268,6 +268,20 @@ export const tradeSummaryAPI = {
     }
   },
 
+  // Get unique company names and symbols for dropdown
+  getCompanyList: async () => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/trade-summary/companies`);
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      return await response.json();
+    } catch (error) {
+      console.error('Error fetching company list:', error);
+      throw error;
+    }
+  },
+
   // Extract text from PDF file
   extractPdfText: async (file) => {
     try {
