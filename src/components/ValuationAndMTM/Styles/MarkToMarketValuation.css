@@ -532,8 +532,7 @@
 .mtm-overview-content,
 .mtm-trade-history-content,
 .mtm-tax-summary-content {
-  padding: 2rem;
-  text-align: center;
+  padding: 1.5rem;
   color: #6b7280;
 }
 
@@ -551,6 +550,172 @@
 .mtm-tax-summary-content p {
   margin: 0;
   font-size: 1rem;
+}
+
+/* Overview Content Specific Styles */
+.mtm-overview-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.mtm-last-updated {
+  font-size: 0.875rem;
+  color: #6b7280;
+  background: #f1f5f9;
+  padding: 0.25rem 0.75rem;
+  border-radius: 12px;
+}
+
+.mtm-overview-metrics {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.mtm-metric-card {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 1.25rem;
+  text-align: center;
+  transition: all 0.2s ease;
+}
+
+.mtm-metric-card.primary {
+  background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+  color: white;
+  border: none;
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+}
+
+.mtm-metric-label {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #6b7280;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 0.5rem;
+}
+
+.mtm-metric-card.primary .mtm-metric-label {
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.mtm-metric-value {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #1f2937;
+  margin-bottom: 0.5rem;
+  line-height: 1.2;
+}
+
+.mtm-metric-card.primary .mtm-metric-value {
+  color: white;
+  font-size: 2.25rem;
+}
+
+.mtm-metric-change,
+.mtm-metric-percentage {
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+.mtm-metric-change .positive,
+.mtm-metric-percentage.positive {
+  color: #059669;
+}
+
+.mtm-metric-change .negative,
+.mtm-metric-percentage.negative {
+  color: #dc2626;
+}
+
+.mtm-metric-card.primary .mtm-metric-change .positive {
+  color: #10b981;
+}
+
+.mtm-metric-card.primary .mtm-metric-change .negative {
+  color: #fca5a5;
+}
+
+.mtm-small-cards {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+.mtm-small-card {
+  background: white;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 1rem;
+  text-align: center;
+  transition: all 0.2s ease;
+}
+
+.mtm-small-card:hover {
+  border-color: #3b82f6;
+  box-shadow: 0 2px 8px rgba(59, 130, 246, 0.1);
+}
+
+.mtm-small-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #6b7280;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 0.5rem;
+}
+
+.mtm-small-value {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #1f2937;
+}
+
+.mtm-small-value.positive {
+  color: #059669;
+}
+
+.mtm-small-value.negative {
+  color: #dc2626;
+}
+
+.mtm-quick-stats {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-top: 0.5rem;
+  padding: 1rem;
+  background: #f8fafc;
+  border-radius: 8px;
+  border: 1px solid #e2e8f0;
+}
+
+.mtm-stat-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+  flex: 1;
+}
+
+.mtm-stat-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #6b7280;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.mtm-stat-value {
+  font-size: 1.125rem;
+  font-weight: 700;
+  color: #1f2937;
 }
 
 /* Table Section */
