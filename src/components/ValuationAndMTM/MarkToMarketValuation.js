@@ -136,6 +136,156 @@ const DynamicChart = ({ data, selectedCompany, companies }) => {
   );
 };
 
+// Price Analysis Chart Component
+const PriceAnalysisChart = ({ data }) => {
+  if (!data || data.length === 0) {
+    return (
+      <div className="price-chart-placeholder">
+        <p>No data available for chart</p>
+      </div>
+    );
+  }
+
+  const chartWidth = 600;
+  const chartHeight = 300;
+  const margin = { top: 20, right: 20, bottom: 40, left: 60 };
+  const innerWidth = chartWidth - margin.left - margin.right;
+  const innerHeight = chartHeight - margin.top - margin.bottom;
+
+  // Get price range
+  const prices = data.map(d => d.price);
+  const averageCost = data[0]?.averageCost || 0;
+  const maxPrice = Math.max(...prices, averageCost);
+  const minPrice = Math.min(...prices, averageCost);
+  const range = maxPrice - minPrice;
+  const padding = range * 0.1;
+
+  const xScale = (index) => (index / (data.length - 1)) * innerWidth;
+  const yScale = (value) => innerHeight - ((value - minPrice + padding) / (range + 2 * padding)) * innerHeight;
+
+  // Price line path
+  const pricePath = data.map((point, index) => {
+    const x = xScale(index);
+    const y = yScale(point.price);
+    return `${index === 0 ? 'M' : 'L'} ${x} ${y}`;
+  }).join(' ');
+
+  // Average cost line (horizontal)
+  const costY = yScale(averageCost);
+  const costLine = `M 0 ${costY} L ${innerWidth} ${costY}`;
+
+  return (
+    <div className="price-analysis-chart">
+      <svg width={chartWidth} height={chartHeight} className="price-chart-svg">
+        <defs>
+          <linearGradient id="priceGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+            <stop offset="0%" stopColor="#3B82F6" stopOpacity="0.3"/>
+            <stop offset="100%" stopColor="#3B82F6" stopOpacity="0.05"/>
+          </linearGradient>
+        </defs>
+        
+        <g transform={`translate(${margin.left}, ${margin.top})`}>
+          {/* Grid lines */}
+          <g className="grid-lines">
+            {[0, 0.25, 0.5, 0.75, 1].map(t => (
+              <line
+                key={t}
+                x1={0}
+                y1={t * innerHeight}
+                x2={innerWidth}
+                y2={t * innerHeight}
+                stroke="#E5E7EB"
+                strokeWidth="1"
+                opacity="0.5"
+              />
+            ))}
+          </g>
+
+          {/* Price line */}
+          <path
+            d={pricePath}
+            fill="none"
+            stroke="#3B82F6"
+            strokeWidth="2"
+            className="price-line"
+          />
+
+          {/* Average cost line (dashed) */}
+          <path
+            d={costLine}
+            fill="none"
+            stroke="#EF4444"
+            strokeWidth="2"
+            strokeDasharray="5,5"
+            className="cost-line"
+          />
+
+          {/* Data points */}
+          {data.map((point, index) => (
+            <circle
+              key={index}
+              cx={xScale(index)}
+              cy={yScale(point.price)}
+              r="4"
+              fill="#3B82F6"
+              className="price-point"
+            />
+          ))}
+
+          {/* Y-axis labels */}
+          <g className="y-axis">
+            {[0, 0.25, 0.5, 0.75, 1].map(t => {
+              const value = minPrice + padding + (1 - t) * (range + 2 * padding);
+              return (
+                <text
+                  key={t}
+                  x={-10}
+                  y={t * innerHeight + 5}
+                  textAnchor="end"
+                  className="axis-label"
+                  fontSize="12"
+                  fill="#6B7280"
+                >
+                  {value.toFixed(2)}
+                </text>
+              );
+            })}
+          </g>
+
+          {/* X-axis labels */}
+          <g className="x-axis">
+            {data.map((point, index) => (
+              <text
+                key={index}
+                x={xScale(index)}
+                y={innerHeight + 20}
+                textAnchor="middle"
+                className="axis-label"
+                fontSize="12"
+                fill="#6B7280"
+              >
+                {new Date(point.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+              </text>
+            ))}
+          </g>
+        </g>
+      </svg>
+
+      {/* Chart Legend */}
+      <div className="price-chart-legend">
+        <div className="legend-item">
+          <div className="legend-color price-line-color"></div>
+          <span>Market Price</span>
+        </div>
+        <div className="legend-item">
+          <div className="legend-color cost-line-color"></div>
+          <span>Your Average Cost</span>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 const MarkToMarketValuation = () => {
   const [portfolios, setPortfolios] = useState([]);
   const [selectedPortfolio, setSelectedPortfolio] = useState('');
@@ -151,6 +301,9 @@ const MarkToMarketValuation = () => {
   const [companyData, setCompanyData] = useState([]);
   const [companyDataLoading, setCompanyDataLoading] = useState(false);
   const [selectedPeriod, setSelectedPeriod] = useState('1M');
+  const [selectedAnalysisCompany, setSelectedAnalysisCompany] = useState('');
+  const [priceAnalysisData, setPriceAnalysisData] = useState([]);
+  const [priceAnalysisLoading, setPriceAnalysisLoading] = useState(false);
 
 
   // Mock performance data for line chart - will be used when implementing dynamic chart
@@ -355,6 +508,51 @@ const MarkToMarketValuation = () => {
 
   const totals = calculatePortfolioTotals();
 
+  // Load price analysis data
+  const loadPriceAnalysisData = useCallback(async (companySymbol) => {
+    if (!companySymbol) {
+      setPriceAnalysisData([]);
+      return;
+    }
+
+    setPriceAnalysisLoading(true);
+    try {
+      // Fetch trade summary data for the selected company
+      const response = await fetch(`http://localhost:8080/api/trade-summary/company/${companySymbol}?limit=5`);
+      if (response.ok) {
+        const tradeData = await response.json();
+        
+        // Calculate average cost from current portfolio
+        const portfolioCompany = mtmData.find(item => item.symbol === companySymbol);
+        const averageCost = portfolioCompany ? 
+          (portfolioCompany.costValue / portfolioCompany.quantity) : 0;
+
+        // Format data for chart
+        const chartData = tradeData.map(trade => ({
+          date: trade.trade_date,
+          price: parseFloat(trade.last_trade),
+          averageCost: averageCost
+        }));
+
+        setPriceAnalysisData(chartData);
+      } else {
+        setPriceAnalysisData([]);
+      }
+    } catch (error) {
+      console.error('Error loading price analysis data:', error);
+      setPriceAnalysisData([]);
+    } finally {
+      setPriceAnalysisLoading(false);
+    }
+  }, [mtmData]);
+
+  // Load price analysis data when company is selected
+  useEffect(() => {
+    if (selectedAnalysisCompany) {
+      loadPriceAnalysisData(selectedAnalysisCompany);
+    }
+  }, [selectedAnalysisCompany, loadPriceAnalysisData]);
+
   return (
     <div className="mtm-page">
       <div className="mtm-content-wrapper">
@@ -518,10 +716,10 @@ const MarkToMarketValuation = () => {
               Performance Analysis
             </button>
             <button 
-              className={`mtm-tab ${activeTab === 'trade-history' ? 'active' : ''}`}
-              onClick={() => setActiveTab('trade-history')}
+              className={`mtm-tab ${activeTab === 'price-analysis' ? 'active' : ''}`}
+              onClick={() => setActiveTab('price-analysis')}
             >
-              Trade History
+              Price Analysis
             </button>
             <button 
               className={`mtm-tab ${activeTab === 'tax-summary' ? 'active' : ''}`}
@@ -742,10 +940,49 @@ const MarkToMarketValuation = () => {
               </div>
             )}
             
-            {activeTab === 'trade-history' && (
-              <div className="mtm-trade-history-content">
-                <h3>Trade History</h3>
-                <p>This section will contain detailed trade history and transaction records.</p>
+            {activeTab === 'price-analysis' && (
+              <div className="mtm-price-analysis-content">
+                <div className="mtm-price-analysis-header">
+                  <h3>Price Analysis</h3>
+                  <p>Compare your average cost with market price movements</p>
+                </div>
+                
+                <div className="mtm-price-analysis-controls">
+                  <div className="mtm-control-group">
+                    <label htmlFor="analysisCompanySelect">Select Company:</label>
+                    <select 
+                      id="analysisCompanySelect"
+                      value={selectedAnalysisCompany}
+                      onChange={(e) => setSelectedAnalysisCompany(e.target.value)}
+                      className="mtm-analysis-company-select"
+                      disabled={mtmData.length === 0}
+                    >
+                      <option value="">Select a company...</option>
+                      {mtmData.map((item, index) => (
+                        <option key={index} value={item.symbol}>
+                          {item.companyName} ({item.symbol})
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+
+                <div className="mtm-price-chart-container">
+                  {priceAnalysisLoading ? (
+                    <div className="mtm-chart-loading">
+                      <div className="mtm-loading-spinner"></div>
+                      <p>Loading price analysis data...</p>
+                    </div>
+                  ) : priceAnalysisData.length === 0 ? (
+                    <div className="mtm-chart-no-data">
+                      <p>No data available for the selected company</p>
+                    </div>
+                  ) : (
+                    <div className="mtm-price-chart">
+                      <PriceAnalysisChart data={priceAnalysisData} />
+                    </div>
+                  )}
+                </div>
               </div>
             )}
             

@@ -531,7 +531,8 @@
 /* Tab Content Sections */
 .mtm-overview-content,
 .mtm-trade-history-content,
-.mtm-tax-summary-content {
+.mtm-tax-summary-content,
+.mtm-price-analysis-content {
   padding: 1.5rem;
   color: #6b7280;
 }
@@ -683,6 +684,145 @@
 
 .mtm-small-value.negative {
   color: #dc2626;
+}
+
+/* Price Analysis Tab Styles */
+.mtm-price-analysis-header {
+  margin-bottom: 2rem;
+  text-align: center;
+}
+
+.mtm-price-analysis-header h3 {
+  margin: 0 0 0.5rem 0;
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #1f2937;
+}
+
+.mtm-price-analysis-header p {
+  margin: 0;
+  color: #6b7280;
+  font-size: 1rem;
+}
+
+.mtm-price-analysis-controls {
+  margin-bottom: 2rem;
+  display: flex;
+  justify-content: center;
+}
+
+.mtm-control-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.mtm-control-group label {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #374151;
+}
+
+.mtm-analysis-company-select {
+  padding: 0.75rem 1rem;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  background: white;
+  color: #374151;
+  font-size: 1rem;
+  min-width: 300px;
+  transition: all 0.2s ease;
+}
+
+.mtm-analysis-company-select:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.mtm-analysis-company-select:disabled {
+  background: #f3f4f6;
+  color: #9ca3af;
+  cursor: not-allowed;
+}
+
+.mtm-price-chart-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 400px;
+  background: white;
+  border-radius: 12px;
+  border: 1px solid #e2e8f0;
+  padding: 2rem;
+}
+
+.price-analysis-chart {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+}
+
+.price-chart-svg {
+  border-radius: 8px;
+}
+
+.price-chart-placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 300px;
+  color: #6b7280;
+  font-style: italic;
+}
+
+.price-chart-legend {
+  display: flex;
+  gap: 2rem;
+  justify-content: center;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.875rem;
+  color: #374151;
+}
+
+.legend-color {
+  width: 16px;
+  height: 3px;
+  border-radius: 2px;
+}
+
+.price-line-color {
+  background: #3B82F6;
+}
+
+.cost-line-color {
+  background: #EF4444;
+  border-top: 2px dashed #EF4444;
+}
+
+.price-line {
+  transition: all 0.3s ease;
+}
+
+.cost-line {
+  transition: all 0.3s ease;
+}
+
+.price-point {
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+
+.price-point:hover {
+  r: 6;
+  fill: #1d4ed8;
 }
 
 .mtm-quick-stats {
