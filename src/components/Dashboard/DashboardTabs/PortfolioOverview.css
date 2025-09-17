@@ -697,6 +697,136 @@
 
 /* Removed floating animation - cards just lift and stay */
 
+/* Portfolio Value Chart Styles */
+.value-chart-section {
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(20px);
+  border-radius: 24px;
+  padding: 2rem;
+  margin-bottom: 3rem;
+  box-shadow: 
+    0 8px 32px rgba(0, 0, 0, 0.1),
+    0 4px 16px rgba(0, 0, 0, 0.05),
+    inset 0 1px 0 rgba(255, 255, 255, 0.8);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.value-chart-section .section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+}
+
+.value-chart-section h3 {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #1e293b;
+  margin: 0;
+}
+
+.time-range-selector {
+  display: flex;
+  gap: 0.5rem;
+  background: #f1f5f9;
+  padding: 0.25rem;
+  border-radius: 12px;
+}
+
+.time-btn {
+  padding: 0.5rem 1rem;
+  border: none;
+  background: transparent;
+  color: #64748b;
+  font-weight: 500;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 0.875rem;
+}
+
+.time-btn:hover {
+  background: rgba(255, 255, 255, 0.8);
+  color: #1e293b;
+}
+
+.time-btn.active {
+  background: #3b82f6;
+  color: white;
+  box-shadow: 0 2px 4px rgba(59, 130, 246, 0.3);
+}
+
+.chart-wrapper {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 400px;
+  padding: 0.5rem;
+  overflow: visible;
+}
+
+.portfolio-chart-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  overflow: visible;
+  padding-left: 20px;
+  padding-right: 20px;
+}
+
+.portfolio-chart {
+  max-width: 100%;
+  height: auto;
+}
+
+.chart-placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 200px;
+  color: #64748b;
+  font-style: italic;
+}
+
+.area-path {
+  transition: all 0.3s ease;
+}
+
+.line-path {
+  transition: all 0.3s ease;
+}
+
+.data-point {
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+
+.data-point:hover {
+  r: 5;
+  fill: #1d4ed8;
+}
+
+.axis-label {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  user-select: none;
+  font-weight: 500;
+}
+
+.y-axis .axis-label {
+  font-size: 11px;
+  fill: #374151;
+  font-weight: 600;
+}
+
+.grid-lines line {
+  transition: opacity 0.2s ease;
+}
+
+.portfolio-chart:hover .grid-lines line {
+  opacity: 0.7;
+}
+
 /* Responsive Design */
 @media (max-width: 768px) {
   .portfolio-overview {
@@ -734,5 +864,29 @@
     width: 60px;
     height: 60px;
     font-size: 1.5rem;
+  }
+
+  .value-chart-section {
+    padding: 1.5rem;
+  }
+
+  .value-chart-section .section-header {
+    flex-direction: column;
+    gap: 1rem;
+    align-items: stretch;
+  }
+
+  .time-range-selector {
+    justify-content: center;
+  }
+
+  .portfolio-chart {
+    width: 100%;
+    height: 300px;
+  }
+
+  .chart-wrapper {
+    min-height: 350px;
+    padding: 0.25rem;
   }
 }

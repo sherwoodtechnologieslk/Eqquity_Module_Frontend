@@ -642,8 +642,103 @@ const MarkToMarketValuation = () => {
             
             {activeTab === 'overview' && (
               <div className="mtm-overview-content">
-                <h3>Portfolio Overview</h3>
-                <p>This section will contain portfolio overview information and key metrics.</p>
+                <div className="mtm-overview-header">
+                  <h3>Performance Analysis</h3>
+                  <span className="mtm-last-updated">Last updated: {lastUpdated.toLocaleTimeString()}</span>
+                </div>
+                
+                <div className="mtm-overview-metrics">
+                  {/* Top Performer */}
+                  <div className="mtm-metric-card primary">
+                    <div className="mtm-metric-label">Best Performer</div>
+                    <div className="mtm-metric-value">
+                      {(() => {
+                        const bestPerformer = mtmData.reduce((best, current) => 
+                          current.gainLossPercentage > best.gainLossPercentage ? current : best, 
+                          mtmData[0] || { symbol: 'N/A', gainLossPercentage: 0 }
+                        );
+                        return bestPerformer.symbol;
+                      })()}
+                    </div>
+                    <div className="mtm-metric-change">
+                      {(() => {
+                        const bestPerformer = mtmData.reduce((best, current) => 
+                          current.gainLossPercentage > best.gainLossPercentage ? current : best, 
+                          mtmData[0] || { gainLossPercentage: 0 }
+                        );
+                        return (
+                          <span className="positive">
+                            +{formatPercentage(bestPerformer.gainLossPercentage)}
+                          </span>
+                        );
+                      })()}
+                    </div>
+                  </div>
+
+                  {/* Worst Performer */}
+                  <div className="mtm-metric-card">
+                    <div className="mtm-metric-label">Worst Performer</div>
+                    <div className="mtm-metric-value">
+                      {(() => {
+                        const worstPerformer = mtmData.reduce((worst, current) => 
+                          current.gainLossPercentage < worst.gainLossPercentage ? current : worst, 
+                          mtmData[0] || { symbol: 'N/A', gainLossPercentage: 0 }
+                        );
+                        return worstPerformer.symbol;
+                      })()}
+                    </div>
+                    <div className={`mtm-metric-percentage ${(() => {
+                      const worstPerformer = mtmData.reduce((worst, current) => 
+                        current.gainLossPercentage < worst.gainLossPercentage ? current : worst, 
+                        mtmData[0] || { gainLossPercentage: 0 }
+                      );
+                      return worstPerformer.gainLossPercentage >= 0 ? 'positive' : 'negative';
+                    })()}`}>
+                      {(() => {
+                        const worstPerformer = mtmData.reduce((worst, current) => 
+                          current.gainLossPercentage < worst.gainLossPercentage ? current : worst, 
+                          mtmData[0] || { gainLossPercentage: 0 }
+                        );
+                        return formatPercentage(worstPerformer.gainLossPercentage);
+                      })()}
+                    </div>
+                  </div>
+
+                  {/* Performance Insights */}
+                  <div className="mtm-small-cards">
+                    <div className="mtm-small-card">
+                      <div className="mtm-small-label">Winners</div>
+                      <div className="mtm-small-value positive">
+                        {mtmData.filter(item => item.gainLossPercentage > 0).length}
+                      </div>
+                    </div>
+                    <div className="mtm-small-card">
+                      <div className="mtm-small-label">Losers</div>
+                      <div className="mtm-small-value negative">
+                        {mtmData.filter(item => item.gainLossPercentage < 0).length}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Quick Stats */}
+                  <div className="mtm-quick-stats">
+                    <div className="mtm-stat-item">
+                      <span className="mtm-stat-label">Win Rate:</span>
+                      <span className="mtm-stat-value">
+                        {mtmData.length > 0 ? 
+                          ((mtmData.filter(item => item.gainLossPercentage > 0).length / mtmData.length) * 100).toFixed(1) + '%' : 
+                          '0%'
+                        }
+                      </span>
+                    </div>
+                    <div className="mtm-stat-item">
+                      <span className="mtm-stat-label">Avg Position Size:</span>
+                      <span className="mtm-stat-value">
+                        {formatCurrency(mtmData.length > 0 ? totals.totalMarket / mtmData.length : 0)}
+                      </span>
+                    </div>
+                  </div>
+                </div>
               </div>
             )}
             

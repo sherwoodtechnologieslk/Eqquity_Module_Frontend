@@ -15,12 +15,41 @@ const PortfolioOverview = () => {
     assetAllocation: {
       equity: 0,
       cash: 0
-    }
+    },
+    valueHistory: []
   });
   const [isLoading, setIsLoading] = useState(true);
   const [portfolios, setPortfolios] = useState([]);
   const [selectedPortfolio, setSelectedPortfolio] = useState('all');
   const [portfoliosLoading, setPortfoliosLoading] = useState(true);
+  const [selectedTimeRange, setSelectedTimeRange] = useState('3M');
+
+  // Generate mock portfolio value history data
+  const generateValueHistory = (timeRange, currentValue) => {
+    const now = new Date();
+    const days = timeRange === '1M' ? 30 : timeRange === '3M' ? 90 : timeRange === '6M' ? 180 : 365;
+    const data = [];
+    
+    // Start with a base value (80% of current value for realistic growth)
+    let baseValue = currentValue * 0.8;
+    
+    for (let i = days; i >= 0; i--) {
+      const date = new Date(now);
+      date.setDate(date.getDate() - i);
+      
+      // Add some realistic volatility and growth
+      const volatility = (Math.random() - 0.5) * 0.02; // ±1% daily volatility
+      const growth = 0.0005; // Slight upward trend
+      baseValue = baseValue * (1 + volatility + growth);
+      
+      data.push({
+        date: date.toISOString().split('T')[0],
+        value: Math.round(baseValue * 100) / 100
+      });
+    }
+    
+    return data;
+  };
 
   const loadActivePortfolios = async () => {
     try {
@@ -34,6 +63,31 @@ const PortfolioOverview = () => {
       setPortfoliosLoading(false);
     }
   };
+
+  const setMockData = useCallback(() => {
+    const mockData = {
+      summary: {
+        totalValue: 1250000,
+        totalPnL: 45000,
+        totalCost: 1205000,
+        cashBalance: 75000,
+        numberOfPositions: 15
+      },
+      holdings: [
+        { symbol: 'AAPL', quantity: 100, avgPrice: 145.25, currentPrice: 150.25, marketValue: 15025, pnl: 500, sector: 'Technology' },
+        { symbol: 'MSFT', quantity: 75, avgPrice: 315.50, currentPrice: 320.50, marketValue: 24037.5, pnl: 375, sector: 'Technology' },
+        { symbol: 'GOOGL', quantity: 50, avgPrice: 2700.00, currentPrice: 2750.00, marketValue: 137500, pnl: 2500, sector: 'Technology' },
+        { symbol: 'NVDA', quantity: 200, avgPrice: 450.00, currentPrice: 480.00, marketValue: 96000, pnl: 6000, sector: 'Technology' },
+        { symbol: 'JPM', quantity: 150, avgPrice: 140.00, currentPrice: 145.00, marketValue: 21750, pnl: 750, sector: 'Financial' }
+      ],
+      assetAllocation: {
+        equity: 1175000,
+        cash: 75000
+      },
+      valueHistory: generateValueHistory(selectedTimeRange, 1250000)
+    };
+    setPortfolioData(mockData);
+  }, [selectedTimeRange]);
 
   const loadPortfolioData = useCallback(async () => {
     try {
@@ -57,7 +111,11 @@ const PortfolioOverview = () => {
       if (response.ok) {
         const result = await response.json();
         if (result.success) {
-          setPortfolioData(result.data);
+          const portfolioValue = result.data.summary?.totalValue || 0;
+          setPortfolioData({
+            ...result.data,
+            valueHistory: generateValueHistory(selectedTimeRange, portfolioValue)
+          });
         } else {
           // Fallback to mock data
           setMockData();
@@ -73,7 +131,7 @@ const PortfolioOverview = () => {
     } finally {
       setIsLoading(false);
     }
-  }, [selectedPortfolio]);
+  }, [selectedPortfolio, selectedTimeRange, setMockData]);
 
   useEffect(() => {
     loadActivePortfolios();
@@ -85,29 +143,17 @@ const PortfolioOverview = () => {
     }
   }, [selectedPortfolio, portfolios, loadPortfolioData]);
 
-  const setMockData = () => {
-    const mockData = {
-      summary: {
-        totalValue: 1250000,
-        totalPnL: 45000,
-        totalCost: 1205000,
-        cashBalance: 75000,
-        numberOfPositions: 15
-      },
-      holdings: [
-        { symbol: 'AAPL', quantity: 100, avgPrice: 145.25, currentPrice: 150.25, marketValue: 15025, pnl: 500, sector: 'Technology' },
-        { symbol: 'MSFT', quantity: 75, avgPrice: 315.50, currentPrice: 320.50, marketValue: 24037.5, pnl: 375, sector: 'Technology' },
-        { symbol: 'GOOGL', quantity: 50, avgPrice: 2700.00, currentPrice: 2750.00, marketValue: 137500, pnl: 2500, sector: 'Technology' },
-        { symbol: 'NVDA', quantity: 200, avgPrice: 450.00, currentPrice: 480.00, marketValue: 96000, pnl: 6000, sector: 'Technology' },
-        { symbol: 'JPM', quantity: 150, avgPrice: 140.00, currentPrice: 145.00, marketValue: 21750, pnl: 750, sector: 'Financial' }
-      ],
-      assetAllocation: {
-        equity: 1175000,
-        cash: 75000
-      }
-    };
-    setPortfolioData(mockData);
-  };
+  // Regenerate chart data when time range changes
+  useEffect(() => {
+    if (portfolioData.summary.totalValue > 0) {
+      const newValueHistory = generateValueHistory(selectedTimeRange, portfolioData.summary.totalValue);
+      setPortfolioData(prev => ({
+        ...prev,
+        valueHistory: newValueHistory
+      }));
+    }
+  }, [selectedTimeRange, portfolioData.summary.totalValue]);
+
 
   const formatCurrency = (amount) => {
     return new Intl.NumberFormat('en-US', {
@@ -247,6 +293,145 @@ const PortfolioOverview = () => {
     );
   };
 
+  // Portfolio Value Chart Component
+  const PortfolioValueChart = ({ data, timeRange }) => {
+    if (!data || data.length === 0) {
+      return (
+        <div className="chart-placeholder">
+          <p>No data available for the selected time range</p>
+        </div>
+      );
+    }
+
+    const maxValue = Math.max(...data.map(d => d.value));
+    const minValue = Math.min(...data.map(d => d.value));
+    const range = maxValue - minValue;
+    const padding = range * 0.1; // 10% padding
+
+    // Responsive chart dimensions - larger chart within same container
+    const isMobile = window.innerWidth <= 768;
+    const chartWidth = isMobile ? Math.min(window.innerWidth - 60, 550) : 700;
+    const chartHeight = isMobile ? 280 : 350;
+    const margin = { top: 25, right: 25, bottom: 35, left: isMobile ? 80 : 100 };
+    const innerWidth = chartWidth - margin.left - margin.right;
+    const innerHeight = chartHeight - margin.top - margin.bottom;
+
+    const xScale = (index) => (index / (data.length - 1)) * innerWidth;
+    const yScale = (value) => innerHeight - ((value - minValue + padding) / (range + 2 * padding)) * innerHeight;
+
+    const pathData = data.map((point, index) => {
+      const x = xScale(index);
+      const y = yScale(point.value);
+      return `${index === 0 ? 'M' : 'L'} ${x} ${y}`;
+    }).join(' ');
+
+    const areaData = data.map((point, index) => {
+      const x = xScale(index);
+      const y = yScale(point.value);
+      return `${index === 0 ? 'M' : 'L'} ${x} ${y}`;
+    }).join(' ') + ` L ${innerWidth} ${innerHeight} L 0 ${innerHeight} Z`;
+
+    return (
+      <div className="portfolio-chart-container">
+        <svg width={chartWidth} height={chartHeight} className="portfolio-chart">
+          <defs>
+            <linearGradient id="areaGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+              <stop offset="0%" stopColor="#3B82F6" stopOpacity="0.3"/>
+              <stop offset="100%" stopColor="#3B82F6" stopOpacity="0.05"/>
+            </linearGradient>
+          </defs>
+          
+          <g transform={`translate(${margin.left}, ${margin.top})`}>
+            {/* Grid lines */}
+            <g className="grid-lines">
+              {[0, 0.25, 0.5, 0.75, 1].map(t => (
+                <line
+                  key={t}
+                  x1={0}
+                  y1={t * innerHeight}
+                  x2={innerWidth}
+                  y2={t * innerHeight}
+                  stroke="#E5E7EB"
+                  strokeWidth="1"
+                  opacity="0.5"
+                />
+              ))}
+            </g>
+
+            {/* Area under the curve */}
+            <path
+              d={areaData}
+              fill="url(#areaGradient)"
+              className="area-path"
+            />
+
+            {/* Line path */}
+            <path
+              d={pathData}
+              fill="none"
+              stroke="#3B82F6"
+              strokeWidth="2"
+              className="line-path"
+            />
+
+            {/* Data points */}
+            {data.map((point, index) => (
+              <circle
+                key={index}
+                cx={xScale(index)}
+                cy={yScale(point.value)}
+                r="3"
+                fill="#3B82F6"
+                className="data-point"
+              />
+            ))}
+
+            {/* Y-axis labels */}
+            <g className="y-axis">
+              {[0, 0.25, 0.5, 0.75, 1].map(t => {
+                const value = minValue + padding + (1 - t) * (range + 2 * padding);
+                return (
+                  <text
+                    key={t}
+                    x={-15}
+                    y={t * innerHeight + 5}
+                    textAnchor="end"
+                    className="axis-label"
+                    fontSize="11"
+                    fill="#6B7280"
+                    dominantBaseline="middle"
+                  >
+                    {formatCurrency(value)}
+                  </text>
+                );
+              })}
+            </g>
+
+            {/* X-axis labels */}
+            <g className="x-axis">
+              {data.filter((_, index) => index % Math.ceil(data.length / 5) === 0).map((point, index) => {
+                const originalIndex = data.findIndex(d => d === point);
+                return (
+                  <text
+                    key={index}
+                    x={xScale(originalIndex)}
+                    y={innerHeight + 20}
+                    textAnchor="middle"
+                    className="axis-label"
+                    fontSize="12"
+                    fill="#6B7280"
+                  >
+                    {new Date(point.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                  </text>
+                );
+              })}
+            </g>
+          </g>
+        </svg>
+      </div>
+    );
+  };
+
   if (isLoading) {
     return (
       <div className="portfolio-overview-loading">
@@ -381,6 +566,42 @@ const PortfolioOverview = () => {
               </span>
             </div>
           </div>
+        </div>
+      </div>
+
+      {/* Portfolio Value Over Time Chart */}
+      <div className="value-chart-section">
+        <div className="section-header">
+          <h3>Portfolio Value Over Time</h3>
+          <div className="time-range-selector">
+            <button 
+              className={`time-btn ${selectedTimeRange === '1M' ? 'active' : ''}`}
+              onClick={() => setSelectedTimeRange('1M')}
+            >
+              1M
+            </button>
+            <button 
+              className={`time-btn ${selectedTimeRange === '3M' ? 'active' : ''}`}
+              onClick={() => setSelectedTimeRange('3M')}
+            >
+              3M
+            </button>
+            <button 
+              className={`time-btn ${selectedTimeRange === '6M' ? 'active' : ''}`}
+              onClick={() => setSelectedTimeRange('6M')}
+            >
+              6M
+            </button>
+            <button 
+              className={`time-btn ${selectedTimeRange === '1Y' ? 'active' : ''}`}
+              onClick={() => setSelectedTimeRange('1Y')}
+            >
+              1Y
+            </button>
+          </div>
+        </div>
+        <div className="chart-wrapper">
+          <PortfolioValueChart data={portfolioData.valueHistory} timeRange={selectedTimeRange} />
         </div>
       </div>
 
