@@ -24,10 +24,40 @@ const DynamicChart = ({ data, selectedCompany, companies }) => {
       return `${x},${y}`;
     }).join(' ');
     
-    const dates = data.map(item => new Date(item.trade_date).toLocaleDateString('en-US', { 
-      month: 'short', 
-      day: 'numeric' 
-    }));
+    const dates = data.map(item => {
+      let date;
+      
+      // Handle different date formats
+      if (typeof item.trade_date === 'string') {
+        // Handle YYYY-MM-DD format (MySQL DATE format)
+        if (item.trade_date.match(/^\d{4}-\d{2}-\d{2}$/)) {
+          const [year, month, day] = item.trade_date.split('-');
+          date = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
+        }
+        // Try parsing as ISO date
+        else if (item.trade_date.includes('T') || item.trade_date.includes('Z')) {
+          date = new Date(item.trade_date);
+        } 
+        // Try parsing as regular date string
+        else {
+          date = new Date(item.trade_date);
+        }
+      } else {
+        date = new Date(item.trade_date);
+      }
+      
+      // Check if date is valid
+      if (isNaN(date.getTime())) {
+        console.warn('Invalid date:', item.trade_date, 'Type:', typeof item.trade_date);
+        // Return the raw date string as fallback for debugging
+        return item.trade_date || 'No Date';
+      }
+      
+      return date.toLocaleDateString('en-US', { 
+        month: 'short', 
+        day: 'numeric' 
+      });
+    });
     
     // Generate Y-axis labels
     const yAxisLabels = [];
@@ -265,15 +295,24 @@ const MarkToMarketValuation = () => {
         endDate.toISOString().split('T')[0]
       );
       
+      // Debug: Log the first few items to see the data structure
+      console.log('Sample trade summary data:', data.slice(0, 3));
+      
       // Sort data by trade_date and extract unique dates with last trade prices
       const sortedData = data
-        .sort((a, b) => new Date(a.trade_date) - new Date(b.trade_date))
+        .sort((a, b) => {
+          const dateA = new Date(a.trade_date);
+          const dateB = new Date(b.trade_date);
+          return dateA - dateB;
+        })
         .map(item => ({
-          date: item.trade_date,
+          trade_date: item.trade_date,
           lastTrade: parseFloat(item.last_trade) || 0,
           companyName: item.company_name,
           symbol: item.symbol
         }));
+      
+      console.log('Processed chart data:', sortedData.slice(0, 3));
       
       setCompanyData(sortedData);
     } catch (error) {
