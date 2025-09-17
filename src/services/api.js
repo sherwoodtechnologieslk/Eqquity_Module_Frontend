@@ -747,6 +747,20 @@ export const transactionEntryAPI = {
       console.error('Error saving sell transaction with allocations:', error);
       throw error;
     }
+  },
+
+  // Get portfolio positions with MTM calculations
+  getPortfolioPositions: async (portfolioId) => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/transaction-entries/portfolio/${portfolioId}/positions`);
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      return await response.json();
+    } catch (error) {
+      console.error('Error fetching portfolio positions:', error);
+      throw error;
+    }
   }
 };
 

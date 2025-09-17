@@ -356,6 +356,38 @@
   font-size: 1.1rem;
 }
 
+/* No Data State for Position Details */
+.mtm-no-data {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem 2rem;
+  text-align: center;
+  color: #6b7280;
+}
+
+.mtm-no-data-icon {
+  width: 64px;
+  height: 64px;
+  margin-bottom: 1rem;
+  color: #d1d5db;
+}
+
+.mtm-no-data h3 {
+  margin: 0 0 0.5rem 0;
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #374151;
+}
+
+.mtm-no-data p {
+  margin: 0;
+  font-size: 1rem;
+  line-height: 1.5;
+  max-width: 400px;
+}
+
 @keyframes spin {
   0% { transform: rotate(0deg); }
   100% { transform: rotate(360deg); }

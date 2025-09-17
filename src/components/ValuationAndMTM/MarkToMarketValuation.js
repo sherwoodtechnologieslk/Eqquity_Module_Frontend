@@ -1,5 +1,5 @@
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
-import { portfolioAPI, tradeSummaryAPI } from '../../services/api';
+import React, { useState, useEffect, useCallback } from 'react';
+import { portfolioAPI, tradeSummaryAPI, transactionEntryAPI } from '../../services/api';
 import './Styles/MarkToMarketValuation.css';
 
 // Dynamic Chart Component
@@ -152,48 +152,6 @@ const MarkToMarketValuation = () => {
   const [companyDataLoading, setCompanyDataLoading] = useState(false);
   const [selectedPeriod, setSelectedPeriod] = useState('1M');
 
-  // Mock data for MTM - replace with actual API calls when available
-  const mockMtmData = useMemo(() => [
-    {
-      id: 1,
-      companyName: 'John Keells Holdings PLC',
-      symbol: 'JKH',
-      quantity: 1000,
-      costPrice: 150.50,
-      marketPrice: 165.75,
-      marketValue: 165750.00,
-      costValue: 150500.00,
-      unrealizedGainLoss: 15250.00,
-      gainLossPercentage: 10.13,
-      lastPriceUpdate: '2024-01-15 14:30:00'
-    },
-    {
-      id: 2,
-      companyName: 'Seylan Bank PLC',
-      symbol: 'SEYB',
-      quantity: 2500,
-      costPrice: 45.20,
-      marketPrice: 42.80,
-      marketValue: 107000.00,
-      costValue: 113000.00,
-      unrealizedGainLoss: -6000.00,
-      gainLossPercentage: -5.31,
-      lastPriceUpdate: '2024-01-15 14:30:00'
-    },
-    {
-      id: 3,
-      companyName: 'Dialog Axiata PLC',
-      symbol: 'DIAL',
-      quantity: 800,
-      costPrice: 12.75,
-      marketPrice: 13.45,
-      marketValue: 10760.00,
-      costValue: 10200.00,
-      unrealizedGainLoss: 560.00,
-      gainLossPercentage: 5.49,
-      lastPriceUpdate: '2024-01-15 14:30:00'
-    }
-  ], []);
 
   // Mock performance data for line chart - will be used when implementing dynamic chart
   // const mockPerformanceData = [
@@ -212,18 +170,23 @@ const MarkToMarketValuation = () => {
 
   // Load MTM data function
   const loadMtmData = useCallback(async (portfolioId) => {
+    if (!portfolioId) {
+      setMtmData([]);
+      return;
+    }
+    
     setLoading(true);
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      setMtmData(mockMtmData);
+      const data = await transactionEntryAPI.getPortfolioPositions(portfolioId);
+      setMtmData(data);
       setLastUpdated(new Date());
     } catch (error) {
       console.error('Error loading MTM data:', error);
+      setMtmData([]);
     } finally {
       setLoading(false);
     }
-  }, [mockMtmData]);
+  }, []);
 
   // Fetch active portfolios from backend
   const fetchPortfolios = async () => {
@@ -712,6 +675,16 @@ const MarkToMarketValuation = () => {
               <div className="mtm-loading-spinner"></div>
               <p>Loading MTM data...</p>
             </div>
+          ) : mtmData.length === 0 ? (
+            <div className="mtm-no-data">
+              <div className="mtm-no-data-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                </svg>
+              </div>
+              <h3>No Position Data</h3>
+              <p>No positions found for the selected portfolio. Make sure you have buy transactions recorded for this portfolio.</p>
+            </div>
           ) : (
             <div className="mtm-table-container">
               <table className="mtm-table">
@@ -745,7 +718,9 @@ const MarkToMarketValuation = () => {
                       <td className={`mtm-gain-loss-percentage ${item.gainLossPercentage >= 0 ? 'positive' : 'negative'}`}>
                         {formatPercentage(item.gainLossPercentage)}
                       </td>
-                      <td className="mtm-last-update">{item.lastPriceUpdate}</td>
+                      <td className="mtm-last-update">
+                        {item.lastPriceUpdate ? new Date(item.lastPriceUpdate).toLocaleDateString() : 'N/A'}
+                      </td>
                     </tr>
                   ))}
                 </tbody>
