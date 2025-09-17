@@ -306,6 +306,30 @@ export const tradeSummaryAPI = {
       throw error;
     }
   },
+
+  // Get trade summary data for a specific company
+  getCompanyData: async (symbol, startDate = null, endDate = null) => {
+    try {
+      let url = `${API_BASE_URL}/trade-summary/company/${encodeURIComponent(symbol)}`;
+      const params = new URLSearchParams();
+      
+      if (startDate) params.append('startDate', startDate);
+      if (endDate) params.append('endDate', endDate);
+      
+      if (params.toString()) {
+        url += `?${params.toString()}`;
+      }
+      
+      const response = await fetch(url);
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      return await response.json();
+    } catch (error) {
+      console.error('Error fetching company data:', error);
+      throw error;
+    }
+  },
 }; 
 
 // API service for portfolio operations
@@ -703,18 +727,6 @@ export const transactionEntryAPI = {
       return await response.json();
     } catch (error) {
       console.error('Error fetching FIFO details:', error);
-      throw error;
-    }
-  },
-  getAvailableBuyLots: async (portfolioName, companyName) => {
-    try {
-      const response = await fetch(`${API_BASE_URL}/transaction-entries/buy-lots?portfolio=${encodeURIComponent(portfolioName)}&company=${encodeURIComponent(companyName)}`);
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-      return await response.json();
-    } catch (error) {
-      console.error('Error fetching available buy lots:', error);
       throw error;
     }
   },

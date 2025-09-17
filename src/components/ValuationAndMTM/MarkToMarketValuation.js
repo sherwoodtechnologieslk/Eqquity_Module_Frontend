@@ -2,6 +2,110 @@ import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { portfolioAPI, tradeSummaryAPI } from '../../services/api';
 import './Styles/MarkToMarketValuation.css';
 
+// Dynamic Chart Component
+const DynamicChart = ({ data, selectedCompany, companies }) => {
+  const calculateChartData = () => {
+    if (!data.length) return { points: '', minPrice: 0, maxPrice: 0, dates: [], yAxisLabels: [] };
+    
+    const prices = data.map(item => item.lastTrade);
+    const minPrice = Math.min(...prices);
+    const maxPrice = Math.max(...prices);
+    const priceRange = maxPrice - minPrice || 1; // Avoid division by zero
+    
+    const chartWidth = 700;
+    const chartHeight = 200;
+    const padding = 40;
+    const usableWidth = chartWidth - (padding * 2);
+    const usableHeight = chartHeight - (padding * 2);
+    
+    const points = data.map((item, index) => {
+      const x = padding + (index * usableWidth) / (data.length - 1);
+      const y = padding + ((maxPrice - item.lastTrade) / priceRange) * usableHeight;
+      return `${x},${y}`;
+    }).join(' ');
+    
+    const dates = data.map(item => new Date(item.trade_date).toLocaleDateString('en-US', { 
+      month: 'short', 
+      day: 'numeric' 
+    }));
+    
+    // Generate Y-axis labels
+    const yAxisLabels = [];
+    const numLabels = 5;
+    for (let i = 0; i < numLabels; i++) {
+      const value = minPrice + (priceRange * i) / (numLabels - 1);
+      const y = padding + (usableHeight * i) / (numLabels - 1);
+      yAxisLabels.push({ value: value.toFixed(2), y });
+    }
+    
+    return { points, minPrice, maxPrice, dates, chartWidth, chartHeight, yAxisLabels };
+  };
+
+  const chartData = calculateChartData();
+
+  return (
+    <svg width="100%" height="300" viewBox={`0 0 ${chartData.chartWidth} ${chartData.chartHeight + 100}`}>
+      {/* Chart background */}
+      <rect width="100%" height="100%" fill="#f8fafc" />
+      
+      {/* Grid lines */}
+      <defs>
+        <pattern id="grid" width="40" height="30" patternUnits="userSpaceOnUse">
+          <path d="M 40 0 L 0 0 0 30" fill="none" stroke="#e2e8f0" strokeWidth="1"/>
+        </pattern>
+        <linearGradient id="gradient" x1="0%" y1="0%" x2="0%" y2="100%">
+          <stop offset="0%" stopColor="#3b82f6" stopOpacity="0.3"/>
+          <stop offset="100%" stopColor="#3b82f6" stopOpacity="0.05"/>
+        </linearGradient>
+      </defs>
+      <rect width="100%" height="100%" fill="url(#grid)" />
+      
+      {/* Chart area */}
+      <g transform="translate(60, 20)">
+        {/* Y-axis labels */}
+        {chartData.yAxisLabels.map((label, index) => (
+          <text key={index} x="-10" y={label.y} textAnchor="end" fontSize="12" fill="#6b7280">
+            {label.value}
+          </text>
+        ))}
+        
+        {/* X-axis labels */}
+        {chartData.dates.map((date, index) => {
+          const x = 40 + (index * (chartData.chartWidth - 120)) / (chartData.dates.length - 1);
+          return (
+            <text key={index} x={x} y="240" textAnchor="middle" fontSize="10" fill="#6b7280">
+              {date}
+            </text>
+          );
+        })}
+        
+        {/* Performance line */}
+        <polyline
+          fill="none"
+          stroke="#3b82f6"
+          strokeWidth="3"
+          points={chartData.points}
+        />
+        
+        {/* Data points */}
+        {data.map((item, index) => {
+          const x = 40 + (index * (chartData.chartWidth - 120)) / (data.length - 1);
+          const y = 20 + ((chartData.maxPrice - item.lastTrade) / (chartData.maxPrice - chartData.minPrice)) * 180;
+          return (
+            <circle key={index} cx={x} cy={y} r="4" fill="#3b82f6" />
+          );
+        })}
+        
+        {/* Area under curve */}
+        <polygon
+          fill="url(#gradient)"
+          points={`${chartData.points} ${chartData.chartWidth - 40},200 40,200`}
+        />
+      </g>
+    </svg>
+  );
+};
+
 const MarkToMarketValuation = () => {
   const [portfolios, setPortfolios] = useState([]);
   const [selectedPortfolio, setSelectedPortfolio] = useState('');
@@ -14,6 +118,9 @@ const MarkToMarketValuation = () => {
   const [companies, setCompanies] = useState([]);
   const [selectedCompany, setSelectedCompany] = useState('');
   const [companiesLoading, setCompaniesLoading] = useState(false);
+  const [companyData, setCompanyData] = useState([]);
+  const [companyDataLoading, setCompanyDataLoading] = useState(false);
+  const [selectedPeriod, setSelectedPeriod] = useState('1M');
 
   // Mock data for MTM - replace with actual API calls when available
   const mockMtmData = useMemo(() => [
@@ -124,6 +231,59 @@ const MarkToMarketValuation = () => {
     }
   };
 
+  // Fetch company data for chart
+  const fetchCompanyData = async (symbol, period = '1M') => {
+    if (!symbol) return;
+    
+    try {
+      setCompanyDataLoading(true);
+      
+      // Calculate date range based on period
+      const endDate = new Date();
+      const startDate = new Date();
+      
+      switch (period) {
+        case '1M':
+          startDate.setMonth(startDate.getMonth() - 1);
+          break;
+        case '3M':
+          startDate.setMonth(startDate.getMonth() - 3);
+          break;
+        case '6M':
+          startDate.setMonth(startDate.getMonth() - 6);
+          break;
+        case '1Y':
+          startDate.setFullYear(startDate.getFullYear() - 1);
+          break;
+        default:
+          startDate.setMonth(startDate.getMonth() - 1);
+      }
+      
+      const data = await tradeSummaryAPI.getCompanyData(
+        symbol, 
+        startDate.toISOString().split('T')[0], 
+        endDate.toISOString().split('T')[0]
+      );
+      
+      // Sort data by trade_date and extract unique dates with last trade prices
+      const sortedData = data
+        .sort((a, b) => new Date(a.trade_date) - new Date(b.trade_date))
+        .map(item => ({
+          date: item.trade_date,
+          lastTrade: parseFloat(item.last_trade) || 0,
+          companyName: item.company_name,
+          symbol: item.symbol
+        }));
+      
+      setCompanyData(sortedData);
+    } catch (error) {
+      console.error('Error fetching company data:', error);
+      setCompanyData([]);
+    } finally {
+      setCompanyDataLoading(false);
+    }
+  };
+
   useEffect(() => {
     fetchPortfolios();
     fetchCompanies();
@@ -134,6 +294,12 @@ const MarkToMarketValuation = () => {
       loadMtmData(selectedPortfolio);
     }
   }, [selectedPortfolio, loadMtmData]);
+
+  useEffect(() => {
+    if (selectedCompany) {
+      fetchCompanyData(selectedCompany, selectedPeriod);
+    }
+  }, [selectedCompany, selectedPeriod]);
 
   const refreshMtmData = () => {
     loadMtmData(selectedPortfolio);
@@ -160,6 +326,22 @@ const MarkToMarketValuation = () => {
 
   const formatPercentage = (percentage) => {
     return `${percentage >= 0 ? '+' : ''}${percentage.toFixed(2)}%`;
+  };
+
+
+  // Calculate chart statistics
+  const calculateChartStats = () => {
+    if (!companyData.length) return { currentValue: 0, totalReturn: 0, period: 0 };
+    
+    const firstPrice = companyData[0].lastTrade;
+    const lastPrice = companyData[companyData.length - 1].lastTrade;
+    const totalReturn = firstPrice > 0 ? ((lastPrice - firstPrice) / firstPrice) * 100 : 0;
+    
+    return {
+      currentValue: lastPrice,
+      totalReturn: totalReturn,
+      period: companyData.length
+    };
   };
 
   // Helper function to get selected portfolio name
@@ -383,7 +565,12 @@ const MarkToMarketValuation = () => {
                     </div>
                     <div className="mtm-chart-control-group">
                       <label htmlFor="periodSelect">Period:</label>
-                      <select id="periodSelect" className="mtm-chart-period">
+                      <select 
+                        id="periodSelect" 
+                        className="mtm-chart-period"
+                        value={selectedPeriod}
+                        onChange={(e) => setSelectedPeriod(e.target.value)}
+                      >
                         <option value="1M">1 Month</option>
                         <option value="3M">3 Months</option>
                         <option value="6M">6 Months</option>
@@ -393,73 +580,22 @@ const MarkToMarketValuation = () => {
                   </div>
                 </div>
                 <div className="mtm-line-chart">
-                  <svg width="100%" height="300" viewBox="0 0 800 300">
-                    {/* Chart background */}
-                    <rect width="100%" height="100%" fill="#f8fafc" />
-                    
-                    {/* Grid lines */}
-                    <defs>
-                      <pattern id="grid" width="40" height="30" patternUnits="userSpaceOnUse">
-                        <path d="M 40 0 L 0 0 0 30" fill="none" stroke="#e2e8f0" strokeWidth="1"/>
-                      </pattern>
-                    </defs>
-                    <rect width="100%" height="100%" fill="url(#grid)" />
-                    
-                    {/* Chart area */}
-                    <g transform="translate(60, 20)">
-                      {/* Y-axis labels */}
-                      <text x="-10" y="10" textAnchor="end" fontSize="12" fill="#6b7280">120k</text>
-                      <text x="-10" y="60" textAnchor="end" fontSize="12" fill="#6b7280">110k</text>
-                      <text x="-10" y="110" textAnchor="end" fontSize="12" fill="#6b7280">100k</text>
-                      <text x="-10" y="160" textAnchor="end" fontSize="12" fill="#6b7280">90k</text>
-                      <text x="-10" y="210" textAnchor="end" fontSize="12" fill="#6b7280">80k</text>
-                      
-                      {/* X-axis labels */}
-                      <text x="0" y="240" textAnchor="middle" fontSize="10" fill="#6b7280">Jan 1</text>
-                      <text x="70" y="240" textAnchor="middle" fontSize="10" fill="#6b7280">Jan 3</text>
-                      <text x="140" y="240" textAnchor="middle" fontSize="10" fill="#6b7280">Jan 5</text>
-                      <text x="210" y="240" textAnchor="middle" fontSize="10" fill="#6b7280">Jan 8</text>
-                      <text x="280" y="240" textAnchor="middle" fontSize="10" fill="#6b7280">Jan 10</text>
-                      <text x="350" y="240" textAnchor="middle" fontSize="10" fill="#6b7280">Jan 12</text>
-                      <text x="420" y="240" textAnchor="middle" fontSize="10" fill="#6b7280">Jan 15</text>
-                      
-                      {/* Performance line */}
-                      <polyline
-                        fill="none"
-                        stroke="#3b82f6"
-                        strokeWidth="3"
-                        points="0,110 14,100 28,120 42,80 56,90 70,70 84,110 98,100 112,60 126,80 140,40 154,30"
-                      />
-                      
-                      {/* Data points */}
-                      <circle cx="0" cy="110" r="4" fill="#3b82f6" />
-                      <circle cx="14" cy="100" r="4" fill="#3b82f6" />
-                      <circle cx="28" cy="120" r="4" fill="#3b82f6" />
-                      <circle cx="42" cy="80" r="4" fill="#3b82f6" />
-                      <circle cx="56" cy="90" r="4" fill="#3b82f6" />
-                      <circle cx="70" cy="70" r="4" fill="#3b82f6" />
-                      <circle cx="84" cy="110" r="4" fill="#3b82f6" />
-                      <circle cx="98" cy="100" r="4" fill="#3b82f6" />
-                      <circle cx="112" cy="60" r="4" fill="#3b82f6" />
-                      <circle cx="126" cy="80" r="4" fill="#3b82f6" />
-                      <circle cx="140" cy="40" r="4" fill="#3b82f6" />
-                      <circle cx="154" cy="30" r="4" fill="#3b82f6" />
-                      
-                      {/* Area under curve */}
-                      <polygon
-                        fill="url(#gradient)"
-                        points="0,110 14,100 28,120 42,80 56,90 70,70 84,110 98,100 112,60 126,80 140,40 154,30 154,200 0,200"
-                      />
-                    </g>
-                    
-                    {/* Gradient definition */}
-                    <defs>
-                      <linearGradient id="gradient" x1="0%" y1="0%" x2="0%" y2="100%">
-                        <stop offset="0%" stopColor="#3b82f6" stopOpacity="0.3"/>
-                        <stop offset="100%" stopColor="#3b82f6" stopOpacity="0.05"/>
-                      </linearGradient>
-                    </defs>
-                  </svg>
+                  {companyDataLoading ? (
+                    <div className="mtm-chart-loading">
+                      <div className="mtm-loading-spinner"></div>
+                      <p>Loading chart data...</p>
+                    </div>
+                  ) : companyData.length === 0 ? (
+                    <div className="mtm-chart-no-data">
+                      <p>No data available for the selected company and period</p>
+                    </div>
+                  ) : (
+                    <DynamicChart 
+                      data={companyData} 
+                      selectedCompany={selectedCompany}
+                      companies={companies}
+                    />
+                  )}
                 </div>
                 
                 {/* Chart legend and stats */}
@@ -469,25 +605,34 @@ const MarkToMarketValuation = () => {
                       <div className="mtm-legend-color" style={{backgroundColor: '#3b82f6'}}></div>
                       <span>
                         {selectedCompany ? 
-                          `${companies.find(c => c.symbol === selectedCompany)?.company_name || 'Company'} Value` : 
+                          `${companies.find(c => c.symbol === selectedCompany)?.company_name || 'Company'} Last Trade Price` : 
                           'Portfolio Value'
                         }
                       </span>
                     </div>
                   </div>
                   <div className="mtm-chart-stats">
-                    <div className="mtm-stat-item">
-                      <span className="mtm-stat-label">Current Value:</span>
-                      <span className="mtm-stat-value">{formatCurrency(106250)}</span>
-                    </div>
-                    <div className="mtm-stat-item">
-                      <span className="mtm-stat-label">Total Return:</span>
-                      <span className="mtm-stat-value positive">+6.25%</span>
-                    </div>
-                    <div className="mtm-stat-item">
-                      <span className="mtm-stat-label">Period:</span>
-                      <span className="mtm-stat-value">15 days</span>
-                    </div>
+                    {(() => {
+                      const stats = calculateChartStats();
+                      return (
+                        <>
+                          <div className="mtm-stat-item">
+                            <span className="mtm-stat-label">Current Price:</span>
+                            <span className="mtm-stat-value">{formatCurrency(stats.currentValue)}</span>
+                          </div>
+                          <div className="mtm-stat-item">
+                            <span className="mtm-stat-label">Total Return:</span>
+                            <span className={`mtm-stat-value ${stats.totalReturn >= 0 ? 'positive' : 'negative'}`}>
+                              {formatPercentage(stats.totalReturn)}
+                            </span>
+                          </div>
+                          <div className="mtm-stat-item">
+                            <span className="mtm-stat-label">Data Points:</span>
+                            <span className="mtm-stat-value">{stats.period} days</span>
+                          </div>
+                        </>
+                      );
+                    })()}
                   </div>
                 </div>
               </div>
