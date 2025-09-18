@@ -968,7 +968,11 @@ const MarkToMarketValuation = () => {
                 </div>
 
                 <div className="mtm-price-chart-container">
-                  {priceAnalysisLoading ? (
+                  {!selectedAnalysisCompany ? (
+                    <div className="mtm-chart-no-data">
+                      <p>Please choose a company</p>
+                    </div>
+                  ) : priceAnalysisLoading ? (
                     <div className="mtm-chart-loading">
                       <div className="mtm-loading-spinner"></div>
                       <p>Loading price analysis data...</p>
