@@ -378,7 +378,7 @@ html, body {
   display: flex;
   flex-direction: column;
   min-width: 0;
-  background: #99a6b4;
+  background: #f8fafc;
   margin-left: 320px;
   transition: margin-left 0.3s ease;
 }
