@@ -351,6 +351,7 @@ export const portfolioAPI = {
   // Create new portfolio
   createPortfolio: async (portfolioData) => {
     try {
+      console.log('Sending portfolio data:', portfolioData);
       const response = await fetch(`${API_BASE_URL}/portfolios`, {
         method: 'POST',
         headers: {
@@ -358,10 +359,19 @@ export const portfolioAPI = {
         },
         body: JSON.stringify(portfolioData),
       });
+      
+      console.log('Response status:', response.status);
+      console.log('Response headers:', response.headers);
+      
       if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+        const errorData = await response.json().catch(() => ({}));
+        console.error('Error response data:', errorData);
+        throw new Error(`HTTP error! status: ${response.status}. ${errorData.error || errorData.message || 'Unknown error'}`);
       }
-      return await response.json();
+      
+      const result = await response.json();
+      console.log('Portfolio created successfully:', result);
+      return result;
     } catch (error) {
       console.error('Error creating portfolio:', error);
       throw error;
