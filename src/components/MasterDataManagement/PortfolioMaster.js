@@ -63,6 +63,18 @@ const PortfolioMaster = () => {
     });
   };
 
+  const isRequired = (fieldName) => {
+    const requiredFields = [
+      'portfolioId',
+      'portfolioName',
+      'portfolioType',
+      'entity',
+      'fundManager',
+      'baseCurrency'
+    ];
+    return requiredFields.includes(fieldName);
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -85,13 +97,23 @@ const PortfolioMaster = () => {
     setIsSubmitting(true);
     setSubmitMessage('');
     try {
-      const result = await portfolioAPI.createPortfolio(form);
+      // Clean up form data - convert empty strings to null for optional fields
+      const cleanedForm = { ...form };
+      Object.keys(cleanedForm).forEach(key => {
+        if (cleanedForm[key] === '' && !isRequired(key)) {
+          cleanedForm[key] = null;
+        }
+      });
+      
+      console.log('Submitting portfolio form:', cleanedForm);
+      const result = await portfolioAPI.createPortfolio(cleanedForm);
       setSubmitMessage('Portfolio saved successfully!');
       console.log('Portfolio created:', result);
       handleReset();
     } catch (error) {
       console.error('Error saving portfolio:', error);
-      setSubmitMessage('Error saving portfolio. Please try again.');
+      const errorMessage = error.message || 'Unknown error occurred';
+      setSubmitMessage(`Error saving portfolio: ${errorMessage}`);
     } finally {
       setIsSubmitting(false);
     }
@@ -128,9 +150,6 @@ const PortfolioMaster = () => {
     return options[fieldName] || [];
   };
 
-  const isRequired = (fieldName) => {
-    return ['portfolioId', 'portfolioName', 'portfolioType', 'entity', 'fundManager', 'baseCurrency'].includes(fieldName);
-  };
 
   const renderField = (fieldName, value) => {
     const fieldType = getFieldType(fieldName);
