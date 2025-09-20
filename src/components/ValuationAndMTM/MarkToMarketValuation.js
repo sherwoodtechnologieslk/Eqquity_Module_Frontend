@@ -845,95 +845,137 @@ const MarkToMarketValuation = () => {
                   <span className="mtm-last-updated">Last updated: {lastUpdated.toLocaleTimeString()}</span>
                 </div>
                 
-                <div className="mtm-overview-metrics">
-                  {/* Top Performer */}
-                  <div className="mtm-metric-card primary">
-                    <div className="mtm-metric-label">Best Performer</div>
-                    <div className="mtm-metric-value">
-                      {(() => {
-                        const bestPerformer = mtmData.reduce((best, current) => 
-                          current.gainLossPercentage > best.gainLossPercentage ? current : best, 
-                          mtmData[0] || { symbol: 'N/A', gainLossPercentage: 0 }
-                        );
-                        return bestPerformer.symbol;
-                      })()}
-                    </div>
-                    <div className="mtm-metric-change">
-                      {(() => {
-                        const bestPerformer = mtmData.reduce((best, current) => 
-                          current.gainLossPercentage > best.gainLossPercentage ? current : best, 
-                          mtmData[0] || { gainLossPercentage: 0 }
-                        );
-                        return (
-                          <span className="positive">
-                            +{formatPercentage(bestPerformer.gainLossPercentage)}
-                          </span>
-                        );
-                      })()}
-                    </div>
-                  </div>
-
-                  {/* Worst Performer */}
-                  <div className="mtm-metric-card">
-                    <div className="mtm-metric-label">Worst Performer</div>
-                    <div className="mtm-metric-value">
-                      {(() => {
-                        const worstPerformer = mtmData.reduce((worst, current) => 
-                          current.gainLossPercentage < worst.gainLossPercentage ? current : worst, 
-                          mtmData[0] || { symbol: 'N/A', gainLossPercentage: 0 }
-                        );
-                        return worstPerformer.symbol;
-                      })()}
-                    </div>
-                    <div className={`mtm-metric-percentage ${(() => {
-                      const worstPerformer = mtmData.reduce((worst, current) => 
-                        current.gainLossPercentage < worst.gainLossPercentage ? current : worst, 
-                        mtmData[0] || { gainLossPercentage: 0 }
-                      );
-                      return worstPerformer.gainLossPercentage >= 0 ? 'positive' : 'negative';
-                    })()}`}>
-                      {(() => {
-                        const worstPerformer = mtmData.reduce((worst, current) => 
-                          current.gainLossPercentage < worst.gainLossPercentage ? current : worst, 
-                          mtmData[0] || { gainLossPercentage: 0 }
-                        );
-                        return formatPercentage(worstPerformer.gainLossPercentage);
-                      })()}
-                    </div>
-                  </div>
-
-                  {/* Performance Insights */}
-                  <div className="mtm-small-cards">
-                    <div className="mtm-small-card">
-                      <div className="mtm-small-label">Winners</div>
-                      <div className="mtm-small-value positive">
-                        {mtmData.filter(item => item.gainLossPercentage > 0).length}
+                <div className="mtm-performance-grid">
+                  {/* Performance Overview Cards */}
+                  <div className="mtm-performance-row">
+                    <div className="mtm-performance-card best-performer">
+                      <div className="mtm-card-header">
+                        <div className="mtm-card-icon best-icon">
+                          <svg viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                          </svg>
+                        </div>
+                        <div className="mtm-card-title">Best Performer</div>
+                      </div>
+                      <div className="mtm-card-content">
+                        <div className="mtm-card-value">
+                          {(() => {
+                            const bestPerformer = mtmData.reduce((best, current) => 
+                              current.gainLossPercentage > best.gainLossPercentage ? current : best, 
+                              mtmData[0] || { symbol: 'N/A', gainLossPercentage: 0 }
+                            );
+                            return bestPerformer.symbol;
+                          })()}
+                        </div>
+                        <div className="mtm-card-change positive">
+                          {(() => {
+                            const bestPerformer = mtmData.reduce((best, current) => 
+                              current.gainLossPercentage > best.gainLossPercentage ? current : best, 
+                              mtmData[0] || { gainLossPercentage: 0 }
+                            );
+                            return '+' + formatPercentage(bestPerformer.gainLossPercentage);
+                          })()}
+                        </div>
                       </div>
                     </div>
-                    <div className="mtm-small-card">
-                      <div className="mtm-small-label">Losers</div>
-                      <div className="mtm-small-value negative">
-                        {mtmData.filter(item => item.gainLossPercentage < 0).length}
+
+                    <div className="mtm-performance-card worst-performer">
+                      <div className="mtm-card-header">
+                        <div className="mtm-card-icon worst-icon">
+                          <svg viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M12 2l-3.09 6.26L2 9.27l5 4.87-1.18 6.88L12 17.77l6.18 3.25L17 14.14l5-4.87-6.91-1.01L12 2z"/>
+                          </svg>
+                        </div>
+                        <div className="mtm-card-title">Worst Performer</div>
+                      </div>
+                      <div className="mtm-card-content">
+                        <div className="mtm-card-value">
+                          {(() => {
+                            const worstPerformer = mtmData.reduce((worst, current) => 
+                              current.gainLossPercentage < worst.gainLossPercentage ? current : worst, 
+                              mtmData[0] || { symbol: 'N/A', gainLossPercentage: 0 }
+                            );
+                            return worstPerformer.symbol;
+                          })()}
+                        </div>
+                        <div className={`mtm-card-change ${(() => {
+                          const worstPerformer = mtmData.reduce((worst, current) => 
+                            current.gainLossPercentage < worst.gainLossPercentage ? current : worst, 
+                            mtmData[0] || { gainLossPercentage: 0 }
+                          );
+                          return worstPerformer.gainLossPercentage >= 0 ? 'positive' : 'negative';
+                        })()}`}>
+                          {(() => {
+                            const worstPerformer = mtmData.reduce((worst, current) => 
+                              current.gainLossPercentage < worst.gainLossPercentage ? current : worst, 
+                              mtmData[0] || { gainLossPercentage: 0 }
+                            );
+                            return '+' + formatPercentage(worstPerformer.gainLossPercentage);
+                          })()}
+                        </div>
                       </div>
                     </div>
                   </div>
 
-                  {/* Quick Stats */}
-                  <div className="mtm-quick-stats">
-                    <div className="mtm-stat-item">
-                      <span className="mtm-stat-label">Win Rate:</span>
-                      <span className="mtm-stat-value">
-                        {mtmData.length > 0 ? 
-                          ((mtmData.filter(item => item.gainLossPercentage > 0).length / mtmData.length) * 100).toFixed(1) + '%' : 
-                          '0%'
-                        }
-                      </span>
+                  {/* Stats Grid */}
+                  <div className="mtm-stats-grid">
+                    <div className="mtm-stat-card winners">
+                      <div className="mtm-stat-icon">
+                        <svg viewBox="0 0 24 24" fill="currentColor">
+                          <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                        </svg>
+                      </div>
+                      <div className="mtm-stat-info">
+                        <div className="mtm-stat-label">Winners</div>
+                        <div className="mtm-stat-number positive">
+                          {mtmData.filter(item => item.gainLossPercentage > 0).length}
+                        </div>
+                      </div>
                     </div>
-                    <div className="mtm-stat-item">
-                      <span className="mtm-stat-label">Avg Position Size:</span>
-                      <span className="mtm-stat-value">
-                        {formatCurrency(mtmData.length > 0 ? totals.totalMarket / mtmData.length : 0)}
-                      </span>
+
+                    <div className="mtm-stat-card losers">
+                      <div className="mtm-stat-icon">
+                        <svg viewBox="0 0 24 24" fill="currentColor">
+                          <path d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                        </svg>
+                      </div>
+                      <div className="mtm-stat-info">
+                        <div className="mtm-stat-label">Losers</div>
+                        <div className="mtm-stat-number negative">
+                          {mtmData.filter(item => item.gainLossPercentage < 0).length}
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="mtm-stat-card win-rate">
+                      <div className="mtm-stat-icon">
+                        <svg viewBox="0 0 24 24" fill="currentColor">
+                          <path d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+                        </svg>
+                      </div>
+                      <div className="mtm-stat-info">
+                        <div className="mtm-stat-label">Win Rate</div>
+                        <div className="mtm-stat-number">
+                          {mtmData.length > 0 ? 
+                            ((mtmData.filter(item => item.gainLossPercentage > 0).length / mtmData.length) * 100).toFixed(0) + '%' : 
+                            '0%'
+                          }
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="mtm-stat-card avg-position">
+                      <div className="mtm-stat-icon">
+                        <svg viewBox="0 0 24 24" fill="currentColor">
+                          <path d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                        </svg>
+                      </div>
+                      <div className="mtm-stat-info">
+                        <div className="mtm-stat-label">Avg Position Size</div>
+                        <div className="mtm-stat-number">
+                          {formatCurrency(mtmData.length > 0 ? totals.totalMarket / mtmData.length : 0)}
+                        </div>
+                      </div>
                     </div>
                   </div>
                 </div>
