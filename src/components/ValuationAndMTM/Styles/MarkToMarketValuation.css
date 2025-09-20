@@ -578,45 +578,62 @@
 }
 
 .mtm-metric-card {
-  background: #f8fafc;
+  background: white;
   border: 1px solid #e2e8f0;
   border-radius: 12px;
-  padding: 1.25rem;
+  padding: 1.5rem;
   text-align: center;
   transition: all 0.2s ease;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
 }
 
 .mtm-metric-card.primary {
   background: linear-gradient(135deg, #3b82f6, #1d4ed8);
   color: white;
   border: none;
-  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+  box-shadow: 0 8px 25px rgba(59, 130, 246, 0.3);
+  position: relative;
+  overflow: hidden;
+}
+
+.mtm-metric-card.primary::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.05));
+  pointer-events: none;
 }
 
 .mtm-metric-label {
-  font-size: 0.875rem;
-  font-weight: 600;
+  font-size: 0.75rem;
+  font-weight: 700;
   color: #6b7280;
   text-transform: uppercase;
-  letter-spacing: 0.05em;
-  margin-bottom: 0.5rem;
+  letter-spacing: 0.1em;
+  margin-bottom: 0.75rem;
 }
 
 .mtm-metric-card.primary .mtm-metric-label {
-  color: rgba(255, 255, 255, 0.8);
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 0.8rem;
 }
 
 .mtm-metric-value {
-  font-size: 2rem;
-  font-weight: 700;
+  font-size: 2.5rem;
+  font-weight: 800;
   color: #1f2937;
   margin-bottom: 0.5rem;
-  line-height: 1.2;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
 }
 
 .mtm-metric-card.primary .mtm-metric-value {
   color: white;
-  font-size: 2.25rem;
+  font-size: 2.75rem;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .mtm-metric-change,
@@ -636,11 +653,13 @@
 }
 
 .mtm-metric-card.primary .mtm-metric-change .positive {
-  color: #10b981;
+  color: #a7f3d0;
+  font-weight: 700;
 }
 
 .mtm-metric-card.primary .mtm-metric-change .negative {
   color: #fca5a5;
+  font-weight: 700;
 }
 
 .mtm-small-cards {
@@ -652,30 +671,33 @@
 .mtm-small-card {
   background: white;
   border: 1px solid #e2e8f0;
-  border-radius: 8px;
-  padding: 1rem;
+  border-radius: 12px;
+  padding: 1.25rem;
   text-align: center;
   transition: all 0.2s ease;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
 }
 
 .mtm-small-card:hover {
   border-color: #3b82f6;
-  box-shadow: 0 2px 8px rgba(59, 130, 246, 0.1);
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.15);
+  transform: translateY(-1px);
 }
 
 .mtm-small-label {
   font-size: 0.75rem;
-  font-weight: 600;
+  font-weight: 700;
   color: #6b7280;
   text-transform: uppercase;
-  letter-spacing: 0.05em;
-  margin-bottom: 0.5rem;
+  letter-spacing: 0.1em;
+  margin-bottom: 0.75rem;
 }
 
 .mtm-small-value {
-  font-size: 1.5rem;
-  font-weight: 700;
+  font-size: 1.75rem;
+  font-weight: 800;
   color: #1f2937;
+  line-height: 1.2;
 }
 
 .mtm-small-value.positive {
@@ -826,36 +848,42 @@
 }
 
 .mtm-quick-stats {
-  display: flex;
-  justify-content: space-between;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
   gap: 1rem;
   margin-top: 0.5rem;
-  padding: 1rem;
-  background: #f8fafc;
-  border-radius: 8px;
-  border: 1px solid #e2e8f0;
 }
 
 .mtm-stat-item {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0.25rem;
-  flex: 1;
+  background: white;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 1.25rem;
+  text-align: center;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.mtm-stat-item:hover {
+  border-color: #3b82f6;
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.15);
+  transform: translateY(-1px);
 }
 
 .mtm-stat-label {
   font-size: 0.75rem;
-  font-weight: 600;
+  font-weight: 700;
   color: #6b7280;
   text-transform: uppercase;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.1em;
+  margin-bottom: 0.75rem;
 }
 
 .mtm-stat-value {
-  font-size: 1.125rem;
-  font-weight: 700;
+  font-size: 1.5rem;
+  font-weight: 800;
   color: #1f2937;
+  line-height: 1.2;
 }
 
 /* Table Section */
@@ -1159,6 +1187,195 @@
   }
 }
 
+/* New Performance Grid Layout */
+.mtm-performance-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+.mtm-performance-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5rem;
+}
+
+.mtm-performance-card {
+  background: white;
+  border-radius: 16px;
+  padding: 1.5rem;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  border: 1px solid #e2e8f0;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.mtm-performance-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+}
+
+.mtm-performance-card.best-performer {
+  background: linear-gradient(135deg, #10b981, #059669);
+  color: white;
+  border: none;
+}
+
+.mtm-performance-card.worst-performer {
+  background: linear-gradient(135deg, #f59e0b, #d97706);
+  color: white;
+  border: none;
+}
+
+.mtm-card-header {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.mtm-card-icon {
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.mtm-card-icon svg {
+  width: 1.25rem;
+  height: 1.25rem;
+}
+
+.mtm-card-title {
+  font-size: 0.875rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  opacity: 0.9;
+}
+
+.mtm-card-content {
+  text-align: center;
+}
+
+.mtm-card-value {
+  font-size: 2rem;
+  font-weight: 800;
+  margin-bottom: 0.5rem;
+  line-height: 1.2;
+}
+
+.mtm-card-change {
+  font-size: 0.875rem;
+  font-weight: 600;
+  padding: 0.25rem 0.75rem;
+  border-radius: 20px;
+  display: inline-block;
+}
+
+.mtm-card-change.positive {
+  background: rgba(16, 185, 129, 0.2);
+  color: #10b981;
+}
+
+.mtm-card-change.negative {
+  background: rgba(239, 68, 68, 0.2);
+  color: #ef4444;
+}
+
+/* Stats Grid */
+.mtm-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1rem;
+}
+
+.mtm-stat-card {
+  background: white;
+  border-radius: 12px;
+  padding: 1.25rem;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  border: 1px solid #e2e8f0;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.mtm-stat-card:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  border-color: #3b82f6;
+}
+
+.mtm-stat-icon {
+  width: 2rem;
+  height: 2rem;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.mtm-stat-card.winners .mtm-stat-icon {
+  background: #dcfce7;
+  color: #16a34a;
+}
+
+.mtm-stat-card.losers .mtm-stat-icon {
+  background: #fee2e2;
+  color: #dc2626;
+}
+
+.mtm-stat-card.win-rate .mtm-stat-icon {
+  background: #dbeafe;
+  color: #2563eb;
+}
+
+.mtm-stat-card.avg-position .mtm-stat-icon {
+  background: #f3e8ff;
+  color: #7c3aed;
+}
+
+.mtm-stat-icon svg {
+  width: 1rem;
+  height: 1rem;
+}
+
+.mtm-stat-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.mtm-stat-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #6b7280;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 0.25rem;
+}
+
+.mtm-stat-number {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #1f2937;
+  line-height: 1.2;
+}
+
+.mtm-stat-number.positive {
+  color: #16a34a;
+}
+
+.mtm-stat-number.negative {
+  color: #dc2626;
+}
+
 @media (max-width: 480px) {
   .mtm-header-icon {
     width: 4rem;
@@ -1171,5 +1388,13 @@
   
   .mtm-subtitle {
     font-size: 1rem;
+  }
+  
+  .mtm-performance-row {
+    grid-template-columns: 1fr;
+  }
+  
+  .mtm-stats-grid {
+    grid-template-columns: repeat(2, 1fr);
   }
 }
