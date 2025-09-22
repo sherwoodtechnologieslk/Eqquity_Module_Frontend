@@ -39,7 +39,7 @@ const CostingMethodSelection = () => {
         setIsAssigned(true);
         setAssignedMethodForPortfolio(found.costing_method);
         setSelectedMethod(found.costing_method);
-        setMessage(`This portfolio already has a costing method assigned: ${methods.find(m => m.value === found.costing_method)?.label || found.costing_method}`);
+        // Don't set message automatically - only show when user tries to submit
       } else {
         setIsAssigned(false);
         setAssignedMethodForPortfolio('');
@@ -82,21 +82,31 @@ const CostingMethodSelection = () => {
       setMessage('Please select a portfolio id, portfolio name, and a costing method.');
       return;
     }
+    
+    // Check if portfolio already has a method assigned (frontend check)
     if (isAssigned) {
-      setMessage('This portfolio already has a costing method assigned and cannot be changed.');
+      const methodLabel = methods.find(m => m.value === assignedMethodForPortfolio)?.label || assignedMethodForPortfolio;
+      setMessage(`This portfolio already has a costing method assigned: ${methodLabel}`);
       return;
     }
+    
     try {
       await portfolioCostingMethodAPI.assignCostingMethod({
         portfolioId: selectedPortfolioId,
         costing_method: selectedMethod,
       });
-      setMessage(`Costing method "${methods.find(m => m.value === selectedMethod).label}" assigned to "${selectedPortfolioName} (${selectedPortfolioId})" successfully!`);
+      // Success - show simple success message
+      setMessage('Costing method saved successfully!');
       // Refresh assigned methods
       const updated = await portfolioCostingMethodAPI.getAllAssignedCostingMethods();
       setAssignedMethods(updated);
     } catch (error) {
-      setMessage('Failed to assign costing method. Please try again.');
+      // Check if error is because portfolio already has a method assigned
+      if (error.message && error.message.includes('already has a costing method assigned')) {
+        setMessage(error.message);
+      } else {
+        setMessage('Failed to assign costing method. Please try again.');
+      }
       console.error(error);
     }
   };
@@ -226,7 +236,7 @@ const CostingMethodSelection = () => {
 
             {/* --- BUTTONS --- */}
             <div className="cost-method-button-section">
-              <button type="submit" className="cost-method-btn cost-method-btn-primary" disabled={isAssigned}>
+              <button type="submit" className="cost-method-btn cost-method-btn-primary">
                 Save Method
               </button>
               <button
