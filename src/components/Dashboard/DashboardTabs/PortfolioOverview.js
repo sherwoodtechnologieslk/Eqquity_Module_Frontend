@@ -91,6 +91,7 @@ const PortfolioOverview = ({ onTabChange }) => {
       let url = 'http://localhost:8080/api/portfolios/overview';
       if (selectedPortfolio && selectedPortfolio !== 'all') {
         url += `?portfolioId=${selectedPortfolio}`;
+        console.log('Fetching portfolio data for portfolioId:', selectedPortfolio);
       }
       
       // Fetch portfolio data from backend
@@ -104,14 +105,17 @@ const PortfolioOverview = ({ onTabChange }) => {
 
       if (response.ok) {
         const result = await response.json();
+        console.log('Portfolio data response:', result);
         if (result.success) {
           const portfolioValue = result.data.summary?.totalValue || 0;
+          console.log('Setting portfolio data with value:', portfolioValue, 'holdings:', result.data.holdings?.length);
           setPortfolioData({
             ...result.data,
             valueHistory: generateValueHistory(selectedTimeRange, portfolioValue)
           });
         } else {
           // API returned error, use the data from error response or empty data
+          console.log('API returned error, using empty data');
           setPortfolioData({
             ...result.data,
             valueHistory: []
@@ -454,6 +458,7 @@ const PortfolioOverview = ({ onTabChange }) => {
   }
 
   // Show empty state when no data is available
+  console.log('Checking empty state - totalValue:', portfolioData.summary.totalValue, 'holdings:', portfolioData.holdings.length);
   if (portfolioData.summary.totalValue === 0 && portfolioData.holdings.length === 0) {
     return (
       <div className="portfolio-overview">
