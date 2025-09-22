@@ -922,12 +922,12 @@ const MarkToMarketValuation = () => {
                     <div className="mtm-stat-card winners">
                       <div className="mtm-stat-icon">
                         <svg viewBox="0 0 24 24" fill="currentColor">
-                          <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                          <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
                         </svg>
                       </div>
-                      <div className="mtm-stat-info">
-                        <div className="mtm-stat-label">Winners</div>
-                        <div className="mtm-stat-number positive">
+                      <div className="mtm-stat-content">
+                        <div className="mtm-stat-label">WINNERS</div>
+                        <div className="mtm-stat-value">
                           {mtmData.filter(item => item.gainLossPercentage > 0).length}
                         </div>
                       </div>
@@ -936,12 +936,12 @@ const MarkToMarketValuation = () => {
                     <div className="mtm-stat-card losers">
                       <div className="mtm-stat-icon">
                         <svg viewBox="0 0 24 24" fill="currentColor">
-                          <path d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                          <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
                         </svg>
                       </div>
-                      <div className="mtm-stat-info">
-                        <div className="mtm-stat-label">Losers</div>
-                        <div className="mtm-stat-number negative">
+                      <div className="mtm-stat-content">
+                        <div className="mtm-stat-label">LOSERS</div>
+                        <div className="mtm-stat-value">
                           {mtmData.filter(item => item.gainLossPercentage < 0).length}
                         </div>
                       </div>
@@ -950,12 +950,12 @@ const MarkToMarketValuation = () => {
                     <div className="mtm-stat-card win-rate">
                       <div className="mtm-stat-icon">
                         <svg viewBox="0 0 24 24" fill="currentColor">
-                          <path d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+                          <path d="M16 6l2.29 2.29-4.88 4.88-4-4L2 16.59 3.41 18l6-6 4 4 6.3-6.29L22 12V6z"/>
                         </svg>
                       </div>
-                      <div className="mtm-stat-info">
-                        <div className="mtm-stat-label">Win Rate</div>
-                        <div className="mtm-stat-number">
+                      <div className="mtm-stat-content">
+                        <div className="mtm-stat-label">WIN RATE</div>
+                        <div className="mtm-stat-value">
                           {mtmData.length > 0 ? 
                             ((mtmData.filter(item => item.gainLossPercentage > 0).length / mtmData.length) * 100).toFixed(0) + '%' : 
                             '0%'
@@ -967,12 +967,12 @@ const MarkToMarketValuation = () => {
                     <div className="mtm-stat-card avg-position">
                       <div className="mtm-stat-icon">
                         <svg viewBox="0 0 24 24" fill="currentColor">
-                          <path d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                          <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.94-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/>
                         </svg>
                       </div>
-                      <div className="mtm-stat-info">
-                        <div className="mtm-stat-label">Avg Position Size</div>
-                        <div className="mtm-stat-number">
+                      <div className="mtm-stat-content">
+                        <div className="mtm-stat-label">AVG POSITION SIZE</div>
+                        <div className="mtm-stat-value">
                           {formatCurrency(mtmData.length > 0 ? totals.totalMarket / mtmData.length : 0)}
                         </div>
                       </div>
