@@ -10,20 +10,28 @@ const TransactionDetails = ({ onBack, portfolioName, companyName, quantity, sell
   const [loading, setLoading] = useState(false);
   const [wapDetails, setWapDetails] = useState(null);
   const [fifoAllocations, setFifoAllocations] = useState([]);
+  const [buyTransactions, setBuyTransactions] = useState([]);
 
   useEffect(() => {
     if (valuationMethod && valuationMethod.toUpperCase() === 'WAP') {
-      // Fetch WAP details
+      // Fetch WAP details and buy transactions
       if (portfolioName && companyName && quantity) {
-        transactionEntryAPI.getWAPByPortfolioAndCompany(portfolioName, companyName)
-          .then(data => {
-            setWapDetails({
-              wap: data.wap,
-              totalQty: data.totalQty,
-              costBasis: (data.wap * parseFloat(quantity)).toLocaleString(undefined, {minimumFractionDigits: 2})
-            });
-          })
-          .catch(() => setWapDetails(null));
+        Promise.all([
+          transactionEntryAPI.getWAPByPortfolioAndCompany(portfolioName, companyName),
+          transactionEntryAPI.getAvailableBuyLots(portfolioName, companyName)
+        ])
+        .then(([wapData, buyLots]) => {
+          setWapDetails({
+            wap: wapData.wap,
+            totalQty: wapData.totalQty,
+            costBasis: (wapData.wap * parseFloat(quantity)).toLocaleString(undefined, {minimumFractionDigits: 2})
+          });
+          setBuyTransactions(buyLots);
+        })
+        .catch(() => {
+          setWapDetails(null);
+          setBuyTransactions([]);
+        });
       }
     } else if (valuationMethod && valuationMethod.toUpperCase() === 'FIFO') {
       // Fetch buy lots and calculate FIFO allocations
@@ -172,6 +180,73 @@ const TransactionDetails = ({ onBack, portfolioName, companyName, quantity, sell
           <div style={{background: '#d1fae5', borderRadius: 8, padding: 16, marginBottom: 16}}>
             WAP method uses average cost across all buy transactions.
           </div>
+
+          {/* Buy Transactions Breakdown */}
+          {buyTransactions.length > 0 && (
+            <div style={{background: '#fff', borderRadius: 16, padding: 24, marginBottom: 16, boxShadow: '0 2px 8px rgba(0,0,0,0.04)'}}>
+              <h3 style={{fontSize: '1.125rem', fontWeight: '600', marginBottom: '1rem', color: '#1f2937'}}>
+                Buy Transactions Used in WAP Calculation
+              </h3>
+              <div style={{overflowX: 'auto'}}>
+                <table style={{width: '100%', borderCollapse: 'collapse', fontSize: '0.875rem'}}>
+                  <thead>
+                    <tr style={{background: '#f8fafc', borderBottom: '1px solid #e5e7eb'}}>
+                      <th style={{padding: '0.75rem', textAlign: 'left', fontWeight: '600', color: '#374151'}}>Trade Date</th>
+                      <th style={{padding: '0.75rem', textAlign: 'right', fontWeight: '600', color: '#374151'}}>Quantity</th>
+                      <th style={{padding: '0.75rem', textAlign: 'right', fontWeight: '600', color: '#374151'}}>Price</th>
+                      <th style={{padding: '0.75rem', textAlign: 'right', fontWeight: '600', color: '#374151'}}>Total Cost</th>
+                      <th style={{padding: '0.75rem', textAlign: 'right', fontWeight: '600', color: '#374151'}}>Weight %</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {buyTransactions.map((transaction, index) => {
+                      const totalCost = parseFloat(transaction.quantity) * parseFloat(transaction.price);
+                      const weightPercentage = wapDetails ? ((totalCost / (parseFloat(wapDetails.wap) * parseFloat(wapDetails.totalQty))) * 100).toFixed(1) : '0.0';
+                      return (
+                        <tr key={index} style={{borderBottom: '1px solid #f3f4f6'}}>
+                          <td style={{padding: '0.75rem', color: '#374151'}}>
+                            {new Date(transaction.trade_date).toLocaleDateString()}
+                          </td>
+                          <td style={{padding: '0.75rem', textAlign: 'right', color: '#374151'}}>
+                            {parseFloat(transaction.quantity).toLocaleString()}
+                          </td>
+                          <td style={{padding: '0.75rem', textAlign: 'right', color: '#374151'}}>
+                            {parseFloat(transaction.price).toFixed(2)}
+                          </td>
+                          <td style={{padding: '0.75rem', textAlign: 'right', color: '#374151', fontWeight: '500'}}>
+                            {totalCost.toLocaleString(undefined, {minimumFractionDigits: 2})}
+                          </td>
+                          <td style={{padding: '0.75rem', textAlign: 'right', color: '#6b7280'}}>
+                            {weightPercentage}%
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                  <tfoot>
+                    <tr style={{background: '#f8fafc', borderTop: '2px solid #e5e7eb'}}>
+                      <td style={{padding: '0.75rem', fontWeight: '600', color: '#1f2937'}}>Total</td>
+                      <td style={{padding: '0.75rem', textAlign: 'right', fontWeight: '600', color: '#1f2937'}}>
+                        {wapDetails ? parseFloat(wapDetails.totalQty).toLocaleString() : '0'}
+                      </td>
+                      <td style={{padding: '0.75rem', textAlign: 'right', fontWeight: '600', color: '#1f2937'}}>
+                        {wapDetails ? parseFloat(wapDetails.wap).toFixed(2) : '0.00'}
+                      </td>
+                      <td style={{padding: '0.75rem', textAlign: 'right', fontWeight: '600', color: '#1f2937'}}>
+                        {wapDetails ? (parseFloat(wapDetails.wap) * parseFloat(wapDetails.totalQty)).toLocaleString(undefined, {minimumFractionDigits: 2}) : '0.00'}
+                      </td>
+                      <td style={{padding: '0.75rem', textAlign: 'right', fontWeight: '600', color: '#1f2937'}}>
+                        100.0%
+                      </td>
+                    </tr>
+                  </tfoot>
+                </table>
+              </div>
+              <div style={{marginTop: '1rem', padding: '0.75rem', background: '#f0f9ff', borderRadius: '8px', fontSize: '0.875rem', color: '#1e40af'}}>
+                <strong>Note:</strong> WAP is calculated as Total Cost ÷ Total Quantity = {wapDetails ? parseFloat(wapDetails.wap).toFixed(4) : '0.0000'}
+              </div>
+            </div>
+          )}
         </div>
       </div>
     );

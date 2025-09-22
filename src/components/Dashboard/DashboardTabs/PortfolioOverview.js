@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import './PortfolioOverview.css';
 import { portfolioAPI } from '../../../services/api';
 
-const PortfolioOverview = () => {
+const PortfolioOverview = ({ onTabChange }) => {
   const [portfolioData, setPortfolioData] = useState({
     summary: {
       totalValue: 0,
@@ -64,30 +64,24 @@ const PortfolioOverview = () => {
     }
   };
 
-  const setMockData = useCallback(() => {
-    const mockData = {
+  const setEmptyData = useCallback(() => {
+    const emptyData = {
       summary: {
-        totalValue: 1250000,
-        totalPnL: 45000,
-        totalCost: 1205000,
-        cashBalance: 75000,
-        numberOfPositions: 15
+        totalValue: 0,
+        totalPnL: 0,
+        totalCost: 0,
+        cashBalance: 0,
+        numberOfPositions: 0
       },
-      holdings: [
-        { symbol: 'AAPL', quantity: 100, avgPrice: 145.25, currentPrice: 150.25, marketValue: 15025, pnl: 500, sector: 'Technology' },
-        { symbol: 'MSFT', quantity: 75, avgPrice: 315.50, currentPrice: 320.50, marketValue: 24037.5, pnl: 375, sector: 'Technology' },
-        { symbol: 'GOOGL', quantity: 50, avgPrice: 2700.00, currentPrice: 2750.00, marketValue: 137500, pnl: 2500, sector: 'Technology' },
-        { symbol: 'NVDA', quantity: 200, avgPrice: 450.00, currentPrice: 480.00, marketValue: 96000, pnl: 6000, sector: 'Technology' },
-        { symbol: 'JPM', quantity: 150, avgPrice: 140.00, currentPrice: 145.00, marketValue: 21750, pnl: 750, sector: 'Financial' }
-      ],
+      holdings: [],
       assetAllocation: {
-        equity: 1175000,
-        cash: 75000
+        equity: 0,
+        cash: 0
       },
-      valueHistory: generateValueHistory(selectedTimeRange, 1250000)
+      valueHistory: []
     };
-    setPortfolioData(mockData);
-  }, [selectedTimeRange]);
+    setPortfolioData(emptyData);
+  }, []);
 
   const loadPortfolioData = useCallback(async () => {
     try {
@@ -117,21 +111,33 @@ const PortfolioOverview = () => {
             valueHistory: generateValueHistory(selectedTimeRange, portfolioValue)
           });
         } else {
-          // Fallback to mock data
-          setMockData();
+          // API returned error, use the data from error response or empty data
+          setPortfolioData({
+            ...result.data,
+            valueHistory: []
+          });
         }
       } else {
-        // Fallback to mock data
-        setMockData();
+        // API call failed, try to parse error response
+        try {
+          const errorResult = await response.json();
+          setPortfolioData({
+            ...errorResult.data,
+            valueHistory: []
+          });
+        } catch {
+          // If can't parse error response, use empty data
+          setEmptyData();
+        }
       }
     } catch (error) {
       console.error('Error loading portfolio data:', error);
-      // Fallback to mock data
-      setMockData();
+      // Error occurred, show empty state
+      setEmptyData();
     } finally {
       setIsLoading(false);
     }
-  }, [selectedPortfolio, selectedTimeRange, setMockData]);
+  }, [selectedPortfolio, selectedTimeRange, setEmptyData]);
 
   useEffect(() => {
     loadActivePortfolios();
@@ -150,6 +156,12 @@ const PortfolioOverview = () => {
       setPortfolioData(prev => ({
         ...prev,
         valueHistory: newValueHistory
+      }));
+    } else {
+      // No data available, clear value history
+      setPortfolioData(prev => ({
+        ...prev,
+        valueHistory: []
       }));
     }
   }, [selectedTimeRange, portfolioData.summary.totalValue]);
@@ -437,6 +449,33 @@ const PortfolioOverview = () => {
       <div className="portfolio-overview-loading">
         <div className="loading-spinner"></div>
         <p>Loading portfolio data...</p>
+      </div>
+    );
+  }
+
+  // Show empty state when no data is available
+  if (portfolioData.summary.totalValue === 0 && portfolioData.holdings.length === 0) {
+    return (
+      <div className="portfolio-overview">
+        <div className="overview-header">
+          <h2>Portfolio Overview</h2>
+          <p className="overview-subtitle">Your current portfolio status and holdings</p>
+        </div>
+        
+        <div className="portfolio-empty-state">
+          <div className="empty-state-icon">
+            <svg width="64" height="64" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M9 12L11 14L15 10M21 12C21 16.9706 16.9706 21 12 21C7.02944 21 3 16.9706 3 12C3 7.02944 7.02944 3 12 3C16.9706 3 21 7.02944 21 12Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+          </div>
+          <h3>No Portfolio Data Available</h3>
+          <p>There are no transactions or holdings in the selected portfolio. Start by adding some buy transactions to see your portfolio overview.</p>
+          <div className="empty-state-actions">
+            <button className="btn-primary" onClick={() => onTabChange('Buy')}>
+              Add Transactions
+            </button>
+          </div>
+        </div>
       </div>
     );
   }

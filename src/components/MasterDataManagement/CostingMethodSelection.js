@@ -241,6 +241,69 @@ const CostingMethodSelection = () => {
           </form>
         </div>
 
+        {/* Assigned Methods View Section */}
+        <div className="cost-method-assigned-section">
+          <div className="cost-method-assigned-header">
+            <h3 className="cost-method-assigned-title">Assigned Portfolio Methods</h3>
+            <p className="cost-method-assigned-subtitle">View all portfolios with their assigned costing methods</p>
+          </div>
+          
+          <div className="cost-method-assigned-content">
+            {assignedMethods.length === 0 ? (
+              <div className="cost-method-empty-state">
+                <div className="cost-method-empty-icon">
+                  <svg viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+                  </svg>
+                </div>
+                <p className="cost-method-empty-text">No portfolios have costing methods assigned yet</p>
+              </div>
+            ) : (
+              <div className="cost-method-assigned-grid">
+                {assignedMethods.map((assignment, index) => {
+                  const portfolio = portfolios.find(p => p.portfolioId === assignment.portfolioId);
+                  const method = methods.find(m => m.value === assignment.costing_method);
+                  return (
+                    <div key={index} className="cost-method-assigned-card">
+                      <div className="cost-method-assigned-card-header">
+                        <div className="cost-method-assigned-portfolio-info">
+                          <h4 className="cost-method-assigned-portfolio-name">
+                            {portfolio ? portfolio.portfolioName : 'Unknown Portfolio'}
+                          </h4>
+                          <p className="cost-method-assigned-portfolio-id">
+                            ID: {assignment.portfolioId}
+                          </p>
+                        </div>
+                        <div className="cost-method-assigned-method-badge">
+                          {method ? method.label : assignment.costing_method}
+                        </div>
+                      </div>
+                      <div className="cost-method-assigned-card-details">
+                        <div className="cost-method-assigned-detail-item">
+                          <span className="cost-method-assigned-detail-label">Method:</span>
+                          <span className="cost-method-assigned-detail-value">
+                            {method ? method.label : assignment.costing_method}
+                          </span>
+                        </div>
+                        <div className="cost-method-assigned-detail-item">
+                          <span className="cost-method-assigned-detail-label">Portfolio:</span>
+                          <span className="cost-method-assigned-detail-value">
+                            {portfolio ? portfolio.portfolioName : 'Unknown Portfolio'}
+                          </span>
+                        </div>
+                        <div className="cost-method-assigned-detail-item">
+                          <span className="cost-method-assigned-detail-label">Status:</span>
+                          <span className="cost-method-assigned-status active">Active</span>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        </div>
+
         {/* --- FOOTER INFO --- */}
         <div className="cost-method-footer-section">
           <p>ALCYONE TREASURY SOLUTIONS (PVT) LTD • Assign costing methods to your portfolios for precise P&amp;L calculation</p>

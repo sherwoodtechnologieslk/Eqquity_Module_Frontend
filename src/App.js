@@ -115,7 +115,7 @@ function App() {
   // Tab component mappings
   const tabToComponent = {
     'Dashboard': <Dashboard onTabChange={handleTabChange} />,
-    'Portfolio Overview': <PortfolioOverview />,
+    'Portfolio Overview': <PortfolioOverview onTabChange={handleTabChange} />,
     'Market Summary': <MarketSummary />,
     'Recent Activity': <RecentActivity />,
     'Performance Metrics': <PerformanceMetrics />,
