@@ -1202,30 +1202,33 @@
 
 .mtm-performance-card {
   background: white;
-  border-radius: 16px;
-  padding: 1.5rem;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  border-radius: 20px;
+  padding: 2rem;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
   border: 1px solid #e2e8f0;
   transition: all 0.3s ease;
   position: relative;
   overflow: hidden;
+  backdrop-filter: blur(10px);
 }
 
 .mtm-performance-card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+  transform: translateY(-4px);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.12);
 }
 
 .mtm-performance-card.best-performer {
-  background: linear-gradient(135deg, #10b981, #059669);
+  background: linear-gradient(135deg, #10b981, #059669, #047857);
   color: white;
   border: none;
+  box-shadow: 0 8px 32px rgba(16, 185, 129, 0.25);
 }
 
 .mtm-performance-card.worst-performer {
-  background: linear-gradient(135deg, #f59e0b, #d97706);
+  background: linear-gradient(135deg, #f59e0b, #d97706, #b45309);
   color: white;
   border: none;
+  box-shadow: 0 8px 32px rgba(245, 158, 11, 0.25);
 }
 
 .mtm-card-header {
@@ -1236,26 +1239,30 @@
 }
 
 .mtm-card-icon {
-  width: 2.5rem;
-  height: 2.5rem;
-  border-radius: 8px;
+  width: 3rem;
+  height: 3rem;
+  border-radius: 12px;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.25);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
 }
 
 .mtm-card-icon svg {
-  width: 1.25rem;
-  height: 1.25rem;
+  width: 1.5rem;
+  height: 1.5rem;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
 }
 
 .mtm-card-title {
   font-size: 0.875rem;
-  font-weight: 600;
+  font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.05em;
-  opacity: 0.9;
+  letter-spacing: 0.1em;
+  opacity: 0.95;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
 }
 
 .mtm-card-content {
@@ -1263,88 +1270,197 @@
 }
 
 .mtm-card-value {
-  font-size: 2rem;
-  font-weight: 800;
-  margin-bottom: 0.5rem;
-  line-height: 1.2;
+  font-size: 2.25rem;
+  font-weight: 900;
+  margin-bottom: 0.75rem;
+  line-height: 1.1;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  letter-spacing: -0.02em;
+}
+
+.mtm-performance-card.best-performer .mtm-card-value,
+.mtm-performance-card.worst-performer .mtm-card-value {
+  color: white;
+}
+
+.mtm-performance-card.best-performer .mtm-card-change,
+.mtm-performance-card.worst-performer .mtm-card-change {
+  color: white !important;
+  background: rgba(255, 255, 255, 0.2) !important;
+  border-color: rgba(255, 255, 255, 0.3) !important;
 }
 
 .mtm-card-change {
   font-size: 0.875rem;
-  font-weight: 600;
-  padding: 0.25rem 0.75rem;
-  border-radius: 20px;
+  font-weight: 700;
+  padding: 0.5rem 1rem;
+  border-radius: 25px;
   display: inline-block;
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
 }
 
 .mtm-card-change.positive {
-  background: rgba(16, 185, 129, 0.2);
+  background: rgba(16, 185, 129, 0.25);
   color: #10b981;
+  border-color: rgba(16, 185, 129, 0.3);
 }
 
 .mtm-card-change.negative {
-  background: rgba(239, 68, 68, 0.2);
+  background: rgba(239, 68, 68, 0.25);
   color: #ef4444;
+  border-color: rgba(239, 68, 68, 0.3);
 }
 
 /* Stats Grid */
 .mtm-stats-grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  gap: 1rem;
+  gap: 1.25rem;
+  margin-top: 2rem;
 }
 
 .mtm-stat-card {
-  background: white;
-  border-radius: 12px;
-  padding: 1.25rem;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-  border: 1px solid #e2e8f0;
-  transition: all 0.2s ease;
+  background: #ffffff;
+  border-radius: 16px;
+  padding: 1.5rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  border: 1px solid #e5e7eb;
+  transition: all 0.3s ease;
   display: flex;
-  align-items: center;
-  gap: 1rem;
+  flex-direction: column;
+  align-items: flex-start;
+  text-align: left;
+  gap: 0.75rem;
+  position: relative;
+  overflow: visible;
+  min-height: 140px;
+  width: 100%;
 }
 
 .mtm-stat-card:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-  border-color: #3b82f6;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  border-color: #d1d5db;
 }
 
 .mtm-stat-icon {
-  width: 2rem;
-  height: 2rem;
-  border-radius: 6px;
+  width: 2.5rem;
+  height: 2.5rem;
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
+  position: relative;
+  z-index: 2;
+  margin-bottom: 0.5rem;
 }
 
 .mtm-stat-card.winners .mtm-stat-icon {
-  background: #dcfce7;
-  color: #16a34a;
+  color: #059669;
 }
 
 .mtm-stat-card.losers .mtm-stat-icon {
-  background: #fee2e2;
   color: #dc2626;
 }
 
 .mtm-stat-card.win-rate .mtm-stat-icon {
-  background: #dbeafe;
   color: #2563eb;
 }
 
 .mtm-stat-card.avg-position .mtm-stat-icon {
-  background: #f3e8ff;
   color: #7c3aed;
 }
 
 .mtm-stat-icon svg {
-  width: 1rem;
-  height: 1rem;
+  width: 2rem;
+  height: 2rem;
+}
+
+.mtm-stat-content {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.25rem;
+  position: relative;
+  z-index: 2;
+  flex: 1;
+  width: 100%;
+  min-width: 0;
+}
+
+.mtm-stat-label {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #6b7280;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin: 0;
+  line-height: 1.2;
+}
+
+.mtm-stat-value {
+  font-size: 1.4rem;
+  font-weight: 800;
+  color: #111827;
+  margin: 0;
+  line-height: 1.3;
+  letter-spacing: -0.025em;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  hyphens: auto;
+  max-width: 100%;
+  min-height: 1.3em;
+}
+
+/* Color-coded values */
+.mtm-stat-card.winners .mtm-stat-value {
+  color: #059669;
+}
+
+.mtm-stat-card.losers .mtm-stat-value {
+  color: #dc2626;
+}
+
+.mtm-stat-card.win-rate .mtm-stat-value {
+  color: #2563eb;
+}
+
+.mtm-stat-card.avg-position .mtm-stat-value {
+  color: #7c3aed;
+}
+
+/* Special card styling */
+.mtm-stat-card.winners {
+  border-left: 4px solid #059669;
+}
+
+.mtm-stat-card.losers {
+  border-left: 4px solid #dc2626;
+}
+
+.mtm-stat-card.win-rate {
+  border-left: 4px solid #2563eb;
+}
+
+.mtm-stat-card.avg-position {
+  border-left: 4px solid #7c3aed;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .mtm-stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .mtm-stats-grid {
+    grid-template-columns: 1fr;
+    gap: 0.75rem;
+  }
 }
 
 .mtm-stat-info {
