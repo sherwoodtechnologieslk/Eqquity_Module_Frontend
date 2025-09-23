@@ -6,8 +6,6 @@ const RecentActivity = () => {
   const [filteredActivities, setFilteredActivities] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [activeFilter, setActiveFilter] = useState('all');
-  const [searchTerm, setSearchTerm] = useState('');
-  const [dateRange, setDateRange] = useState('today');
 
   useEffect(() => {
     loadRecentActivities();
@@ -15,214 +13,142 @@ const RecentActivity = () => {
 
   useEffect(() => {
     filterActivities();
-  }, [activities, activeFilter, searchTerm, dateRange]);
+  }, [activities, activeFilter]);
 
   const loadRecentActivities = async () => {
     try {
-      // TODO: Replace with actual API calls
-      // For now, using mock data
-      const mockActivities = [
-        {
-          id: 1,
-          type: 'trade',
-          action: 'BUY',
-          symbol: 'RELIANCE',
-          quantity: 100,
-          price: 2345.67,
-          value: 234567,
-          portfolio: 'Main Portfolio',
-          timestamp: new Date(Date.now() - 1000 * 60 * 30), // 30 minutes ago
-          status: 'completed',
-          user: 'John Doe'
-        },
-        {
-          id: 2,
-          type: 'trade',
-          action: 'SELL',
-          symbol: 'TCS',
-          quantity: 50,
-          price: 3456.78,
-          value: 172839,
-          portfolio: 'Growth Portfolio',
-          timestamp: new Date(Date.now() - 1000 * 60 * 60), // 1 hour ago
-          status: 'completed',
-          user: 'Jane Smith'
-        },
-        {
-          id: 3,
-          type: 'dividend',
-          action: 'RECEIVED',
-          symbol: 'INFY',
-          quantity: 200,
-          amount: 25.50,
-          value: 5100,
-          portfolio: 'Main Portfolio',
-          timestamp: new Date(Date.now() - 1000 * 60 * 60 * 2), // 2 hours ago
-          status: 'processed',
-          user: 'System'
-        },
-        {
-          id: 4,
-          type: 'corporate_action',
-          action: 'STOCK_SPLIT',
-          symbol: 'TATAMOTORS',
-          details: '2:1 Stock Split',
-          portfolio: 'All Portfolios',
-          timestamp: new Date(Date.now() - 1000 * 60 * 60 * 4), // 4 hours ago
-          status: 'announced',
-          user: 'System'
-        },
-        {
-          id: 5,
-          type: 'portfolio_change',
-          action: 'REBALANCING',
-          symbol: 'N/A',
-          details: 'Portfolio rebalancing completed',
-          portfolio: 'Main Portfolio',
-          timestamp: new Date(Date.now() - 1000 * 60 * 60 * 6), // 6 hours ago
-          status: 'completed',
-          user: 'System'
-        },
-        {
-          id: 6,
-          type: 'trade',
-          action: 'BUY',
-          symbol: 'HDFC',
-          quantity: 75,
-          price: 1234.56,
-          value: 92592,
-          portfolio: 'Conservative Portfolio',
-          timestamp: new Date(Date.now() - 1000 * 60 * 60 * 8), // 8 hours ago
-          status: 'completed',
-          user: 'Mike Johnson'
-        },
-        {
-          id: 7,
-          type: 'market_event',
-          action: 'PRICE_ALERT',
-          symbol: 'RELIANCE',
-          details: 'Price dropped below 2300',
-          portfolio: 'N/A',
-          timestamp: new Date(Date.now() - 1000 * 60 * 60 * 10), // 10 hours ago
-          status: 'triggered',
-          user: 'System'
-        },
-        {
-          id: 8,
-          type: 'trade',
-          action: 'SELL',
-          symbol: 'WIPRO',
-          quantity: 100,
-          price: 456.78,
-          value: 45678,
-          portfolio: 'Main Portfolio',
-          timestamp: new Date(Date.now() - 1000 * 60 * 60 * 12), // 12 hours ago
-          status: 'completed',
-          user: 'John Doe'
-        },
-        {
-          id: 9,
-          type: 'dividend',
-          action: 'RECEIVED',
-          symbol: 'HUL',
-          quantity: 150,
-          amount: 18.00,
-          value: 2700,
-          portfolio: 'Growth Portfolio',
-          timestamp: new Date(Date.now() - 1000 * 60 * 60 * 14), // 14 hours ago
-          status: 'processed',
-          user: 'System'
-        },
-        {
-          id: 10,
-          type: 'corporate_action',
-          action: 'RIGHTS_ISSUE',
-          symbol: 'ONGC',
-          details: 'Rights issue announced at 120 per share',
-          portfolio: 'Main Portfolio',
-          timestamp: new Date(Date.now() - 1000 * 60 * 60 * 16), // 16 hours ago
-          status: 'announced',
-          user: 'System'
-        },
-        {
-          id: 11,
-          type: 'portfolio_change',
-          action: 'DEPOSIT',
-          symbol: 'N/A',
-          details: 'Cash deposit of 500,000',
-          portfolio: 'Main Portfolio',
-          timestamp: new Date(Date.now() - 1000 * 60 * 60 * 18), // 18 hours ago
-          status: 'completed',
-          user: 'John Doe'
-        },
-        {
-          id: 12,
-          type: 'trade',
-          action: 'BUY',
-          symbol: 'MARUTI',
-          quantity: 200,
-          price: 789.45,
-          value: 157890,
-          portfolio: 'Auto Portfolio',
-          timestamp: new Date(Date.now() - 1000 * 60 * 60 * 20), // 20 hours ago
-          status: 'completed',
-          user: 'Sarah Wilson'
+      console.log('🔄 Loading recent activities from API...');
+      console.log('API URL: http://localhost:8080/api/dashboard/recent-activities');
+      
+      // Fetch real data from API
+      const response = await fetch('http://localhost:8080/api/dashboard/recent-activities', {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json'
         }
-      ];
+      });
 
-      setActivities(mockActivities);
+      console.log('Response status:', response.status);
+      console.log('Response ok:', response.ok);
+
+      if (response.ok) {
+        const result = await response.json();
+        console.log('✅ API response received:', result);
+        
+        if (result.success && result.data && Array.isArray(result.data)) {
+          console.log(`📊 Found ${result.data.length} activities`);
+          setActivities(result.data);
+        } else {
+          console.error('❌ API returned invalid data structure:', result);
+          console.log('Falling back to mock data...');
+          setActivities(getMockActivities());
+        }
+      } else {
+        const errorText = await response.text();
+        console.error('❌ API request failed:', response.status, response.statusText);
+        console.error('Error response:', errorText);
+        console.log('Falling back to mock data...');
+        setActivities(getMockActivities());
+      }
+      
       setIsLoading(false);
     } catch (error) {
-      console.error('Error loading recent activities:', error);
+      console.error('❌ Network error loading recent activities:', error);
+      console.log('Falling back to mock data...');
+      setActivities(getMockActivities());
       setIsLoading(false);
     }
+  };
+
+  // Mock data fallback function
+  const getMockActivities = () => {
+    return [
+      {
+        id: 'mock_1',
+        type: 'trade',
+        action: 'BUY',
+        symbol: 'AAPL',
+        quantity: 100,
+        price: 150.50,
+        value: 15050,
+        portfolio: 'Test Portfolio',
+        timestamp: new Date(Date.now() - 1000 * 60 * 30), // 30 minutes ago
+        status: 'completed',
+        user: 'System'
+      },
+      {
+        id: 'mock_2',
+        type: 'trade',
+        action: 'SELL',
+        symbol: 'MSFT',
+        quantity: 50,
+        price: 300.25,
+        value: 15012.50,
+        portfolio: 'Test Portfolio',
+        timestamp: new Date(Date.now() - 1000 * 60 * 60), // 1 hour ago
+        status: 'completed',
+        user: 'System'
+      },
+      {
+        id: 'mock_3',
+        type: 'dividend',
+        action: 'RECEIVED',
+        symbol: 'INFY',
+        quantity: 200,
+        amount: 25.50,
+        value: 5100,
+        portfolio: 'Main Portfolio',
+        timestamp: new Date(Date.now() - 1000 * 60 * 60 * 2), // 2 hours ago
+        status: 'processed',
+        user: 'System'
+      },
+      {
+        id: 'mock_4',
+        type: 'corporate_action',
+        action: 'STOCK_SPLIT',
+        symbol: 'TATAMOTORS',
+        details: '2:1 Stock Split',
+        portfolio: 'All Portfolios',
+        timestamp: new Date(Date.now() - 1000 * 60 * 60 * 4), // 4 hours ago
+        status: 'announced',
+        user: 'System'
+      },
+      {
+        id: 'mock_5',
+        type: 'portfolio_change',
+        action: 'REBALANCING',
+        symbol: 'N/A',
+        details: 'Portfolio rebalancing completed',
+        portfolio: 'Main Portfolio',
+        timestamp: new Date(Date.now() - 1000 * 60 * 60 * 6), // 6 hours ago
+        status: 'completed',
+        user: 'System'
+      },
+      {
+        id: 'mock_6',
+        type: 'market_event',
+        action: 'PRICE_ALERT',
+        symbol: 'RELIANCE',
+        details: 'Price dropped below 2300',
+        portfolio: 'N/A',
+        timestamp: new Date(Date.now() - 1000 * 60 * 60 * 10), // 10 hours ago
+        status: 'triggered',
+        user: 'System'
+      }
+    ];
   };
 
   const filterActivities = () => {
     let filtered = [...activities];
 
-    // Filter by type
+    // Filter by type only
     if (activeFilter !== 'all') {
       filtered = filtered.filter(activity => activity.type === activeFilter);
     }
 
-    // Filter by search term
-    if (searchTerm) {
-      filtered = filtered.filter(activity => 
-        activity.symbol?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        activity.portfolio?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        activity.user?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        activity.details?.toLowerCase().includes(searchTerm.toLowerCase())
-      );
-    }
-
-    // Filter by date range
-    const now = new Date();
-    switch (dateRange) {
-      case 'today':
-        filtered = filtered.filter(activity => {
-          const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-          return activity.timestamp >= today;
-        });
-        break;
-      case 'yesterday':
-        const yesterday = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 1);
-        const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-        filtered = filtered.filter(activity => 
-          activity.timestamp >= yesterday && activity.timestamp < today
-        );
-        break;
-      case 'week':
-        const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
-        filtered = filtered.filter(activity => activity.timestamp >= weekAgo);
-        break;
-      case 'month':
-        const monthAgo = new Date(now.getFullYear(), now.getMonth() - 1, now.getDate());
-        filtered = filtered.filter(activity => activity.timestamp >= monthAgo);
-        break;
-      default:
-        break;
-    }
+    console.log('🔍 Filtering - Active filter:', activeFilter);
+    console.log('🔍 Total activities:', activities.length);
+    console.log('🔍 Filtered activities:', filtered.length);
 
     setFilteredActivities(filtered);
   };
@@ -297,12 +223,12 @@ const RecentActivity = () => {
         return (
           <div className="activity-details">
             <div className="trade-info">
-              <span className="action-badge buy">{activity.action}</span>
+              <span className={`action-badge ${activity.action.toLowerCase()}`}>{activity.action}</span>
               <span className="quantity">{activity.quantity} shares</span>
               <span className="price">@ {formatCurrency(activity.price)}</span>
             </div>
             <div className="trade-value">
-              Total: {formatCurrency(activity.value)}
+              Gross Value: {formatCurrency(activity.value)}
             </div>
           </div>
         );
@@ -348,6 +274,26 @@ const RecentActivity = () => {
         );
       default:
         return <div className="activity-details">{activity.details}</div>;
+    }
+  };
+
+  const formatDateTime = (timestamp) => {
+    const now = new Date();
+    const activityDate = new Date(timestamp);
+    const isToday = activityDate.toDateString() === now.toDateString();
+    
+    if (isToday) {
+      return activityDate.toLocaleTimeString('en-US', {
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: true
+      });
+    } else {
+      return activityDate.toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric'
+      });
     }
   };
 
@@ -415,32 +361,8 @@ const RecentActivity = () => {
           </div>
         </div>
 
-        <div className="search-section">
-                  <div className="search-box">
-          <input
-            type="text"
-            placeholder="Search by symbol, portfolio, or user..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-          />
-          <span className="search-icon">Search</span>
-        </div>
-
-          <div className="date-filter">
-            <label>Time Range:</label>
-            <select 
-              value={dateRange} 
-              onChange={(e) => setDateRange(e.target.value)}
-            >
-              <option value="today">Today</option>
-              <option value="yesterday">Yesterday</option>
-              <option value="week">This Week</option>
-              <option value="month">This Month</option>
-              <option value="all">All Time</option>
-            </select>
-          </div>
-        </div>
       </div>
+
 
       {/* Activities List */}
       <div className="activities-list">
@@ -448,7 +370,7 @@ const RecentActivity = () => {
                   <div className="no-activities">
           <div className="no-activities-icon">No Data</div>
           <h3>No activities found</h3>
-          <p>Try adjusting your filters or search terms</p>
+          <p>Try adjusting your filters</p>
         </div>
         ) : (
           filteredActivities.map((activity) => (
@@ -464,7 +386,7 @@ const RecentActivity = () => {
                     <span className="portfolio">{activity.portfolio}</span>
                   </div>
                   <div className="activity-meta">
-                    <span className="timestamp">{getTimeAgo(activity.timestamp)}</span>
+                    <span className="timestamp">{formatDateTime(activity.timestamp)}</span>
                     <span className={`status ${getStatusColor(activity.status)}`}>
                       {activity.status}
                     </span>
@@ -474,7 +396,6 @@ const RecentActivity = () => {
                 {getActivityDetails(activity)}
 
                 <div className="activity-footer">
-                  <span className="user">By: {activity.user}</span>
                   <span className="activity-id">ID: {activity.id}</span>
                 </div>
               </div>
