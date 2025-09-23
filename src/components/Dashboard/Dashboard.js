@@ -235,7 +235,7 @@ const Dashboard = ({ onTabChange }) => {
           </div>
           <div className="welcome-text">
             <h1>Welcome to Equity Module</h1>
-            <p className="welcome-subtitle">Professional Portfolio Management Dashboard</p>
+            <p className="welcome-subtitle">Equity Management System</p>
           </div>
         </div>
         <div className="welcome-decoration">

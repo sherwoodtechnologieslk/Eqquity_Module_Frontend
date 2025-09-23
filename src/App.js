@@ -27,6 +27,7 @@ import PortfolioDropdown from './components/TradeCapture/PortfolioDropdown';
 import CostOfFundsDefinition from './components/TradeCapture/CostOfFundsDefinition';
 import ChartOfAccounts from './components/AccountingEntries/ChartOfAccounts';
 import GeneralLedger from './components/AccountingEntries/GeneralLedger';
+import JournalEntries from './components/AccountingEntries/JournalEntries';
 import MarkToMarketValuation from './components/ValuationAndMTM/MarkToMarketValuation';
 import RealizedPnL from './components/ValuationAndMTM/RealizedPnL';
 import TradeSummaryData from './components/ValuationAndMTM/TradeSummaryData';
@@ -146,6 +147,7 @@ function App() {
     'IPO Entry': <IPOEntry />,
     'IPO Allocation': <IPOAllocation/>,
     'Cost of Funds': <CostOfFundsDefinition />,
+    'Journal Entries': <JournalEntries onTabChange={handleTabChange} />,
     'Chart Of Accounts': <ChartOfAccounts />,
     'General Ledger': <GeneralLedger />,
     'Trade Report': <TradeReport />,
