@@ -895,3 +895,81 @@ export const chartOfAccountsAPI = {
     return await response.json();
   }
 };
+
+// API service for Trial Balance operations
+export const trialBalanceAPI = {
+  // Get Trial Balance data
+  getTrialBalance: async (filters = {}) => {
+    try {
+      const queryParams = new URLSearchParams({
+        startDate: filters.startDate || new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString().split('T')[0],
+        endDate: filters.endDate || new Date().toISOString().split('T')[0]
+      });
+      
+      if (filters.portfolio) {
+        queryParams.append('portfolio', filters.portfolio);
+      }
+      
+      const response = await fetch(`${API_BASE_URL}/trial-balance?${queryParams}`);
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      
+      return await response.json();
+    } catch (error) {
+      console.error('Error fetching trial balance:', error);
+      throw error;
+    }
+  },
+
+  // Get Trial Balance summary
+  getTrialBalanceSummary: async (filters = {}) => {
+    try {
+      const queryParams = new URLSearchParams({
+        startDate: filters.startDate || new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString().split('T')[0],
+        endDate: filters.endDate || new Date().toISOString().split('T')[0]
+      });
+      
+      if (filters.portfolio) {
+        queryParams.append('portfolio', filters.portfolio);
+      }
+      
+      const response = await fetch(`${API_BASE_URL}/trial-balance/summary?${queryParams}`);
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      
+      return await response.json();
+    } catch (error) {
+      console.error('Error fetching trial balance summary:', error);
+      throw error;
+    }
+  },
+
+  // Get account details
+  getAccountDetails: async (accountCode, filters = {}) => {
+    try {
+      const queryParams = new URLSearchParams({
+        startDate: filters.startDate || new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString().split('T')[0],
+        endDate: filters.endDate || new Date().toISOString().split('T')[0]
+      });
+      
+      if (filters.portfolio) {
+        queryParams.append('portfolio', filters.portfolio);
+      }
+      
+      const response = await fetch(`${API_BASE_URL}/trial-balance/account/${accountCode}?${queryParams}`);
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      
+      return await response.json();
+    } catch (error) {
+      console.error('Error fetching account details:', error);
+      throw error;
+    }
+  }
+};

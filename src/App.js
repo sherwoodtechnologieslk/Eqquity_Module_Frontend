@@ -28,6 +28,7 @@ import CostOfFundsDefinition from './components/TradeCapture/CostOfFundsDefiniti
 import ChartOfAccounts from './components/AccountingEntries/ChartOfAccounts';
 import GeneralLedger from './components/AccountingEntries/GeneralLedger';
 import JournalEntries from './components/AccountingEntries/JournalEntries';
+import TrialBalance from './components/AccountingEntries/TrialBalance';
 import MarkToMarketValuation from './components/ValuationAndMTM/MarkToMarketValuation';
 import RealizedPnL from './components/ValuationAndMTM/RealizedPnL';
 import TradeSummaryData from './components/ValuationAndMTM/TradeSummaryData';
@@ -150,6 +151,7 @@ function App() {
     'Journal Entries': <JournalEntries onTabChange={handleTabChange} />,
     'Chart Of Accounts': <ChartOfAccounts />,
     'General Ledger': <GeneralLedger />,
+    'Trial Balance': <TrialBalance />,
     'Trade Report': <TradeReport />,
   };
 
