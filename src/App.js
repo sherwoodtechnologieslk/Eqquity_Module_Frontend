@@ -29,6 +29,7 @@ import ChartOfAccounts from './components/AccountingEntries/ChartOfAccounts';
 import GeneralLedger from './components/AccountingEntries/GeneralLedger';
 import JournalEntries from './components/AccountingEntries/JournalEntries';
 import TrialBalance from './components/AccountingEntries/TrialBalance';
+import AccountReconciliation from './components/AccountingEntries/AccountReconciliation';
 import MarkToMarketValuation from './components/ValuationAndMTM/MarkToMarketValuation';
 import RealizedPnL from './components/ValuationAndMTM/RealizedPnL';
 import TradeSummaryData from './components/ValuationAndMTM/TradeSummaryData';
@@ -152,6 +153,7 @@ function App() {
     'Chart Of Accounts': <ChartOfAccounts />,
     'General Ledger': <GeneralLedger />,
     'Trial Balance': <TrialBalance />,
+    'Account Reconciliation': <AccountReconciliation />,
     'Trade Report': <TradeReport />,
   };
 

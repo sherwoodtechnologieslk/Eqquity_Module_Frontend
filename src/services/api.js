@@ -973,3 +973,105 @@ export const trialBalanceAPI = {
     }
   }
 };
+
+// Account Reconciliation API
+export const accountReconciliationAPI = {
+  // Get account transactions for reconciliation
+  getAccountTransactions: async (accountCode, filters = {}) => {
+    try {
+      const queryParams = new URLSearchParams({
+        accountCode: accountCode,
+        startDate: filters.startDate || new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString().split('T')[0],
+        endDate: filters.endDate || new Date().toISOString().split('T')[0]
+      });
+      
+      if (filters.portfolio) {
+        queryParams.append('portfolio', filters.portfolio);
+      }
+      
+      const response = await fetch(`${API_BASE_URL}/account-reconciliation/transactions?${queryParams}`);
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      
+      return await response.json();
+    } catch (error) {
+      console.error('Error fetching account transactions:', error);
+      throw error;
+    }
+  },
+
+  // Save reconciliation
+  saveReconciliation: async (reconciliationData) => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/account-reconciliation/save`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(reconciliationData)
+      });
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      
+      return await response.json();
+    } catch (error) {
+      console.error('Error saving reconciliation:', error);
+      throw error;
+    }
+  },
+
+  // Get reconciliation history
+  getReconciliationHistory: async (filters = {}) => {
+    try {
+      const queryParams = new URLSearchParams();
+      
+      if (filters.accountCode) {
+        queryParams.append('accountCode', filters.accountCode);
+      }
+      if (filters.startDate) {
+        queryParams.append('startDate', filters.startDate);
+      }
+      if (filters.endDate) {
+        queryParams.append('endDate', filters.endDate);
+      }
+      
+      const response = await fetch(`${API_BASE_URL}/account-reconciliation/history?${queryParams}`);
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      
+      return await response.json();
+    } catch (error) {
+      console.error('Error fetching reconciliation history:', error);
+      throw error;
+    }
+  },
+
+  // Upload external statement
+  uploadExternalStatement: async (file, accountCode) => {
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('accountCode', accountCode);
+      
+      const response = await fetch(`${API_BASE_URL}/account-reconciliation/upload-statement`, {
+        method: 'POST',
+        body: formData
+      });
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      
+      return await response.json();
+    } catch (error) {
+      console.error('Error uploading external statement:', error);
+      throw error;
+    }
+  }
+};
