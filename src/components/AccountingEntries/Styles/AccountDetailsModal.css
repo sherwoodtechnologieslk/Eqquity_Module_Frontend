@@ -1,0 +1,563 @@
+/* Account Details Modal Styles - Matching Trial Balance Design */
+
+/* Modal Overlay */
+.account-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2000;
+  opacity: 0;
+  visibility: hidden;
+  transition: all 0.3s ease;
+}
+
+.account-modal-overlay.visible {
+  opacity: 1;
+  visibility: visible;
+}
+
+/* Modal Content */
+.account-modal-content {
+  background: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  border: 1px solid #e2e8f0;
+  max-width: 900px;
+  width: 92%;
+  max-height: 85vh;
+  transform: scale(0.95) translateY(20px);
+  transition: all 0.3s ease;
+  overflow: hidden;
+  position: relative;
+}
+
+.account-modal-content.visible {
+  transform: scale(1) translateY(0);
+}
+
+.account-modal-form-card {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+/* Header - Blue Header Style */
+.account-modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  padding: 20px;
+  background: linear-gradient(135deg, #3b82f6, #2563eb);
+  border-radius: 12px 12px 0 0;
+  border-bottom: 1px solid #1d4ed8;
+  color: white;
+}
+
+.account-modal-header-icon {
+  display: none;
+}
+
+.account-modal-icon {
+  width: 24px;
+  height: 24px;
+  color: white;
+}
+
+.account-modal-title-section {
+  flex: 1;
+  margin-right: 16px;
+  margin-left: 0;
+}
+
+.account-modal-title {
+  font-size: 28px;
+  font-weight: 700;
+  color: white;
+  margin: 0 0 12px 0;
+}
+
+.account-modal-subtitle {
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.9);
+  margin: 0;
+  font-weight: 500;
+}
+
+.account-modal-close-btn {
+  background: rgba(255, 255, 255, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  color: white;
+  cursor: pointer;
+  padding: 8px;
+  border-radius: 8px;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+}
+
+.account-modal-close-btn:hover {
+  background: rgba(255, 255, 255, 0.3);
+  border-color: rgba(255, 255, 255, 0.5);
+  color: white;
+}
+
+.account-modal-close-btn svg {
+  width: 20px;
+  height: 20px;
+}
+
+/* Body - Matching Trial Balance Content Style */
+.account-modal-body {
+  flex: 1 1 auto;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  background: white;
+}
+
+.account-modal-scroll-container {
+  flex: 1 1 auto;
+  overflow-y: auto;
+  min-height: 0;
+  max-height: 60vh;
+  padding: 24px;
+}
+
+.account-modal-scroll-container::-webkit-scrollbar {
+  width: 6px;
+}
+
+.account-modal-scroll-container::-webkit-scrollbar-track {
+  background: #f1f5f9;
+  border-radius: 8px;
+}
+
+.account-modal-scroll-container::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 8px;
+}
+
+.account-modal-scroll-container::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+/* Content Sections - Matching Trial Balance Style */
+.account-details-content {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.section-title {
+  font-size: 18px;
+  font-weight: 600;
+  color: #1e293b;
+  margin: 0 0 16px 0;
+  padding-bottom: 8px;
+  border-bottom: 2px solid #e2e8f0;
+}
+
+/* Summary Section */
+.account-summary-section {
+  background: #f8fafc;
+  border-radius: 12px;
+  padding: 20px;
+  border: 1px solid #e2e8f0;
+}
+
+.summary-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px;
+}
+
+.summary-item {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.summary-label {
+  font-size: 14px;
+  font-weight: 600;
+  color: #475569;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.summary-value {
+  font-size: 16px;
+  font-weight: 600;
+  color: #1e293b;
+}
+
+.balance-type.dr {
+  color: #059669;
+}
+
+.balance-type.cr {
+  color: #dc2626;
+}
+
+.balance-type.zero {
+  color: #64748b;
+}
+
+/* Balance Section */
+.balance-section {
+  background: white;
+  border-radius: 12px;
+  padding: 20px;
+  border: 1px solid #e2e8f0;
+}
+
+.balance-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px;
+}
+
+.balance-item {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 16px;
+  background: #f8fafc;
+  border-radius: 8px;
+  border: 1px solid #e2e8f0;
+}
+
+.balance-label {
+  font-size: 14px;
+  font-weight: 600;
+  color: #475569;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.balance-value {
+  font-size: 16px;
+  font-weight: 700;
+  font-family: 'Courier New', monospace;
+}
+
+.balance-value.debit {
+  color: #059669;
+}
+
+.balance-value.credit {
+  color: #dc2626;
+}
+
+.balance-value.net.dr {
+  color: #059669;
+}
+
+.balance-value.net.cr {
+  color: #dc2626;
+}
+
+.balance-value.net.zero {
+  color: #64748b;
+}
+
+/* Period Section */
+.period-section {
+  background: #f8fafc;
+  border-radius: 12px;
+  padding: 20px;
+  border: 1px solid #e2e8f0;
+}
+
+.period-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px;
+}
+
+.period-item {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.period-label {
+  font-size: 14px;
+  font-weight: 600;
+  color: #475569;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.period-value {
+  font-size: 16px;
+  font-weight: 600;
+  color: #1e293b;
+}
+
+/* Entries Section */
+.entries-section {
+  background: white;
+  border-radius: 12px;
+  padding: 20px;
+  border: 1px solid #e2e8f0;
+}
+
+.entries-table-container {
+  overflow-x: auto;
+  border-radius: 8px;
+  border: 1px solid #e2e8f0;
+}
+
+.entries-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+
+.entries-table th {
+  background: linear-gradient(135deg, #3b82f6, #2563eb);
+  padding: 16px 12px;
+  text-align: left;
+  font-weight: 600;
+  color: white;
+  border-bottom: 2px solid #1d4ed8;
+  white-space: nowrap;
+}
+
+.entries-table td {
+  padding: 12px;
+  border-bottom: 1px solid #f1f5f9;
+  vertical-align: top;
+}
+
+.entries-table tr:last-child td {
+  border-bottom: none;
+}
+
+.entries-table tr:hover {
+  background: #f8fafc;
+}
+
+.debit-amount {
+  color: #059669;
+  font-weight: 600;
+  font-family: 'Courier New', monospace;
+  text-align: right;
+}
+
+.credit-amount {
+  color: #dc2626;
+  font-weight: 600;
+  font-family: 'Courier New', monospace;
+  text-align: right;
+}
+
+/* No Entries State */
+.no-entries {
+  text-align: center;
+  padding: 3rem 2rem;
+  color: #64748b;
+}
+
+.no-entries-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 4rem;
+  height: 4rem;
+  background: #f1f5f9;
+  border-radius: 12px;
+  margin-bottom: 1rem;
+}
+
+.no-entries-icon svg {
+  width: 2rem;
+  height: 2rem;
+  color: #94a3b8;
+}
+
+.no-entries h4 {
+  font-size: 1.125rem;
+  font-weight: 600;
+  margin: 0 0 0.5rem 0;
+  color: #1e293b;
+}
+
+.no-entries p {
+  margin: 0;
+  font-size: 0.875rem;
+  color: #64748b;
+}
+
+/* Loading State */
+.account-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem 2rem;
+  color: #64748b;
+}
+
+.loading-spinner {
+  width: 2rem;
+  height: 2rem;
+  border: 3px solid #e2e8f0;
+  border-top: 3px solid #10b981;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-bottom: 1rem;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.account-loading p {
+  margin: 0;
+  font-size: 0.875rem;
+  color: #64748b;
+}
+
+/* Footer - Matching Trial Balance Actions Style */
+.account-modal-footer {
+  padding: 20px;
+  border-top: 1px solid #e2e8f0;
+  display: flex;
+  justify-content: flex-end;
+  gap: 16px;
+  background: white;
+}
+
+.account-modal-btn {
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border: none;
+}
+
+.account-modal-btn.close {
+  background: linear-gradient(135deg, #3b82f6, #2563eb);
+  color: white;
+  border: none;
+  box-shadow: 0 2px 4px rgba(59, 130, 246, 0.2);
+  font-weight: 600;
+}
+
+.account-modal-btn.close:hover {
+  background: linear-gradient(135deg, #2563eb, #1d4ed8);
+  box-shadow: 0 4px 8px rgba(59, 130, 246, 0.3);
+  transform: translateY(-1px);
+}
+
+.btn-icon {
+  width: 1.125rem;
+  height: 1.125rem;
+}
+
+/* Responsive Design - Matching Trial Balance */
+@media (max-width: 768px) {
+  .account-modal-content {
+    width: 95%;
+    max-height: 90vh;
+  }
+  
+  .account-modal-header {
+    padding: 16px;
+  }
+  
+  .account-modal-scroll-container {
+    padding: 16px;
+  }
+  
+  .summary-grid,
+  .balance-grid,
+  .period-grid {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+  
+  .account-modal-footer {
+    padding: 16px;
+  }
+  
+  .account-modal-title {
+    font-size: 24px;
+  }
+  
+  .account-modal-header-icon {
+    width: 40px;
+    height: 40px;
+  }
+  
+  .account-modal-icon {
+    width: 20px;
+    height: 20px;
+  }
+}
+
+@media (max-width: 480px) {
+  .account-modal-content {
+    width: 96%;
+    max-height: 95vh;
+    border-radius: 8px;
+  }
+  
+  .account-modal-header {
+    flex-direction: column;
+    text-align: center;
+    gap: 12px;
+    padding: 16px;
+  }
+  
+  .account-modal-close-btn {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+  }
+  
+  .account-modal-scroll-container {
+    padding: 16px;
+  }
+  
+  .account-modal-footer {
+    padding: 16px;
+  }
+  
+  .account-modal-title {
+    font-size: 20px;
+  }
+  
+  .account-modal-subtitle {
+    font-size: 12px;
+  }
+  
+  .entries-table {
+    font-size: 12px;
+  }
+  
+  .entries-table th,
+  .entries-table td {
+    padding: 8px 6px;
+  }
+}

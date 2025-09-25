@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import './Styles/TrialBalance.css';
 import { trialBalanceAPI } from '../../services/api';
+import AccountDetailsModal from './AccountDetailsModal';
 
 const TrialBalance = () => {
   const [trialBalanceData, setTrialBalanceData] = useState(null);
@@ -13,8 +14,8 @@ const TrialBalance = () => {
   });
   const [availablePortfolios, setAvailablePortfolios] = useState([]);
   const [viewMode, setViewMode] = useState('detailed'); // 'detailed' or 'summary'
-  const [selectedAccount, setSelectedAccount] = useState(null);
-  const [accountDetails, setAccountDetails] = useState(null);
+  const [showAccountModal, setShowAccountModal] = useState(false);
+  const [selectedAccountData, setSelectedAccountData] = useState(null);
 
   useEffect(() => {
     fetchTrialBalance();
@@ -53,24 +54,37 @@ const TrialBalance = () => {
     }
   };
 
-  const fetchAccountDetails = async (accountCode) => {
-    try {
-      const data = await trialBalanceAPI.getAccountDetails(accountCode, filters);
-      
-      if (data.success) {
-        setAccountDetails(data.data);
-        setSelectedAccount(accountCode);
-      }
-    } catch (err) {
-      console.error('Error fetching account details:', err);
-    }
-  };
 
   const handleFilterChange = (field, value) => {
     setFilters(prev => ({
       ...prev,
       [field]: value
     }));
+  };
+
+  const handleViewDetails = async (accountCode) => {
+    try {
+      setShowAccountModal(true);
+      setSelectedAccountData(null); // Show loading state
+      
+      // Fetch account details using the existing API
+      const data = await trialBalanceAPI.getAccountDetails(accountCode, filters);
+      
+      if (data.success) {
+        setSelectedAccountData(data.data);
+      } else {
+        console.error('Failed to fetch account details:', data.error);
+        // You could show an error message here
+      }
+    } catch (error) {
+      console.error('Error fetching account details:', error);
+      // You could show an error message here
+    }
+  };
+
+  const handleCloseModal = () => {
+    setShowAccountModal(false);
+    setSelectedAccountData(null);
   };
 
   const formatCurrency = (amount) => {
@@ -112,11 +126,11 @@ const TrialBalance = () => {
       <td className={`net-balance ${getBalanceColor(account.net_balance, account.balance_type)}`}>
         {formatCurrency(Math.abs(account.net_balance))} {account.balance_type}
       </td>
-      <td className="actions">
+      <td className="account-actions">
         <button 
           className="view-details-btn"
-          onClick={() => fetchAccountDetails(account.account_code)}
-          title="View Account Details"
+          onClick={() => handleViewDetails(account.account_code)}
+          title="View account details"
         >
           View Details
         </button>
@@ -138,7 +152,9 @@ const TrialBalance = () => {
       <td className={`net-balance ${getBalanceColor(subtotal.net, 'DR')}`}>
         {formatCurrency(Math.abs(subtotal.net))} {subtotal.net > 0 ? 'DR' : 'CR'}
       </td>
-      <td></td>
+      <td className="account-actions">
+        {/* Empty cell for subtotal row */}
+      </td>
     </tr>
   );
 
@@ -287,7 +303,9 @@ const TrialBalance = () => {
                     <td className="net-balance">
                       <strong>{formatCurrency(trialBalanceData?.totals.total_debits - trialBalanceData?.totals.total_credits)}</strong>
                     </td>
-                    <td></td>
+                    <td className="account-actions">
+                      {/* Empty cell for grand total row */}
+                    </td>
                   </tr>
                 </tfoot>
               </table>
@@ -322,80 +340,6 @@ const TrialBalance = () => {
           </div>
         )}
 
-        {/* Account Details Modal */}
-        {selectedAccount && accountDetails && (
-          <div className="account-details-modal">
-            <div className="modal-content">
-              <div className="modal-header">
-                <h3>Account Details: {accountDetails.accountName}</h3>
-                <button 
-                  className="close-modal"
-                  onClick={() => {
-                    setSelectedAccount(null);
-                    setAccountDetails(null);
-                  }}
-                >
-                  ×
-                </button>
-              </div>
-              <div className="modal-body">
-                <div className="account-summary">
-                  <div className="summary-item">
-                    <span>Account Code:</span>
-                    <span>{accountDetails.accountCode}</span>
-                  </div>
-                  <div className="summary-item">
-                    <span>Period:</span>
-                    <span>{formatDate(accountDetails.period.startDate)} - {formatDate(accountDetails.period.endDate)}</span>
-                  </div>
-                  <div className="summary-item">
-                    <span>Total Debits:</span>
-                    <span>{formatCurrency(accountDetails.totals.total_debit)}</span>
-                  </div>
-                  <div className="summary-item">
-                    <span>Total Credits:</span>
-                    <span>{formatCurrency(accountDetails.totals.total_credit)}</span>
-                  </div>
-                  <div className="summary-item">
-                    <span>Net Balance:</span>
-                    <span className={getBalanceColor(accountDetails.totals.net_balance, accountDetails.totals.balance_type)}>
-                      {formatCurrency(Math.abs(accountDetails.totals.net_balance))} {accountDetails.totals.balance_type}
-                    </span>
-                  </div>
-                </div>
-                <div className="account-entries">
-                  <h4>Transaction Entries</h4>
-                  <table className="entries-table">
-                    <thead>
-                      <tr>
-                        <th>Date</th>
-                        <th>Description</th>
-                        <th>Reference</th>
-                        <th>Debit</th>
-                        <th>Credit</th>
-                        <th>Balance</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {accountDetails.entries.map((entry, index) => (
-                        <tr key={index}>
-                          <td>{formatDate(entry.date)}</td>
-                          <td>{entry.description}</td>
-                          <td>{entry.reference}</td>
-                          <td>{entry.debit > 0 ? formatCurrency(entry.debit) : '-'}</td>
-                          <td>{entry.credit > 0 ? formatCurrency(entry.credit) : '-'}</td>
-                          <td className={getBalanceColor(entry.balance, 'DR')}>
-                            {formatCurrency(Math.abs(entry.balance))}
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
       </div>
 
       {/* Actions */}
@@ -410,6 +354,14 @@ const TrialBalance = () => {
           Refresh Data
         </button>
       </div>
+
+      {/* Account Details Modal */}
+      <AccountDetailsModal
+        isOpen={showAccountModal}
+        onClose={handleCloseModal}
+        accountCode={selectedAccountData?.accountCode}
+        accountData={selectedAccountData}
+      />
     </div>
   );
 };
