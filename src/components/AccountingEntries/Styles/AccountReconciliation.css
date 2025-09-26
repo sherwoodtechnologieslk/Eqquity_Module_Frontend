@@ -139,30 +139,30 @@
 }
 
 .reconciliation-btn-secondary {
-  background-color: #6b7280;
+  background-color: #4b5563;
   color: white;
 }
 
 .reconciliation-btn-secondary:hover {
-  background-color: #4b5563;
+  background-color: #374151;
 }
 
 .reconciliation-btn-success {
-  background-color: #10b981;
+  background-color: #059669;
   color: white;
 }
 
 .reconciliation-btn-success:hover {
-  background-color: #059669;
+  background-color: #047857;
 }
 
 .reconciliation-btn-warning {
-  background-color: #f59e0b;
+  background-color: #ea580c;
   color: white;
 }
 
 .reconciliation-btn-warning:hover {
-  background-color: #d97706;
+  background-color: #c2410c;
 }
 
 .reconciliation-btn:disabled {

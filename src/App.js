@@ -11,6 +11,7 @@ import PortfolioOverview from './components/Dashboard/DashboardTabs/PortfolioOve
 import EquityMasterEntry from './components/MasterDataManagement/EquityMasterEntry';
 import BuyTransactionEntry from './components/TradeCapture/BuyTransactionEntry';
 import SellTransactionEntry from './components/TradeCapture/SellTransactionEntry';
+import BulkBuyEntry from './components/BatchTransactionImport/BulkBuyEntry';
 import TransactionView from './components/TradeCapture/TransactionView';
 import TradeSummaryUpload from './components/ValuationAndMTM/TradeSummaryUpload';
 import DividendEntry from './components/CorporateActions/DividendEntry';
@@ -79,8 +80,8 @@ function App() {
       },
       {
         index: 4,
-        name: "Trade Summary",
-        subTopics: ["Trade Report", "Trade Confirmation"]
+        name: "Batch Transaction Import",
+        subTopics: ["Bulk Buy Entry", "Bulk Sell Entry", "Import History", "Trade Confirmation", "Trade Report"]
       },
       {
         index: 5,
@@ -131,6 +132,9 @@ function App() {
     'Buy': <BuyTransactionEntry />,
     'Sell': <SellTransactionEntry setFifoParams={setFifoParams} setActiveTab={setActiveTab} />,
     'Transactions': <TransactionView />,
+    'Bulk Buy Entry': <BulkBuyEntry />,
+    'Bulk Sell Entry': <div style={{ padding: '2rem' }}><h3>Bulk Sell Entry</h3><p>Coming Soon...</p></div>,
+    'Import History': <div style={{ padding: '2rem' }}><h3>Import History</h3><p>Coming Soon...</p></div>,
     'Market Price Feed': <TradeSummaryUpload />,
     'Mark-to-Market Valuation': <MarkToMarketValuation />,
     'Realized Gain/Loss Tracking': <RealizedPnL />,
