@@ -6,6 +6,39 @@ const BuyTransactionListView = ({ onBack }) => {
   const [transactions, setTransactions] = useState([]);
   const [loading, setLoading] = useState(true);
 
+  // Helper function to format dates
+  const formatDate = (dateString) => {
+    if (!dateString) return '-';
+    try {
+      const date = new Date(dateString);
+      return date.toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit'
+      });
+    } catch (error) {
+      return dateString;
+    }
+  };
+
+  // Helper function to format datetime
+  const formatDateTime = (dateString) => {
+    if (!dateString) return '-';
+    try {
+      const date = new Date(dateString);
+      return date.toLocaleString('en-US', {
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: true
+      });
+    } catch (error) {
+      return dateString;
+    }
+  };
+
   const fetchTransactions = async () => {
     setLoading(true);
     try {
@@ -92,15 +125,15 @@ const BuyTransactionListView = ({ onBack }) => {
                   <td className="BTLV-table-cell">{tx.net_value}</td>
                   <td className="BTLV-table-cell">{tx.contract_number}</td>
                   <td className="BTLV-table-cell">{tx.broker_name}</td>
-                  <td className="BTLV-table-cell">{tx.trade_date}</td>
-                  <td className="BTLV-table-cell">{tx.settlement_date}</td>
+                  <td className="BTLV-table-cell">{formatDate(tx.trade_date)}</td>
+                  <td className="BTLV-table-cell">{formatDate(tx.settlement_date)}</td>
                   <td className="BTLV-table-cell">{tx.settlement_account}</td>
                   <td className="BTLV-table-cell">{tx.cash_flow_on_settlement}</td>
                   <td className="BTLV-table-cell">{tx.payment_method}</td>
                   <td className="BTLV-table-cell">{tx.generate_payment}</td>
                   <td className="BTLV-table-cell">{tx.money_generation_cost}</td>
                   <td className="BTLV-table-cell">{tx.cost_of_funds}</td>
-                  <td className="BTLV-table-cell">{tx.created_at}</td>
+                  <td className="BTLV-table-cell">{formatDateTime(tx.created_at)}</td>
                 </tr>
               ))}
             </tbody>

@@ -12,6 +12,7 @@ import EquityMasterEntry from './components/MasterDataManagement/EquityMasterEnt
 import BuyTransactionEntry from './components/TradeCapture/BuyTransactionEntry';
 import SellTransactionEntry from './components/TradeCapture/SellTransactionEntry';
 import BulkBuyEntry from './components/BatchTransactionImport/BulkBuyEntry';
+import BulkSellEntry from './components/BatchTransactionImport/BulkSellEntry';
 import TransactionView from './components/TradeCapture/TransactionView';
 import TradeSummaryUpload from './components/ValuationAndMTM/TradeSummaryUpload';
 import DividendEntry from './components/CorporateActions/DividendEntry';
@@ -133,7 +134,7 @@ function App() {
     'Sell': <SellTransactionEntry setFifoParams={setFifoParams} setActiveTab={setActiveTab} />,
     'Transactions': <TransactionView />,
     'Bulk Buy Entry': <BulkBuyEntry />,
-    'Bulk Sell Entry': <div style={{ padding: '2rem' }}><h3>Bulk Sell Entry</h3><p>Coming Soon...</p></div>,
+    'Bulk Sell Entry': <BulkSellEntry />,
     'Import History': <div style={{ padding: '2rem' }}><h3>Import History</h3><p>Coming Soon...</p></div>,
     'Market Price Feed': <TradeSummaryUpload />,
     'Mark-to-Market Valuation': <MarkToMarketValuation />,

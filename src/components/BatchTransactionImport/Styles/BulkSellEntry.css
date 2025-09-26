@@ -1,0 +1,202 @@
+* { box-sizing: border-box; }
+
+.bulk-sell-page-container {
+  min-height: 100vh;
+  padding: 2rem 1rem;
+}
+
+.bulk-sell-content-wrapper {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+/* Header (outside card) */
+.bulk-sell-header-section {
+  display: flex;
+  align-items: center;
+  gap: 2rem;
+  margin-bottom: 2.5rem;
+  text-align: left;
+  padding-top: 2rem;
+  padding-bottom: 2rem;
+}
+
+.bulk-sell-header-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 5.5rem;
+  height: 5.5rem;
+  background: linear-gradient(135deg, #f87171, #b91c1c);
+  border-radius: 0.32rem;  /* LESS ROUND */
+  margin: 0;
+  box-shadow: 0 8px 32px 0 rgba(239, 68, 68, 0.11), 0 2px 8px 0 rgba(248, 113, 113, 0.09);
+  flex-shrink: 0;
+}
+
+.bulk-sell-header-icon svg {
+  width: 2.8rem;
+  height: 2.8rem;
+  color: white;
+}
+
+.bulk-sell-header-text-group {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.25rem;
+}
+
+.bulk-sell-main-title {
+  font-size: 2.5rem;
+  font-weight: 800;
+  color: #1f2937;
+  margin: 0 0 0.5rem 0;
+  letter-spacing: -0.01em;
+  line-height: 1.1;
+}
+
+.bulk-sell-subtitle {
+  color: #475569;
+  font-size: 1.4rem;
+  font-weight: 400;
+  margin: 0;
+  margin-bottom: 0.1rem;
+  letter-spacing: 0.01em;
+}
+
+/* Card Container */
+.bulk-sell-container {
+  background: linear-gradient(120deg, #fff5f5 0%, #fce7e7 100%);
+  border-radius: 0.25rem; /* LESS ROUND */
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+  border: 1px solid #ecdddd;
+  overflow: hidden;
+  margin-bottom: 2rem;
+}
+
+/* Card Header */
+.bulk-sell-card-header {
+  background: linear-gradient(90deg, #f87171 0%, #ef4444 100%);
+  padding: 1.5rem 2rem;
+  border-top-left-radius: 0.25rem;   /* LESS ROUND */
+  border-top-right-radius: 0.25rem;
+}
+
+.bulk-sell-card-title {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: white;
+  margin: 0;
+}
+
+/* Card Content */
+.bulk-sell-form-content {
+  padding: 2rem;
+  background: rgba(255, 255, 255, 0.7);
+}
+
+/* Coming Soon Section */
+.bulk-sell-coming-soon {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 4rem 2rem;
+  text-align: center;
+  background: rgba(255, 255, 255, 0.8);
+  border-radius: 0.5rem;
+  border: 2px dashed #f87171;
+}
+
+.bulk-sell-coming-soon-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 4rem;
+  height: 4rem;
+  background: linear-gradient(135deg, #f87171, #b91c1c);
+  border-radius: 50%;
+  margin-bottom: 1.5rem;
+  box-shadow: 0 4px 12px rgba(248, 113, 113, 0.3);
+}
+
+.bulk-sell-coming-soon-icon svg {
+  width: 2rem;
+  height: 2rem;
+  color: white;
+}
+
+.bulk-sell-coming-soon-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #1f2937;
+  margin: 0 0 1rem 0;
+}
+
+.bulk-sell-coming-soon-text {
+  font-size: 1rem;
+  color: #6b7280;
+  margin: 0;
+  max-width: 500px;
+  line-height: 1.6;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .bulk-sell-page-container {
+    padding: 1rem 0.5rem;
+  }
+  
+  .bulk-sell-header-section {
+    flex-direction: column;
+    text-align: center;
+    gap: 1.5rem;
+    padding-top: 1rem;
+    padding-bottom: 1rem;
+  }
+  
+  .bulk-sell-header-icon {
+    width: 4.5rem;
+    height: 4.5rem;
+  }
+  
+  .bulk-sell-header-icon svg {
+    width: 2.2rem;
+    height: 2.2rem;
+  }
+  
+  .bulk-sell-main-title {
+    font-size: 2rem;
+  }
+  
+  .bulk-sell-subtitle {
+    font-size: 1.2rem;
+  }
+  
+  .bulk-sell-form-content {
+    padding: 1.5rem;
+  }
+  
+  .bulk-sell-coming-soon {
+    padding: 3rem 1.5rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .bulk-sell-main-title {
+    font-size: 1.75rem;
+  }
+  
+  .bulk-sell-subtitle {
+    font-size: 1rem;
+  }
+  
+  .bulk-sell-coming-soon-title {
+    font-size: 1.25rem;
+  }
+  
+  .bulk-sell-coming-soon-text {
+    font-size: 0.9rem;
+  }
+}
