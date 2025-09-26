@@ -158,17 +158,17 @@ const BulkBuyEntry = () => {
           setForm({
             ...updatedForm,
             price: calculatedPrice.toFixed(2), // Set the calculated price
-            grossValue: calc.grossValue,
-            brokerage: calc.brokerage,
-            cseFees: calc.cseFees,
-            cdsFees: calc.cdsFees,
-            clearingFees: calc.clearingFees,
-            sec: calc.sec,
-            stl: calc.stl,
-            netValue: calc.netValue,
-            cashFlowOnSettlement: calc.netValue,
+            grossValue: calc.grossValue ? parseFloat(calc.grossValue).toFixed(4) : '',
+            brokerage: calc.brokerage ? parseFloat(calc.brokerage).toFixed(4) : '',
+            cseFees: calc.cseFees ? parseFloat(calc.cseFees).toFixed(4) : '',
+            cdsFees: calc.cdsFees ? parseFloat(calc.cdsFees).toFixed(4) : '',
+            clearingFees: calc.clearingFees ? parseFloat(calc.clearingFees).toFixed(4) : '',
+            sec: calc.sec ? parseFloat(calc.sec).toFixed(4) : '',
+            stl: calc.stl ? parseFloat(calc.stl).toFixed(4) : '',
+            netValue: calc.netValue ? parseFloat(calc.netValue).toFixed(4) : '',
+            cashFlowOnSettlement: calc.netValue ? parseFloat(calc.netValue).toFixed(4) : '',
             stepUp: calc.stepUp,
-            moneyGenerationCost: calc.moneyGenerationCost ?? ''
+            moneyGenerationCost: calc.moneyGenerationCost ? parseFloat(calc.moneyGenerationCost).toFixed(4) : ''
           });
         } else {
           // If either quantity or grossValue is invalid, just update the form
@@ -313,14 +313,14 @@ const BulkBuyEntry = () => {
           <div className="bulk-buy-form-content">
             <form onSubmit={handleSubmit} className="bulk-buy-form">
               <div className="bulk-buy-form-grid">
-          {/* Company Information */}
+          {/* Security & Trade Information */}
           <div className="bulk-buy-section-header">
             <div className="bulk-buy-section-icon">
               <svg className="bulk-buy-section-icon-svg" fill="currentColor" viewBox="0 0 20 20">
                 <path fillRule="evenodd" d="M4 4a2 2 0 00-2 2v8a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2H4zm2 6a2 2 0 114 0 2 2 0 01-4 0zm8 0a2 2 0 114 0 2 2 0 01-4 0z" clipRule="evenodd"/>
               </svg>
             </div>
-            <h3 className="bulk-buy-section-title">Company Information</h3>
+            <h3 className="bulk-buy-section-title">Security & Trade Information</h3>
           </div>
           <div className="bulk-buy-section">
             <div className="bulk-buy-field-group">
@@ -360,18 +360,6 @@ const BulkBuyEntry = () => {
                 />
               </div>
             </div>
-          </div>
-
-          {/* Portfolio Information */}
-          <div className="bulk-buy-section-header">
-            <div className="bulk-buy-section-icon">
-              <svg className="bulk-buy-section-icon-svg" fill="currentColor" viewBox="0 0 20 20">
-                <path fillRule="evenodd" d="M4 4a2 2 0 00-2 2v8a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2H4zm2 6a2 2 0 114 0 2 2 0 01-4 0zm8 0a2 2 0 114 0 2 2 0 01-4 0z" clipRule="evenodd"/>
-              </svg>
-            </div>
-            <h3 className="bulk-buy-section-title">Portfolio Information</h3>
-          </div>
-          <div className="bulk-buy-section">
             <div className="bulk-buy-field-group">
               <div className="bulk-buy-field-wrapper">
                 <label className="bulk-buy-field-label">Choose Portfolio *</label>
@@ -497,18 +485,6 @@ const BulkBuyEntry = () => {
                 />
               </div>
             </div>
-          </div>
-
-          {/* Dates */}
-          <div className="bulk-buy-section-header">
-            <div className="bulk-buy-section-icon">
-              <svg className="bulk-buy-section-icon-svg" fill="currentColor" viewBox="0 0 20 20">
-                <path fillRule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clipRule="evenodd"/>
-              </svg>
-            </div>
-            <h3 className="bulk-buy-section-title">Dates</h3>
-          </div>
-          <div className="bulk-buy-section">
             <div className="bulk-buy-field-group">
               <div className="bulk-buy-field-wrapper">
                 <label className="bulk-buy-field-label">Trade Date *</label>
@@ -532,6 +508,7 @@ const BulkBuyEntry = () => {
               </div>
             </div>
           </div>
+
 
           {/* Cost Breakdown & Calculations */}
           <div className="bulk-buy-section-header">
@@ -568,6 +545,8 @@ const BulkBuyEntry = () => {
                 <label className="bulk-buy-field-label">Brokerage (0.64% / 0.20%)</label>
                 <input
                   name="brokerage"
+                  type="number"
+                  step="0.0001"
                   value={form.brokerage}
                   readOnly
                   className="bulk-buy-form-input calculated"
@@ -579,6 +558,8 @@ const BulkBuyEntry = () => {
                 <label className="bulk-buy-field-label">CSE Fees (0.084% / 0.0525%)</label>
                 <input
                   name="cseFees"
+                  type="number"
+                  step="0.0001"
                   value={form.cseFees}
                   readOnly
                   className="bulk-buy-form-input calculated"
@@ -588,6 +569,8 @@ const BulkBuyEntry = () => {
                 <label className="bulk-buy-field-label">CDS Fees (0.012% / 0.0075%)</label>
                 <input
                   name="cdsFees"
+                  type="number"
+                  step="0.0001"
                   value={form.cdsFees}
                   readOnly
                   className="bulk-buy-form-input calculated"
@@ -599,6 +582,8 @@ const BulkBuyEntry = () => {
                 <label className="bulk-buy-field-label">Clearing Fees (0.012% / 0.0075%)</label>
                 <input
                   name="clearingFees"
+                  type="number"
+                  step="0.0001"
                   value={form.clearingFees}
                   readOnly
                   className="bulk-buy-form-input calculated"
@@ -608,6 +593,8 @@ const BulkBuyEntry = () => {
                 <label className="bulk-buy-field-label">SEC (0.072% / 0.045%)</label>
                 <input
                   name="sec"
+                  type="number"
+                  step="0.0001"
                   value={form.sec}
                   readOnly
                   className="bulk-buy-form-input calculated"
@@ -619,6 +606,8 @@ const BulkBuyEntry = () => {
                 <label className="bulk-buy-field-label">STL (0.300%)</label>
                 <input
                   name="stl"
+                  type="number"
+                  step="0.0001"
                   value={form.stl}
                   readOnly
                   className="bulk-buy-form-input calculated"
@@ -677,7 +666,7 @@ const BulkBuyEntry = () => {
             <div className="bulk-buy-net-value-section left-align">
               <div className="bulk-buy-net-value-card small">
                 <label className="bulk-buy-net-value-label">Total Net Value</label>
-                <div className="bulk-buy-net-value-amount">Rs. {form.netValue || '0.00'}</div>
+                <div className="bulk-buy-net-value-amount">Rs. {form.netValue ? parseFloat(form.netValue).toFixed(4) : '0.0000'}</div>
               </div>
             </div>
           </div>

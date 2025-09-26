@@ -250,6 +250,7 @@
   font-weight: 600;
   cursor: not-allowed;
   border-radius: 0.18rem; /* LESS ROUND */
+  font-variant-numeric: tabular-nums;
 }
 .bulk-buy-form-input.calculated:focus {
   box-shadow:
@@ -257,6 +258,18 @@
     inset 0 6px 24px 2px rgba(16,185,129,0.27),
     inset 0 12px 38px 6px rgba(110,231,183,0.18),
     inset 0 -10px 32px 4px rgba(16,185,129,0.09);
+}
+
+/* Decimal formatting for calculated fields - 4 decimal places */
+.bulk-buy-form-input.calculated[type="number"] {
+  -moz-appearance: textfield;
+  font-variant-numeric: tabular-nums;
+}
+
+.bulk-buy-form-input.calculated[type="number"]::-webkit-outer-spin-button,
+.bulk-buy-form-input.calculated[type="number"]::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
 }
 .bulk-buy-form-input.disabled {
   background-color: #e5e7eb;
