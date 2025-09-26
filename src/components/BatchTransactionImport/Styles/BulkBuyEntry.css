@@ -1,0 +1,871 @@
+/* Page Layout */
+.bulk-buy-page-container {
+  min-height: 100vh;
+  padding: 2rem 1rem;
+  box-sizing: border-box;
+}
+
+.bulk-buy-content-wrapper {
+  max-width: none;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+
+/* Header Section */
+.bulk-buy-header-section {
+  display: flex;
+  align-items: center;
+  gap: 2rem;
+  margin-bottom: 2.5rem;
+  text-align: left;
+  padding-top: 2rem;
+  padding-bottom: 2rem;
+}
+
+.bulk-buy-header-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 5.5rem;
+  height: 5.5rem;
+  background: linear-gradient(135deg, #10b981, #059669);
+  border-radius: 0.35rem;  /* LESS ROUND */
+  margin: 0;
+  box-shadow: 0 8px 32px 0 rgba(16,185,129, 0.11), 0 2px 8px 0 rgba(34,197,94, 0.08);
+  flex-shrink: 0;
+}
+
+.bulk-buy-icon {
+  width: 2.8rem;
+  height: 2.8rem;
+  color: white;
+}
+
+.bulk-buy-header-text-group {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.25rem;
+}
+
+.bulk-buy-main-title {
+  font-size: 2.5rem;
+  font-weight: 800;
+  color: #1f2937;
+  margin: 0 0 0.5rem 0;
+  letter-spacing: -0.01em;
+  line-height: 1.1;
+}
+
+.bulk-buy-subtitle {
+  color: #475569;
+  font-size: 1.4rem;
+  font-weight: 400;
+  margin: 0;
+  margin-bottom: 0.1rem;
+  letter-spacing: 0.01em;
+}
+
+/* Card Container */
+.bulk-buy-container {
+  background: linear-gradient(120deg, #f0fdf4 0%, #dcfce7 100%);
+  border-radius: 0.25rem; /* LESS ROUND */
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+  border: 1px solid #a7f3d0;
+  overflow: hidden;
+  margin-bottom: 2rem;
+}
+
+.bulk-buy-card-header {
+  background: linear-gradient(90deg, #10b981 0%, #059669 100%);
+  padding: 1.5rem 2rem;
+  border-top-left-radius: 0.25rem;   /* LESS ROUND */
+  border-top-right-radius: 0.25rem;
+}
+
+.bulk-buy-card-title {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: white;
+  margin: 0;
+}
+
+.bulk-buy-form-content {
+  padding: 2rem;
+  background: rgba(255, 255, 255, 0.7);
+}
+
+/* Section Headers */
+.bulk-buy-section-header {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 1.5rem;
+  margin-top: 2rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 2px solid #f3f4f6;
+}
+
+/* Fee Structure Information Note */
+.bulk-buy-fee-structure-note {
+  margin-bottom: 1.5rem;
+  margin-top: 1rem;
+}
+
+.bulk-buy-fee-structure-info {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 1rem 1.25rem;
+  background: linear-gradient(135deg, #d1f2eb, #a7f3d0);
+  border: 1px solid #10b981;
+  border-radius: 0.5rem;
+  color: #065f46;
+  font-size: 0.95rem;
+  box-shadow: 0 2px 8px rgba(16, 185, 129, 0.15);
+}
+
+.bulk-buy-info-icon {
+  width: 1.25rem;
+  height: 1.25rem;
+  flex-shrink: 0;
+  color: #10b981;
+}
+
+.bulk-buy-section-header:first-of-type {
+  margin-top: 0;
+}
+.bulk-buy-section-icon {
+  width: 2.5rem; height: 2.5rem;
+  background: linear-gradient(135deg, #10b981, #059669);
+  border-radius: 0.18rem; /* LESS ROUND */
+  display: flex; align-items: center; justify-content: center;
+  box-shadow: 0 4px 6px -1px rgba(16,185,129,0.14);
+}
+/* Calculation and payment icons */
+.bulk-buy-section-icon.calculation {
+  background: linear-gradient(135deg, #059669, #047857);
+}
+.bulk-buy-section-icon.payment {
+  background: linear-gradient(135deg, #34d399, #10b981);
+}
+.bulk-buy-section-icon-svg { width: 1.25rem; height: 1.25rem; color: white; }
+.bulk-buy-section-title { font-size: 1.125rem; font-weight: 600; color: #1f2937; margin: 0; }
+
+/* Form Grid */
+.bulk-buy-form-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+/* Field Groups */
+.bulk-buy-field-group {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.bulk-buy-field-group:last-child {
+  margin-bottom: 0;
+}
+
+/* Single column fields (for fields that should span full width) */
+.bulk-buy-field-group.single-column {
+  grid-template-columns: 1fr;
+}
+
+/* Individual field wrapper */
+.bulk-buy-field-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.bulk-buy-field-label {
+  display: block;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #374151;
+  margin-bottom: 0.25rem;
+}
+.bulk-buy-field-label.disabled {
+  color: #bbb !important;
+}
+
+/* Drowning/inset effect for Inputs, Selects, Textareas */
+.bulk-buy-form-input,
+.bulk-buy-form-select,
+.bulk-buy-form-textarea {
+  width: 100%;
+  padding: 0.72rem 0.9rem;
+  border: 1px solid #d1fae5;
+  border-radius: 0.18rem; /* LESS ROUND */
+  font-size: 1rem;
+  background-color: #f0fdf4;
+  transition: all 0.25s cubic-bezier(0.23, 1, 0.32, 1);
+  box-sizing: border-box;
+  /* Drowning / glassy inset effect */
+  box-shadow:
+    inset 0 2px 8px 0 rgba(16, 185, 129, 0.14),
+    inset 0 1.5px 12px 1px rgba(110, 231, 183, 0.19),
+    inset 0 -3px 14px 2px rgba(16, 185, 129, 0.09),
+    0 0.5px 2px 0 rgba(16, 185, 129, 0.03);
+}
+
+.bulk-buy-form-input:hover,
+.bulk-buy-form-select:hover,
+.bulk-buy-form-textarea:hover {
+  border-color: #34d399;
+  background: #e0f9ed;
+  box-shadow:
+    inset 0 4px 16px 0 rgba(16, 185, 129, 0.23),
+    inset 0 4px 20px 2px rgba(52, 211, 153, 0.19),
+    inset 0 -6px 20px 2px rgba(16, 185, 129, 0.14),
+    0 0.5px 2px 0 rgba(16, 185, 129, 0.05);
+}
+
+.bulk-buy-form-input:focus,
+.bulk-buy-form-select:focus,
+.bulk-buy-form-textarea:focus {
+  outline: none;
+  border-color: #10b981;
+  background-color: #f6fff9;
+  box-shadow:
+    0 0 0 2.5px rgba(16,185,129,0.11),
+    inset 0 4px 20px 2px rgba(16,185,129,0.23),
+    inset 0 8px 32px 4px rgba(110,231,183,0.16),
+    inset 0 -8px 28px 2px rgba(16,185,129,0.19),
+    0 0.5px 2px 0 rgba(16,185,129,0.10);
+}
+
+.bulk-buy-form-input.calculated {
+  background: linear-gradient(135deg, #bbf7d0, #6ee7b7);
+  border-color: #10b981;
+  color: #065f46;
+  font-weight: 600;
+  cursor: not-allowed;
+  border-radius: 0.18rem; /* LESS ROUND */
+}
+.bulk-buy-form-input.calculated:focus {
+  box-shadow:
+    0 0 0 2.5px rgba(16,185,129,0.13),
+    inset 0 6px 24px 2px rgba(16,185,129,0.27),
+    inset 0 12px 38px 6px rgba(110,231,183,0.18),
+    inset 0 -10px 32px 4px rgba(16,185,129,0.09);
+}
+.bulk-buy-form-input.disabled {
+  background-color: #e5e7eb;
+  color: #999;
+  cursor: not-allowed;
+  box-shadow: none;
+  border-radius: 0.18rem; /* LESS ROUND */
+}
+
+/* Equity Selector */
+.bulk-buy-equity-selector {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.bulk-buy-equity-selector .bulk-buy-form-input {
+  flex: 1;
+  border-top-right-radius: 0;
+  border-bottom-right-radius: 0;
+}
+
+.bulk-buy-equity-select-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1rem;
+  background: linear-gradient(135deg, #10b981, #059669);
+  color: white;
+  border: none;
+  border-radius: 0 0.375rem 0.375rem 0;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+  min-width: 80px;
+}
+
+.bulk-buy-equity-select-btn:hover:not(:disabled) {
+  background: linear-gradient(135deg, #059669, #047857);
+  transform: translateY(-1px);
+}
+
+.bulk-buy-equity-select-btn:active {
+  transform: translateY(0);
+}
+
+.bulk-buy-equity-select-btn:disabled {
+  background: #9ca3af;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.bulk-buy-equity-select-icon {
+  width: 1rem;
+  height: 1rem;
+}
+
+.bulk-buy-readonly-input {
+  background-color: #f3f4f6 !important;
+  color: #6b7280 !important;
+  cursor: not-allowed !important;
+  border-color: #d1d5db !important;
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.06) !important;
+}
+
+.bulk-buy-readonly-input:hover {
+  background-color: #f3f4f6 !important;
+  border-color: #d1d5db !important;
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.06) !important;
+}
+
+.bulk-buy-readonly-input:focus {
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.06) !important;
+  border-color: #d1d5db !important;
+  background-color: #f3f4f6 !important;
+}
+
+.bulk-buy-field-note {
+  font-size: 0.75rem;
+  color: #6b7280;
+  margin-top: 0.25rem;
+  font-style: italic;
+}
+
+/* Net Value Section */
+.bulk-buy-net-value-section {
+  margin: 2.5rem 0 1.5rem 0;
+  display: flex;
+  justify-content: flex-start;
+}
+
+.bulk-buy-net-value-section.left-align {
+  justify-content: flex-start;
+}
+
+.bulk-buy-net-value-card {
+  background: linear-gradient(135deg, #059669, #047857);
+  padding: 1rem 1.5rem;
+  border-radius: 0.3rem;  /* LESS ROUND */
+  text-align: left;
+  box-shadow: 0 10px 15px -3px rgba(16,185,129, 0.10);
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  min-width: 220px;
+  width: 220px;
+  max-width: 240px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.bulk-buy-net-value-card.small {
+  padding: 1rem 1.2rem;
+  min-width: 180px;
+  width: 220px;
+  max-width: 240px;
+  border-radius: 0.2rem;
+}
+
+.bulk-buy-net-value-label {
+  color: rgba(255,255,255,0.88);
+  font-size: 0.95rem;
+  font-weight: 500;
+  margin-bottom: 0.3rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.bulk-buy-net-value-amount {
+  color: white;
+  font-size: 1.5rem;
+  font-weight: 700;
+  text-shadow: 0 1px 2px rgba(0,0,0,0.1);
+}
+
+@media (max-width: 600px) {
+  .bulk-buy-net-value-card,
+  .bulk-buy-net-value-card.small {
+    width: 100%;
+    min-width: 0;
+    max-width: 100%;
+    padding: 1rem;
+  }
+}
+
+/* Toggle Styles */
+.bulk-buy-toggle-container {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.bulk-buy-toggle-wrapper {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  cursor: pointer;
+}
+
+.bulk-buy-toggle-input {
+  position: absolute;
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.bulk-buy-toggle-slider {
+  width: 2.3rem;
+  height: 1.1rem;
+  background-color: #bbf7d0;
+  border-radius: 0.35rem; /* LESS ROUND */
+  transition: background-color 0.2s ease-in-out;
+  position: relative;
+}
+
+.bulk-buy-toggle-slider.active {
+  background-color: #10b981;
+}
+
+.bulk-buy-toggle-thumb {
+  width: 0.95rem;
+  height: 0.95rem;
+  background-color: white;
+  border-radius: 0.18rem; /* LESS ROUND */
+  box-shadow: 0 2px 4px 0 rgba(0, 0, 0, 0.2);
+  transform: translateX(0);
+  transition: transform 0.2s ease-in-out;
+  position: absolute;
+  top: 0.08rem;
+  left: 0.08rem;
+}
+
+.bulk-buy-toggle-slider.active .bulk-buy-toggle-thumb {
+  transform: translateX(1.1rem);
+}
+
+.bulk-buy-toggle-text {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #6b7280;
+  transition: color 0.2s ease-in-out;
+}
+
+.bulk-buy-toggle-text.active {
+  color: #059669;
+}
+
+/* Button Section */
+.bulk-buy-button-section {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  justify-content: flex-end;
+  padding-top: 1.5rem;
+  border-top: 1px solid #bbf7d0;
+}
+
+/* Button Styles */
+.bulk-buy-btn {
+  padding: 0.75rem 1.5rem;
+  border: none;
+  border-radius: 0.25rem;
+  font-weight: 400;
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  text-decoration: none;
+  justify-content: center;
+}
+
+/* Deal Number Container Styles */
+.bulk-buy-deal-number-container {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.bulk-buy-deal-number-input {
+  flex: 1;
+  background-color: #f8fafc;
+  color: #64748b;
+  cursor: not-allowed;
+}
+
+.bulk-buy-regenerate-deal-number-btn {
+  background: linear-gradient(135deg, #10b981, #059669);
+  color: white !important;
+  padding: 0.75rem 1rem;
+  font-size: 0.875rem;
+  font-weight: 400;
+  white-space: nowrap;
+  flex-shrink: 0;
+  border: none;
+  border-radius: 0.18rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 8px rgba(16, 185, 129, 0.15);
+}
+
+.bulk-buy-regenerate-deal-number-btn:hover {
+  background: linear-gradient(135deg, #059669, #047857);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.25);
+}
+
+.bulk-buy-regenerate-deal-number-btn:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 4px rgba(16, 185, 129, 0.2);
+}
+
+.bulk-buy-regenerate-deal-number-btn:focus {
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.19);
+}
+
+.bulk-buy-btn:focus {
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.19);
+}
+.bulk-buy-btn-secondary {
+  background-color: #e5e7eb;
+  color: #374151;
+}
+.bulk-buy-btn-secondary:hover {
+  background-color: #bbf7d0;
+}
+.bulk-buy-btn-tertiary {
+  background-color: #d1fae5;
+  color: #059669;
+}
+.bulk-buy-btn-tertiary:hover {
+  background-color: #a7f3d0;
+}
+.bulk-buy-btn-primary {
+  background: linear-gradient(90deg, #10b981 0%, #059669 100%);
+  color: white;
+  padding: 0.75rem 2rem;
+  font-weight: 400;
+  box-shadow: 0 4px 6px -1px rgba(16,185,129,0.11), 0 2px 4px -1px rgba(16,185,129,0.07);
+  border-radius: 0.2rem; /* LESS ROUND */
+}
+.bulk-buy-btn-primary:hover {
+  background: linear-gradient(90deg, #059669 0%, #047857 100%);
+  box-shadow: 0 10px 15px -3px rgba(16,185,129,0.12), 0 4px 6px -2px rgba(16,185,129,0.08);
+  transform: translateY(-1px);
+}
+
+/* Footer */
+.bulk-buy-footer-section {
+  text-align: center;
+  margin-top: 2rem;
+  color: #6b7280;
+  font-size: 0.875rem;
+}
+.bulk-buy-footer-section p {
+  margin: 0;
+}
+
+/* Step-Up Cost Breakdown Section */
+.bulk-buy-stepup-section {
+  margin-top: 2rem;
+  padding: 1.5rem;
+  background: linear-gradient(120deg, #f0fdf4 0%, #dcfce7 100%);
+  border-radius: 0.25rem; /* LESS ROUND - matches container */
+  box-shadow: 0 4px 16px rgba(16, 185, 129, 0.08), 0 2px 8px rgba(16, 185, 129, 0.04);
+  border: 1px solid #a7f3d0;
+}
+.bulk-buy-stepup-header h4 {
+  margin: 0 0 1rem 0;
+  font-size: 1.15rem;
+  color: #065f46;
+  font-weight: 600;
+}
+.bulk-buy-stepup-table-wrapper {
+  overflow-x: auto;
+}
+.bulk-buy-stepup-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 0.5rem;
+  background: rgba(255, 255, 255, 0.7);
+  border-radius: 0.18rem; /* LESS ROUND - matches inputs */
+  overflow: hidden;
+  box-shadow: 0 2px 10px rgba(16, 185, 129, 0.05);
+}
+.bulk-buy-stepup-table th, .bulk-buy-stepup-table td {
+  border: 1px solid #bbf7d0;
+  padding: 0.75rem 1rem;
+  text-align: right;
+  font-size: 0.95rem;
+}
+.bulk-buy-stepup-table th {
+  background: linear-gradient(90deg, #10b981 0%, #059669 100%);
+  color: white;
+  font-weight: 600;
+  text-align: center;
+  border-bottom: 2px solid #059669;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+.bulk-buy-stepup-table td:first-child, .bulk-buy-stepup-table th:first-child {
+  text-align: left;
+}
+.bulk-buy-stepup-total-row td {
+  background: linear-gradient(135deg, #bbf7d0, #6ee7b7);
+  font-weight: 600;
+  color: #065f46;
+  border-color: #10b981;
+}
+.bulk-buy-stepup-grandtotal-row td {
+  background: linear-gradient(135deg, #10b981, #059669);
+  font-weight: 700;
+  color: white;
+  font-size: 1.08rem;
+  border-color: #047857;
+  text-shadow: 0 1px 2px rgba(0,0,0,0.1);
+}
+.bulk-buy-stepup-note {
+  margin-top: 0.75rem;
+  font-size: 0.95rem;
+  color: #065f46;
+  font-style: italic;
+  padding: 0.75rem 1rem;
+  background: rgba(16, 185, 129, 0.1);
+  border-radius: 0.25rem;
+  border-left: 3px solid #10b981;
+}
+
+/* Selected Account Information */
+.bulk-buy-selected-account-info {
+  margin-top: 1rem;
+  padding: 1rem;
+  background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
+  border: 1px solid #bbf7d0;
+  border-radius: 0.375rem;
+  box-shadow: 0 2px 4px -1px rgba(16, 185, 129, 0.1);
+}
+
+.bulk-buy-account-info-header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
+  font-weight: 600;
+  color: #065f46;
+}
+
+.bulk-buy-account-info-icon {
+  width: 1.25rem;
+  height: 1.25rem;
+  color: #10b981;
+}
+
+.bulk-buy-account-info-details {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+  font-size: 0.875rem;
+}
+
+.bulk-buy-account-info-details div {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.bulk-buy-account-info-details strong {
+  color: #374151;
+  min-width: 60px;
+}
+
+.bulk-buy-change-account-btn {
+  background: linear-gradient(90deg, #10b981 0%, #059669 100%);
+  color: white;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 0.25rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+}
+
+.bulk-buy-change-account-btn:hover {
+  background: linear-gradient(90deg, #059669 0%, #047857 100%);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 6px -1px rgba(16, 185, 129, 0.2);
+}
+
+@media (max-width: 1100px) {
+  .bulk-buy-header-section {
+    gap: 1.2rem;
+    padding-top: 1.2rem;
+    padding-bottom: 1.2rem;
+  }
+  .bulk-buy-main-title {
+    font-size: 2.2rem;
+  }
+  .bulk-buy-header-icon {
+    width: 4rem;
+    height: 4rem;
+  }
+  .bulk-buy-icon {
+    width: 2rem;
+    height: 2rem;
+  }
+}
+
+@media (max-width: 900px) {
+  .bulk-buy-stepup-table-wrapper {
+    padding: 1rem 0.4rem;
+  }
+  .bulk-buy-stepup-table th,
+  .bulk-buy-stepup-table td {
+    padding: 0.7rem 0.6rem;
+    font-size: 0.93rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .bulk-buy-page-container {
+    padding: 1rem;
+  }
+  .bulk-buy-header-section {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+    padding-top: 1rem;
+    padding-bottom: 1rem;
+  }
+  .bulk-buy-header-icon {
+    margin-bottom: 0.5rem;
+  }
+  .bulk-buy-main-title {
+    font-size: 1.5rem;
+  }
+  .bulk-buy-form-content {
+    padding: 1.5rem;
+  }
+  .bulk-buy-form-grid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+  .bulk-buy-section-header {
+    flex-direction: column;
+    text-align: center;
+    gap: 0.5rem;
+  }
+  .bulk-buy-field-group {
+    grid-template-columns: 1fr;
+    gap: 0.5rem;
+  }
+  .bulk-buy-net-value-card {
+    min-width: auto;
+    width: 100%;
+  }
+  .bulk-buy-net-value-amount {
+    font-size: 1.5rem;
+  }
+  .bulk-buy-button-section {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .bulk-buy-btn {
+    width: 100%;
+    justify-content: center;
+  }
+  .bulk-buy-card-header {
+    padding: 1rem 1.5rem;
+  }
+  
+  /* Mobile equity selector */
+  .bulk-buy-equity-selector {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+  
+  .bulk-buy-equity-selector .bulk-buy-form-input {
+    border-radius: 0.375rem;
+  }
+  
+  .bulk-buy-equity-select-btn {
+    border-radius: 0.375rem;
+    width: 100%;
+    justify-content: center;
+  }
+  
+  /* Responsive adjustments for account info */
+  .bulk-buy-account-info-details {
+    grid-template-columns: 1fr;
+  }
+  
+  .bulk-buy-account-info-details div {
+    flex-direction: column;
+    gap: 0.25rem;
+  }
+  
+  .bulk-buy-account-info-details strong {
+    min-width: auto;
+  }
+}
+
+@media (max-width: 480px) {
+  .bulk-buy-header-icon {
+    width: 3rem;
+    height: 3rem;
+  }
+  .bulk-buy-icon {
+    width: 1.5rem;
+    height: 1.5rem;
+  }
+  .bulk-buy-main-title {
+    font-size: 1.25rem;
+  }
+  .bulk-buy-subtitle {
+    font-size: 0.875rem;
+  }
+  .bulk-buy-section-icon {
+    width: 2rem;
+    height: 2rem;
+  }
+  .bulk-buy-form-input:disabled {
+    background-color: #f9f9f9;
+    color: #999;
+    cursor: not-allowed;
+  }
+}
+
+/* Hide number input arrows for all number fields */
+.bulk-buy-form-input[type="number"]::-webkit-outer-spin-button,
+.bulk-buy-form-input[type="number"]::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.bulk-buy-form-input[type="number"] {
+  -moz-appearance: textfield;
+}
+
+/* Global number input arrow hiding */
+input[type="number"]::-webkit-outer-spin-button,
+input[type="number"]::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+input[type="number"] {
+  -moz-appearance: textfield;
+}

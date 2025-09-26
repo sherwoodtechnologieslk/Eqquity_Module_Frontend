@@ -249,6 +249,32 @@ const AccountReconciliation = () => {
     }
   };
 
+  const handleRefresh = async () => {
+    try {
+      setLoading(true);
+      setError('');
+      
+      // Refresh GL transactions
+      if (filters.accountCode) {
+        await loadGlTransactions();
+      }
+      
+      // Refresh external transactions
+      await loadExternalTransactions();
+      
+      // Reset reconciliation status if needed
+      if (reconciliationStatus === 'reconciled') {
+        setReconciliationStatus('pending');
+      }
+      
+    } catch (error) {
+      console.error('Error refreshing data:', error);
+      setError('Failed to refresh data');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleExportReport = () => {
     const reportData = {
       account: accounts.find(acc => acc.account_code === filters.accountCode),
@@ -605,6 +631,14 @@ const AccountReconciliation = () => {
       {/* Actions Section */}
       <div className="reconciliation-actions-section">
         <div className="reconciliation-actions-buttons">
+          <button 
+            className="reconciliation-btn reconciliation-btn-secondary"
+            onClick={handleRefresh}
+            disabled={loading}
+          >
+            {loading ? 'Refreshing...' : 'Refresh Data'}
+          </button>
+          
           <button 
             className="reconciliation-btn"
             onClick={handleSaveReconciliation}
