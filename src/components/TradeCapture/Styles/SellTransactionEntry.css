@@ -294,46 +294,118 @@ input.sell-disabled-field:disabled {
   box-shadow: none !important;
 }
 
-/* Profit/Loss Card */
+/* Profit/Loss Card - Modern Redesign */
 .sell-profit-loss-section {
   margin: 2.5rem 0;
   display: flex;
-  justify-content: flex-start;
+  justify-content: center;
+  padding: 0 1rem;
 }
+
 .sell-profit-loss-card {
-  background: linear-gradient(135deg, #fb7185, #f87171);
-  padding: 1.25rem 1.5rem;
-  border-radius: 0.23rem; /* LESS ROUND */
-  text-align: left;
-  box-shadow: 0 10px 16px -4px rgba(0,0,0,0.08);
-  border: 1px solid rgba(255,255,255,0.18);
-  min-width: 220px;
+  background: linear-gradient(145deg, #ffffff 0%, #f8fafc 100%);
+  border: 2px solid #e2e8f0;
+  border-radius: 0.75rem;
+  padding: 1.25rem;
+  text-align: center;
+  box-shadow: 
+    0 10px 15px -3px rgba(0, 0, 0, 0.1),
+    0 4px 6px -2px rgba(0, 0, 0, 0.05),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  min-width: 280px;
   max-width: 320px;
   width: 100%;
-  margin-left: 0;
+  position: relative;
+  overflow: hidden;
+  transition: all 0.3s ease;
 }
-.sell-profit-loss-card label {
-  color: rgba(255,255,255,0.95);
-  font-size: 0.92rem;
-  font-weight: 500;
-  margin-bottom: 0.5rem;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
+
+.sell-profit-loss-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, #ef4444 0%, #f87171 50%, #fca5a5 100%);
 }
-.sell-profit-loss-input {
-  color: #4c4949;
-  font-size: 1.75rem !important;
-  font-weight: 800 !important;
-  text-shadow: 0 2px 8px rgba(0,0,0,0.10);
-  background: none !important;
-  border: none !important;
-  text-align: left;
-  padding: 0;
-  outline: none;
-  margin-bottom: 0.5rem;
+
+.sell-profit-loss-card::after {
+  content: '';
+  position: absolute;
+  top: -50%;
+  right: -50%;
   width: 100%;
+  height: 100%;
+  background: radial-gradient(circle, rgba(239, 68, 68, 0.05) 0%, transparent 70%);
+  pointer-events: none;
+}
+
+.sell-profit-loss-card label {
+  color: #1f2937;
+  font-size: 0.95rem;
+  font-weight: 700;
+  margin-bottom: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  position: relative;
+  display: block;
+}
+
+.sell-profit-loss-card label::after {
+  content: '';
+  position: absolute;
+  bottom: -0.5rem;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 60px;
+  height: 3px;
+  background: linear-gradient(90deg, #ef4444, #f87171);
+  border-radius: 2px;
+}
+
+.sell-profit-loss-input {
+  font-size: 1.5rem !important;
+  font-weight: 800 !important;
+  text-align: center;
+  background: linear-gradient(145deg, #f8fafc 0%, #ffffff 100%) !important;
+  border: 2px solid #e5e7eb !important;
+  border-radius: 0.5rem;
+  color: #1f2937 !important;
+  margin: 0.75rem 0;
+  padding: 0.75rem;
+  box-shadow: 
+    inset 0 1px 3px rgba(0, 0, 0, 0.06),
+    0 1px 2px rgba(0, 0, 0, 0.05);
+  transition: all 0.3s ease;
+  position: relative;
+  width: 100%;
+  outline: none;
+  text-shadow: none !important;
   z-index: 1;
-  box-shadow: none !important;
+}
+
+.sell-profit-loss-input:focus {
+  border-color: #ef4444 !important;
+  box-shadow: 
+    0 0 0 4px rgba(239, 68, 68, 0.1),
+    inset 0 2px 4px rgba(0, 0, 0, 0.06);
+  transform: translateY(-1px);
+}
+
+.sell-profit-loss-input::placeholder {
+  color: #9ca3af;
+  font-weight: 600;
+  font-size: 1.25rem;
+}
+
+/* Hover effect for the entire card */
+.sell-profit-loss-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 
+    0 25px 50px -12px rgba(0, 0, 0, 0.15),
+    0 20px 25px -5px rgba(0, 0, 0, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
 }
 
 /* Buttons */
@@ -382,13 +454,25 @@ input.sell-disabled-field:disabled {
   background-color: #fca5a5;
 }
 
-/* Field Notes - removed duplicate rule, using the one defined earlier */
+/* Field Notes - Modern Styling */
 .sell-profit-loss-card .sell-field-note {
-  color: #ffe4e6;
-  font-size: 1rem;
+  color: #6b7280;
+  font-size: 0.8rem;
+  font-weight: 500;
+  background: linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%);
+  padding: 0.4rem 0.8rem;
+  border-radius: 0.4rem;
+  border: 1px solid #d1d5db;
   margin-top: 0.5rem;
-  font-style: normal;
+  display: inline-block;
+  position: relative;
   z-index: 1;
+}
+
+.sell-profit-loss-card .sell-field-note::before {
+  content: '';
+  margin-right: 0;
+  font-size: 1rem;
 }
 
 /* Success Banner */
