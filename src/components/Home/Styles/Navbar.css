@@ -376,6 +376,49 @@
   filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
 }
 
+/* Smaller Print and Notifications Icons - Unique Classes */
+.navbar-print-button,
+.navbar-notifications-button {
+  width: 2.8rem;
+  height: 2.8rem;
+  background: rgba(255, 255, 255, 0.15);
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  border-radius: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  position: relative;
+  overflow: hidden;
+}
+
+.navbar-print-button:hover,
+.navbar-notifications-button:hover {
+  background: rgba(255, 255, 255, 0.25);
+  transform: translateY(-2px) scale(1.05);
+  box-shadow: 
+    0 8px 20px rgba(0, 0, 0, 0.15),
+    0 4px 12px rgba(37, 99, 235, 0.25),
+    inset 0 1px 0 rgba(255, 255, 255, 0.4);
+  border-color: rgba(255, 255, 255, 0.4);
+}
+
+.navbar-print-icon,
+.navbar-notifications-icon {
+  width: 1.4rem;
+  height: 1.4rem;
+  color: white;
+  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.2));
+  transition: all 0.3s ease;
+}
+
+.navbar-print-button:hover .navbar-print-icon,
+.navbar-notifications-button:hover .navbar-notifications-icon {
+  transform: scale(1.1);
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
+}
+
 .user-avatar {
   width: 2.8rem;
   height: 2.8rem;
@@ -623,7 +666,9 @@
 
 /* Focus styles for accessibility */
 .nav-button:focus,
-.action-button:focus {
+.action-button:focus,
+.navbar-print-button:focus,
+.navbar-notifications-button:focus {
   outline: 3px solid rgba(255, 255, 255, 0.6);
   outline-offset: 2px;
 }

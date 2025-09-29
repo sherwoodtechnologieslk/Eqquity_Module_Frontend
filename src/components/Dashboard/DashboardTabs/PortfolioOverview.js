@@ -240,7 +240,7 @@ const PortfolioOverview = ({ onTabChange }) => {
     const centerY = 100;
 
     return (
-      <svg width="200" height="200" viewBox="0 0 200 200" className="sector-pie-chart">
+      <svg width="200" height="200" viewBox="0 0 200 200" className="portfolio-sector-pie-chart">
         {sectorData.map((sector, index) => {
           const percentage = (sector.value / totalValue) * 100;
           const startAngle = (cumulativePercentage / 100) * 360;
@@ -272,7 +272,7 @@ const PortfolioOverview = ({ onTabChange }) => {
               fill={getSectorColor(index)}
               stroke="#fff"
               strokeWidth="2"
-              className="sector-slice"
+              className="portfolio-sector-slice"
             />
           );
         })}
@@ -288,7 +288,7 @@ const PortfolioOverview = ({ onTabChange }) => {
           x={centerX}
           y={centerY - 5}
           textAnchor="middle"
-          className="pie-center-text"
+          className="portfolio-pie-center-text"
           fontSize="12"
           fontWeight="600"
           fill="#374151"
@@ -299,7 +299,7 @@ const PortfolioOverview = ({ onTabChange }) => {
           x={centerX}
           y={centerY + 10}
           textAnchor="middle"
-          className="pie-center-text"
+          className="portfolio-pie-center-text"
           fontSize="10"
           fill="#6B7280"
         >
@@ -650,25 +650,25 @@ const PortfolioOverview = ({ onTabChange }) => {
       </div>
 
       {/* Sector Distribution Chart */}
-      <div className="sector-chart-section">
-        <div className="section-header">
+      <div className="portfolio-sector-chart-section">
+        <div className="portfolio-section-header">
           <h3>Sector Distribution</h3>
-          <p className="section-subtitle">Portfolio allocation by sector</p>
+          <p className="portfolio-section-subtitle">Portfolio allocation by sector</p>
         </div>
-        <div className="chart-container">
-          <div className="pie-chart">
+        <div className="portfolio-chart-container">
+          <div className="portfolio-pie-chart">
             <SectorPieChart data={portfolioData.holdings} />
           </div>
-          <div className="chart-legend">
+          <div className="portfolio-chart-legend">
             {getSectorData(portfolioData.holdings).map((sector, index) => (
-              <div key={index} className="legend-item">
+              <div key={index} className="portfolio-legend-item">
                 <div 
-                  className="legend-color" 
+                  className="portfolio-legend-color" 
                   style={{ backgroundColor: getSectorColor(index) }}
                 ></div>
-                <div className="legend-content">
-                  <div className="legend-label">{sector.name}</div>
-                  <div className="legend-value">
+                <div className="portfolio-legend-content">
+                  <div className="portfolio-legend-label">{sector.name}</div>
+                  <div className="portfolio-legend-value">
                     {formatCurrency(sector.value)} ({formatPercentage(sector.value, getTotalSectorValue(portfolioData.holdings))})
                   </div>
                 </div>

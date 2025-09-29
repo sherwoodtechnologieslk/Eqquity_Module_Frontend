@@ -163,25 +163,24 @@ const Navbar = ({ activeTab, onTabChange, visibleTabs = [], user, onLogout, onOp
         </ul>
 
         <div className="navbar-actions">
-          {/* Action buttons remain unchanged */}
-          <button className="action-button" aria-label="Notifications" onClick={() => console.log('Notifications clicked')} title="View notifications">
-            <svg className="action-icon" fill="currentColor" viewBox="0 0 20 20">
+          {/* Notifications button with unique class */}
+          <button className="navbar-notifications-button" aria-label="Notifications" onClick={() => console.log('Notifications clicked')} title="View notifications">
+            <svg className="navbar-notifications-icon" fill="currentColor" viewBox="0 0 20 20">
               <path d="M10 2a6 6 0 00-6 6v3.586l-.707.707A1 1 0 004 14h12a1 1 0 00.707-1.707L16 11.586V8a6 6 0 00-6-6zM10 18a3 3 0 01-3-3h6a3 3 0 01-3 3z" />
             </svg>
           </button>
           
-
-
+          {/* Print button with unique class */}
           <button 
-  className="action-button" 
-  aria-label="Print"
-  onClick={() => window.print()}
-  title="Print current page"
->
-  <svg className="action-icon" fill="currentColor" viewBox="0 0 20 20">
-    <path fillRule="evenodd" d="M5 4v3H4a2 2 0 00-2 2v3a2 2 0 002 2h1v2a2 2 0 002 2h6a2 2 0 002-2v-2h1a2 2 0 002-2V9a2 2 0 00-2-2h-1V4a2 2 0 00-2-2H7a2 2 0 00-2 2zm8 0H7v3h6V4zm0 8H7v4h6v-4z" clipRule="evenodd"/>
-  </svg>
-</button>
+            className="navbar-print-button" 
+            aria-label="Print"
+            onClick={() => window.print()}
+            title="Print current page"
+          >
+            <svg className="navbar-print-icon" fill="currentColor" viewBox="0 0 20 20">
+              <path fillRule="evenodd" d="M5 4v3H4a2 2 0 00-2 2v3a2 2 0 002 2h1v2a2 2 0 002 2h6a2 2 0 002-2v-2h1a2 2 0 002-2V9a2 2 0 00-2-2h-1V4a2 2 0 00-2-2H7a2 2 0 00-2 2zm8 0H7v3h6V4zm0 8H7v4h6v-4z" clipRule="evenodd"/>
+            </svg>
+          </button>
           <div className="user-section">
             <div className="user-avatar" title={`User Profile - ${user?.first_name} ${user?.last_name}`} onClick={onOpenProfile} style={{ cursor: 'pointer' }}>
               <span>{user?.first_name?.[0]}{user?.last_name?.[0]}</span>
