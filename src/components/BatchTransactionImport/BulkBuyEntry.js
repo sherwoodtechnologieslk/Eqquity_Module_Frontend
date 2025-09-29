@@ -749,18 +749,6 @@ const BulkBuyEntry = () => {
                 {/* Empty field to maintain grid alignment */}
               </div>
             </div>
-          </div>
-
-          {/* Cost of Funds */}
-          <div className="bulk-buy-section-header">
-            <div className="bulk-buy-section-icon">
-              <svg className="bulk-buy-section-icon-svg" fill="currentColor" viewBox="0 0 20 20">
-                <path fillRule="evenodd" d="M4 4a2 2 0 00-2 2v8a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2H4zm2 6a2 2 0 114 0 2 2 0 01-4 0zm8 0a2 2 0 114 0 2 2 0 01-4 0z" clipRule="evenodd"/>
-              </svg>
-            </div>
-            <h3 className="bulk-buy-section-title">Cost of Funds</h3>
-          </div>
-          <div className="bulk-buy-section">
             <div className="bulk-buy-field-group">
               <div className="bulk-buy-field-wrapper">
                 <label className="bulk-buy-field-label">Cost of Funds (%)</label>
@@ -787,6 +775,7 @@ const BulkBuyEntry = () => {
               </div>
             </div>
           </div>
+
         </div>
 
               {/* Form Actions */}
