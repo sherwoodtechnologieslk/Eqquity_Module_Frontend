@@ -1,11 +1,11 @@
-.trial-balance {
+.tb-main-container {
   padding: 24px;
   background-color: #f8fafc;
   min-height: 100vh;
 }
 
 /* Header */
-.trial-balance-header {
+.tb-header-section {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
@@ -17,14 +17,20 @@
   border: 1px solid #e2e8f0;
 }
 
-.header-left h1 {
+.tb-header-left {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.tb-header-left .tb-main-title {
   font-size: 28px;
   font-weight: 700;
   color: #1e293b;
   margin: 0 0 12px 0;
 }
 
-.period-info {
+.tb-period-info {
   display: flex;
   align-items: center;
   gap: 8px;
@@ -32,25 +38,25 @@
   color: #64748b;
 }
 
-.period-label {
+.tb-period-label {
   font-weight: 600;
 }
 
-.period-dates {
+.tb-period-dates {
   color: #1e293b;
   font-weight: 500;
 }
 
-.portfolio-info {
+.tb-portfolio-info {
   color: #3b82f6;
   font-weight: 500;
 }
 
-.header-right {
+.tb-header-right {
   text-align: right;
 }
 
-.generated-info {
+.tb-generated-info {
   font-size: 12px;
   color: #64748b;
   background-color: #f1f5f9;
@@ -59,7 +65,7 @@
 }
 
 /* Filters */
-.trial-balance-filters {
+.tb-filters-section {
   display: flex;
   gap: 20px;
   align-items: end;
@@ -72,21 +78,21 @@
   flex-wrap: wrap;
 }
 
-.filter-group {
+.tb-filter-group {
   display: flex;
   flex-direction: column;
   gap: 6px;
   min-width: 150px;
 }
 
-.filter-group label {
+.tb-filter-group .tb-filter-label {
   font-size: 14px;
   font-weight: 600;
   color: #475569;
 }
 
-.filter-group input,
-.filter-group select {
+.tb-filter-group .tb-filter-input,
+.tb-filter-group .tb-filter-select {
   padding: 8px 12px;
   border: 1px solid #e2e8f0;
   border-radius: 8px;
@@ -103,7 +109,7 @@
   box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
 }
 
-.refresh-btn {
+.tb-refresh-button {
   background-color: #3b82f6;
   color: white;
   border: none;
@@ -121,45 +127,65 @@
 }
 
 /* Balance Status */
-.balance-status {
+.tb-balance-status {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 16px;
   margin-bottom: 24px;
-  padding: 16px 20px;
-  border-radius: 12px;
+  padding: 20px 24px;
+  border-radius: 16px;
   font-weight: 600;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
 }
 
-.balance-status.balanced {
-  background-color: #dcfce7;
-  color: #059669;
-  border: 1px solid #bbf7d0;
+.tb-balance-status.tb-balanced {
+  background: linear-gradient(135deg, #1f2937 0%, #111827 100%);
+  color: #ffffff;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
 }
 
-.balance-status.unbalanced {
-  background-color: #fee2e2;
-  color: #dc2626;
-  border: 1px solid #fecaca;
+.tb-balance-status.tb-unbalanced {
+  background: linear-gradient(135deg, #1f2937 0%, #111827 100%);
+  color: #ffffff;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
 }
 
-.status-indicator {
-  font-size: 20px;
+.tb-status-indicator {
+  font-size: 24px;
   font-weight: bold;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  color: #ffffff;
 }
 
-.status-text {
-  font-size: 16px;
+.tb-status-text {
+  font-size: 18px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
 }
 
-.status-details {
+.tb-status-details {
   font-size: 14px;
-  font-weight: 400;
+  opacity: 0.9;
   margin-left: auto;
+  font-family: 'Courier New', monospace;
+  font-weight: 500;
+  background: rgba(255, 255, 255, 0.1);
+  padding: 8px 16px;
+  border-radius: 20px;
+  backdrop-filter: blur(10px);
+  color: #ffffff;
 }
 
 /* Main Content */
-.trial-balance-content {
+.tb-main-content {
   background: white;
   border-radius: 12px;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
@@ -168,23 +194,23 @@
 }
 
 /* Detailed View */
-.detailed-view {
+.tb-detailed-view {
   overflow-x: auto;
 }
 
-.trial-balance-table-container {
+.tb-table-container {
   overflow-x: auto;
 }
 
-.trial-balance-table {
+.tb-data-table {
   width: 100%;
   border-collapse: collapse;
   font-size: 14px;
 }
 
-.trial-balance-table th {
+.tb-data-table .tb-table-header th {
   background-color: #f8fafc;
-  padding: 16px 12px;
+  padding: 18px 20px;
   text-align: left;
   font-weight: 600;
   color: #475569;
@@ -194,8 +220,8 @@
   z-index: 10;
 }
 
-.trial-balance-table td {
-  padding: 12px;
+.tb-data-table td {
+  padding: 16px 20px;
   border-bottom: 1px solid #f1f5f9;
   vertical-align: top;
 }
@@ -204,19 +230,19 @@
   background-color: #f8fafc;
 }
 
-.account-code {
+.tb-account-code {
   font-family: 'Courier New', monospace;
   font-weight: 600;
   color: #1e293b;
   min-width: 120px;
 }
 
-.account-name {
+.tb-account-name {
   color: #1e293b;
   min-width: 200px;
 }
 
-.account-type {
+.tb-account-type {
   color: #64748b;
   font-size: 12px;
   text-transform: uppercase;
@@ -225,13 +251,13 @@
 }
 
 .debit-balance,
-.credit-balance {
+.tb-credit-balance {
   text-align: right;
   font-family: 'Courier New', monospace;
   min-width: 120px;
 }
 
-.net-balance {
+.tb-net-balance {
   text-align: right;
   font-family: 'Courier New', monospace;
   font-weight: 600;
@@ -251,13 +277,13 @@
 }
 
 /* Actions Column */
-.account-actions {
+.tb-account-actions {
   text-align: center;
   min-width: 120px;
   padding: 8px 12px;
 }
 
-.view-details-btn {
+.tb-view-details-button {
   background: linear-gradient(135deg, #3b82f6, #2563eb);
   color: white;
   border: none;
@@ -301,13 +327,13 @@
 
 
 /* Type Subtotals */
-.type-subtotal-row {
+.tb-type-subtotal-row {
   background-color: #f8fafc;
   border-top: 2px solid #e2e8f0;
   font-weight: 600;
 }
 
-.subtotal-label {
+.tb-subtotal-label {
   color: #1e293b;
   font-size: 13px;
   text-transform: uppercase;
@@ -315,7 +341,7 @@
 }
 
 /* Grand Total */
-.grand-total-row {
+.tb-grand-total-row {
   background-color: #1e293b;
   color: white;
   font-weight: 700;
@@ -328,17 +354,17 @@
 }
 
 /* Summary View */
-.summary-view {
+.tb-summary-view {
   padding: 24px;
 }
 
-.summary-cards {
+.tb-summary-cards {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
   gap: 20px;
 }
 
-.summary-card {
+.tb-summary-card {
   background-color: #f8fafc;
   border: 1px solid #e2e8f0;
   border-radius: 12px;
@@ -351,7 +377,7 @@
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
-.summary-card h3 {
+.tb-summary-card .tb-summary-card-title {
   margin: 0 0 16px 0;
   font-size: 18px;
   font-weight: 600;
@@ -361,13 +387,13 @@
   border-bottom: 2px solid #e2e8f0;
 }
 
-.summary-details {
+.tb-summary-details {
   display: flex;
   flex-direction: column;
   gap: 12px;
 }
 
-.summary-item {
+.tb-summary-item {
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -395,7 +421,7 @@
 
 
 /* Actions */
-.trial-balance-actions {
+.tb-actions-section {
   display: flex;
   gap: 16px;
   justify-content: center;
@@ -406,7 +432,7 @@
   border: 1px solid #e2e8f0;
 }
 
-.action-btn {
+.tb-action-button {
   background: none;
   border: 1px solid #e2e8f0;
   padding: 12px 24px;
@@ -428,7 +454,7 @@
 }
 
 /* Loading State */
-.trial-balance-loading {
+.tb-loading-container {
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -437,7 +463,7 @@
   gap: 16px;
 }
 
-.loading-spinner {
+.tb-loading-spinner {
   width: 40px;
   height: 40px;
   border: 4px solid #e2e8f0;
@@ -457,7 +483,7 @@
 }
 
 /* Error State */
-.trial-balance-error {
+.tb-error-container {
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -477,7 +503,7 @@
   margin: 0;
 }
 
-.retry-btn {
+.tb-retry-button {
   background-color: #3b82f6;
   color: white;
   border: none;
@@ -495,50 +521,50 @@
 
 /* Responsive Design */
 @media (max-width: 768px) {
-  .trial-balance {
+  .tb-main-container {
     padding: 16px;
   }
 
-  .trial-balance-header {
+  .tb-header-section {
     flex-direction: column;
     gap: 16px;
     align-items: flex-start;
   }
 
-  .trial-balance-filters {
+  .tb-filters-section {
     flex-direction: column;
     align-items: stretch;
     gap: 16px;
   }
 
-  .filter-group {
+  .tb-filter-group {
     min-width: auto;
   }
 
-  .balance-status {
+  .tb-balance-status {
     flex-direction: column;
     align-items: flex-start;
     gap: 8px;
   }
 
-  .status-details {
+  .tb-status-details {
     margin-left: 0;
   }
 
-  .trial-balance-table {
+  .tb-data-table {
     font-size: 12px;
   }
 
   .trial-balance-table th,
-  .trial-balance-table td {
+  .tb-data-table td {
     padding: 8px 6px;
   }
 
-  .summary-cards {
+  .tb-summary-cards {
     grid-template-columns: 1fr;
   }
 
-  .trial-balance-actions {
+  .tb-actions-section {
     flex-direction: column;
     gap: 12px;
   }
@@ -549,31 +575,31 @@
     font-size: 24px;
   }
 
-  .trial-balance-table {
+  .tb-data-table {
     font-size: 11px;
   }
 
   .trial-balance-table th,
-  .trial-balance-table td {
+  .tb-data-table td {
     padding: 6px 4px;
   }
 
   .account-code,
   .debit-balance,
   .credit-balance,
-  .net-balance {
+  .tb-net-balance {
     min-width: 80px;
   }
 
-  .account-name {
+  .tb-account-name {
     min-width: 120px;
   }
 
-  .account-actions {
+  .tb-account-actions {
     min-width: 100px;
   }
 
-  .view-details-btn {
+  .tb-view-details-button {
     padding: 4px 8px;
     font-size: 11px;
   }
@@ -582,35 +608,103 @@
 /* Print Styles */
 @media print {
   .trial-balance-filters,
-  .trial-balance-actions {
+  .tb-actions-section {
     display: none !important;
   }
 
-  .account-actions {
+  .tb-account-actions {
     display: none !important;
   }
 
-  .trial-balance {
+  .tb-main-container {
     padding: 0;
     background: white;
   }
 
-  .trial-balance-header {
+  .tb-header-section {
     box-shadow: none;
     border: 1px solid #000;
   }
 
-  .trial-balance-content {
+  .tb-main-content {
     box-shadow: none;
     border: 1px solid #000;
   }
 
-  .trial-balance-table {
+  .tb-data-table {
     border-collapse: collapse;
   }
 
-  .trial-balance-table th,
-  .trial-balance-table td {
+  .tb-data-table th,
+  .tb-data-table td {
     border: 1px solid #000;
   }
+}
+
+/* Additional Trial Balance specific classes */
+.tb-account-row {
+  transition: background-color 0.2s ease;
+}
+
+.tb-account-row:hover {
+  background-color: #f8fafc;
+}
+
+.tb-debit-balance,
+.tb-credit-balance,
+.tb-net-balance {
+  text-align: right;
+  font-family: 'Courier New', monospace;
+  font-weight: 500;
+  padding: 16px 20px;
+}
+
+.tb-subtotal-debit,
+.tb-subtotal-credit,
+.tb-subtotal-net {
+  text-align: right;
+  font-family: 'Courier New', monospace;
+  font-weight: 600;
+  padding: 16px 20px;
+}
+
+.tb-subtotal-actions,
+.tb-grand-total-actions {
+  text-align: center;
+}
+
+.tb-grand-total-label {
+  font-weight: 700;
+  text-align: left;
+  padding: 18px 20px;
+}
+
+.tb-grand-total-debit,
+.tb-grand-total-credit,
+.tb-grand-total-net {
+  text-align: right;
+  font-family: 'Courier New', monospace;
+  font-weight: 700;
+  padding: 18px 20px;
+}
+
+.tb-summary-label,
+.tb-summary-value {
+  font-weight: 500;
+}
+
+.tb-loading-text {
+  margin-top: 1rem;
+  color: #64748b;
+  font-size: 1rem;
+}
+
+.tb-error-title {
+  color: #dc2626;
+  margin-bottom: 0.5rem;
+}
+
+.tb-error-message {
+  color: #64748b;
+  margin-bottom: 1rem;
 }
