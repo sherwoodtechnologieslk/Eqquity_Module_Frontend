@@ -9,6 +9,12 @@ const TradeSummaryData = () => {
   const [selectedDate, setSelectedDate] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
   const [filteredData, setFilteredData] = useState([]);
+  
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage] = useState(500);
+  const [totalPages, setTotalPages] = useState(1);
+  const [paginatedData, setPaginatedData] = useState([]);
 
   useEffect(() => {
     fetchTradeSummaries();
@@ -75,12 +81,61 @@ const TradeSummaryData = () => {
     }
     
     setFilteredData(filtered);
+    setCurrentPage(1); // Reset to first page when filtering
+  };
+
+  // Pagination logic
+  useEffect(() => {
+    const totalPagesCount = Math.ceil(filteredData.length / itemsPerPage);
+    setTotalPages(totalPagesCount);
+    
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    const endIndex = startIndex + itemsPerPage;
+    const paginated = filteredData.slice(startIndex, endIndex);
+    
+    setPaginatedData(paginated);
+  }, [filteredData, currentPage, itemsPerPage]);
+
+  // Pagination handlers
+  const goToPage = (page) => {
+    if (page >= 1 && page <= totalPages) {
+      setCurrentPage(page);
+    }
+  };
+
+  const goToFirstPage = () => goToPage(1);
+  const goToLastPage = () => goToPage(totalPages);
+  const goToPreviousPage = () => goToPage(currentPage - 1);
+  const goToNextPage = () => goToPage(currentPage + 1);
+
+  // Generate page numbers for display
+  const getPageNumbers = () => {
+    const pages = [];
+    const maxVisiblePages = 5;
+    
+    if (totalPages <= maxVisiblePages) {
+      // Show all pages if total is less than max visible
+      for (let i = 1; i <= totalPages; i++) {
+        pages.push(i);
+      }
+    } else {
+      // Show pages around current page
+      const startPage = Math.max(1, currentPage - 2);
+      const endPage = Math.min(totalPages, startPage + maxVisiblePages - 1);
+      
+      for (let i = startPage; i <= endPage; i++) {
+        pages.push(i);
+      }
+    }
+    
+    return pages;
   };
 
   const clearFilters = () => {
     setSelectedDate('');
     setSearchTerm('');
     setFilteredData(tradeSummaries);
+    setCurrentPage(1); // Reset to first page when clearing filters
   };
 
   if (loading) {
@@ -238,48 +293,117 @@ const TradeSummaryData = () => {
             </p>
           </div>
         ) : (
-          <div className="tsd-table-wrapper-container">
-            <table className="tsd-trade-summary-data-table">
-              <thead>
-                <tr>
-                  <th>Trade Date</th>
-                  <th>Company Name</th>
-                  <th>Symbol</th>
-                  <th>Share Volume</th>
-                  <th>Trade Volume</th>
-                  <th>Previous Close</th>
-                  <th>Open</th>
-                  <th>High</th>
-                  <th>Low</th>
-                  <th>Last Trade</th>
-                  <th>Change (Rs)</th>
-                  <th>Change (%)</th>
-                </tr>
-              </thead>
-              <tbody>
-                                 {filteredData.map((item, index) => (
-                   <tr key={index}>
-                     <td>{new Date(item.trade_date).toLocaleDateString()}</td>
-                     <td>{item.company_name || 'N/A'}</td>
-                     <td>{item.symbol || 'N/A'}</td>
-                     <td>{item.share_volume.toLocaleString()}</td>
-                     <td>{item.trade_volume.toLocaleString()}</td>
-                     <td>{item.previous_close.toFixed(2)}</td>
-                     <td>{item.open.toFixed(2)}</td>
-                     <td>{item.high.toFixed(2)}</td>
-                     <td>{item.low.toFixed(2)}</td>
-                     <td>{item.last_trade.toFixed(2)}</td>
-                     <td className={item.change_rs >= 0 ? 'tsd-positive-change-value' : 'tsd-negative-change-value'}>
-                       {item.change_rs.toFixed(2)}
-                     </td>
-                     <td className={item.change_percent >= 0 ? 'tsd-positive-change-value' : 'tsd-negative-change-value'}>
-                       {item.change_percent.toFixed(2)}%
-                     </td>
-                   </tr>
-                 ))}
-              </tbody>
-            </table>
-          </div>
+          <>
+            {/* Pagination Controls - Moved to top */}
+            {totalPages > 1 && (
+              <div className="tsd-pagination-container">
+                <div className="tsd-pagination-info">
+                  Showing {((currentPage - 1) * itemsPerPage) + 1} to {Math.min(currentPage * itemsPerPage, filteredData.length)} of {filteredData.length} records
+                </div>
+                <div className="tsd-pagination-controls">
+                  <button 
+                    className="tsd-pagination-btn tsd-pagination-first"
+                    onClick={goToFirstPage}
+                    disabled={currentPage === 1}
+                    title="First Page"
+                  >
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <path d="M11 19l-7-7 7-7M21 19l-7-7 7-7"/>
+                    </svg>
+                  </button>
+                  
+                  <button 
+                    className="tsd-pagination-btn tsd-pagination-prev"
+                    onClick={goToPreviousPage}
+                    disabled={currentPage === 1}
+                    title="Previous Page"
+                  >
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <path d="M15 18l-6-6 6-6"/>
+                    </svg>
+                  </button>
+                  
+                  <div className="tsd-pagination-numbers">
+                    {getPageNumbers().map(pageNum => (
+                      <button
+                        key={pageNum}
+                        className={`tsd-pagination-btn tsd-pagination-number ${currentPage === pageNum ? 'active' : ''}`}
+                        onClick={() => goToPage(pageNum)}
+                        title={`Page ${pageNum}`}
+                      >
+                        {pageNum}
+                      </button>
+                    ))}
+                  </div>
+                  
+                  <button 
+                    className="tsd-pagination-btn tsd-pagination-next"
+                    onClick={goToNextPage}
+                    disabled={currentPage === totalPages}
+                    title="Next Page"
+                  >
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <path d="M9 18l6-6-6-6"/>
+                    </svg>
+                  </button>
+                  
+                  <button 
+                    className="tsd-pagination-btn tsd-pagination-last"
+                    onClick={goToLastPage}
+                    disabled={currentPage === totalPages}
+                    title="Last Page"
+                  >
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <path d="M13 5l7 7-7 7M3 5l7 7-7 7"/>
+                    </svg>
+                  </button>
+                </div>
+              </div>
+            )}
+            
+            <div className="tsd-table-wrapper-container">
+              <table className="tsd-trade-summary-data-table">
+                <thead>
+                  <tr>
+                    <th>Trade Date</th>
+                    <th>Company Name</th>
+                    <th>Symbol</th>
+                    <th>Share Volume</th>
+                    <th>Trade Volume</th>
+                    <th>Previous Close</th>
+                    <th>Open</th>
+                    <th>High</th>
+                    <th>Low</th>
+                    <th>Last Trade</th>
+                    <th>Change (Rs)</th>
+                    <th>Change (%)</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {paginatedData.map((item, index) => (
+                    <tr key={index}>
+                      <td>{new Date(item.trade_date).toLocaleDateString()}</td>
+                      <td>{item.company_name || 'N/A'}</td>
+                      <td>{item.symbol || 'N/A'}</td>
+                      <td>{item.share_volume.toLocaleString()}</td>
+                      <td>{item.trade_volume.toLocaleString()}</td>
+                      <td>{item.previous_close.toFixed(2)}</td>
+                      <td>{item.open.toFixed(2)}</td>
+                      <td>{item.high.toFixed(2)}</td>
+                      <td>{item.low.toFixed(2)}</td>
+                      <td>{item.last_trade.toFixed(2)}</td>
+                      <td className={item.change_rs >= 0 ? 'tsd-positive-change-value' : 'tsd-negative-change-value'}>
+                        {item.change_rs.toFixed(2)}
+                      </td>
+                      <td className={item.change_percent >= 0 ? 'tsd-positive-change-value' : 'tsd-negative-change-value'}>
+                        {item.change_percent.toFixed(2)}%
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </>
         )}
       </div>
     </div>

@@ -261,6 +261,12 @@ const SellTransactionEntry = ({ setFifoParams, setActiveTab }) => {
     if (!form.valuationMethod) newErrors.valuationMethod = 'Valuation method is required'; // <-- Added validation
     if (!form.contractNumber) newErrors.contractNumber = 'Contract number is required';
     if (!form.quantity || form.quantity <= 0) newErrors.quantity = 'Valid quantity is required';
+    
+    // Add quantity validation against total shares
+    if (form.quantity && totalShares && parseFloat(form.quantity) > parseFloat(totalShares)) {
+      newErrors.quantity = `Quantity cannot exceed total shares (${totalShares})`;
+    }
+    
     if (!form.soldPrice || form.soldPrice <= 0) newErrors.soldPrice = 'Valid sold price is required';
     if (!form.boughtPrice || form.boughtPrice <= 0) newErrors.boughtPrice = 'Valid bought price is required';
     if (!form.tradeDate) newErrors.tradeDate = 'Trade date is required';
@@ -275,6 +281,28 @@ const SellTransactionEntry = ({ setFifoParams, setActiveTab }) => {
   // --- Handlers ---
   const handleChange = (e) => {
     const { name, value } = e.target;
+    
+    // Special handling for quantity field - prevent exceeding total shares
+    if (name === 'quantity') {
+      const quantity = parseFloat(value);
+      const total = parseFloat(totalShares);
+      
+      // If user tries to exceed total shares, cap it at total shares
+      if (!isNaN(quantity) && !isNaN(total) && quantity > total) {
+        setForm(prev => ({ ...prev, [name]: totalShares }));
+        return; // Don't proceed with normal update
+      }
+      
+      // If value is empty or valid, proceed normally
+      setForm(prev => ({ ...prev, [name]: value }));
+      
+      // Clear any existing quantity errors
+      if (errors.quantity) {
+        setErrors(prev => ({ ...prev, quantity: '' }));
+      }
+      return;
+    }
+    
     // If portfolioName changes, clear valuationMethod (it will be autofilled by useEffect)
     if (name === 'portfolioName') {
       // Autofill portfolioId
@@ -289,6 +317,8 @@ const SellTransactionEntry = ({ setFifoParams, setActiveTab }) => {
       }
       setForm(updatedForm);
     }
+    
+    // Clear error for this field
     if (errors[name]) setErrors({ ...errors, [name]: '' });
   };
 
@@ -364,6 +394,36 @@ const SellTransactionEntry = ({ setFifoParams, setActiveTab }) => {
     // Clear any existing errors
     if (errors.companyName) {
       setErrors(prev => ({ ...prev, companyName: '' }));
+    }
+  };
+
+  // Handle key press for quantity field to prevent exceeding total shares
+  const handleQuantityKeyDown = (e) => {
+    if (e.target.name === 'quantity' && totalShares) {
+      const currentValue = e.target.value;
+      const key = e.key;
+      
+      // Allow backspace, delete, arrow keys, tab, etc.
+      if (['Backspace', 'Delete', 'ArrowLeft', 'ArrowRight', 'Tab', 'Enter'].includes(key)) {
+        return;
+      }
+      
+      // Allow numbers and decimal point
+      if (!/[\d.]/.test(key)) {
+        e.preventDefault();
+        return;
+      }
+      
+      // Check if adding this key would exceed total shares
+      const newValue = currentValue + key;
+      const newQuantity = parseFloat(newValue);
+      const total = parseFloat(totalShares);
+      
+      if (!isNaN(newQuantity) && newQuantity > total) {
+        e.preventDefault();
+        // Set to max allowed value
+        setForm(prev => ({ ...prev, quantity: totalShares }));
+      }
     }
   };
 
@@ -580,11 +640,18 @@ const SellTransactionEntry = ({ setFifoParams, setActiveTab }) => {
                     name="quantity"
                     value={form.quantity}
                     onChange={handleChange}
+                    onKeyDown={handleQuantityKeyDown}
                     className={getFieldClassName('quantity')}
-                    placeholder="Number of shares"
+                    placeholder={totalShares ? `Max: ${totalShares} shares` : "Number of shares"}
                     min="1"
+                    max={totalShares || undefined}
                   />
                   {errors.quantity && <span className="sell-error-text">{errors.quantity}</span>}
+                  {totalShares && !errors.quantity && (
+                    <small className="sell-field-note">
+                      Maximum: {totalShares} shares available
+                    </small>
+                  )}
                 </div>
                 <div className="sell-form-group">
                   <label htmlFor="remainingShares">Remaining Shares</label>
