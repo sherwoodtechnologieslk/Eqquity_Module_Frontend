@@ -39,6 +39,7 @@ import MarketSummary from './components/MarketSummary/MarketSummary';
 import RecentActivity from './components/RecentActivity/RecentActivity';
 import PerformanceMetrics from './components/PerformanceMetrics/PerformanceMetrics';
 import MarketAnnouncements from './components/CSEAnnouncements/MarketAnnouncements';
+import CorporateNotices from './components/CSEAnnouncements/CorporateNotices';
 
 
 function App() {
@@ -170,6 +171,7 @@ function App() {
     'Account Reconciliation': <AccountReconciliation />,
     'Trade Report': <TradeReport />,
     'Market Announcements': <MarketAnnouncements />,
+    'Corporate Notices': <CorporateNotices />,
   };
 
   // Handle sidebar selection
