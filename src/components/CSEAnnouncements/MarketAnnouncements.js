@@ -7,7 +7,7 @@ const MarketAnnouncements = () => {
   const [error, setError] = useState('');
   const [filters, setFilters] = useState({
     category: 'all',
-    dateRange: '7',
+    dateRange: 'all',
     searchTerm: ''
   });
   const [selectedAnnouncement, setSelectedAnnouncement] = useState(null);
