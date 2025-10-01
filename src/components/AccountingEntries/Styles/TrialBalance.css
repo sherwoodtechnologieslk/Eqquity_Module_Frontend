@@ -132,9 +132,14 @@
 }
 
 .balance-status.balanced {
-  background-color: #dcfce7;
-  color: #059669;
-  border: 1px solid #bbf7d0;
+  background-color: #1e293b;
+  color: #ffffff;
+  border: 1px solid #1e293b;
+  font-weight: 700;
+  font-size: 16px;
+  font-family: inherit;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
 .balance-status.unbalanced {
@@ -156,6 +161,8 @@
   font-size: 14px;
   font-weight: 400;
   margin-left: auto;
+  font-family: 'Courier New', monospace;
+  text-align: right;
 }
 
 /* Main Content */

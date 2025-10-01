@@ -39,6 +39,7 @@ import TradeReport from './components/TradeSummary/TradeReport';
 import MarketSummary from './components/MarketSummary/MarketSummary';
 import RecentActivity from './components/RecentActivity/RecentActivity';
 import PerformanceMetrics from './components/PerformanceMetrics/PerformanceMetrics';
+import MarketAnnouncements from './components/CSEAnnouncements/MarketAnnouncements';
 
 
 function App() {
@@ -103,6 +104,11 @@ function App() {
         index: 8,
         name: "IPO Management",
         subTopics: ["IPO Entry", "IPO Allocation"]
+      },
+      {
+        index: 9,
+        name: "CSE Announcements",
+        subTopics: ["Market Announcements", "Corporate Notices", "Trading Updates", "Regulatory Updates", "News & Events"]
       }
     ];
     
@@ -160,6 +166,7 @@ function App() {
     'Trial Balance': <TrialBalance />,
     'Account Reconciliation': <AccountReconciliation />,
     'Trade Report': <TradeReport />,
+    'Market Announcements': <MarketAnnouncements />,
   };
 
   // Handle sidebar selection
