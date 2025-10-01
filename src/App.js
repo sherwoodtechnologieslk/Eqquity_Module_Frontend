@@ -3,7 +3,6 @@ import './App.css';
 import Navbar from './components/Home/Navbar';
 import Sidebar from './components/Home/Sidebar';
 import AuthContainer from './components/Auth/AuthContainer';
-import ProtectedRoute from './components/Auth/ProtectedRoute';
 import UserProfileModal from './components/Auth/UserProfileModal';
 import { authService } from './services/authService';
 import Dashboard from './components/Dashboard';
@@ -46,7 +45,6 @@ function App() {
   const [activeTab, setActiveTab] = useState('Dashboard');
   const [activeSidebarItem, setActiveSidebarItem] = useState(0);
   const [visibleTabs, setVisibleTabs] = useState(['Dashboard', 'Portfolio Overview', 'Market Summary', 'Recent Activity', 'Performance Metrics']);
-  const [fifoParams, setFifoParams] = useState(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [user, setUser] = useState(null);
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
@@ -97,11 +95,16 @@ function App() {
       },
       {
         index: 7,
+        name: "CSE Announcements",
+        subTopics: ["Corporate Notices", "Market Announcements", "Trading Updates", "Regulatory Updates", "News & Events"]
+      },
+      {
+        index: 8,
         name: "Corporate Actions",
         subTopics: ["Dividend", "Rights Issue", "Stock Split"]
       },
       {
-        index: 8,
+        index: 9,
         name: "IPO Management",
         subTopics: ["IPO Entry", "IPO Allocation"]
       },
@@ -137,7 +140,7 @@ function App() {
     'Valuation Method': <CostingMethodSelection/>,
 
     'Buy': <BuyTransactionEntry />,
-    'Sell': <SellTransactionEntry setFifoParams={setFifoParams} setActiveTab={setActiveTab} />,
+    'Sell': <SellTransactionEntry setActiveTab={setActiveTab} />,
     'Transactions': <TransactionView />,
     'Bulk Buy Entry': <BulkBuyEntry />,
     'Bulk Sell Entry': <BulkSellEntry />,
