@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import './Styles/TrialBalance.css';
 import { trialBalanceAPI } from '../../services/api';
 import AccountDetailsModal from './AccountDetailsModal';
@@ -17,12 +17,7 @@ const TrialBalance = () => {
   const [showAccountModal, setShowAccountModal] = useState(false);
   const [selectedAccountData, setSelectedAccountData] = useState(null);
 
-  useEffect(() => {
-    fetchTrialBalance();
-    fetchPortfolios();
-  }, [filters]);
-
-  const fetchTrialBalance = async () => {
+  const fetchTrialBalance = useCallback(async () => {
     try {
       setIsLoading(true);
       setError('');
@@ -40,7 +35,12 @@ const TrialBalance = () => {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [filters]);
+
+  useEffect(() => {
+    fetchTrialBalance();
+    fetchPortfolios();
+  }, [fetchTrialBalance]);
 
   const fetchPortfolios = async () => {
     try {
@@ -204,65 +204,69 @@ const TrialBalance = () => {
 
       {/* Filters */}
       <div className="tb-filters-section">
-        <div className="tb-filter-group">
-          <label className="tb-filter-label">Start Date:</label>
-          <input
-            type="date"
-            className="tb-filter-input"
-            value={filters.startDate}
-            onChange={(e) => handleFilterChange('startDate', e.target.value)}
-          />
+        <div className="tb-filters-row">
+          <div className="tb-filter-group">
+            <label className="tb-filter-label">Start Date:</label>
+            <input
+              type="date"
+              className="tb-filter-input"
+              value={filters.startDate}
+              onChange={(e) => handleFilterChange('startDate', e.target.value)}
+            />
+          </div>
+          <div className="tb-filter-group">
+            <label className="tb-filter-label">End Date:</label>
+            <input
+              type="date"
+              className="tb-filter-input"
+              value={filters.endDate}
+              onChange={(e) => handleFilterChange('endDate', e.target.value)}
+            />
+          </div>
+          <div className="tb-filter-group">
+            <label className="tb-filter-label">Portfolio:</label>
+            <select
+              className="tb-filter-select"
+              value={filters.portfolio}
+              onChange={(e) => handleFilterChange('portfolio', e.target.value)}
+            >
+              <option value="">All Portfolios</option>
+              {availablePortfolios.map(portfolio => (
+                <option key={portfolio.portfolioId} value={portfolio.portfolio}>
+                  {portfolio.portfolioName || portfolio.portfolio}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div className="tb-filter-group">
+            <label className="tb-filter-label">View:</label>
+            <select
+              className="tb-filter-select"
+              value={viewMode}
+              onChange={(e) => setViewMode(e.target.value)}
+            >
+              <option value="detailed">Detailed View</option>
+              <option value="summary">Summary View</option>
+            </select>
+          </div>
+          <div className="tb-filter-actions">
+            <button onClick={fetchTrialBalance} className="tb-refresh-button">
+              Refresh
+            </button>
+          </div>
         </div>
-        <div className="tb-filter-group">
-          <label className="tb-filter-label">End Date:</label>
-          <input
-            type="date"
-            className="tb-filter-input"
-            value={filters.endDate}
-            onChange={(e) => handleFilterChange('endDate', e.target.value)}
-          />
-        </div>
-        <div className="tb-filter-group">
-          <label className="tb-filter-label">Portfolio:</label>
-          <select
-            className="tb-filter-select"
-            value={filters.portfolio}
-            onChange={(e) => handleFilterChange('portfolio', e.target.value)}
-          >
-            <option value="">All Portfolios</option>
-            {availablePortfolios.map(portfolio => (
-              <option key={portfolio.portfolioId} value={portfolio.portfolio}>
-                {portfolio.portfolioName || portfolio.portfolio}
-              </option>
-            ))}
-          </select>
-        </div>
-        <div className="tb-filter-group">
-          <label className="tb-filter-label">View:</label>
-          <select
-            className="tb-filter-select"
-            value={viewMode}
-            onChange={(e) => setViewMode(e.target.value)}
-          >
-            <option value="detailed">Detailed View</option>
-            <option value="summary">Summary View</option>
-          </select>
-        </div>
-        <button onClick={fetchTrialBalance} className="tb-refresh-button">
-          Refresh
-        </button>
       </div>
 
       {/* Balance Status */}
       <div className={`tb-balance-status ${trialBalanceData?.totals.is_balanced ? 'tb-balanced' : 'tb-unbalanced'}`}>
-        <div className="tb-status-text">
-          {trialBalanceData?.totals.is_balanced ? 'Balanced' : 'Out of Balance'}
-        </div>
-        <div className="tb-status-details">
+        <span className="tb-status-text">
+          {trialBalanceData?.totals.is_balanced ? 'BALANCED' : 'OUT OF BALANCE'}
+        </span>
+        <span className="tb-status-details">
           Total Debits: {formatCurrency(trialBalanceData?.totals.total_debits)} | 
           Total Credits: {formatCurrency(trialBalanceData?.totals.total_credits)} | 
           Accounts: {trialBalanceData?.totals.account_count}
-        </div>
+        </span>
       </div>
 
       {/* Main Content */}

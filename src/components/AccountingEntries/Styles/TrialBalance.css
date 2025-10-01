@@ -1,286 +1,522 @@
-.trial-balance {
-  padding: 24px;
-  background-color: #f8fafc;
+/* Trial Balance Styles - Matching General Ledger and Journal Entries */
+
+/* Page Layout */
+.tb-main-container {
   min-height: 100vh;
+  padding: 2rem 1rem;
+  box-sizing: border-box;
+  background-color: #f8fafc;
 }
 
-/* Header */
-.trial-balance-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  margin-bottom: 24px;
-  padding: 20px;
-  background: white;
-  border-radius: 12px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-  border: 1px solid #e2e8f0;
+.tb-content-wrapper {
+  max-width: 1400px;
+  margin: 0 auto;
 }
 
-.header-left h1 {
-  font-size: 28px;
-  font-weight: 700;
-  color: #1e293b;
-  margin: 0 0 12px 0;
-}
-
-.period-info {
+/* Header Section */
+.tb-header-section {
   display: flex;
   align-items: center;
-  gap: 8px;
-  font-size: 14px;
-  color: #64748b;
+  gap: 2rem;
+  margin-bottom: 2.5rem;
+  text-align: left;
+  padding-top: 2rem;
+  padding-bottom: 2rem;
 }
 
-.period-label {
-  font-weight: 600;
-}
-
-.period-dates {
-  color: #1e293b;
-  font-weight: 500;
-}
-
-.portfolio-info {
-  color: #3b82f6;
-  font-weight: 500;
-}
-
-.header-right {
-  text-align: right;
-}
-
-.generated-info {
-  font-size: 12px;
-  color: #64748b;
-  background-color: #f1f5f9;
-  padding: 6px 12px;
-  border-radius: 16px;
-}
-
-/* Filters */
-.trial-balance-filters {
+.tb-header-icon {
   display: flex;
-  gap: 20px;
-  align-items: end;
-  margin-bottom: 24px;
-  padding: 20px;
-  background: white;
-  border-radius: 12px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-  border: 1px solid #e2e8f0;
-  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  width: 5.5rem;
+  height: 5.5rem;
+  background: linear-gradient(135deg, #60a5fa, #2563eb);
+  border-radius: 0.18rem;
+  margin: 0;
+  box-shadow: 0 8px 32px 0 rgba(59, 130, 246, 0.09), 0 2px 8px 0 rgba(59, 130, 246, 0.04);
+  flex-shrink: 0;
 }
 
-.filter-group {
+.tb-icon {
+  width: 2.8rem;
+  height: 2.8rem;
+  color: #fff;
+}
+
+.tb-header-text-group {
   display: flex;
   flex-direction: column;
-  gap: 6px;
-  min-width: 150px;
+  align-items: flex-start;
+  gap: 0.25rem;
 }
 
-.filter-group label {
-  font-size: 14px;
+.tb-main-title {
+  font-size: 2.5rem;
+  font-weight: 800;
+  color: #1e293b;
+  margin: 0;
+  line-height: 1.2;
+}
+
+.tb-period-info {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.875rem;
+  color: #64748b;
+  margin-top: 0.5rem;
+}
+
+.tb-period-label {
   font-weight: 600;
   color: #475569;
 }
 
-.filter-group input,
-.filter-group select {
-  padding: 8px 12px;
-  border: 1px solid #e2e8f0;
-  border-radius: 8px;
-  font-size: 14px;
-  background-color: white;
-  color: #1e293b;
-  transition: border-color 0.2s ease;
+.tb-period-dates {
+  color: #64748b;
 }
 
-.filter-group input:focus,
-.filter-group select:focus {
+.tb-portfolio-info {
+  color: #64748b;
+  font-style: italic;
+}
+
+.tb-header-right {
+  margin-left: auto;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.5rem;
+}
+
+.tb-generated-info {
+  font-size: 0.875rem;
+  color: #64748b;
+  background: rgba(148, 163, 184, 0.1);
+  padding: 0.5rem 1rem;
+  border-radius: 0.5rem;
+  border: 1px solid rgba(148, 163, 184, 0.2);
+}
+
+/* Filters Section */
+.tb-filters-section {
+  background: white;
+  border-radius: 1rem;
+  padding: 2rem;
+  margin-bottom: 2rem;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  border: 1px solid #e2e8f0;
+}
+
+.tb-filters-row {
+  display: flex;
+  align-items: end;
+  gap: 1.5rem;
+  flex-wrap: wrap;
+}
+
+.tb-filter-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  flex: 1;
+  min-width: 150px;
+}
+
+.tb-filter-actions {
+  display: flex;
+  align-items: end;
+  margin-left: auto;
+}
+
+.tb-filter-label {
+  font-weight: 600;
+  color: #374151;
+  font-size: 0.875rem;
+}
+
+.tb-filter-input,
+.tb-filter-select {
+  padding: 0.75rem 1rem;
+  border: 2px solid #e5e7eb;
+  border-radius: 0.5rem;
+  font-size: 0.875rem;
+  transition: all 0.2s ease;
+  background: white;
+}
+
+.tb-filter-input:focus,
+.tb-filter-select:focus {
   outline: none;
   border-color: #3b82f6;
   box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
 }
 
-.refresh-btn {
-  background-color: #3b82f6;
+.tb-refresh-button {
+  background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
   color: white;
   border: none;
-  padding: 8px 16px;
-  border-radius: 8px;
-  font-size: 14px;
-  font-weight: 500;
+  padding: 0.75rem 1.5rem;
+  border-radius: 0.5rem;
+  font-size: 0.875rem;
+  font-weight: 600;
   cursor: pointer;
-  transition: background-color 0.2s ease;
-  height: fit-content;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 15px rgba(59, 130, 246, 0.4);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
-.refresh-btn:hover {
-  background-color: #2563eb;
+.tb-refresh-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(59, 130, 246, 0.6);
 }
 
 /* Balance Status */
-.balance-status {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  margin-bottom: 24px;
-  padding: 16px 20px;
-  border-radius: 12px;
-  font-weight: 600;
+.tb-balance-status {
+  background: white;
+  border-radius: 1rem;
+  padding: 1rem 2rem;
+  margin-bottom: 2rem;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  border: 1px solid #e2e8f0;
+  text-align: center;
 }
 
-.balance-status.balanced {
-  background-color: #1e293b;
-  color: #ffffff;
-  border: 1px solid #1e293b;
+.tb-balanced {
+  background: #000000;
+  color: white;
+  border: 1px solid #000000;
+}
+
+.tb-unbalanced {
+  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+  color: white;
+  border: 1px solid #dc2626;
+}
+
+.tb-status-text {
+  font-size: 1.125rem;
   font-weight: 700;
-  font-size: 16px;
-  font-family: inherit;
+  margin-right: 2rem;
   text-transform: uppercase;
   letter-spacing: 0.5px;
+  display: inline-block;
 }
 
-.balance-status.unbalanced {
-  background-color: #fee2e2;
-  color: #dc2626;
-  border: 1px solid #fecaca;
-}
-
-.status-indicator {
-  font-size: 20px;
-  font-weight: bold;
-}
-
-.status-text {
-  font-size: 16px;
-}
-
-.status-details {
-  font-size: 14px;
-  font-weight: 400;
-  margin-left: auto;
+.tb-status-details {
+  font-size: 1rem;
+  font-weight: 500;
+  opacity: 0.9;
   font-family: 'Courier New', monospace;
-  text-align: right;
+  display: inline-block;
 }
 
 /* Main Content */
-.trial-balance-content {
+.tb-main-content {
   background: white;
-  border-radius: 12px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  border-radius: 1rem;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
   border: 1px solid #e2e8f0;
-  margin-bottom: 24px;
+  overflow: hidden;
 }
 
-/* Detailed View */
-.detailed-view {
+.tb-table-container {
   overflow-x: auto;
 }
 
-.trial-balance-table-container {
-  overflow-x: auto;
-}
-
-.trial-balance-table {
+.tb-data-table {
   width: 100%;
   border-collapse: collapse;
-  font-size: 14px;
+  font-size: 0.875rem;
 }
 
-.trial-balance-table th {
-  background-color: #f8fafc;
-  padding: 16px 12px;
+.tb-table-header {
+  background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+  border-bottom: 2px solid #cbd5e1;
+}
+
+.tb-table-header th {
+  padding: 1rem 0.75rem;
   text-align: left;
-  font-weight: 600;
-  color: #475569;
-  border-bottom: 2px solid #e2e8f0;
-  position: sticky;
-  top: 0;
-  z-index: 10;
+  font-weight: 700;
+  color: #374151;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-size: 0.75rem;
+  border-bottom: 2px solid #cbd5e1;
 }
 
-.trial-balance-table td {
-  padding: 12px;
-  border-bottom: 1px solid #f1f5f9;
+.tb-th-account-code {
+  width: 15%;
+}
+
+.tb-th-account-name {
+  width: 30%;
+}
+
+.tb-th-type {
+  width: 12%;
+}
+
+.tb-th-debit,
+.tb-th-credit,
+.tb-th-net {
+  width: 12%;
+  text-align: right;
+}
+
+.tb-th-actions {
+  width: 10%;
+  text-align: center;
+}
+
+.tb-account-row {
+  border-bottom: 1px solid #e5e7eb;
+  transition: background-color 0.2s ease;
+}
+
+.tb-account-row:hover {
+  background-color: #f8fafc;
+}
+
+.tb-account-row td {
+  padding: 1rem 0.75rem;
   vertical-align: top;
 }
 
-.trial-balance-row:hover {
-  background-color: #f8fafc;
-}
-
-.account-code {
+.tb-account-code {
   font-family: 'Courier New', monospace;
   font-weight: 600;
-  color: #1e293b;
-  min-width: 120px;
+  color: #374151;
 }
 
-.account-name {
-  color: #1e293b;
-  min-width: 200px;
+.tb-account-name {
+  color: #1f2937;
+  font-weight: 500;
 }
 
-.account-type {
-  color: #64748b;
-  font-size: 12px;
+.tb-account-type {
+  color: #6b7280;
+  font-size: 0.75rem;
   text-transform: uppercase;
   letter-spacing: 0.5px;
-  min-width: 100px;
 }
 
-.debit-balance,
-.credit-balance {
-  text-align: right;
-  font-family: 'Courier New', monospace;
-  min-width: 120px;
-}
-
-.net-balance {
+.tb-debit-balance,
+.tb-credit-balance,
+.tb-net-balance {
   text-align: right;
   font-family: 'Courier New', monospace;
   font-weight: 600;
-  min-width: 140px;
 }
 
-.net-balance.positive {
-  color: #059669;
-}
-
-.net-balance.negative {
+.tb-debit-balance {
   color: #dc2626;
 }
 
-.net-balance.neutral {
-  color: #64748b;
+.tb-credit-balance {
+  color: #059669;
 }
 
-/* Actions Column */
-.account-actions {
+.tb-net-balance {
+  color: #374151;
+}
+
+.tb-net-balance.positive {
+  color: #dc2626;
+}
+
+.tb-net-balance.negative {
+  color: #059669;
+}
+
+.tb-account-actions {
   text-align: center;
-  min-width: 120px;
-  padding: 8px 12px;
 }
 
-.view-details-btn {
-  background: linear-gradient(135deg, #3b82f6, #2563eb);
+.tb-view-details-button {
+  background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
   color: white;
   border: none;
-  padding: 7px 14px;
-  border-radius: 7px;
-  font-size: 14px;
-  font-weight: 500;
+  padding: 0.5rem 1rem;
+  border-radius: 0.375rem;
+  font-size: 0.75rem;
+  font-weight: 600;
   cursor: pointer;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  box-shadow: 0 2px 4px rgba(59, 130, 246, 0.2);
-  position: relative;
-  overflow: hidden;
-  min-width: 95px;
+  transition: all 0.2s ease;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
-.view-details-btn::before {
+.tb-view-details-button:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
+}
+
+/* Subtotal Rows */
+.tb-type-subtotal-row {
+  background: #f8fafc;
+  border-top: 2px solid #cbd5e1;
+  border-bottom: 1px solid #cbd5e1;
+  font-weight: 600;
+}
+
+.tb-subtotal-label {
+  color: #374151;
+  font-size: 0.875rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.tb-subtotal-debit,
+.tb-subtotal-credit,
+.tb-subtotal-net {
+  text-align: right;
+  font-family: 'Courier New', monospace;
+  font-weight: 600;
+}
+
+.tb-subtotal-debit {
+  color: #dc2626;
+}
+
+.tb-subtotal-credit {
+  color: #059669;
+}
+
+.tb-subtotal-net {
+  color: #374151;
+}
+
+.tb-subtotal-actions {
+  text-align: center;
+}
+
+/* Grand Total Row */
+.tb-grand-total-row {
+  background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
+  color: white;
+  font-weight: 700;
+  border-top: 3px solid #0f172a;
+}
+
+.tb-grand-total-row td {
+  padding: 1.5rem 0.75rem;
+  font-size: 1rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.tb-grand-total-label {
+  font-size: 1.125rem;
+}
+
+.tb-grand-total-debit,
+.tb-grand-total-credit,
+.tb-grand-total-net {
+  text-align: right;
+  font-family: 'Courier New', monospace;
+  font-size: 1.125rem;
+}
+
+.tb-grand-total-actions {
+  text-align: center;
+}
+
+/* Summary View */
+.tb-summary-view {
+  padding: 2rem;
+}
+
+.tb-summary-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 1.5rem;
+}
+
+.tb-summary-card {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 0.75rem;
+  padding: 1.5rem;
+  transition: all 0.2s ease;
+}
+
+.tb-summary-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+}
+
+.tb-summary-card-title {
+  font-size: 1.125rem;
+  font-weight: 700;
+  color: #1e293b;
+  margin: 0 0 1rem 0;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.tb-summary-details {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.tb-summary-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.5rem 0;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.tb-summary-item:last-child {
+  border-bottom: none;
+}
+
+.tb-summary-label {
+  font-weight: 600;
+  color: #6b7280;
+  font-size: 0.875rem;
+}
+
+.tb-summary-value {
+  font-family: 'Courier New', monospace;
+  font-weight: 600;
+  color: #374151;
+}
+
+/* Actions Section */
+.tb-actions-section {
+  display: flex;
+  gap: 1rem;
+  padding: 2rem;
+  background: white;
+  border-radius: 1rem;
+  margin-top: 2rem;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  border: 1px solid #e2e8f0;
+}
+
+.tb-action-button {
+  background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+  color: white;
+  border: none;
+  padding: 0.875rem 1.75rem;
+  border-radius: 0.5rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 15px rgba(59, 130, 246, 0.4);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  position: relative;
+  overflow: hidden;
+}
+
+.tb-action-button::before {
   content: '';
   position: absolute;
   top: 0;
@@ -291,166 +527,33 @@
   transition: left 0.5s;
 }
 
-.view-details-btn:hover {
-  background: linear-gradient(135deg, #2563eb, #1d4ed8);
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
-}
-
-.view-details-btn:hover::before {
+.tb-action-button:hover::before {
   left: 100%;
 }
 
-.view-details-btn:active {
-  transform: translateY(-1px);
-  box-shadow: 0 2px 6px rgba(59, 130, 246, 0.3);
-}
-
-
-/* Type Subtotals */
-.type-subtotal-row {
-  background-color: #f8fafc;
-  border-top: 2px solid #e2e8f0;
-  font-weight: 600;
-}
-
-.subtotal-label {
-  color: #1e293b;
-  font-size: 13px;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-
-/* Grand Total */
-.grand-total-row {
-  background-color: #1e293b;
-  color: white;
-  font-weight: 700;
-  font-size: 16px;
-}
-
-.grand-total-row td {
-  border-bottom: none;
-  padding: 16px 12px;
-}
-
-/* Summary View */
-.summary-view {
-  padding: 24px;
-}
-
-.summary-cards {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-  gap: 20px;
-}
-
-.summary-card {
-  background-color: #f8fafc;
-  border: 1px solid #e2e8f0;
-  border-radius: 12px;
-  padding: 20px;
-  transition: all 0.2s ease;
-}
-
-.summary-card:hover {
+.tb-action-button:hover {
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 6px 20px rgba(59, 130, 246, 0.6);
 }
 
-.summary-card h3 {
-  margin: 0 0 16px 0;
-  font-size: 18px;
-  font-weight: 600;
-  color: #1e293b;
+/* Loading and Error States */
+.tb-loading-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 4rem 2rem;
   text-align: center;
-  padding-bottom: 12px;
-  border-bottom: 2px solid #e2e8f0;
 }
 
-.summary-details {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
-.summary-item {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 8px 0;
-  border-bottom: 1px solid #f1f5f9;
-}
-
-.summary-item:last-child {
-  border-bottom: none;
-  font-weight: 600;
-  font-size: 16px;
-  padding-top: 12px;
-  border-top: 2px solid #e2e8f0;
-}
-
-.summary-item span:first-child {
-  color: #64748b;
-  font-weight: 500;
-}
-
-.summary-item span:last-child {
-  color: #1e293b;
-  font-family: 'Courier New', monospace;
-}
-
-
-/* Actions */
-.trial-balance-actions {
-  display: flex;
-  gap: 16px;
-  justify-content: center;
-  padding: 20px;
-  background: white;
-  border-radius: 12px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-  border: 1px solid #e2e8f0;
-}
-
-.action-btn {
-  background: none;
-  border: 1px solid #e2e8f0;
-  padding: 12px 24px;
-  border-radius: 8px;
-  font-size: 14px;
-  font-weight: 500;
-  color: #475569;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.action-btn:hover {
-  background-color: #f8fafc;
-  border-color: #cbd5e1;
-  transform: translateY(-1px);
-}
-
-/* Loading State */
-.trial-balance-loading {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  height: 400px;
-  gap: 16px;
-}
-
-.loading-spinner {
-  width: 40px;
-  height: 40px;
-  border: 4px solid #e2e8f0;
+.tb-loading-spinner {
+  width: 3rem;
+  height: 3rem;
+  border: 4px solid #e5e7eb;
   border-top: 4px solid #3b82f6;
   border-radius: 50%;
   animation: spin 1s linear infinite;
+  margin-bottom: 1rem;
 }
 
 @keyframes spin {
@@ -458,166 +561,133 @@
   100% { transform: rotate(360deg); }
 }
 
-.trial-balance-loading p {
-  color: #64748b;
-  font-size: 16px;
+.tb-loading-text {
+  font-size: 1.125rem;
+  color: #6b7280;
+  margin: 0;
 }
 
-/* Error State */
-.trial-balance-error {
+.tb-error-container {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  height: 400px;
-  gap: 16px;
+  padding: 4rem 2rem;
   text-align: center;
+  background: white;
+  border-radius: 1rem;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  border: 1px solid #e2e8f0;
 }
 
-.trial-balance-error h3 {
+.tb-error-title {
+  font-size: 1.5rem;
+  font-weight: 700;
   color: #dc2626;
-  margin: 0;
+  margin: 0 0 1rem 0;
 }
 
-.trial-balance-error p {
-  color: #64748b;
-  margin: 0;
+.tb-error-message {
+  font-size: 1rem;
+  color: #6b7280;
+  margin: 0 0 2rem 0;
 }
 
-.retry-btn {
-  background-color: #3b82f6;
+.tb-retry-button {
+  background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
   color: white;
   border: none;
-  padding: 12px 24px;
-  border-radius: 8px;
-  font-size: 14px;
-  font-weight: 500;
+  padding: 0.875rem 1.75rem;
+  border-radius: 0.5rem;
+  font-size: 0.875rem;
+  font-weight: 600;
   cursor: pointer;
-  transition: background-color 0.2s ease;
+  transition: all 0.3s ease;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
-.retry-btn:hover {
-  background-color: #2563eb;
+.tb-retry-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(220, 38, 38, 0.6);
 }
 
 /* Responsive Design */
 @media (max-width: 768px) {
-  .trial-balance {
-    padding: 16px;
+  .tb-main-container {
+    padding: 1rem 0.5rem;
   }
-
-  .trial-balance-header {
+  
+  .tb-header-section {
     flex-direction: column;
-    gap: 16px;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+  
+  .tb-header-right {
+    margin-left: 0;
     align-items: flex-start;
   }
-
-  .trial-balance-filters {
+  
+  .tb-filters-section {
+    padding: 1.5rem;
+  }
+  
+  .tb-filters-row {
     flex-direction: column;
     align-items: stretch;
-    gap: 16px;
+    gap: 1rem;
   }
-
-  .filter-group {
+  
+  .tb-filter-group {
     min-width: auto;
   }
-
-  .balance-status {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 8px;
-  }
-
-  .status-details {
+  
+  .tb-filter-actions {
     margin-left: 0;
+    align-self: flex-start;
   }
-
-  .trial-balance-table {
-    font-size: 12px;
+  
+  .tb-actions-section {
+    flex-direction: column;
+    padding: 1.5rem;
   }
-
-  .trial-balance-table th,
-  .trial-balance-table td {
-    padding: 8px 6px;
-  }
-
-  .summary-cards {
+  
+  .tb-summary-cards {
     grid-template-columns: 1fr;
   }
-
-  .trial-balance-actions {
-    flex-direction: column;
-    gap: 12px;
+  
+  .tb-data-table {
+    font-size: 0.75rem;
+  }
+  
+  .tb-table-header th,
+  .tb-account-row td {
+    padding: 0.75rem 0.5rem;
   }
 }
 
 @media (max-width: 480px) {
-  .trial-balance-header h1 {
-    font-size: 24px;
+  .tb-main-title {
+    font-size: 2rem;
   }
-
-  .trial-balance-table {
-    font-size: 11px;
+  
+  .tb-header-icon {
+    width: 4rem;
+    height: 4rem;
   }
-
-  .trial-balance-table th,
-  .trial-balance-table td {
-    padding: 6px 4px;
+  
+  .tb-icon {
+    width: 2rem;
+    height: 2rem;
   }
-
-  .account-code,
-  .debit-balance,
-  .credit-balance,
-  .net-balance {
-    min-width: 80px;
+  
+  .tb-data-table {
+    font-size: 0.625rem;
   }
-
-  .account-name {
-    min-width: 120px;
-  }
-
-  .account-actions {
-    min-width: 100px;
-  }
-
-  .view-details-btn {
-    padding: 4px 8px;
-    font-size: 11px;
-  }
-}
-
-/* Print Styles */
-@media print {
-  .trial-balance-filters,
-  .trial-balance-actions {
-    display: none !important;
-  }
-
-  .account-actions {
-    display: none !important;
-  }
-
-  .trial-balance {
-    padding: 0;
-    background: white;
-  }
-
-  .trial-balance-header {
-    box-shadow: none;
-    border: 1px solid #000;
-  }
-
-  .trial-balance-content {
-    box-shadow: none;
-    border: 1px solid #000;
-  }
-
-  .trial-balance-table {
-    border-collapse: collapse;
-  }
-
-  .trial-balance-table th,
-  .trial-balance-table td {
-    border: 1px solid #000;
+  
+  .tb-table-header th,
+  .tb-account-row td {
+    padding: 0.5rem 0.25rem;
   }
 }
