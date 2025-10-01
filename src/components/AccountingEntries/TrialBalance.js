@@ -8,7 +8,7 @@ const TrialBalance = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
   const [filters, setFilters] = useState({
-    startDate: new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString().split('T')[0],
+    startDate: new Date(new Date().getFullYear(), 0, 1).toISOString().split('T')[0], // Start of current year
     endDate: new Date().toISOString().split('T')[0],
     portfolio: ''
   });

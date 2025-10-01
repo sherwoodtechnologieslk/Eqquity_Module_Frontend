@@ -364,7 +364,7 @@ const Dashboard = ({ onTabChange }) => {
 
   return (
     <div className="dashboard">
-      {/* Modern Header Bar */}
+      {/* Dashboard Header */}
       <div className="dashboard-header">
         <div className="header-icon">
           <svg viewBox="0 0 24 24" fill="currentColor">

@@ -98,6 +98,237 @@
   transform: scale(1.2);
 }
 
+/* Hero Section */
+.hero-section {
+  position: relative;
+  padding: 2rem;
+  background: linear-gradient(135deg, #2648b8 0%, #4989f0 100%);
+  margin: 2rem auto;
+  border-radius: 20px;
+  max-width: 1200px;
+  overflow: hidden;
+}
+
+.hero-content {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+}
+
+.hero-icon {
+  width: 48px;
+  height: 48px;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  animation: float 3s ease-in-out infinite;
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+}
+
+.hero-icon svg {
+  width: 24px;
+  height: 24px;
+  color: white;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
+}
+
+.hero-text {
+  text-align: center;
+  position: relative;
+  z-index: 2;
+}
+
+.hero-text h1 {
+  color: white;
+  font-size: 3.5rem;
+  font-weight: 800;
+  margin: 0 0 0.5rem 0;
+  letter-spacing: -0.01em;
+  text-shadow: 
+    0 1px 0 #ccc,
+    0 2px 0 #c9c9c9,
+    0 3px 0 #bbb,
+    0 4px 0 #b9b9b9,
+    0 5px 0 #aaa,
+    0 6px 1px rgba(0,0,0,.1),
+    0 0 5px rgba(0,0,0,.1),
+    0 1px 3px rgba(0,0,0,.3),
+    0 3px 5px rgba(0,0,0,.2),
+    0 5px 10px rgba(0,0,0,.25),
+    0 10px 10px rgba(0,0,0,.2),
+    0 20px 20px rgba(0,0,0,.15);
+  transform: none;
+  position: relative;
+}
+
+.hero-subtitle {
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 1rem;
+  margin: 0;
+  font-weight: 400;
+}
+
+/* Hero Decorations */
+.hero-decorations {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 0;
+  pointer-events: none;
+}
+
+.floating-shapes {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+}
+
+.shape {
+  position: absolute;
+  background: none;
+  border-radius: 0;
+  padding: 0;
+  animation: float 6s ease-in-out infinite;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: none;
+  backdrop-filter: none;
+  border: none;
+}
+
+.shape svg {
+  width: 100%;
+  height: 100%;
+  color: rgba(255, 255, 255, 0.9);
+  filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.4));
+}
+
+/* Row 1 - Top */
+.shape-1 {
+  width: 60px;
+  height: 60px;
+  top: 8%;
+  left: 5%;
+  animation-delay: 0s;
+}
+
+.shape-2 {
+  width: 55px;
+  height: 55px;
+  top: 8%;
+  left: 20%;
+  animation-delay: 0.5s;
+}
+
+.shape-3 {
+  width: 60px;
+  height: 60px;
+  top: 8%;
+  left: 35%;
+  animation-delay: 1s;
+}
+
+.shape-4 {
+  width: 55px;
+  height: 55px;
+  top: 8%;
+  right: 35%;
+  animation-delay: 1.5s;
+}
+
+.shape-5 {
+  width: 60px;
+  height: 60px;
+  top: 8%;
+  right: 20%;
+  animation-delay: 2s;
+}
+
+.shape-6 {
+  width: 55px;
+  height: 55px;
+  top: 8%;
+  right: 5%;
+  animation-delay: 2.5s;
+}
+
+/* Row 2 - Middle Top */
+.shape-7 {
+  width: 55px;
+  height: 55px;
+  top: 30%;
+  left: 8%;
+  animation-delay: 3s;
+}
+
+
+
+
+/* Row 3 - Middle Bottom */
+
+.hero-pattern {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  opacity: 0.1;
+}
+
+.pattern-dots {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-image: 
+    radial-gradient(circle at 25% 25%, rgba(255, 255, 255, 0.3) 2px, transparent 2px),
+    radial-gradient(circle at 75% 75%, rgba(255, 255, 255, 0.2) 1px, transparent 1px);
+  background-size: 50px 50px, 30px 30px;
+  animation: patternMove 20s linear infinite;
+}
+
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0px) rotate(0deg);
+  }
+  50% {
+    transform: translateY(-20px) rotate(180deg);
+  }
+}
+
+@keyframes patternMove {
+  0% {
+    transform: translateX(0) translateY(0);
+  }
+  100% {
+    transform: translateX(50px) translateY(50px);
+  }
+}
+
+.hero-dots {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.hero-dots .dot {
+  width: 6px;
+  height: 6px;
+  background: rgba(255, 255, 255, 0.6);
+  border-radius: 50%;
+}
+
 /* Sector Pie Chart Styles - Matching Portfolio Overview */
 .chart-container {
   display: flex;
@@ -944,6 +1175,15 @@
     justify-content: center;
   }
   
+  .hero-section {
+    padding: 1.5rem 1rem;
+  }
+  
+  .hero-text h1 {
+    font-size: 2rem;
+  }
+  
+  
   .main-grid {
     padding: 0 1rem 2rem 1rem;
   }
@@ -1013,6 +1253,14 @@
   .header-icon svg {
     width: 20px;
     height: 20px;
+  }
+  
+  .hero-text h1 {
+    font-size: 1.75rem;
+  }
+  
+  .hero-subtitle {
+    font-size: 0.875rem;
   }
   
   .status-card,
