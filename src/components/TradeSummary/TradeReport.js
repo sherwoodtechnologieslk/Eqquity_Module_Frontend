@@ -654,6 +654,15 @@ const TradeReport = () => {
     </div>
   );
 
+  const readTextFile = (file) => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = (e) => resolve(e.target.result);
+      reader.onerror = (e) => reject(e);
+      reader.readAsText(file);
+    });
+  };
+
   const handleFileUpload = async (files) => {
     const newFiles = Array.from(files).map(file => ({
       id: Date.now() + Math.random(),
@@ -665,6 +674,20 @@ const TradeReport = () => {
     }));
     
     setUploadedFiles(prev => [...prev, ...newFiles]);
+    
+    // Process text files immediately
+    for (const fileObj of newFiles) {
+      const isTextFile = fileObj.name.toLowerCase().endsWith('.txt');
+      
+      if (isTextFile) {
+        try {
+          const textContent = await readTextFile(fileObj.file);
+          setExtractedText(prev => prev + `\n\n--- ${fileObj.name} ---\n${textContent}`);
+        } catch (error) {
+          console.error('Error reading text file:', error);
+        }
+      }
+    }
   };
 
   const extractTextFromPdf = async (fileObj) => {
@@ -784,12 +807,12 @@ const TradeReport = () => {
     <div className="tr-documents-section">
       <h3>Document Management</h3>
       <p className="tr-documents-description">
-        Upload and manage PDF documents related to this trade report. Supported formats: PDF files only.
+        Upload and manage PDF and text documents related to this trade report. Supported formats: PDF and text files.
       </p>
       
       {extractedText && (
         <div className="tr-view-text-banner">
-          <span>Text has been extracted from PDF files</span>
+          <span>Text has been extracted from PDF and text files</span>
           <button 
             className="tr-view-text-btn"
             onClick={() => document.querySelector('.tr-extracted-text-section')?.scrollIntoView({ behavior: 'smooth' })}
@@ -815,7 +838,7 @@ const TradeReport = () => {
             </svg>
           </div>
           <div className="tr-upload-text">
-            <h4>Drag & Drop PDF files here</h4>
+            <h4>Drag & Drop PDF and Text files here</h4>
             <p>or</p>
             <label htmlFor="file-upload" className="tr-upload-button">
               Choose Files
@@ -823,7 +846,7 @@ const TradeReport = () => {
                 id="file-upload"
                 type="file"
                 multiple
-                accept=".pdf"
+                accept=".pdf,.txt,.text"
                 onChange={handleFileInput}
                 style={{ display: 'none' }}
               />
@@ -883,6 +906,22 @@ const TradeReport = () => {
                       </svg>
                     </button>
                   )}
+                  {file.name.toLowerCase().endsWith('.txt') && (
+                    <button 
+                      className="tr-read-btn"
+                      onClick={() => readTextFile(file.file).then(text => 
+                        setExtractedText(prev => prev + `\n\n--- ${file.name} ---\n${text}`)
+                      )}
+                      title="Read text file"
+                    >
+                      <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M9 12H15" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                        <path d="M9 16H15" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                        <path d="M9 8H15" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                        <path d="M4 6C4 5.44772 4.44772 5 5 5H19C19.5523 5 20 5.44772 20 6V18C20 18.5523 19.5523 19 19 19H5C4.44772 19 4 18.5523 4 18V6Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                      </svg>
+                    </button>
+                  )}
                   <button 
                     className="tr-remove-btn"
                     onClick={() => removeFile(file.id)}
@@ -903,7 +942,7 @@ const TradeReport = () => {
       <div className="tr-documents-info">
         <h4>Document Guidelines</h4>
         <ul>
-          <li>Only PDF files are supported</li>
+          <li>PDF and text files are supported</li>
           <li>Maximum file size: 10MB per file</li>
           <li>Uploaded documents are stored locally in your browser</li>
           <li>Documents are not automatically saved to the server</li>
@@ -912,7 +951,7 @@ const TradeReport = () => {
 
       {extractedText && (
         <div className="tr-extracted-text-section">
-          <h4>Extracted Text from PDFs</h4>
+          <h4>Extracted Text from PDFs and Text Files</h4>
           <div className="tr-text-display">
             {isExtracting && (
               <div className="tr-extracting-indicator">
