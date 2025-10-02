@@ -586,7 +586,8 @@
 
 .tr-download-btn,
 .tr-remove-btn,
-.tr-extract-btn {
+.tr-extract-btn,
+.tr-read-btn {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -624,6 +625,16 @@
   transform: none;
 }
 
+.tr-read-btn {
+  background: #3b82f6;
+  color: white;
+}
+
+.tr-read-btn:hover {
+  background: #2563eb;
+  transform: scale(1.05);
+}
+
 .tr-remove-btn {
   background: #ef4444;
   color: white;
@@ -635,7 +646,8 @@
 }
 
 .tr-download-btn svg,
-.tr-remove-btn svg {
+.tr-remove-btn svg,
+.tr-read-btn svg {
   width: 1.25rem;
   height: 1.25rem;
 }
