@@ -1,9 +1,29 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import './Styles/DealSlipScreen.css';
 
 const DealSlipScreen = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedFilter, setSelectedFilter] = useState('all');
+  const [dealSlips, setDealSlips] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    loadDealSlips();
+  }, []);
+
+  const loadDealSlips = async () => {
+    try {
+      setIsLoading(true);
+      // TODO: Replace with actual API call
+      // For now, using empty data - no mock data
+      setDealSlips([]);
+    } catch (error) {
+      console.error('Error loading deal slips:', error);
+      setDealSlips([]);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const handleSearchChange = (e) => {
     setSearchQuery(e.target.value);
@@ -13,48 +33,20 @@ const DealSlipScreen = () => {
     setSelectedFilter(filter);
   };
 
-  // Mock data for demonstration
-  const dealSlips = [
-    {
-      id: 'DS-001',
-      client: 'Acme Corporation',
-      amount: '$15,450.00',
-      status: 'pending',
-      date: '2025-06-10',
-      type: 'Purchase'
-    },
-    {
-      id: 'DS-002',
-      client: 'TechFlow Solutions',
-      amount: '$8,200.00',
-      status: 'completed',
-      date: '2025-06-12',
-      type: 'Sale'
-    },
-    {
-      id: 'DS-003',
-      client: 'Global Industries',
-      amount: '$22,750.00',
-      status: 'draft',
-      date: '2025-06-13',
-      type: 'Purchase'
-    },
-    {
-      id: 'DS-004',
-      client: 'Innovation Labs',
-      amount: '$12,300.00',
-      status: 'pending',
-      date: '2025-06-11',
-      type: 'Sale'
-    }
-  ];
-
   const filteredSlips = dealSlips.filter(slip => {
-    const matchesSearch = slip.client.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         slip.id.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesSearch = slip.client?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                         slip.id?.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesFilter = selectedFilter === 'all' || slip.status === selectedFilter;
     return matchesSearch && matchesFilter;
   });
+
+  // Calculate statistics from real data
+  const stats = {
+    completed: dealSlips.filter(slip => slip.status === 'completed').length,
+    pending: dealSlips.filter(slip => slip.status === 'pending').length,
+    draft: dealSlips.filter(slip => slip.status === 'draft').length,
+    total: dealSlips.length
+  };
 
   const getStatusColor = (status) => {
     switch (status) {
@@ -64,6 +56,19 @@ const DealSlipScreen = () => {
       default: return 'status-default';
     }
   };
+
+  if (isLoading) {
+    return (
+      <div className="deal-slip-container">
+        <div className="deal-slip-content-wrapper">
+          <div className="loading-state">
+            <div className="loading-spinner"></div>
+            <p>Loading deal slips...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="deal-slip-container">
@@ -86,9 +91,6 @@ const DealSlipScreen = () => {
         <div className="deal-slip-controls">
           <div className="deal-slip-search-bar">
             <div className="search-input-wrapper">
-              <svg className="search-icon" viewBox="0 0 20 20" fill="currentColor">
-                <path fillRule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clipRule="evenodd" />
-              </svg>
               <input
                 type="text"
                 placeholder="Search by client name or deal ID..."
@@ -128,7 +130,7 @@ const DealSlipScreen = () => {
               </svg>
             </div>
             <div className="stat-content">
-              <h3>1</h3>
+              <h3>{stats.completed}</h3>
               <p>Completed</p>
             </div>
           </div>
@@ -140,7 +142,7 @@ const DealSlipScreen = () => {
               </svg>
             </div>
             <div className="stat-content">
-              <h3>2</h3>
+              <h3>{stats.pending}</h3>
               <p>Pending</p>
             </div>
           </div>
@@ -152,7 +154,7 @@ const DealSlipScreen = () => {
               </svg>
             </div>
             <div className="stat-content">
-              <h3>1</h3>
+              <h3>{stats.draft}</h3>
               <p>Draft</p>
             </div>
           </div>
@@ -165,7 +167,7 @@ const DealSlipScreen = () => {
               </svg>
             </div>
             <div className="stat-content">
-              <h3>4</h3>
+              <h3>{stats.total}</h3>
               <p>Total</p>
             </div>
           </div>

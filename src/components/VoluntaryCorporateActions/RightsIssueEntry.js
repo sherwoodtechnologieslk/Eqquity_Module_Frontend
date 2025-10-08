@@ -373,7 +373,7 @@ const RightsIssueEntry = () => {
 
         {/* Footer */}
         <div className="rights-footer-section">
-          <p>ALCYONE TREASURY SOLUTIONS (PVT) LTD • Secure rights issue management • All data is encrypted and protected</p>
+          <p>SHERWOOD TECHNOLOGIES (PVT) LTD • Secure rights issue management • All data is encrypted and protected</p>
         </div>
       </div>
     </div>

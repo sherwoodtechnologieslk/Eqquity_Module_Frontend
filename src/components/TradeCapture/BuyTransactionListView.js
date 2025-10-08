@@ -79,7 +79,9 @@ const BuyTransactionListView = ({ onBack }) => {
               <tr className="BTLV-table-header-row">
                 <th className="BTLV-table-header">ID</th>
                 <th className="BTLV-table-header">Company Name</th>
+                <th className="BTLV-table-header">Symbol</th>
                 <th className="BTLV-table-header">Portfolio</th>
+                <th className="BTLV-table-header">Portfolio ID</th>
                 <th className="BTLV-table-header">Deal Number</th>
                 <th className="BTLV-table-header">Description</th>
                 <th className="BTLV-table-header">Quantity</th>
@@ -110,7 +112,9 @@ const BuyTransactionListView = ({ onBack }) => {
                 <tr key={tx.id} className="BTLV-table-row">
                   <td className="BTLV-table-cell">{tx.id}</td>
                   <td className="BTLV-table-cell">{tx.company_name}</td>
+                  <td className="BTLV-table-cell">{tx.symbol || '-'}</td>
                   <td className="BTLV-table-cell">{tx.portfolio}</td>
+                  <td className="BTLV-table-cell">{tx.portfolioId || '-'}</td>
                   <td className="BTLV-table-cell">{tx.deal_number}</td>
                   <td className="BTLV-table-cell">{tx.description || '-'}</td>
                   <td className="BTLV-table-cell">{tx.quantity}</td>

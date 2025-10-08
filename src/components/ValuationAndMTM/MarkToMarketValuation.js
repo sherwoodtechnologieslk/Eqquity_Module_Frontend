@@ -517,27 +517,22 @@ const MarkToMarketValuation = () => {
 
     setPriceAnalysisLoading(true);
     try {
-      // Fetch trade summary data for the selected company
-      const response = await fetch(`http://localhost:8080/api/trade-summary/company/${companySymbol}?limit=5`);
-      if (response.ok) {
-        const tradeData = await response.json();
-        
-        // Calculate average cost from current portfolio
-        const portfolioCompany = mtmData.find(item => item.symbol === companySymbol);
-        const averageCost = portfolioCompany ? 
-          (portfolioCompany.costValue / portfolioCompany.quantity) : 0;
+      // Fetch trade summary data for the selected company using authenticated API
+      const tradeData = await tradeSummaryAPI.getCompanyData(companySymbol, null, null);
+      
+      // Calculate average cost from current portfolio
+      const portfolioCompany = mtmData.find(item => item.symbol === companySymbol);
+      const averageCost = portfolioCompany ? 
+        (portfolioCompany.costValue / portfolioCompany.quantity) : 0;
 
-        // Format data for chart
-        const chartData = tradeData.map(trade => ({
-          date: trade.trade_date,
-          price: parseFloat(trade.last_trade),
-          averageCost: averageCost
-        }));
+      // Format data for chart (limit to last 5 entries)
+      const chartData = tradeData.slice(0, 5).map(trade => ({
+        date: trade.trade_date,
+        price: parseFloat(trade.last_trade),
+        averageCost: averageCost
+      }));
 
-        setPriceAnalysisData(chartData);
-      } else {
-        setPriceAnalysisData([]);
-      }
+      setPriceAnalysisData(chartData);
     } catch (error) {
       console.error('Error loading price analysis data:', error);
       setPriceAnalysisData([]);
@@ -1123,7 +1118,7 @@ const MarkToMarketValuation = () => {
 
         {/* Footer */}
         <div className="mtm-footer-section">
-          <p>ALCYONE TREASURY SOLUTIONS (PVT) LTD • Real-time MTM valuation • Market data updated every 15 minutes</p>
+          <p>SHERWOOD TECHNOLOGIES (PVT) LTD • Real-time MTM valuation • Market data updated every 15 minutes</p>
         </div>
       </div>
     </div>

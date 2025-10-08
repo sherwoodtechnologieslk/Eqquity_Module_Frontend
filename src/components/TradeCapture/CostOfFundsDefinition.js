@@ -299,7 +299,7 @@ const CostOfFundsDefinition = () => {
         </div>
 
         <div className="cofdef-footer-section">
-          <p>ALCYONE TREASURY SOLUTIONS (PVT) LTD • Secure financial parameter configuration • All data is encrypted and protected</p>
+          <p>SHERWOOD TECHNOLOGIES (PVT) LTD • Secure financial parameter configuration • All data is encrypted and protected</p>
         </div>
       </div>
 

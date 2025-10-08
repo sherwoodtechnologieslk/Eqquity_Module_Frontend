@@ -257,7 +257,7 @@ const StrategyMaster = () => {
         </div>
         <ViewPortfoliosModal open={viewModalOpen} onClose={() => setViewModalOpen(false)} />
         <div className="strat-footer-section">
-          <p>ALCYONE TREASURY SOLUTIONS (PVT) LTD • Secure strategy management system • All data is encrypted and protected</p>
+          <p>SHERWOOD TECHNOLOGIES (PVT) LTD • Secure strategy management system • All data is encrypted and protected</p>
         </div>
       </div>
     </div>

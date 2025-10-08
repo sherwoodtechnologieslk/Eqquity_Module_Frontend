@@ -921,3 +921,98 @@
   background: #4b5563;
   transform: translateY(-1px);
 }
+
+/* Parsed Data Section */
+.tr-parsed-data-section {
+  max-width: 100%;
+  margin: 0 auto;
+}
+
+.tr-parsed-data-section h3 {
+  color: #1f2937;
+  margin-bottom: 1.5rem;
+  font-size: 1.5rem;
+  font-weight: 600;
+  text-align: center;
+  border-bottom: 2px solid #e5e7eb;
+  padding-bottom: 0.75rem;
+}
+
+.tr-no-data-message {
+  text-align: center;
+  padding: 3rem 2rem;
+  background: #f8fafc;
+  border: 1px solid #e5e7eb;
+  border-radius: 0.5rem;
+  color: #6b7280;
+}
+
+.tr-no-data-message h3 {
+  color: #374151;
+  margin-bottom: 0.5rem;
+  border: none;
+  padding: 0;
+}
+
+.tr-parsed-table-container {
+  overflow-x: auto;
+  border-radius: 0.25rem;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  border: 1px solid #e5e7eb;
+  max-height: 600px;
+  overflow-y: auto;
+}
+
+.tr-parsed-table {
+  width: 100%;
+  border-collapse: collapse;
+  background: white;
+  font-size: 0.75rem;
+  min-width: 2000px;
+}
+
+.tr-parsed-table th {
+  background: linear-gradient(135deg, #60a5fa, #2563eb);
+  color: white;
+  padding: 0.75rem 0.5rem;
+  text-align: left;
+  font-weight: 500;
+  white-space: nowrap;
+  font-size: 0.75rem;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.tr-parsed-table td {
+  padding: 0.5rem;
+  border-bottom: 1px solid #f3f4f6;
+  color: #374151;
+  white-space: nowrap;
+}
+
+.tr-parsed-table tbody tr:hover {
+  background-color: #f8fafc;
+}
+
+.tr-parsed-table tbody tr:nth-child(even) {
+  background-color: #fafbfc;
+}
+
+.tr-buy {
+  color: #059669;
+  font-weight: 600;
+  background-color: #ecfdf5;
+  padding: 0.25rem 0.5rem;
+  border-radius: 0.25rem;
+  text-align: center;
+}
+
+.tr-sell {
+  color: #dc2626;
+  font-weight: 600;
+  background-color: #fef2f2;
+  padding: 0.25rem 0.5rem;
+  border-radius: 0.25rem;
+  text-align: center;
+}

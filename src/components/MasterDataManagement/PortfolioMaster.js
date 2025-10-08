@@ -352,7 +352,7 @@ const PortfolioMaster = () => {
         </div>
 
         <div className="prt-footer-section">
-          <p>ALCYONE TREASURY SOLUTIONS (PVT) LTD • Secure portfolio management system • All data is encrypted and protected</p>
+          <p>SHERWOOD TECHNOLOGIES (PVT) LTD • Secure portfolio management system • All data is encrypted and protected</p>
         </div>
       </div>
     </div>

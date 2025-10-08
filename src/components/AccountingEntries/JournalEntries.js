@@ -39,10 +39,12 @@ const JournalEntries = ({ onTabChange }) => {
   const loadJournalEntries = async () => {
     try {
       console.log('📋 Loading journal entries...');
+      const token = localStorage.getItem('token');
       const response = await fetch('http://localhost:8080/api/journal-entries', {
         method: 'GET',
         headers: {
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
+          ...(token && { 'Authorization': `Bearer ${token}` })
         }
       });
 
@@ -66,10 +68,12 @@ const JournalEntries = ({ onTabChange }) => {
 
   const loadAccounts = async () => {
     try {
+      const token = localStorage.getItem('token');
       const response = await fetch('http://localhost:8080/api/journal-entries/accounts/list', {
         method: 'GET',
         headers: {
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
+          ...(token && { 'Authorization': `Bearer ${token}` })
         }
       });
 
@@ -181,10 +185,12 @@ const JournalEntries = ({ onTabChange }) => {
   const handleDelete = async (id) => {
     if (window.confirm('Are you sure you want to delete this journal entry?')) {
       try {
+        const token = localStorage.getItem('token');
         const response = await fetch(`http://localhost:8080/api/journal-entries/${id}`, {
           method: 'DELETE',
           headers: {
-            'Content-Type': 'application/json'
+            'Content-Type': 'application/json',
+            ...(token && { 'Authorization': `Bearer ${token}` })
           }
         });
 
@@ -324,6 +330,7 @@ const JournalEntries = ({ onTabChange }) => {
               <th>Account Name</th>
               <th>Description</th>
               <th>Reference</th>
+              <th>Payment Details</th>
               <th>Debit</th>
               <th>Credit</th>
               <th>Balance</th>
@@ -334,7 +341,7 @@ const JournalEntries = ({ onTabChange }) => {
           <tbody>
             {filteredEntries.length === 0 ? (
               <tr>
-                <td colSpan="10" className="no-data">
+                <td colSpan="11" className="no-data">
                   No journal entries found
                 </td>
               </tr>
@@ -346,6 +353,16 @@ const JournalEntries = ({ onTabChange }) => {
                   <td>{entry.account_name}</td>
                   <td>{entry.description}</td>
                   <td>{entry.reference}</td>
+                  <td>
+                    {entry.transaction_account_name && (
+                      <div className="payment-details">
+                        <div><strong>{entry.transaction_account_name}</strong></div>
+                        {entry.account_number && <div>Acc: {entry.account_number}</div>}
+                        {entry.bank_name && <div>Bank: {entry.bank_name}</div>}
+                        {entry.payment_method && <div>Method: {entry.payment_method}</div>}
+                      </div>
+                    )}
+                  </td>
                   <td className="amount">{formatCurrency(entry.debit)}</td>
                   <td className="amount">{formatCurrency(entry.credit)}</td>
                   <td className="amount">{formatCurrency(entry.balance)}</td>

@@ -42,65 +42,35 @@ const MarketSummary = () => {
   const loadMarketData = async () => {
     try {
       // TODO: Replace with actual API calls
-      // For now, using mock data
-      const mockData = {
+      // For now, using empty data
+      const emptyData = {
         marketOverview: {
-          nifty: { value: 19567.45, change: 125.67, changePercent: 0.65 },
-          sensex: { value: 65432.12, change: 456.78, changePercent: 0.70 },
-          bankNifty: { value: 43210.98, change: 234.56, changePercent: 0.55 },
-          vix: { value: 15.67, change: -0.45 }
+          nifty: { value: 0, change: 0, changePercent: 0 },
+          sensex: { value: 0, change: 0, changePercent: 0 },
+          bankNifty: { value: 0, change: 0, changePercent: 0 },
+          vix: { value: 0, change: 0 }
         },
-        sectorPerformance: [
-          { name: 'IT', change: 2.5, volume: 1250000, topStocks: ['TCS', 'INFY', 'WIPRO'] },
-          { name: 'Banking', change: 1.8, volume: 980000, topStocks: ['HDFC', 'ICICI', 'SBI'] },
-          { name: 'Pharma', change: -0.8, volume: 450000, topStocks: ['SUNPHARMA', 'DRREDDY', 'CIPLA'] },
-          { name: 'Auto', change: 0.5, volume: 320000, topStocks: ['MARUTI', 'TATAMOTORS', 'HEROMOTOCO'] },
-          { name: 'FMCG', change: 1.2, volume: 280000, topStocks: ['HUL', 'ITC', 'NESTLE'] },
-          { name: 'Energy', change: -1.5, volume: 180000, topStocks: ['RELIANCE', 'ONGC', 'BPCL'] }
-        ],
+        sectorPerformance: [],
         topMovers: {
-          gainers: [
-            { symbol: 'TATAMOTORS', price: 789.45, change: 45.67, changePercent: 6.15, volume: 1250000 },
-            { symbol: 'INFY', price: 1567.89, change: 78.90, changePercent: 5.30, volume: 890000 },
-            { symbol: 'WIPRO', price: 456.78, change: 23.45, changePercent: 5.42, volume: 670000 },
-            { symbol: 'HCLTECH', price: 1234.56, change: 56.78, changePercent: 4.82, volume: 450000 },
-            { symbol: 'TECHM', price: 987.65, change: 34.56, changePercent: 3.67, volume: 320000 }
-          ],
-          losers: [
-            { symbol: 'RELIANCE', price: 2345.67, change: -89.12, changePercent: -3.66, volume: 2100000 },
-            { symbol: 'ONGC', price: 156.78, change: -5.67, changePercent: -3.49, volume: 890000 },
-            { symbol: 'BPCL', price: 345.67, change: -12.34, changePercent: -3.45, volume: 670000 },
-            { symbol: 'IOC', price: 123.45, change: -4.32, changePercent: -3.38, volume: 450000 },
-            { symbol: 'POWERGRID', price: 234.56, change: -7.89, changePercent: -3.25, volume: 320000 }
-          ],
-          mostActive: [
-            { symbol: 'RELIANCE', price: 2345.67, change: -89.12, volume: 1250000, value: 4925907000 },
-            { symbol: 'TATAMOTORS', price: 789.45, change: 45.67, volume: 1250000, value: 986812500 },
-            { symbol: 'INFY', price: 1567.89, change: 78.90, volume: 890000, value: 1395422100 },
-            { symbol: 'TCS', price: 3456.78, change: 123.45, volume: 450000, value: 1555551000 },
-            { symbol: 'HDFC', price: 1234.56, change: 34.56, volume: 670000, value: 827155200 }
-          ]
+          gainers: [],
+          losers: [],
+          mostActive: []
         },
         marketStatistics: {
-          advanceDecline: { advances: 1250, declines: 890, unchanged: 156 },
-          volume: { totalVolume: 12500000000, averageVolume: 9800000000 },
-          volatility: { current: 15.67, change: -0.45 }
+          advanceDecline: { advances: 0, declines: 0, unchanged: 0 },
+          volume: { totalVolume: 0, averageVolume: 0 },
+          volatility: { current: 0, change: 0 }
         },
         economicIndicators: {
-          gold: { price: 56789, change: 234 },
-          crudeOil: { price: 89.45, change: -1.23 },
-          usdInr: { rate: 82.45, change: 0.12 },
-          bondYield: { rate: 7.23, change: -0.05 }
+          gold: { price: 0, change: 0 },
+          crudeOil: { price: 0, change: 0 },
+          usdInr: { rate: 0, change: 0 },
+          bondYield: { rate: 0, change: 0 }
         },
-        marketNews: [
-          { id: 1, title: 'RBI maintains repo rate at 6.5%', category: 'Monetary Policy', impact: 'Positive', time: '2 hours ago' },
-          { id: 2, title: 'Q3 earnings season begins with strong IT results', category: 'Earnings', impact: 'Positive', time: '4 hours ago' },
-          { id: 3, title: 'Global markets react to Fed policy decision', category: 'Global Markets', impact: 'Neutral', time: '6 hours ago' },
-          { id: 4, title: 'Oil prices fall on demand concerns', category: 'Commodities', impact: 'Negative', time: '8 hours ago' }
-        ]
+        marketNews: []
       };
 
-      setMarketData(mockData);
+      setMarketData(emptyData);
       setIsLoading(false);
     } catch (error) {
       console.error('Error loading market data:', error);

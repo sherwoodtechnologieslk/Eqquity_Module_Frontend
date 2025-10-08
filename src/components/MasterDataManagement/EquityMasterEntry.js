@@ -209,6 +209,7 @@ const EquityMasterEntry = () => {
                     <option value="Investment Trusts & Holdings">Investment Trusts & Holdings</option>
                     <option value="Utilities">Utilities</option>
                     <option value="Hospitality & Tourism">Hospitality & Tourism</option>
+                    <option value="Plantations/Agriculture">Plantations/Agriculture</option>
                     <option value="Other">Other</option>
                   </select>
                 </div>
@@ -321,7 +322,7 @@ const EquityMasterEntry = () => {
 
         {/* Footer */}
         <div className="eqt-footer-section">
-          <p>ALCYONE TREASURY SOLUTIONS (PVT) LTD • Secure equity management system • All data is encrypted and protected</p>
+          <p>SHERWOOD TECHNOLOGIES (PVT) LTD • Secure equity management system • All data is encrypted and protected</p>
         </div>
       </div>
     </div>

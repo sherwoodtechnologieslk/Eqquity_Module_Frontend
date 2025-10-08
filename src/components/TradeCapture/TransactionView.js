@@ -11,10 +11,10 @@ const TransactionView = () => {
   const fetchTransactions = async () => {
     setLoading(true);
     try {
-      const [buyData, sellData] = await Promise.all([
-        tradeSummaryAPI.getBuyTransactions(),
-        transactionEntryAPI.getAllSellTransactions()
-      ]);
+      // Get all buy transactions from the new transaction entries API
+      const buyData = await transactionEntryAPI.getAllBuyTransactions();
+      // Get all sell transactions
+      const sellData = await transactionEntryAPI.getAllSellTransactions();
       setBuyTransactions(buyData);
       setSellTransactions(sellData);
     } catch (err) {
@@ -51,6 +51,14 @@ const TransactionView = () => {
   const formatDate = (dateString) => {
     if (!dateString) return '-';
     return new Date(dateString).toLocaleDateString();
+  };
+
+  const calculatePricePerShare = (transaction) => {
+    const netValue = parseFloat(transaction.net_value || transaction.netValue || 0);
+    const quantity = parseFloat(transaction.quantity || 0);
+    
+    if (quantity === 0) return 0;
+    return netValue / quantity;
   };
 
   return (
@@ -110,6 +118,7 @@ const TransactionView = () => {
                   <th>Price</th>
                   <th>Gross Value</th>
                   <th>Net Value</th>
+                  <th>Avg Price/Share</th>
                   <th>Trade Date</th>
                   <th>Settlement Date</th>
                   <th>Broker</th>
@@ -130,22 +139,29 @@ const TransactionView = () => {
                       {transaction.company_name || transaction.companyName || '-'}
                     </td>
                     <td className="transaction-portfolio-cell">
-                      {transaction.portfolio || transaction.portfolioName || '-'}
+                      {transaction.portfolio || transaction.portfolio_name || transaction.portfolioName || '-'}
                     </td>
                     <td className="transaction-deal-cell">
-                      {transaction.deal_number || transaction.contractNumber || '-'}
+                      {transaction.deal_number || transaction.contract_number || transaction.contractNumber || '-'}
                     </td>
                     <td className="transaction-quantity-cell">
                       {formatCurrency(transaction.quantity)}
                     </td>
                     <td className="transaction-price-cell">
-                      {formatCurrency(transaction.price || transaction.soldPrice || transaction.boughtPrice)}
+                      {formatCurrency(
+                        transaction.type === 'SELL' 
+                          ? (transaction.sold_price || transaction.soldPrice || transaction.price || 0)
+                          : (transaction.price || transaction.boughtPrice || 0)
+                      )}
                     </td>
                     <td className="transaction-gross-cell">
                       {formatCurrency(transaction.gross_value || transaction.grossValue)}
                     </td>
                     <td className="transaction-net-cell">
                       {formatCurrency(transaction.net_value || transaction.netValue)}
+                    </td>
+                    <td className="transaction-avg-price-cell">
+                      {formatCurrency(calculatePricePerShare(transaction))}
                     </td>
                     <td className="transaction-trade-date-cell">
                       {formatDate(transaction.trade_date || transaction.tradeDate)}

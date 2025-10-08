@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { portfolioAPI, portfolioCostingMethodAPI, transactionEntryAPI } from '../../services/api';
 import './Styles/PortfolioDropdown.css';
 
@@ -30,7 +30,7 @@ const PortfolioDropdown = () => {
   };
 
   // Empty array - ready for real API data
-  const mockPortfolioData = [];
+  // const mockPortfolioData = [];
 
   const loadPortfolios = async () => {
     try {
@@ -41,6 +41,7 @@ const PortfolioDropdown = () => {
       setSelectedPortfolioId('');
       setSelectedPortfolioCostingMethod('');
     } catch (error) {
+      console.error('Error loading portfolios:', error);
       setPortfolios([]);
       setSelectedPortfolio('');
       setSelectedPortfolioId('');
@@ -74,6 +75,7 @@ const PortfolioDropdown = () => {
       }));
       setPortfolioData(mappedData);
     } catch (error) {
+      console.error('Error loading buy transactions:', error);
       setPortfolioData([]);
     } finally {
       setTableLoading(false);
@@ -82,27 +84,25 @@ const PortfolioDropdown = () => {
 
   const loadSellPortfolioData = async (portfolioName) => {
     try {
-      console.log('Loading sell data for portfolio:', portfolioName);
-      
-      // First, let's test if there are any sell transactions at all
-      const allSellData = await transactionEntryAPI.getAllSellTransactions();
-      console.log('All sell transactions in database:', allSellData);
-      
       const data = await transactionEntryAPI.getSellTransactionsByPortfolio(portfolioName);
-      console.log('Sell data received for portfolio:', data);
       
       // Map backend fields to sell transaction table columns
-      const mappedData = data.map(entry => ({
-        id: entry.id,
-        companyName: entry.company_name,
-        sellingPrice: entry.sold_price,
-        valueDate: entry.settlement_date,
-        soldSharesAmount: entry.quantity,
-        remainingShares: entry.remaining_shares || 0, // This should be calculated
-        capitalGain: entry.capital_gain,
-        ...entry // keep the rest for now
-      }));
-      console.log('Mapped sell data:', mappedData);
+      const mappedData = data.map(entry => {
+        const totalShares = parseFloat(entry.total_shares) || 0;
+        const soldShares = parseFloat(entry.quantity) || 0;
+        const remainingShares = Math.max(totalShares - soldShares, 0);
+        
+        return {
+          id: entry.id,
+          companyName: entry.company_name,
+          sellingPrice: entry.sold_price,
+          valueDate: entry.settlement_date,
+          soldSharesAmount: entry.quantity,
+          remainingShares: remainingShares, // Calculate: total_shares - quantity_sold
+          capitalGain: entry.capital_gain,
+          ...entry // keep the rest for now
+        };
+      });
       setSellPortfolioData(mappedData);
     } catch (error) {
       console.error('Error loading sell data:', error);
@@ -111,7 +111,7 @@ const PortfolioDropdown = () => {
   };
 
   // Filter portfolio data based on date range and transaction type
-  const filterPortfolioData = () => {
+  const filterPortfolioData = useCallback(() => {
     let filtered = [];
 
     // Filter by transaction type
@@ -143,7 +143,7 @@ const PortfolioDropdown = () => {
     }
 
     setFilteredPortfolioData(filtered);
-  };
+  }, [transactionFilter, portfolioData, sellPortfolioData, dateRange]);
 
   useEffect(() => {
     loadPortfolios();
@@ -152,7 +152,7 @@ const PortfolioDropdown = () => {
 
   useEffect(() => {
     filterPortfolioData();
-  }, [dateRange, portfolioData, sellPortfolioData, transactionFilter]);
+  }, [dateRange, portfolioData, sellPortfolioData, transactionFilter, filterPortfolioData]);
 
   const handleRefresh = async () => {
     setIsRefreshing(true);
@@ -223,13 +223,13 @@ const PortfolioDropdown = () => {
     setIsFocused(false);
   };
 
-  const formatCurrency = (amount) => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD',
-      minimumFractionDigits: 2
-    }).format(amount);
-  };
+  // const formatCurrency = (amount) => {
+  //   return new Intl.NumberFormat('en-US', {
+  //     style: 'currency',
+  //     currency: 'USD',
+  //     minimumFractionDigits: 2
+  //   }).format(amount);
+  // };
 
   const formatDate = (dateString) => {
     return new Date(dateString).toLocaleDateString('en-US', {

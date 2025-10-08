@@ -610,3 +610,203 @@ input.sell-disabled-field:disabled {
   transform: translateY(0);
   box-shadow: 0 2px 4px rgba(239, 68, 68, 0.2);
 }
+
+/* =================
+   Cost Breakdown & Calculations Section
+   ================= */
+
+/* Fee Structure Information Note */
+.sell-fee-structure-note {
+  margin-bottom: 1.5rem;
+  margin-top: 1rem;
+}
+
+.sell-fee-structure-info {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 1rem 1.25rem;
+  background: linear-gradient(135deg, #fef2f2, #fee2e2);
+  border: 1px solid #fecaca;
+  border-radius: 0.25rem;
+  color: #991b1b;
+  font-size: 0.95rem;
+  box-shadow: 0 2px 4px rgba(239, 68, 68, 0.05);
+}
+
+.sell-info-icon {
+  width: 1.25rem;
+  height: 1.25rem;
+  color: #dc2626;
+  flex-shrink: 0;
+}
+
+/* Calculated Fields */
+.sell-form-input.calculated {
+  background-color: #f8fafc;
+  color: #475569;
+  font-weight: 500;
+  border-color: #cbd5e1;
+  cursor: not-allowed;
+}
+
+.sell-form-input.calculated:focus {
+  border-color: #cbd5e1;
+  box-shadow: none;
+}
+
+/* Net Value Section */
+.sell-net-value-section {
+  margin: 2.5rem 0 1.5rem 0;
+  display: flex;
+  justify-content: flex-start;
+}
+
+.sell-net-value-section.left-align {
+  justify-content: flex-start;
+}
+
+.sell-net-value-card {
+  background: linear-gradient(135deg, #dc2626, #b91c1c);
+  padding: 1rem 1.5rem;
+  border-radius: 0.3rem;
+  text-align: left;
+  box-shadow: 0 10px 15px -3px rgba(220, 38, 38, 0.10);
+  border: 1px solid #b91c1c;
+  min-width: 200px;
+  max-width: 280px;
+}
+
+.sell-net-value-card.small {
+  padding: 1rem 1.2rem;
+  min-width: 180px;
+  width: 220px;
+  max-width: 240px;
+  border-radius: 0.2rem;
+}
+
+.sell-net-value-label {
+  color: rgba(255,255,255,0.88);
+  font-size: 0.95rem;
+  font-weight: 500;
+  margin-bottom: 0.3rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.sell-net-value-amount {
+  color: white;
+  font-size: 1.5rem;
+  font-weight: 700;
+  text-shadow: 0 1px 2px rgba(0,0,0,0.1);
+}
+
+.sell-net-value-note {
+  color: rgba(255,255,255,0.8);
+  font-size: 0.85rem;
+  font-weight: 400;
+  margin-top: 0.25rem;
+  font-style: italic;
+}
+
+/* Step-Up Cost Breakdown Section */
+.stepup-section {
+  margin-top: 2rem;
+  padding: 1.5rem;
+  background: linear-gradient(120deg, #fef2f2 0%, #fee2e2 100%);
+  border-radius: 0.25rem;
+  box-shadow: 0 4px 16px rgba(239, 68, 68, 0.08), 0 2px 8px rgba(239, 68, 68, 0.04);
+  border: 1px solid #fecaca;
+}
+
+.stepup-header h4 {
+  margin: 0 0 1rem 0;
+  font-size: 1.15rem;
+  color: #991b1b;
+  font-weight: 600;
+}
+
+.stepup-table-wrapper {
+  overflow-x: auto;
+}
+
+.stepup-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 0.5rem;
+  background: rgba(255, 255, 255, 0.7);
+  border-radius: 0.18rem;
+  overflow: hidden;
+  box-shadow: 0 2px 10px rgba(239, 68, 68, 0.05);
+}
+
+.stepup-table th, .stepup-table td {
+  border: 1px solid #fecaca;
+  padding: 0.75rem 1rem;
+  text-align: right;
+  font-size: 0.95rem;
+}
+
+.stepup-table th {
+  background: linear-gradient(90deg, #dc2626 0%, #b91c1c 100%);
+  color: white;
+  font-weight: 600;
+  text-align: center;
+  border-bottom: 2px solid #b91c1c;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.stepup-table td:first-child, .stepup-table th:first-child {
+  text-align: left;
+}
+
+.stepup-total-row td {
+  background: linear-gradient(135deg, #fecaca, #fca5a5);
+  font-weight: 600;
+  color: #991b1b;
+  border-color: #dc2626;
+}
+
+.stepup-grandtotal-row td {
+  background: linear-gradient(135deg, #dc2626, #b91c1c);
+  font-weight: 700;
+  color: white;
+  font-size: 1.08rem;
+  border-color: #991b1b;
+  text-shadow: 0 1px 2px rgba(0,0,0,0.1);
+}
+
+.stepup-note {
+  margin-top: 0.75rem;
+  font-size: 0.95rem;
+  color: #991b1b;
+  font-style: italic;
+  padding: 0.75rem 1rem;
+  background: rgba(239, 68, 68, 0.1);
+  border-radius: 0.25rem;
+  border-left: 3px solid #dc2626;
+}
+
+/* Responsive Design for Cost Breakdown */
+@media (max-width: 768px) {
+  .sell-net-value-card,
+  .sell-net-value-card.small {
+    width: 100%;
+    min-width: 0;
+    max-width: 100%;
+    padding: 1rem;
+  }
+  
+  .sell-net-value-amount {
+    font-size: 1.5rem;
+  }
+  
+  .stepup-table {
+    font-size: 0.9rem;
+  }
+  
+  .stepup-table th, .stepup-table td {
+    padding: 0.5rem 0.75rem;
+  }
+}

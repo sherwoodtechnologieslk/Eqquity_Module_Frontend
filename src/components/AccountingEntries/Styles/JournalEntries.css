@@ -444,3 +444,23 @@
     padding: 4px 8px;
   }
 }
+
+/* Payment Details Styles */
+.payment-details {
+  font-size: 0.85rem;
+  line-height: 1.4;
+  color: #4b5563;
+}
+
+.payment-details div {
+  margin-bottom: 2px;
+}
+
+.payment-details div:last-child {
+  margin-bottom: 0;
+}
+
+.payment-details strong {
+  color: #1f2937;
+  font-weight: 600;
+}
