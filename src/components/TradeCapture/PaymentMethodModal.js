@@ -1,15 +1,58 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
+import { accountAPI } from '../../services/api';
 import './Styles/PaymentMethodModal.css';
 
 const PaymentMethodModal = ({ paymentMethod, onClose, onSelectAccount }) => {
   const [isVisible, setIsVisible] = useState(false);
+  const [accounts, setAccounts] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
   //const [selectedAccount, setSelectedAccount] = useState(null);
+
+  const transformAccountData = (accountData) => {
+    const transformedAccounts = [];
+    
+    accountData.forEach(account => {
+      // Create account object directly from the new database structure
+      transformedAccounts.push({
+        id: account.id,
+        accountName: account.account_name,
+        accountNumber: account.account_number,
+        bankName: account.bank_name,
+        branch: account.branch_name,
+        swiftCode: account.swift_code,
+        iban: account.iban,
+        paymentMethod: account.payment_method
+      });
+    });
+    
+    return transformedAccounts;
+  };
+
+  const fetchAccountsByPaymentMethod = useCallback(async (method) => {
+    try {
+      setLoading(true);
+      setError('');
+      const accountData = await accountAPI.getAccountsByPaymentMethod(method);
+      
+      // Transform the data from Account Master format to PaymentMethodModal format
+      const transformedAccounts = transformAccountData(accountData);
+      setAccounts(transformedAccounts);
+    } catch (err) {
+      console.error('Error fetching accounts:', err);
+      setError('Failed to load settlement accounts');
+      setAccounts([]);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
 
   useEffect(() => {
     if (paymentMethod) {
       setIsVisible(true);
+      fetchAccountsByPaymentMethod(paymentMethod);
     }
-  }, [paymentMethod]);
+  }, [paymentMethod, fetchAccountsByPaymentMethod]);
 
   const handleClose = () => {
     setIsVisible(false);
@@ -22,100 +65,11 @@ const PaymentMethodModal = ({ paymentMethod, onClose, onSelectAccount }) => {
     handleClose();
   };
 
-  // Account data based on payment method
-  const getAccountData = (method) => {
-    const accountData = {
-      'Bank Transfer': [
-        {
-          id: 'BT001',
-          accountName: 'Main Operating Account',
-          accountNumber: '1234567890',
-          bankName: 'Commercial Bank',
-          branch: 'Colombo Main',
-          swiftCode: 'CCEYLKLX',
-          iban: 'LK1234567890123456789012'
-        },
-        {
-          id: 'BT002',
-          accountName: 'Treasury Account',
-          accountNumber: '0987654321',
-          bankName: 'Sampath Bank',
-          branch: 'Fort Branch',
-          swiftCode: 'SAMPKL2X',
-          iban: 'LK0987654321098765432109'
-        },
-        {
-          id: 'BT003',
-          accountName: 'Investment Account',
-          accountNumber: '1122334455',
-          bankName: 'Hatton National Bank',
-          branch: 'Kandy Branch',
-          swiftCode: 'HNBKL2X',
-          iban: 'LK1122334455667788990011'
-        }
-      ],
-      'Online Banking': [
-        {
-          id: 'OB001',
-          accountName: 'Digital Banking Account',
-          accountNumber: '5566778899',
-          bankName: 'People\'s Bank',
-          branch: 'Online Banking',
-          swiftCode: 'PSBKL2X',
-          iban: 'LK5566778899001122334455'
-        },
-        {
-          id: 'OB002',
-          accountName: 'E-Banking Account',
-          accountNumber: '6677889900',
-          bankName: 'Bank of Ceylon',
-          branch: 'Digital Services',
-          swiftCode: 'BCEYLKLX',
-          iban: 'LK6677889900112233445566'
-        }
-      ],
-      'Cheque': [
-        {
-          id: 'CH001',
-          accountName: 'Cheque Account',
-          accountNumber: '7788990011',
-          bankName: 'Commercial Bank',
-          branch: 'Colombo Main',
-          swiftCode: 'CCEYLKLX',
-          iban: 'LK7788990011223344556677'
-        },
-        {
-          id: 'CH002',
-          accountName: 'Business Cheque Account',
-          accountNumber: '8899001122',
-          bankName: 'Sampath Bank',
-          branch: 'Fort Branch',
-          swiftCode: 'SAMPKL2X',
-          iban: 'LK8899001122334455667788'
-        }
-      ],
-      'Cash': [
-        {
-          id: 'CA001',
-          accountName: 'Cash Management Account',
-          accountNumber: '9900112233',
-          bankName: 'Central Bank of Sri Lanka',
-          branch: 'Head Office',
-          swiftCode: 'CBSLLKLX',
-          iban: 'LK9900112233445566778899'
-        }
-      ]
-    };
-
-    return accountData[method] || [];
-  };
 
   //const formatKey = (key) =>
     //key.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase());
 
   if (!paymentMethod) return null;
-
-  const accounts = getAccountData(paymentMethod);
 
   return (
     <div className={`payment-modal-overlay ${isVisible ? 'visible' : ''}`} onClick={handleClose}>
@@ -141,7 +95,22 @@ const PaymentMethodModal = ({ paymentMethod, onClose, onSelectAccount }) => {
 
           <div className="payment-modal-body">
             <div className="payment-modal-scroll-container">
-              {accounts.length === 0 ? (
+              {loading ? (
+                <div className="payment-modal-loading">
+                  <div className="loading-spinner"></div>
+                  <p>Loading settlement accounts...</p>
+                </div>
+              ) : error ? (
+                <div className="payment-modal-error">
+                  <div className="error-icon-wrapper">
+                    <svg className="payment-modal-error-icon" viewBox="0 0 20 20" fill="currentColor">
+                      <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd"/>
+                    </svg>
+                  </div>
+                  <h3>Error loading accounts</h3>
+                  <p>{error}</p>
+                </div>
+              ) : accounts.length === 0 ? (
                 <div className="payment-modal-empty">
                   <div className="empty-icon-wrapper">
                     <svg className="payment-modal-empty-icon" viewBox="0 0 20 20" fill="currentColor">
@@ -149,7 +118,7 @@ const PaymentMethodModal = ({ paymentMethod, onClose, onSelectAccount }) => {
                     </svg>
                   </div>
                   <h3>No accounts available</h3>
-                  <p>No accounts configured for {paymentMethod.toLowerCase()} payments</p>
+                  <p>No settlement accounts configured for {paymentMethod.toLowerCase()} payments. Please configure accounts in Account Master first.</p>
                 </div>
               ) : (
                 <div className="payment-accounts-grid">

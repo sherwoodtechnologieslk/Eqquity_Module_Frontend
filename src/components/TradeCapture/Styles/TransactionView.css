@@ -194,11 +194,18 @@
 .transaction-price-cell,
 .transaction-gross-cell,
 .transaction-net-cell,
+.transaction-avg-price-cell,
 .transaction-money-gen-cell,
 .transaction-capital-gain-cell {
   text-align: right;
   font-family: 'Courier New', monospace;
   font-weight: 600;
+}
+
+.transaction-avg-price-cell {
+  color: #7c3aed;
+  background: #f8fafc;
+  border-left: 2px solid #e2e8f0;
 }
 
 .transaction-trade-date-cell,

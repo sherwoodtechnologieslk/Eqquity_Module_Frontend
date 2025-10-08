@@ -15,106 +15,6 @@ const ImportHistory = () => {
   const [selectedImport, setSelectedImport] = useState(null);
   const [showDetailsModal, setShowDetailsModal] = useState(false);
 
-  // Mock data for demonstration
-  const mockImportHistory = [
-    {
-      id: 'BULK-BUY-20250930-122531',
-      type: 'Bulk Buy',
-      fileName: 'bulk_buy_transactions_20250930.csv',
-      totalTransactions: 25,
-      successfulTransactions: 24,
-      failedTransactions: 1,
-      status: 'success',
-      importedBy: 'John Doe',
-      importedAt: '2025-09-30T12:25:31Z',
-      totalValue: 1250000.50,
-      portfolio: 'Main Portfolio',
-      errors: [
-        {
-          row: 15,
-          field: 'quantity',
-          error: 'Invalid quantity format',
-          value: 'abc'
-        }
-      ]
-    },
-    {
-      id: 'BULK-BUY-20250928-143022',
-      type: 'Bulk Buy',
-      fileName: 'equity_purchases_20250928.xlsx',
-      totalTransactions: 50,
-      successfulTransactions: 50,
-      failedTransactions: 0,
-      status: 'success',
-      importedBy: 'Jane Smith',
-      importedAt: '2025-09-28T14:30:22Z',
-      totalValue: 2500000.75,
-      portfolio: 'Growth Portfolio',
-      errors: []
-    },
-    {
-      id: 'BULK-BUY-20250925-091545',
-      type: 'Bulk Buy',
-      fileName: 'bulk_trades_20250925.csv',
-      totalTransactions: 15,
-      successfulTransactions: 0,
-      failedTransactions: 15,
-      status: 'failed',
-      importedBy: 'Mike Johnson',
-      importedAt: '2025-09-25T09:15:45Z',
-      totalValue: 0,
-      portfolio: 'Conservative Portfolio',
-      errors: [
-        {
-          row: 1,
-          field: 'equity_code',
-          error: 'Equity code not found',
-          value: 'INVALID001'
-        },
-        {
-          row: 3,
-          field: 'date',
-          error: 'Invalid date format',
-          value: '32/09/2025'
-        }
-      ]
-    },
-    {
-      id: 'BULK-SELL-20250922-165430',
-      type: 'Bulk Sell',
-      fileName: 'sell_transactions_20250922.csv',
-      totalTransactions: 30,
-      successfulTransactions: 30,
-      failedTransactions: 0,
-      status: 'success',
-      importedBy: 'Sarah Wilson',
-      importedAt: '2025-09-22T16:54:30Z',
-      totalValue: 1800000.25,
-      portfolio: 'Trading Portfolio',
-      errors: []
-    },
-    {
-      id: 'BULK-BUY-20250920-110205',
-      type: 'Bulk Buy',
-      fileName: 'ipo_allocations_20250920.xlsx',
-      totalTransactions: 100,
-      successfulTransactions: 95,
-      failedTransactions: 5,
-      status: 'success',
-      importedBy: 'David Brown',
-      importedAt: '2025-09-20T11:02:05Z',
-      totalValue: 5000000.00,
-      portfolio: 'IPO Portfolio',
-      errors: [
-        {
-          row: 23,
-          field: 'allocation_amount',
-          error: 'Allocation amount exceeds available',
-          value: '50000'
-        }
-      ]
-    }
-  ];
 
   useEffect(() => {
     fetchImportHistory();
@@ -125,15 +25,16 @@ const ImportHistory = () => {
       setIsLoading(true);
       setError('');
       
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      // TODO: Replace with actual API call
+      // For now, using empty data - no mock data
+      const emptyData = [];
       
-      let filteredData = mockImportHistory;
+      // Apply filters to empty data (will result in empty array)
+      let filteredData = emptyData;
       
-      // Apply filters
       if (filters.transactionType !== 'all') {
         filteredData = filteredData.filter(item => 
-          item.type.toLowerCase().replace(' ', '-') === filters.transactionType
+          item.type?.toLowerCase().replace(' ', '-') === filters.transactionType
         );
       }
       
@@ -150,10 +51,10 @@ const ImportHistory = () => {
       // Apply search filter
       if (searchTerm) {
         filteredData = filteredData.filter(item =>
-          item.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          item.fileName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          item.importedBy.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          item.portfolio.toLowerCase().includes(searchTerm.toLowerCase())
+          item.id?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          item.fileName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          item.importedBy?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          item.portfolio?.toLowerCase().includes(searchTerm.toLowerCase())
         );
       }
       

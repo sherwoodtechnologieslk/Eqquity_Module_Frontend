@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { equityAPI, portfolioAPI, costOfFundsAPI, transactionEntryAPI, portfolioCostingMethodAPI } from '../../services/api';
+import { equityAPI, portfolioAPI, costOfFundsAPI, transactionEntryAPI, portfolioCostingMethodAPI, tradeSummaryAPI, accountAPI } from '../../services/api';
 import SellEquitySelectorModal from '../TradeCapture/SellEquitySelectorModal';
 import './Styles/BulkSellEntry.css';
 
@@ -8,7 +8,6 @@ const getToday = () => new Date().toISOString().slice(0, 10);
 const BulkSellEntry = () => {
   const [equities, setEquities] = useState([]);
   const [portfolios, setPortfolios] = useState([]);
-  const [costOfFunds, setCostOfFunds] = useState([]);
   const [filteredCompanies, setFilteredCompanies] = useState([]);
   const [assignedCostingMethods, setAssignedCostingMethods] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -17,6 +16,8 @@ const BulkSellEntry = () => {
   const [companiesLoading, setCompaniesLoading] = useState(false);
   const [showEquitySelector, setShowEquitySelector] = useState(false);
   const [totalShares, setTotalShares] = useState('');
+  const [accounts, setAccounts] = useState([]);
+  const [accountsLoading, setAccountsLoading] = useState(true);
 
   const [form, setForm] = useState({
     companyName: '',
@@ -32,6 +33,10 @@ const BulkSellEntry = () => {
     settlementDate: getToday(),
     brokerName: '',
     settlementAccount: '',
+    accountName: '',
+    accountNumber: '',
+    bankName: '',
+    branchName: '',
     capitalGain: '',
     costOfFunds: '',
     hdays: '',
@@ -39,7 +44,18 @@ const BulkSellEntry = () => {
     buyContract: '',
     holdingCost: '',
     profitLoss: '',
-    dealNumber: ''
+    dealNumber: '',
+    // Cost breakdown fields
+    grossValue: '',
+    brokerage: '',
+    cseFees: '',
+    cdsFees: '',
+    clearingFees: '',
+    sec: '',
+    stl: '',
+    netValue: '',
+    stepUp: null,
+    moneyGenerationCost: ''
   });
 
   // Fetch initial data
@@ -47,23 +63,32 @@ const BulkSellEntry = () => {
     const fetchInitialData = async () => {
       try {
         setPortfoliosLoading(true);
+        setAccountsLoading(true);
         console.log('Fetching active portfolios...');
-        const [equitiesData, portfoliosData] = await Promise.all([
+        const [equitiesData, portfoliosData, accountsData] = await Promise.all([
           equityAPI.getActiveEquities(),
-          portfolioAPI.getActivePortfolios()
+          portfolioAPI.getActivePortfolios(),
+          accountAPI.getAllAccounts()
         ]);
         console.log('Active portfolios fetched:', portfoliosData);
         console.log('Portfolio structure:', portfoliosData[0]); // Log first portfolio structure
+        console.log('Accounts fetched:', accountsData);
         setEquities(equitiesData);
         setPortfolios(portfoliosData);
+        setAccounts(accountsData);
         
         // Fetch cost of funds separately since it has different API
         try {
           const costOfFundsData = await costOfFundsAPI.getActiveCostOfFunds();
-          setCostOfFunds(costOfFundsData);
+          // Set cost of funds in form if available
+          if (costOfFundsData && costOfFundsData.cost_of_funds) {
+            setForm(prev => ({ 
+              ...prev, 
+              costOfFunds: parseFloat(costOfFundsData.cost_of_funds).toFixed(2)
+            }));
+          }
         } catch (costError) {
           console.log('No active cost of funds found, using default');
-          setCostOfFunds([]);
         }
         
         // Fetch assigned costing methods
@@ -79,9 +104,9 @@ const BulkSellEntry = () => {
         // Set empty arrays on error to prevent undefined issues
         setEquities([]);
         setPortfolios([]);
-        setCostOfFunds([]);
       } finally {
         setPortfoliosLoading(false);
+        setAccountsLoading(false);
       }
     };
 
@@ -155,6 +180,88 @@ const BulkSellEntry = () => {
     }
   }, [form.portfolio, form.companyName]);
 
+  // Calculate holding days based on buy transaction settlement dates
+  useEffect(() => {
+    const calculateHoldingDays = async () => {
+      if (
+        form.portfolio &&
+        form.companyName &&
+        form.quantity && 
+        !isNaN(parseFloat(form.quantity)) && 
+        parseFloat(form.quantity) > 0 &&
+        form.settlementDate
+      ) {
+        try {
+          const res = await transactionEntryAPI.getDetailedFifoAllocation(
+            form.portfolio,
+            form.companyName,
+            form.quantity
+          );
+          
+          if (res.allocations && res.allocations.length > 0) {
+            const sellSettlementDate = new Date(form.settlementDate);
+            let totalWeightedDays = 0;
+            let totalQuantity = 0;
+            
+            res.allocations.forEach(allocation => {
+              const buySettlementDate = new Date(allocation.settlementDate);
+              const daysDiff = Math.ceil((sellSettlementDate - buySettlementDate) / (1000 * 60 * 60 * 24));
+              const quantity = parseFloat(allocation.quantity);
+              
+              // Only include positive holding days (buy settled before sell)
+              if (daysDiff > 0) {
+                totalWeightedDays += daysDiff * quantity;
+                totalQuantity += quantity;
+              }
+            });
+            
+            const weightedAverageDays = totalQuantity > 0 ? Math.round(totalWeightedDays / totalQuantity) : 0;
+            setForm(prev => ({ ...prev, hdays: weightedAverageDays >= 0 ? weightedAverageDays.toString() : '' }));
+          } else {
+            // No buy transactions found, clear holding days
+            setForm(prev => ({ ...prev, hdays: '' }));
+          }
+        } catch (err) {
+          console.error('Error calculating holding days:', err);
+          setForm(prev => ({ ...prev, hdays: '' }));
+        }
+      } else {
+        // Clear holding days if required fields are missing
+        setForm(prev => ({ ...prev, hdays: '' }));
+      }
+    };
+    
+    calculateHoldingDays();
+  }, [form.portfolio, form.companyName, form.quantity, form.settlementDate]);
+
+  // Calculate Gross Value: Quantity × Sold Price
+  useEffect(() => {
+    if (form.quantity && form.soldPrice) {
+      const grossValue = parseFloat(form.quantity) * parseFloat(form.soldPrice);
+      setForm(prev => ({ ...prev, grossValue: grossValue.toFixed(2) }));
+    } else {
+      setForm(prev => ({ ...prev, grossValue: '' }));
+    }
+  }, [form.quantity, form.soldPrice]);
+
+  // Calculate Holding Cost when relevant fields change
+  useEffect(() => {
+    if (form.netValue && form.costOfFunds && form.hdays) {
+      const netValue = parseFloat(form.netValue) || 0;
+      const costOfFunds = parseFloat(form.costOfFunds) || 0;
+      const holdingDays = parseFloat(form.hdays) || 0;
+      
+      if (netValue > 0 && costOfFunds > 0 && holdingDays > 0) {
+        const holdingCost = (netValue * costOfFunds * holdingDays) / 365;
+        setForm(prev => ({ ...prev, holdingCost: holdingCost.toFixed(2) }));
+      } else {
+        setForm(prev => ({ ...prev, holdingCost: '' }));
+      }
+    } else {
+      setForm(prev => ({ ...prev, holdingCost: '' }));
+    }
+  }, [form.netValue, form.costOfFunds, form.hdays]);
+
   // Handle equity selection from modal
   const handleEquitySelect = (companyName) => {
     // Find the equity record to get the symbol
@@ -168,6 +275,42 @@ const BulkSellEntry = () => {
     }));
     
     setShowEquitySelector(false);
+  };
+
+  // Handle account selection
+  const handleAccountSelect = (e) => {
+    const selectedValue = e.target.value;
+    
+    if (selectedValue) {
+      // Find the account by matching the display value
+      const selectedAccount = accounts.find(account => 
+        `${account.account_name} - ${account.account_number}` === selectedValue
+      );
+      
+      if (selectedAccount) {
+        setForm(prev => ({
+          ...prev,
+          settlementAccount: `${selectedAccount.account_name} - ${selectedAccount.account_number}`,
+          accountName: selectedAccount.account_name,
+          accountNumber: selectedAccount.account_number,
+          bankName: selectedAccount.bank_name,
+          branchName: selectedAccount.branch_name,
+          swiftCode: selectedAccount.swift_code,
+          iban: selectedAccount.iban
+        }));
+      }
+    } else {
+      setForm(prev => ({
+        ...prev,
+        settlementAccount: '',
+        accountName: '',
+        accountNumber: '',
+        bankName: '',
+        branchName: '',
+        swiftCode: '',
+        iban: ''
+      }));
+    }
   };
 
   // Handle key press for quantity field to prevent exceeding total shares
@@ -200,7 +343,7 @@ const BulkSellEntry = () => {
     }
   };
 
-  const handleInputChange = (e) => {
+  const handleInputChange = async (e) => {
     const { name, value } = e.target;
     
     // Special handling for quantity field - prevent exceeding total shares
@@ -247,20 +390,86 @@ const BulkSellEntry = () => {
         updatedForm.symbol = symbol;
       }
       
-      setForm(updatedForm);
+      // Only recalculate if quantity or soldPrice changes
+      if (name === 'quantity' || name === 'soldPrice') {
+        try {
+          const calc = await tradeSummaryAPI.calculateSellTransaction({
+            quantity: name === 'quantity' ? value : updatedForm.quantity,
+            soldPrice: name === 'soldPrice' ? value : updatedForm.soldPrice,
+            costOfFunds: updatedForm.costOfFunds
+          });
+          setForm({
+            ...updatedForm,
+            grossValue: calc.grossValue,
+            brokerage: calc.brokerage,
+            cseFees: calc.cseFees,
+            cdsFees: calc.cdsFees,
+            clearingFees: calc.clearingFees,
+            sec: calc.sec,
+            stl: calc.stl,
+            netValue: calc.netValue,
+            stepUp: calc.stepUp,
+            moneyGenerationCost: calc.moneyGenerationCost ?? ''
+          });
+        } catch (err) {
+          console.error('Error calculating sell transaction:', err);
+          setForm(updatedForm);
+        }
+      } else {
+        setForm(updatedForm);
+      }
     }
   };
+
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
     
     try {
-      // Here you would implement the bulk sell transaction logic
-      console.log('Bulk sell transaction data:', form);
+      // Prepare form data for API submission
+      const submitForm = {
+        company_name: form.companyName,
+        symbol: form.symbol,
+        portfolio_name: form.portfolio,
+        portfolioId: form.portfolioId,
+        valuation_method: form.valuationMethod,
+        contract_number: form.contractNumber,
+        quantity: parseFloat(form.quantity),
+        sold_price: parseFloat(form.soldPrice),
+        bought_price: parseFloat(form.boughtPrice),
+        trade_date: form.tradeDate || getToday(),
+        settlement_date: form.settlementDate || getToday(),
+        broker_name: form.brokerName,
+        settlement_account: form.settlementAccount,
+        account_name: form.accountName || '',
+        account_number: form.accountNumber || '',
+        bank_name: form.bankName || '',
+        branch_name: form.branchName || '',
+        gross_value: parseFloat(form.grossValue) || 0,
+        brokerage: parseFloat(form.brokerage) || 0,
+        cse_fees: parseFloat(form.cseFees) || 0,
+        cds_fees: parseFloat(form.cdsFees) || 0,
+        clearing_fees: parseFloat(form.clearingFees) || 0,
+        sec: parseFloat(form.sec) || 0,
+        stl: parseFloat(form.stl) || 0,
+        net_value: parseFloat(form.netValue) || 0,
+        step_up: parseFloat(form.stepUp) || 0,
+        money_generation_cost: parseFloat(form.moneyGenerationCost) || 0,
+        capital_gain: parseFloat(form.capitalGain) || 0,
+        cost_of_funds: parseFloat(form.costOfFunds) || 0,
+        hdays: parseInt(form.hdays) || 0,
+        cp: parseFloat(form.cp) || 0,
+        buy_contract: form.buyContract || '',
+        holding_cost: parseFloat(form.holdingCost) || 0,
+        profit_loss: parseFloat(form.profitLoss) || 0,
+        total_shares: totalShares
+      };
       
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      console.log('Submitting bulk sell transaction:', submitForm);
+      
+      // Call the actual API to save the sell transaction
+      await transactionEntryAPI.saveSellTransaction(submitForm);
       
       setShowSuccess(true);
       setTimeout(() => setShowSuccess(false), 3000);
@@ -280,6 +489,10 @@ const BulkSellEntry = () => {
         settlementDate: getToday(),
         brokerName: '',
         settlementAccount: '',
+        accountName: '',
+        accountNumber: '',
+        bankName: '',
+        branchName: '',
         capitalGain: '',
         costOfFunds: '',
         hdays: '',
@@ -287,7 +500,18 @@ const BulkSellEntry = () => {
         buyContract: '',
         holdingCost: '',
         profitLoss: '',
-        dealNumber: ''
+        dealNumber: '',
+        // Cost breakdown fields
+        grossValue: '',
+        brokerage: '',
+        cseFees: '',
+        cdsFees: '',
+        clearingFees: '',
+        sec: '',
+        stl: '',
+        netValue: '',
+        stepUp: null,
+        moneyGenerationCost: ''
       });
     } catch (error) {
       console.error('Error submitting bulk sell transaction:', error);
@@ -448,7 +672,7 @@ const BulkSellEntry = () => {
                 </div>
 
                 <div className="bulk-sell-form-group">
-                  <label className="bulk-sell-label">Contract Number *</label>
+                  <label className="bulk-sell-label">Contract Number</label>
                   <input
                     type="text"
                     name="contractNumber"
@@ -456,7 +680,6 @@ const BulkSellEntry = () => {
                     onChange={handleInputChange}
                     className="bulk-sell-input"
                     placeholder="Enter contract number"
-                    required
                   />
                 </div>
 
@@ -523,6 +746,21 @@ const BulkSellEntry = () => {
                 </div>
 
                 <div className="bulk-sell-form-group">
+                  <label className="bulk-sell-label">Gross Value (LKR) *</label>
+                  <input
+                    type="number"
+                    name="grossValue"
+                    value={form.grossValue}
+                    onChange={handleInputChange}
+                    className="bulk-sell-input bulk-sell-calculated-field"
+                    placeholder="Auto-calculated: Quantity × Sold Price"
+                    min="0"
+                    step="0.01"
+                    readOnly
+                  />
+                </div>
+
+                <div className="bulk-sell-form-group">
                   <label className="bulk-sell-label">Bought Price (LKR) *</label>
                   <input
                     type="number"
@@ -551,6 +789,143 @@ const BulkSellEntry = () => {
                     readOnly
                   />
                   <small className="bulk-sell-field-note">Automatically calculated</small>
+                </div>
+              </div>
+
+              {/* Cost Breakdown & Calculations Section */}
+              <div className="bulk-sell-section-header">
+                <div className="bulk-sell-section-icon calculation">
+                  <svg className="bulk-sell-section-icon-svg" fill="currentColor" viewBox="0 0 20 20">
+                    <path d="M8.433 7.418c.155-.103.346-.196.567-.267v1.698a2.305 2.305 0 01-.567-.267C8.07 8.34 8 8.114 8 8c0-.114.07-.34.433-.582zM11 12.849v-1.698c.22.071.412.164.567.267.364.243.433.468.433.582 0 .114-.07.34-.433.582a2.305 2.305 0 01-.567.267z"/>
+                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm-7-8a7 7 0 1114 0 7 7 0 01-14 0z" clipRule="evenodd"/>
+                  </svg>
+                </div>
+                <h3 className="bulk-sell-section-title">Cost Breakdown & Calculations</h3>
+              </div>
+              <div className="bulk-sell-fee-structure-note">
+                <div className="bulk-sell-fee-structure-info">
+                  <svg className="bulk-sell-info-icon" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd"/>
+                  </svg>
+                  <span><strong>Fee Structure:</strong> ≤100M: 1.12% total | &gt;100M: Reduced rates apply</span>
+                </div>
+              </div>
+              <div className="bulk-sell-form-grid">
+                <div className="bulk-sell-form-group">
+                  <label className="bulk-sell-label">Gross Value (Rs.)</label>
+                  <input
+                    name="grossValue"
+                    value={form.grossValue}
+                    readOnly
+                    className="bulk-sell-input bulk-sell-calculated-field"
+                  />
+                </div>
+                <div className="bulk-sell-form-group">
+                  <label className="bulk-sell-label">Brokerage (0.64% / 0.20%)</label>
+                  <input
+                    name="brokerage"
+                    value={form.brokerage}
+                    readOnly
+                    className="bulk-sell-input bulk-sell-calculated-field"
+                  />
+                </div>
+                <div className="bulk-sell-form-group">
+                  <label className="bulk-sell-label">CSE Fees (0.084% / 0.0525%)</label>
+                  <input
+                    name="cseFees"
+                    value={form.cseFees}
+                    readOnly
+                    className="bulk-sell-input bulk-sell-calculated-field"
+                  />
+                </div>
+                <div className="bulk-sell-form-group">
+                  <label className="bulk-sell-label">CDS Fees (0.012% / 0.0075%)</label>
+                  <input
+                    name="cdsFees"
+                    value={form.cdsFees}
+                    readOnly
+                    className="bulk-sell-input bulk-sell-calculated-field"
+                  />
+                </div>
+                <div className="bulk-sell-form-group">
+                  <label className="bulk-sell-label">Clearing Fees (0.012% / 0.0075%)</label>
+                  <input
+                    name="clearingFees"
+                    value={form.clearingFees}
+                    readOnly
+                    className="bulk-sell-input bulk-sell-calculated-field"
+                  />
+                </div>
+                <div className="bulk-sell-form-group">
+                  <label className="bulk-sell-label">SEC (0.072% / 0.045%)</label>
+                  <input
+                    name="sec"
+                    value={form.sec}
+                    readOnly
+                    className="bulk-sell-input bulk-sell-calculated-field"
+                  />
+                </div>
+                <div className="bulk-sell-form-group">
+                  <label className="bulk-sell-label">STL (0.300%)</label>
+                  <input
+                    name="stl"
+                    value={form.stl}
+                    readOnly
+                    className="bulk-sell-input bulk-sell-calculated-field"
+                  />
+                </div>
+              </div>
+              {/* Step-Up Cost Breakdown Section (for > 100M) */}
+              {form.stepUp && (
+                <div className="stepup-section">
+                  <div className="stepup-header">
+                    <h4>Step-Up Cost Breakdown (for Gross Value &gt; Rs. 100 Million)</h4>
+                  </div>
+                  <div className="stepup-table-wrapper">
+                    <table className="stepup-table">
+                      <thead>
+                        <tr>
+                          <th>Portion</th>
+                          <th>Value (Rs.)</th>
+                          <th>Rate (%)</th>
+                          <th>Fees (Rs.)</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr>
+                          <td>First Rs. 100,000,000</td>
+                          <td>{form.stepUp.first100M}</td>
+                          <td>1.12</td>
+                          <td>{form.stepUp.first100MFees}</td>
+                        </tr>
+                        <tr>
+                          <td>Excess</td>
+                          <td>{form.stepUp.excess}</td>
+                          <td>0.6125</td>
+                          <td>{form.stepUp.excessFees}</td>
+                        </tr>
+                        <tr className="stepup-total-row">
+                          <td colSpan="3"><strong>Total Step-Up Fees</strong></td>
+                          <td><strong>{form.stepUp.totalStepUpFees}</strong></td>
+                        </tr>
+                        <tr className="stepup-grandtotal-row">
+                          <td colSpan="3"><strong>Gross Value + Step-Up Fees</strong></td>
+                          <td><strong>{form.stepUp.total}</strong></td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                  <div className="stepup-note">
+                    <em>* Step-up calculation: 1.12% for first Rs. 100M, 0.6125% for excess. Based on official fee structure: Brokerage (0.64%→0.20%), CSE (0.084%→0.0525%), CDS (0.012%→0.0075%), Clearing (0.012%→0.0075%), SEC (0.072%→0.045%), STL (0.300% unchanged).</em>
+                  </div>
+                </div>
+              )}
+              {/* Net Value - Highlighted */}
+              <div className="bulk-sell-net-value-section left-align">
+                <div className="bulk-sell-net-value-card small">
+                  <label className="bulk-sell-net-value-label">Net Proceeds (After Fees)</label>
+                  <div className="bulk-sell-net-value-amount">Rs. {form.netValue || '0.00'}</div>
+                  <small className="bulk-sell-net-value-note">Amount you will receive</small>
                 </div>
               </div>
 
@@ -602,6 +977,77 @@ const BulkSellEntry = () => {
                 </div>
 
                 <div className="bulk-sell-form-group">
+                  <label className="bulk-sell-label">Receiving Account *</label>
+                  <select
+                    name="settlementAccount"
+                    value={form.settlementAccount}
+                    onChange={handleAccountSelect}
+                    className="bulk-sell-select"
+                    required
+                    disabled={accountsLoading}
+                  >
+                    <option value="">
+                      {accountsLoading ? 'Loading accounts...' : 'Select Account'}
+                    </option>
+                    {accounts.map(account => (
+                      <option key={account.id} value={`${account.account_name} - ${account.account_number}`}>
+                        {account.account_name} - {account.account_number} ({account.bank_name})
+                      </option>
+                    ))}
+                  </select>
+                  <small className="bulk-sell-field-note">Account where you will receive the sale proceeds</small>
+                </div>
+
+
+                <div className="bulk-sell-form-group">
+                  <label className="bulk-sell-label">Account Name</label>
+                  <input
+                    type="text"
+                    name="accountName"
+                    value={form.accountName}
+                    onChange={handleInputChange}
+                    className="bulk-sell-input"
+                    placeholder="Enter account holder name"
+                  />
+                </div>
+
+                <div className="bulk-sell-form-group">
+                  <label className="bulk-sell-label">Account Number</label>
+                  <input
+                    type="text"
+                    name="accountNumber"
+                    value={form.accountNumber}
+                    onChange={handleInputChange}
+                    className="bulk-sell-input"
+                    placeholder="Enter account number"
+                  />
+                </div>
+
+                <div className="bulk-sell-form-group">
+                  <label className="bulk-sell-label">Bank Name</label>
+                  <input
+                    type="text"
+                    name="bankName"
+                    value={form.bankName}
+                    onChange={handleInputChange}
+                    className="bulk-sell-input"
+                    placeholder="Enter bank name"
+                  />
+                </div>
+
+                <div className="bulk-sell-form-group">
+                  <label className="bulk-sell-label">Branch Name</label>
+                  <input
+                    type="text"
+                    name="branchName"
+                    value={form.branchName}
+                    onChange={handleInputChange}
+                    className="bulk-sell-input"
+                    placeholder="Enter branch name"
+                  />
+                </div>
+
+                <div className="bulk-sell-form-group">
                   <label className="bulk-sell-label">Holding Days</label>
                   <input
                     type="number"
@@ -627,7 +1073,7 @@ const BulkSellEntry = () => {
               </div>
               <div className="bulk-sell-form-grid">
                 <div className="bulk-sell-form-group">
-                  <label className="bulk-sell-label">Cost of Funds (%)</label>
+                  <label className="bulk-sell-label">Cost of Funds (After-Tax) (%)</label>
                   <input
                     type="number"
                     name="costOfFunds"
@@ -639,7 +1085,7 @@ const BulkSellEntry = () => {
                     readOnly
                   />
                   <small className="bulk-sell-field-note">
-                    Automatically fetched from Cost of Funds Definition
+                    Automatically fetched from Cost of Funds Definition (after-tax rate)
                   </small>
                 </div>
 
@@ -664,12 +1110,15 @@ const BulkSellEntry = () => {
                     type="number"
                     name="holdingCost"
                     value={form.holdingCost}
-                    onChange={handleInputChange}
-                    className="bulk-sell-input"
-                    placeholder="Total holding costs"
+                    readOnly
+                    className="bulk-sell-input bulk-sell-calculated-field"
+                    placeholder="Auto-calculated"
                     step="0.01"
                     min="0"
                   />
+                  <small className="bulk-sell-field-note">
+                    Calculated as (Net Value × Cost of Funds (After-Tax) × Holding Days) ÷ 365
+                  </small>
                 </div>
               </div>
 
@@ -717,6 +1166,7 @@ const BulkSellEntry = () => {
           loading={companiesLoading}
         />
       )}
+
     </div>
   );
 };

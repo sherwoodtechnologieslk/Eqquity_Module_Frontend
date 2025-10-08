@@ -133,7 +133,7 @@ const ChartOfAccounts = () => {
 
       {/* Footer */}
       <div className="coa-footer-section">
-        <p>ALCYONE TREASURY SOLUTIONS (PVT) LTD • Chart of Accounts Management • All data is encrypted and protected</p>
+        <p>SHERWOOD TECHNOLOGIES (PVT) LTD • Chart of Accounts Management • All data is encrypted and protected</p>
       </div>
     </div>
   );

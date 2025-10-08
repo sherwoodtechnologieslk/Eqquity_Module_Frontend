@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import './Styles/BuyTransactionEntry.css';
 import TransactionModal from './TransactionModal';
 import PaymentMethodModal from './PaymentMethodModal';
-import { equityAPI, portfolioAPI, tradeSummaryAPI, costOfFundsAPI } from '../../services/api';
+import { equityAPI, portfolioAPI, tradeSummaryAPI, costOfFundsAPI, transactionEntryAPI } from '../../services/api';
 import BuyTransactionListView from './BuyTransactionListView';
 import EquitySelectorModal from './EquitySelectorModal';
 
@@ -60,6 +60,10 @@ const BuyTransactionEntry = () => {
     tradeDate: getToday(),
     settlementDate: getToday(),
     settlementAccount: '',
+    accountName: '',
+    accountNumber: '',
+    bankName: '',
+    branchName: '',
     cashFlowOnSettlement: '',
     paymentMethod: '',
     generatePayment: 'No',
@@ -232,16 +236,47 @@ const BuyTransactionEntry = () => {
 
     const today = getToday();
     const submitForm = {
-      ...form,
-      tradeDate: form.tradeDate || today,
-      settlementDate: form.settlementDate || today
+      company_name: form.companyName,
+      symbol: form.symbol,
+      portfolio: form.portfolio,
+      portfolioId: form.portfolioId,
+      deal_number: form.dealNumber,
+      description: form.description,
+      quantity: parseFloat(form.quantity),
+      price: parseFloat(form.price),
+      gross_value: parseFloat(form.grossValue) || 0,
+      brokerage: parseFloat(form.brokerage) || 0,
+      cds_fees: parseFloat(form.cdsFees) || 0,
+      cse_fees: parseFloat(form.cseFees) || 0,
+      clearing_fees: parseFloat(form.clearingFees) || 0,
+      sec: parseFloat(form.sec) || 0,
+      stl: parseFloat(form.stl) || 0,
+      net_value: parseFloat(form.netValue) || 0,
+      contract_number: form.contractNumber,
+      broker_name: form.brokerName,
+      trade_date: form.tradeDate || today,
+      settlement_date: form.settlementDate || today,
+      settlement_account: form.settlementAccount || '',
+      account_name: form.accountName || '',
+      account_number: form.accountNumber || '',
+      bank_name: form.bankName || '',
+      branch_name: form.branchName || '',
+      cash_flow_on_settlement: parseFloat(form.cashFlowOnSettlement) || 0,
+      payment_method: form.paymentMethod || '',
+      generate_payment: form.generatePayment || 'No',
+      money_generation_cost: parseFloat(form.moneyGenerationCost) || 0,
+      cost_of_funds: parseFloat(form.costOfFunds) || 0
     };
 
     // Debug logging
     console.log('Submitting form data:', JSON.stringify(submitForm, null, 2));
 
     try {
-      const result = await tradeSummaryAPI.saveBuyTransaction(submitForm);
+      console.log('Attempting to save buy transaction...');
+      console.log('API endpoint: /api/transaction-entries/buy');
+      console.log('Form data being sent:', submitForm);
+      
+      const result = await transactionEntryAPI.saveBuyTransaction(submitForm);
       console.log('Save transaction result:', result);
       alert('Buy Transaction submitted successfully!');
       handleReset();
@@ -249,6 +284,11 @@ const BuyTransactionEntry = () => {
       setForm(prev => ({ ...prev, dealNumber: generateDealNumber() }));
     } catch (err) {
       console.error('Error saving transaction:', err);
+      console.error('Error details:', {
+        message: err.message,
+        status: err.status,
+        response: err.response
+      });
       alert(`Failed to save transaction: ${err.message || 'Unknown error'}`);
     }
   };
@@ -276,6 +316,10 @@ const BuyTransactionEntry = () => {
       tradeDate: getToday(),
       settlementDate: getToday(),
       settlementAccount: '',
+      accountName: '',
+      accountNumber: '',
+      bankName: '',
+      branchName: '',
       cashFlowOnSettlement: '',
       paymentMethod: '',
       generatePayment: 'No',
@@ -433,7 +477,7 @@ const BuyTransactionEntry = () => {
                   />
                 </div>
                 <div className="buy-field-group">
-                  <label className="buy-field-label">Contract Number *</label>
+                  <label className="buy-field-label">Contract Number</label>
                   <input
                     name="contractNumber"
                     placeholder="Enter contract number"
@@ -497,16 +541,6 @@ const BuyTransactionEntry = () => {
                     type="date"
                     name="settlementDate"
                     value={form.settlementDate}
-                    onChange={handleChange}
-                    className="buy-form-input"
-                  />
-                </div>
-                <div className="buy-field-group">
-                  <label className="buy-field-label">Settlement Account</label>
-                  <input
-                    name="settlementAccount"
-                    placeholder="Enter account number"
-                    value={form.settlementAccount}
                     onChange={handleChange}
                     className="buy-form-input"
                   />
@@ -597,12 +631,12 @@ const BuyTransactionEntry = () => {
               </div>
               {/* Step-Up Cost Breakdown Section (for > 100M) */}
               {form.stepUp && (
-                <div className="stepup-section">
-                  <div className="stepup-header">
+                <div className="buy-stepup-section">
+                  <div className="buy-stepup-header">
                     <h4>Step-Up Cost Breakdown (for Gross Value &gt; Rs. 100 Million)</h4>
                   </div>
-                  <div className="stepup-table-wrapper">
-                    <table className="stepup-table">
+                  <div className="buy-stepup-table-wrapper">
+                    <table className="buy-stepup-table">
                       <thead>
                         <tr>
                           <th>Portion</th>
@@ -624,18 +658,18 @@ const BuyTransactionEntry = () => {
                           <td>0.6125</td>
                           <td>{form.stepUp.excessFees}</td>
                         </tr>
-                        <tr className="stepup-total-row">
+                        <tr className="buy-stepup-total-row">
                           <td colSpan="3"><strong>Total Step-Up Fees</strong></td>
                           <td><strong>{form.stepUp.totalStepUpFees}</strong></td>
                         </tr>
-                        <tr className="stepup-grandtotal-row">
+                        <tr className="buy-stepup-grandtotal-row">
                           <td colSpan="3"><strong>Gross Value + Step-Up Fees</strong></td>
                           <td><strong>{form.stepUp.total}</strong></td>
                         </tr>
                       </tbody>
                     </table>
                   </div>
-                  <div className="stepup-note">
+                  <div className="buy-stepup-note">
                     <em>* Step-up calculation: 1.12% for first Rs. 100M, 0.6125% for excess. Based on official fee structure: Brokerage (0.64%→0.20%), CSE (0.084%→0.0525%), CDS (0.012%→0.0075%), Clearing (0.012%→0.0075%), SEC (0.072%→0.045%), STL (0.300% unchanged).</em>
                   </div>
                 </div>
@@ -665,6 +699,58 @@ const BuyTransactionEntry = () => {
                     value={form.cashFlowOnSettlement}
                     readOnly
                     className="buy-form-input calculated"
+                  />
+                </div>
+                <div className="buy-field-group">
+                  <label className="buy-field-label">Settlement Account *</label>
+                  <input
+                    name="settlementAccount"
+                    placeholder="Account number for payment"
+                    value={form.settlementAccount}
+                    onChange={handleChange}
+                    className="buy-form-input"
+                    required
+                  />
+                  <small className="buy-field-note">Account from which payment will be made</small>
+                </div>
+                <div className="buy-field-group">
+                  <label className="buy-field-label">Account Name</label>
+                  <input
+                    name="accountName"
+                    placeholder="Enter account holder name"
+                    value={form.accountName}
+                    onChange={handleChange}
+                    className="buy-form-input"
+                  />
+                </div>
+                <div className="buy-field-group">
+                  <label className="buy-field-label">Account Number</label>
+                  <input
+                    name="accountNumber"
+                    placeholder="Enter account number"
+                    value={form.accountNumber}
+                    onChange={handleChange}
+                    className="buy-form-input"
+                  />
+                </div>
+                <div className="buy-field-group">
+                  <label className="buy-field-label">Bank Name</label>
+                  <input
+                    name="bankName"
+                    placeholder="Enter bank name"
+                    value={form.bankName}
+                    onChange={handleChange}
+                    className="buy-form-input"
+                  />
+                </div>
+                <div className="buy-field-group">
+                  <label className="buy-field-label">Branch Name</label>
+                  <input
+                    name="branchName"
+                    placeholder="Enter branch name"
+                    value={form.branchName}
+                    onChange={handleChange}
+                    className="buy-form-input"
                   />
                 </div>
                 <div className="buy-field-group">
@@ -709,7 +795,7 @@ const BuyTransactionEntry = () => {
                   )}
                 </div>
                 <div className="buy-field-group">
-                  <label className="buy-field-label">Cost of Funds (%)</label>
+                  <label className="buy-field-label">Cost of Funds (After-Tax) (%)</label>
                   <input
                     name="costOfFunds"
                     type="number"
@@ -718,10 +804,10 @@ const BuyTransactionEntry = () => {
                     value={form.costOfFunds}
                     readOnly
                     className="buy-form-input buy-readonly-input"
-                    title="This value is automatically fetched from the active Cost of Funds Definition"
+                    title="This value is automatically fetched from the active Cost of Funds Definition (after-tax rate)"
                   />
                   <small className="buy-field-note">
-                    Automatically fetched from Cost of Funds Definition
+                    Automatically fetched from Cost of Funds Definition (after-tax rate)
                   </small>
                 </div>
                 <div className="buy-field-group">
@@ -740,7 +826,7 @@ const BuyTransactionEntry = () => {
                     readOnly
                   />
                   <small className="buy-field-note">
-                    Daily cost calculated as (Net Value × Cost of Funds %) ÷ 365
+                    Daily cost calculated as (Net Value × Cost of Funds (After-Tax) %) ÷ 365
                   </small>
                 </div>
               </div>
@@ -827,7 +913,7 @@ const BuyTransactionEntry = () => {
 
         {/* Footer */}
         <div className="buy-footer-section">
-          <p>  ALCYONE TREASURY SOLUTIONS (PVT) LTD • Secure transaction recording • All calculations are automated and verified</p>
+          <p>  SHERWOOD TECHNOLOGIES (PVT) LTD • Secure transaction recording • All calculations are automated and verified</p>
         </div>
       </div>
     </div>

@@ -268,7 +268,7 @@ const DividendEntry = () => {
 
         {/* Footer */}
         <div className="div-footer-section">
-          <p>ALCYONE TREASURY SOLUTIONS (PVT) LTD • Secure dividend management system • All data is encrypted and protected</p>
+          <p>SHERWOOD TECHNOLOGIES (PVT) LTD • Secure dividend management system • All data is encrypted and protected</p>
         </div>
       </div>
     </div>

@@ -942,3 +942,83 @@
     min-width: auto;
   }
 }
+
+/* Buy Step-Up Cost Breakdown Section - Unique Styles to Prevent Conflicts */
+.buy-stepup-section {
+  margin-top: 2rem;
+  padding: 1.5rem;
+  background: linear-gradient(120deg, #f0fdf4 0%, #dcfce7 100%);
+  border-radius: 0.25rem;
+  box-shadow: 0 4px 16px rgba(16, 185, 129, 0.08), 0 2px 8px rgba(16, 185, 129, 0.04);
+  border: 1px solid #a7f3d0;
+}
+
+.buy-stepup-header h4 {
+  margin: 0 0 1rem 0;
+  font-size: 1.15rem;
+  color: #065f46;
+  font-weight: 600;
+}
+
+.buy-stepup-table-wrapper {
+  overflow-x: auto;
+}
+
+.buy-stepup-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 0.5rem;
+  background: rgba(255, 255, 255, 0.7);
+  border-radius: 0.18rem;
+  overflow: hidden;
+  box-shadow: 0 2px 10px rgba(16, 185, 129, 0.05);
+}
+
+.buy-stepup-table th, .buy-stepup-table td {
+  border: 1px solid #bbf7d0;
+  padding: 0.75rem 1rem;
+  text-align: right;
+  font-size: 0.95rem;
+}
+
+.buy-stepup-table th {
+  background: linear-gradient(90deg, #10b981 0%, #059669 100%);
+  color: white;
+  font-weight: 600;
+  text-align: center;
+  border-bottom: 2px solid #059669;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.buy-stepup-table td:first-child, .buy-stepup-table th:first-child {
+  text-align: left;
+}
+
+.buy-stepup-total-row td {
+  background: linear-gradient(135deg, #bbf7d0, #6ee7b7);
+  font-weight: 600;
+  color: #065f46;
+  border-color: #10b981;
+}
+
+.buy-stepup-grandtotal-row td {
+  background: linear-gradient(135deg, #10b981, #059669);
+  font-weight: 700;
+  color: white;
+  font-size: 1.08rem;
+  border-color: #047857;
+  text-shadow: 0 1px 2px rgba(0,0,0,0.1);
+}
+
+.buy-stepup-note {
+  margin-top: 0.75rem;
+  font-size: 0.95rem;
+  color: #065f46;
+  font-style: italic;
+  padding: 0.75rem 1rem;
+  background: rgba(16, 185, 129, 0.1);
+  border-radius: 0.25rem;
+  border-left: 3px solid #10b981;
+  line-height: 1.5;
+}

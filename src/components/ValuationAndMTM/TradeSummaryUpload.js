@@ -323,7 +323,7 @@ const TradeSummaryUpload = () => {
         </form>
         {/* Footer */}
         <div className="buy-footer-section">
-          <p>  ALCYONE TREASURY SOLUTIONS (PVT) LTD • Secure transaction recording • All calculations are automated and verified</p>
+          <p>  SHERWOOD TECHNOLOGIES (PVT) LTD • Secure transaction recording • All calculations are automated and verified</p>
         </div>
       </div>
     </div>

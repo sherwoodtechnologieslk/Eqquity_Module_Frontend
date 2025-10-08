@@ -285,7 +285,7 @@ const ScripDividendEntry = () => {
 
         {/* Footer */}
         <div className="scrip-footer-section">
-          <p>ALCYONE TREASURY SOLUTIONS (PVT) LTD • Secure scrip dividend management system • All data is encrypted and protected</p>
+          <p>SHERWOOD TECHNOLOGIES (PVT) LTD • Secure scrip dividend management system • All data is encrypted and protected</p>
         </div>
       </div>
     </div>

@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { accountAPI } from '../../services/api';
 import './Styles/AccountListView.css';
 
-const AccountListView = () => {
+const AccountListView = ({ onEditAccount }) => {
   const [accounts, setAccounts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -60,9 +60,12 @@ const AccountListView = () => {
               <tr>
                 <th>ID</th>
                 <th>Payment Method</th>
-                <th>Owner</th>
-                <th>Method Code</th>
-                <th>Settlement Accounts</th>
+                <th>Account Name</th>
+                <th>Account Number</th>
+                <th>Bank Name</th>
+                <th>Branch Name</th>
+                <th>SWIFT Code</th>
+                <th>IBAN</th>
                 <th>Actions</th>
               </tr>
             </thead>
@@ -71,16 +74,29 @@ const AccountListView = () => {
                 <tr key={account.id}>
                   <td>{account.id}</td>
                   <td>{account.payment_method}</td>
-                  <td>{account.owner}</td>
-                  <td>{account.method_code}</td>
-                  <td>{account.settlement_accounts}</td>
+                  <td>{account.account_name}</td>
+                  <td>{account.account_number}</td>
+                  <td>{account.bank_name}</td>
+                  <td>{account.branch_name}</td>
+                  <td>{account.swift_code || '-'}</td>
+                  <td>{account.iban || '-'}</td>
                   <td>
-                    <button
-                      onClick={() => handleDelete(account.id)}
-                      className="acct-delete-btn"
-                    >
-                      Delete
-                    </button>
+                    <div className="acct-action-buttons">
+                      <button
+                        onClick={() => onEditAccount(account.id)}
+                        className="acct-edit-btn"
+                        title="Edit Account"
+                      >
+                        Edit
+                      </button>
+                      <button
+                        onClick={() => handleDelete(account.id)}
+                        className="acct-delete-btn"
+                        title="Delete Account"
+                      >
+                        Delete
+                      </button>
+                    </div>
                   </td>
                 </tr>
               ))}

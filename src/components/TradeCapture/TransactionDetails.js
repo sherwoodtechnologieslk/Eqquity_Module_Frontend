@@ -49,6 +49,7 @@ const TransactionDetails = ({ onBack, portfolioName, companyName, quantity, sell
               const used = Math.min(qtyToSell, available);
               fifoRows.push({
                 trade_date: lot.trade_date,
+                settlement_date: lot.settlement_date,
                 price: lot.price,
                 available: available,
                 used: used
@@ -192,6 +193,7 @@ const TransactionDetails = ({ onBack, portfolioName, companyName, quantity, sell
                   <thead>
                     <tr style={{background: '#f8fafc', borderBottom: '1px solid #e5e7eb'}}>
                       <th style={{padding: '0.75rem', textAlign: 'left', fontWeight: '600', color: '#374151'}}>Trade Date</th>
+                      <th style={{padding: '0.75rem', textAlign: 'left', fontWeight: '600', color: '#374151'}}>Settlement Date</th>
                       <th style={{padding: '0.75rem', textAlign: 'right', fontWeight: '600', color: '#374151'}}>Quantity</th>
                       <th style={{padding: '0.75rem', textAlign: 'right', fontWeight: '600', color: '#374151'}}>Price</th>
                       <th style={{padding: '0.75rem', textAlign: 'right', fontWeight: '600', color: '#374151'}}>Total Cost</th>
@@ -206,6 +208,9 @@ const TransactionDetails = ({ onBack, portfolioName, companyName, quantity, sell
                         <tr key={index} style={{borderBottom: '1px solid #f3f4f6'}}>
                           <td style={{padding: '0.75rem', color: '#374151'}}>
                             {new Date(transaction.trade_date).toLocaleDateString()}
+                          </td>
+                          <td style={{padding: '0.75rem', color: '#374151'}}>
+                            {transaction.settlement_date ? new Date(transaction.settlement_date).toLocaleDateString() : 'N/A'}
                           </td>
                           <td style={{padding: '0.75rem', textAlign: 'right', color: '#374151'}}>
                             {parseFloat(transaction.quantity).toLocaleString()}
@@ -291,6 +296,7 @@ const TransactionDetails = ({ onBack, portfolioName, companyName, quantity, sell
             <thead>
               <tr style={{background: '#ef4444', color: 'white', fontWeight: 700}}>
                 <th style={{padding: 12}}>BUY DATE</th>
+                <th style={{padding: 12}}>SETTLEMENT DATE</th>
                 <th style={{padding: 12}}>BUY PRICE</th>
                 <th style={{padding: 12}}>AVAILABLE SHARES</th>
                 <th style={{padding: 12}}>SHARES TO SELL</th>
@@ -300,6 +306,7 @@ const TransactionDetails = ({ onBack, portfolioName, companyName, quantity, sell
               {fifoAllocations.map((row, idx) => (
                 <tr key={idx} style={{background: '#fff', textAlign: 'center'}}>
                   <td style={{padding: 12}}>{row.trade_date ? new Date(row.trade_date).toLocaleDateString() : ''}</td>
+                  <td style={{padding: 12}}>{row.settlement_date ? new Date(row.settlement_date).toLocaleDateString() : 'N/A'}</td>
                   <td style={{padding: 12}}>{parseFloat(row.price).toLocaleString(undefined, {minimumFractionDigits: 2})}</td>
                   <td style={{padding: 12}}>{row.available}</td>
                   <td style={{padding: 12, fontWeight: 600}}>{row.used}</td>
@@ -352,6 +359,7 @@ const TransactionDetails = ({ onBack, portfolioName, companyName, quantity, sell
           <thead>
             <tr>
               <th>Buy Date</th>
+              <th>Settlement Date</th>
               <th>Buy Price</th>
               <th>Remaining Shares</th>
               <th>Allocate Shares</th>
@@ -361,6 +369,7 @@ const TransactionDetails = ({ onBack, portfolioName, companyName, quantity, sell
             {buyLots.map((lot, idx) => (
               <tr key={lot.id}>
                 <td>{lot.trade_date ? new Date(lot.trade_date).toLocaleDateString() : ''}</td>
+                <td>{lot.settlement_date ? new Date(lot.settlement_date).toLocaleDateString() : 'N/A'}</td>
                 <td>{parseFloat(lot.price).toLocaleString(undefined, {minimumFractionDigits: 2})}</td>
                 <td>{lot.remaining_quantity}</td>
                 <td>

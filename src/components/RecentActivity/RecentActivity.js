@@ -21,10 +21,12 @@ const RecentActivity = () => {
       console.log('API URL: http://localhost:8080/api/dashboard/recent-activities');
       
       // Fetch real data from API
+      const token = localStorage.getItem('token');
       const response = await fetch('http://localhost:8080/api/dashboard/recent-activities', {
         method: 'GET',
         headers: {
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
+          ...(token && { 'Authorization': `Bearer ${token}` })
         }
       });
 
@@ -40,103 +42,26 @@ const RecentActivity = () => {
           setActivities(result.data);
         } else {
           console.error('❌ API returned invalid data structure:', result);
-          console.log('Falling back to mock data...');
-          setActivities(getMockActivities());
+          console.log('Using empty data...');
+          setActivities([]);
         }
       } else {
         const errorText = await response.text();
         console.error('❌ API request failed:', response.status, response.statusText);
         console.error('Error response:', errorText);
-        console.log('Falling back to mock data...');
-        setActivities(getMockActivities());
+        console.log('Using empty data...');
+        setActivities([]);
       }
       
       setIsLoading(false);
     } catch (error) {
       console.error('❌ Network error loading recent activities:', error);
-      console.log('Falling back to mock data...');
-      setActivities(getMockActivities());
+      console.log('Using empty data...');
+      setActivities([]);
       setIsLoading(false);
     }
   };
 
-  // Mock data fallback function
-  const getMockActivities = () => {
-    return [
-      {
-        id: 'mock_1',
-        type: 'trade',
-        action: 'BUY',
-        symbol: 'AAPL',
-        quantity: 100,
-        price: 150.50,
-        value: 15050,
-        portfolio: 'Test Portfolio',
-        timestamp: new Date(Date.now() - 1000 * 60 * 30), // 30 minutes ago
-        status: 'completed',
-        user: 'System'
-      },
-      {
-        id: 'mock_2',
-        type: 'trade',
-        action: 'SELL',
-        symbol: 'MSFT',
-        quantity: 50,
-        price: 300.25,
-        value: 15012.50,
-        portfolio: 'Test Portfolio',
-        timestamp: new Date(Date.now() - 1000 * 60 * 60), // 1 hour ago
-        status: 'completed',
-        user: 'System'
-      },
-      {
-        id: 'mock_3',
-        type: 'dividend',
-        action: 'RECEIVED',
-        symbol: 'INFY',
-        quantity: 200,
-        amount: 25.50,
-        value: 5100,
-        portfolio: 'Main Portfolio',
-        timestamp: new Date(Date.now() - 1000 * 60 * 60 * 2), // 2 hours ago
-        status: 'processed',
-        user: 'System'
-      },
-      {
-        id: 'mock_4',
-        type: 'corporate_action',
-        action: 'STOCK_SPLIT',
-        symbol: 'TATAMOTORS',
-        details: '2:1 Stock Split',
-        portfolio: 'All Portfolios',
-        timestamp: new Date(Date.now() - 1000 * 60 * 60 * 4), // 4 hours ago
-        status: 'announced',
-        user: 'System'
-      },
-      {
-        id: 'mock_5',
-        type: 'portfolio_change',
-        action: 'REBALANCING',
-        symbol: 'N/A',
-        details: 'Portfolio rebalancing completed',
-        portfolio: 'Main Portfolio',
-        timestamp: new Date(Date.now() - 1000 * 60 * 60 * 6), // 6 hours ago
-        status: 'completed',
-        user: 'System'
-      },
-      {
-        id: 'mock_6',
-        type: 'market_event',
-        action: 'PRICE_ALERT',
-        symbol: 'RELIANCE',
-        details: 'Price dropped below 2300',
-        portfolio: 'N/A',
-        timestamp: new Date(Date.now() - 1000 * 60 * 60 * 10), // 10 hours ago
-        status: 'triggered',
-        user: 'System'
-      }
-    ];
-  };
 
   const filterActivities = () => {
     let filtered = [...activities];

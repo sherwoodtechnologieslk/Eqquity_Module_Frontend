@@ -1,11 +1,20 @@
 const API_BASE_URL = 'http://localhost:8080/api';
 
+// Helper function to get authentication headers
+const getAuthHeaders = () => {
+  const token = localStorage.getItem('token');
+  return token ? { 'Authorization': `Bearer ${token}` } : {};
+};
+
 export const realizedPnLService = {
   // Get complete realized P&L data for frontend (all data in one call)
   getCompleteData: async (portfolioId, timeRange = '1Y') => {
     try {
       const response = await fetch(
-        `${API_BASE_URL}/realized-pnl/complete-data?portfolioId=${encodeURIComponent(portfolioId)}&timeRange=${timeRange}`
+        `${API_BASE_URL}/realized-pnl/complete-data?portfolioId=${encodeURIComponent(portfolioId)}&timeRange=${timeRange}`,
+        {
+          headers: getAuthHeaders()
+        }
       );
       
       if (!response.ok) {
@@ -23,7 +32,10 @@ export const realizedPnLService = {
   getPortfolioSummary: async (portfolioId, timeRange = '1Y') => {
     try {
       const response = await fetch(
-        `${API_BASE_URL}/realized-pnl/portfolio-summary?portfolioId=${encodeURIComponent(portfolioId)}&timeRange=${timeRange}`
+        `${API_BASE_URL}/realized-pnl/portfolio-summary?portfolioId=${encodeURIComponent(portfolioId)}&timeRange=${timeRange}`,
+        {
+          headers: getAuthHeaders()
+        }
       );
       
       if (!response.ok) {
@@ -41,7 +53,10 @@ export const realizedPnLService = {
   getTradeHistory: async (portfolioId, timeRange = '1Y') => {
     try {
       const response = await fetch(
-        `${API_BASE_URL}/realized-pnl/trade-history?portfolioId=${encodeURIComponent(portfolioId)}&timeRange=${timeRange}`
+        `${API_BASE_URL}/realized-pnl/trade-history?portfolioId=${encodeURIComponent(portfolioId)}&timeRange=${timeRange}`,
+        {
+          headers: getAuthHeaders()
+        }
       );
       
       if (!response.ok) {
@@ -59,7 +74,10 @@ export const realizedPnLService = {
   getPerformanceByPeriod: async (portfolioId) => {
     try {
       const response = await fetch(
-        `${API_BASE_URL}/realized-pnl/performance-by-period?portfolioId=${encodeURIComponent(portfolioId)}`
+        `${API_BASE_URL}/realized-pnl/performance-by-period?portfolioId=${encodeURIComponent(portfolioId)}`,
+        {
+          headers: getAuthHeaders()
+        }
       );
       
       if (!response.ok) {
@@ -77,7 +95,10 @@ export const realizedPnLService = {
   getTopPerformers: async (portfolioId, timeRange = '1Y', limit = 10) => {
     try {
       const response = await fetch(
-        `${API_BASE_URL}/realized-pnl/top-performers?portfolioId=${encodeURIComponent(portfolioId)}&timeRange=${timeRange}&limit=${limit}`
+        `${API_BASE_URL}/realized-pnl/top-performers?portfolioId=${encodeURIComponent(portfolioId)}&timeRange=${timeRange}&limit=${limit}`,
+        {
+          headers: getAuthHeaders()
+        }
       );
       
       if (!response.ok) {
@@ -95,7 +116,10 @@ export const realizedPnLService = {
   getTaxSummary: async (portfolioId, timeRange = '1Y') => {
     try {
       const response = await fetch(
-        `${API_BASE_URL}/realized-pnl/tax-summary?portfolioId=${encodeURIComponent(portfolioId)}&timeRange=${timeRange}`
+        `${API_BASE_URL}/realized-pnl/tax-summary?portfolioId=${encodeURIComponent(portfolioId)}&timeRange=${timeRange}`,
+        {
+          headers: getAuthHeaders()
+        }
       );
       
       if (!response.ok) {
@@ -112,7 +136,9 @@ export const realizedPnLService = {
   // Get available portfolios for selection
   getAvailablePortfolios: async () => {
     try {
-      const response = await fetch(`${API_BASE_URL}/portfolios`);
+      const response = await fetch(`${API_BASE_URL}/portfolios`, {
+        headers: getAuthHeaders()
+      });
       
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
@@ -134,6 +160,7 @@ export const realizedPnLService = {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
+            ...getAuthHeaders()
           },
         }
       );
@@ -168,6 +195,7 @@ export const realizedPnLService = {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
+            ...getAuthHeaders()
           },
           body: JSON.stringify({
             portfolioId,

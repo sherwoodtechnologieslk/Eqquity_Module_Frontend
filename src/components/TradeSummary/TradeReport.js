@@ -375,6 +375,7 @@ const TradeReport = () => {
   const [dragActive, setDragActive] = useState(false);
   const [extractedText, setExtractedText] = useState('');
   const [isExtracting, setIsExtracting] = useState(false);
+  const [parsedData, setParsedData] = useState([]);
 
   const formatCurrency = (amount) => {
     return new Intl.NumberFormat('en-US', {
@@ -663,6 +664,56 @@ const TradeReport = () => {
     });
   };
 
+  const parseTransactionData = (textContent) => {
+    const lines = textContent.split('\n').filter(line => line.trim());
+    const transactions = [];
+
+    lines.forEach((line, index) => {
+      if (line.length < 100) return; // Skip short lines
+
+      try {
+        const transaction = {
+          id: index + 1,
+          tradeDate: line.substring(0, 10).trim(),
+          tradeTime: line.substring(11, 19).trim(),
+          buySell: line.substring(20, 21).trim(),
+          executionId: line.substring(22, 38).trim(),
+          additionalTimestamp: line.substring(39, 58).trim(),
+          companySymbol: line.substring(59, 73).trim(),
+          quantity: parseInt(line.substring(74, 85).trim()) || 0,
+          price: parseFloat(line.substring(86, 96).trim()) || 0,
+          lotType: line.substring(97, 98).trim(),
+          buyingBroker: line.substring(100, 103).trim(),
+          sellingBroker: line.substring(104, 107).trim(),
+          buyingContractNo: line.substring(108, 116).trim(),
+          sellingContractNo: line.substring(117, 125).trim(),
+          clientAccount: line.substring(126, 135).trim(),
+          jointAcNo: line.substring(136, 138).trim(),
+          participantId: line.substring(139, 142).trim(),
+          foreignFlag: line.substring(143, 144).trim(),
+          brokerage: parseFloat(line.substring(145, 157).trim()) || 0,
+          cdsFees: parseFloat(line.substring(158, 170).trim()) || 0,
+          cseFees: parseFloat(line.substring(171, 183).trim()) || 0,
+          clearingFees: parseFloat(line.substring(184, 196).trim()) || 0,
+          secCess: parseFloat(line.substring(197, 209).trim()) || 0,
+          foreignBrokerage: parseFloat(line.substring(210, 222).trim()) || 0,
+          orderId: line.substring(224, 244).trim(),
+          status: line.substring(245, 247).trim(),
+          governmentCess: parseFloat(line.substring(248, 260).trim()) || 0,
+          tradeReportId: line.substring(261, 311).trim(),
+          clientName: line.substring(312, 325).trim(),
+          orderSource: line.substring(326, 327).trim(),
+          settlementDate: line.substring(328, 338).trim()
+        };
+        transactions.push(transaction);
+      } catch (error) {
+        console.error('Error parsing line:', line, error);
+      }
+    });
+
+    return transactions;
+  };
+
   const handleFileUpload = async (files) => {
     const newFiles = Array.from(files).map(file => ({
       id: Date.now() + Math.random(),
@@ -683,6 +734,10 @@ const TradeReport = () => {
         try {
           const textContent = await readTextFile(fileObj.file);
           setExtractedText(prev => prev + `\n\n--- ${fileObj.name} ---\n${textContent}`);
+          
+          // Parse transaction data
+          const parsedTransactions = parseTransactionData(textContent);
+          setParsedData(parsedTransactions);
         } catch (error) {
           console.error('Error reading text file:', error);
         }
@@ -981,6 +1036,81 @@ const TradeReport = () => {
     </div>
   );
 
+  const renderParsedData = () => {
+    if (parsedData.length === 0) {
+      return (
+        <div className="tr-parsed-data-section">
+          <div className="tr-no-data-message">
+            <h3>No Parsed Data Available</h3>
+            <p>Upload a text file to see parsed transaction data here.</p>
+          </div>
+        </div>
+      );
+    }
+
+    return (
+      <div className="tr-parsed-data-section">
+        <h3>Parsed Transaction Data ({parsedData.length} records)</h3>
+        <div className="tr-parsed-table-container">
+          <table className="tr-parsed-table">
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Date</th>
+                <th>Time</th>
+                <th>B/S</th>
+                <th>Execution ID</th>
+                <th>Company</th>
+                <th>Quantity</th>
+                <th>Price</th>
+                <th>Brokerage</th>
+                <th>CDS Fees</th>
+                <th>CSE Fees</th>
+                <th>Clearing Fees</th>
+                <th>Sec Cess</th>
+                <th>Gov Cess</th>
+                <th>Buy Broker</th>
+                <th>Sell Broker</th>
+                <th>Buy Contract</th>
+                <th>Sell Contract</th>
+                <th>Client</th>
+                <th>Settlement</th>
+              </tr>
+            </thead>
+            <tbody>
+              {parsedData.map((transaction) => (
+                <tr key={transaction.id}>
+                  <td>{transaction.id}</td>
+                  <td>{transaction.tradeDate}</td>
+                  <td>{transaction.tradeTime}</td>
+                  <td className={transaction.buySell === 'B' ? 'tr-buy' : 'tr-sell'}>
+                    {transaction.buySell}
+                  </td>
+                  <td>{transaction.executionId}</td>
+                  <td>{transaction.companySymbol}</td>
+                  <td>{formatNumber(transaction.quantity)}</td>
+                  <td>{formatCurrency(transaction.price)}</td>
+                  <td>{formatCurrency(transaction.brokerage)}</td>
+                  <td>{formatCurrency(transaction.cdsFees)}</td>
+                  <td>{formatCurrency(transaction.cseFees)}</td>
+                  <td>{formatCurrency(transaction.clearingFees)}</td>
+                  <td>{formatCurrency(transaction.secCess)}</td>
+                  <td>{formatCurrency(transaction.governmentCess)}</td>
+                  <td>{transaction.buyingBroker}</td>
+                  <td>{transaction.sellingBroker}</td>
+                  <td>{transaction.buyingContractNo}</td>
+                  <td>{transaction.sellingContractNo}</td>
+                  <td>{transaction.clientName}</td>
+                  <td>{transaction.settlementDate}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    );
+  };
+
   return (
     <div className="tr-equity-module-main-container">
       <div className="tr-page-header-section">
@@ -1029,6 +1159,12 @@ const TradeReport = () => {
           >
             Client Info
           </button>
+          <button 
+            className={selectedView === 'parsed' ? 'tr-active' : ''}
+            onClick={() => setSelectedView('parsed')}
+          >
+            Parsed Data
+          </button>
         </div>
         
         <div className="tr-equity-filter">
@@ -1052,6 +1188,7 @@ const TradeReport = () => {
         {selectedView === 'sales' && renderSales()}
         {selectedView === 'purchases' && renderPurchases()}
         {selectedView === 'client' && renderClientInfo()}
+        {selectedView === 'parsed' && renderParsedData()}
       </div>
 
       <div className="tr-report-footer">

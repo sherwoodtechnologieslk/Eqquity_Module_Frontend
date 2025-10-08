@@ -6,15 +6,18 @@ import './Styles/AccountMaster.css';
 const AccountMaster = () => {
   const [form, setForm] = useState({
     paymentMethod: '',
-    paymentMethodOwner: '',
-    paymentMethodCode: '',
-    settlement1: '',
-    settlement2: '',
-    settlement3: '',
+    accountName: '',
+    accountNumber: '',
+    bankName: '',
+    branchName: '',
+    swiftCode: '',
+    iban: '',
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitMessage, setSubmitMessage] = useState('');
   const [showListView, setShowListView] = useState(false);
+  const [editingAccount, setEditingAccount] = useState(null);
+  const [isEditMode, setIsEditMode] = useState(false);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -28,9 +31,10 @@ const AccountMaster = () => {
 
     if (
       !form.paymentMethod.trim() ||
-      !form.paymentMethodOwner.trim() ||
-      !form.paymentMethodCode.trim() ||
-      !form.settlement1.trim()
+      !form.accountName.trim() ||
+      !form.accountNumber.trim() ||
+      !form.bankName.trim() ||
+      !form.branchName.trim()
     ) {
       setSubmitMessage('Please fill in all required fields.');
       return;
@@ -39,22 +43,28 @@ const AccountMaster = () => {
     setIsSubmitting(true);
 
     try {
-      // We can combine settlement accounts into a single array or string
-      const settlementAccounts = [form.settlement1, form.settlement2, form.settlement3]
-        .filter(Boolean) // Remove empty strings
-        .join(', '); // Join them into a single string
-
       const accountData = {
         payment_method: form.paymentMethod,
-        owner: form.paymentMethodOwner,
-        method_code: form.paymentMethodCode,
-        settlement_accounts: settlementAccounts,
+        account_name: form.accountName,
+        account_number: form.accountNumber,
+        bank_name: form.bankName,
+        branch_name: form.branchName,
+        swift_code: form.swiftCode,
+        iban: form.iban,
       };
 
-      const result = await accountAPI.createAccount(accountData);
-      
-      setSubmitMessage('Account master entry saved successfully!');
-      console.log('Account created:', result);
+      let result;
+      if (isEditMode && editingAccount) {
+        // Update existing account
+        result = await accountAPI.updateAccount(editingAccount.id, accountData);
+        setSubmitMessage('Account updated successfully!');
+        console.log('Account updated:', result);
+      } else {
+        // Create new account
+        result = await accountAPI.createAccount(accountData);
+        setSubmitMessage('Account master entry saved successfully!');
+        console.log('Account created:', result);
+      }
       
       handleReset();
       
@@ -69,13 +79,44 @@ const AccountMaster = () => {
   const handleReset = () => {
     setForm({
       paymentMethod: '',
-      paymentMethodOwner: '',
-      paymentMethodCode: '',
-      settlement1: '',
-      settlement2: '',
-      settlement3: '',
+      accountName: '',
+      accountNumber: '',
+      bankName: '',
+      branchName: '',
+      swiftCode: '',
+      iban: '',
     });
     setSubmitMessage('');
+    setEditingAccount(null);
+    setIsEditMode(false);
+  };
+
+  const handleEdit = async (accountId) => {
+    try {
+      const account = await accountAPI.getAccountById(accountId);
+      setEditingAccount(account);
+      setIsEditMode(true);
+      
+      // Populate form with account data
+      setForm({
+        paymentMethod: account.payment_method || '',
+        accountName: account.account_name || '',
+        accountNumber: account.account_number || '',
+        bankName: account.bank_name || '',
+        branchName: account.branch_name || '',
+        swiftCode: account.swift_code || '',
+        iban: account.iban || '',
+      });
+      
+      setSubmitMessage('');
+    } catch (error) {
+      console.error('Error fetching account for edit:', error);
+      setSubmitMessage('Error loading account for editing. Please try again.');
+    }
+  };
+
+  const handleCancelEdit = () => {
+    handleReset();
   };
 
   const toggleView = () => {
@@ -97,7 +138,7 @@ const AccountMaster = () => {
               Refresh
             </button>
           </div>
-          <AccountListView />
+          <AccountListView onEditAccount={handleEdit} />
         </div>
       </div>
     );
@@ -121,7 +162,18 @@ const AccountMaster = () => {
         {/* Form Card */}
         <div className="acct-form-card">
           <div className="acct-card-header">
-            <h2 className="acct-card-title">Payment Method Configuration</h2>
+            <h2 className="acct-card-title">
+              {isEditMode ? 'Edit Account' : 'Payment Method Configuration'}
+            </h2>
+            {isEditMode && (
+              <button
+                type="button"
+                onClick={handleCancelEdit}
+                className="acct-cancel-edit-btn"
+              >
+                Cancel Edit
+              </button>
+            )}
           </div>
 
           <div className="acct-form-content">
@@ -131,77 +183,97 @@ const AccountMaster = () => {
                 {/* Payment Method */}
                 <div className="acct-field-group">
                   <label className="acct-field-label">Payment Method *</label>
-                  <input
+                  <select
                     name="paymentMethod"
-                    placeholder="e.g. RTGS, CEFT, SLIPS, CHEQUE, CBSL"
                     value={form.paymentMethod}
                     onChange={handleChange}
-                    className="acct-form-input"
-                  />
-                  <span className="acct-help-text">Available methods: RTGS, CEFT, SLIPS, CHEQUE, CBSL</span>
+                    className="acct-form-select"
+                  >
+                    <option value="">Select Payment Method</option>
+                    <option value="Bank Transfer">Bank Transfer</option>
+                    <option value="Online Banking">Online Banking</option>
+                    <option value="Cheque">Cheque</option>
+                    <option value="Cash">Cash</option>
+                  </select>
+                  <span className="acct-help-text">Choose the payment method for this account</span>
                 </div>
 
-                {/* Payment Method Owner */}
+                {/* Account Name */}
                 <div className="acct-field-group">
-                  <label className="acct-field-label">Payment Method Owner *</label>
+                  <label className="acct-field-label">Account Name *</label>
                   <input
-                    name="paymentMethodOwner"
-                    placeholder="Finance"
-                    value={form.paymentMethodOwner}
+                    name="accountName"
+                    placeholder="e.g. Main Operating Account, Treasury Account"
+                    value={form.accountName}
                     onChange={handleChange}
                     className="acct-form-input"
                   />
-                  <span className="acct-help-text">Department responsible for this payment method</span>
+                  <span className="acct-help-text">Descriptive name for this account</span>
                 </div>
 
-                {/* Payment Method Code */}
+                {/* Account Number */}
                 <div className="acct-field-group">
-                  <label className="acct-field-label">Payment Method Code *</label>
+                  <label className="acct-field-label">Account Number *</label>
                   <input
-                    name="paymentMethodCode"
-                    placeholder="RTGS1, RTGS2, RTGS3, CEFT 1"
-                    value={form.paymentMethodCode}
+                    name="accountNumber"
+                    placeholder="e.g. 5566778899"
+                    value={form.accountNumber}
                     onChange={handleChange}
                     className="acct-form-input"
                   />
-                  <span className="acct-help-text">Unique identifier: RTGS1, RTGS2, RTGS3, CEFT1</span>
+                  <span className="acct-help-text">Primary account number</span>
                 </div>
-              </div>
 
-              {/* Settlement Accounts Section */}
-              <div className="acct-settlement-section">
-                <label className="acct-field-label">Settlement Accounts *</label>
-                <div className="acct-settlement-grid">
-                  <div className="acct-field-group">
-                    <input
-                      name="settlement1"
-                      placeholder="Primary settlement account (required)"
-                      value={form.settlement1}
-                      onChange={handleChange}
-                      className="acct-form-input"
-                    />
-                    <span className="acct-help-text">Primary account (required)</span>
-                  </div>
-                  <div className="acct-field-group">
-                    <input
-                      name="settlement2"
-                      placeholder="Secondary settlement account (optional)"
-                      value={form.settlement2}
-                      onChange={handleChange}
-                      className="acct-form-input"
-                    />
-                    <span className="acct-help-text">Secondary account (optional)</span>
-                  </div>
-                  <div className="acct-field-group">
-                    <input
-                      name="settlement3"
-                      placeholder="Tertiary settlement account (optional)"
-                      value={form.settlement3}
-                      onChange={handleChange}
-                      className="acct-form-input"
-                    />
-                    <span className="acct-help-text">Tertiary account (optional)</span>
-                  </div>
+                {/* Bank Name */}
+                <div className="acct-field-group">
+                  <label className="acct-field-label">Bank Name *</label>
+                  <input
+                    name="bankName"
+                    placeholder="e.g. People's Bank"
+                    value={form.bankName}
+                    onChange={handleChange}
+                    className="acct-form-input"
+                  />
+                  <span className="acct-help-text">Name of the bank</span>
+                </div>
+
+                {/* Branch Name */}
+                <div className="acct-field-group">
+                  <label className="acct-field-label">Branch Name *</label>
+                  <input
+                    name="branchName"
+                    placeholder="e.g. Online Banking"
+                    value={form.branchName}
+                    onChange={handleChange}
+                    className="acct-form-input"
+                  />
+                  <span className="acct-help-text">Branch or service type</span>
+                </div>
+
+                {/* SWIFT Code */}
+                <div className="acct-field-group">
+                  <label className="acct-field-label">SWIFT Code</label>
+                  <input
+                    name="swiftCode"
+                    placeholder="e.g. PSBKL2X"
+                    value={form.swiftCode}
+                    onChange={handleChange}
+                    className="acct-form-input"
+                  />
+                  <span className="acct-help-text">Bank SWIFT code (optional)</span>
+                </div>
+
+                {/* IBAN */}
+                <div className="acct-field-group">
+                  <label className="acct-field-label">IBAN</label>
+                  <input
+                    name="iban"
+                    placeholder="e.g. LK5566778899001122334455"
+                    value={form.iban}
+                    onChange={handleChange}
+                    className="acct-form-input"
+                  />
+                  <span className="acct-help-text">International Bank Account Number (optional)</span>
                 </div>
               </div>
 
@@ -233,7 +305,10 @@ const AccountMaster = () => {
                   className="acct-btn acct-btn-primary"
                   disabled={isSubmitting}
                 >
-                  {isSubmitting ? 'Saving...' : 'Verify & Save'}
+                  {isSubmitting 
+                    ? (isEditMode ? 'Updating...' : 'Saving...') 
+                    : (isEditMode ? 'Update Account' : 'Verify & Save')
+                  }
                 </button>
               </div>
             </form>
@@ -242,7 +317,7 @@ const AccountMaster = () => {
 
         {/* Footer */}
         <div className="acct-footer-section">
-          <p>ALCYONE TREASURY SOLUTIONS (PVT) LTD • Secure payment method configuration • All data is encrypted and protected</p>
+          <p>SHERWOOD TECHNOLOGIES (PVT) LTD • Secure payment method configuration • All data is encrypted and protected</p>
         </div>
       </div>
     </div>
