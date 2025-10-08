@@ -997,6 +997,30 @@
   color: #1f2937;
 }
 
+.mtm-charges {
+  text-align: right;
+  font-weight: 600;
+  color: #6b7280;
+}
+
+.mtm-projected-sales {
+  text-align: right;
+  font-weight: 600;
+  color: #1f2937;
+}
+
+.mtm-cost-of-funds {
+  text-align: right;
+  font-weight: 600;
+  color: #6b7280;
+}
+
+.mtm-projected-sales-with-cof {
+  text-align: right;
+  font-weight: 600;
+  color: #1f2937;
+}
+
 .mtm-gain-loss {
   text-align: right;
   font-weight: 700;
@@ -1042,6 +1066,22 @@
 
 .mtm-total-cost,
 .mtm-total-market {
+  color: #1f2937;
+}
+
+.mtm-total-charges {
+  color: #6b7280;
+}
+
+.mtm-total-projected-sales {
+  color: #1f2937;
+}
+
+.mtm-total-cost-of-funds {
+  color: #6b7280;
+}
+
+.mtm-total-projected-sales-with-cof {
   color: #1f2937;
 }
 

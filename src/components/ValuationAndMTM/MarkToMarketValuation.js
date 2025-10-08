@@ -461,14 +461,18 @@ const MarkToMarketValuation = () => {
   };
 
   const calculatePortfolioTotals = () => {
-    if (!mtmData.length) return { totalCost: 0, totalMarket: 0, totalGainLoss: 0, totalGainLossPercentage: 0 };
+    if (!mtmData.length) return { totalCost: 0, totalMarket: 0, totalCharges: 0, totalProjectedSales: 0, totalCostOfFunds: 0, totalProjectedSalesWithCOF: 0, totalGainLoss: 0, totalGainLossPercentage: 0 };
     
     const totalCost = mtmData.reduce((sum, item) => sum + item.costValue, 0);
     const totalMarket = mtmData.reduce((sum, item) => sum + item.marketValue, 0);
+    const totalCharges = mtmData.reduce((sum, item) => sum + (item.charges || 0), 0);
+    const totalProjectedSales = mtmData.reduce((sum, item) => sum + (item.projectedSalesProceeds || 0), 0);
+    const totalCostOfFunds = mtmData.reduce((sum, item) => sum + (item.costOfFunds || 0), 0);
+    const totalProjectedSalesWithCOF = mtmData.reduce((sum, item) => sum + (item.projectedSalesWithCOF || 0), 0);
     const totalGainLoss = totalMarket - totalCost;
     const totalGainLossPercentage = totalCost > 0 ? (totalGainLoss / totalCost) * 100 : 0;
     
-    return { totalCost, totalMarket, totalGainLoss, totalGainLossPercentage };
+    return { totalCost, totalMarket, totalCharges, totalProjectedSales, totalCostOfFunds, totalProjectedSalesWithCOF, totalGainLoss, totalGainLossPercentage };
   };
 
   const formatCurrency = (amount) => {
@@ -664,7 +668,7 @@ const MarkToMarketValuation = () => {
             <div className={`mtm-summary-icon total-gain-loss ${totals.totalGainLoss >= 0 ? 'positive' : 'negative'}`}>
             </div>
             <div className="mtm-summary-content">
-              <h3>Total Unrealized G/L</h3>
+              <h3>Total Unrealized Capital Gain</h3>
               <p className={`mtm-summary-amount ${totals.totalGainLoss >= 0 ? 'positive' : 'negative'}`}>
                 {formatCurrency(totals.totalGainLoss)}
               </p>
@@ -1070,8 +1074,12 @@ const MarkToMarketValuation = () => {
                     <th>Market Price</th>
                     <th>Cost Value</th>
                     <th>Market Value</th>
-                    <th>Unrealized G/L</th>
-                    <th>G/L %</th>
+                    <th>Charges</th>
+                    <th>Projected Sales Proceeds</th>
+                    <th>Cost of Funds</th>
+                    <th>Projected Sale Proceeds with COF</th>
+                    <th>Unrealized Capital Gain</th>
+                    <th>Capital Gain %</th>
                     <th>Last Update</th>
                   </tr>
                 </thead>
@@ -1085,6 +1093,10 @@ const MarkToMarketValuation = () => {
                       <td className="mtm-market-price">{formatCurrency(item.marketPrice)}</td>
                       <td className="mtm-cost-value">{formatCurrency(item.costValue)}</td>
                       <td className="mtm-market-value">{formatCurrency(item.marketValue)}</td>
+                      <td className="mtm-charges">{formatCurrency(item.charges || 0)}</td>
+                      <td className="mtm-projected-sales">{formatCurrency(item.projectedSalesProceeds || 0)}</td>
+                      <td className="mtm-cost-of-funds">{formatCurrency(item.costOfFunds || 0)}</td>
+                      <td className="mtm-projected-sales-with-cof">{formatCurrency(item.projectedSalesWithCOF || 0)}</td>
                       <td className={`mtm-gain-loss ${item.unrealizedGainLoss >= 0 ? 'positive' : 'negative'}`}>
                         {formatCurrency(item.unrealizedGainLoss)}
                       </td>
@@ -1102,6 +1114,10 @@ const MarkToMarketValuation = () => {
                     <td colSpan="5"><strong>Portfolio Totals</strong></td>
                     <td className="mtm-total-cost">{formatCurrency(totals.totalCost)}</td>
                     <td className="mtm-total-market">{formatCurrency(totals.totalMarket)}</td>
+                    <td className="mtm-total-charges">{formatCurrency(totals.totalCharges || 0)}</td>
+                    <td className="mtm-total-projected-sales">{formatCurrency(totals.totalProjectedSales || 0)}</td>
+                    <td className="mtm-total-cost-of-funds">{formatCurrency(totals.totalCostOfFunds || 0)}</td>
+                    <td className="mtm-total-projected-sales-with-cof">{formatCurrency(totals.totalProjectedSalesWithCOF || 0)}</td>
                     <td className={`mtm-total-gain-loss ${totals.totalGainLoss >= 0 ? 'positive' : 'negative'}`}>
                       {formatCurrency(totals.totalGainLoss)}
                     </td>
@@ -1118,7 +1134,7 @@ const MarkToMarketValuation = () => {
 
         {/* Footer */}
         <div className="mtm-footer-section">
-          <p>SHERWOOD TECHNOLOGIES (PVT) LTD • Real-time MTM valuation • Market data updated every 15 minutes</p>
+          <p>SHERWOOD TECHNOLOGIES (PVT) LTD • Real-time MTM valuation</p>
         </div>
       </div>
     </div>
