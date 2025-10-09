@@ -990,6 +990,12 @@
   font-weight: 600;
 }
 
+.mtm-gross-sales {
+  text-align: right;
+  font-weight: 600;
+  color: #059669;
+}
+
 .mtm-cost-value,
 .mtm-market-value {
   text-align: right;
@@ -1067,6 +1073,10 @@
 .mtm-total-cost,
 .mtm-total-market {
   color: #1f2937;
+}
+
+.mtm-total-gross-sales {
+  color: #059669;
 }
 
 .mtm-total-charges {

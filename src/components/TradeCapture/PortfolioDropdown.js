@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect } from 'react';
 import { portfolioAPI, portfolioCostingMethodAPI, transactionEntryAPI } from '../../services/api';
 import './Styles/PortfolioDropdown.css';
 
@@ -11,16 +11,9 @@ const PortfolioDropdown = () => {
   const [selectedPortfolioCostingMethod, setSelectedPortfolioCostingMethod] = useState('');
   const [isOpen, setIsOpen] = useState(false);
   const [isFocused, setIsFocused] = useState(false);
+  const [portfolioHoldings, setPortfolioHoldings] = useState([]);
+  const [holdingsLoading, setHoldingsLoading] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
-  const [portfolioData, setPortfolioData] = useState([]);
-  const [sellPortfolioData, setSellPortfolioData] = useState([]);
-  const [filteredPortfolioData, setFilteredPortfolioData] = useState([]);
-  const [tableLoading, setTableLoading] = useState(false);
-  const [dateRange, setDateRange] = useState({
-    fromDate: '',
-    toDate: ''
-  });
-  const [transactionFilter, setTransactionFilter] = useState('all'); // 'all', 'buy', 'sell'
 
   // Define costing method labels for display
   const costingMethodLabels = {
@@ -51,6 +44,185 @@ const PortfolioDropdown = () => {
     }
   };
 
+  const loadPortfolioHoldings = async (portfolioName) => {
+    try {
+      setHoldingsLoading(true);
+      
+      // Get buy transactions from transaction_entries table
+      const buyTransactions = await transactionEntryAPI.getByPortfolio(portfolioName);
+      
+      // Get sell transactions from sell_transaction_entries table
+      const sellTransactions = await transactionEntryAPI.getSellTransactionsByPortfolio(portfolioName);
+      
+      console.log('Buy transactions:', buyTransactions); // Debug log
+      console.log('Sell transactions:', sellTransactions); // Debug log
+
+      // Calculate net holdings for each company
+      const holdingsMap = new Map();
+
+      // Process buy transactions (add to holdings)
+      buyTransactions.forEach(transaction => {
+        const companyName = transaction.company_name || transaction.companyName || transaction.symbol;
+        const quantity = parseFloat(transaction.quantity) || 0;
+        
+        if (!holdingsMap.has(companyName)) {
+          holdingsMap.set(companyName, {
+            companyName,
+            totalBought: 0,
+            totalSold: 0,
+            netQuantity: 0,
+            avgBuyPrice: 0,
+            costValue: 0,
+            totalCharges: 0
+          });
+        }
+        
+        const holding = holdingsMap.get(companyName);
+        const previousTotalBought = holding.totalBought;
+        holding.totalBought += quantity;
+        const transactionValue = quantity * (parseFloat(transaction.price) || 0);
+        const previousTotalValue = holding.avgBuyPrice * previousTotalBought;
+        holding.avgBuyPrice = (previousTotalValue + transactionValue) / holding.totalBought;
+        
+        // Calculate charges using the same fee structure as Buy Transaction Entry
+        let calculatedCharges = 0;
+        
+        if (transactionValue <= 100000000) { // Transactions up to Rs. 100 Million
+          // Total fee rate: 1.12%
+          const brokerage = Math.round(transactionValue * 0.00640 * 100) / 100;    // 0.640%
+          const cseFees = Math.round(transactionValue * 0.00084 * 100) / 100;      // 0.084%
+          const cdsFees = Math.round(transactionValue * 0.00012 * 100) / 100;     // 0.012%
+          const clearingFees = Math.round(transactionValue * 0.00012 * 100) / 100; // 0.012%
+          const sec = Math.round(transactionValue * 0.00072 * 100) / 100;          // 0.072%
+          const stl = Math.round(transactionValue * 0.003 * 100) / 100;            // 0.300%
+          calculatedCharges = brokerage + cseFees + cdsFees + clearingFees + sec + stl;
+        } else { // Transactions over Rs. 100 Million
+          // Tiered calculation: standard rate for first 100M, reduced rate for excess
+          const first100M = 100000000;
+          const excess = transactionValue - 100000000;
+          
+          // First Rs. 100M at standard rates
+          const first100MBrokerage = Math.round(first100M * 0.00640 * 100) / 100;    // 0.640%
+          const first100MCSE = Math.round(first100M * 0.00084 * 100) / 100;          // 0.084%
+          const first100MCDS = Math.round(first100M * 0.00012 * 100) / 100;          // 0.012%
+          const first100MClearing = Math.round(first100M * 0.00012 * 100) / 100;     // 0.012%
+          const first100MSEC = Math.round(first100M * 0.00072 * 100) / 100;          // 0.072%
+          const first100MSTL = Math.round(first100M * 0.003 * 100) / 100;            // 0.300%
+          
+          // Excess amount at reduced rates
+          const excessBrokerage = Math.round(excess * 0.00200 * 100) / 100;          // 0.200%
+          const excessCSE = Math.round(excess * 0.000525 * 100) / 100;               // 0.0525%
+          const excessCDS = Math.round(excess * 0.000075 * 100) / 100;               // 0.0075%
+          const excessClearing = Math.round(excess * 0.000075 * 100) / 100;          // 0.0075%
+          const excessSEC = Math.round(excess * 0.000450 * 100) / 100;               // 0.0450%
+          const excessSTL = Math.round(excess * 0.003 * 100) / 100;                  // 0.300%
+          
+          // Total fees = sum of both portions
+          calculatedCharges = (first100MBrokerage + excessBrokerage) + 
+                             (first100MCSE + excessCSE) + 
+                             (first100MCDS + excessCDS) + 
+                             (first100MClearing + excessClearing) + 
+                             (first100MSEC + excessSEC) + 
+                             (first100MSTL + excessSTL);
+        }
+        
+        holding.totalCharges += calculatedCharges;
+      });
+
+      // Process sell transactions (subtract from holdings)
+      sellTransactions.forEach(transaction => {
+        const companyName = transaction.company_name || transaction.companyName || transaction.symbol;
+        const quantity = parseFloat(transaction.quantity) || 0;
+        
+        if (!holdingsMap.has(companyName)) {
+          holdingsMap.set(companyName, {
+            companyName,
+            totalBought: 0,
+            totalSold: 0,
+            netQuantity: 0,
+            avgBuyPrice: 0,
+            costValue: 0,
+            totalCharges: 0
+          });
+        }
+        
+        const holding = holdingsMap.get(companyName);
+        holding.totalSold += quantity;
+        
+        // Calculate charges using the same fee structure as Sell Transaction Entry
+        const transactionValue = quantity * (parseFloat(transaction.price) || parseFloat(transaction.sold_price) || 0);
+        let calculatedCharges = 0;
+        
+        if (transactionValue <= 100000000) { // Transactions up to Rs. 100 Million
+          // Total fee rate: 1.12%
+          const brokerage = Math.round(transactionValue * 0.00640 * 100) / 100;    // 0.640%
+          const cseFees = Math.round(transactionValue * 0.00084 * 100) / 100;      // 0.084%
+          const cdsFees = Math.round(transactionValue * 0.00012 * 100) / 100;     // 0.012%
+          const clearingFees = Math.round(transactionValue * 0.00012 * 100) / 100; // 0.012%
+          const sec = Math.round(transactionValue * 0.00072 * 100) / 100;          // 0.072%
+          const stl = Math.round(transactionValue * 0.003 * 100) / 100;            // 0.300%
+          calculatedCharges = brokerage + cseFees + cdsFees + clearingFees + sec + stl;
+        } else { // Transactions over Rs. 100 Million
+          // Tiered calculation: standard rate for first 100M, reduced rate for excess
+          const first100M = 100000000;
+          const excess = transactionValue - 100000000;
+          
+          // First Rs. 100M at standard rates
+          const first100MBrokerage = Math.round(first100M * 0.00640 * 100) / 100;    // 0.640%
+          const first100MCSE = Math.round(first100M * 0.00084 * 100) / 100;          // 0.084%
+          const first100MCDS = Math.round(first100M * 0.00012 * 100) / 100;          // 0.012%
+          const first100MClearing = Math.round(first100M * 0.00012 * 100) / 100;     // 0.012%
+          const first100MSEC = Math.round(first100M * 0.00072 * 100) / 100;          // 0.072%
+          const first100MSTL = Math.round(first100M * 0.003 * 100) / 100;            // 0.300%
+          
+          // Excess amount at reduced rates
+          const excessBrokerage = Math.round(excess * 0.00200 * 100) / 100;          // 0.200%
+          const excessCSE = Math.round(excess * 0.000525 * 100) / 100;               // 0.0525%
+          const excessCDS = Math.round(excess * 0.000075 * 100) / 100;               // 0.0075%
+          const excessClearing = Math.round(excess * 0.000075 * 100) / 100;          // 0.0075%
+          const excessSEC = Math.round(excess * 0.000450 * 100) / 100;               // 0.0450%
+          const excessSTL = Math.round(excess * 0.003 * 100) / 100;                  // 0.300%
+          
+          // Total fees = sum of both portions
+          calculatedCharges = (first100MBrokerage + excessBrokerage) + 
+                             (first100MCSE + excessCSE) + 
+                             (first100MCDS + excessCDS) + 
+                             (first100MClearing + excessClearing) + 
+                             (first100MSEC + excessSEC) + 
+                             (first100MSTL + excessSTL);
+        }
+        
+        holding.totalCharges += calculatedCharges;
+      });
+
+      // Calculate net quantities, cost values, and net values, filter out zero holdings
+      const holdings = Array.from(holdingsMap.values())
+        .map(holding => {
+          const netQuantity = holding.totalBought - holding.totalSold;
+          const costValue = netQuantity * holding.avgBuyPrice;
+          const netValue = costValue + holding.totalCharges;
+          const costPerShare = netQuantity > 0 ? netValue / netQuantity : 0;
+          return {
+            ...holding,
+            netQuantity: netQuantity,
+            costValue: costValue,
+            netValue: netValue,
+            costPerShare: costPerShare
+          };
+        })
+        .filter(holding => holding.netQuantity > 0) // Only show companies with positive holdings
+        .sort((a, b) => a.companyName.localeCompare(b.companyName));
+
+      console.log('Final holdings:', holdings); // Debug log
+      setPortfolioHoldings(holdings);
+    } catch (error) {
+      console.error('Error loading portfolio holdings:', error);
+      setPortfolioHoldings([]);
+    } finally {
+      setHoldingsLoading(false);
+    }
+  };
+
   const loadAssignedCostingMethods = async () => {
     try {
       const data = await portfolioCostingMethodAPI.getAllAssignedCostingMethods();
@@ -61,105 +233,15 @@ const PortfolioDropdown = () => {
     }
   };
 
-  const loadPortfolioData = async (portfolioName) => {
-    try {
-      setTableLoading(true);
-      const data = await transactionEntryAPI.getByPortfolio(portfolioName);
-      // Map backend fields to table columns
-      const mappedData = data.map(entry => ({
-        companyName: entry.company_name,
-        valueDate: entry.settlement_date,
-        paid: entry.gross_value,
-        sharesAmount: entry.quantity,
-        ...entry // keep the rest for now
-      }));
-      setPortfolioData(mappedData);
-    } catch (error) {
-      console.error('Error loading buy transactions:', error);
-      setPortfolioData([]);
-    } finally {
-      setTableLoading(false);
-    }
-  };
-
-  const loadSellPortfolioData = async (portfolioName) => {
-    try {
-      const data = await transactionEntryAPI.getSellTransactionsByPortfolio(portfolioName);
-      
-      // Map backend fields to sell transaction table columns
-      const mappedData = data.map(entry => {
-        const totalShares = parseFloat(entry.total_shares) || 0;
-        const soldShares = parseFloat(entry.quantity) || 0;
-        const remainingShares = Math.max(totalShares - soldShares, 0);
-        
-        return {
-          id: entry.id,
-          companyName: entry.company_name,
-          sellingPrice: entry.sold_price,
-          valueDate: entry.settlement_date,
-          soldSharesAmount: entry.quantity,
-          remainingShares: remainingShares, // Calculate: total_shares - quantity_sold
-          capitalGain: entry.capital_gain,
-          ...entry // keep the rest for now
-        };
-      });
-      setSellPortfolioData(mappedData);
-    } catch (error) {
-      console.error('Error loading sell data:', error);
-      setSellPortfolioData([]);
-    }
-  };
-
-  // Filter portfolio data based on date range and transaction type
-  const filterPortfolioData = useCallback(() => {
-    let filtered = [];
-
-    // Filter by transaction type
-    if (transactionFilter === 'buy') {
-      filtered = portfolioData;
-    } else if (transactionFilter === 'sell') {
-      filtered = sellPortfolioData;
-    } else {
-      // 'all' - combine both buy and sell transactions
-      filtered = [...portfolioData, ...sellPortfolioData];
-    }
-
-    // Apply date range filter
-    if (dateRange.fromDate || dateRange.toDate) {
-      filtered = filtered.filter(item => {
-        const itemDate = new Date(item.valueDate);
-        const fromDate = dateRange.fromDate ? new Date(dateRange.fromDate) : null;
-        const toDate = dateRange.toDate ? new Date(dateRange.toDate) : null;
-
-        if (fromDate && toDate) {
-          return itemDate >= fromDate && itemDate <= toDate;
-        } else if (fromDate) {
-          return itemDate >= fromDate;
-        } else if (toDate) {
-          return itemDate <= toDate;
-        }
-        return true;
-      });
-    }
-
-    setFilteredPortfolioData(filtered);
-  }, [transactionFilter, portfolioData, sellPortfolioData, dateRange]);
-
   useEffect(() => {
     loadPortfolios();
     loadAssignedCostingMethods();
   }, []);
 
-  useEffect(() => {
-    filterPortfolioData();
-  }, [dateRange, portfolioData, sellPortfolioData, transactionFilter, filterPortfolioData]);
 
   const handleRefresh = async () => {
     setIsRefreshing(true);
     await Promise.all([loadPortfolios(), loadAssignedCostingMethods()]);
-    if (selectedPortfolio) {
-      await loadPortfolioData(selectedPortfolio);
-    }
     setTimeout(() => {
       setIsRefreshing(false);
     }, 500);
@@ -183,35 +265,14 @@ const PortfolioDropdown = () => {
       setSelectedPortfolioCostingMethod('');
     }
     
+    // Load portfolio holdings when a portfolio is selected
     if (value) {
-      await Promise.all([
-        loadPortfolioData(value),
-        loadSellPortfolioData(value)
-      ]);
+      await loadPortfolioHoldings(value);
     } else {
-      setPortfolioData([]);
-      setSellPortfolioData([]);
-      setFilteredPortfolioData([]);
+      setPortfolioHoldings([]);
     }
   };
 
-  const handleDateRangeChange = (field, value) => {
-    setDateRange(prev => ({
-      ...prev,
-      [field]: value
-    }));
-  };
-
-  const clearDateRange = () => {
-    setDateRange({
-      fromDate: '',
-      toDate: ''
-    });
-  };
-
-  const handlePrint = () => {
-    window.print();
-  };
 
   const handleFocus = () => {
     setIsOpen(true);
@@ -231,13 +292,6 @@ const PortfolioDropdown = () => {
   //   }).format(amount);
   // };
 
-  const formatDate = (dateString) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric'
-    });
-  };
 
   return (
     <div className="pf-dropdown-container">
@@ -361,293 +415,101 @@ const PortfolioDropdown = () => {
         </div>
       )}
 
-      {/* Date Range Filter Section */}
+      {/* Portfolio Holdings Table */}
       {selectedPortfolio && (
-        <div className="pf-date-range-section">
-          <div className="pf-date-range-header">
-            <div className="pf-date-range-icon">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
-                <line x1="16" y1="2" x2="16" y2="6"></line>
-                <line x1="8" y1="2" x2="8" y2="6"></line>
-                <line x1="3" y1="10" x2="21" y2="10"></line>
-              </svg>
-            </div>
-            <h3 className="pf-date-range-title">Filter by Date Range</h3>
-            {(dateRange.fromDate || dateRange.toDate) && (
-              <button
-                className="pf-clear-dates-button"
-                onClick={clearDateRange}
-                title="Clear date filters"
-              >
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <line x1="18" y1="6" x2="6" y2="18"></line>
-                  <line x1="6" y1="6" x2="18" y2="18"></line>
-                </svg>
-                Clear
-              </button>
-            )}
+           <div className="ph-table-section">
+             <div className="ph-table-header">
+               <h2>Portfolio Holdings</h2>
+               <p>Current holdings for portfolio: <strong>{selectedPortfolio}</strong></p>
           </div>
           
-          <div className="pf-date-inputs-container">
-            <div className="pf-date-input-group">
-              <label className="pf-date-label">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <circle cx="12" cy="12" r="10"></circle>
-                  <polyline points="12,6 12,12 16,14"></polyline>
-                </svg>
-                From Date
-              </label>
-              <input
-                type="date"
-                className="pf-date-input"
-                value={dateRange.fromDate}
-                onChange={(e) => handleDateRangeChange('fromDate', e.target.value)}
-                max={dateRange.toDate || undefined}
-              />
+             {holdingsLoading ? (
+               <div className="ph-loading">
+                 <div className="ph-loading-spinner"></div>
+                 <p>Loading portfolio holdings...</p>
             </div>
-            
-            <div className="pf-date-separator">
+             ) : portfolioHoldings.length === 0 ? (
+               <div className="ph-no-data">
+                 <div className="ph-no-data-icon">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <line x1="5" y1="12" x2="19" y2="12"></line>
-                <polyline points="12,5 19,12 12,19"></polyline>
+                     <path d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
               </svg>
             </div>
-            
-            <div className="pf-date-input-group">
-              <label className="pf-date-label">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <circle cx="12" cy="12" r="10"></circle>
-                  <polyline points="12,6 12,12 16,14"></polyline>
-                </svg>
-                To Date
-              </label>
-              <input
-                type="date"
-                className="pf-date-input"
-                value={dateRange.toDate}
-                onChange={(e) => handleDateRangeChange('toDate', e.target.value)}
-                min={dateRange.fromDate || undefined}
-              />
-            </div>
-          </div>
-          
-          {(dateRange.fromDate || dateRange.toDate) && (
-            <div className="pf-date-range-summary">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <path d="m9 11 3 3 8-8"></path>
-              </svg>
-              <span>
-                Showing {filteredPortfolioData.length} of {portfolioData.length} transactions
-                {dateRange.fromDate && ` from ${formatDate(dateRange.fromDate)}`}
-                {dateRange.toDate && ` to ${formatDate(dateRange.toDate)}`}
-              </span>
-            </div>
-          )}
-        </div>
-      )}
-      {selectedPortfolio && <div className="pf-gap-large"></div>}
-      {/* Portfolio Data Table */}
-      {selectedPortfolio && (
-        <>
-          <div className="pf-table-section">
-            <div className="pf-table-header">
-              <div className="pf-table-header-content">
-                <div className="pf-table-header-text">
-                  <div className="pf-table-subtitle">
-                    Viewing data for: <span className="pf-portfolio-name">{selectedPortfolio}</span>
-                  </div>
-                </div>
-                <div className="pf-header-controls">
-                  <div className="pf-transaction-filter-row">
-                    <label htmlFor="transaction-filter" className="pf-transaction-filter-label">Show:</label>
-                    <select
-                      id="transaction-filter"
-                      className="pf-transaction-filter-select"
-                      value={transactionFilter}
-                      onChange={e => setTransactionFilter(e.target.value)}
-                    >
-                      <option value="all">All Transactions</option>
-                      <option value="buy">Buy Transactions</option>
-                      <option value="sell">Sell Transactions</option>
-                    </select>
-                  </div>
-                  <button
-                    className="pf-print-button"
-                    onClick={handlePrint}
-                    disabled={tableLoading || filteredPortfolioData.length === 0}
-                    title="Print portfolio transactions"
-                    aria-label="Print portfolio transactions"
-                  >
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                      <polyline points="6,9 6,2 18,2 18,9"></polyline>
-                      <path d="M6,18H4a2,2 0,0,1-2-2V11a2,2 0,0,1,2-2H20a2,2 0,0,1,2,2v5a2,2 0,0,1-2,2H18"></path>
-                      <polyline points="6,14 18,14 18,22 6,22 6,14"></polyline>
-                    </svg>
-                    Print
-                  </button>
-                </div>
-              </div>
-            </div>
-
-            {tableLoading ? (
-              <div className="pf-table-loading">
-                <div className="pf-table-loading-content">
-                  <div className="pf-table-loading-spinner">
-                    <div className="pf-spinner-ring"></div>
-                    <div className="pf-spinner-ring pf-spinner-ring-2"></div>
-                    <div className="pf-spinner-ring pf-spinner-ring-3"></div>
-                  </div>
-                  <p className="pf-loading-text">Loading portfolio data...</p>
-                </div>
+                 <h3>No Holdings Data</h3>
+                 <p>No holdings found for this portfolio. Make sure you have transactions recorded for this portfolio.</p>
               </div>
             ) : (
-              <div className="pf-table-container">
-                <div className="pf-table-wrapper">
-{transactionFilter === 'sell' ? (
-                  // Sell Transactions Table Only
-                  <table className="pf-portfolio-table">
-                    <thead className="pf-table-head">
-                      <tr className="pf-header-row">
-                        <th className="pf-header-cell pf-company-col">Company Name</th>
-                        <th className="pf-header-cell">Selling Price per Share</th>
-                        <th className="pf-header-cell">Value Date</th>
-                        <th className="pf-header-cell">Sold Shares Amount</th>
-                        <th className="pf-header-cell">Remaining Shares</th>
-                        <th className="pf-header-cell">Capital Gain</th>
+               <div className="ph-table-container">
+                 <table className="ph-table">
+                   <thead>
+                     <tr>
+                       <th>Company</th>
+                       <th>Net Quantity</th>
+                       <th>Total Bought</th>
+                       <th>Total Sold</th>
+                       <th>Average Buy Price</th>
+                       <th>Cost Value</th>
+                       <th>Charges</th>
+                       <th>Net Value</th>
+                       <th>Cost per Share</th>
                       </tr>
                     </thead>
-                    <tbody className="pf-table-body">
-                      {sellPortfolioData.length > 0 ? sellPortfolioData.map((item, index) => (
-                        <tr key={item.id} className={`pf-table-row ${index % 2 === 0 ? 'pf-row-even' : 'pf-row-odd'}`}>
-                          <td className="pf-table-cell pf-company-cell">
-                            <div className="pf-company-name">{item.companyName}</div>
-                          </td>
-                          <td className="pf-table-cell pf-currency-cell">{(item.sellingPrice || 0).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
-                          <td className="pf-table-cell">{formatDate(item.valueDate)}</td>
-                          <td className="pf-table-cell pf-numeric-cell" style={{ color: 'red' }}>{item.soldSharesAmount?.toLocaleString() || 0}</td>
-                          <td className="pf-table-cell pf-numeric-cell">{item.remainingShares?.toLocaleString() || 0}</td>
-                          <td className="pf-table-cell pf-currency-cell">{(item.capitalGain || 0).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
-                        </tr>
-                      )) : (
-                        <tr>
-                          <td colSpan="6" className="pf-table-cell" style={{textAlign: 'center', padding: '2rem', color: '#666'}}>
-                            No sell transactions found for this portfolio. Create some sell transactions first.
-                          </td>
-                        </tr>
-                      )}
-                    </tbody>
-                  </table>
-                ) : transactionFilter === 'all' ? (
-                  // All Transactions - Combined table with color coding
-                  <table className="pf-portfolio-table">
-                    <thead className="pf-table-head">
-                      <tr className="pf-header-row">
-                        <th className="pf-header-cell pf-company-col">Company Name</th>
-                        <th className="pf-header-cell">Value Date</th>
-                        <th className="pf-header-cell">Shares Amount</th>
-                        <th className="pf-header-cell">Share Price (per share)</th>
-                        <th className="pf-header-cell">Total Amount</th>
-                      </tr>
-                    </thead>
-                    <tbody className="pf-table-body">
-                      {(() => {
-                        // Combine buy and sell transactions with type indicator
-                        const buyTransactions = portfolioData.map(item => ({
-                          ...item,
-                          type: 'buy',
-                          sharesAmount: item.sharesAmount,
-                          sharePrice: item.price || item.sharePrice || 0,
-                          totalAmount: item.paid || 0
-                        }));
-                        
-                        const sellTransactions = sellPortfolioData.map(item => ({
-                          ...item,
-                          type: 'sell',
-                          sharesAmount: item.soldSharesAmount,
-                          sharePrice: item.sellingPrice || 0,
-                          totalAmount: item.sellingPrice * item.soldSharesAmount || 0
-                        }));
-                        
-                        // Combine and sort by date (newest first)
-                        const allTransactions = [...buyTransactions, ...sellTransactions]
-                          .sort((a, b) => new Date(b.valueDate) - new Date(a.valueDate));
-                        
-                        return allTransactions.length > 0 ? allTransactions.map((item, index) => (
-                          <tr 
-                            key={`${item.type}-${item.id}`} 
-                            className={`pf-table-row pf-all-transaction-row ${item.type === 'buy' ? 'pf-buy-row' : 'pf-sell-row'} ${index % 2 === 0 ? 'pf-row-even' : 'pf-row-odd'}`}
-                          >
-                            <td className="pf-table-cell pf-company-cell">
-                              <div className="pf-company-name">{item.companyName}</div>
-                            </td>
-                            <td className="pf-table-cell">{formatDate(item.valueDate)}</td>
-                            <td className="pf-table-cell pf-numeric-cell" style={{ color: item.type === 'buy' ? 'green' : 'red' }}>{item.sharesAmount?.toLocaleString() || 0}</td>
-                            <td className="pf-table-cell pf-currency-cell">{item.sharePrice?.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2}) || '0.00'}</td>
-                            <td className="pf-table-cell pf-currency-cell">{item.totalAmount?.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2}) || '0.00'}</td>
-                          </tr>
-                        )) : (
-                          <tr>
-                            <td colSpan="5" className="pf-table-cell" style={{textAlign: 'center', padding: '2rem', color: '#666'}}>
-                              No transactions found for this portfolio.
-                            </td>
-                          </tr>
-                        );
-                      })()}
-                    </tbody>
-                  </table>
-                ) : (
-                  // Buy Transactions Table Only (default)
-                  <table className="pf-portfolio-table">
-                    <thead className="pf-table-head">
-                      <tr className="pf-header-row">
-                        <th className="pf-header-cell pf-company-col">Company Name</th>
-                        <th className="pf-header-cell">Value Date</th>
-                        <th className="pf-header-cell">Shares Amount</th>
-                        <th className="pf-header-cell">Share Price</th>
-                        <th className="pf-header-cell">Paid</th>
-                        <th className="pf-header-cell">Costing Method with Charges</th>
-                        <th className="pf-header-cell">Cost of Funds</th>
-                        <th className="pf-header-cell">Costing Method with Cost of Funds</th>
-                      </tr>
-                    </thead>
-                    <tbody className="pf-table-body">
-                      {portfolioData.map((item, index) => (
-                        <tr key={item.id} className={`pf-table-row ${index % 2 === 0 ? 'pf-row-even' : 'pf-row-odd'}`}>
-                          <td className="pf-table-cell pf-company-cell">
-                            <div className="pf-company-name">{item.companyName}</div>
-                          </td>
-                          <td className="pf-table-cell">{formatDate(item.valueDate)}</td>
-                          <td className="pf-table-cell pf-numeric-cell" style={{ color: 'green' }}>{item.sharesAmount?.toLocaleString() || 0}</td>
-                          <td className="pf-table-cell pf-currency-cell">{(item.price || item.sharePrice || 0).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
-                          <td className="pf-table-cell pf-currency-cell">{(item.paid || 0).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
-                          <td className="pf-table-cell pf-currency-cell">{(item.costingMethodWithCharges || 0).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
-                          <td className="pf-table-cell pf-currency-cell">{(item.costOfFunds || 0).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
-                          <td className="pf-table-cell pf-currency-cell">{(item.costingMethodWithCostOfFunds || 0).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
+                   <tbody>
+                     {portfolioHoldings.map((holding) => (
+                       <tr key={holding.companyName} className="ph-table-row">
+                         <td className="ph-company-name">{holding.companyName}</td>
+                         <td className="ph-quantity">{holding.netQuantity.toLocaleString()}</td>
+                         <td className="ph-total-bought">{holding.totalBought.toLocaleString()}</td>
+                         <td className="ph-total-sold">{holding.totalSold.toLocaleString()}</td>
+                         <td className="ph-avg-price">{holding.avgBuyPrice.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
+                         <td className="ph-total-value">{holding.costValue.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 4})}</td>
+                         <td className="ph-charges">{holding.totalCharges.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
+                         <td className="ph-net-value">{holding.netValue.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 4})}</td>
+                         <td className="ph-cost-per-share">{holding.costPerShare.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 4})}</td>
                         </tr>
                       ))}
                     </tbody>
+                   <tfoot>
+                     <tr className="ph-total-row">
+                       <td><strong>Portfolio Totals</strong></td>
+                       <td className="ph-total-quantity">
+                         {portfolioHoldings.reduce((sum, holding) => sum + holding.netQuantity, 0).toLocaleString()}
+                       </td>
+                       <td className="ph-total-bought-sum">
+                         {portfolioHoldings.reduce((sum, holding) => sum + holding.totalBought, 0).toLocaleString()}
+                       </td>
+                       <td className="ph-total-sold-sum">
+                         {portfolioHoldings.reduce((sum, holding) => sum + holding.totalSold, 0).toLocaleString()}
+                       </td>
+                       <td className="ph-total-avg-price">
+                         {portfolioHoldings.length > 0 ? 
+                           (portfolioHoldings.reduce((sum, holding) => sum + holding.costValue, 0) / 
+                            portfolioHoldings.reduce((sum, holding) => sum + holding.netQuantity, 0)).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 4}) : 
+                           '0.00'
+                         }
+                       </td>
+                       <td className="ph-total-value-sum">
+                         {portfolioHoldings.reduce((sum, holding) => sum + holding.costValue, 0).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 4})}
+                       </td>
+                       <td className="ph-total-charges">
+                         {portfolioHoldings.reduce((sum, holding) => sum + holding.totalCharges, 0).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}
+                       </td>
+                       <td className="ph-total-net-value">
+                         {portfolioHoldings.reduce((sum, holding) => sum + holding.netValue, 0).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 4})}
+                       </td>
+                       <td className="ph-total-cost-per-share">
+                         {portfolioHoldings.length > 0 ? 
+                           (portfolioHoldings.reduce((sum, holding) => sum + holding.netValue, 0) / 
+                            portfolioHoldings.reduce((sum, holding) => sum + holding.netQuantity, 0)).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 4}) : 
+                           '0.00'
+                         }
+                       </td>
+                     </tr>
+                   </tfoot>
                   </table>
-                )}
-                </div>
-                
-                {filteredPortfolioData.length === 0 && portfolioData.length > 0 && (
-                  <div className="pf-no-data-message">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                      <circle cx="12" cy="12" r="10"></circle>
-                      <line x1="12" y1="8" x2="12" y2="12"></line>
-                      <line x1="12" y1="16" x2="12.01" y2="16"></line>
-                    </svg>
-                    <p>No transactions found for the selected date range.</p>
-                    <button className="pf-clear-filter-button" onClick={clearDateRange}>
-                      Clear Date Filter
-                    </button>
                   </div>
                 )}
               </div>
-            )}
-          </div>
-        </>
       )}
     </div>
   );
