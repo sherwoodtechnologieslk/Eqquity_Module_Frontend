@@ -98,8 +98,8 @@ const PortfolioOverview = ({ onTabChange }) => {
       const response = await fetch(url, {
         method: 'GET',
         headers: {
-          'Content-Type': 'application/json'
-          // Removed Authorization header since backend doesn't require it for now
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
         }
       });
 
@@ -155,7 +155,7 @@ const PortfolioOverview = ({ onTabChange }) => {
 
   // Regenerate chart data when time range changes
   useEffect(() => {
-    if (portfolioData.summary.totalValue > 0) {
+    if (portfolioData.summary && portfolioData.summary.totalValue > 0) {
       const newValueHistory = generateValueHistory(selectedTimeRange, portfolioData.summary.totalValue);
       setPortfolioData(prev => ({
         ...prev,
@@ -168,7 +168,7 @@ const PortfolioOverview = ({ onTabChange }) => {
         valueHistory: []
       }));
     }
-  }, [selectedTimeRange, portfolioData.summary.totalValue]);
+  }, [selectedTimeRange, portfolioData.summary?.totalValue]);
 
 
   const formatCurrency = (amount) => {

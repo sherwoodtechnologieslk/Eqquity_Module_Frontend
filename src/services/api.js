@@ -1,4 +1,30 @@
-const API_BASE_URL = 'http://localhost:8080/api';
+const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8080/api';
+
+// Helper function to get auth headers
+const getAuthHeaders = () => {
+    const token = localStorage.getItem('token');
+    return token ? { 'Authorization': `Bearer ${token}` } : {};
+};
+
+// Helper function to make authenticated requests
+const makeAuthenticatedRequest = async (url, options = {}) => {
+    const headers = {
+        'Content-Type': 'application/json',
+        ...getAuthHeaders(),
+        ...options.headers
+    };
+    
+    const response = await fetch(url, {
+        ...options,
+        headers
+    });
+    
+    if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    
+    return await response.json();
+};
 
 // API service for equity operations
 export const equityAPI = {
@@ -238,11 +264,7 @@ export const tradeSummaryAPI = {
   // Get all buy transactions
   getBuyTransactions: async () => {
     try {
-      const response = await fetch(`${API_BASE_URL}/trade-summary/buy-transactions`);
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-      return await response.json();
+      return await makeAuthenticatedRequest(`${API_BASE_URL}/trade-summary/buy-transactions`);
     } catch (error) {
       console.error('Error fetching buy transactions:', error);
       throw error;
@@ -337,11 +359,7 @@ export const portfolioAPI = {
   // Get all portfolios
   getAllPortfolios: async () => {
     try {
-      const response = await fetch(`${API_BASE_URL}/portfolios`);
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-      return await response.json();
+      return await makeAuthenticatedRequest(`${API_BASE_URL}/portfolios`);
     } catch (error) {
       console.error('Error fetching portfolios:', error);
       throw error;
@@ -418,11 +436,7 @@ export const portfolioAPI = {
   // Get only active portfolios
   getActivePortfolios: async () => {
     try {
-      const response = await fetch(`${API_BASE_URL}/portfolios/active`);
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-      return await response.json();
+      return await makeAuthenticatedRequest(`${API_BASE_URL}/portfolios/active`);
     } catch (error) {
       console.error('Error fetching active portfolios:', error);
       throw error;
@@ -641,12 +655,12 @@ export const transactionEntryAPI = {
     }
   },
   getCompaniesByPortfolio: async (portfolioName) => {
-    const res = await fetch(`http://localhost:8080/api/transaction-entries/companies?portfolio=${encodeURIComponent(portfolioName)}`);
+    const res = await fetch(`${API_BASE_URL}/transaction-entries/companies?portfolio=${encodeURIComponent(portfolioName)}`);
     if (!res.ok) throw new Error('Failed to fetch companies');
     return res.json();
   },
   getTotalQuantity: async (portfolioName, companyName) => {
-    const res = await fetch(`http://localhost:8080/api/transaction-entries/total-quantity?portfolio=${encodeURIComponent(portfolioName)}&company=${encodeURIComponent(companyName)}`);
+    const res = await fetch(`${API_BASE_URL}/transaction-entries/total-quantity?portfolio=${encodeURIComponent(portfolioName)}&company=${encodeURIComponent(companyName)}`);
     if (!res.ok) throw new Error('Failed to fetch total quantity');
     return res.json();
   },
@@ -718,11 +732,7 @@ export const transactionEntryAPI = {
   },
   getAllSellTransactions: async () => {
     try {
-      const response = await fetch(`${API_BASE_URL}/transaction-entries/sell-all`);
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-      return await response.json();
+      return await makeAuthenticatedRequest(`${API_BASE_URL}/transaction-entries/sell-all`);
     } catch (error) {
       console.error('Error fetching all sell transactions:', error);
       throw error;
@@ -890,7 +900,7 @@ export const costOfFundsAPI = {
 
 export const chartOfAccountsAPI = {
   getAll: async () => {
-    const response = await fetch('http://localhost:8080/api/chart-of-accounts');
+    const response = await fetch(`${API_BASE_URL}/chart-of-accounts`);
     if (!response.ok) throw new Error('Failed to fetch chart of accounts');
     return await response.json();
   }

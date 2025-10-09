@@ -141,7 +141,8 @@ const Dashboard = ({ onTabChange }) => {
           const holdingsResponse = await fetch('http://localhost:8080/api/portfolios/overview', {
             method: 'GET',
             headers: {
-              'Content-Type': 'application/json'
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${localStorage.getItem('token')}`
             }
           });
 
