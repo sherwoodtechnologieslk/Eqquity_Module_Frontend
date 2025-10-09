@@ -297,13 +297,6 @@ const PortfolioDropdown = () => {
     <div className="pf-dropdown-container">
       {/* Header Section */}
       <div className="pf-header-section">
-        <div className="pf-header-icon">
-          <svg className="pf-icon" fill="currentColor" viewBox="0 0 24 24">
-            <rect x="3" y="6" width="18" height="12" rx="3" fill="#3b82f6"/>
-            <rect x="7" y="10" width="10" height="2" rx="1" fill="#fff"/>
-            <rect x="7" y="14" width="6" height="2" rx="1" fill="#fff"/>
-          </svg>
-        </div>
         <div className="pf-header-text-group">
           <h1 className="pf-main-title">Portfolio Selection<span className="pf-label-accent">*</span></h1>
         </div>

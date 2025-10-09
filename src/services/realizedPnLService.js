@@ -10,6 +10,7 @@ export const realizedPnLService = {
   // Get complete realized P&L data for frontend (all data in one call)
   getCompleteData: async (portfolioId, timeRange = '1Y') => {
     try {
+      console.log('Making API call to:', `${API_BASE_URL}/realized-pnl/complete-data?portfolioId=${encodeURIComponent(portfolioId)}&timeRange=${timeRange}`);
       const response = await fetch(
         `${API_BASE_URL}/realized-pnl/complete-data?portfolioId=${encodeURIComponent(portfolioId)}&timeRange=${timeRange}`,
         {
@@ -17,11 +18,18 @@ export const realizedPnLService = {
         }
       );
       
+      console.log('API Response status:', response.status);
+      console.log('API Response ok:', response.ok);
+      
       if (!response.ok) {
+        const errorText = await response.text();
+        console.error('API Error response:', errorText);
         throw new Error(`HTTP error! status: ${response.status}`);
       }
       
-      return await response.json();
+      const data = await response.json();
+      console.log('API Response data:', data);
+      return data;
     } catch (error) {
       console.error('Error fetching complete realized P&L data:', error);
       throw error;
