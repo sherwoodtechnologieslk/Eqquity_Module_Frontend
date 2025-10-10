@@ -461,7 +461,17 @@ const MarkToMarketValuation = () => {
   };
 
   const calculatePortfolioTotals = () => {
-    if (!mtmData.length) return { totalCost: 0, totalGrossSales: 0, totalCharges: 0, totalProjectedSales: 0, totalCostOfFunds: 0, totalProjectedSalesWithCOF: 0, totalGainLoss: 0, totalGainLossPercentage: 0 };
+    if (!mtmData.length) return { 
+      totalCost: 0, 
+      totalGrossSales: 0, 
+      totalCharges: 0, 
+      totalProjectedSales: 0, 
+      totalCostOfFunds: 0, 
+      totalProjectedSalesWithCOF: 0, 
+      totalGainLoss: 0, 
+      totalGainLossPercentage: 0,
+      totalMarket: 0
+    };
     
     const totalCost = mtmData.reduce((sum, item) => sum + item.costValue, 0);
     const totalGrossSales = mtmData.reduce((sum, item) => sum + (item.grossSales || 0), 0);
@@ -469,10 +479,24 @@ const MarkToMarketValuation = () => {
     const totalProjectedSales = mtmData.reduce((sum, item) => sum + (item.projectedSalesProceeds || 0), 0);
     const totalCostOfFunds = mtmData.reduce((sum, item) => sum + (item.costOfFunds || 0), 0);
     const totalProjectedSalesWithCOF = mtmData.reduce((sum, item) => sum + (item.projectedSalesWithCOF || 0), 0);
+    
+    // Calculate total market value - using grossSales as it represents current market value
+    const totalMarket = mtmData.reduce((sum, item) => sum + (item.grossSales || 0), 0);
+    
     const totalGainLoss = totalGrossSales - totalCost;
     const totalGainLossPercentage = totalCost > 0 ? (totalGainLoss / totalCost) * 100 : 0;
     
-    return { totalCost, totalGrossSales, totalCharges, totalProjectedSales, totalCostOfFunds, totalProjectedSalesWithCOF, totalGainLoss, totalGainLossPercentage };
+    return { 
+      totalCost, 
+      totalGrossSales, 
+      totalCharges, 
+      totalProjectedSales, 
+      totalCostOfFunds, 
+      totalProjectedSalesWithCOF, 
+      totalGainLoss, 
+      totalGainLossPercentage,
+      totalMarket
+    };
   };
 
   const formatCurrency = (amount) => {

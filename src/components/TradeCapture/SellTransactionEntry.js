@@ -23,6 +23,7 @@ const SellTransactionEntry = ({ setFifoParams, setActiveTab }) => {
     quantity: '',
     soldPrice: '',
     boughtPrice: '',
+    buyTransactionDates: '', // Buy transaction dates
     tradeDate: getToday(),
     settlementDate: getToday(),
     brokerName: '',
@@ -129,10 +130,10 @@ const SellTransactionEntry = ({ setFifoParams, setActiveTab }) => {
         .catch(() => setFilteredCompanies([]))
         .finally(() => setCompaniesLoading(false));
       // Clear companyName and symbol if portfolio changes
-      setForm(prev => ({ ...prev, companyName: '', symbol: '' }));
+      setForm(prev => ({ ...prev, companyName: '', symbol: '', buyTransactionDates: '' }));
     } else {
       setFilteredCompanies([]);
-      setForm(prev => ({ ...prev, companyName: '', symbol: '' }));
+      setForm(prev => ({ ...prev, companyName: '', symbol: '', buyTransactionDates: '' }));
     }
   }, [form.portfolioName]);
 
@@ -491,6 +492,7 @@ const SellTransactionEntry = ({ setFifoParams, setActiveTab }) => {
       hdays: parseInt(form.hdays) || 0,
       cp: parseFloat(form.cp) || 0,
       buy_contract: form.buyContract || '',
+      buy_transaction_dates: form.buyTransactionDates || '',
       holding_cost: parseFloat(form.holdingCost) || 0,
       profit_loss: parseFloat(form.profitLoss) || 0,
       total_shares: totalShares
@@ -546,7 +548,7 @@ const SellTransactionEntry = ({ setFifoParams, setActiveTab }) => {
     `sell-form-input${errors[fieldName] ? ' sell-error' : ''}`;
 
   // Handle equity selection from modal
-  const handleEquitySelect = (companyName) => {
+  const handleEquitySelect = async (companyName) => {
     // Find the equity record to get the symbol
     const selectedEquity = equities.find(equity => equity.name === companyName);
     const symbol = selectedEquity ? selectedEquity.symbol : '';
@@ -556,6 +558,42 @@ const SellTransactionEntry = ({ setFifoParams, setActiveTab }) => {
       companyName: companyName,
       symbol: symbol
     }));
+    
+    // Fetch buy transaction dates for this company
+    if (symbol && form.portfolioName) {
+      try {
+        const buyTransactions = await transactionEntryAPI.getByPortfolio(form.portfolioName);
+        const companyBuyTransactions = buyTransactions.filter(tx => tx.symbol === symbol);
+        
+        // Format dates to user-friendly format
+        const formatDate = (dateString) => {
+          if (!dateString) return '';
+          try {
+            const date = new Date(dateString);
+            return date.toLocaleDateString('en-US', {
+              year: 'numeric',
+              month: 'short',
+              day: 'numeric'
+            });
+          } catch (error) {
+            return dateString;
+          }
+        };
+        
+        const buyDates = companyBuyTransactions.map(tx => formatDate(tx.trade_date)).join(', ');
+        
+        setForm(prev => ({
+          ...prev,
+          buyTransactionDates: buyDates
+        }));
+      } catch (error) {
+        console.error('Error fetching buy transaction dates:', error);
+        setForm(prev => ({
+          ...prev,
+          buyTransactionDates: 'Error loading dates'
+        }));
+      }
+    }
     
     // Clear any existing errors
     if (errors.companyName) {
@@ -914,7 +952,20 @@ const SellTransactionEntry = ({ setFifoParams, setActiveTab }) => {
                   {errors.boughtPrice && <span className="sell-error-text">{errors.boughtPrice}</span>}
                 </div>
                 <div className="sell-form-group">
-                  <label htmlFor="capitalGain">Capital Gain (LKR)</label>
+                  <label htmlFor="buyTransactionDates">Buy Transaction Dates</label>
+                  <input
+                    type="text"
+                    id="buyTransactionDates"
+                    name="buyTransactionDates"
+                    value={form.buyTransactionDates}
+                    onChange={handleChange}
+                    className="sell-form-input"
+                    placeholder="Dates of buy transactions being sold"
+                    readOnly
+                  />
+                  <small className="sell-field-note">Dates of the original buy transactions</small>
+                </div>
+                <div className="sell-form-group">
                   <div className="sell-capital-gain-row">
                     <input
                       type="number"

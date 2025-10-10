@@ -1274,3 +1274,19 @@
     align-items: flex-start;
   }
 }
+
+/* Footer */
+.dashboard-footer-section {
+  text-align: center;
+  margin-top: 2rem;
+  padding: 1.5rem 2rem;
+  color: #6b7280;
+  font-size: 0.875rem;
+  background: rgba(248, 250, 252, 0.8);
+  border-top: 1px solid #e2e8f0;
+}
+
+.dashboard-footer-section p { 
+  margin: 0; 
+  line-height: 1.5;
+}
