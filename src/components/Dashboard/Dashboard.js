@@ -292,7 +292,7 @@ const Dashboard = ({ onTabChange }) => {
           </svg>
         </div>
         <div className="header-text">
-          <h1>Welcome to Equity Module</h1>
+          <h1>Equity Module Dashboard</h1>
           <p>Professional Portfolio Management Dashboard</p>
         </div>
         <div className="header-dots">
@@ -627,6 +627,11 @@ const Dashboard = ({ onTabChange }) => {
             </div>
           </div>
         </div>
+      </div>
+
+      {/* Footer */}
+      <div className="dashboard-footer-section">
+        <p>SHERWOOD TECHNOLOGIES (PVT) LTD • Professional portfolio management dashboard • All data is encrypted and protected</p>
       </div>
     </div>
   );

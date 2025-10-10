@@ -1,7 +1,13 @@
+/* Page Layout - Matching MTM Style */
 .realized-pnl {
-  padding: 24px;
-  background-color: #f8fafc;
   min-height: 100vh;
+  padding: 2rem 1rem;
+  background-color: #f8fafc;
+}
+
+.realized-pnl-content-wrapper {
+  max-width: 1400px;
+  margin: 0 auto;
 }
 
 .realized-pnl-header {
@@ -44,7 +50,7 @@
 .portfolio-selector select {
   padding: 8px 16px;
   border: 1px solid #e2e8f0;
-  border-radius: 8px;
+  border-radius: 0;
   font-size: 14px;
   background-color: white;
   color: #1e293b;
@@ -80,7 +86,7 @@
 
 .summary-card {
   background: white;
-  border-radius: 12px;
+  border-radius: 0;
   padding: 24px;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
   border: 1px solid #e2e8f0;
@@ -161,7 +167,7 @@
 /* Tab Content */
 .tab-content {
   background: white;
-  border-radius: 12px;
+  border-radius: 0;
   padding: 32px;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
   border: 1px solid #e2e8f0;
@@ -176,7 +182,7 @@
 
 .performance-chart-placeholder {
   border: 2px dashed #e2e8f0;
-  border-radius: 12px;
+  border-radius: 0;
   padding: 48px;
   text-align: center;
   background-color: #f8fafc;
@@ -198,7 +204,7 @@
   color: #64748b;
   background-color: #e2e8f0;
   padding: 4px 12px;
-  border-radius: 16px;
+  border-radius: 0;
 }
 
 .chart-placeholder {
@@ -229,7 +235,7 @@
 .performer-card {
   background-color: #f8fafc;
   border: 1px solid #e2e8f0;
-  border-radius: 8px;
+  border-radius: 0;
   padding: 16px;
   text-align: center;
 }
@@ -314,7 +320,7 @@
 .trade-holding-period {
   font-size: 12px;
   padding: 4px 8px;
-  border-radius: 12px;
+  border-radius: 0;
   font-weight: 500;
 }
 
@@ -395,7 +401,7 @@
 .tax-card {
   background-color: #f8fafc;
   border: 1px solid #e2e8f0;
-  border-radius: 8px;
+  border-radius: 0;
   padding: 24px;
   text-align: center;
 }
@@ -443,7 +449,7 @@
   background-color: #3b82f6;
   color: white;
   border: none;
-  border-radius: 8px;
+  border-radius: 0;
   font-size: 14px;
   font-weight: 600;
   cursor: pointer;
@@ -559,4 +565,76 @@
   .tax-card {
     padding: 16px;
   }
+}
+
+/* Trade History Sections - Matching MTM Style */
+.trade-history-section {
+  background: white;
+  border-radius: 0;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  border: 1px solid #e2e8f0;
+  overflow: hidden;
+  margin-bottom: 2rem;
+}
+
+.trade-history-section h3 {
+  padding: 1.5rem 2rem;
+  border-bottom: 1px solid #e2e8f0;
+  background: #f8fafc;
+  margin: 0;
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #1f2937;
+}
+
+.trade-history-section .trades-table {
+  padding: 0;
+}
+
+.trade-history-section .trades-table table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.875rem;
+}
+
+.trade-history-section .trades-table th {
+  background: linear-gradient(135deg, #3b82f6, #2563eb);
+  color: white;
+  padding: 1rem;
+  text-align: left;
+  font-weight: 600;
+  font-size: 0.875rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.trade-history-section .trades-table td {
+  padding: 1rem;
+  border-bottom: 1px solid #f1f5f9;
+  color: #374151;
+}
+
+.trade-history-section .trades-table tbody tr:hover {
+  background: #f8fafc;
+}
+
+/* Buy Row Styling - Subtle blue tint */
+.buy-row {
+  background-color: #f0f9ff;
+}
+
+.buy-row:hover {
+  background-color: #e0f2fe;
+}
+
+/* Sell Row Styling - Subtle red tint */
+.sell-row {
+  background-color: #fef2f2;
+}
+
+.sell-row:hover {
+  background-color: #fee2e2;
 }
