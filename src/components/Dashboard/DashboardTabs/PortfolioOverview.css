@@ -119,9 +119,9 @@
 /* Summary Cards - Reduced Size */
 .summary-cards {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-  gap: 1.5rem;
-  margin-bottom: 2rem;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 1rem;
+  margin-bottom: 1.5rem;
   position: relative;
   z-index: 1;
 }
@@ -129,14 +129,14 @@
 .summary-card {
   background: rgba(255, 255, 255, 0.95);
   backdrop-filter: blur(20px);
-  border-radius: 16px;
-  padding: 1.5rem;
+  border-radius: 12px;
+  padding: 1rem;
   box-shadow: 
-    0 6px 24px rgba(0, 0, 0, 0.08),
-    0 3px 12px rgba(0, 0, 0, 0.04),
+    0 4px 16px rgba(0, 0, 0, 0.06),
+    0 2px 8px rgba(0, 0, 0, 0.03),
     inset 0 1px 0 rgba(255, 255, 255, 0.8);
   border: 1px solid rgba(255, 255, 255, 0.2);
-  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   display: flex;
   flex-direction: column;
   align-items: flex-start;
@@ -201,18 +201,18 @@
 }
 
 .card-icon {
-  width: 60px;
-  height: 60px;
+  width: 45px;
+  height: 45px;
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: 16px;
+  border-radius: 12px;
   background: var(--gradient);
   color: white;
-  font-size: 1.5rem;
-  margin-bottom: 1rem;
+  font-size: 1.2rem;
+  margin-bottom: 0.75rem;
   box-shadow: 
-    0 6px 12px rgba(0, 0, 0, 0.08),
+    0 4px 8px rgba(0, 0, 0, 0.06),
     inset 0 1px 0 rgba(255, 255, 255, 0.3);
   transition: all 0.3s ease;
   position: relative;
@@ -243,20 +243,20 @@
 }
 
 .card-content h3 {
-  font-size: 0.75rem;
+  font-size: 0.7rem;
   font-weight: 700;
   color: #64748b;
-  margin-bottom: 0.75rem;
+  margin-bottom: 0.5rem;
   text-transform: uppercase;
-  letter-spacing: 0.1em;
+  letter-spacing: 0.08em;
   opacity: 0.8;
 }
 
 .card-value {
-  font-size: 2rem;
+  font-size: 1.6rem;
   font-weight: 800;
   color: #1e293b;
-  margin-bottom: 0.5rem;
+  margin-bottom: 0.4rem;
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
   line-height: 1.1;
   text-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
@@ -923,7 +923,7 @@
   
   .summary-cards {
     grid-template-columns: 1fr;
-    gap: 1.5rem;
+    gap: 1rem;
   }
   
   .allocation-cards {
@@ -941,17 +941,17 @@
   }
   
   .card-value {
-    font-size: 2rem;
+    font-size: 1.4rem;
   }
   
   .summary-card {
-    padding: 1.5rem;
+    padding: 1rem;
   }
   
   .card-icon {
-    width: 60px;
-    height: 60px;
-    font-size: 1.5rem;
+    width: 45px;
+    height: 45px;
+    font-size: 1.2rem;
   }
 
   .value-chart-section {
