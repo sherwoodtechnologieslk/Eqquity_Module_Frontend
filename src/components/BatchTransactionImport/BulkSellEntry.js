@@ -204,12 +204,29 @@ const BulkSellEntry = () => {
             let totalQuantity = 0;
             
             res.allocations.forEach(allocation => {
-              const buySettlementDate = new Date(allocation.settlementDate);
-              const daysDiff = Math.ceil((sellSettlementDate - buySettlementDate) / (1000 * 60 * 60 * 24));
+              // Create date objects and normalize to start of day to avoid timezone issues
+              const sellDate = new Date(form.settlementDate);
+              const buyDate = new Date(allocation.settlementDate);
+              
+              // Normalize to start of day (00:00:00) to avoid timezone/time issues
+              sellDate.setHours(0, 0, 0, 0);
+              buyDate.setHours(0, 0, 0, 0);
+              
+              const daysDiff = Math.ceil((sellDate - buyDate) / (1000 * 60 * 60 * 24));
               const quantity = parseFloat(allocation.quantity);
               
-              // Only include positive holding days (buy settled before sell)
-              if (daysDiff > 0) {
+              // Debug logging for date calculation
+              console.log('Date calculation debug:', {
+                sellSettlementDate: form.settlementDate,
+                buySettlementDate: allocation.settlementDate,
+                sellDateNormalized: sellDate.toISOString(),
+                buyDateNormalized: buyDate.toISOString(),
+                daysDiff: daysDiff,
+                quantity: quantity
+              });
+              
+              // Include all transactions, including same-day (0 days) and positive holding days
+              if (daysDiff >= 0) {
                 totalWeightedDays += daysDiff * quantity;
                 totalQuantity += quantity;
               }
@@ -261,6 +278,26 @@ const BulkSellEntry = () => {
       setForm(prev => ({ ...prev, holdingCost: '' }));
     }
   }, [form.netValue, form.costOfFunds, form.hdays]);
+
+  // Recalculate Money Gen Cost when holding days change
+  useEffect(() => {
+    if (form.quantity && form.soldPrice && form.costOfFunds && form.hdays) {
+      const recalculateMoneyGenCost = async () => {
+        try {
+          const calc = await tradeSummaryAPI.calculateSellTransaction({
+            quantity: form.quantity,
+            soldPrice: form.soldPrice,
+            costOfFunds: form.costOfFunds,
+            holdingDays: form.hdays
+          });
+          setForm(prev => ({ ...prev, moneyGenerationCost: calc.moneyGenerationCost ?? '' }));
+        } catch (err) {
+          console.error('Error recalculating money gen cost:', err);
+        }
+      };
+      recalculateMoneyGenCost();
+    }
+  }, [form.hdays]);
 
   // Handle equity selection from modal
   const handleEquitySelect = (companyName) => {
@@ -396,7 +433,8 @@ const BulkSellEntry = () => {
           const calc = await tradeSummaryAPI.calculateSellTransaction({
             quantity: name === 'quantity' ? value : updatedForm.quantity,
             soldPrice: name === 'soldPrice' ? value : updatedForm.soldPrice,
-            costOfFunds: updatedForm.costOfFunds
+            costOfFunds: updatedForm.costOfFunds,
+            holdingDays: updatedForm.hdays || 0
           });
           setForm({
             ...updatedForm,
