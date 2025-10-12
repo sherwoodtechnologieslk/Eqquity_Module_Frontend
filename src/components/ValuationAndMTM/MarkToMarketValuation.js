@@ -1104,6 +1104,7 @@ const MarkToMarketValuation = () => {
                     <th>Projected Sale Proceeds with COF</th>
                     <th>Unrealized Capital Gain</th>
                     <th>Capital Gain %</th>
+                    <th>Unrealized P&L</th>
                     <th>Last Update</th>
                   </tr>
                 </thead>
@@ -1127,6 +1128,9 @@ const MarkToMarketValuation = () => {
                       <td className={`mtm-gain-loss-percentage ${item.gainLossPercentage >= 0 ? 'positive' : 'negative'}`}>
                         {formatPercentage(item.gainLossPercentage)}
                       </td>
+                      <td className={`mtm-unrealized-pnl ${(item.projectedSalesWithCOF - (item.costValue + item.charges)) >= 0 ? 'positive' : 'negative'}`}>
+                        {formatCurrency(item.projectedSalesWithCOF - (item.costValue + item.charges))}
+                      </td>
                       <td className="mtm-last-update">
                         {item.lastPriceUpdate ? new Date(item.lastPriceUpdate).toLocaleDateString() : 'N/A'}
                       </td>
@@ -1147,6 +1151,9 @@ const MarkToMarketValuation = () => {
                     </td>
                     <td className={`mtm-total-gain-loss-percentage ${totals.totalGainLoss >= 0 ? 'positive' : 'negative'}`}>
                       {formatPercentage(totals.totalGainLossPercentage)}
+                    </td>
+                    <td className={`mtm-total-unrealized-pnl ${(totals.totalProjectedSalesWithCOF - (totals.totalCost + totals.totalCharges)) >= 0 ? 'positive' : 'negative'}`}>
+                      {formatCurrency(totals.totalProjectedSalesWithCOF - (totals.totalCost + totals.totalCharges))}
                     </td>
                     <td></td>
                   </tr>

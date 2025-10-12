@@ -37,7 +37,6 @@ const SellTransactionEntry = ({ setFifoParams, setActiveTab }) => {
     hdays: '',
     cp: '',
     buyContract: '',
-    holdingCost: '',
     profitLoss: '',
     // Cost breakdown fields
     grossValue: '',
@@ -80,10 +79,10 @@ const SellTransactionEntry = ({ setFifoParams, setActiveTab }) => {
     const fetchActiveCostOfFunds = async () => {
       try {
         const activeCostOfFunds = await costOfFundsAPI.getActiveCostOfFunds();
-        if (activeCostOfFunds && activeCostOfFunds.cost_of_funds) {
+        if (activeCostOfFunds && activeCostOfFunds.after_tax_cost_of_funds) {
           setForm(prev => ({ 
             ...prev, 
-            costOfFunds: parseFloat(activeCostOfFunds.cost_of_funds).toFixed(2)
+            costOfFunds: parseFloat(activeCostOfFunds.after_tax_cost_of_funds).toFixed(2)
           }));
         }
       } catch (error) {
@@ -353,23 +352,17 @@ const SellTransactionEntry = ({ setFifoParams, setActiveTab }) => {
     }
   }, [totalShares, form.quantity]);
 
-  // Calculate Holding Cost when relevant fields change
+  // Calculate Profit/Loss when relevant fields change
   useEffect(() => {
-    if (form.netValue && form.costOfFunds && form.hdays) {
-      const netValue = parseFloat(form.netValue) || 0;
-      const costOfFunds = parseFloat(form.costOfFunds) || 0;
-      const holdingDays = parseFloat(form.hdays) || 0;
-      
-      if (netValue > 0 && costOfFunds > 0 && holdingDays > 0) {
-        const holdingCost = (netValue * costOfFunds * holdingDays) / 365;
-        setForm(prev => ({ ...prev, holdingCost: holdingCost.toFixed(2) }));
-      } else {
-        setForm(prev => ({ ...prev, holdingCost: '' }));
-      }
+    if (form.capitalGain && form.moneyGenerationCost) {
+      const capitalGain = parseFloat(form.capitalGain) || 0;
+      const moneyGenCost = parseFloat(form.moneyGenerationCost) || 0;
+      const profitLoss = capitalGain - moneyGenCost;
+      setForm(prev => ({ ...prev, profitLoss: profitLoss.toFixed(2) }));
     } else {
-      setForm(prev => ({ ...prev, holdingCost: '' }));
+      setForm(prev => ({ ...prev, profitLoss: '' }));
     }
-  }, [form.netValue, form.costOfFunds, form.hdays]);
+  }, [form.capitalGain, form.moneyGenerationCost]);
 
   // Recalculate Money Gen Cost when holding days change
   useEffect(() => {
@@ -1360,23 +1353,6 @@ const SellTransactionEntry = ({ setFifoParams, setActiveTab }) => {
                     disabled
                   />
                 </div>
-                <div className="sell-form-group">
-                  <label htmlFor="holdingCost">Holding Cost (LKR)</label>
-                  <input
-                    type="number"
-                    id="holdingCost"
-                    name="holdingCost"
-                    value={form.holdingCost}
-                    readOnly
-                    className="sell-form-input sell-calculated-field"
-                    placeholder="Auto-calculated"
-                    step="0.01"
-                    min="0"
-                  />
-                  <small className="sell-field-note">
-                    Calculated as (Net Value × Cost of Funds (After-Tax) × Holding Days) ÷ 365
-                  </small>
-                </div>
               </div>
 
               {/* Profit / Loss Card */}
@@ -1394,7 +1370,7 @@ const SellTransactionEntry = ({ setFifoParams, setActiveTab }) => {
                     step="0.01"
                     readOnly
                   />
-                  <small className="sell-field-note">Capital Gain - Holding Cost</small>
+                  <small className="sell-field-note">Capital Gain - Money Generation Cost</small>
                 </div>
               </div>
 

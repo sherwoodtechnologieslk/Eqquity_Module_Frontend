@@ -83,50 +83,6 @@ const PortfolioDropdown = () => {
         const transactionValue = quantity * (parseFloat(transaction.price) || 0);
         const previousTotalValue = holding.avgBuyPrice * previousTotalBought;
         holding.avgBuyPrice = (previousTotalValue + transactionValue) / holding.totalBought;
-        
-        // Calculate charges using the same fee structure as Buy Transaction Entry
-        let calculatedCharges = 0;
-        
-        if (transactionValue <= 100000000) { // Transactions up to Rs. 100 Million
-          // Total fee rate: 1.12%
-          const brokerage = Math.round(transactionValue * 0.00640 * 100) / 100;    // 0.640%
-          const cseFees = Math.round(transactionValue * 0.00084 * 100) / 100;      // 0.084%
-          const cdsFees = Math.round(transactionValue * 0.00012 * 100) / 100;     // 0.012%
-          const clearingFees = Math.round(transactionValue * 0.00012 * 100) / 100; // 0.012%
-          const sec = Math.round(transactionValue * 0.00072 * 100) / 100;          // 0.072%
-          const stl = Math.round(transactionValue * 0.003 * 100) / 100;            // 0.300%
-          calculatedCharges = brokerage + cseFees + cdsFees + clearingFees + sec + stl;
-        } else { // Transactions over Rs. 100 Million
-          // Tiered calculation: standard rate for first 100M, reduced rate for excess
-          const first100M = 100000000;
-          const excess = transactionValue - 100000000;
-          
-          // First Rs. 100M at standard rates
-          const first100MBrokerage = Math.round(first100M * 0.00640 * 100) / 100;    // 0.640%
-          const first100MCSE = Math.round(first100M * 0.00084 * 100) / 100;          // 0.084%
-          const first100MCDS = Math.round(first100M * 0.00012 * 100) / 100;          // 0.012%
-          const first100MClearing = Math.round(first100M * 0.00012 * 100) / 100;     // 0.012%
-          const first100MSEC = Math.round(first100M * 0.00072 * 100) / 100;          // 0.072%
-          const first100MSTL = Math.round(first100M * 0.003 * 100) / 100;            // 0.300%
-          
-          // Excess amount at reduced rates
-          const excessBrokerage = Math.round(excess * 0.00200 * 100) / 100;          // 0.200%
-          const excessCSE = Math.round(excess * 0.000525 * 100) / 100;               // 0.0525%
-          const excessCDS = Math.round(excess * 0.000075 * 100) / 100;               // 0.0075%
-          const excessClearing = Math.round(excess * 0.000075 * 100) / 100;          // 0.0075%
-          const excessSEC = Math.round(excess * 0.000450 * 100) / 100;               // 0.0450%
-          const excessSTL = Math.round(excess * 0.003 * 100) / 100;                  // 0.300%
-          
-          // Total fees = sum of both portions
-          calculatedCharges = (first100MBrokerage + excessBrokerage) + 
-                             (first100MCSE + excessCSE) + 
-                             (first100MCDS + excessCDS) + 
-                             (first100MClearing + excessClearing) + 
-                             (first100MSEC + excessSEC) + 
-                             (first100MSTL + excessSTL);
-        }
-        
-        holding.totalCharges += calculatedCharges;
       });
 
       // Process sell transactions (subtract from holdings)
@@ -148,64 +104,64 @@ const PortfolioDropdown = () => {
         
         const holding = holdingsMap.get(companyName);
         holding.totalSold += quantity;
-        
-        // Calculate charges using the same fee structure as Sell Transaction Entry
-        const transactionValue = quantity * (parseFloat(transaction.price) || parseFloat(transaction.sold_price) || 0);
-        let calculatedCharges = 0;
-        
-        if (transactionValue <= 100000000) { // Transactions up to Rs. 100 Million
-          // Total fee rate: 1.12%
-          const brokerage = Math.round(transactionValue * 0.00640 * 100) / 100;    // 0.640%
-          const cseFees = Math.round(transactionValue * 0.00084 * 100) / 100;      // 0.084%
-          const cdsFees = Math.round(transactionValue * 0.00012 * 100) / 100;     // 0.012%
-          const clearingFees = Math.round(transactionValue * 0.00012 * 100) / 100; // 0.012%
-          const sec = Math.round(transactionValue * 0.00072 * 100) / 100;          // 0.072%
-          const stl = Math.round(transactionValue * 0.003 * 100) / 100;            // 0.300%
-          calculatedCharges = brokerage + cseFees + cdsFees + clearingFees + sec + stl;
-        } else { // Transactions over Rs. 100 Million
-          // Tiered calculation: standard rate for first 100M, reduced rate for excess
-          const first100M = 100000000;
-          const excess = transactionValue - 100000000;
-          
-          // First Rs. 100M at standard rates
-          const first100MBrokerage = Math.round(first100M * 0.00640 * 100) / 100;    // 0.640%
-          const first100MCSE = Math.round(first100M * 0.00084 * 100) / 100;          // 0.084%
-          const first100MCDS = Math.round(first100M * 0.00012 * 100) / 100;          // 0.012%
-          const first100MClearing = Math.round(first100M * 0.00012 * 100) / 100;     // 0.012%
-          const first100MSEC = Math.round(first100M * 0.00072 * 100) / 100;          // 0.072%
-          const first100MSTL = Math.round(first100M * 0.003 * 100) / 100;            // 0.300%
-          
-          // Excess amount at reduced rates
-          const excessBrokerage = Math.round(excess * 0.00200 * 100) / 100;          // 0.200%
-          const excessCSE = Math.round(excess * 0.000525 * 100) / 100;               // 0.0525%
-          const excessCDS = Math.round(excess * 0.000075 * 100) / 100;               // 0.0075%
-          const excessClearing = Math.round(excess * 0.000075 * 100) / 100;          // 0.0075%
-          const excessSEC = Math.round(excess * 0.000450 * 100) / 100;               // 0.0450%
-          const excessSTL = Math.round(excess * 0.003 * 100) / 100;                  // 0.300%
-          
-          // Total fees = sum of both portions
-          calculatedCharges = (first100MBrokerage + excessBrokerage) + 
-                             (first100MCSE + excessCSE) + 
-                             (first100MCDS + excessCDS) + 
-                             (first100MClearing + excessClearing) + 
-                             (first100MSEC + excessSEC) + 
-                             (first100MSTL + excessSTL);
-        }
-        
-        holding.totalCharges += calculatedCharges;
       });
 
-      // Calculate net quantities, cost values, and net values, filter out zero holdings
+      // Calculate net quantities, cost values, and charges using MTM screen logic
       const holdings = Array.from(holdingsMap.values())
         .map(holding => {
           const netQuantity = holding.totalBought - holding.totalSold;
           const costValue = netQuantity * holding.avgBuyPrice;
-          const netValue = costValue + holding.totalCharges;
+          
+          // Calculate charges using MTM screen logic - based on current position's cost value
+          let calculatedCharges = 0;
+          if (costValue > 0) {
+            if (costValue <= 100000000) { // Transactions up to Rs. 100 Million
+              // Total fee rate: 1.12%
+              const brokerage = Math.round(costValue * 0.00640 * 100) / 100;    // 0.640%
+              const cseFees = Math.round(costValue * 0.00084 * 100) / 100;      // 0.084%
+              const cdsFees = Math.round(costValue * 0.00012 * 100) / 100;     // 0.012%
+              const clearingFees = Math.round(costValue * 0.00012 * 100) / 100; // 0.012%
+              const sec = Math.round(costValue * 0.00072 * 100) / 100;          // 0.072%
+              const stl = Math.round(costValue * 0.003 * 100) / 100;            // 0.300%
+              calculatedCharges = brokerage + cseFees + cdsFees + clearingFees + sec + stl;
+            } else { // Transactions over Rs. 100 Million
+              // Tiered calculation: standard rate for first 100M, reduced rate for excess
+              const first100M = 100000000;
+              const excess = costValue - 100000000;
+              
+              // First Rs. 100M at standard rates
+              const first100MBrokerage = Math.round(first100M * 0.00640 * 100) / 100;    // 0.640%
+              const first100MCSE = Math.round(first100M * 0.00084 * 100) / 100;          // 0.084%
+              const first100MCDS = Math.round(first100M * 0.00012 * 100) / 100;          // 0.012%
+              const first100MClearing = Math.round(first100M * 0.00012 * 100) / 100;     // 0.012%
+              const first100MSEC = Math.round(first100M * 0.00072 * 100) / 100;          // 0.072%
+              const first100MSTL = Math.round(first100M * 0.003 * 100) / 100;            // 0.300%
+              
+              // Excess amount at reduced rates
+              const excessBrokerage = Math.round(excess * 0.00200 * 100) / 100;          // 0.200%
+              const excessCSE = Math.round(excess * 0.000525 * 100) / 100;               // 0.0525%
+              const excessCDS = Math.round(excess * 0.000075 * 100) / 100;               // 0.0075%
+              const excessClearing = Math.round(excess * 0.000075 * 100) / 100;          // 0.0075%
+              const excessSEC = Math.round(excess * 0.000450 * 100) / 100;               // 0.0450%
+              const excessSTL = Math.round(excess * 0.003 * 100) / 100;                  // 0.300%
+              
+              // Total fees = sum of both portions
+              calculatedCharges = (first100MBrokerage + excessBrokerage) + 
+                                 (first100MCSE + excessCSE) + 
+                                 (first100MCDS + excessCDS) + 
+                                 (first100MClearing + excessClearing) + 
+                                 (first100MSEC + excessSEC) + 
+                                 (first100MSTL + excessSTL);
+            }
+          }
+          
+          const netValue = costValue + calculatedCharges;
           const costPerShare = netQuantity > 0 ? netValue / netQuantity : 0;
           return {
             ...holding,
             netQuantity: netQuantity,
             costValue: costValue,
+            totalCharges: calculatedCharges, // Use calculated charges instead of accumulated
             netValue: netValue,
             costPerShare: costPerShare
           };
