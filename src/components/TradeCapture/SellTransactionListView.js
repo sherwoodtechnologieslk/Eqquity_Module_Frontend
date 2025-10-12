@@ -68,7 +68,6 @@ const SellTransactionListView = ({ onBack, setFifoParams, setActiveTab }) => {
                 <th className="STLTV-table-header">Cost of Funds</th>
                 <th className="STLTV-table-header">Holding Days</th>
                 <th className="STLTV-table-header">Buy Contract</th>
-                <th className="STLTV-table-header">Holding Cost</th>
                 <th className="STLTV-table-header">Money Gen Cost</th>
                 <th className="STLTV-table-header">Broker Name</th>
                 <th className="STLTV-table-header">Trade Date</th>
@@ -106,7 +105,6 @@ const SellTransactionListView = ({ onBack, setFifoParams, setActiveTab }) => {
                   <td className="STLTV-table-cell">{parseFloat(tx.cost_of_funds || 0).toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 4})}%</td>
                   <td className="STLTV-table-cell">{tx.hdays || '-'}</td>
                   <td className="STLTV-table-cell">{tx.buy_contract || '-'}</td>
-                  <td className="STLTV-table-cell">{parseFloat(tx.holding_cost || 0).toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 4})}</td>
                   <td className="STLTV-table-cell">{parseFloat(tx.money_generation_cost || 0).toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 4})}</td>
                   <td className="STLTV-table-cell">{tx.broker_name}</td>
                   <td className="STLTV-table-cell">{tx.trade_date}</td>

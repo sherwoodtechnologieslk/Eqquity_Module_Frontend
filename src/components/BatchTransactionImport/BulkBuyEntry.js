@@ -78,10 +78,10 @@ const BulkBuyEntry = () => {
     const fetchActiveCostOfFunds = async () => {
       try {
         const activeCostOfFunds = await costOfFundsAPI.getActiveCostOfFunds();
-        if (activeCostOfFunds && activeCostOfFunds.cost_of_funds) {
+        if (activeCostOfFunds && activeCostOfFunds.after_tax_cost_of_funds) {
           setForm(prev => ({ 
             ...prev, 
-            costOfFunds: parseFloat(activeCostOfFunds.cost_of_funds).toFixed(2)
+            costOfFunds: parseFloat(activeCostOfFunds.after_tax_cost_of_funds).toFixed(2)
           }));
         }
       } catch (error) {

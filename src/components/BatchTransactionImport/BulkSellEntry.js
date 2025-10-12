@@ -42,7 +42,6 @@ const BulkSellEntry = () => {
     hdays: '',
     cp: '',
     buyContract: '',
-    holdingCost: '',
     profitLoss: '',
     dealNumber: '',
     // Cost breakdown fields
@@ -81,10 +80,10 @@ const BulkSellEntry = () => {
         try {
           const costOfFundsData = await costOfFundsAPI.getActiveCostOfFunds();
           // Set cost of funds in form if available
-          if (costOfFundsData && costOfFundsData.cost_of_funds) {
+          if (costOfFundsData && costOfFundsData.after_tax_cost_of_funds) {
             setForm(prev => ({ 
               ...prev, 
-              costOfFunds: parseFloat(costOfFundsData.cost_of_funds).toFixed(2)
+              costOfFunds: parseFloat(costOfFundsData.after_tax_cost_of_funds).toFixed(2)
             }));
           }
         } catch (costError) {
@@ -261,23 +260,17 @@ const BulkSellEntry = () => {
     }
   }, [form.quantity, form.soldPrice]);
 
-  // Calculate Holding Cost when relevant fields change
+  // Calculate Profit/Loss when relevant fields change
   useEffect(() => {
-    if (form.netValue && form.costOfFunds && form.hdays) {
-      const netValue = parseFloat(form.netValue) || 0;
-      const costOfFunds = parseFloat(form.costOfFunds) || 0;
-      const holdingDays = parseFloat(form.hdays) || 0;
-      
-      if (netValue > 0 && costOfFunds > 0 && holdingDays > 0) {
-        const holdingCost = (netValue * costOfFunds * holdingDays) / 365;
-        setForm(prev => ({ ...prev, holdingCost: holdingCost.toFixed(2) }));
-      } else {
-        setForm(prev => ({ ...prev, holdingCost: '' }));
-      }
+    if (form.capitalGain && form.moneyGenerationCost) {
+      const capitalGain = parseFloat(form.capitalGain) || 0;
+      const moneyGenCost = parseFloat(form.moneyGenerationCost) || 0;
+      const profitLoss = capitalGain - moneyGenCost;
+      setForm(prev => ({ ...prev, profitLoss: profitLoss.toFixed(2) }));
     } else {
-      setForm(prev => ({ ...prev, holdingCost: '' }));
+      setForm(prev => ({ ...prev, profitLoss: '' }));
     }
-  }, [form.netValue, form.costOfFunds, form.hdays]);
+  }, [form.capitalGain, form.moneyGenerationCost]);
 
   // Recalculate Money Gen Cost when holding days change
   useEffect(() => {
@@ -1142,22 +1135,6 @@ const BulkSellEntry = () => {
                   />
                 </div>
 
-                <div className="bulk-sell-form-group">
-                  <label className="bulk-sell-label">Holding Cost (LKR)</label>
-                  <input
-                    type="number"
-                    name="holdingCost"
-                    value={form.holdingCost}
-                    readOnly
-                    className="bulk-sell-input bulk-sell-calculated-field"
-                    placeholder="Auto-calculated"
-                    step="0.01"
-                    min="0"
-                  />
-                  <small className="bulk-sell-field-note">
-                    Calculated as (Net Value × Cost of Funds (After-Tax) × Holding Days) ÷ 365
-                  </small>
-                </div>
               </div>
 
               {/* Profit / Loss Card */}
@@ -1174,7 +1151,7 @@ const BulkSellEntry = () => {
                     step="0.01"
                     readOnly
                   />
-                  <small className="bulk-sell-field-note">Capital Gain - Holding Cost</small>
+                  <small className="bulk-sell-field-note">Capital Gain - Money Generation Cost</small>
                 </div>
               </div>
 
