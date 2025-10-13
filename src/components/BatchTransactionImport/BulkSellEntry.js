@@ -260,11 +260,21 @@ const BulkSellEntry = () => {
     }
   }, [form.quantity, form.soldPrice]);
 
+  // Calculate Capital Gain: (Sold Price - Bought Price) × Quantity
+  useEffect(() => {
+    if (form.soldPrice && form.boughtPrice && form.quantity) {
+      const gain = (parseFloat(form.soldPrice) - parseFloat(form.boughtPrice)) * parseFloat(form.quantity);
+      setForm(prev => ({ ...prev, capitalGain: gain.toFixed(2) }));
+    } else {
+      setForm(prev => ({ ...prev, capitalGain: '' }));
+    }
+  }, [form.soldPrice, form.boughtPrice, form.quantity]);
+
   // Calculate Profit/Loss when relevant fields change
   useEffect(() => {
-    if (form.capitalGain && form.moneyGenerationCost) {
+    if (form.capitalGain) {
       const capitalGain = parseFloat(form.capitalGain) || 0;
-      const moneyGenCost = parseFloat(form.moneyGenerationCost) || 0;
+      const moneyGenCost = parseFloat(form.moneyGenerationCost) || 0; // Default to 0 if null/empty
       const profitLoss = capitalGain - moneyGenCost;
       setForm(prev => ({ ...prev, profitLoss: profitLoss.toFixed(2) }));
     } else {
