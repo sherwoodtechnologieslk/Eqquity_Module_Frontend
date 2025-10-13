@@ -1095,11 +1095,12 @@ const MarkToMarketValuation = () => {
                     <th>Symbol</th>
                     <th>Quantity</th>
                     <th>Cost Price</th>
-                    <th>Cost Value</th>
                     <th>Market Price</th>
+                    <th>Cost Value</th>
                     <th>Gross Sales</th>
-                    <th>Charges</th>
-                    <th>Projected Sales Proceeds</th>
+                     <th>Charges on Purchases</th>
+                     <th>Charges on Sales</th>
+                     <th>Projected Sales Proceeds</th>
                     <th>Cost of Funds</th>
                     <th>Projected Sale Proceeds with COF</th>
                     <th>Unrealized Capital Gain</th>
@@ -1115,11 +1116,12 @@ const MarkToMarketValuation = () => {
                       <td className="mtm-symbol">{item.symbol}</td>
                       <td className="mtm-quantity">{item.quantity.toLocaleString()}</td>
                       <td className="mtm-cost-price">{formatCurrency(item.costPrice)}</td>
-                      <td className="mtm-cost-value">{formatCurrency(item.costValue)}</td>
                       <td className="mtm-market-price">{formatCurrency(item.marketPrice)}</td>
+                      <td className="mtm-cost-value">{formatCurrency(item.costValue)}</td>
                       <td className="mtm-gross-sales">{formatCurrency(item.grossSales)}</td>
-                      <td className="mtm-charges">{formatCurrency(item.charges || 0)}</td>
-                      <td className="mtm-projected-sales">{formatCurrency(item.projectedSalesProceeds || 0)}</td>
+                       <td className="mtm-charges">{formatCurrency(item.charges || 0)}</td>
+                       <td className="mtm-charges-sales">{formatCurrency(item.chargesOnSales || 0)}</td>
+                       <td className="mtm-projected-sales">{formatCurrency(item.projectedSalesProceeds || 0)}</td>
                       <td className="mtm-cost-of-funds">{formatCurrency(item.costOfFunds || 0)}</td>
                       <td className="mtm-projected-sales-with-cof">{formatCurrency(item.projectedSalesWithCOF || 0)}</td>
                       <td className={`mtm-gain-loss ${item.unrealizedGainLoss >= 0 ? 'positive' : 'negative'}`}>
@@ -1139,19 +1141,19 @@ const MarkToMarketValuation = () => {
                 </tbody>
                 <tfoot>
                   <tr className="mtm-total-row">
-                    <td colSpan="5"><strong>Portfolio Totals</strong></td>
-                    <td className="mtm-total-cost">{formatCurrency(totals.totalCost)}</td>
-                    <td className="mtm-total-gross-sales">{formatCurrency(totals.totalGrossSales)}</td>
-                    <td className="mtm-total-charges">{formatCurrency(totals.totalCharges || 0)}</td>
-                    <td className="mtm-total-projected-sales">{formatCurrency(totals.totalProjectedSales || 0)}</td>
-                    <td className="mtm-total-cost-of-funds">{formatCurrency(totals.totalCostOfFunds || 0)}</td>
+                    <td colSpan="4"><strong>Portfolio Totals</strong></td>
+                    <td></td>
+                    <td></td>
+                     <td className="mtm-total-gross-sales">{formatCurrency(totals.totalGrossSales)}</td>
+                     <td></td>
+                     <td></td>
+                     <td className="mtm-total-projected-sales">{formatCurrency(totals.totalProjectedSales || 0)}</td>
+                    <td></td>
                     <td className="mtm-total-projected-sales-with-cof">{formatCurrency(totals.totalProjectedSalesWithCOF || 0)}</td>
                     <td className={`mtm-total-gain-loss ${totals.totalGainLoss >= 0 ? 'positive' : 'negative'}`}>
                       {formatCurrency(totals.totalGainLoss)}
                     </td>
-                    <td className={`mtm-total-gain-loss-percentage ${totals.totalGainLoss >= 0 ? 'positive' : 'negative'}`}>
-                      {formatPercentage(totals.totalGainLossPercentage)}
-                    </td>
+                    <td></td>
                     <td className={`mtm-total-unrealized-pnl ${(totals.totalProjectedSalesWithCOF - (totals.totalCost + totals.totalCharges)) >= 0 ? 'positive' : 'negative'}`}>
                       {formatCurrency(totals.totalProjectedSalesWithCOF - (totals.totalCost + totals.totalCharges))}
                     </td>
