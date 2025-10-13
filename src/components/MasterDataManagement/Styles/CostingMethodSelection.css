@@ -521,3 +521,175 @@
     align-self: flex-start;
   }
 }
+
+/* Upgrade Popup Styles */
+.upgrade-popup-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 1rem;
+}
+
+.upgrade-popup-content {
+  background: white;
+  border-radius: 16px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+  max-width: 500px;
+  width: 100%;
+  max-height: 90vh;
+  overflow-y: auto;
+  animation: popupSlideIn 0.3s ease-out;
+}
+
+@keyframes popupSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-20px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.upgrade-popup-header {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 2rem 2rem 1rem 2rem;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.upgrade-popup-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 3rem;
+  height: 3rem;
+  background: linear-gradient(135deg, #f59e0b, #d97706);
+  border-radius: 12px;
+  color: white;
+}
+
+.upgrade-popup-icon svg {
+  width: 1.5rem;
+  height: 1.5rem;
+}
+
+.upgrade-popup-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #1f2937;
+  margin: 0;
+}
+
+.upgrade-popup-body {
+  padding: 1.5rem 2rem;
+}
+
+.upgrade-popup-message {
+  font-size: 1.1rem;
+  color: #374151;
+  margin: 0 0 1rem 0;
+  line-height: 1.6;
+}
+
+.upgrade-popup-description {
+  font-size: 0.95rem;
+  color: #6b7280;
+  margin: 0 0 1.5rem 0;
+  line-height: 1.5;
+}
+
+.upgrade-popup-features {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.upgrade-popup-feature {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-size: 0.9rem;
+  color: #374151;
+}
+
+.upgrade-popup-feature svg {
+  width: 1rem;
+  height: 1rem;
+  color: #10b981;
+  flex-shrink: 0;
+}
+
+.upgrade-popup-footer {
+  display: flex;
+  gap: 1rem;
+  padding: 1rem 2rem 2rem 2rem;
+  justify-content: flex-end;
+}
+
+.upgrade-popup-btn {
+  padding: 0.75rem 1.5rem;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 0.9rem;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  min-width: 120px;
+}
+
+.upgrade-popup-btn-primary {
+  background: linear-gradient(135deg, #3b82f6, #2563eb);
+  color: white;
+}
+
+.upgrade-popup-btn-primary:hover {
+  background: linear-gradient(135deg, #2563eb, #1d4ed8);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+}
+
+.upgrade-popup-btn-secondary {
+  background: #f8fafc;
+  color: #6b7280;
+  border: 1px solid #e2e8f0;
+}
+
+.upgrade-popup-btn-secondary:hover {
+  background: #f1f5f9;
+  color: #374151;
+  border-color: #cbd5e1;
+}
+
+/* Mobile responsive for upgrade popup */
+@media (max-width: 640px) {
+  .upgrade-popup-content {
+    margin: 1rem;
+    max-width: none;
+  }
+  
+  .upgrade-popup-header,
+  .upgrade-popup-body,
+  .upgrade-popup-footer {
+    padding-left: 1.5rem;
+    padding-right: 1.5rem;
+  }
+  
+  .upgrade-popup-footer {
+    flex-direction: column;
+  }
+  
+  .upgrade-popup-btn {
+    width: 100%;
+  }
+}

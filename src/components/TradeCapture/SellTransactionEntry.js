@@ -354,9 +354,9 @@ const SellTransactionEntry = ({ setFifoParams, setActiveTab }) => {
 
   // Calculate Profit/Loss when relevant fields change
   useEffect(() => {
-    if (form.capitalGain && form.moneyGenerationCost) {
+    if (form.capitalGain) {
       const capitalGain = parseFloat(form.capitalGain) || 0;
-      const moneyGenCost = parseFloat(form.moneyGenerationCost) || 0;
+      const moneyGenCost = parseFloat(form.moneyGenerationCost) || 0; // Default to 0 if null/empty
       const profitLoss = capitalGain - moneyGenCost;
       setForm(prev => ({ ...prev, profitLoss: profitLoss.toFixed(2) }));
     } else {
