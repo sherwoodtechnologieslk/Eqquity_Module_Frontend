@@ -997,6 +997,7 @@ const SellTransactionEntry = ({ setFifoParams, setActiveTab }) => {
                   <small className="sell-field-note">Dates of the original buy transactions</small>
                 </div>
                 <div className="sell-form-group">
+                  <label htmlFor="capitalGain">Capital Gain (LKR)</label>
                   <div className="sell-capital-gain-row">
                     <input
                       type="number"
