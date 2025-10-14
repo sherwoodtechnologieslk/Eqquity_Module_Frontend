@@ -183,7 +183,7 @@ const RealizedPnL = () => {
     return (
       <div className="realized-pnl-loading">
         <div className="loading-spinner"></div>
-        <p>Loading realized P&L data...</p>
+        <p>Loading Realized Capital Gain data...</p>
       </div>
     );
   }
@@ -239,7 +239,7 @@ const RealizedPnL = () => {
         </div>
 
         <div className="summary-card">
-          <div className="card-header">Net Realized P&L</div>
+          <div className="card-header">Net Realized Capital Gain</div>
           <div className={`card-value ${getPnLColor(realizedData.portfolioSummary.netRealizedPnL)}`}>
             {formatCurrency(parseFloat(realizedData.portfolioSummary.netRealizedPnL || 0))}
           </div>
@@ -250,6 +250,17 @@ const RealizedPnL = () => {
           <div className="card-header">Win Rate</div>
           <div className="card-value">{parseFloat(realizedData.portfolioSummary.winRate || 0).toFixed(1)}%</div>
           <div className="card-subtitle">Profitable trades</div>
+        </div>
+
+        <div className="summary-card">
+          <div className="card-header">Realized Capital Gain/Loss</div>
+          <div className={`card-value ${getPnLColor(realizedData.taxSummary.shortTermGains + realizedData.taxSummary.longTermGains + realizedData.taxSummary.shortTermLosses + realizedData.taxSummary.longTermLosses)}`}>
+            {formatCurrency(parseFloat(realizedData.taxSummary.shortTermGains || 0) + parseFloat(realizedData.taxSummary.longTermGains || 0) + parseFloat(realizedData.taxSummary.shortTermLosses || 0) + parseFloat(realizedData.taxSummary.longTermLosses || 0))}
+          </div>
+          <div className="card-subtitle">
+            ST: {formatCurrency(parseFloat(realizedData.taxSummary.shortTermGains || 0) + parseFloat(realizedData.taxSummary.shortTermLosses || 0))} | 
+            LT: {formatCurrency(parseFloat(realizedData.taxSummary.longTermGains || 0) + parseFloat(realizedData.taxSummary.longTermLosses || 0))}
+          </div>
         </div>
       </div>
 
@@ -335,10 +346,10 @@ const RealizedPnL = () => {
                         <th>Buy Date</th>
                         <th>Sell Date</th>
                         <th>Holding Period</th>
-                        <th>Realized P&L</th>
+                          <th>Realized Capital Gain</th>
                         <th>P&L %</th>
                         <th>Charges</th>
-                        <th>Net P&L</th>
+                          <th>Net Capital Gain</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -394,7 +405,7 @@ const RealizedPnL = () => {
                 <thead>
                   <tr>
                     <th>Period</th>
-                    <th>Realized P&L</th>
+                    <th>Realized Capital Gain</th>
                     <th>Number of Trades</th>
                     <th>Win Rate</th>
                   </tr>
@@ -420,7 +431,7 @@ const RealizedPnL = () => {
       {/* Export and Actions */}
       <div className="actions-section">
         <button className="action-btn" onClick={() => handleGenerateReport()}>
-          Generate Realized P&L Report
+          Generate Realized Capital Gain Report
         </button>
         <button className="action-btn" onClick={() => handleExportToExcel()}>
           Export to Excel
