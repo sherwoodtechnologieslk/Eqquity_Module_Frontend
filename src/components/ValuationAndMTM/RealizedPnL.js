@@ -286,7 +286,7 @@ const RealizedPnL = () => {
                         <th>Buy Price</th>
                         <th>Buy Date</th>
                         <th>Cost Basis</th>
-                        <th>Brokerage</th>
+                        <th>Charges</th>
                         <th>Net Value</th>
                       </tr>
                     </thead>
@@ -300,8 +300,14 @@ const RealizedPnL = () => {
                           <td className="trade-buy-price">{formatCurrency(parseFloat(trade.buyPrice || 0))}</td>
                           <td className="trade-buy-date">{formatDate(trade.buyDate)}</td>
                           <td className="trade-cost-basis">{formatCurrency(parseFloat(trade.costBasis || 0))}</td>
-                          <td className="trade-brokerage">{formatCurrency(parseFloat(trade.brokerage || 0))}</td>
-                          <td className="trade-net-value">{formatCurrency(parseFloat(trade.netPnL || 0))}</td>
+                          <td className="trade-charges">{formatCurrency(parseFloat(trade.charges || 0))}</td>
+                          <td className="trade-net-value">{
+                            (() => {
+                              const costBasis = parseFloat(trade.costBasis || 0);
+                              const charges = parseFloat(trade.charges || 0);
+                              return formatCurrency(costBasis + charges);
+                            })()
+                          }</td>
                         </tr>
                       ))}
                     </tbody>
@@ -331,6 +337,7 @@ const RealizedPnL = () => {
                         <th>Holding Period</th>
                         <th>Realized P&L</th>
                         <th>P&L %</th>
+                        <th>Charges</th>
                         <th>Net P&L</th>
                       </tr>
                     </thead>
@@ -354,8 +361,15 @@ const RealizedPnL = () => {
                           <td className={`trade-pnl-percentage ${getPnLColor(trade.pnLPercentage)}`}>
                             {formatPercentage(parseFloat(trade.pnLPercentage || 0))}
                           </td>
-                          <td className={`trade-net-pnl ${getPnLColor(trade.netPnL)}`}>
-                            {formatCurrency(parseFloat(trade.netPnL || 0))}
+                          <td className="trade-charges">{formatCurrency(parseFloat(trade.charges || 0))}</td>
+                          <td className={`trade-net-pnl ${getPnLColor((parseFloat(trade.realizedPnL || 0) - parseFloat(trade.charges || 0)))}`}>
+                            {
+                              (() => {
+                                const realized = parseFloat(trade.realizedPnL || 0);
+                                const charges = parseFloat(trade.charges || 0);
+                                return formatCurrency(realized - charges);
+                              })()
+                            }
                           </td>
                         </tr>
                       ))}

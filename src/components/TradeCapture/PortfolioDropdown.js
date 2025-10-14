@@ -48,131 +48,57 @@ const PortfolioDropdown = () => {
     try {
       setHoldingsLoading(true);
       
-      // Get buy transactions from transaction_entries table
-      const buyTransactions = await transactionEntryAPI.getByPortfolio(portfolioName);
+      // Find the portfolio ID for the selected portfolio name
+      const selectedPortfolio = portfolios.find(p => p.portfolioName === portfolioName);
+      if (!selectedPortfolio) {
+        console.error('Portfolio not found:', portfolioName);
+        setPortfolioHoldings([]);
+        return;
+      }
       
-      // Get sell transactions from sell_transaction_entries table
-      const sellTransactions = await transactionEntryAPI.getSellTransactionsByPortfolio(portfolioName);
+      const portfolioId = selectedPortfolio.id; // Use the numeric ID field
+      console.log('Using portfolio ID:', portfolioId, 'for portfolio:', portfolioName);
+      console.log('Selected portfolio object:', selectedPortfolio);
       
-      console.log('Buy transactions:', buyTransactions); // Debug log
-      console.log('Sell transactions:', sellTransactions); // Debug log
-
-      // Calculate net holdings for each company
-      const holdingsMap = new Map();
-
-      // Process buy transactions (add to holdings)
-      buyTransactions.forEach(transaction => {
-        const companyName = transaction.company_name || transaction.companyName || transaction.symbol;
-        const quantity = parseFloat(transaction.quantity) || 0;
+      if (!portfolioId) {
+        console.error('No portfolio ID found for portfolio:', portfolioName);
+        setPortfolioHoldings([]);
+        return;
+      }
+      
+      // Use the existing backend API that already has correct WAP calculation
+      const positionsData = await transactionEntryAPI.getPortfolioPositions(portfolioId);
+      console.log('Positions data from backend:', positionsData);
+      
+      // Transform the backend data to match the frontend format
+      const holdings = positionsData.map(position => {
+        const netQuantity = parseFloat(position.quantity) || 0;
+        const costPrice = parseFloat(position.costPrice) || 0; // This is the WAP from backend
+        const costValue = parseFloat(position.costValue) || 0;
         
-        if (!holdingsMap.has(companyName)) {
-          holdingsMap.set(companyName, {
-            companyName,
-            totalBought: 0,
-            totalSold: 0,
-            netQuantity: 0,
-            avgBuyPrice: 0,
-            costValue: 0,
-            totalCharges: 0
-          });
-        }
+        // Use charges from backend (already calculated correctly)
+        const charges = parseFloat(position.charges) || 0;
+        const netValue = costValue + charges;
+        const costPerShare = netQuantity > 0 ? netValue / netQuantity : 0;
         
-        const holding = holdingsMap.get(companyName);
-        const previousTotalBought = holding.totalBought;
-        holding.totalBought += quantity;
-        const transactionValue = quantity * (parseFloat(transaction.price) || 0);
-        const previousTotalValue = holding.avgBuyPrice * previousTotalBought;
-        holding.avgBuyPrice = (previousTotalValue + transactionValue) / holding.totalBought;
-      });
-
-      // Process sell transactions (subtract from holdings)
-      sellTransactions.forEach(transaction => {
-        const companyName = transaction.company_name || transaction.companyName || transaction.symbol;
-        const quantity = parseFloat(transaction.quantity) || 0;
-        
-        if (!holdingsMap.has(companyName)) {
-          holdingsMap.set(companyName, {
-            companyName,
-            totalBought: 0,
-            totalSold: 0,
-            netQuantity: 0,
-            avgBuyPrice: 0,
-            costValue: 0,
-            totalCharges: 0
-          });
-        }
-        
-        const holding = holdingsMap.get(companyName);
-        holding.totalSold += quantity;
-      });
-
-      // Calculate net quantities, cost values, and charges using MTM screen logic
-      const holdings = Array.from(holdingsMap.values())
-        .map(holding => {
-          const netQuantity = holding.totalBought - holding.totalSold;
-          const costValue = netQuantity * holding.avgBuyPrice;
-          
-          // Calculate charges using MTM screen logic - based on current position's cost value
-          let calculatedCharges = 0;
-          if (costValue > 0) {
-            if (costValue <= 100000000) { // Transactions up to Rs. 100 Million
-              // Total fee rate: 1.12%
-              const brokerage = Math.round(costValue * 0.00640 * 100) / 100;    // 0.640%
-              const cseFees = Math.round(costValue * 0.00084 * 100) / 100;      // 0.084%
-              const cdsFees = Math.round(costValue * 0.00012 * 100) / 100;     // 0.012%
-              const clearingFees = Math.round(costValue * 0.00012 * 100) / 100; // 0.012%
-              const sec = Math.round(costValue * 0.00072 * 100) / 100;          // 0.072%
-              const stl = Math.round(costValue * 0.003 * 100) / 100;            // 0.300%
-              calculatedCharges = brokerage + cseFees + cdsFees + clearingFees + sec + stl;
-            } else { // Transactions over Rs. 100 Million
-              // Tiered calculation: standard rate for first 100M, reduced rate for excess
-              const first100M = 100000000;
-              const excess = costValue - 100000000;
-              
-              // First Rs. 100M at standard rates
-              const first100MBrokerage = Math.round(first100M * 0.00640 * 100) / 100;    // 0.640%
-              const first100MCSE = Math.round(first100M * 0.00084 * 100) / 100;          // 0.084%
-              const first100MCDS = Math.round(first100M * 0.00012 * 100) / 100;          // 0.012%
-              const first100MClearing = Math.round(first100M * 0.00012 * 100) / 100;     // 0.012%
-              const first100MSEC = Math.round(first100M * 0.00072 * 100) / 100;          // 0.072%
-              const first100MSTL = Math.round(first100M * 0.003 * 100) / 100;            // 0.300%
-              
-              // Excess amount at reduced rates
-              const excessBrokerage = Math.round(excess * 0.00200 * 100) / 100;          // 0.200%
-              const excessCSE = Math.round(excess * 0.000525 * 100) / 100;               // 0.0525%
-              const excessCDS = Math.round(excess * 0.000075 * 100) / 100;               // 0.0075%
-              const excessClearing = Math.round(excess * 0.000075 * 100) / 100;          // 0.0075%
-              const excessSEC = Math.round(excess * 0.000450 * 100) / 100;               // 0.0450%
-              const excessSTL = Math.round(excess * 0.003 * 100) / 100;                  // 0.300%
-              
-              // Total fees = sum of both portions
-              calculatedCharges = (first100MBrokerage + excessBrokerage) + 
-                                 (first100MCSE + excessCSE) + 
-                                 (first100MCDS + excessCDS) + 
-                                 (first100MClearing + excessClearing) + 
-                                 (first100MSEC + excessSEC) + 
-                                 (first100MSTL + excessSTL);
-            }
-          }
-          
-          const netValue = costValue + calculatedCharges;
-          const costPerShare = netQuantity > 0 ? netValue / netQuantity : 0;
-          return {
-            ...holding,
-            netQuantity: netQuantity,
-            costValue: costValue,
-            totalCharges: calculatedCharges, // Use calculated charges instead of accumulated
-            netValue: netValue,
-            costPerShare: costPerShare
-          };
-        })
-        .filter(holding => holding.netQuantity > 0) // Only show companies with positive holdings
-        .sort((a, b) => a.companyName.localeCompare(b.companyName));
+        return {
+          companyName: position.companyName || position.symbol || 'Unknown',
+          netQuantity: netQuantity,
+          avgBuyPrice: costPrice, // This is the WAP from backend
+          costValue: costValue,
+          totalCharges: charges,
+          netValue: netValue,
+          costPerShare: costPerShare
+        };
+      })
+      .filter(holding => holding.netQuantity > 0) // Only show companies with positive holdings
+      .sort((a, b) => a.companyName.localeCompare(b.companyName));
 
       console.log('Final holdings:', holdings); // Debug log
       setPortfolioHoldings(holdings);
     } catch (error) {
       console.error('Error loading portfolio holdings:', error);
+      console.error('Error details:', error.message);
       setPortfolioHoldings([]);
     } finally {
       setHoldingsLoading(false);
@@ -394,8 +320,6 @@ const PortfolioDropdown = () => {
                      <tr>
                        <th>Company</th>
                        <th>Net Quantity</th>
-                       <th>Total Bought</th>
-                       <th>Total Sold</th>
                        <th>Average Buy Price</th>
                        <th>Cost Value</th>
                        <th>Charges</th>
@@ -407,14 +331,12 @@ const PortfolioDropdown = () => {
                      {portfolioHoldings.map((holding) => (
                        <tr key={holding.companyName} className="ph-table-row">
                          <td className="ph-company-name">{holding.companyName}</td>
-                         <td className="ph-quantity">{holding.netQuantity.toLocaleString()}</td>
-                         <td className="ph-total-bought">{holding.totalBought.toLocaleString()}</td>
-                         <td className="ph-total-sold">{holding.totalSold.toLocaleString()}</td>
-                         <td className="ph-avg-price">{holding.avgBuyPrice.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
-                         <td className="ph-total-value">{holding.costValue.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 4})}</td>
-                         <td className="ph-charges">{holding.totalCharges.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
-                         <td className="ph-net-value">{holding.netValue.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 4})}</td>
-                         <td className="ph-cost-per-share">{holding.costPerShare.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 4})}</td>
+                         <td className="ph-quantity">{(holding.netQuantity || 0).toLocaleString()}</td>
+                         <td className="ph-avg-price">{(holding.avgBuyPrice || 0).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
+                         <td className="ph-total-value">{(holding.costValue || 0).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 4})}</td>
+                         <td className="ph-charges">{(holding.totalCharges || 0).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
+                         <td className="ph-net-value">{(holding.netValue || 0).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 4})}</td>
+                         <td className="ph-cost-per-share">{(holding.costPerShare || 0).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 4})}</td>
                         </tr>
                       ))}
                     </tbody>
@@ -422,34 +344,28 @@ const PortfolioDropdown = () => {
                      <tr className="ph-total-row">
                        <td><strong>Portfolio Totals</strong></td>
                        <td className="ph-total-quantity">
-                         {portfolioHoldings.reduce((sum, holding) => sum + holding.netQuantity, 0).toLocaleString()}
-                       </td>
-                       <td className="ph-total-bought-sum">
-                         {portfolioHoldings.reduce((sum, holding) => sum + holding.totalBought, 0).toLocaleString()}
-                       </td>
-                       <td className="ph-total-sold-sum">
-                         {portfolioHoldings.reduce((sum, holding) => sum + holding.totalSold, 0).toLocaleString()}
+                         {portfolioHoldings.reduce((sum, holding) => sum + (holding.netQuantity || 0), 0).toLocaleString()}
                        </td>
                        <td className="ph-total-avg-price">
                          {portfolioHoldings.length > 0 ? 
-                           (portfolioHoldings.reduce((sum, holding) => sum + holding.costValue, 0) / 
-                            portfolioHoldings.reduce((sum, holding) => sum + holding.netQuantity, 0)).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 4}) : 
+                           (portfolioHoldings.reduce((sum, holding) => sum + (holding.costValue || 0), 0) / 
+                            portfolioHoldings.reduce((sum, holding) => sum + (holding.netQuantity || 0), 0)).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 4}) : 
                            '0.00'
                          }
                        </td>
                        <td className="ph-total-value-sum">
-                         {portfolioHoldings.reduce((sum, holding) => sum + holding.costValue, 0).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 4})}
+                         {portfolioHoldings.reduce((sum, holding) => sum + (holding.costValue || 0), 0).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 4})}
                        </td>
                        <td className="ph-total-charges">
-                         {portfolioHoldings.reduce((sum, holding) => sum + holding.totalCharges, 0).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}
+                         {portfolioHoldings.reduce((sum, holding) => sum + (holding.totalCharges || 0), 0).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}
                        </td>
                        <td className="ph-total-net-value">
-                         {portfolioHoldings.reduce((sum, holding) => sum + holding.netValue, 0).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 4})}
+                         {portfolioHoldings.reduce((sum, holding) => sum + (holding.netValue || 0), 0).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 4})}
                        </td>
                        <td className="ph-total-cost-per-share">
                          {portfolioHoldings.length > 0 ? 
-                           (portfolioHoldings.reduce((sum, holding) => sum + holding.netValue, 0) / 
-                            portfolioHoldings.reduce((sum, holding) => sum + holding.netQuantity, 0)).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 4}) : 
+                           (portfolioHoldings.reduce((sum, holding) => sum + (holding.netValue || 0), 0) / 
+                            portfolioHoldings.reduce((sum, holding) => sum + (holding.netQuantity || 0), 0)).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 4}) : 
                            '0.00'
                          }
                        </td>
