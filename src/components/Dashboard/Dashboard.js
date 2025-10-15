@@ -292,7 +292,7 @@ const Dashboard = ({ onTabChange }) => {
           </svg>
         </div>
         <div className="header-text">
-          <h1>Welcome to Equity Module</h1>
+          <h1>Equity Module Dashboard</h1>
           <p>Professional Portfolio Management Dashboard</p>
         </div>
         <div className="header-dots">
@@ -494,62 +494,26 @@ const Dashboard = ({ onTabChange }) => {
           </div>
         </div>
 
-          {/* Market Alerts */}
-          <div className="content-card">
+        {/* Top Performers */}
+        <div className="content-card">
           <div className="card-header">
-              <div className="header-left">
-                <h3>Market Alerts</h3>
-                <span className="card-subtitle">System notifications</span>
-              </div>
+            <div className="header-left">
+              <h3>Top Performers</h3>
+              <span className="card-subtitle">Most traded stocks</span>
             </div>
-            <div className="alerts-container">
-              {dashboardData.marketAlerts.map((alert, index) => (
-                <div key={index} className={`alert-card ${alert.type}`}>
-                  <div className="alert-icon">
-                    {alert.type === 'success' && (
-                      <svg viewBox="0 0 24 24" fill="currentColor">
-                        <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/>
-                      </svg>
-                    )}
-                    {alert.type === 'info' && (
-                      <svg viewBox="0 0 24 24" fill="currentColor">
-                        <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/>
-                      </svg>
-                    )}
-                    {alert.type === 'warning' && (
-                      <svg viewBox="0 0 24 24" fill="currentColor">
-                        <path d="M1 21h22L12 2 1 21zm12-3h-2v-2h2v2zm0-4h-2v-4h2v4z"/>
-                      </svg>
-                    )}
-                  </div>
-                  <div className="alert-content">
-                    <p>{alert.message}</p>
           </div>
-              </div>
-            ))}
+          <div className="performers-container">
+            {dashboardData.topPerformers.map((performer, index) => (
+              <div key={index} className="performer-card">
+                <div className="performer-rank">
+                  <span>{index + 1}</span>
+                </div>
+                <div className="performer-info">
+                  <div className="performer-symbol">{performer.symbol || 'N/A'}</div>
+                  <div className="performer-name">{performer.name || 'Unknown'}</div>
           </div>
-        </div>
-
-          {/* Top Performers */}
-          <div className="content-card">
-          <div className="card-header">
-              <div className="header-left">
-                <h3>Top Performers</h3>
-                <span className="card-subtitle">Most traded stocks</span>
-              </div>
-            </div>
-            <div className="performers-container">
-              {dashboardData.topPerformers.map((performer, index) => (
-                <div key={index} className="performer-card">
-                  <div className="performer-rank">
-                    <span>{index + 1}</span>
-                  </div>
-                  <div className="performer-info">
-                    <div className="performer-symbol">{performer.symbol || 'N/A'}</div>
-                    <div className="performer-name">{performer.name || 'Unknown'}</div>
-          </div>
-                  <div className="performer-stats">
-                    <div className="performer-trades">{performer.transactionCount || 0} trades</div>
+                <div className="performer-stats">
+                  <div className="performer-trades">{performer.transactionCount || 0} trades</div>
                 </div>
               </div>
             ))}
@@ -557,14 +521,14 @@ const Dashboard = ({ onTabChange }) => {
         </div>
 
         {/* Quick Actions */}
-          <div className="content-card">
+        <div className="content-card">
           <div className="card-header">
-              <div className="header-left">
+            <div className="header-left">
             <h3>Quick Actions</h3>
-                <span className="card-subtitle">Common tasks</span>
-              </div>
+              <span className="card-subtitle">Common tasks</span>
+            </div>
           </div>
-            <div className="actions-grid">
+          <div className="actions-grid">
             <button 
                 className="action-card primary"
               onClick={() => onTabChange && onTabChange('Buy')}
@@ -627,6 +591,11 @@ const Dashboard = ({ onTabChange }) => {
             </div>
           </div>
         </div>
+      </div>
+
+      {/* Footer */}
+      <div className="dashboard-footer-section">
+        <p>SHERWOOD TECHNOLOGIES (PVT) LTD • Professional portfolio management dashboard • All data is encrypted and protected</p>
       </div>
     </div>
   );

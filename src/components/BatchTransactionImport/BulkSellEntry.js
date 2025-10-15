@@ -42,7 +42,6 @@ const BulkSellEntry = () => {
     hdays: '',
     cp: '',
     buyContract: '',
-    holdingCost: '',
     profitLoss: '',
     dealNumber: '',
     // Cost breakdown fields
@@ -81,10 +80,10 @@ const BulkSellEntry = () => {
         try {
           const costOfFundsData = await costOfFundsAPI.getActiveCostOfFunds();
           // Set cost of funds in form if available
-          if (costOfFundsData && costOfFundsData.cost_of_funds) {
+          if (costOfFundsData && costOfFundsData.after_tax_cost_of_funds) {
             setForm(prev => ({ 
               ...prev, 
-              costOfFunds: parseFloat(costOfFundsData.cost_of_funds).toFixed(2)
+              costOfFunds: parseFloat(costOfFundsData.after_tax_cost_of_funds).toFixed(2)
             }));
           }
         } catch (costError) {
@@ -204,12 +203,29 @@ const BulkSellEntry = () => {
             let totalQuantity = 0;
             
             res.allocations.forEach(allocation => {
-              const buySettlementDate = new Date(allocation.settlementDate);
-              const daysDiff = Math.ceil((sellSettlementDate - buySettlementDate) / (1000 * 60 * 60 * 24));
+              // Create date objects and normalize to start of day to avoid timezone issues
+              const sellDate = new Date(form.settlementDate);
+              const buyDate = new Date(allocation.settlementDate);
+              
+              // Normalize to start of day (00:00:00) to avoid timezone/time issues
+              sellDate.setHours(0, 0, 0, 0);
+              buyDate.setHours(0, 0, 0, 0);
+              
+              const daysDiff = Math.ceil((sellDate - buyDate) / (1000 * 60 * 60 * 24));
               const quantity = parseFloat(allocation.quantity);
               
-              // Only include positive holding days (buy settled before sell)
-              if (daysDiff > 0) {
+              // Debug logging for date calculation
+              console.log('Date calculation debug:', {
+                sellSettlementDate: form.settlementDate,
+                buySettlementDate: allocation.settlementDate,
+                sellDateNormalized: sellDate.toISOString(),
+                buyDateNormalized: buyDate.toISOString(),
+                daysDiff: daysDiff,
+                quantity: quantity
+              });
+              
+              // Include all transactions, including same-day (0 days) and positive holding days
+              if (daysDiff >= 0) {
                 totalWeightedDays += daysDiff * quantity;
                 totalQuantity += quantity;
               }
@@ -244,23 +260,47 @@ const BulkSellEntry = () => {
     }
   }, [form.quantity, form.soldPrice]);
 
-  // Calculate Holding Cost when relevant fields change
+  // Calculate Capital Gain: (Sold Price - Bought Price) × Quantity
   useEffect(() => {
-    if (form.netValue && form.costOfFunds && form.hdays) {
-      const netValue = parseFloat(form.netValue) || 0;
-      const costOfFunds = parseFloat(form.costOfFunds) || 0;
-      const holdingDays = parseFloat(form.hdays) || 0;
-      
-      if (netValue > 0 && costOfFunds > 0 && holdingDays > 0) {
-        const holdingCost = (netValue * costOfFunds * holdingDays) / 365;
-        setForm(prev => ({ ...prev, holdingCost: holdingCost.toFixed(2) }));
-      } else {
-        setForm(prev => ({ ...prev, holdingCost: '' }));
-      }
+    if (form.soldPrice && form.boughtPrice && form.quantity) {
+      const gain = (parseFloat(form.soldPrice) - parseFloat(form.boughtPrice)) * parseFloat(form.quantity);
+      setForm(prev => ({ ...prev, capitalGain: gain.toFixed(2) }));
     } else {
-      setForm(prev => ({ ...prev, holdingCost: '' }));
+      setForm(prev => ({ ...prev, capitalGain: '' }));
     }
-  }, [form.netValue, form.costOfFunds, form.hdays]);
+  }, [form.soldPrice, form.boughtPrice, form.quantity]);
+
+  // Calculate Profit/Loss when relevant fields change
+  useEffect(() => {
+    if (form.capitalGain) {
+      const capitalGain = parseFloat(form.capitalGain) || 0;
+      const moneyGenCost = parseFloat(form.moneyGenerationCost) || 0; // Default to 0 if null/empty
+      const profitLoss = capitalGain - moneyGenCost;
+      setForm(prev => ({ ...prev, profitLoss: profitLoss.toFixed(2) }));
+    } else {
+      setForm(prev => ({ ...prev, profitLoss: '' }));
+    }
+  }, [form.capitalGain, form.moneyGenerationCost]);
+
+  // Recalculate Money Gen Cost when holding days change
+  useEffect(() => {
+    if (form.quantity && form.soldPrice && form.costOfFunds && form.hdays) {
+      const recalculateMoneyGenCost = async () => {
+        try {
+          const calc = await tradeSummaryAPI.calculateSellTransaction({
+            quantity: form.quantity,
+            soldPrice: form.soldPrice,
+            costOfFunds: form.costOfFunds,
+            holdingDays: form.hdays
+          });
+          setForm(prev => ({ ...prev, moneyGenerationCost: calc.moneyGenerationCost ?? '' }));
+        } catch (err) {
+          console.error('Error recalculating money gen cost:', err);
+        }
+      };
+      recalculateMoneyGenCost();
+    }
+  }, [form.hdays]);
 
   // Handle equity selection from modal
   const handleEquitySelect = (companyName) => {
@@ -396,7 +436,8 @@ const BulkSellEntry = () => {
           const calc = await tradeSummaryAPI.calculateSellTransaction({
             quantity: name === 'quantity' ? value : updatedForm.quantity,
             soldPrice: name === 'soldPrice' ? value : updatedForm.soldPrice,
-            costOfFunds: updatedForm.costOfFunds
+            costOfFunds: updatedForm.costOfFunds,
+            holdingDays: updatedForm.hdays || 0
           });
           setForm({
             ...updatedForm,
@@ -1104,22 +1145,6 @@ const BulkSellEntry = () => {
                   />
                 </div>
 
-                <div className="bulk-sell-form-group">
-                  <label className="bulk-sell-label">Holding Cost (LKR)</label>
-                  <input
-                    type="number"
-                    name="holdingCost"
-                    value={form.holdingCost}
-                    readOnly
-                    className="bulk-sell-input bulk-sell-calculated-field"
-                    placeholder="Auto-calculated"
-                    step="0.01"
-                    min="0"
-                  />
-                  <small className="bulk-sell-field-note">
-                    Calculated as (Net Value × Cost of Funds (After-Tax) × Holding Days) ÷ 365
-                  </small>
-                </div>
               </div>
 
               {/* Profit / Loss Card */}
@@ -1136,7 +1161,7 @@ const BulkSellEntry = () => {
                     step="0.01"
                     readOnly
                   />
-                  <small className="bulk-sell-field-note">Capital Gain - Holding Cost</small>
+                  <small className="bulk-sell-field-note">Capital Gain - Money Generation Cost</small>
                 </div>
               </div>
 

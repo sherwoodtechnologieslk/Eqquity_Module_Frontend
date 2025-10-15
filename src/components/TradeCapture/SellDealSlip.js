@@ -15,7 +15,6 @@ const SellDealSlip = ({ transaction }) => {
         <div><strong>Bought Price:</strong> Rs. {transaction.boughtPrice}</div>
         <div><strong>Sold Price:</strong> Rs. {transaction.soldPrice}</div>
         <div><strong>Capital Gain:</strong> Rs. {transaction.capitalGain}</div>
-        <div><strong>Holding Cost:</strong> Rs. {transaction.holdingCost || '—'}</div>
         <div><strong>Net Profit/Loss:</strong> Rs. {transaction.profitLoss}</div>
         <div><strong>Broker Name:</strong> {transaction.brokerName}</div>
         <div><strong>Trade Date:</strong> {transaction.tradeDate}</div>

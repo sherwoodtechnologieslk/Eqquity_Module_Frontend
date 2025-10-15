@@ -24,7 +24,7 @@ const RealizedPnL = () => {
   });
 
   const [isLoading, setIsLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState('overview');
+  const [activeTab, setActiveTab] = useState('trades');
   const [timeRange, setTimeRange] = useState('1Y');
   const [selectedPortfolio, setSelectedPortfolio] = useState('all');
   const [portfolios, setPortfolios] = useState([]);
@@ -121,6 +121,20 @@ const RealizedPnL = () => {
     }
   }, [portfolios, selectedPortfolio]);
 
+  const formatDate = (dateString) => {
+    if (!dateString || dateString === 'N/A') return 'N/A';
+    try {
+      const date = new Date(dateString);
+      return date.toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric'
+      });
+    } catch (error) {
+      return dateString;
+    }
+  };
+
   const formatCurrency = (num) => {
     return new Intl.NumberFormat('en-IN', {
       minimumFractionDigits: 0
@@ -135,11 +149,6 @@ const RealizedPnL = () => {
     if (value > 0) return 'positive';
     if (value < 0) return 'negative';
     return 'neutral';
-  };
-
-  const getHoldingPeriodType = (days) => {
-    const dayCount = parseInt(days);
-    return dayCount <= 365 ? 'short-term' : 'long-term';
   };
 
   // Handler functions for action buttons
@@ -170,31 +179,18 @@ const RealizedPnL = () => {
     }
   };
 
-  const handleTaxReport = async () => {
-    try {
-      let portfolioId = selectedPortfolio;
-      if (selectedPortfolio === 'all' && portfolios.length > 0) {
-        portfolioId = portfolios[0].portfolioId;
-      }
-      await realizedPnLService.generateReport(portfolioId, timeRange, 'tax');
-      alert('Tax report generated successfully!');
-    } catch (error) {
-      console.error('Error generating tax report:', error);
-      alert('Failed to generate tax report. Please try again.');
-    }
-  };
-
   if (isLoading) {
     return (
       <div className="realized-pnl-loading">
         <div className="loading-spinner"></div>
-        <p>Loading realized P&L data...</p>
+        <p>Loading Realized Capital Gain data...</p>
       </div>
     );
   }
 
   return (
     <div className="realized-pnl">
+      <div className="realized-pnl-content-wrapper">
       <div className="realized-pnl-header">
         <h1>Realized Gain/Loss Tracking</h1>
         <div className="header-controls">
@@ -243,7 +239,7 @@ const RealizedPnL = () => {
         </div>
 
         <div className="summary-card">
-          <div className="card-header">Net Realized P&L</div>
+          <div className="card-header">Net Realized Capital Gain</div>
           <div className={`card-value ${getPnLColor(realizedData.portfolioSummary.netRealizedPnL)}`}>
             {formatCurrency(parseFloat(realizedData.portfolioSummary.netRealizedPnL || 0))}
           </div>
@@ -255,16 +251,21 @@ const RealizedPnL = () => {
           <div className="card-value">{parseFloat(realizedData.portfolioSummary.winRate || 0).toFixed(1)}%</div>
           <div className="card-subtitle">Profitable trades</div>
         </div>
+
+        <div className="summary-card">
+          <div className="card-header">Realized Capital Gain/Loss</div>
+          <div className={`card-value ${getPnLColor(realizedData.taxSummary.shortTermGains + realizedData.taxSummary.longTermGains + realizedData.taxSummary.shortTermLosses + realizedData.taxSummary.longTermLosses)}`}>
+            {formatCurrency(parseFloat(realizedData.taxSummary.shortTermGains || 0) + parseFloat(realizedData.taxSummary.longTermGains || 0) + parseFloat(realizedData.taxSummary.shortTermLosses || 0) + parseFloat(realizedData.taxSummary.longTermLosses || 0))}
+          </div>
+          <div className="card-subtitle">
+            ST: {formatCurrency(parseFloat(realizedData.taxSummary.shortTermGains || 0) + parseFloat(realizedData.taxSummary.shortTermLosses || 0))} | 
+            LT: {formatCurrency(parseFloat(realizedData.taxSummary.longTermGains || 0) + parseFloat(realizedData.taxSummary.longTermLosses || 0))}
+          </div>
+        </div>
       </div>
 
       {/* Navigation Tabs */}
       <div className="realized-pnl-tabs">
-        <button 
-          className={`tab-button ${activeTab === 'overview' ? 'active' : ''}`}
-          onClick={() => setActiveTab('overview')}
-        >
-          Overview
-        </button>
         <button 
           className={`tab-button ${activeTab === 'trades' ? 'active' : ''}`}
           onClick={() => setActiveTab('trades')}
@@ -277,106 +278,122 @@ const RealizedPnL = () => {
         >
           Performance Analysis
         </button>
-        <button 
-          className={`tab-button ${activeTab === 'tax' ? 'active' : ''}`}
-          onClick={() => setActiveTab('tax')}
-        >
-          Tax Summary
-        </button>
       </div>
 
       {/* Tab Content */}
       <div className="tab-content">
-        {activeTab === 'overview' && (
-          <div className="overview-content">
-            <div className="performance-chart-placeholder">
-              <div className="chart-header">
-                <h3>Realized P&L Performance</h3>
-                <span className="chart-period">{timeRange} Performance</span>
-              </div>
-              <div className="chart-container">
-                <div className="chart-placeholder">
-                  Realized P&L Chart Placeholder
-                  <br />
-                  <small>Connect to charting library for interactive charts</small>
-                </div>
-              </div>
-            </div>
-
-            <div className="top-performers">
-              <h3>Top Performing Stocks</h3>
-              <div className="performers-grid">
-                {realizedData.topPerformers.map((stock, index) => (
-                  <div key={`performer-${stock.symbol}-${index}`} className="performer-card">
-                    <div className="performer-symbol">{stock.symbol}</div>
-                    <div className={`performer-pnl ${getPnLColor(stock.totalPnL)}`}>
-                      {formatCurrency(parseFloat(stock.totalPnL || 0))}
-                    </div>
-                    <div className="performer-stats">
-                      <span>{parseInt(stock.trades || 0)} trades</span>
-                      <span>{parseFloat(stock.avgReturn || 0).toFixed(1)}% avg</span>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-        )}
-
         {activeTab === 'trades' && (
           <div className="trades-content">
-            <h3>Completed Trade History</h3>
-            {realizedData.tradeHistory && realizedData.tradeHistory.length > 0 ? (
-              <div className="trades-table">
-                <table>
-                  <thead>
-                    <tr>
-                      <th>Symbol</th>
-                      <th>Trade Type</th>
-                      <th>Quantity</th>
-                      <th>Buy Price</th>
-                      <th>Sell Price</th>
-                      <th>Buy Date</th>
-                      <th>Sell Date</th>
-                      <th>Holding Period</th>
-                      <th>Realized P&L</th>
-                      <th>P&L %</th>
-                      <th>Net P&L</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {realizedData.tradeHistory.map((trade) => (
-                      <tr key={trade.id} className="trade-row">
-                        <td className="trade-symbol">{trade.symbol}</td>
-                        <td className="trade-type">{trade.tradeType}</td>
-                        <td className="trade-quantity">{parseInt(trade.quantity || 0).toLocaleString()}</td>
-                        <td className="trade-buy-price">{formatCurrency(parseFloat(trade.buyPrice || 0))}</td>
-                        <td className="trade-sell-price">{formatCurrency(parseFloat(trade.sellPrice || 0))}</td>
-                        <td className="trade-buy-date">{trade.buyDate}</td>
-                        <td className="trade-sell-date">{trade.sellDate}</td>
-                        <td className={`trade-holding-period ${getHoldingPeriodType(trade.holdingPeriod)}`}>
-                          {trade.holdingPeriod}
-                        </td>
-                        <td className={`trade-pnl ${getPnLColor(trade.realizedPnL)}`}>
-                          {formatCurrency(parseFloat(trade.realizedPnL || 0))}
-                        </td>
-                        <td className={`trade-pnl-percentage ${getPnLColor(trade.pnLPercentage)}`}>
-                          {formatPercentage(parseFloat(trade.pnLPercentage || 0))}
-                        </td>
-                        <td className={`trade-net-pnl ${getPnLColor(trade.netPnL)}`}>
-                          {formatCurrency(parseFloat(trade.netPnL || 0))}
-                        </td>
+            {/* Buy Trade History */}
+            <div className="trade-history-section">
+              <h3>Buy Trade History</h3>
+              {realizedData.tradeHistory && realizedData.tradeHistory.filter(trade => trade.tradeType === 'BUY').length > 0 ? (
+                <div className="trades-table">
+                  <table>
+                    <thead>
+                      <tr>
+                        <th>Symbol</th>
+                        <th>Quantity</th>
+                        <th>Buy Price</th>
+                        <th>Buy Date</th>
+                        <th>Cost Basis</th>
+                        <th>Charges</th>
+                        <th>Net Value</th>
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            ) : (
-              <div className="no-trades-message">
-                <p>No completed trades found for the selected portfolio and time range.</p>
-                <p>Trade history will appear here once you have completed sell transactions.</p>
-              </div>
-            )}
+                    </thead>
+                    <tbody>
+                      {realizedData.tradeHistory
+                        .filter(trade => trade.tradeType === 'BUY')
+                        .map((trade) => (
+                        <tr key={`buy-${trade.id}`} className="trade-row buy-row">
+                          <td className="trade-symbol">{trade.symbol}</td>
+                          <td className="trade-quantity">{parseInt(trade.quantity || 0).toLocaleString()}</td>
+                          <td className="trade-buy-price">{formatCurrency(parseFloat(trade.buyPrice || 0))}</td>
+                          <td className="trade-buy-date">{formatDate(trade.buyDate)}</td>
+                          <td className="trade-cost-basis">{formatCurrency(parseFloat(trade.costBasis || 0))}</td>
+                          <td className="trade-charges">{formatCurrency(parseFloat(trade.charges || 0))}</td>
+                          <td className="trade-net-value">{
+                            (() => {
+                              const costBasis = parseFloat(trade.costBasis || 0);
+                              const charges = parseFloat(trade.charges || 0);
+                              return formatCurrency(costBasis + charges);
+                            })()
+                          }</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              ) : (
+                <div className="no-trades-message">
+                  <p>No buy transactions found for the selected portfolio and time range.</p>
+                </div>
+              )}
+            </div>
+
+            {/* Sell Trade History */}
+            <div className="trade-history-section">
+              <h3>Sell Trade History</h3>
+              {realizedData.tradeHistory && realizedData.tradeHistory.filter(trade => trade.tradeType === 'SELL').length > 0 ? (
+                <div className="trades-table">
+                  <table>
+                    <thead>
+                      <tr>
+                        <th>Symbol</th>
+                        <th>Quantity</th>
+                        <th>Buy Price</th>
+                        <th>Sell Price</th>
+                        <th>Buy Date</th>
+                        <th>Sell Date</th>
+                        <th>Holding Period</th>
+                          <th>Realized Capital Gain</th>
+                        <th>P&L %</th>
+                        <th>Charges</th>
+                          <th>Net Capital Gain</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {realizedData.tradeHistory
+                        .filter(trade => trade.tradeType === 'SELL')
+                        .map((trade) => (
+                        <tr key={`sell-${trade.id}`} className="trade-row sell-row">
+                          <td className="trade-symbol">{trade.symbol}</td>
+                          <td className="trade-quantity">{parseInt(trade.quantity || 0).toLocaleString()}</td>
+                          <td className="trade-buy-price">{formatCurrency(parseFloat(trade.buyPrice || 0))}</td>
+                          <td className="trade-sell-price">{formatCurrency(parseFloat(trade.sellPrice || 0))}</td>
+                          <td className="trade-buy-date">{formatDate(trade.buyDate)}</td>
+                          <td className="trade-sell-date">{formatDate(trade.sellDate)}</td>
+                          <td className="trade-holding-period">
+                            {trade.holdingPeriod}
+                          </td>
+                          <td className={`trade-pnl ${getPnLColor(trade.realizedPnL)}`}>
+                            {formatCurrency(parseFloat(trade.realizedPnL || 0))}
+                          </td>
+                          <td className={`trade-pnl-percentage ${getPnLColor(trade.pnLPercentage)}`}>
+                            {formatPercentage(parseFloat(trade.pnLPercentage || 0))}
+                          </td>
+                          <td className="trade-charges">{formatCurrency(parseFloat(trade.charges || 0))}</td>
+                          <td className={`trade-net-pnl ${getPnLColor((parseFloat(trade.realizedPnL || 0) - parseFloat(trade.charges || 0)))}`}>
+                            {
+                              (() => {
+                                const realized = parseFloat(trade.realizedPnL || 0);
+                                const charges = parseFloat(trade.charges || 0);
+                                return formatCurrency(realized - charges);
+                              })()
+                            }
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              ) : (
+                <div className="no-trades-message">
+                  <p>No sell transactions found for the selected portfolio and time range.</p>
+                  <p>Sell transactions will appear here once you have completed sell transactions.</p>
+                </div>
+              )}
+            </div>
           </div>
         )}
 
@@ -388,7 +405,7 @@ const RealizedPnL = () => {
                 <thead>
                   <tr>
                     <th>Period</th>
-                    <th>Realized P&L</th>
+                    <th>Realized Capital Gain</th>
                     <th>Number of Trades</th>
                     <th>Win Rate</th>
                   </tr>
@@ -409,53 +426,20 @@ const RealizedPnL = () => {
             </div>
           </div>
         )}
-
-        {activeTab === 'tax' && (
-          <div className="tax-content">
-            <h3>Tax Summary</h3>
-            <div className="tax-grid">
-              <div className="tax-card">
-                <h4>Short-Term Gains</h4>
-                <div className="tax-value positive">{formatCurrency(realizedData.taxSummary.shortTermGains)}</div>
-                <div className="tax-description">Profits from trades held &lt;= 1 year</div>
-              </div>
-
-              <div className="tax-card">
-                <h4>Long-Term Gains</h4>
-                <div className="tax-value positive">{formatCurrency(realizedData.taxSummary.longTermGains)}</div>
-                <div className="tax-description">Profits from trades held &gt; 1 year</div>
-              </div>
-
-              <div className="tax-card">
-                <h4>Short-Term Losses</h4>
-                <div className="tax-value negative">{formatCurrency(realizedData.taxSummary.shortTermLosses)}</div>
-                <div className="tax-description">Losses from trades held &lt;= 1 year</div>
-              </div>
-
-              <div className="tax-card">
-                <h4>Long-Term Losses</h4>
-                <div className="tax-value negative">{formatCurrency(realizedData.taxSummary.longTermLosses)}</div>
-                <div className="tax-description">Losses from trades held &gt; 1 year</div>
-              </div>
-            </div>
-          </div>
-        )}
       </div>
 
       {/* Export and Actions */}
       <div className="actions-section">
         <button className="action-btn" onClick={() => handleGenerateReport()}>
-          Generate Realized P&L Report
+          Generate Realized Capital Gain Report
         </button>
         <button className="action-btn" onClick={() => handleExportToExcel()}>
           Export to Excel
         </button>
-        <button className="action-btn" onClick={() => handleTaxReport()}>
-          Tax Report
-        </button>
         <button className="action-btn" onClick={loadRealizedPnLData}>
           Refresh Data
         </button>
+      </div>
       </div>
     </div>
   );

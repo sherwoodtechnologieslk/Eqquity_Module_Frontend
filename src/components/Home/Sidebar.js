@@ -296,7 +296,7 @@ const Sidebar = ({ onSelect, activeIndex = 0, onLogout }) => {
           </div>
           <div className="brand-text-container">
            
-            <span className="app-name">Portfolio Manager</span>
+            <span className="app-name">Equity Manager</span>
           </div>
         </div>
       </div>

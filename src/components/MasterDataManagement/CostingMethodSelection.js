@@ -18,6 +18,7 @@ const CostingMethodSelection = () => {
   const [assignedMethods, setAssignedMethods] = useState([]); // <-- new state
   const [isAssigned, setIsAssigned] = useState(false); // <-- new state
   const [assignedMethodForPortfolio, setAssignedMethodForPortfolio] = useState(''); // <-- new state
+  const [showUpgradePopup, setShowUpgradePopup] = useState(false); // <-- new state for upgrade popup
 
   useEffect(() => {
     setPortfoliosLoading(true);
@@ -72,7 +73,15 @@ const CostingMethodSelection = () => {
   };
 
   const handleMethodChange = (e) => {
-    setSelectedMethod(e.target.value);
+    const methodValue = e.target.value;
+    
+    // Check if user is trying to select a restricted method
+    if (methodValue === 'FIFO' || methodValue === 'CHERRY') {
+      setShowUpgradePopup(true);
+      return; // Don't change the selected method
+    }
+    
+    setSelectedMethod(methodValue);
     setMessage('');
   };
 
@@ -119,6 +128,10 @@ const CostingMethodSelection = () => {
     setMessage('');
     setIsAssigned(false);
     setAssignedMethodForPortfolio('');
+  };
+
+  const handleCloseUpgradePopup = () => {
+    setShowUpgradePopup(false);
   };
 
   return (
@@ -319,6 +332,67 @@ const CostingMethodSelection = () => {
           <p>SHERWOOD TECHNOLOGIES (PVT) LTD • Assign costing methods to your portfolios for precise P&amp;L calculation</p>
         </div>
       </div>
+
+      {/* Upgrade Popup */}
+      {showUpgradePopup && (
+        <div className="upgrade-popup-overlay">
+          <div className="upgrade-popup-content">
+            <div className="upgrade-popup-header">
+              <div className="upgrade-popup-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"></path>
+                </svg>
+              </div>
+              <h3 className="upgrade-popup-title">Premium Feature</h3>
+            </div>
+            <div className="upgrade-popup-body">
+              <p className="upgrade-popup-message">
+                <strong>FIFO (First-In First-Out)</strong> and <strong>Cherry Picking</strong> methods are available in our premium plan.
+              </p>
+              <p className="upgrade-popup-description">
+                Upgrade your account to access advanced portfolio costing methods that provide more granular control over your position valuation and P&L calculations.
+              </p>
+              <div className="upgrade-popup-features">
+                <div className="upgrade-popup-feature">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <polyline points="20,6 9,17 4,12"></polyline>
+                  </svg>
+                  <span>FIFO - Oldest lots relieved first</span>
+                </div>
+                <div className="upgrade-popup-feature">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <polyline points="20,6 9,17 4,12"></polyline>
+                  </svg>
+                  <span>Cherry Picking - User picks specific lots at deal level</span>
+                </div>
+                <div className="upgrade-popup-feature">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <polyline points="20,6 9,17 4,12"></polyline>
+                  </svg>
+                  <span>Advanced reporting and analytics</span>
+                </div>
+              </div>
+            </div>
+            <div className="upgrade-popup-footer">
+              <button 
+                className="upgrade-popup-btn upgrade-popup-btn-primary"
+                onClick={() => {
+                  // You can add upgrade logic here
+                  window.open('mailto:support@sherwoodtech.com?subject=Upgrade Request - Premium Portfolio Costing Methods', '_blank');
+                }}
+              >
+                Contact Sales
+              </button>
+              <button 
+                className="upgrade-popup-btn upgrade-popup-btn-secondary"
+                onClick={handleCloseUpgradePopup}
+              >
+                Maybe Later
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

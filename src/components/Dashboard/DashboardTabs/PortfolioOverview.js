@@ -138,24 +138,33 @@ const PortfolioOverview = ({ onTabChange }) => {
 
   // Sector data processing functions
   const getSectorData = (holdings) => {
+    console.log('=== SECTOR DATA DEBUG ===');
+    console.log('Holdings data:', holdings);
+    
     const sectorMap = {};
     
     holdings.forEach(holding => {
       const sector = holding.sector || 'Unknown';
+      const marketValue = holding.marketValue || 0;
+      console.log(`Processing holding: ${holding.symbol}, sector: ${sector}, marketValue: ${marketValue}`);
+      
       if (sectorMap[sector]) {
-        sectorMap[sector] += holding.marketValue;
+        sectorMap[sector] += marketValue;
       } else {
-        sectorMap[sector] = holding.marketValue;
+        sectorMap[sector] = marketValue;
       }
     });
 
-    return Object.entries(sectorMap)
+    const result = Object.entries(sectorMap)
       .map(([name, value]) => ({ name, value }))
       .sort((a, b) => b.value - a.value);
+    
+    console.log('Final sector data:', result);
+    return result;
   };
 
   const getTotalSectorValue = (holdings) => {
-    return holdings.reduce((total, holding) => total + holding.marketValue, 0);
+    return holdings.reduce((total, holding) => total + (holding.marketValue || 0), 0);
   };
 
   const getSectorColor = (index) => {
@@ -176,10 +185,17 @@ const PortfolioOverview = ({ onTabChange }) => {
 
   // Sector Pie Chart Component
   const SectorPieChart = ({ data }) => {
+    console.log('=== SECTOR PIE CHART DEBUG ===');
+    console.log('Data passed to SectorPieChart:', data);
+    
     const sectorData = getSectorData(data);
     const totalValue = getTotalSectorValue(data);
     
-    if (sectorData.length === 0) {
+    console.log('Sector data for chart:', sectorData);
+    console.log('Total value for chart:', totalValue);
+    
+    if (sectorData.length === 0 || totalValue === 0) {
+      console.log('No sector data available or total value is zero, showing no-data message');
       return (
         <div className="no-data-message">
           <p>No sector data available</p>
@@ -486,8 +502,15 @@ const PortfolioOverview = ({ onTabChange }) => {
           </div>
           <div className="card-content">
             <h3>Total Portfolio Value</h3>
-            <p className="card-value">{formatCurrency(totalValue)}</p>
-            <span className="card-change positive">+{formatPercentage(portfolioData.summary?.totalPnL || 0, portfolioData.summary?.totalCost || 0)}</span>
+            <p className="card-value">
+              {portfolioData.summary?.totalValue !== null ? formatCurrency(totalValue) : 'N/A'}
+            </p>
+            <span className="card-change positive">
+              {portfolioData.summary?.totalPnL !== null ? 
+                `+${formatPercentage(portfolioData.summary?.totalPnL || 0, portfolioData.summary?.totalCost || 0)}` : 
+                'Market data unavailable'
+              }
+            </span>
           </div>
         </div>
 
@@ -499,8 +522,15 @@ const PortfolioOverview = ({ onTabChange }) => {
           </div>
           <div className="card-content">
             <h3>Total P&L</h3>
-            <p className="card-value">{formatCurrency(portfolioData.summary?.totalPnL || 0)}</p>
-            <span className="card-change positive">+{formatPercentage(portfolioData.summary?.totalPnL || 0, portfolioData.summary?.totalCost || 0)}</span>
+            <p className="card-value">
+              {portfolioData.summary?.totalPnL !== null ? formatCurrency(portfolioData.summary?.totalPnL || 0) : 'N/A'}
+            </p>
+            <span className="card-change positive">
+              {portfolioData.summary?.totalPnL !== null ? 
+                `+${formatPercentage(portfolioData.summary?.totalPnL || 0, portfolioData.summary?.totalCost || 0)}` : 
+                'Market data unavailable'
+              }
+            </span>
           </div>
         </div>
 
@@ -658,14 +688,17 @@ const PortfolioOverview = ({ onTabChange }) => {
                   <td className="symbol-cell">
                     <span className="symbol">{holding.symbol}</span>
                   </td>
-                  <td>{holding.quantity.toLocaleString()}</td>
-                  <td>{formatCurrency(holding.avgPrice)}</td>
-                  <td>{formatCurrency(holding.currentPrice)}</td>
-                  <td>{formatCurrency(holding.marketValue)}</td>
-                  <td className={`pnl-cell ${holding.pnl >= 0 ? 'positive' : 'negative'}`}>
-                    {holding.pnl >= 0 ? '+' : ''}{formatCurrency(holding.pnl)}
+                  <td>{(holding.quantity || 0).toLocaleString()}</td>
+                  <td>{formatCurrency(holding.avgPrice || 0)}</td>
+                  <td>{holding.currentPrice ? formatCurrency(holding.currentPrice) : 'N/A'}</td>
+                  <td>{holding.marketValue ? formatCurrency(holding.marketValue) : 'N/A'}</td>
+                  <td className={`pnl-cell ${holding.pnl !== null ? (holding.pnl >= 0 ? 'positive' : 'negative') : 'neutral'}`}>
+                    {holding.pnl !== null ? 
+                      `${holding.pnl >= 0 ? '+' : ''}${formatCurrency(holding.pnl)}` : 
+                      'N/A'
+                    }
                   </td>
-                  <td className="sector-cell">{holding.sector}</td>
+                  <td className="sector-cell">{holding.sector || 'Unknown'}</td>
                 </tr>
               ))}
             </tbody>

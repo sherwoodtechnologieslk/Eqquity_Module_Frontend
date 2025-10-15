@@ -23,6 +23,7 @@ const SellTransactionEntry = ({ setFifoParams, setActiveTab }) => {
     quantity: '',
     soldPrice: '',
     boughtPrice: '',
+    buyTransactionDates: '', // Buy transaction dates
     tradeDate: getToday(),
     settlementDate: getToday(),
     brokerName: '',
@@ -36,7 +37,6 @@ const SellTransactionEntry = ({ setFifoParams, setActiveTab }) => {
     hdays: '',
     cp: '',
     buyContract: '',
-    holdingCost: '',
     profitLoss: '',
     // Cost breakdown fields
     grossValue: '',
@@ -79,10 +79,10 @@ const SellTransactionEntry = ({ setFifoParams, setActiveTab }) => {
     const fetchActiveCostOfFunds = async () => {
       try {
         const activeCostOfFunds = await costOfFundsAPI.getActiveCostOfFunds();
-        if (activeCostOfFunds && activeCostOfFunds.cost_of_funds) {
+        if (activeCostOfFunds && activeCostOfFunds.after_tax_cost_of_funds) {
           setForm(prev => ({ 
             ...prev, 
-            costOfFunds: parseFloat(activeCostOfFunds.cost_of_funds).toFixed(2)
+            costOfFunds: parseFloat(activeCostOfFunds.after_tax_cost_of_funds).toFixed(2)
           }));
         }
       } catch (error) {
@@ -129,10 +129,10 @@ const SellTransactionEntry = ({ setFifoParams, setActiveTab }) => {
         .catch(() => setFilteredCompanies([]))
         .finally(() => setCompaniesLoading(false));
       // Clear companyName and symbol if portfolio changes
-      setForm(prev => ({ ...prev, companyName: '', symbol: '' }));
+      setForm(prev => ({ ...prev, companyName: '', symbol: '', buyTransactionDates: '' }));
     } else {
       setFilteredCompanies([]);
-      setForm(prev => ({ ...prev, companyName: '', symbol: '' }));
+      setForm(prev => ({ ...prev, companyName: '', symbol: '', buyTransactionDates: '' }));
     }
   }, [form.portfolioName]);
 
@@ -185,12 +185,29 @@ const SellTransactionEntry = ({ setFifoParams, setActiveTab }) => {
             let totalQuantity = 0;
             
             res.allocations.forEach(allocation => {
-              const buySettlementDate = new Date(allocation.settlementDate);
-              const daysDiff = Math.ceil((sellSettlementDate - buySettlementDate) / (1000 * 60 * 60 * 24));
+              // Create date objects and normalize to start of day to avoid timezone issues
+              const sellDate = new Date(form.settlementDate);
+              const buyDate = new Date(allocation.settlementDate);
+              
+              // Normalize to start of day (00:00:00) to avoid timezone/time issues
+              sellDate.setHours(0, 0, 0, 0);
+              buyDate.setHours(0, 0, 0, 0);
+              
+              const daysDiff = Math.ceil((sellDate - buyDate) / (1000 * 60 * 60 * 24));
               const quantity = parseFloat(allocation.quantity);
               
-              // Only include positive holding days (buy settled before sell)
-              if (daysDiff > 0) {
+              // Debug logging for date calculation
+              console.log('Date calculation debug:', {
+                sellSettlementDate: form.settlementDate,
+                buySettlementDate: allocation.settlementDate,
+                sellDateNormalized: sellDate.toISOString(),
+                buyDateNormalized: buyDate.toISOString(),
+                daysDiff: daysDiff,
+                quantity: quantity
+              });
+              
+              // Include all transactions, including same-day (0 days) and positive holding days
+              if (daysDiff >= 0) {
                 totalWeightedDays += daysDiff * quantity;
                 totalQuantity += quantity;
               }
@@ -335,23 +352,37 @@ const SellTransactionEntry = ({ setFifoParams, setActiveTab }) => {
     }
   }, [totalShares, form.quantity]);
 
-  // Calculate Holding Cost when relevant fields change
+  // Calculate Profit/Loss when relevant fields change
   useEffect(() => {
-    if (form.netValue && form.costOfFunds && form.hdays) {
-      const netValue = parseFloat(form.netValue) || 0;
-      const costOfFunds = parseFloat(form.costOfFunds) || 0;
-      const holdingDays = parseFloat(form.hdays) || 0;
-      
-      if (netValue > 0 && costOfFunds > 0 && holdingDays > 0) {
-        const holdingCost = (netValue * costOfFunds * holdingDays) / 365;
-        setForm(prev => ({ ...prev, holdingCost: holdingCost.toFixed(2) }));
-      } else {
-        setForm(prev => ({ ...prev, holdingCost: '' }));
-      }
+    if (form.capitalGain) {
+      const capitalGain = parseFloat(form.capitalGain) || 0;
+      const moneyGenCost = parseFloat(form.moneyGenerationCost) || 0; // Default to 0 if null/empty
+      const profitLoss = capitalGain - moneyGenCost;
+      setForm(prev => ({ ...prev, profitLoss: profitLoss.toFixed(2) }));
     } else {
-      setForm(prev => ({ ...prev, holdingCost: '' }));
+      setForm(prev => ({ ...prev, profitLoss: '' }));
     }
-  }, [form.netValue, form.costOfFunds, form.hdays]);
+  }, [form.capitalGain, form.moneyGenerationCost]);
+
+  // Recalculate Money Gen Cost when holding days change
+  useEffect(() => {
+    if (form.quantity && form.soldPrice && form.costOfFunds && form.hdays) {
+      const recalculateMoneyGenCost = async () => {
+        try {
+          const calc = await tradeSummaryAPI.calculateSellTransaction({
+            quantity: form.quantity,
+            soldPrice: form.soldPrice,
+            costOfFunds: form.costOfFunds,
+            holdingDays: form.hdays
+          });
+          setForm(prev => ({ ...prev, moneyGenerationCost: calc.moneyGenerationCost ?? '' }));
+        } catch (err) {
+          console.error('Error recalculating money gen cost:', err);
+        }
+      };
+      recalculateMoneyGenCost();
+    }
+  }, [form.hdays]);
 
   // --- Validation ---
   const validateForm = () => {
@@ -422,7 +453,8 @@ const SellTransactionEntry = ({ setFifoParams, setActiveTab }) => {
           const calc = await tradeSummaryAPI.calculateSellTransaction({
             quantity: name === 'quantity' ? value : updatedForm.quantity,
             soldPrice: name === 'soldPrice' ? value : updatedForm.soldPrice,
-            costOfFunds: updatedForm.costOfFunds
+            costOfFunds: updatedForm.costOfFunds,
+            holdingDays: updatedForm.hdays || 0
           });
           setForm({
             ...updatedForm,
@@ -491,6 +523,7 @@ const SellTransactionEntry = ({ setFifoParams, setActiveTab }) => {
       hdays: parseInt(form.hdays) || 0,
       cp: parseFloat(form.cp) || 0,
       buy_contract: form.buyContract || '',
+      buy_transaction_dates: form.buyTransactionDates || '',
       holding_cost: parseFloat(form.holdingCost) || 0,
       profit_loss: parseFloat(form.profitLoss) || 0,
       total_shares: totalShares
@@ -546,7 +579,7 @@ const SellTransactionEntry = ({ setFifoParams, setActiveTab }) => {
     `sell-form-input${errors[fieldName] ? ' sell-error' : ''}`;
 
   // Handle equity selection from modal
-  const handleEquitySelect = (companyName) => {
+  const handleEquitySelect = async (companyName) => {
     // Find the equity record to get the symbol
     const selectedEquity = equities.find(equity => equity.name === companyName);
     const symbol = selectedEquity ? selectedEquity.symbol : '';
@@ -556,6 +589,42 @@ const SellTransactionEntry = ({ setFifoParams, setActiveTab }) => {
       companyName: companyName,
       symbol: symbol
     }));
+    
+    // Fetch buy transaction dates for this company
+    if (symbol && form.portfolioName) {
+      try {
+        const buyTransactions = await transactionEntryAPI.getByPortfolio(form.portfolioName);
+        const companyBuyTransactions = buyTransactions.filter(tx => tx.symbol === symbol);
+        
+        // Format dates to user-friendly format
+        const formatDate = (dateString) => {
+          if (!dateString) return '';
+          try {
+            const date = new Date(dateString);
+            return date.toLocaleDateString('en-US', {
+              year: 'numeric',
+              month: 'short',
+              day: 'numeric'
+            });
+          } catch (error) {
+            return dateString;
+          }
+        };
+        
+        const buyDates = companyBuyTransactions.map(tx => formatDate(tx.trade_date)).join(', ');
+        
+        setForm(prev => ({
+          ...prev,
+          buyTransactionDates: buyDates
+        }));
+      } catch (error) {
+        console.error('Error fetching buy transaction dates:', error);
+        setForm(prev => ({
+          ...prev,
+          buyTransactionDates: 'Error loading dates'
+        }));
+      }
+    }
     
     // Clear any existing errors
     if (errors.companyName) {
@@ -912,6 +981,20 @@ const SellTransactionEntry = ({ setFifoParams, setActiveTab }) => {
                     readOnly
                   />
                   {errors.boughtPrice && <span className="sell-error-text">{errors.boughtPrice}</span>}
+                </div>
+                <div className="sell-form-group">
+                  <label htmlFor="buyTransactionDates">Buy Transaction Dates</label>
+                  <input
+                    type="text"
+                    id="buyTransactionDates"
+                    name="buyTransactionDates"
+                    value={form.buyTransactionDates}
+                    onChange={handleChange}
+                    className="sell-form-input"
+                    placeholder="Dates of buy transactions being sold"
+                    readOnly
+                  />
+                  <small className="sell-field-note">Dates of the original buy transactions</small>
                 </div>
                 <div className="sell-form-group">
                   <label htmlFor="capitalGain">Capital Gain (LKR)</label>
@@ -1271,23 +1354,6 @@ const SellTransactionEntry = ({ setFifoParams, setActiveTab }) => {
                     disabled
                   />
                 </div>
-                <div className="sell-form-group">
-                  <label htmlFor="holdingCost">Holding Cost (LKR)</label>
-                  <input
-                    type="number"
-                    id="holdingCost"
-                    name="holdingCost"
-                    value={form.holdingCost}
-                    readOnly
-                    className="sell-form-input sell-calculated-field"
-                    placeholder="Auto-calculated"
-                    step="0.01"
-                    min="0"
-                  />
-                  <small className="sell-field-note">
-                    Calculated as (Net Value × Cost of Funds (After-Tax) × Holding Days) ÷ 365
-                  </small>
-                </div>
               </div>
 
               {/* Profit / Loss Card */}
@@ -1305,7 +1371,7 @@ const SellTransactionEntry = ({ setFifoParams, setActiveTab }) => {
                     step="0.01"
                     readOnly
                   />
-                  <small className="sell-field-note">Capital Gain - Holding Cost</small>
+                  <small className="sell-field-note">Capital Gain - Money Generation Cost</small>
                 </div>
               </div>
 
