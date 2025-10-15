@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { tradeSummaryAPI, transactionEntryAPI } from '../../services/api';
+import { realizedPnLService } from '../../services/realizedPnLService';
 import './Dashboard.css';
 
 const Dashboard = ({ onTabChange }) => {
@@ -10,7 +11,13 @@ const Dashboard = ({ onTabChange }) => {
     marketAlerts: [],
     sectorData: [],
     sectorLegend: [],
-    totalCompanies: 0
+    totalCompanies: 0,
+    pnlMetrics: {
+      totalRealizedCapitalGain: 0,
+      realizedPnL: 0,
+      totalUnrealizedCapitalGain: 0,
+      unrealizedPnL: 0
+    }
   });
 
   const [isLoading, setIsLoading] = useState(true);
@@ -50,13 +57,120 @@ const Dashboard = ({ onTabChange }) => {
       let recentTransactions = [];
       let topPerformers = [];
       let marketAlerts = [];
-    let sectorData = [];
-    let sectorLegend = [];
-    let totalCompanies = 0;
+      let sectorData = [];
+      let sectorLegend = [];
+      let totalCompanies = 0;
+      let pnlMetrics = {
+        totalRealizedCapitalGain: 0,
+        realizedPnL: 0,
+        totalUnrealizedCapitalGain: 0,
+        unrealizedPnL: 0
+      };
 
       if (portfoliosResponse.ok) {
         const portfolios = await portfoliosResponse.json();
         activePortfolios = portfolios.length;
+        
+        console.log('🔍 DASHBOARD DEBUG - Available portfolios:', portfolios);
+        
+        // Fetch P&L metrics for the first portfolio (or all portfolios combined)
+        if (portfolios.length > 0) {
+          // Get P&L data for the first portfolio - use same field as MTM screen
+          const portfolioId = portfolios[0].id;
+          console.log('🔍 DASHBOARD DEBUG - Using portfolio ID:', portfolioId, 'from portfolio:', portfolios[0]);
+          
+          try {
+            const pnlData = await realizedPnLService.getCompleteData(portfolioId, '1Y');
+            
+            if (pnlData && pnlData.portfolioSummary) {
+              // Get ALL four values from both screens:
+              // 1. Total Realized Capital Gain - from RealizedPnL screen (netRealizedPnL)
+              // 2. Realized P&L - from RealizedPnL screen (netRealizedPnL)
+              const netRealizedCapitalGain = pnlData.portfolioSummary?.netRealizedPnL || 0;
+              const realizedPnL = pnlData.portfolioSummary?.netRealizedPnL || 0; // Same as netRealizedCapitalGain
+              
+              // Update only the realized values, keep existing unrealized values
+              pnlMetrics.totalRealizedCapitalGain = netRealizedCapitalGain;
+              pnlMetrics.realizedPnL = realizedPnL;
+              
+              console.log('🔍 DASHBOARD DEBUG - Realized P&L data from RealizedPnL screen:', {
+                portfolioId,
+                netRealizedCapitalGain,
+                realizedPnL,
+                portfolioSummary: pnlData.portfolioSummary,
+                tradeHistoryLength: pnlData.tradeHistory?.length || 0,
+                source: 'RealizedPnL screen (netRealizedPnL)',
+                pnlMetricsAfterRealized: pnlMetrics
+              });
+            } else {
+              console.log('❌ DASHBOARD DEBUG - No portfolioSummary found:', {
+                portfolioId,
+                pnlData,
+                hasPortfolioSummary: !!pnlData?.portfolioSummary
+              });
+            }
+
+            // Fetch MTM data for unrealized values - using EXACT same calculations as MarkToMarketValuation
+            try {
+              const mtmData = await transactionEntryAPI.getPortfolioPositions(portfolioId);
+              console.log('🔍 DASHBOARD DEBUG - MTM data for unrealized calculations:', mtmData);
+              
+              if (mtmData && mtmData.length > 0) {
+                // Get ALL four values from both screens:
+                // 3. Total Unrealized Capital Gain - from MTM screen (totalGainLoss = totalGrossSales - totalCost)
+                // 4. Unrealized P&L - from MTM screen (totalProjectedSalesWithCOF - (totalCost + totalCharges))
+                
+                console.log('🔍 DASHBOARD DEBUG - MTM data sample (first 2 items):', mtmData.slice(0, 2));
+                
+                // Use EXACT same calculations as MarkToMarketValuation component (lines 476-486, 1157-1158)
+                const totalCost = mtmData.reduce((sum, item) => sum + (item.costValue || 0), 0);
+                const totalGrossSales = mtmData.reduce((sum, item) => sum + (item.grossSales || 0), 0);
+                const totalCharges = mtmData.reduce((sum, item) => sum + (item.charges || 0), 0);
+                const totalProjectedSalesWithCOF = mtmData.reduce((sum, item) => sum + (item.projectedSalesWithCOF || 0), 0);
+                
+                // Total Unrealized Capital Gain = totalGrossSales - totalCost (same as MTM screen line 486)
+                const totalUnrealizedCapitalGain = totalGrossSales - totalCost;
+                
+                // Unrealized P&L = totalProjectedSalesWithCOF - (totalCost + totalCharges) (same as MTM screen line 1158)
+                const unrealizedPnL = totalProjectedSalesWithCOF - (totalCost + totalCharges);
+                
+                console.log('🔍 DASHBOARD DEBUG - Step-by-step calculations:', {
+                  totalCost,
+                  totalGrossSales,
+                  totalCharges,
+                  totalProjectedSalesWithCOF,
+                  totalUnrealizedCapitalGain: `${totalGrossSales} - ${totalCost} = ${totalUnrealizedCapitalGain}`,
+                  unrealizedPnL: `${totalProjectedSalesWithCOF} - (${totalCost} + ${totalCharges}) = ${unrealizedPnL}`
+                });
+                
+                // Update only the unrealized values, keep existing realized values
+                pnlMetrics.totalUnrealizedCapitalGain = totalUnrealizedCapitalGain;
+                pnlMetrics.unrealizedPnL = unrealizedPnL;
+                
+                console.log('🔍 DASHBOARD DEBUG - Calculated unrealized values from MTM screen:', {
+                  totalUnrealizedCapitalGain,
+                  unrealizedPnL,
+                  totalCost,
+                  totalGrossSales,
+                  totalCharges,
+                  totalProjectedSalesWithCOF,
+                  source: 'MarkToMarketValuation screen',
+                  mtmScreenReference: 'Lines 476-486, 1157-1158',
+                  pnlMetricsAfterUnrealized: pnlMetrics
+                });
+              } else {
+                console.log('🔍 DASHBOARD DEBUG - No MTM data available for unrealized calculations');
+              }
+            } catch (mtmError) {
+              console.error('❌ DASHBOARD DEBUG - Error fetching MTM data for unrealized values:', mtmError);
+              // Keep existing P&L metrics if MTM fetch fails
+            }
+          } catch (pnlError) {
+            console.error('❌ DASHBOARD DEBUG - Error fetching P&L metrics:', pnlError);
+            console.error('❌ DASHBOARD DEBUG - Portfolio ID that failed:', portfolioId);
+            // Keep default values if P&L fetch fails
+          }
+        }
       }
 
       // Fetch real transactions from the database
@@ -234,6 +348,8 @@ const Dashboard = ({ onTabChange }) => {
         totalCompanies = 0;
       }
 
+      console.log('🔍 DASHBOARD DEBUG - Final pnlMetrics before setting state:', pnlMetrics);
+      
       setDashboardData({
         activePortfolios,
         recentTransactions,
@@ -246,7 +362,8 @@ const Dashboard = ({ onTabChange }) => {
         marketAlerts: marketAlerts,
         sectorData: sectorData,
         sectorLegend: sectorLegend,
-        totalCompanies: totalCompanies
+        totalCompanies: totalCompanies,
+        pnlMetrics: pnlMetrics
       });
       
       setIsLoading(false);
@@ -262,7 +379,13 @@ const Dashboard = ({ onTabChange }) => {
         ],
         sectorData: [],
         sectorLegend: [],
-        totalCompanies: 0
+        totalCompanies: 0,
+        pnlMetrics: {
+          totalRealizedCapitalGain: 0,
+          realizedPnL: 0,
+          totalUnrealizedCapitalGain: 0,
+          unrealizedPnL: 0
+        }
       });
       setIsLoading(false);
     }
@@ -380,6 +503,57 @@ const Dashboard = ({ onTabChange }) => {
 
         {/* Right Column */}
         <div className="right-column">
+          {/* P&L Metrics */}
+          <div className="pnl-metrics-grid">
+            <div className="pnl-metric-card">
+              <div className="metric-header">
+                <div className="metric-info">
+                  <h4>Total Realized Capital Gain</h4>
+                  <p className="metric-value">LKR {new Intl.NumberFormat('en-US', {
+                    minimumFractionDigits: 0,
+                    maximumFractionDigits: 0
+                  }).format(dashboardData.pnlMetrics.totalRealizedCapitalGain)}</p>
+                </div>
+              </div>
+            </div>
+
+            <div className="pnl-metric-card primary">
+              <div className="metric-header">
+                <div className="metric-info">
+                  <h4>Realized P&L</h4>
+                  <p className="metric-value">LKR {new Intl.NumberFormat('en-US', {
+                    minimumFractionDigits: 0,
+                    maximumFractionDigits: 0
+                  }).format(dashboardData.pnlMetrics.realizedPnL)}</p>
+                </div>
+              </div>
+            </div>
+
+            <div className="pnl-metric-card">
+              <div className="metric-header">
+                <div className="metric-info">
+                  <h4>Total Unrealized Capital Gain</h4>
+                  <p className="metric-value">LKR {new Intl.NumberFormat('en-US', {
+                    minimumFractionDigits: 0,
+                    maximumFractionDigits: 0
+                  }).format(dashboardData.pnlMetrics.totalUnrealizedCapitalGain)}</p>
+                </div>
+              </div>
+            </div>
+
+            <div className="pnl-metric-card">
+              <div className="metric-header">
+                <div className="metric-info">
+                  <h4>Unrealized P&L</h4>
+                  <p className="metric-value">LKR {new Intl.NumberFormat('en-US', {
+                    minimumFractionDigits: 0,
+                    maximumFractionDigits: 0
+                  }).format(dashboardData.pnlMetrics.unrealizedPnL)}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
           {/* Sector Pie Chart */}
           <div className="content-card">
             <div className="card-header">
