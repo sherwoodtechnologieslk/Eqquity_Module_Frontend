@@ -51,6 +51,10 @@ const BulkBuyEntry = () => {
     tradeDate: getToday(),
     settlementDate: getToday(),
     settlementAccount: '',
+    accountName: '',
+    accountNumber: '',
+    bankName: '',
+    branchName: '',
     cashFlowOnSettlement: '',
     paymentMethod: '',
     generatePayment: 'No',
@@ -276,6 +280,10 @@ const BulkBuyEntry = () => {
       tradeDate: getToday(),
       settlementDate: getToday(),
       settlementAccount: '',
+      accountName: '',
+      accountNumber: '',
+      bankName: '',
+      branchName: '',
       cashFlowOnSettlement: '',
       paymentMethod: '',
       generatePayment: 'No',
@@ -434,7 +442,7 @@ const BulkBuyEntry = () => {
             </div>
             <div className="bulk-buy-field-group">
               <div className="bulk-buy-field-wrapper">
-                <label className="bulk-buy-field-label">Contract Number *</label>
+                <label className="bulk-buy-field-label">Contract Number</label>
                 <input
                   name="contractNumber"
                   placeholder="Enter contract number"
@@ -683,11 +691,52 @@ const BulkBuyEntry = () => {
           <div className="bulk-buy-section">
             <div className="bulk-buy-field-group">
               <div className="bulk-buy-field-wrapper">
-                <label className="bulk-buy-field-label">Settlement Account</label>
+                <label className="bulk-buy-field-label">Settlement Account *</label>
                 <input
                   name="settlementAccount"
                   placeholder="Enter settlement account"
                   value={form.settlementAccount}
+                  onChange={handleChange}
+                  className="bulk-buy-form-input"
+                  required
+                />
+              </div>
+              <div className="bulk-buy-field-wrapper">
+                <label className="bulk-buy-field-label">Account Name</label>
+                <input
+                  name="accountName"
+                  placeholder="Enter account holder name"
+                  value={form.accountName}
+                  onChange={handleChange}
+                  className="bulk-buy-form-input"
+                />
+              </div>
+              <div className="bulk-buy-field-wrapper">
+                <label className="bulk-buy-field-label">Account Number</label>
+                <input
+                  name="accountNumber"
+                  placeholder="Enter account number"
+                  value={form.accountNumber}
+                  onChange={handleChange}
+                  className="bulk-buy-form-input"
+                />
+              </div>
+              <div className="bulk-buy-field-wrapper">
+                <label className="bulk-buy-field-label">Bank Name</label>
+                <input
+                  name="bankName"
+                  placeholder="Enter bank name"
+                  value={form.bankName}
+                  onChange={handleChange}
+                  className="bulk-buy-form-input"
+                />
+              </div>
+              <div className="bulk-buy-field-wrapper">
+                <label className="bulk-buy-field-label">Branch Name</label>
+                <input
+                  name="branchName"
+                  placeholder="Enter branch name"
+                  value={form.branchName}
                   onChange={handleChange}
                   className="bulk-buy-form-input"
                 />

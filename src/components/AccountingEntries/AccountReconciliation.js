@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { generalLedgerAPI, chartOfAccountsAPI, accountReconciliationAPI } from '../../services/api';
+import React, { useState, useEffect, useCallback } from 'react';
+import { chartOfAccountsAPI, accountReconciliationAPI } from '../../services/api';
 import './Styles/AccountReconciliation.css';
 
 const AccountReconciliation = () => {
@@ -48,13 +48,6 @@ const AccountReconciliation = () => {
     loadAccounts();
   }, []);
 
-  // Load GL transactions when filters change
-  useEffect(() => {
-    if (filters.accountCode) {
-      loadGlTransactions();
-    }
-  }, [filters]);
-
   const loadAccounts = async () => {
     try {
       const data = await chartOfAccountsAPI.getAll();
@@ -65,7 +58,7 @@ const AccountReconciliation = () => {
     }
   };
 
-  const loadGlTransactions = async () => {
+  const loadGlTransactions = useCallback(async () => {
     try {
       setLoading(true);
       setError('');
@@ -88,46 +81,25 @@ const AccountReconciliation = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [filters.accountCode, filters.startDate, filters.endDate]);
 
   const loadExternalTransactions = async () => {
     // This would typically load from uploaded bank statements or external APIs
-    // For now, we'll simulate with sample data
-    const sampleExternalData = [
-      {
-        id: 'EXT001',
-        date: '2024-01-15',
-        reference: 'Deposit #123',
-        description: 'Customer Payment',
-        debit: 5000,
-        credit: 0,
-        balance: 55000
-      },
-      {
-        id: 'EXT002',
-        date: '2024-01-20',
-        reference: 'Cheque #456',
-        description: 'Vendor Payment',
-        debit: 0,
-        credit: 3000,
-        balance: 52000
-      },
-      {
-        id: 'EXT003',
-        date: '2024-01-25',
-        reference: 'Bank Fee',
-        description: 'Monthly Service Charge',
-        debit: 0,
-        credit: 500,
-        balance: 51500
-      }
-    ];
+    // For now, using empty data - no mock data
+    const emptyExternalData = [];
     
-    setExternalTransactions(sampleExternalData);
-    setExternalOpeningBalance(50000);
-    setExternalClosingBalance(51500);
-    setUnmatchedExternal(sampleExternalData);
+    setExternalTransactions(emptyExternalData);
+    setExternalOpeningBalance(0);
+    setExternalClosingBalance(0);
+    setUnmatchedExternal(emptyExternalData);
   };
+
+  // Load GL transactions when filters change
+  useEffect(() => {
+    if (filters.accountCode) {
+      loadGlTransactions();
+    }
+  }, [filters, loadGlTransactions]);
 
   const handleFilterChange = (field, value) => {
     setFilters(prev => ({
@@ -136,23 +108,6 @@ const AccountReconciliation = () => {
     }));
   };
 
-  const handleManualMatch = (glTransaction, externalTransaction) => {
-    // Remove from unmatched lists
-    setUnmatchedGl(prev => prev.filter(t => t.id !== glTransaction.id));
-    setUnmatchedExternal(prev => prev.filter(t => t.id !== externalTransaction.id));
-    
-    // Add to matched list
-    setMatchedTransactions(prev => [...prev, {
-      id: `match_${Date.now()}`,
-      glTransaction,
-      externalTransaction,
-      matchType: 'manual',
-      matchedAt: new Date().toISOString()
-    }]);
-    
-    // Recalculate differences
-    calculateDifferences();
-  };
 
   const handleAutoMatch = () => {
     const newMatches = [];

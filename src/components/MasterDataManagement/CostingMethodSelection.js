@@ -316,7 +316,7 @@ const CostingMethodSelection = () => {
 
         {/* --- FOOTER INFO --- */}
         <div className="cost-method-footer-section">
-          <p>ALCYONE TREASURY SOLUTIONS (PVT) LTD • Assign costing methods to your portfolios for precise P&amp;L calculation</p>
+          <p>SHERWOOD TECHNOLOGIES (PVT) LTD • Assign costing methods to your portfolios for precise P&amp;L calculation</p>
         </div>
       </div>
     </div>

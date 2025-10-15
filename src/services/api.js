@@ -26,6 +26,12 @@ const makeAuthenticatedRequest = async (url, options = {}) => {
     return await response.json();
 };
 
+// Helper function to get headers with auth and content type
+const getHeaders = () => ({
+  'Content-Type': 'application/json',
+  ...getAuthHeaders()
+});
+
 // API service for equity operations
 export const equityAPI = {
   // Get all equities
@@ -142,6 +148,7 @@ export const accountAPI = {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          ...getAuthHeaders()
         },
         body: JSON.stringify(accountData),
       });
@@ -160,7 +167,9 @@ export const accountAPI = {
   // Get all accounts
   getAllAccounts: async () => {
     try {
-      const response = await fetch(`${API_BASE_URL}/accounts`);
+      const response = await fetch(`${API_BASE_URL}/accounts`, {
+        headers: getAuthHeaders()
+      });
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
@@ -171,11 +180,67 @@ export const accountAPI = {
     }
   },
 
+  // Get account by ID
+  getAccountById: async (id) => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/accounts/${id}`, {
+        headers: getAuthHeaders()
+      });
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      return await response.json();
+    } catch (error) {
+      console.error('Error fetching account by ID:', error);
+      throw error;
+    }
+  },
+
+  // Update account
+  updateAccount: async (id, accountData) => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/accounts/${id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          ...getAuthHeaders()
+        },
+        body: JSON.stringify(accountData),
+      });
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      
+      return await response.json();
+    } catch (error) {
+      console.error('Error updating account:', error);
+      throw error;
+    }
+  },
+
+  // Get accounts by payment method
+  getAccountsByPaymentMethod: async (method) => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/accounts/by-payment-method/${encodeURIComponent(method)}`, {
+        headers: getAuthHeaders()
+      });
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      return await response.json();
+    } catch (error) {
+      console.error('Error fetching accounts by payment method:', error);
+      throw error;
+    }
+  },
+
   // Delete account
   deleteAccount: async (id) => {
     try {
       const response = await fetch(`${API_BASE_URL}/accounts/${id}`, {
         method: 'DELETE',
+        headers: getAuthHeaders()
       });
       
       if (!response.ok) {
@@ -228,6 +293,7 @@ export const tradeSummaryAPI = {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          ...getAuthHeaders()
         },
         body: JSON.stringify(data),
       });
@@ -241,6 +307,27 @@ export const tradeSummaryAPI = {
     }
   },
 
+  // Calculate sell transaction breakdown
+  calculateSellTransaction: async (data) => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/trade-summary/calculate-sell-transaction`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...getAuthHeaders()
+        },
+        body: JSON.stringify(data),
+      });
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      return await response.json();
+    } catch (error) {
+      console.error('Error calculating sell transaction:', error);
+      throw error;
+    }
+  },
+
   // Save buy transaction entry
   saveBuyTransaction: async (data) => {
     try {
@@ -248,6 +335,7 @@ export const tradeSummaryAPI = {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          ...getAuthHeaders()
         },
         body: JSON.stringify(data),
       });
@@ -279,7 +367,9 @@ export const tradeSummaryAPI = {
         url += `?tradeDate=${tradeDate}`;
       }
       
-      const response = await fetch(url);
+      const response = await fetch(url, {
+        headers: getAuthHeaders()
+      });
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
@@ -293,7 +383,9 @@ export const tradeSummaryAPI = {
   // Get unique company names and symbols for dropdown
   getCompanyList: async () => {
     try {
-      const response = await fetch(`${API_BASE_URL}/trade-summary/companies`);
+      const response = await fetch(`${API_BASE_URL}/trade-summary/companies`, {
+        headers: getAuthHeaders()
+      });
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
@@ -342,7 +434,9 @@ export const tradeSummaryAPI = {
         url += `?${params.toString()}`;
       }
       
-      const response = await fetch(url);
+      const response = await fetch(url, {
+        headers: getAuthHeaders()
+      });
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
@@ -372,9 +466,7 @@ export const portfolioAPI = {
       console.log('Sending portfolio data:', portfolioData);
       const response = await fetch(`${API_BASE_URL}/portfolios`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: getHeaders(),
         body: JSON.stringify(portfolioData),
       });
       
@@ -401,9 +493,7 @@ export const portfolioAPI = {
     try {
       const response = await fetch(`${API_BASE_URL}/portfolios/${id}`, {
         method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: getHeaders(),
         body: JSON.stringify(portfolioData),
       });
       if (!response.ok) {
@@ -421,6 +511,7 @@ export const portfolioAPI = {
     try {
       const response = await fetch(`${API_BASE_URL}/portfolios/${id}`, {
         method: 'DELETE',
+        headers: getAuthHeaders()
       });
       if (!response.ok) {
         const errorData = await response.json();
@@ -452,6 +543,7 @@ export const portfolioStrategyAPI = {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          ...getAuthHeaders()
         },
         body: JSON.stringify(assignmentData),
       });
@@ -468,7 +560,9 @@ export const portfolioStrategyAPI = {
   // Get all portfolio-strategy assignments
   getAllPortfolioStrategies: async () => {
     try {
-      const response = await fetch(`${API_BASE_URL}/portfolio-strategy`);
+      const response = await fetch(`${API_BASE_URL}/portfolio-strategy`, {
+        headers: getAuthHeaders()
+      });
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
@@ -483,13 +577,36 @@ export const portfolioStrategyAPI = {
 // Add a function to get a portfolio by name
 portfolioAPI.getPortfolioByName = async (portfolioName) => {
   try {
-    const response = await fetch(`${API_BASE_URL}/portfolios/by-name/${encodeURIComponent(portfolioName)}`);
+    const response = await fetch(`${API_BASE_URL}/portfolios/by-name/${encodeURIComponent(portfolioName)}`, {
+      headers: getAuthHeaders()
+    });
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);
     }
     return await response.json();
   } catch (error) {
     console.error('Error fetching portfolio by name:', error);
+    throw error;
+  }
+};
+
+// Add a function to get portfolio overview
+portfolioAPI.getPortfolioOverview = async (portfolioId = null) => {
+  try {
+    let url = `${API_BASE_URL}/portfolios/overview`;
+    if (portfolioId && portfolioId !== 'all') {
+      url += `?portfolioId=${portfolioId}`;
+    }
+    
+    const response = await fetch(url, {
+      headers: getAuthHeaders()
+    });
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    return await response.json();
+  } catch (error) {
+    console.error('Error fetching portfolio overview:', error);
     throw error;
   }
 };
@@ -502,6 +619,7 @@ export const portfolioCostingMethodAPI = {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          ...getAuthHeaders()
         },
         body: JSON.stringify(assignmentData),
       });
@@ -517,7 +635,9 @@ export const portfolioCostingMethodAPI = {
   // Fetch all assigned portfolio costing methods
   getAllAssignedCostingMethods: async () => {
     try {
-      const response = await fetch(`${API_BASE_URL}/portfolio-costing-method`);
+      const response = await fetch(`${API_BASE_URL}/portfolio-costing-method`, {
+        headers: getAuthHeaders()
+      });
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
@@ -545,7 +665,9 @@ export const generalLedgerAPI = {
         url += `?portfolio=${encodeURIComponent(portfolio)}`;
       }
       
-      const response = await fetch(url);
+      const response = await fetch(url, {
+        headers: getAuthHeaders()
+      });
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
@@ -559,7 +681,9 @@ export const generalLedgerAPI = {
   // Get general ledger entries by portfolio
   getByPortfolio: async (portfolio) => {
     try {
-      const response = await fetch(`${API_BASE_URL}/general-ledger/portfolio/${encodeURIComponent(portfolio)}`);
+      const response = await fetch(`${API_BASE_URL}/general-ledger/portfolio/${encodeURIComponent(portfolio)}`, {
+        headers: getAuthHeaders()
+      });
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
@@ -573,7 +697,9 @@ export const generalLedgerAPI = {
   // Get all available portfolios for filtering
   getAvailablePortfolios: async () => {
     try {
-      const response = await fetch(`${API_BASE_URL}/general-ledger/portfolios`);
+      const response = await fetch(`${API_BASE_URL}/general-ledger/portfolios`, {
+        headers: getAuthHeaders()
+      });
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
@@ -587,7 +713,9 @@ export const generalLedgerAPI = {
   // Get general ledger entries by buy transaction ID
   getByBuyTransactionId: async (buyTransactionId) => {
     try {
-      const response = await fetch(`${API_BASE_URL}/general-ledger/buy-transaction/${buyTransactionId}`);
+      const response = await fetch(`${API_BASE_URL}/general-ledger/buy-transaction/${buyTransactionId}`, {
+        headers: getAuthHeaders()
+      });
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
@@ -601,7 +729,9 @@ export const generalLedgerAPI = {
   // Get general ledger entries by account code
   getByAccountCode: async (accountCode) => {
     try {
-      const response = await fetch(`${API_BASE_URL}/general-ledger/account/${accountCode}`);
+      const response = await fetch(`${API_BASE_URL}/general-ledger/account/${accountCode}`, {
+        headers: getAuthHeaders()
+      });
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
@@ -644,7 +774,9 @@ export const generalLedgerAPI = {
 export const transactionEntryAPI = {
   getByPortfolio: async (portfolioName) => {
     try {
-      const response = await fetch(`${API_BASE_URL}/transaction-entries/by-portfolio?portfolio=${encodeURIComponent(portfolioName)}`);
+      const response = await fetch(`${API_BASE_URL}/transaction-entries/by-portfolio?portfolio=${encodeURIComponent(portfolioName)}`, {
+        headers: getAuthHeaders()
+      });
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
@@ -655,18 +787,24 @@ export const transactionEntryAPI = {
     }
   },
   getCompaniesByPortfolio: async (portfolioName) => {
-    const res = await fetch(`${API_BASE_URL}/transaction-entries/companies?portfolio=${encodeURIComponent(portfolioName)}`);
+    const res = await fetch(`${API_BASE_URL}/transaction-entries/companies?portfolio=${encodeURIComponent(portfolioName)}`, {
+      headers: getAuthHeaders()
+    });
     if (!res.ok) throw new Error('Failed to fetch companies');
     return res.json();
   },
   getTotalQuantity: async (portfolioName, companyName) => {
-    const res = await fetch(`${API_BASE_URL}/transaction-entries/total-quantity?portfolio=${encodeURIComponent(portfolioName)}&company=${encodeURIComponent(companyName)}`);
+    const res = await fetch(`${API_BASE_URL}/transaction-entries/total-quantity?portfolio=${encodeURIComponent(portfolioName)}&company=${encodeURIComponent(companyName)}`, {
+      headers: getAuthHeaders()
+    });
     if (!res.ok) throw new Error('Failed to fetch total quantity');
     return res.json();
   },
   getWAPByPortfolioAndCompany: async (portfolioName, companyName) => {
     try {
-      const response = await fetch(`${API_BASE_URL}/transaction-entries/wap?portfolio=${encodeURIComponent(portfolioName)}&company=${encodeURIComponent(companyName)}`);
+      const response = await fetch(`${API_BASE_URL}/transaction-entries/wap?portfolio=${encodeURIComponent(portfolioName)}&company=${encodeURIComponent(companyName)}`, {
+        headers: getAuthHeaders()
+      });
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
@@ -678,7 +816,9 @@ export const transactionEntryAPI = {
   },
   getFifoCostByPortfolioAndCompany: async (portfolioName, companyName, sellQuantity) => {
     try {
-      const response = await fetch(`${API_BASE_URL}/transaction-entries/fifo?portfolio=${encodeURIComponent(portfolioName)}&company=${encodeURIComponent(companyName)}&sellQuantity=${encodeURIComponent(sellQuantity)}`);
+      const response = await fetch(`${API_BASE_URL}/transaction-entries/fifo?portfolio=${encodeURIComponent(portfolioName)}&company=${encodeURIComponent(companyName)}&sellQuantity=${encodeURIComponent(sellQuantity)}`, {
+        headers: getAuthHeaders()
+      });
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
@@ -688,9 +828,25 @@ export const transactionEntryAPI = {
       throw error;
     }
   },
+  getDetailedFifoAllocation: async (portfolioName, companyName, sellQuantity) => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/transaction-entries/detailed-fifo?portfolio=${encodeURIComponent(portfolioName)}&company=${encodeURIComponent(companyName)}&sellQuantity=${encodeURIComponent(sellQuantity)}`, {
+        headers: getAuthHeaders()
+      });
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      return await response.json();
+    } catch (error) {
+      console.error('Error fetching detailed FIFO allocation:', error);
+      throw error;
+    }
+  },
   getAvailableBuyLots: async (portfolioName, companyName) => {
     try {
-      const response = await fetch(`${API_BASE_URL}/transaction-entries/buy-lots?portfolio=${encodeURIComponent(portfolioName)}&company=${encodeURIComponent(companyName)}`);
+      const response = await fetch(`${API_BASE_URL}/transaction-entries/buy-lots?portfolio=${encodeURIComponent(portfolioName)}&company=${encodeURIComponent(companyName)}`, {
+        headers: getAuthHeaders()
+      });
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
@@ -700,12 +856,32 @@ export const transactionEntryAPI = {
       throw error;
     }
   },
+  saveBuyTransaction: async (data) => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/transaction-entries/buy`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...getAuthHeaders()
+        },
+        body: JSON.stringify(data),
+      });
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      return await response.json();
+    } catch (error) {
+      console.error('Error saving buy transaction:', error);
+      throw error;
+    }
+  },
   saveSellTransaction: async (data) => {
     try {
       const response = await fetch(`${API_BASE_URL}/transaction-entries/sell`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          ...getAuthHeaders()
         },
         body: JSON.stringify(data),
       });
@@ -720,7 +896,9 @@ export const transactionEntryAPI = {
   },
   getSellTransactionsByPortfolio: async (portfolioName) => {
     try {
-      const response = await fetch(`${API_BASE_URL}/transaction-entries/sell-by-portfolio?portfolio=${encodeURIComponent(portfolioName)}`);
+      const response = await fetch(`${API_BASE_URL}/transaction-entries/sell-by-portfolio?portfolio=${encodeURIComponent(portfolioName)}`, {
+        headers: getAuthHeaders()
+      });
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
@@ -756,6 +934,7 @@ export const transactionEntryAPI = {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          ...getAuthHeaders()
         },
         body: JSON.stringify({ sellTransaction, allocations }),
       });
@@ -772,13 +951,29 @@ export const transactionEntryAPI = {
   // Get portfolio positions with MTM calculations
   getPortfolioPositions: async (portfolioId) => {
     try {
-      const response = await fetch(`${API_BASE_URL}/transaction-entries/portfolio/${portfolioId}/positions`);
+      const response = await fetch(`${API_BASE_URL}/transaction-entries/portfolio/${portfolioId}/positions`, {
+        headers: getAuthHeaders()
+      });
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
       return await response.json();
     } catch (error) {
       console.error('Error fetching portfolio positions:', error);
+      throw error;
+    }
+  },
+  getAllBuyTransactions: async () => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/transaction-entries/buy-all`, {
+        headers: getAuthHeaders()
+      });
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      return await response.json();
+    } catch (error) {
+      console.error('Error fetching all buy transactions:', error);
       throw error;
     }
   }
@@ -920,7 +1115,9 @@ export const trialBalanceAPI = {
         queryParams.append('portfolio', filters.portfolio);
       }
       
-      const response = await fetch(`${API_BASE_URL}/trial-balance?${queryParams}`);
+      const response = await fetch(`${API_BASE_URL}/trial-balance?${queryParams}`, {
+        headers: getAuthHeaders()
+      });
       
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
@@ -945,7 +1142,9 @@ export const trialBalanceAPI = {
         queryParams.append('portfolio', filters.portfolio);
       }
       
-      const response = await fetch(`${API_BASE_URL}/trial-balance/summary?${queryParams}`);
+      const response = await fetch(`${API_BASE_URL}/trial-balance/summary?${queryParams}`, {
+        headers: getAuthHeaders()
+      });
       
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
@@ -970,7 +1169,9 @@ export const trialBalanceAPI = {
         queryParams.append('portfolio', filters.portfolio);
       }
       
-      const response = await fetch(`${API_BASE_URL}/trial-balance/account/${accountCode}?${queryParams}`);
+      const response = await fetch(`${API_BASE_URL}/trial-balance/account/${accountCode}?${queryParams}`, {
+        headers: getAuthHeaders()
+      });
       
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { tradeSummaryAPI, transactionEntryAPI } from '../../services/api';
 import './Dashboard.css';
 
@@ -32,20 +32,17 @@ const Dashboard = ({ onTabChange }) => {
     return blueShades[index % blueShades.length];
   };
 
-  useEffect(() => {
-    // TODO: Replace with actual API calls
-    loadDashboardData();
-  }, []);
-
-  const loadDashboardData = async () => {
+  const loadDashboardData = useCallback(async () => {
     try {
       console.log('Loading dashboard data...');
       
       // Get active portfolios count
+      const token = localStorage.getItem('token');
       const portfoliosResponse = await fetch('http://localhost:8080/api/portfolios/active', {
         method: 'GET',
         headers: {
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
+          ...(token && { 'Authorization': `Bearer ${token}` })
         }
       });
 
@@ -138,11 +135,12 @@ const Dashboard = ({ onTabChange }) => {
         // Fetch holdings data from portfolio overview API (same as Portfolio Overview)
         let holdingsData = [];
         try {
+          const token = localStorage.getItem('token');
           const holdingsResponse = await fetch('http://localhost:8080/api/portfolios/overview', {
             method: 'GET',
             headers: {
               'Content-Type': 'application/json',
-              'Authorization': `Bearer ${localStorage.getItem('token')}`
+              ...(token && { 'Authorization': `Bearer ${token}` })
             }
           });
 
@@ -212,22 +210,12 @@ const Dashboard = ({ onTabChange }) => {
         console.log('Generated sector legend:', sectorLegend);
         console.log('Total sectors:', totalCompanies);
 
-        // If no data was generated or all data is "Unknown", use mock data
+        // Use real data or empty arrays
         if (sectorData.length === 0 || (sectorData.length === 1 && sectorData[0].name === 'Unknown')) {
-          console.log('Using mock data for sector chart - no real holdings data available');
-          sectorData = [
-            { name: 'Technology', value: 45000, percentage: 40.0, color: getSectorColor(0), startAngle: 0, endAngle: 144 },
-            { name: 'Banking', value: 28000, percentage: 25.0, color: getSectorColor(1), startAngle: 144, endAngle: 234 },
-            { name: 'Consumer', value: 22000, percentage: 20.0, color: getSectorColor(2), startAngle: 234, endAngle: 306 },
-            { name: 'Healthcare', value: 17000, percentage: 15.0, color: getSectorColor(3), startAngle: 306, endAngle: 360 }
-          ];
-          sectorLegend = [
-            { name: 'Technology', value: 45000, percentage: 40.0, color: getSectorColor(0) },
-            { name: 'Banking', value: 28000, percentage: 25.0, color: getSectorColor(1) },
-            { name: 'Consumer', value: 22000, percentage: 20.0, color: getSectorColor(2) },
-            { name: 'Healthcare', value: 17000, percentage: 15.0, color: getSectorColor(3) }
-          ];
-          totalCompanies = 4;
+          console.log('No real holdings data available for sector chart');
+          sectorData = [];
+          sectorLegend = [];
+          totalCompanies = 0;
         } else {
           console.log('Using real holdings data for sector chart:', sectorData);
         }
@@ -235,39 +223,11 @@ const Dashboard = ({ onTabChange }) => {
       } catch (transactionError) {
         console.error('Error fetching transactions:', transactionError);
         
-        // Fallback to mock data if transaction fetch fails
-        recentTransactions = [
-          {
-            id: 1,
-            type: 'BUY',
-            symbol: 'AAPL',
-            quantity: 100,
-            price: 150.50,
-            date: '2024-01-15',
-            portfolio: 'Test Portfolio',
-            company: 'Apple Inc.'
-          },
-          {
-            id: 2,
-            type: 'SELL',
-            symbol: 'MSFT',
-            quantity: 50,
-            price: 300.25,
-            date: '2024-01-16',
-            portfolio: 'Test Portfolio',
-            company: 'Microsoft Corp.'
-          }
-        ];
-        topPerformers = [
-          {
-            symbol: 'AAPL',
-            name: 'Apple Inc.',
-            avgPrice: 150.50,
-            transactionCount: 5
-          }
-        ];
+        // Use empty data if transaction fetch fails
+        recentTransactions = [];
+        topPerformers = [];
         marketAlerts = [
-          { type: 'info', message: 'Using fallback data - Transaction API unavailable' }
+          { type: 'error', message: 'Failed to load transaction data' }
         ];
         sectorData = [];
         sectorLegend = [];
@@ -292,67 +252,26 @@ const Dashboard = ({ onTabChange }) => {
       setIsLoading(false);
     } catch (error) {
       console.error('Error loading dashboard data:', error);
-      // Fallback to mock data on error
-      const mockData = {
+      // Set empty data on error
+      setDashboardData({
         activePortfolios: 0,
-        recentTransactions: [
-          {
-            id: 1,
-            type: 'BUY',
-            symbol: 'AAPL',
-            quantity: 100,
-            price: 150.50,
-            date: '2024-01-15',
-            portfolio: 'Test Portfolio',
-            company: 'Apple Inc.'
-          },
-          {
-            id: 2,
-            type: 'SELL',
-            symbol: 'MSFT',
-            quantity: 50,
-            price: 300.25,
-            date: '2024-01-16',
-            portfolio: 'Test Portfolio',
-            company: 'Microsoft Corp.'
-          }
-        ],
-        topPerformers: [
-          {
-            symbol: 'AAPL',
-            name: 'Apple Inc.',
-            avgPrice: 150.50,
-            transactionCount: 5
-          },
-          {
-            symbol: 'MSFT',
-            name: 'Microsoft Corp.',
-            avgPrice: 300.25,
-            transactionCount: 3
-          }
-        ],
+        recentTransactions: [],
+        topPerformers: [],
         marketAlerts: [
-          { type: 'info', message: 'No active portfolios found. Create your first portfolio to get started.' },
-          { type: 'success', message: 'System is running normally' }
+          { type: 'error', message: 'Failed to load dashboard data. Please try again.' }
         ],
-        sectorData: [
-          { name: 'Technology', value: 45000, percentage: 40.0, color: getSectorColor(0), startAngle: 0, endAngle: 144 },
-          { name: 'Banking', value: 28000, percentage: 25.0, color: getSectorColor(1), startAngle: 144, endAngle: 234 },
-          { name: 'Consumer', value: 22000, percentage: 20.0, color: getSectorColor(2), startAngle: 234, endAngle: 306 },
-          { name: 'Healthcare', value: 17000, percentage: 15.0, color: getSectorColor(3), startAngle: 306, endAngle: 360 }
-        ],
-        sectorLegend: [
-          { name: 'Technology', value: 45000, percentage: 40.0, color: getSectorColor(0) },
-          { name: 'Banking', value: 28000, percentage: 25.0, color: getSectorColor(1) },
-          { name: 'Consumer', value: 22000, percentage: 20.0, color: getSectorColor(2) },
-          { name: 'Healthcare', value: 17000, percentage: 15.0, color: getSectorColor(3) }
-        ],
-        totalCompanies: 4
-      };
-      setDashboardData(mockData);
+        sectorData: [],
+        sectorLegend: [],
+        totalCompanies: 0
+      });
       setIsLoading(false);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    // TODO: Replace with actual API calls
+    loadDashboardData();
+  }, [loadDashboardData]);
 
   if (isLoading) {
     return (
@@ -434,7 +353,12 @@ const Dashboard = ({ onTabChange }) => {
                       <div className="transaction-symbol">{transaction.symbol || 'N/A'}</div>
                       <div className="transaction-details">
                         <span className="transaction-quantity">{transaction.quantity || 0} shares</span>
-                        <span className="transaction-price">{transaction.price || 0}</span>
+                        <span className="transaction-price">
+                          {transaction.type === 'SELL' 
+                            ? (transaction.sold_price || transaction.price || 0)
+                            : (transaction.price || 0)
+                          }
+                        </span>
                       </div>
                   </div>
                 </div>

@@ -44,7 +44,13 @@ const TrialBalance = () => {
 
   const fetchPortfolios = async () => {
     try {
-      const response = await fetch('http://localhost:8080/api/general-ledger/portfolios');
+      const token = localStorage.getItem('token');
+      const response = await fetch('http://localhost:8080/api/general-ledger/portfolios', {
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token && { 'Authorization': `Bearer ${token}` })
+        }
+      });
       if (response.ok) {
         const data = await response.json();
         setAvailablePortfolios(data);
@@ -98,14 +104,6 @@ const TrialBalance = () => {
     return new Date(dateString).toLocaleDateString('en-IN');
   };
 
-  const exportToExcel = () => {
-    // TODO: Implement Excel export functionality
-    console.log('Export to Excel functionality to be implemented');
-  };
-
-  const printReport = () => {
-    window.print();
-  };
 
   const getBalanceColor = (balance, balanceType) => {
     if (balanceType === 'ZERO') return 'neutral';
@@ -117,6 +115,16 @@ const TrialBalance = () => {
       <td className="tb-account-code">{account.account_code}</td>
       <td className="tb-account-name">{account.account_name}</td>
       <td className="tb-account-type">{account.account_type}</td>
+      <td>
+        {account.transaction_account_name && (
+          <div className="payment-details">
+            <div><strong>{account.transaction_account_name}</strong></div>
+            {account.account_number && <div>Acc: {account.account_number}</div>}
+            {account.bank_name && <div>Bank: {account.bank_name}</div>}
+            {account.payment_method && <div>Method: {account.payment_method}</div>}
+          </div>
+        )}
+      </td>
       <td className="tb-debit-balance">
         {account.balance_type === 'DR' ? formatCurrency(account.net_balance) : '-'}
       </td>
@@ -140,7 +148,7 @@ const TrialBalance = () => {
 
   const renderTypeSubtotal = (type, subtotal) => (
     <tr key={`subtotal-${type}`} className="tb-type-subtotal-row">
-      <td colSpan="3" className="tb-subtotal-label">
+      <td colSpan="4" className="tb-subtotal-label">
         <strong>{type} Subtotal</strong>
       </td>
       <td className="tb-subtotal-debit">
@@ -280,6 +288,7 @@ const TrialBalance = () => {
                     <th className="tb-th-account-code">Account Code</th>
                     <th className="tb-th-account-name">Account Name</th>
                     <th className="tb-th-type">Type</th>
+                    <th className="tb-th-payment-details">Payment Details</th>
                     <th className="tb-th-debit">Debit Balance</th>
                     <th className="tb-th-credit">Credit Balance</th>
                     <th className="tb-th-net">Net Balance</th>
@@ -298,7 +307,7 @@ const TrialBalance = () => {
                 </tbody>
                 <tfoot>
                   <tr className="tb-grand-total-row">
-                    <td colSpan="3" className="tb-grand-total-label"><strong>GRAND TOTAL</strong></td>
+                    <td colSpan="4" className="tb-grand-total-label"><strong>GRAND TOTAL</strong></td>
                     <td className="tb-grand-total-debit">
                       <strong>{formatCurrency(trialBalanceData?.totals.total_debits)}</strong>
                     </td>
@@ -347,18 +356,6 @@ const TrialBalance = () => {
 
       </div>
 
-      {/* Actions */}
-      <div className="tb-actions-section">
-        <button onClick={exportToExcel} className="tb-action-button">
-          Export to Excel
-        </button>
-        <button onClick={printReport} className="tb-action-button">
-          Print Report
-        </button>
-        <button onClick={fetchTrialBalance} className="tb-action-button">
-          Refresh Data
-        </button>
-      </div>
 
       {/* Account Details Modal */}
       <AccountDetailsModal

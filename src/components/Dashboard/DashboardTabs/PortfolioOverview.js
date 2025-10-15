@@ -24,31 +24,10 @@ const PortfolioOverview = ({ onTabChange }) => {
   const [portfoliosLoading, setPortfoliosLoading] = useState(true);
   const [selectedTimeRange, setSelectedTimeRange] = useState('3M');
 
-  // Generate mock portfolio value history data
+  // Generate empty portfolio value history data
   const generateValueHistory = (timeRange, currentValue) => {
-    const now = new Date();
-    const days = timeRange === '1M' ? 30 : timeRange === '3M' ? 90 : timeRange === '6M' ? 180 : 365;
-    const data = [];
-    
-    // Start with a base value (80% of current value for realistic growth)
-    let baseValue = currentValue * 0.8;
-    
-    for (let i = days; i >= 0; i--) {
-      const date = new Date(now);
-      date.setDate(date.getDate() - i);
-      
-      // Add some realistic volatility and growth
-      const volatility = (Math.random() - 0.5) * 0.02; // ±1% daily volatility
-      const growth = 0.0005; // Slight upward trend
-      baseValue = baseValue * (1 + volatility + growth);
-      
-      data.push({
-        date: date.toISOString().split('T')[0],
-        value: Math.round(baseValue * 100) / 100
-      });
-    }
-    
-    return data;
+    // Return empty array - no mock data
+    return [];
   };
 
   const loadActivePortfolios = async () => {
@@ -87,52 +66,25 @@ const PortfolioOverview = ({ onTabChange }) => {
     try {
       setIsLoading(true);
       
-      // Build URL with portfolio parameter
-      let url = 'http://localhost:8080/api/portfolios/overview';
-      if (selectedPortfolio && selectedPortfolio !== 'all') {
-        url += `?portfolioId=${selectedPortfolio}`;
-        console.log('Fetching portfolio data for portfolioId:', selectedPortfolio);
-      }
+      console.log('Fetching portfolio data for portfolioId:', selectedPortfolio);
       
-      // Fetch portfolio data from backend
-      const response = await fetch(url, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
-        }
-      });
-
-      if (response.ok) {
-        const result = await response.json();
-        console.log('Portfolio data response:', result);
-        if (result.success) {
-          const portfolioValue = result.data.summary?.totalValue || 0;
-          console.log('Setting portfolio data with value:', portfolioValue, 'holdings:', result.data.holdings?.length);
-          setPortfolioData({
-            ...result.data,
-            valueHistory: generateValueHistory(selectedTimeRange, portfolioValue)
-          });
-        } else {
-          // API returned error, use the data from error response or empty data
-          console.log('API returned error, using empty data');
-          setPortfolioData({
-            ...result.data,
-            valueHistory: []
-          });
-        }
+      // Use the API service instead of direct fetch
+      const result = await portfolioAPI.getPortfolioOverview(selectedPortfolio);
+      console.log('Portfolio data response:', result);
+      
+      if (result.success && result.data) {
+        const portfolioValue = result.data.summary?.totalValue || 0;
+        console.log('Setting portfolio data with value:', portfolioValue, 'holdings:', result.data.holdings?.length);
+        setPortfolioData({
+          summary: result.data.summary || { totalValue: 0, totalPnL: 0, totalCost: 0, cashBalance: 0, numberOfPositions: 0 },
+          holdings: result.data.holdings || [],
+          assetAllocation: result.data.assetAllocation || { equity: 0, cash: 0 },
+          valueHistory: generateValueHistory(selectedTimeRange, portfolioValue)
+        });
       } else {
-        // API call failed, try to parse error response
-        try {
-          const errorResult = await response.json();
-          setPortfolioData({
-            ...errorResult.data,
-            valueHistory: []
-          });
-        } catch {
-          // If can't parse error response, use empty data
-          setEmptyData();
-        }
+        // API returned error, use empty data
+        console.log('API returned error, using empty data');
+        setEmptyData();
       }
     } catch (error) {
       console.error('Error loading portfolio data:', error);
@@ -155,8 +107,9 @@ const PortfolioOverview = ({ onTabChange }) => {
 
   // Regenerate chart data when time range changes
   useEffect(() => {
-    if (portfolioData.summary && portfolioData.summary.totalValue > 0) {
-      const newValueHistory = generateValueHistory(selectedTimeRange, portfolioData.summary.totalValue);
+    const currentTotalValue = portfolioData.summary?.totalValue || 0;
+    if (currentTotalValue > 0) {
+      const newValueHistory = generateValueHistory(selectedTimeRange, currentTotalValue);
       setPortfolioData(prev => ({
         ...prev,
         valueHistory: newValueHistory
@@ -458,8 +411,10 @@ const PortfolioOverview = ({ onTabChange }) => {
   }
 
   // Show empty state when no data is available
-  console.log('Checking empty state - totalValue:', portfolioData.summary.totalValue, 'holdings:', portfolioData.holdings.length);
-  if (portfolioData.summary.totalValue === 0 && portfolioData.holdings.length === 0) {
+  const totalValue = portfolioData.summary?.totalValue || 0;
+  const holdingsLength = portfolioData.holdings?.length || 0;
+  console.log('Checking empty state - totalValue:', totalValue, 'holdings:', holdingsLength);
+  if (totalValue === 0 && holdingsLength === 0) {
     return (
       <div className="portfolio-overview">
         <div className="overview-header">
@@ -531,8 +486,8 @@ const PortfolioOverview = ({ onTabChange }) => {
           </div>
           <div className="card-content">
             <h3>Total Portfolio Value</h3>
-            <p className="card-value">{formatCurrency(portfolioData.summary.totalValue)}</p>
-            <span className="card-change positive">+{formatPercentage(portfolioData.summary.totalPnL, portfolioData.summary.totalCost)}</span>
+            <p className="card-value">{formatCurrency(totalValue)}</p>
+            <span className="card-change positive">+{formatPercentage(portfolioData.summary?.totalPnL || 0, portfolioData.summary?.totalCost || 0)}</span>
           </div>
         </div>
 
@@ -544,8 +499,8 @@ const PortfolioOverview = ({ onTabChange }) => {
           </div>
           <div className="card-content">
             <h3>Total P&L</h3>
-            <p className="card-value">{formatCurrency(portfolioData.summary.totalPnL)}</p>
-            <span className="card-change positive">+{formatPercentage(portfolioData.summary.totalPnL, portfolioData.summary.totalCost)}</span>
+            <p className="card-value">{formatCurrency(portfolioData.summary?.totalPnL || 0)}</p>
+            <span className="card-change positive">+{formatPercentage(portfolioData.summary?.totalPnL || 0, portfolioData.summary?.totalCost || 0)}</span>
           </div>
         </div>
 
@@ -557,7 +512,7 @@ const PortfolioOverview = ({ onTabChange }) => {
           </div>
           <div className="card-content">
             <h3>Active Positions</h3>
-            <p className="card-value">{portfolioData.summary.numberOfPositions}</p>
+            <p className="card-value">{portfolioData.summary?.numberOfPositions || 0}</p>
             <span className="card-change">Across multiple sectors</span>
           </div>
         </div>
@@ -570,8 +525,8 @@ const PortfolioOverview = ({ onTabChange }) => {
           </div>
           <div className="card-content">
             <h3>Cash Balance</h3>
-            <p className="card-value">{formatCurrency(portfolioData.summary.cashBalance)}</p>
-            <span className="card-change">{formatPercentage(portfolioData.summary.cashBalance, portfolioData.summary.totalValue)} of portfolio</span>
+            <p className="card-value">{formatCurrency(portfolioData.summary?.cashBalance || 0)}</p>
+            <span className="card-change">{formatPercentage(portfolioData.summary?.cashBalance || 0, totalValue)} of portfolio</span>
           </div>
         </div>
       </div>
@@ -590,9 +545,9 @@ const PortfolioOverview = ({ onTabChange }) => {
             </div>
             <div className="allocation-content">
               <h4>Equity</h4>
-              <p className="allocation-value">{formatCurrency(portfolioData.assetAllocation.equity)}</p>
+              <p className="allocation-value">{formatCurrency(portfolioData.assetAllocation?.equity || 0)}</p>
               <span className="allocation-percentage">
-                {formatPercentage(portfolioData.assetAllocation.equity, portfolioData.summary.totalValue)}
+                {formatPercentage(portfolioData.assetAllocation?.equity || 0, totalValue)}
               </span>
             </div>
           </div>
@@ -604,9 +559,9 @@ const PortfolioOverview = ({ onTabChange }) => {
             </div>
             <div className="allocation-content">
               <h4>Cash</h4>
-              <p className="allocation-value">{formatCurrency(portfolioData.assetAllocation.cash)}</p>
+              <p className="allocation-value">{formatCurrency(portfolioData.assetAllocation?.cash || 0)}</p>
               <span className="allocation-percentage">
-                {formatPercentage(portfolioData.assetAllocation.cash, portfolioData.summary.totalValue)}
+                {formatPercentage(portfolioData.assetAllocation?.cash || 0, totalValue)}
               </span>
             </div>
           </div>
@@ -657,10 +612,10 @@ const PortfolioOverview = ({ onTabChange }) => {
         </div>
         <div className="portfolio-chart-container">
           <div className="portfolio-pie-chart">
-            <SectorPieChart data={portfolioData.holdings} />
+            <SectorPieChart data={portfolioData.holdings || []} />
           </div>
           <div className="portfolio-chart-legend">
-            {getSectorData(portfolioData.holdings).map((sector, index) => (
+            {getSectorData(portfolioData.holdings || []).map((sector, index) => (
               <div key={index} className="portfolio-legend-item">
                 <div 
                   className="portfolio-legend-color" 
@@ -669,7 +624,7 @@ const PortfolioOverview = ({ onTabChange }) => {
                 <div className="portfolio-legend-content">
                   <div className="portfolio-legend-label">{sector.name}</div>
                   <div className="portfolio-legend-value">
-                    {formatCurrency(sector.value)} ({formatPercentage(sector.value, getTotalSectorValue(portfolioData.holdings))})
+                    {formatCurrency(sector.value)} ({formatPercentage(sector.value, getTotalSectorValue(portfolioData.holdings || []))})
                   </div>
                 </div>
               </div>
@@ -698,7 +653,7 @@ const PortfolioOverview = ({ onTabChange }) => {
               </tr>
             </thead>
             <tbody>
-              {portfolioData.holdings.map((holding, index) => (
+              {(portfolioData.holdings || []).map((holding, index) => (
                 <tr key={index} className="holding-row">
                   <td className="symbol-cell">
                     <span className="symbol">{holding.symbol}</span>

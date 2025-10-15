@@ -179,7 +179,7 @@ const IPOAllocation = () => {
         </form>
       </div>
       <div className="ipo-footer-section">
-        <p>ALCYONE TREASURY SOLUTIONS (PVT) LTD • Secure IPO allocation management • All data is encrypted and protected</p>
+        <p>SHERWOOD TECHNOLOGIES (PVT) LTD • Secure IPO allocation management • All data is encrypted and protected</p>
       </div>
     </div>
   );

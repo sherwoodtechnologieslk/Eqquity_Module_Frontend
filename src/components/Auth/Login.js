@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import axios from 'axios';
+import { authService } from '../../services/authService';
 import './Auth.css';
 
 const Login = ({ onLogin, switchToSignup }) => {
@@ -54,21 +54,20 @@ const Login = ({ onLogin, switchToSignup }) => {
         setServerError('');
 
         try {
-            const response = await axios.post('http://localhost:8080/api/auth/login', formData);
+            const response = await authService.login(formData);
             
-            if (response.data.token) {
+            if (response.token) {
                 // Store token in localStorage
-                localStorage.setItem('token', response.data.token);
-                localStorage.setItem('user', JSON.stringify(response.data.user));
+                authService.setAuth(response.user, response.token);
                 
                 // Call parent callback
-                onLogin(response.data.user, response.data.token);
+                onLogin(response.user, response.token);
             }
         } catch (error) {
             if (error.response) {
                 setServerError(error.response.data.message || 'Login failed');
             } else {
-                setServerError('Network error. Please try again.');
+                setServerError(error.message || 'Network error. Please try again.');
             }
         } finally {
             setIsLoading(false);

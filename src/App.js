@@ -191,14 +191,33 @@ function App() {
   // Check authentication status on app load
   useEffect(() => {
     const checkAuth = async () => {
-      // Always clear any stored authentication data on app startup
-      authService.logout();
-      setIsAuthenticated(false);
-      setUser(null);
+      // Check if user is already authenticated
+      const isValidToken = await authService.validateStoredToken();
+      if (isValidToken) {
+        const user = authService.getStoredUser();
+        setUser(user);
+        setIsAuthenticated(true);
+      } else {
+        setIsAuthenticated(false);
+        setUser(null);
+      }
       setIsLoading(false);
     };
     
     checkAuth();
+
+    // Add event listener to clear auth data only when browser is closed
+    const handleBeforeUnload = () => {
+      authService.logout();
+    };
+
+    // Add event listener for browser close only
+    window.addEventListener('beforeunload', handleBeforeUnload);
+
+    // Cleanup function
+    return () => {
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+    };
   }, []);
 
   // Optional: Set default visible tabs on first load

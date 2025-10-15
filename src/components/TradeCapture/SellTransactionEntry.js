@@ -4,7 +4,7 @@ import { portfolioAPI } from '../../services/api';
 import { equityAPI } from '../../services/api';
 import { portfolioCostingMethodAPI } from '../../services/api'; // <-- Add this import
 import { transactionEntryAPI } from '../../services/api'; // <-- Add this import
-import { costOfFundsAPI } from '../../services/api';
+import { costOfFundsAPI, tradeSummaryAPI, accountAPI } from '../../services/api';
 import SellTransactionListView from './SellTransactionListView';
 import TransactionDetails from './TransactionDetails';
 import SellEquitySelectorModal from './SellEquitySelectorModal';
@@ -27,13 +27,28 @@ const SellTransactionEntry = ({ setFifoParams, setActiveTab }) => {
     settlementDate: getToday(),
     brokerName: '',
     settlementAccount: '',
+    accountName: '',
+    accountNumber: '',
+    bankName: '',
+    branchName: '',
     capitalGain: '',
     costOfFunds: '',
     hdays: '',
     cp: '',
     buyContract: '',
     holdingCost: '',
-    profitLoss: ''
+    profitLoss: '',
+    // Cost breakdown fields
+    grossValue: '',
+    brokerage: '',
+    cseFees: '',
+    cdsFees: '',
+    clearingFees: '',
+    sec: '',
+    stl: '',
+    netValue: '',
+    stepUp: null,
+    moneyGenerationCost: ''
   });
 
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -52,6 +67,8 @@ const SellTransactionEntry = ({ setFifoParams, setActiveTab }) => {
   const [showListView, setShowListView] = useState(false);
   const [showTransactionDetails, setShowTransactionDetails] = useState(false);
   const [showEquitySelector, setShowEquitySelector] = useState(false);
+  const [accounts, setAccounts] = useState([]);
+  const [accountsLoading, setAccountsLoading] = useState(true);
   
   // Add state for available deal numbers
   const [availableDealNumbers, setAvailableDealNumbers] = useState([]);
@@ -79,6 +96,7 @@ const SellTransactionEntry = ({ setFifoParams, setActiveTab }) => {
 
   useEffect(() => {
     setPortfoliosLoading(true);
+    setAccountsLoading(true);
     portfolioAPI.getActivePortfolios()
       .then(data => setPortfolios(data))
       .catch(() => setPortfolios([]))
@@ -87,6 +105,11 @@ const SellTransactionEntry = ({ setFifoParams, setActiveTab }) => {
     portfolioCostingMethodAPI.getAllAssignedCostingMethods()
       .then(data => setAssignedCostingMethods(data))
       .catch(() => setAssignedCostingMethods([]));
+    // Fetch accounts
+    accountAPI.getAllAccounts()
+      .then(data => setAccounts(data))
+      .catch(() => setAccounts([]))
+      .finally(() => setAccountsLoading(false));
   }, []);
 
   useEffect(() => {
@@ -114,6 +137,16 @@ const SellTransactionEntry = ({ setFifoParams, setActiveTab }) => {
   }, [form.portfolioName]);
 
   // --- Calculations ---
+  // Calculate Gross Value: Quantity × Sold Price
+  useEffect(() => {
+    if (form.quantity && form.soldPrice) {
+      const grossValue = parseFloat(form.quantity) * parseFloat(form.soldPrice);
+      setForm(prev => ({ ...prev, grossValue: grossValue.toFixed(2) }));
+    } else {
+      setForm(prev => ({ ...prev, grossValue: '' }));
+    }
+  }, [form.quantity, form.soldPrice]);
+
   useEffect(() => {
     if (form.soldPrice && form.boughtPrice && form.quantity) {
       const gain = (parseFloat(form.soldPrice) - parseFloat(form.boughtPrice)) * parseFloat(form.quantity);
@@ -128,16 +161,65 @@ const SellTransactionEntry = ({ setFifoParams, setActiveTab }) => {
     }
   }, [form.capitalGain, form.holdingCost]);
 
+  // Calculate holding days based on buy transaction settlement dates
   useEffect(() => {
-    if (form.tradeDate && form.settlementDate) {
-      const trade = new Date(form.tradeDate);
-      const settle = new Date(form.settlementDate);
-      if (!isNaN(trade) && !isNaN(settle)) {
-        const dayDiff = Math.ceil((settle - trade) / (1000 * 60 * 60 * 24));
-        setForm(prev => ({ ...prev, hdays: dayDiff >= 0 ? dayDiff : '' }));
+    const calculateHoldingDays = async () => {
+      if (
+        form.portfolioName &&
+        form.companyName &&
+        form.quantity && 
+        !isNaN(parseFloat(form.quantity)) && 
+        parseFloat(form.quantity) > 0 &&
+        form.settlementDate
+      ) {
+        try {
+          const res = await transactionEntryAPI.getDetailedFifoAllocation(
+            form.portfolioName,
+            form.companyName,
+            form.quantity
+          );
+          
+          if (res.allocations && res.allocations.length > 0) {
+            const sellSettlementDate = new Date(form.settlementDate);
+            let totalWeightedDays = 0;
+            let totalQuantity = 0;
+            
+            res.allocations.forEach(allocation => {
+              const buySettlementDate = new Date(allocation.settlementDate);
+              const daysDiff = Math.ceil((sellSettlementDate - buySettlementDate) / (1000 * 60 * 60 * 24));
+              const quantity = parseFloat(allocation.quantity);
+              
+              // Only include positive holding days (buy settled before sell)
+              if (daysDiff > 0) {
+                totalWeightedDays += daysDiff * quantity;
+                totalQuantity += quantity;
+              }
+            });
+            
+            const weightedAverageDays = totalQuantity > 0 ? Math.round(totalWeightedDays / totalQuantity) : 0;
+            console.log('Holding days calculation result:', {
+              totalWeightedDays,
+              totalQuantity,
+              weightedAverageDays,
+              allocations: res.allocations
+            });
+            setForm(prev => ({ ...prev, hdays: weightedAverageDays >= 0 ? weightedAverageDays.toString() : '' }));
+          } else {
+            // No buy transactions found, clear holding days
+            setForm(prev => ({ ...prev, hdays: '' }));
+          }
+        } catch (err) {
+          console.error('Error calculating holding days:', err);
+          setForm(prev => ({ ...prev, hdays: '' }));
+        }
+      } else {
+        // Clear holding days if required fields are missing
+        setForm(prev => ({ ...prev, hdays: '' }));
       }
-    }
-  }, [form.tradeDate, form.settlementDate]);
+    };
+    
+    calculateHoldingDays();
+  }, [form.portfolioName, form.companyName, form.quantity, form.settlementDate]);
 
   // Autofill valuation method when portfolioName changes
   useEffect(() => {
@@ -253,6 +335,24 @@ const SellTransactionEntry = ({ setFifoParams, setActiveTab }) => {
     }
   }, [totalShares, form.quantity]);
 
+  // Calculate Holding Cost when relevant fields change
+  useEffect(() => {
+    if (form.netValue && form.costOfFunds && form.hdays) {
+      const netValue = parseFloat(form.netValue) || 0;
+      const costOfFunds = parseFloat(form.costOfFunds) || 0;
+      const holdingDays = parseFloat(form.hdays) || 0;
+      
+      if (netValue > 0 && costOfFunds > 0 && holdingDays > 0) {
+        const holdingCost = (netValue * costOfFunds * holdingDays) / 365;
+        setForm(prev => ({ ...prev, holdingCost: holdingCost.toFixed(2) }));
+      } else {
+        setForm(prev => ({ ...prev, holdingCost: '' }));
+      }
+    } else {
+      setForm(prev => ({ ...prev, holdingCost: '' }));
+    }
+  }, [form.netValue, form.costOfFunds, form.hdays]);
+
   // --- Validation ---
   const validateForm = () => {
     const newErrors = {};
@@ -279,7 +379,7 @@ const SellTransactionEntry = ({ setFifoParams, setActiveTab }) => {
   };
 
   // --- Handlers ---
-  const handleChange = (e) => {
+  const handleChange = async (e) => {
     const { name, value } = e.target;
     
     // Special handling for quantity field - prevent exceeding total shares
@@ -315,28 +415,90 @@ const SellTransactionEntry = ({ setFifoParams, setActiveTab }) => {
         const selectedEquity = equities.find(eq => eq.name === value);
         updatedForm.symbol = selectedEquity ? selectedEquity.symbol : '';
       }
-      setForm(updatedForm);
+      
+      // Only recalculate if quantity or soldPrice changes
+      if (name === 'quantity' || name === 'soldPrice') {
+        try {
+          const calc = await tradeSummaryAPI.calculateSellTransaction({
+            quantity: name === 'quantity' ? value : updatedForm.quantity,
+            soldPrice: name === 'soldPrice' ? value : updatedForm.soldPrice,
+            costOfFunds: updatedForm.costOfFunds
+          });
+          setForm({
+            ...updatedForm,
+            grossValue: calc.grossValue,
+            brokerage: calc.brokerage,
+            cseFees: calc.cseFees,
+            cdsFees: calc.cdsFees,
+            clearingFees: calc.clearingFees,
+            sec: calc.sec,
+            stl: calc.stl,
+            netValue: calc.netValue,
+            stepUp: calc.stepUp,
+            moneyGenerationCost: calc.moneyGenerationCost ?? ''
+          });
+        } catch (err) {
+          console.error('Error calculating sell transaction:', err);
+          setForm(updatedForm);
+        }
+      } else {
+        setForm(updatedForm);
+      }
     }
     
     // Clear error for this field
     if (errors[name]) setErrors({ ...errors, [name]: '' });
   };
 
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     const today = getToday();
-    const submitForm = {
-      ...form,
-      tradeDate: form.tradeDate || today,
-      settlementDate: form.settlementDate || today
-    };
+    
     if (!validateForm()) return;
     setIsSubmitting(true);
+    
+    const submitForm = {
+      company_name: form.companyName,
+      symbol: form.symbol,
+      portfolio_name: form.portfolioName,
+      portfolioId: form.portfolioId,
+      valuation_method: form.valuationMethod,
+      contract_number: form.contractNumber,
+      quantity: parseFloat(form.quantity),
+      sold_price: parseFloat(form.soldPrice),
+      bought_price: parseFloat(form.boughtPrice),
+      trade_date: form.tradeDate || today,
+      settlement_date: form.settlementDate || today,
+      broker_name: form.brokerName,
+      settlement_account: form.settlementAccount,
+      account_name: form.accountName || '',
+      account_number: form.accountNumber || '',
+      bank_name: form.bankName || '',
+      branch_name: form.branchName || '',
+      gross_value: parseFloat(form.grossValue) || 0,
+      brokerage: parseFloat(form.brokerage) || 0,
+      cse_fees: parseFloat(form.cseFees) || 0,
+      cds_fees: parseFloat(form.cdsFees) || 0,
+      clearing_fees: parseFloat(form.clearingFees) || 0,
+      sec: parseFloat(form.sec) || 0,
+      stl: parseFloat(form.stl) || 0,
+      net_value: parseFloat(form.netValue) || 0,
+      step_up: parseFloat(form.stepUp) || 0,
+      money_generation_cost: parseFloat(form.moneyGenerationCost) || 0,
+      capital_gain: parseFloat(form.capitalGain) || 0,
+      cost_of_funds: parseFloat(form.costOfFunds) || 0,
+      hdays: parseInt(form.hdays) || 0,
+      cp: parseFloat(form.cp) || 0,
+      buy_contract: form.buyContract || '',
+      holding_cost: parseFloat(form.holdingCost) || 0,
+      profit_loss: parseFloat(form.profitLoss) || 0,
+      total_shares: totalShares
+    };
+    
     try {
-      await transactionEntryAPI.saveSellTransaction({
-        ...submitForm,
-        totalShares: totalShares // include totalShares if needed
-      });
+      console.log('Submitting sell transaction:', submitForm);
+      await transactionEntryAPI.saveSellTransaction(submitForm);
       setShowSuccess(true);
       setTimeout(() => setShowSuccess(false), 3000);
       handleReset();
@@ -363,6 +525,10 @@ const SellTransactionEntry = ({ setFifoParams, setActiveTab }) => {
       settlementDate: getToday(),
       brokerName: '',
       settlementAccount: '',
+      accountName: '',
+      accountNumber: '',
+      bankName: '',
+      branchName: '',
       capitalGain: '',
       costOfFunds: '',
       hdays: '',
@@ -394,6 +560,42 @@ const SellTransactionEntry = ({ setFifoParams, setActiveTab }) => {
     // Clear any existing errors
     if (errors.companyName) {
       setErrors(prev => ({ ...prev, companyName: '' }));
+    }
+  };
+
+  // Handle account selection
+  const handleAccountSelect = (e) => {
+    const selectedValue = e.target.value;
+    
+    if (selectedValue) {
+      // Find the account by matching the display value
+      const selectedAccount = accounts.find(account => 
+        `${account.account_name} - ${account.account_number}` === selectedValue
+      );
+      
+      if (selectedAccount) {
+        setForm(prev => ({
+          ...prev,
+          settlementAccount: `${selectedAccount.account_name} - ${selectedAccount.account_number}`,
+          accountName: selectedAccount.account_name,
+          accountNumber: selectedAccount.account_number,
+          bankName: selectedAccount.bank_name,
+          branchName: selectedAccount.branch_name,
+          swiftCode: selectedAccount.swift_code,
+          iban: selectedAccount.iban
+        }));
+      }
+    } else {
+      setForm(prev => ({
+        ...prev,
+        settlementAccount: '',
+        accountName: '',
+        accountNumber: '',
+        bankName: '',
+        branchName: '',
+        swiftCode: '',
+        iban: ''
+      }));
     }
   };
 
@@ -595,7 +797,7 @@ const SellTransactionEntry = ({ setFifoParams, setActiveTab }) => {
                   />
                 </div>
                 <div className="sell-form-group">
-                  <label htmlFor="contractNumber">Contract Number *</label>
+                  <label htmlFor="contractNumber">Contract Number</label>
                   <input
                     type="text"
                     id="contractNumber"
@@ -681,6 +883,21 @@ const SellTransactionEntry = ({ setFifoParams, setActiveTab }) => {
                   {errors.soldPrice && <span className="sell-error-text">{errors.soldPrice}</span>}
                 </div>
                 <div className="sell-form-group">
+                  <label htmlFor="grossValue">Gross Value (LKR) *</label>
+                  <input
+                    type="number"
+                    id="grossValue"
+                    name="grossValue"
+                    value={form.grossValue}
+                    onChange={handleChange}
+                    className="sell-form-input sell-calculated-field"
+                    placeholder="Auto-calculated: Quantity × Sold Price"
+                    step="0.01"
+                    min="0"
+                    readOnly
+                  />
+                </div>
+                <div className="sell-form-group">
                   <label htmlFor="boughtPrice">Bought Price (LKR) *</label>
                   <input
                     type="number"
@@ -721,6 +938,144 @@ const SellTransactionEntry = ({ setFifoParams, setActiveTab }) => {
                   <small className="sell-field-note">Automatically calculated</small>
                 </div>
               </div>
+              
+              {/* Cost Breakdown & Calculations Section */}
+              <div className="sell-section-header">
+                <div className="sell-section-icon calculation">
+                  <svg className="sell-section-icon-svg" fill="currentColor" viewBox="0 0 20 20">
+                    <path d="M8.433 7.418c.155-.103.346-.196.567-.267v1.698a2.305 2.305 0 01-.567-.267C8.07 8.34 8 8.114 8 8c0-.114.07-.34.433-.582zM11 12.849v-1.698c.22.071.412.164.567.267.364.243.433.468.433.582 0 .114-.07.34-.433.582a2.305 2.305 0 01-.567.267z"/>
+                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm-7-8a7 7 0 1114 0 7 7 0 01-14 0z" clipRule="evenodd"/>
+                  </svg>
+                </div>
+                <h3 className="sell-section-title">Cost Breakdown & Calculations</h3>
+              </div>
+              <div className="sell-fee-structure-note">
+                <div className="sell-fee-structure-info">
+                  <svg className="sell-info-icon" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd"/>
+                  </svg>
+                  <span><strong>Fee Structure:</strong> ≤100M: 1.12% total | &gt;100M: Reduced rates apply</span>
+                </div>
+              </div>
+              <div className="sell-form-grid">
+                <div className="sell-form-group">
+                  <label className="sell-field-label">Gross Value (Rs.)</label>
+                  <input
+                    name="grossValue"
+                    value={form.grossValue}
+                    readOnly
+                    className="sell-form-input calculated"
+                  />
+                </div>
+                <div className="sell-form-group">
+                  <label className="sell-field-label">Brokerage (0.64% / 0.20%)</label>
+                  <input
+                    name="brokerage"
+                    value={form.brokerage}
+                    readOnly
+                    className="sell-form-input calculated"
+                  />
+                </div>
+                <div className="sell-form-group">
+                  <label className="sell-field-label">CSE Fees (0.084% / 0.0525%)</label>
+                  <input
+                    name="cseFees"
+                    value={form.cseFees}
+                    readOnly
+                    className="sell-form-input calculated"
+                  />
+                </div>
+                <div className="sell-form-group">
+                  <label className="sell-field-label">CDS Fees (0.012% / 0.0075%)</label>
+                  <input
+                    name="cdsFees"
+                    value={form.cdsFees}
+                    readOnly
+                    className="sell-form-input calculated"
+                  />
+                </div>
+                <div className="sell-form-group">
+                  <label className="sell-field-label">Clearing Fees (0.012% / 0.0075%)</label>
+                  <input
+                    name="clearingFees"
+                    value={form.clearingFees}
+                    readOnly
+                    className="sell-form-input calculated"
+                  />
+                </div>
+                <div className="sell-form-group">
+                  <label className="sell-field-label">SEC (0.072% / 0.045%)</label>
+                  <input
+                    name="sec"
+                    value={form.sec}
+                    readOnly
+                    className="sell-form-input calculated"
+                  />
+                </div>
+                <div className="sell-form-group">
+                  <label className="sell-field-label">STL (0.300%)</label>
+                  <input
+                    name="stl"
+                    value={form.stl}
+                    readOnly
+                    className="sell-form-input calculated"
+                  />
+                </div>
+              </div>
+              {/* Step-Up Cost Breakdown Section (for > 100M) */}
+              {form.stepUp && (
+                <div className="stepup-section">
+                  <div className="stepup-header">
+                    <h4>Step-Up Cost Breakdown (for Gross Value &gt; Rs. 100 Million)</h4>
+                  </div>
+                  <div className="stepup-table-wrapper">
+                    <table className="stepup-table">
+                      <thead>
+                        <tr>
+                          <th>Portion</th>
+                          <th>Value (Rs.)</th>
+                          <th>Rate (%)</th>
+                          <th>Fees (Rs.)</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr>
+                          <td>First Rs. 100,000,000</td>
+                          <td>{form.stepUp.first100M}</td>
+                          <td>1.12</td>
+                          <td>{form.stepUp.first100MFees}</td>
+                        </tr>
+                        <tr>
+                          <td>Excess</td>
+                          <td>{form.stepUp.excess}</td>
+                          <td>0.6125</td>
+                          <td>{form.stepUp.excessFees}</td>
+                        </tr>
+                        <tr className="stepup-total-row">
+                          <td colSpan="3"><strong>Total Step-Up Fees</strong></td>
+                          <td><strong>{form.stepUp.totalStepUpFees}</strong></td>
+                        </tr>
+                        <tr className="stepup-grandtotal-row">
+                          <td colSpan="3"><strong>Gross Value + Step-Up Fees</strong></td>
+                          <td><strong>{form.stepUp.total}</strong></td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                  <div className="stepup-note">
+                    <em>* Step-up calculation: 1.12% for first Rs. 100M, 0.6125% for excess. Based on official fee structure: Brokerage (0.64%→0.20%), CSE (0.084%→0.0525%), CDS (0.012%→0.0075%), Clearing (0.012%→0.0075%), SEC (0.072%→0.045%), STL (0.300% unchanged).</em>
+                  </div>
+                </div>
+              )}
+              {/* Net Value - Highlighted */}
+              <div className="sell-net-value-section left-align">
+                <div className="sell-net-value-card small">
+                  <label className="sell-net-value-label">Net Proceeds (After Fees)</label>
+                  <div className="sell-net-value-amount">Rs. {form.netValue || '0.00'}</div>
+                  <small className="sell-net-value-note">Amount you will receive</small>
+                </div>
+              </div>
+              
               {/* Section 3 */}
               <div className="sell-section-header">
                 <div className="sell-section-icon">
@@ -784,6 +1139,81 @@ const SellTransactionEntry = ({ setFifoParams, setActiveTab }) => {
                   )}
                 </div>
                 <div className="sell-form-group">
+                  <label htmlFor="settlementAccount">Receiving Account *</label>
+                  <select
+                    id="settlementAccount"
+                    name="settlementAccount"
+                    value={form.settlementAccount}
+                    onChange={handleAccountSelect}
+                    className={getFieldClassName('settlementAccount')}
+                    required
+                    disabled={accountsLoading}
+                  >
+                    <option value="">
+                      {accountsLoading ? 'Loading accounts...' : 'Select Account'}
+                    </option>
+                    {accounts.map(account => (
+                      <option key={account.id} value={`${account.account_name} - ${account.account_number}`}>
+                        {account.account_name} - {account.account_number} ({account.bank_name})
+                      </option>
+                    ))}
+                  </select>
+                  {errors.settlementAccount && <span className="sell-error-text">{errors.settlementAccount}</span>}
+                  <small className="sell-field-note">Account where you will receive the sale proceeds</small>
+                </div>
+                <div className="sell-form-group">
+                  <label htmlFor="accountName">Account Name</label>
+                  <input
+                    type="text"
+                    id="accountName"
+                    name="accountName"
+                    value={form.accountName}
+                    onChange={handleChange}
+                    className={getFieldClassName('accountName')}
+                    placeholder="Enter account holder name"
+                  />
+                  {errors.accountName && <span className="sell-error-text">{errors.accountName}</span>}
+                </div>
+                <div className="sell-form-group">
+                  <label htmlFor="accountNumber">Account Number</label>
+                  <input
+                    type="text"
+                    id="accountNumber"
+                    name="accountNumber"
+                    value={form.accountNumber}
+                    onChange={handleChange}
+                    className={getFieldClassName('accountNumber')}
+                    placeholder="Enter account number"
+                  />
+                  {errors.accountNumber && <span className="sell-error-text">{errors.accountNumber}</span>}
+                </div>
+                <div className="sell-form-group">
+                  <label htmlFor="bankName">Bank Name</label>
+                  <input
+                    type="text"
+                    id="bankName"
+                    name="bankName"
+                    value={form.bankName}
+                    onChange={handleChange}
+                    className={getFieldClassName('bankName')}
+                    placeholder="Enter bank name"
+                  />
+                  {errors.bankName && <span className="sell-error-text">{errors.bankName}</span>}
+                </div>
+                <div className="sell-form-group">
+                  <label htmlFor="branchName">Branch Name</label>
+                  <input
+                    type="text"
+                    id="branchName"
+                    name="branchName"
+                    value={form.branchName}
+                    onChange={handleChange}
+                    className={getFieldClassName('branchName')}
+                    placeholder="Enter branch name"
+                  />
+                  {errors.branchName && <span className="sell-error-text">{errors.branchName}</span>}
+                </div>
+                <div className="sell-form-group">
                   <label htmlFor="hdays">Holding Days</label>
                   <input
                     type="number"
@@ -809,7 +1239,7 @@ const SellTransactionEntry = ({ setFifoParams, setActiveTab }) => {
               </div>
               <div className="sell-form-grid">
                 <div className="sell-form-group">
-                  <label htmlFor="costOfFunds">Cost of Funds (%)</label>
+                  <label htmlFor="costOfFunds">Cost of Funds (After-Tax) (%)</label>
                   <input
                     type="number"
                     id="costOfFunds"
@@ -819,10 +1249,10 @@ const SellTransactionEntry = ({ setFifoParams, setActiveTab }) => {
                     className="sell-form-input sell-readonly-input"
                     placeholder="Auto-fetched from Cost of Funds Definition"
                     step="0.01"
-                    title="This value is automatically fetched from the active Cost of Funds Definition"
+                    title="This value is automatically fetched from the active Cost of Funds Definition (after-tax rate)"
                   />
                   <small className="sell-field-note">
-                    Automatically fetched from Cost of Funds Definition
+                    Automatically fetched from Cost of Funds Definition (after-tax rate)
                   </small>
                 </div>
                 
@@ -848,12 +1278,15 @@ const SellTransactionEntry = ({ setFifoParams, setActiveTab }) => {
                     id="holdingCost"
                     name="holdingCost"
                     value={form.holdingCost}
-                    onChange={handleChange}
-                    className="sell-form-input"
-                    placeholder="Total holding costs"
+                    readOnly
+                    className="sell-form-input sell-calculated-field"
+                    placeholder="Auto-calculated"
                     step="0.01"
                     min="0"
                   />
+                  <small className="sell-field-note">
+                    Calculated as (Net Value × Cost of Funds (After-Tax) × Holding Days) ÷ 365
+                  </small>
                 </div>
               </div>
 
@@ -917,7 +1350,7 @@ const SellTransactionEntry = ({ setFifoParams, setActiveTab }) => {
           </div>
         </div>
         <div className="eqt-footer-section">
-          <p>  ALCYONE TREASURY SOLUTIONS (PVT) LTD • Secure transaction recording • All calculations are automated and verified</p>
+          <p>  SHERWOOD TECHNOLOGIES (PVT) LTD • Secure transaction recording • All calculations are automated and verified</p>
         </div>
       </div>
 
@@ -932,6 +1365,7 @@ const SellTransactionEntry = ({ setFifoParams, setActiveTab }) => {
           loading={companiesLoading}
         />
       )}
+
     </div>
   );
 };

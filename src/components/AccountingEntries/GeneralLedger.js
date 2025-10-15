@@ -371,6 +371,7 @@ const GeneralLedger = () => {
                       <th>Account Name</th>
                       <th>Description</th>
                       <th>Reference</th>
+                      <th>Payment Details</th>
                       <th>Debit (LKR)</th>
                       <th>Credit (LKR)</th>
                       <th>Balance (LKR)</th>
@@ -386,6 +387,16 @@ const GeneralLedger = () => {
                         <td className="gl-account-name">{entry.account_name}</td>
                         <td className="gl-description">{entry.description}</td>
                         <td className="gl-reference">{entry.reference}</td>
+                        <td>
+                          {entry.transaction_account_name && (
+                            <div className="payment-details">
+                              <div><strong>{entry.transaction_account_name}</strong></div>
+                              {entry.account_number && <div>Acc: {entry.account_number}</div>}
+                              {entry.bank_name && <div>Bank: {entry.bank_name}</div>}
+                              {entry.payment_method && <div>Method: {entry.payment_method}</div>}
+                            </div>
+                          )}
+                        </td>
                         <td className="gl-debit">{entry.debit > 0 ? formatCurrency(entry.debit) : '-'}</td>
                         <td className="gl-credit">{entry.credit > 0 ? formatCurrency(entry.credit) : '-'}</td>
                         <td className={`gl-balance ${entry.balance >= 0 ? 'positive' : 'negative'}`}>
@@ -433,7 +444,7 @@ const GeneralLedger = () => {
 
         {/* Footer */}
         <div className="gl-footer-section">
-          <p>ALCYONE TREASURY SOLUTIONS (PVT) LTD • General Ledger Management • All data is encrypted and protected</p>
+          <p>SHERWOOD TECHNOLOGIES (PVT) LTD • General Ledger Management • All data is encrypted and protected</p>
         </div>
       </div>
     </div>

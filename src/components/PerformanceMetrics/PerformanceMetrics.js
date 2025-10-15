@@ -48,67 +48,43 @@ const PerformanceMetrics = () => {
   const loadPerformanceData = async () => {
     try {
       // TODO: Replace with actual API calls
-      // For now, using mock data
-      const mockData = {
+      // For now, using empty data
+      const emptyData = {
         portfolioSummary: {
-          totalValue: 12500000,
-          totalReturn: 2500000,
-          totalReturnPercent: 25.0,
-          dailyReturn: 125000,
-          monthlyReturn: 375000,
-          yearlyReturn: 2500000
+          totalValue: 0,
+          totalReturn: 0,
+          totalReturnPercent: 0,
+          dailyReturn: 0,
+          monthlyReturn: 0,
+          yearlyReturn: 0
         },
         riskMetrics: {
-          volatility: 18.5,
-          sharpeRatio: 1.45,
-          beta: 0.95,
-          maxDrawdown: -12.3,
-          var95: -8.7,
-          trackingError: 3.2
+          volatility: 0,
+          sharpeRatio: 0,
+          beta: 0,
+          maxDrawdown: 0,
+          var95: 0,
+          trackingError: 0
         },
         benchmarkComparison: {
           benchmark: 'NIFTY 50',
-          benchmarkReturn: 22.5,
-          excessReturn: 2.5,
-          informationRatio: 0.78,
-          correlation: 0.89
+          benchmarkReturn: 0,
+          excessReturn: 0,
+          informationRatio: 0,
+          correlation: 0
         },
-        sectorAllocation: [
-          { sector: 'IT', allocation: 28.5, return: 32.5, benchmark: 25.8 },
-          { sector: 'Banking', allocation: 22.3, return: 18.7, benchmark: 20.1 },
-          { sector: 'Pharma', allocation: 15.8, return: 12.3, benchmark: 14.2 },
-          { sector: 'Auto', allocation: 12.4, return: 8.9, benchmark: 10.5 },
-          { sector: 'FMCG', allocation: 10.2, return: 15.6, benchmark: 12.8 },
-          { sector: 'Energy', allocation: 6.8, return: -5.2, benchmark: -2.1 },
-          { sector: 'Others', allocation: 4.0, return: 6.8, benchmark: 5.2 }
-        ],
-        topHoldings: [
-          { symbol: 'RELIANCE', allocation: 12.5, return: 28.5, contribution: 3.56 },
-          { symbol: 'TCS', allocation: 10.8, return: 35.2, contribution: 3.80 },
-          { symbol: 'HDFC', allocation: 8.9, return: 22.1, contribution: 1.97 },
-          { symbol: 'INFY', allocation: 7.6, return: 18.9, contribution: 1.44 },
-          { symbol: 'ICICI', allocation: 6.8, return: 15.7, contribution: 1.07 },
-          { symbol: 'HUL', allocation: 5.4, return: 12.3, contribution: 0.66 },
-          { symbol: 'MARUTI', allocation: 4.9, return: 8.5, contribution: 0.42 },
-          { symbol: 'WIPRO', allocation: 4.2, return: 14.2, contribution: 0.60 }
-        ],
-        performanceHistory: [
-          { period: '1M', portfolio: 3.2, benchmark: 2.8, excess: 0.4 },
-          { period: '3M', portfolio: 8.7, benchmark: 7.5, excess: 1.2 },
-          { period: '6M', portfolio: 15.3, benchmark: 13.8, excess: 1.5 },
-          { period: '1Y', portfolio: 25.0, benchmark: 22.5, excess: 2.5 },
-          { period: '3Y', portfolio: 68.5, benchmark: 62.3, excess: 6.2 },
-          { period: '5Y', portfolio: 145.2, benchmark: 128.7, excess: 16.5 }
-        ],
+        sectorAllocation: [],
+        topHoldings: [],
+        performanceHistory: [],
         attribution: {
-          assetAllocation: 1.8,
-          stockSelection: 0.9,
-          interaction: -0.2,
-          total: 2.5
+          assetAllocation: 0,
+          stockSelection: 0,
+          interaction: 0,
+          total: 0
         }
       };
 
-      setPerformanceData(mockData);
+      setPerformanceData(emptyData);
       setIsLoading(false);
     } catch (error) {
       console.error('Error loading performance data:', error);
