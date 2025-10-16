@@ -114,10 +114,21 @@ const JournalEntries = ({ onTabChange }) => {
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: value
-    }));
+    
+    // Format numeric inputs with thousands separators
+    if (name === 'debit' || name === 'credit') {
+      const numericValue = value.replace(/[^0-9.]/g, '');
+      const formattedValue = numericValue ? formatCurrency(parseFloat(numericValue)) : '';
+      setFormData(prev => ({
+        ...prev,
+        [name]: formattedValue
+      }));
+    } else {
+      setFormData(prev => ({
+        ...prev,
+        [name]: value
+      }));
+    }
   };
 
   const handleAccountChange = (e) => {
@@ -141,12 +152,19 @@ const JournalEntries = ({ onTabChange }) => {
       
       const method = editingEntry ? 'PUT' : 'POST';
       
+      // Convert formatted values back to numbers for API
+      const submitData = {
+        ...formData,
+        debit: parseFloat(formData.debit.replace(/[^0-9.]/g, '')) || 0,
+        credit: parseFloat(formData.credit.replace(/[^0-9.]/g, '')) || 0
+      };
+      
       const response = await fetch(url, {
         method,
         headers: {
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify(formData)
+        body: JSON.stringify(submitData)
       });
 
       if (response.ok) {
@@ -174,8 +192,8 @@ const JournalEntries = ({ onTabChange }) => {
       account_name: entry.account_name,
       description: entry.description,
       reference: entry.reference,
-      debit: entry.debit,
-      credit: entry.credit,
+      debit: formatCurrency(entry.debit),
+      credit: formatCurrency(entry.credit),
       transaction_type: entry.transaction_type,
       status: entry.status
     });
@@ -224,7 +242,7 @@ const JournalEntries = ({ onTabChange }) => {
   };
 
   const formatCurrency = (amount) => {
-    return new Intl.NumberFormat('en-IN', {
+    return new Intl.NumberFormat('en-US', {
       minimumFractionDigits: 2,
       maximumFractionDigits: 2
     }).format(amount || 0);
@@ -446,24 +464,22 @@ const JournalEntries = ({ onTabChange }) => {
                 <div className="form-group">
                   <label>Debit Amount</label>
                   <input
-                    type="number"
+                    type="text"
                     name="debit"
                     value={formData.debit}
                     onChange={handleInputChange}
-                    step="0.01"
-                    min="0"
+                    placeholder="0.00"
                   />
                 </div>
                 
                 <div className="form-group">
                   <label>Credit Amount</label>
                   <input
-                    type="number"
+                    type="text"
                     name="credit"
                     value={formData.credit}
                     onChange={handleInputChange}
-                    step="0.01"
-                    min="0"
+                    placeholder="0.00"
                   />
                 </div>
               </div>

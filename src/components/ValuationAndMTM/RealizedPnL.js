@@ -136,9 +136,10 @@ const RealizedPnL = () => {
   };
 
   const formatCurrency = (num) => {
-    return new Intl.NumberFormat('en-IN', {
-      minimumFractionDigits: 0
-    }).format(num);
+    return new Intl.NumberFormat('en-US', {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2
+    }).format(num || 0);
   };
 
   const formatPercentage = (num) => {

@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import './PortfolioOverview.css';
-import { portfolioAPI } from '../../../services/api';
+import { portfolioAPI, transactionEntryAPI } from '../../../services/api';
+import { realizedPnLService } from '../../../services/realizedPnLService';
 
 const PortfolioOverview = ({ onTabChange }) => {
   const [portfolioData, setPortfolioData] = useState({
@@ -9,7 +10,11 @@ const PortfolioOverview = ({ onTabChange }) => {
       totalPnL: 0,
       totalCost: 0,
       cashBalance: 0,
-      numberOfPositions: 0
+      numberOfPositions: 0,
+      realizedPnL: 0,
+      unrealizedPnL: 0,
+      netRealizedCapitalGain: 0,
+      totalUnrealizedCapitalGain: 0
     },
     holdings: [],
     assetAllocation: {
@@ -34,9 +39,10 @@ const PortfolioOverview = ({ onTabChange }) => {
     try {
       setPortfoliosLoading(true);
       const data = await portfolioAPI.getActivePortfolios();
+      console.log('🔍 PORTFOLIO OVERVIEW - Loaded portfolios:', data);
       setPortfolios(data);
     } catch (error) {
-      console.error('Error loading active portfolios:', error);
+      console.error('❌ PORTFOLIO OVERVIEW - Error loading active portfolios:', error);
       setPortfolios([]);
     } finally {
       setPortfoliosLoading(false);
@@ -50,7 +56,11 @@ const PortfolioOverview = ({ onTabChange }) => {
         totalPnL: 0,
         totalCost: 0,
         cashBalance: 0,
-        numberOfPositions: 0
+        numberOfPositions: 0,
+        realizedPnL: 0,
+        unrealizedPnL: 0,
+        netRealizedCapitalGain: 0,
+        totalUnrealizedCapitalGain: 0
       },
       holdings: [],
       assetAllocation: {
@@ -66,34 +76,147 @@ const PortfolioOverview = ({ onTabChange }) => {
     try {
       setIsLoading(true);
       
-      console.log('Fetching portfolio data for portfolioId:', selectedPortfolio);
+      console.log('🔍 PORTFOLIO OVERVIEW - Fetching portfolio data for portfolioId:', selectedPortfolio);
       
       // Use the API service instead of direct fetch
       const result = await portfolioAPI.getPortfolioOverview(selectedPortfolio);
-      console.log('Portfolio data response:', result);
+      console.log('🔍 PORTFOLIO OVERVIEW - Portfolio data response:', result);
       
       if (result.success && result.data) {
         const portfolioValue = result.data.summary?.totalValue || 0;
-        console.log('Setting portfolio data with value:', portfolioValue, 'holdings:', result.data.holdings?.length);
+        console.log('🔍 PORTFOLIO OVERVIEW - Setting portfolio data with value:', portfolioValue, 'holdings:', result.data.holdings?.length);
+        
+        // Fetch P&L data - SAME AS DASHBOARD LOGIC
+        let realizedPnL = 0;
+        let netRealizedCapitalGain = 0;
+        let unrealizedPnL = 0;
+        let totalUnrealizedCapitalGain = 0;
+        
+        // Use same portfolio selection logic as dashboard
+        if (portfolios.length > 0) {
+          // Get P&L data for the selected portfolio - use same field logic as dashboard
+          const selectedPortfolioData = portfolios.find(p => 
+            p.id === selectedPortfolio || 
+            p.portfolioId === selectedPortfolio || 
+            (selectedPortfolio === 'all' && p.id)
+          ) || portfolios[0];
+          
+          const portfolioId = selectedPortfolioData.id;
+          const realizedPortfolioId = selectedPortfolioData.portfolioId || portfolioId;
+          
+          console.log('🔍 PORTFOLIO OVERVIEW - Portfolio selection:', {
+            selectedPortfolio,
+            selectedPortfolioData,
+            portfolioId,
+            realizedPortfolioId,
+            portfoliosAvailable: portfolios.length
+          });
+          
+          // Fetch realized P&L data - SAME AS DASHBOARD
+          try {
+            console.log('🔍 PORTFOLIO OVERVIEW - Fetching realized P&L data for portfolio:', realizedPortfolioId);
+            const realizedData = await realizedPnLService.getCompleteData(realizedPortfolioId, '1Y');
+            console.log('🔍 PORTFOLIO OVERVIEW - Realized P&L data:', realizedData);
+            
+            if (realizedData && realizedData.portfolioSummary) {
+              const summary = realizedData.portfolioSummary;
+              
+              // Net Realized Capital Gain = netRealizedPnL (gains + losses, can be negative) - SAME AS DASHBOARD
+              netRealizedCapitalGain = summary.netRealizedPnL || 0;
+              
+              // Realized P&L = proper calculation with fees and cost of funds - SAME AS DASHBOARD
+              realizedPnL = realizedData.realizedPnL || 0;
+              
+              console.log('🔍 PORTFOLIO OVERVIEW - Calculated realized values:', {
+                netRealizedCapitalGain,
+                realizedPnL,
+                totalRealizedGains: summary.totalRealizedGains,
+                totalRealizedLosses: summary.totalRealizedLosses,
+                source: 'RealizedPnL complete data service (same as dashboard)'
+              });
+            }
+          } catch (realizedError) {
+            console.error('❌ PORTFOLIO OVERVIEW - Error fetching realized P&L data:', realizedError);
+            // Keep realized values as 0 if fetch fails
+          }
+          
+          // Fetch unrealized P&L data - SAME AS DASHBOARD
+          try {
+            console.log('🔍 PORTFOLIO OVERVIEW - Fetching MTM data for unrealized calculations, portfolioId:', portfolioId);
+            const mtmData = await transactionEntryAPI.getPortfolioPositions(portfolioId);
+            console.log('🔍 PORTFOLIO OVERVIEW - MTM data for unrealized calculations:', mtmData);
+          
+            if (mtmData && mtmData.length > 0) {
+              // Use EXACT same calculations as MarkToMarketValuation component (same as dashboard)
+              const totalCost = mtmData.reduce((sum, item) => sum + (item.costValue || 0), 0);
+              const totalGrossSales = mtmData.reduce((sum, item) => sum + (item.grossSales || 0), 0);
+              const totalCharges = mtmData.reduce((sum, item) => sum + (item.charges || 0), 0);
+              const totalProjectedSalesWithCOF = mtmData.reduce((sum, item) => sum + (item.projectedSalesWithCOF || 0), 0);
+              
+              // Total Unrealized Capital Gain = totalGrossSales - totalCost (same as MTM screen line 486) - SAME AS DASHBOARD
+              totalUnrealizedCapitalGain = totalGrossSales - totalCost;
+              
+              // Unrealized P&L = totalProjectedSalesWithCOF - (totalCost + totalCharges) (same as MTM screen line 1158) - SAME AS DASHBOARD
+              unrealizedPnL = totalProjectedSalesWithCOF - (totalCost + totalCharges);
+              
+              console.log('🔍 PORTFOLIO OVERVIEW - Step-by-step calculations:', {
+                totalCost,
+                totalGrossSales,
+                totalCharges,
+                totalProjectedSalesWithCOF,
+                totalUnrealizedCapitalGain: `${totalGrossSales} - ${totalCost} = ${totalUnrealizedCapitalGain}`,
+                unrealizedPnL: `${totalProjectedSalesWithCOF} - (${totalCost} + ${totalCharges}) = ${unrealizedPnL}`,
+                source: 'MarkToMarketValuation screen (same as dashboard)'
+              });
+            } else {
+              console.log('🔍 PORTFOLIO OVERVIEW - No MTM data available for unrealized calculations');
+            }
+          } catch (mtmError) {
+            console.error('❌ PORTFOLIO OVERVIEW - Error fetching MTM data for unrealized values:', mtmError);
+            // Keep unrealized values as 0 if fetch fails
+          }
+        } else {
+          console.log('🔍 PORTFOLIO OVERVIEW - No portfolios available for P&L calculations');
+        }
+        
+        // Calculate total P&L = realized P&L + unrealized P&L
+        const totalPnL = realizedPnL + unrealizedPnL;
+        
+        console.log('🔍 PORTFOLIO OVERVIEW - FINAL P&L CALCULATION:', {
+          realizedPnL,
+          unrealizedPnL,
+          totalPnL,
+          netRealizedCapitalGain,
+          totalUnrealizedCapitalGain,
+          source: 'Same calculations as dashboard'
+        });
+        
         setPortfolioData({
-          summary: result.data.summary || { totalValue: 0, totalPnL: 0, totalCost: 0, cashBalance: 0, numberOfPositions: 0 },
+          summary: {
+            ...result.data.summary,
+            totalPnL: totalPnL, // Updated total P&L
+            realizedPnL: realizedPnL,
+            unrealizedPnL: unrealizedPnL,
+            netRealizedCapitalGain: netRealizedCapitalGain,
+            totalUnrealizedCapitalGain: totalUnrealizedCapitalGain
+          },
           holdings: result.data.holdings || [],
           assetAllocation: result.data.assetAllocation || { equity: 0, cash: 0 },
           valueHistory: generateValueHistory(selectedTimeRange, portfolioValue)
         });
       } else {
         // API returned error, use empty data
-        console.log('API returned error, using empty data');
+        console.log('🔍 PORTFOLIO OVERVIEW - API returned error, using empty data');
         setEmptyData();
       }
     } catch (error) {
-      console.error('Error loading portfolio data:', error);
+      console.error('❌ PORTFOLIO OVERVIEW - Error loading portfolio data:', error);
       // Error occurred, show empty state
       setEmptyData();
     } finally {
       setIsLoading(false);
     }
-  }, [selectedPortfolio, selectedTimeRange, setEmptyData]);
+  }, [selectedPortfolio, selectedTimeRange, setEmptyData, portfolios]);
 
   useEffect(() => {
     loadActivePortfolios();
@@ -126,9 +249,9 @@ const PortfolioOverview = ({ onTabChange }) => {
 
   const formatCurrency = (amount) => {
     return new Intl.NumberFormat('en-US', {
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0
-    }).format(amount);
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2
+    }).format(amount || 0);
   };
 
   const formatPercentage = (value, total) => {
@@ -527,7 +650,7 @@ const PortfolioOverview = ({ onTabChange }) => {
             </p>
             <span className="card-change positive">
               {portfolioData.summary?.totalPnL !== null ? 
-                `+${formatPercentage(portfolioData.summary?.totalPnL || 0, portfolioData.summary?.totalCost || 0)}` : 
+                `Realized: ${formatCurrency(portfolioData.summary?.realizedPnL || 0)} | Unrealized: ${formatCurrency(portfolioData.summary?.unrealizedPnL || 0)}` : 
                 'Market data unavailable'
               }
             </span>
