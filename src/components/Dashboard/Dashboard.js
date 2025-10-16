@@ -21,6 +21,57 @@ const Dashboard = ({ onTabChange }) => {
   });
 
   const [isLoading, setIsLoading] = useState(true);
+  const [currentTime, setCurrentTime] = useState(new Date());
+
+  // Update time every second
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCurrentTime(new Date());
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, []);
+
+  // Format time for display
+  const formatTime = (date) => {
+    return date.toLocaleTimeString('en-US', {
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit',
+      hour12: true
+    });
+  };
+
+  // Format date for display
+  const formatDate = (date) => {
+    return date.toLocaleDateString('en-US', {
+      weekday: 'short',
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric'
+    });
+  };
+
+  // Check if market is open (9:30 AM to 2:30 PM)
+  const isMarketOpen = (date) => {
+    const hour = date.getHours();
+    const minute = date.getMinutes();
+    const currentTime = hour * 60 + minute;
+    const openTime = 9 * 60 + 30; // 9:30 AM
+    const closeTime = 14 * 60 + 30; // 2:30 PM
+    
+    return currentTime >= openTime && currentTime <= closeTime;
+  };
+
+  // Get market status
+  const getMarketStatus = (date) => {
+    const isOpen = isMarketOpen(date);
+    return {
+      status: isOpen ? 'Open' : 'Closed',
+      subtitle: isOpen ? 'Trading normally' : 'Market closed',
+      isLive: isOpen
+    };
+  };
 
   // Sector color mapping function - Beautiful blue shades
   const getSectorColor = (index) => {
@@ -452,13 +503,19 @@ const Dashboard = ({ onTabChange }) => {
           </div>
               <div className="status-info">
             <h3>Market Status</h3>
-                <p className="status-value">Open</p>
-                <span className="status-subtitle">Trading normally</span>
+                <p className={`status-value ${getMarketStatus(currentTime).isLive ? 'open' : 'closed'}`}>
+                  {getMarketStatus(currentTime).status}
+                </p>
+                <span className="status-subtitle">{getMarketStatus(currentTime).subtitle}</span>
+                <div className="live-time">
+                  <span className="time-display">{formatTime(currentTime)}</span>
+                  <span className="date-display">{formatDate(currentTime)}</span>
+                </div>
           </div>
         </div>
             <div className="status-indicator">
-              <div className="indicator-dot active"></div>
-              <span>Live</span>
+              <div className={`indicator-dot ${getMarketStatus(currentTime).isLive ? 'active' : 'inactive'}`}></div>
+              <span>{getMarketStatus(currentTime).isLive ? 'Live' : 'Offline'}</span>
         </div>
       </div>
 

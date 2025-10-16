@@ -343,14 +343,15 @@
   align-items: center;
   gap: 1rem;
   padding: 1.5rem;
-  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
-  border: 1px solid rgba(226, 232, 240, 0.5);
+  background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+  border: 1px solid #e2e8f0;
   border-radius: 16px;
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   position: relative;
   overflow: hidden;
   text-align: left;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1), 0 1px 2px rgba(0, 0, 0, 0.06);
 }
 
 .pnl-metric-card::before {
@@ -360,19 +361,27 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.5) 0%, transparent 50%);
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.8) 0%, rgba(248, 250, 252, 0.4) 100%);
   pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.3s ease;
 }
 
 .pnl-metric-card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.15);
+  transform: translateY(-2px);
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1), 0 4px 6px rgba(0, 0, 0, 0.05);
+  border-color: #cbd5e1;
+}
+
+.pnl-metric-card:hover::before {
+  opacity: 1;
 }
 
 .pnl-metric-card.primary {
   background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
   color: white;
   border-color: #3b82f6;
+  box-shadow: 0 4px 6px rgba(59, 130, 246, 0.1), 0 1px 3px rgba(59, 130, 246, 0.08);
 }
 
 .pnl-metric-card.primary::before {
@@ -381,26 +390,39 @@
 
 .pnl-metric-card.primary:hover {
   background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
-  box-shadow: 0 12px 24px rgba(59, 130, 246, 0.4);
+  box-shadow: 0 10px 25px rgba(59, 130, 246, 0.2), 0 4px 6px rgba(59, 130, 246, 0.1);
+  transform: translateY(-2px);
 }
 
 .metric-icon {
-  width: 40px;
-  height: 40px;
+  width: 48px;
+  height: 48px;
   background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
-  border-radius: 10px;
+  border-radius: 12px;
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
   position: relative;
   z-index: 1;
+  box-shadow: 0 2px 4px rgba(59, 130, 246, 0.1);
+  transition: all 0.3s ease;
 }
 
 .metric-icon svg {
-  width: 20px;
-  height: 20px;
+  width: 24px;
+  height: 24px;
   color: #3b82f6;
+  transition: all 0.3s ease;
+}
+
+.pnl-metric-card:hover .metric-icon {
+  transform: scale(1.05);
+  box-shadow: 0 4px 8px rgba(59, 130, 246, 0.15);
+}
+
+.pnl-metric-card:hover .metric-icon svg {
+  color: #2563eb;
 }
 
 .metric-content {
@@ -411,23 +433,34 @@
 
 .metric-title {
   display: block;
-  font-size: 1rem;
+  font-size: 0.875rem;
   font-weight: 600;
-  margin-bottom: 0.125rem;
-  color: #1e293b;
-  line-height: 1.2;
+  margin-bottom: 0.25rem;
+  color: #374151;
+  line-height: 1.3;
+  letter-spacing: 0.025em;
+  transition: color 0.3s ease;
 }
 
 .metric-value {
   display: block;
-  font-size: 0.875rem;
+  font-size: 1.25rem;
   font-weight: 700;
-  color: #64748b;
-  line-height: 1.1;
+  color: #1f2937;
+  line-height: 1.2;
+  transition: color 0.3s ease;
+}
+
+.pnl-metric-card:hover .metric-title {
+  color: #1f2937;
+}
+
+.pnl-metric-card:hover .metric-value {
+  color: #111827;
 }
 
 .pnl-metric-card.primary .metric-title {
-  color: white;
+  color: rgba(255, 255, 255, 0.9);
 }
 
 .pnl-metric-card.primary .metric-value {
@@ -435,10 +468,24 @@
 }
 
 .pnl-metric-card.primary .metric-icon {
-  background: rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.15);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .pnl-metric-card.primary .metric-icon svg {
+  color: white;
+}
+
+.pnl-metric-card.primary:hover .metric-icon {
+  background: rgba(255, 255, 255, 0.2);
+  transform: scale(1.05);
+}
+
+.pnl-metric-card.primary:hover .metric-title {
+  color: white;
+}
+
+.pnl-metric-card.primary:hover .metric-value {
   color: white;
 }
 
@@ -608,10 +655,43 @@
   margin: 0 0 0.25rem 0;
 }
 
+.status-value.open {
+  color: #059669;
+}
+
+.status-value.closed {
+  color: #dc2626;
+}
+
 .status-subtitle {
   color: #64748b;
   font-size: 0.875rem;
   font-weight: 500;
+}
+
+.live-time {
+  margin-top: 0.75rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid #e2e8f0;
+}
+
+.time-display {
+  display: block;
+  font-size: 1.125rem;
+  font-weight: 700;
+  color: #1f2937;
+  font-family: 'Courier New', monospace;
+  letter-spacing: 0.05em;
+  line-height: 1.2;
+}
+
+.date-display {
+  display: block;
+  font-size: 0.75rem;
+  color: #6b7280;
+  margin-top: 0.25rem;
+  font-weight: 500;
+  line-height: 1.3;
 }
 
 .status-indicator {
@@ -632,6 +712,11 @@
 
 .indicator-dot.active {
   background: #10b981;
+}
+
+.indicator-dot.inactive {
+  background: #6b7280;
+  animation: none;
 }
 
 .status-indicator span {
