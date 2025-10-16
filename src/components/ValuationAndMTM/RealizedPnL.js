@@ -253,13 +253,12 @@ const RealizedPnL = () => {
         </div>
 
         <div className="summary-card">
-          <div className="card-header">Realized Capital Gain/Loss</div>
-          <div className={`card-value ${getPnLColor(realizedData.taxSummary.shortTermGains + realizedData.taxSummary.longTermGains + realizedData.taxSummary.shortTermLosses + realizedData.taxSummary.longTermLosses)}`}>
-            {formatCurrency(parseFloat(realizedData.taxSummary.shortTermGains || 0) + parseFloat(realizedData.taxSummary.longTermGains || 0) + parseFloat(realizedData.taxSummary.shortTermLosses || 0) + parseFloat(realizedData.taxSummary.longTermLosses || 0))}
+          <div className="card-header">Realized P&L</div>
+          <div className={`card-value ${getPnLColor(realizedData.realizedPnL || 0)}`}>
+            {formatCurrency(parseFloat(realizedData.realizedPnL || 0))}
           </div>
           <div className="card-subtitle">
-            ST: {formatCurrency(parseFloat(realizedData.taxSummary.shortTermGains || 0) + parseFloat(realizedData.taxSummary.shortTermLosses || 0))} | 
-            LT: {formatCurrency(parseFloat(realizedData.taxSummary.longTermGains || 0) + parseFloat(realizedData.taxSummary.longTermLosses || 0))}
+            After fees and cost of funds
           </div>
         </div>
       </div>

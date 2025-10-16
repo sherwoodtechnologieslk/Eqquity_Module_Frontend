@@ -319,7 +319,7 @@
 .hero-dots {
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
+  gap: 1rem;
 }
 
 .hero-dots .dot {
@@ -333,20 +333,24 @@
 .pnl-metrics-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
+  grid-template-rows: repeat(2, 1fr);
   gap: 1rem;
-  margin-bottom: 2rem;
+  margin-bottom: 1.5rem;
 }
 
 .pnl-metric-card {
-  background: white;
-  border-radius: 16px;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
   padding: 1.5rem;
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  backdrop-filter: blur(10px);
+  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+  border: 1px solid rgba(226, 232, 240, 0.5);
+  border-radius: 16px;
+  cursor: pointer;
+  transition: all 0.3s ease;
   position: relative;
   overflow: hidden;
-  transition: all 0.3s ease;
+  text-align: left;
 }
 
 .pnl-metric-card::before {
@@ -356,19 +360,19 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, transparent 50%);
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.5) 0%, transparent 50%);
   pointer-events: none;
 }
 
 .pnl-metric-card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.12);
+  transform: translateY(-4px);
+  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.15);
 }
 
 .pnl-metric-card.primary {
   background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
   color: white;
-  box-shadow: 0 8px 20px rgba(59, 130, 246, 0.3);
+  border-color: #3b82f6;
 }
 
 .pnl-metric-card.primary::before {
@@ -376,41 +380,65 @@
 }
 
 .pnl-metric-card.primary:hover {
+  background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
   box-shadow: 0 12px 24px rgba(59, 130, 246, 0.4);
 }
 
-.metric-header {
+.metric-icon {
+  width: 40px;
+  height: 40px;
+  background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
+  border-radius: 10px;
   display: flex;
   align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
   position: relative;
   z-index: 1;
 }
 
-.metric-info {
-  width: 100%;
+.metric-icon svg {
+  width: 20px;
+  height: 20px;
+  color: #3b82f6;
 }
 
-.metric-info h4 {
-  color: #64748b;
-  font-size: 0.875rem;
+.metric-content {
+  flex: 1;
+  position: relative;
+  z-index: 1;
+}
+
+.metric-title {
+  display: block;
+  font-size: 1rem;
   font-weight: 600;
-  margin: 0 0 0.5rem 0;
+  margin-bottom: 0.125rem;
+  color: #1e293b;
   line-height: 1.2;
 }
 
-.pnl-metric-card.primary .metric-info h4 {
-  color: rgba(255, 255, 255, 0.9);
+.metric-value {
+  display: block;
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: #64748b;
+  line-height: 1.1;
 }
 
-.metric-value {
-  color: #1e293b;
-  font-size: 1.5rem;
-  font-weight: 800;
-  margin: 0;
-  letter-spacing: -0.01em;
+.pnl-metric-card.primary .metric-title {
+  color: white;
 }
 
 .pnl-metric-card.primary .metric-value {
+  color: white;
+}
+
+.pnl-metric-card.primary .metric-icon {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.pnl-metric-card.primary .metric-icon svg {
   color: white;
 }
 
@@ -451,7 +479,7 @@
 .chart-legend {
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
+  gap: 1rem;
   min-width: 200px;
   max-height: 300px;
   overflow-y: auto;
@@ -460,7 +488,7 @@
 .chart-legend .legend-item {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
+  gap: 1rem;
   padding: 0.5rem;
   background: #f8fafc;
   border-radius: 8px;
@@ -483,7 +511,7 @@
 .chart-legend .legend-content {
   display: flex;
   flex-direction: column;
-  gap: 0.125rem;
+  gap: 1rem;
   flex: 1;
 }
 
@@ -589,7 +617,7 @@
 .status-indicator {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: 1rem;
   position: relative;
   z-index: 1;
 }
@@ -639,7 +667,7 @@
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
-  margin-bottom: 2rem;
+  margin-bottom: 1.5rem;
   position: relative;
   z-index: 1;
 }
@@ -661,7 +689,7 @@
 .view-all-btn {
   display: flex;
   align-items: center;
-  gap: 0.25rem;
+  gap: 1rem;
   background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
   color: white;
   border: none;
@@ -688,7 +716,7 @@
 .transactions-container {
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
+  gap: 1rem;
   position: relative;
   z-index: 1;
 }
@@ -769,7 +797,7 @@
 
 .transaction-details {
   display: flex;
-  gap: 0.75rem;
+  gap: 1rem;
   align-items: center;
 }
 
@@ -968,6 +996,7 @@
 .actions-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
+  grid-template-rows: repeat(2, 1fr);
   gap: 1rem;
   position: relative;
   z-index: 1;
@@ -1207,8 +1236,7 @@
   grid-template-columns: repeat(2, 1fr);
   grid-template-rows: repeat(2, 1fr);
   gap: 1rem;
-  margin-bottom: 2rem;
-  min-height: 300px;
+  margin-bottom: 1.5rem;
 }
 
 .pnl-metric-card {
@@ -1357,7 +1385,7 @@
   .transaction-details {
     flex-direction: column;
     align-items: flex-start;
-    gap: 0.5rem;
+    gap: 1rem;
   }
   
   .performer-card {
@@ -1389,8 +1417,8 @@
   
   .pnl-metrics-grid {
     grid-template-columns: repeat(2, 1fr);
-    grid-template-rows: repeat(2, 1fr);
-    gap: 0.75rem;
+  grid-template-rows: repeat(2, 1fr);
+    gap: 1rem;
     margin-bottom: 1.5rem;
   }
   
@@ -1399,7 +1427,7 @@
   }
   
   .metric-header {
-    gap: 0.75rem;
+    gap: 1rem;
   }
   
   .metric-info h4 {
@@ -1455,7 +1483,7 @@
   }
   
   .pnl-metrics-grid {
-    gap: 0.5rem;
+    gap: 1rem;
     margin-bottom: 1rem;
   }
   
@@ -1464,7 +1492,7 @@
   }
   
   .metric-header {
-    gap: 0.5rem;
+    gap: 1rem;
   }
   
   .metric-info h4 {
