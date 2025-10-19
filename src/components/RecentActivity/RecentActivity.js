@@ -18,11 +18,11 @@ const RecentActivity = () => {
   const loadRecentActivities = async () => {
     try {
       console.log('🔄 Loading recent activities from API...');
-      console.log('API URL: http://localhost:8080/api/dashboard/recent-activities');
+      console.log('API URL:', `${process.env.REACT_APP_API_URL || 'http://localhost:8080/api'}/dashboard/recent-activities`);
       
       // Fetch real data from API
       const token = localStorage.getItem('token');
-      const response = await fetch('http://localhost:8080/api/dashboard/recent-activities', {
+      const response = await fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:8080/api'}/dashboard/recent-activities`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',

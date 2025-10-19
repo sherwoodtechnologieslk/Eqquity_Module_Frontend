@@ -45,7 +45,7 @@ const TrialBalance = () => {
   const fetchPortfolios = async () => {
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch('http://localhost:8080/api/general-ledger/portfolios', {
+      const response = await fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:8080/api'}/general-ledger/portfolios`, {
         headers: {
           'Content-Type': 'application/json',
           ...(token && { 'Authorization': `Bearer ${token}` })
