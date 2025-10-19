@@ -96,7 +96,7 @@ const Dashboard = ({ onTabChange }) => {
       
       // Get active portfolios count
       const token = localStorage.getItem('token');
-      const portfoliosResponse = await fetch('http://localhost:8080/api/portfolios/active', {
+      const portfoliosResponse = await fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:8080/api'}/portfolios/active`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
@@ -314,7 +314,7 @@ const Dashboard = ({ onTabChange }) => {
         let holdingsData = [];
         try {
           const token = localStorage.getItem('token');
-          const holdingsResponse = await fetch('http://localhost:8080/api/portfolios/overview', {
+          const holdingsResponse = await fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:8080/api'}/portfolios/overview`, {
             method: 'GET',
             headers: {
               'Content-Type': 'application/json',

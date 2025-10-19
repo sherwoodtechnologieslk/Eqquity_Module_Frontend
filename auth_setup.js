@@ -24,7 +24,7 @@ console.log('🔑 Token:', token.substring(0, 50) + '...');
 // Test API call to verify authentication
 console.log('🧪 Testing API call...');
 
-fetch('http://localhost:8080/api/portfolios/active', {
+fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:8080/api'}/portfolios/active`, {
     headers: {
         'Authorization': `Bearer ${token}`,
         'Content-Type': 'application/json'
@@ -44,7 +44,7 @@ fetch('http://localhost:8080/api/portfolios/active', {
 });
 
 // Additional test for portfolio overview
-fetch('http://localhost:8080/api/portfolios/overview', {
+fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:8080/api'}/portfolios/overview`, {
     headers: {
         'Authorization': `Bearer ${token}`,
         'Content-Type': 'application/json'
