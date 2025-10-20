@@ -15,8 +15,8 @@
     "web-vitals": "^2.1.4"
   },
   "scripts": {
-    "start": "cross-env REACT_APP_API_URL=http://98.84.175.47:8080/api react-scripts start",
-    "build": "cross-env CI=false REACT_APP_API_URL=http://98.84.175.47:8080/api react-scripts build",
+    "start": "cross-env REACT_APP_API_URL=https://98.84.175.47:8080/api react-scripts start",
+    "build": "cross-env CI=false REACT_APP_API_URL=https://98.84.175.47:8080/api react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject"
   },
