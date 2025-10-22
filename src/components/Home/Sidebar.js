@@ -47,9 +47,22 @@ const menuItems = [
       "Journal Entries",
       "General Ledger",
       "Trial Balance",
-      "Account Reconciliation",
+      "P&L",
+      "Portfolio MTM"
+    ]
+  },
+  {
+    icon: (
+      <svg fill="currentColor" viewBox="0 0 20 20">
+        <path fillRule="evenodd" d="M4 4a2 2 0 00-2 2v8a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2H4zm2 2v8h8V6H6z" clipRule="evenodd"/>
+        <path d="M8 8a1 1 0 011-1h2a1 1 0 110 2H9a1 1 0 01-1-1zm0 2a1 1 0 011-1h2a1 1 0 110 2H9a1 1 0 01-1-1zm1 1a1 1 0 100 2h2a1 1 0 100-2H9z"/>
+      </svg>
+    ),
+    name: "Account Management",
+    subTopics: [
       "Chart Of Accounts",
-      "New GL Account"
+      "New GL Account",
+      "Account Reconciliation"
     ]
   },
   {

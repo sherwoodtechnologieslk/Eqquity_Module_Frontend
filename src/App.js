@@ -33,6 +33,7 @@ import JournalEntries from './components/AccountingEntries/JournalEntries';
 import TrialBalance from './components/AccountingEntries/TrialBalance';
 import AccountReconciliation from './components/AccountingEntries/AccountReconciliation';
 import NewGLAccount from './components/AccountingEntries/NewGLAccount';
+import PortfolioMTM from './components/AccountingEntries/PortfolioMTM';
 import MarkToMarketValuation from './components/ValuationAndMTM/MarkToMarketValuation';
 import RealizedPnL from './components/ValuationAndMTM/RealizedPnL';
 import TradeSummaryData from './components/ValuationAndMTM/TradeSummaryData';
@@ -74,47 +75,47 @@ function App() {
       {
         index: 2,
         name: "Accounting Entries",
-        subTopics: ["Journal Entries", "General Ledger", "Trial Balance", "Account Reconciliation", "Chart Of Accounts", "New GL Account"]
+        subTopics: ["Journal Entries", "General Ledger", "Trial Balance", "P&L", "Portfolio MTM"]
       },
       {
         index: 3,
+        name: "Account Management",
+        subTopics: ["Chart Of Accounts", "New GL Account", "Account Reconciliation"]
+      },
+      {
+        index: 4,
         name: "Trade Capture",
         subTopics: ["Buy", "Sell", "Transactions", "Portfolio", "Deal Slip", "Cost of Funds"]
       },
       {
-        index: 4,
+        index: 5,
         name: "Batch Transaction Import",
         subTopics: ["Bulk Buy Entry", "Bulk Sell Entry", "Import History", "Trade Confirmation", "Trade Report"]
       },
       {
-        index: 5,
+        index: 6,
         name: "Settlement and Accounting",
         subTopics: ["Settlement Instructions", "Cash Flow Mapping", "GL Mapping"]
       },
       {
-        index: 6,
+        index: 7,
         name: "Valuation and MTM",
         subTopics: ["Mark-to-Market Valuation", "Realized Gain/Loss Tracking", "Trade Summary Data", "Market Price Feed"]
       },
       {
-        index: 7,
+        index: 8,
         name: "CSE Announcements",
         subTopics: ["Corporate Notices", "Market Announcements", "Trading Updates", "Regulatory Updates", "News & Events"]
       },
       {
-        index: 8,
+        index: 9,
         name: "Corporate Actions",
         subTopics: ["Dividend", "Rights Issue", "Stock Split"]
       },
       {
-        index: 9,
-        name: "IPO Management",
-        subTopics: ["IPO Entry", "IPO Allocation"]
-      },
-      {
-        index: 9,
-        name: "CSE Announcements",
-        subTopics: ["Market Announcements", "Corporate Notices", "Trading Updates", "Regulatory Updates", "News & Events"]
+        index: 14,
+        name: "IPO",
+        subTopics: ["IPO Entry", "IPO Allocation", "Refund Processing", "Allocation Summary"]
       }
     ];
     
@@ -165,12 +166,16 @@ function App() {
     
     'IPO Entry': <IPOEntry />,
     'IPO Allocation': <IPOAllocation/>,
+    'Refund Processing': <div style={{ padding: '2rem' }}><h3>Refund Processing</h3><p>Coming Soon...</p></div>,
+    'Allocation Summary': <div style={{ padding: '2rem' }}><h3>Allocation Summary</h3><p>Coming Soon...</p></div>,
     'Cost of Funds': <CostOfFundsDefinition />,
     'Journal Entries': <JournalEntries onTabChange={handleTabChange} />,
     'Chart Of Accounts': <ChartOfAccounts />,
     'General Ledger': <GeneralLedger />,
     'Trial Balance': <TrialBalance />,
     'Account Reconciliation': <AccountReconciliation />,
+    'P&L': <div style={{ padding: '2rem' }}><h3>Profit & Loss Statement</h3><p>Coming Soon...</p></div>,
+    'Portfolio MTM': <PortfolioMTM />,
     'New GL Account': <NewGLAccount />,
     'Trade Report': <TradeReport />,
     'Market Announcements': <MarketAnnouncements />,
