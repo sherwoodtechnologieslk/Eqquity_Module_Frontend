@@ -589,13 +589,15 @@ const PortfolioOverview = ({ onTabChange }) => {
       {/* Portfolio Summary Cards */}
       <div className="summary-cards">
         <div className="summary-card secondary">
+          <div className="card-content">
+            <div className="card-header">
           <div className="card-icon">
             <svg width="28" height="28" viewBox="0 0 24 24" fill="currentColor">
               <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
             </svg>
           </div>
-          <div className="card-content">
             <h3>Portfolio Selection</h3>
+            </div>
             <div className="portfolio-selector">
               <select 
                 value={selectedPortfolio} 
@@ -618,13 +620,15 @@ const PortfolioOverview = ({ onTabChange }) => {
         </div>
 
         <div className="summary-card primary">
+          <div className="card-content">
+            <div className="card-header">
           <div className="card-icon">
             <svg width="28" height="28" viewBox="0 0 24 24" fill="currentColor">
               <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
             </svg>
           </div>
-          <div className="card-content">
             <h3>Total Portfolio Value</h3>
+            </div>
             <p className="card-value">
               {portfolioData.summary?.totalValue !== null ? formatCurrency(totalValue) : 'N/A'}
             </p>
@@ -638,13 +642,15 @@ const PortfolioOverview = ({ onTabChange }) => {
         </div>
 
         <div className="summary-card success">
+          <div className="card-content">
+            <div className="card-header">
           <div className="card-icon">
             <svg width="28" height="28" viewBox="0 0 24 24" fill="currentColor">
               <path d="M16 6l2.29 2.29-4.88 4.88-4-4L2 16.59 3.41 18l6-6 4 4 6.3-6.29L22 12V6z"/>
             </svg>
           </div>
-          <div className="card-content">
             <h3>Total P&L</h3>
+            </div>
             <p className="card-value">
               {portfolioData.summary?.totalPnL !== null ? formatCurrency(portfolioData.summary?.totalPnL || 0) : 'N/A'}
             </p>
@@ -658,26 +664,30 @@ const PortfolioOverview = ({ onTabChange }) => {
         </div>
 
         <div className="summary-card info">
+          <div className="card-content">
+            <div className="card-header">
           <div className="card-icon">
             <svg width="28" height="28" viewBox="0 0 24 24" fill="currentColor">
               <path d="M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8V11h-8v10zm0-18v6h8V3h-8z"/>
             </svg>
           </div>
-          <div className="card-content">
             <h3>Active Positions</h3>
+            </div>
             <p className="card-value">{portfolioData.summary?.numberOfPositions || 0}</p>
             <span className="card-change">Across multiple sectors</span>
           </div>
         </div>
 
         <div className="summary-card warning">
+          <div className="card-content">
+            <div className="card-header">
           <div className="card-icon">
             <svg width="28" height="28" viewBox="0 0 24 24" fill="currentColor">
               <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
             </svg>
           </div>
-          <div className="card-content">
             <h3>Cash Balance</h3>
+            </div>
             <p className="card-value">{formatCurrency(portfolioData.summary?.cashBalance || 0)}</p>
             <span className="card-change">{formatPercentage(portfolioData.summary?.cashBalance || 0, totalValue)} of portfolio</span>
           </div>
