@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from 'react';
-import { tradeSummaryAPI, transactionEntryAPI } from '../../services/api';
+import React, { useEffect, useState, useRef } from 'react';
+import { transactionEntryAPI } from '../../services/api';
 import './Styles/TransactionView.css';
 
 const TransactionView = () => {
@@ -7,6 +7,11 @@ const TransactionView = () => {
   const [sellTransactions, setSellTransactions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('all'); // 'all', 'buy', 'sell'
+  const [selectedCompany, setSelectedCompany] = useState('');
+  const [companies, setCompanies] = useState([]);
+  
+  // Ref for the scrollable table container
+  const tableWrapperRef = useRef(null);
 
   const fetchTransactions = async () => {
     setLoading(true);
@@ -17,10 +22,18 @@ const TransactionView = () => {
       const sellData = await transactionEntryAPI.getAllSellTransactions();
       setBuyTransactions(buyData);
       setSellTransactions(sellData);
+      
+      // Extract unique companies from all transactions
+      const allTransactions = [...buyData, ...sellData];
+      const uniqueCompanies = [...new Set(allTransactions.map(tx => 
+        tx.company_name || tx.companyName
+      ).filter(Boolean))].sort();
+      setCompanies(uniqueCompanies);
     } catch (err) {
       console.error('Error fetching transactions:', err);
       setBuyTransactions([]);
       setSellTransactions([]);
+      setCompanies([]);
     }
     setLoading(false);
   };
@@ -35,11 +48,24 @@ const TransactionView = () => {
     ...sellTransactions.map(tx => ({ ...tx, type: 'SELL' }))
   ].sort((a, b) => new Date(b.trade_date || b.created_at) - new Date(a.trade_date || a.created_at));
 
-  const filteredTransactions = activeTab === 'all' 
-    ? allTransactions 
-    : activeTab === 'buy' 
-    ? buyTransactions.map(tx => ({ ...tx, type: 'BUY' }))
-    : sellTransactions.map(tx => ({ ...tx, type: 'SELL' }));
+  // Filter transactions by tab and company
+  const filteredTransactions = (() => {
+    let transactions = activeTab === 'all' 
+      ? allTransactions 
+      : activeTab === 'buy' 
+      ? buyTransactions.map(tx => ({ ...tx, type: 'BUY' }))
+      : sellTransactions.map(tx => ({ ...tx, type: 'SELL' }));
+    
+    // Apply company filter if selected
+    if (selectedCompany) {
+      transactions = transactions.filter(tx => 
+        (tx.company_name || tx.companyName) === selectedCompany
+      );
+    }
+    
+    return transactions;
+  })();
+
 
   const formatCurrency = (value) => {
     return parseFloat(value || 0).toLocaleString(undefined, {
@@ -65,16 +91,37 @@ const TransactionView = () => {
     <div className="transaction-view-container">
       <div className="transaction-view-header">
         <h2 className="transaction-view-title">All Transactions</h2>
-        <button 
-          onClick={fetchTransactions} 
-          className="transaction-refresh-btn"
-          disabled={loading}
-        >
-          <svg className="refresh-icon" fill="currentColor" viewBox="0 0 20 20">
-            <path fillRule="evenodd" d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01.61-1.276z" clipRule="evenodd"/>
-          </svg>
-          {loading ? 'Loading...' : 'Refresh'}
-        </button>
+        <div className="transaction-header-controls">
+          <div className="company-filter-container">
+            <label htmlFor="company-filter" className="company-filter-label">
+              Filter by Company:
+            </label>
+            <select
+              id="company-filter"
+              value={selectedCompany}
+              onChange={(e) => setSelectedCompany(e.target.value)}
+              className="company-filter-dropdown"
+              disabled={loading}
+            >
+              <option value="">All Companies</option>
+              {companies.map(company => (
+                <option key={company} value={company}>
+                  {company}
+                </option>
+              ))}
+            </select>
+          </div>
+          <button 
+            onClick={fetchTransactions} 
+            className="transaction-refresh-btn"
+            disabled={loading}
+          >
+            <svg className="refresh-icon" fill="currentColor" viewBox="0 0 20 20">
+              <path fillRule="evenodd" d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01.61-1.276z" clipRule="evenodd"/>
+            </svg>
+            {loading ? 'Loading...' : 'Refresh'}
+          </button>
+        </div>
       </div>
 
       {/* Tab Navigation */}
@@ -83,21 +130,26 @@ const TransactionView = () => {
           className={`transaction-tab ${activeTab === 'all' ? 'active' : ''}`}
           onClick={() => setActiveTab('all')}
         >
-          All Transactions ({allTransactions.length})
+          All Transactions ({filteredTransactions.length})
         </button>
         <button 
           className={`transaction-tab ${activeTab === 'buy' ? 'active' : ''}`}
           onClick={() => setActiveTab('buy')}
         >
-          Buy Transactions ({buyTransactions.length})
+          Buy Transactions ({buyTransactions.filter(tx => 
+            !selectedCompany || (tx.company_name || tx.companyName) === selectedCompany
+          ).length})
         </button>
         <button 
           className={`transaction-tab ${activeTab === 'sell' ? 'active' : ''}`}
           onClick={() => setActiveTab('sell')}
         >
-          Sell Transactions ({sellTransactions.length})
+          Sell Transactions ({sellTransactions.filter(tx => 
+            !selectedCompany || (tx.company_name || tx.companyName) === selectedCompany
+          ).length})
         </button>
       </div>
+
 
       {/* Transactions Table */}
       <div className="transaction-table-container">
@@ -106,7 +158,10 @@ const TransactionView = () => {
         ) : filteredTransactions.length === 0 ? (
           <div className="transaction-empty">No transactions found.</div>
         ) : (
-          <div className="transaction-table-wrapper">
+          <div 
+            ref={tableWrapperRef}
+            className="transaction-table-wrapper"
+          >
             <table className="transaction-table">
               <thead className="transaction-table-head">
                 <tr>

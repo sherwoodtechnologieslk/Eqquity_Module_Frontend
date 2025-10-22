@@ -48,7 +48,8 @@ const menuItems = [
       "General Ledger",
       "Trial Balance",
       "Account Reconciliation",
-      "Chart Of Accounts"
+      "Chart Of Accounts",
+      "New GL Account"
     ]
   },
   {

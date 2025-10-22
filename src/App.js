@@ -32,6 +32,7 @@ import GeneralLedger from './components/AccountingEntries/GeneralLedger';
 import JournalEntries from './components/AccountingEntries/JournalEntries';
 import TrialBalance from './components/AccountingEntries/TrialBalance';
 import AccountReconciliation from './components/AccountingEntries/AccountReconciliation';
+import NewGLAccount from './components/AccountingEntries/NewGLAccount';
 import MarkToMarketValuation from './components/ValuationAndMTM/MarkToMarketValuation';
 import RealizedPnL from './components/ValuationAndMTM/RealizedPnL';
 import TradeSummaryData from './components/ValuationAndMTM/TradeSummaryData';
@@ -73,7 +74,7 @@ function App() {
       {
         index: 2,
         name: "Accounting Entries",
-        subTopics: ["Journal Entries", "General Ledger", "Trial Balance", "Account Reconciliation", "Chart Of Accounts"]
+        subTopics: ["Journal Entries", "General Ledger", "Trial Balance", "Account Reconciliation", "Chart Of Accounts", "New GL Account"]
       },
       {
         index: 3,
@@ -170,6 +171,7 @@ function App() {
     'General Ledger': <GeneralLedger />,
     'Trial Balance': <TrialBalance />,
     'Account Reconciliation': <AccountReconciliation />,
+    'New GL Account': <NewGLAccount />,
     'Trade Report': <TradeReport />,
     'Market Announcements': <MarketAnnouncements />,
     'Corporate Notices': <CorporateNotices />,

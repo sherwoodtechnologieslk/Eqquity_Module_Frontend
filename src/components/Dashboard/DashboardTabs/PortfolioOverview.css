@@ -201,20 +201,20 @@
   --accent: #0ea5e9;
 }
 
-.card-icon {
-  width: 40px;
-  height: 40px;
+.card-header .card-icon {
+  width: 32px;
+  height: 32px;
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: 10px;
+  border-radius: 8px;
   background: var(--gradient);
   color: white;
-  font-size: 1.1rem;
-  margin-right: 0.75rem;
+  font-size: 0.9rem;
+  margin-right: 0.1rem;
   margin-bottom: 0;
   box-shadow: 
-    0 4px 8px rgba(0, 0, 0, 0.06),
+    0 2px 4px rgba(0, 0, 0, 0.06),
     inset 0 1px 0 rgba(255, 255, 255, 0.3);
   transition: all 0.3s ease;
   position: relative;
@@ -222,7 +222,7 @@
   flex-shrink: 0;
 }
 
-.card-icon::before {
+.card-header .card-icon::before {
   content: '';
   position: absolute;
   top: 0;
@@ -230,13 +230,13 @@
   right: 0;
   bottom: 0;
   background: linear-gradient(135deg, rgba(255, 255, 255, 0.2) 0%, transparent 50%);
-  border-radius: 20px;
+  border-radius: 8px;
 }
 
-.summary-card:hover .card-icon {
+.summary-card:hover .card-header .card-icon {
   transform: scale(1.05);
   box-shadow: 
-    0 8px 16px rgba(0, 0, 0, 0.12),
+    0 4px 8px rgba(0, 0, 0, 0.12),
     inset 0 1px 0 rgba(255, 255, 255, 0.4);
 }
 
@@ -246,17 +246,26 @@
   display: flex;
   flex-direction: column;
   justify-content: center;
+  text-align: left;
+}
+
+.card-header {
+  display: flex;
+  align-items: center;
+  margin-bottom: 0.25rem;
+  text-align: left;
 }
 
 .card-content h3 {
   font-size: 0.65rem;
   font-weight: 700;
   color: #64748b;
-  margin-bottom: 0.25rem;
+  margin: 0;
   text-transform: uppercase;
   letter-spacing: 0.08em;
   opacity: 0.8;
   line-height: 1.2;
+  text-align: left;
 }
 
 .card-value {
@@ -267,6 +276,7 @@
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
   line-height: 1.1;
   text-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  text-align: left;
 }
 
 .card-change {
@@ -277,6 +287,7 @@
   display: inline-block;
   transition: all 0.3s ease;
   backdrop-filter: blur(10px);
+  text-align: left;
 }
 
 .card-change.positive {

@@ -115,21 +115,11 @@ const TrialBalance = () => {
       <td className="tb-account-code">{account.account_code}</td>
       <td className="tb-account-name">{account.account_name}</td>
       <td className="tb-account-type">{account.account_type}</td>
-      <td>
-        {account.transaction_account_name && (
-          <div className="payment-details">
-            <div><strong>{account.transaction_account_name}</strong></div>
-            {account.account_number && <div>Acc: {account.account_number}</div>}
-            {account.bank_name && <div>Bank: {account.bank_name}</div>}
-            {account.payment_method && <div>Method: {account.payment_method}</div>}
-          </div>
-        )}
-      </td>
       <td className="tb-debit-balance">
-        {account.balance_type === 'DR' ? formatCurrency(account.net_balance) : '-'}
+        {account.total_debit > 0 ? formatCurrency(account.total_debit) : '-'}
       </td>
       <td className="tb-credit-balance">
-        {account.balance_type === 'CR' ? formatCurrency(Math.abs(account.net_balance)) : '-'}
+        {account.total_credit > 0 ? formatCurrency(account.total_credit) : '-'}
       </td>
       <td className={`tb-net-balance ${getBalanceColor(account.net_balance, account.balance_type)}`}>
         {formatCurrency(Math.abs(account.net_balance))} {account.balance_type}
@@ -148,7 +138,7 @@ const TrialBalance = () => {
 
   const renderTypeSubtotal = (type, subtotal) => (
     <tr key={`subtotal-${type}`} className="tb-type-subtotal-row">
-      <td colSpan="4" className="tb-subtotal-label">
+      <td colSpan="3" className="tb-subtotal-label">
         <strong>{type} Subtotal</strong>
       </td>
       <td className="tb-subtotal-debit">
@@ -288,7 +278,6 @@ const TrialBalance = () => {
                     <th className="tb-th-account-code">Account Code</th>
                     <th className="tb-th-account-name">Account Name</th>
                     <th className="tb-th-type">Type</th>
-                    <th className="tb-th-payment-details">Payment Details</th>
                     <th className="tb-th-debit">Debit Balance</th>
                     <th className="tb-th-credit">Credit Balance</th>
                     <th className="tb-th-net">Net Balance</th>
@@ -307,7 +296,7 @@ const TrialBalance = () => {
                 </tbody>
                 <tfoot>
                   <tr className="tb-grand-total-row">
-                    <td colSpan="4" className="tb-grand-total-label"><strong>GRAND TOTAL</strong></td>
+                    <td colSpan="3" className="tb-grand-total-label"><strong>GRAND TOTAL</strong></td>
                     <td className="tb-grand-total-debit">
                       <strong>{formatCurrency(trialBalanceData?.totals.total_debits)}</strong>
                     </td>

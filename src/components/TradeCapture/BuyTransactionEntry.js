@@ -193,7 +193,11 @@ const BuyTransactionEntry = () => {
     setForm(prev => ({
       ...prev,
       paymentMethod: selectedPaymentMethod,
-      settlementAccount: `${account.accountName} - ${account.accountNumber}`
+      settlementAccount: `${account.accountName} - ${account.accountNumber}`,
+      accountName: account.accountName,
+      accountNumber: account.accountNumber,
+      bankName: account.bankName,
+      branchName: account.branch
     }));
     setShowPaymentModal(false);
     setSelectedPaymentMethod('');
@@ -327,6 +331,7 @@ const BuyTransactionEntry = () => {
       costOfFunds: ''
     });
     setSelectedAccount(null);
+    setSelectedPaymentMethod('');
   };
 
   // Check if Cost of Funds has a value to enable Money Generation Cost field
@@ -786,7 +791,15 @@ const BuyTransactionEntry = () => {
                         className="change-account-btn"
                         onClick={() => {
                           setSelectedAccount(null);
-                          setForm(prev => ({ ...prev, paymentMethod: '', settlementAccount: '' }));
+                          setForm(prev => ({ 
+                            ...prev, 
+                            paymentMethod: '', 
+                            settlementAccount: '',
+                            accountName: '',
+                            accountNumber: '',
+                            bankName: '',
+                            branchName: ''
+                          }));
                         }}
                       >
                         Change Account
