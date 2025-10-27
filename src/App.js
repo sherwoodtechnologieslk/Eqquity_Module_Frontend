@@ -35,6 +35,7 @@ import ProfitLoss from './components/AccountingEntries/ProfitLoss';
 import AccountReconciliation from './components/AccountingEntries/AccountReconciliation';
 import NewGLAccount from './components/AccountingEntries/NewGLAccount';
 import PortfolioMTM from './components/AccountingEntries/PortfolioMTM';
+import OtherTransactions from './components/AccountingEntries/OtherTransactions';
 import MarkToMarketValuation from './components/ValuationAndMTM/MarkToMarketValuation';
 import RealizedPnL from './components/ValuationAndMTM/RealizedPnL';
 import TradeSummaryData from './components/ValuationAndMTM/TradeSummaryData';
@@ -81,7 +82,7 @@ function App() {
       {
         index: 3,
         name: "Account Management",
-        subTopics: ["Chart Of Accounts", "New GL Account", "Account Reconciliation"]
+        subTopics: ["Chart Of Accounts", "New GL Account", "Account Reconciliation", "Other Transactions"]
       },
       {
         index: 4,
@@ -175,6 +176,7 @@ function App() {
     'General Ledger': <GeneralLedger />,
     'Trial Balance': <TrialBalance />,
     'Account Reconciliation': <AccountReconciliation />,
+    'Other Transactions': <OtherTransactions />,
     'P&L': <ProfitLoss />,
     'Portfolio MTM': <PortfolioMTM />,
     'New GL Account': <NewGLAccount />,
