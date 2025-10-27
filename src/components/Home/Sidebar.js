@@ -62,7 +62,8 @@ const menuItems = [
     subTopics: [
       "Chart Of Accounts",
       "New GL Account",
-      "Account Reconciliation"
+      "Account Reconciliation",
+      "Other Transactions"
     ]
   },
   {

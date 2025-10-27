@@ -1,0 +1,489 @@
+/* Page Layout */
+.other-trans-page-container {
+  min-height: 100vh;
+  padding: 2rem 1rem;
+  box-sizing: border-box;
+}
+
+.other-trans-content-wrapper {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+/* Header Section */
+.other-trans-header-section {
+  display: flex;
+  align-items: center;
+  gap: 2rem;
+  margin-bottom: 2.5rem;
+  text-align: left;
+  padding-top: 2rem;
+  padding-bottom: 2rem;
+}
+
+.other-trans-header-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 5.5rem;
+  height: 5.5rem;
+  background: linear-gradient(135deg, #60a5fa, #2563eb);
+  border-radius: 0.18rem;
+  margin: 0;
+  box-shadow: 0 8px 32px 0 rgba(59, 130, 246, 0.09), 0 2px 8px 0 rgba(59, 130, 246, 0.04);
+  flex-shrink: 0;
+}
+
+.other-trans-icon {
+  width: 2.8rem;
+  height: 2.8rem;
+  color: #fff;
+}
+
+.other-trans-header-text-group {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.25rem;
+}
+
+.other-trans-main-title {
+  font-size: 2.5rem;
+  font-weight: 800;
+  color: #1f2937;
+  margin: 0 0 0.5rem 0;
+  letter-spacing: -0.01em;
+  line-height: 1.1;
+}
+
+.other-trans-subtitle {
+  color: #475569;
+  font-size: 1.4rem;
+  font-weight: 400;
+  margin: 0;
+  margin-bottom: 0.1rem;
+  letter-spacing: 0.01em;
+}
+
+/* Form Card */
+.other-trans-form-card {
+  background: #fff;
+  border-radius: 0.18rem;
+  box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  overflow: hidden;
+}
+
+.other-trans-card-header {
+  background: linear-gradient(90deg, #3b82f6 0%, #2563eb 100%);
+  padding: 1.5rem 2rem;
+  border-radius: 0.18rem 0.18rem 0 0;
+}
+
+.other-trans-card-title {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: white;
+  margin: 0;
+}
+
+.other-trans-form-content {
+  padding: 2rem;
+}
+
+/* Form Grid */
+.other-trans-form-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+/* Field Groups */
+.other-trans-field-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.other-trans-field-label {
+  display: block;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #374151;
+}
+
+.other-trans-field-label.disabled {
+  color: #bbb !important;
+}
+
+/* Input styling with glassy effect */
+.other-trans-form-input,
+.other-trans-form-select,
+.other-trans-form-textarea {
+  width: 100%;
+  padding: 0.72rem 0.9rem;
+  border: 1px solid #dbeafe;
+  border-radius: 0.15rem;
+  font-size: 1rem;
+  background-color: #f4faff;
+  transition: all 0.25s cubic-bezier(0.23, 1, 0.32, 1);
+  box-sizing: border-box;
+  box-shadow:
+    inset 0 2px 8px 0 rgba(59, 130, 246, 0.18),
+    inset 0 1.5px 12px 1px rgba(190, 220, 255, 0.28),
+    inset 0 -3px 12px 1px rgba(37, 99, 235, 0.06),
+    0 0.5px 2px 0 rgba(37, 99, 235, 0.04);
+}
+
+.other-trans-form-input:hover,
+.other-trans-form-select:hover,
+.other-trans-form-textarea:hover {
+  border-color: #60a5fa;
+  background: #f2f8fd;
+  box-shadow:
+    inset 0 3px 16px 0 rgba(59, 130, 246, 0.27),
+    inset 0 4px 20px 2px rgba(160, 200, 255, 0.21),
+    inset 0 -6px 20px 2px rgba(37, 99, 235, 0.13),
+    0 0.5px 2px 0 rgba(37, 99, 235, 0.05);
+}
+
+.other-trans-form-input:focus,
+.other-trans-form-select:focus,
+.other-trans-form-textarea:focus {
+  outline: none;
+  border-color: #2563eb;
+  background-color: #f9fbfe;
+  box-shadow:
+    0 0 0 2.5px rgba(59, 130, 246, 0.10),
+    inset 0 4px 20px 2px rgba(59, 130, 246, 0.32),
+    inset 0 8px 32px 4px rgba(190, 220, 255, 0.27),
+    inset 0 -8px 28px 2px rgba(37, 99, 235, 0.21),
+    0 0.5px 2px 0 rgba(37, 99, 235, 0.09);
+}
+
+.other-trans-form-input.calculated {
+  background: linear-gradient(135deg, #dbeafe, #bae6fd);
+  border-color: #3b82f6;
+  color: #1e40af;
+  font-weight: 600;
+  cursor: not-allowed;
+  border-radius: 0.15rem;
+}
+
+.other-trans-form-input.calculated:focus {
+  box-shadow:
+    0 0 0 2.5px rgba(59, 130, 246, 0.14),
+    inset 0 4px 24px 2px rgba(59, 130, 246, 0.39),
+    inset 0 12px 38px 6px rgba(190, 220, 255, 0.30),
+    inset 0 -10px 32px 4px rgba(37, 99, 235, 0.16);
+}
+
+.other-trans-form-input.disabled {
+  background-color: #f9fafb;
+  color: #999;
+  cursor: not-allowed;
+  box-shadow: none;
+  border-radius: 0.15rem;
+}
+
+.other-trans-readonly-field {
+  background-color: #f9fafb !important;
+  color: #6b7280 !important;
+  cursor: not-allowed;
+  border-color: #e5e7eb !important;
+}
+
+.other-trans-readonly-field:hover {
+  border-color: #e5e7eb !important;
+}
+
+.other-trans-readonly-field:focus {
+  border-color: #e5e7eb !important;
+  box-shadow: none !important;
+}
+
+/* Toggle Styles */
+.other-trans-status-container {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.other-trans-toggle-wrapper {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  cursor: pointer;
+}
+
+.other-trans-toggle-input {
+  position: absolute;
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.other-trans-toggle-slider {
+  width: 2.5rem;
+  height: 1.2rem;
+  background-color: #dbeafe;
+  border-radius: 0.28rem;
+  transition: background-color 0.2s ease-in-out;
+  position: relative;
+}
+
+.other-trans-toggle-slider.active {
+  background-color: #3b82f6;
+}
+
+.other-trans-toggle-thumb {
+  width: 0.95rem;
+  height: 0.95rem;
+  background-color: #fff;
+  border-radius: 0.15rem;
+  box-shadow: 0 2px 4px 0 rgba(0, 0, 0, 0.16);
+  transform: translateX(0);
+  transition: transform 0.2s ease-in-out;
+  position: absolute;
+  top: 0.12rem;
+  left: 0.12rem;
+}
+
+.other-trans-toggle-slider.active .other-trans-toggle-thumb {
+  transform: translateX(1.1rem);
+}
+
+.other-trans-status-text {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #2563eb;
+  transition: color 0.2s ease-in-out;
+}
+
+.other-trans-status-text.active {
+  color: #1d4ed8;
+}
+
+/* Notes Section */
+.other-trans-notes-section {
+  margin-bottom: 2rem;
+  width: 100%;
+}
+
+/* Button Section */
+.other-trans-button-section {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  justify-content: flex-end;
+  padding-top: 1.5rem;
+  border-top: 1px solid #dbeafe;
+}
+
+.other-trans-btn {
+  padding: 0.7rem 1.3rem;
+  font-size: 1rem;
+  font-weight: 500;
+  border-radius: 0.15rem;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: auto;
+}
+
+.other-trans-btn:focus {
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.23);
+}
+
+.other-trans-btn-secondary {
+  background-color: #f3f4f6;
+  color: #374151;
+}
+
+.other-trans-btn-secondary:hover {
+  background-color: #e5e7eb;
+}
+
+.other-trans-btn-primary {
+  background: linear-gradient(90deg, #3b82f6 0%, #2563eb 100%);
+  color: white;
+  padding: 0.75rem 2rem;
+  box-shadow: 0 4px 6px -1px rgba(59,130,246,0.12), 0 2px 4px -1px rgba(37,99,235,0.09);
+  border-radius: 0.15rem;
+}
+
+.other-trans-btn-primary:hover {
+  background: linear-gradient(90deg, #2563eb 0%, #1e40af 100%);
+  box-shadow: 0 10px 15px -30px rgba(59,130,246,0.12), 0 4px 6px -2px rgba(59,130,246,0.08);
+  transform: translateY(-1px);
+}
+
+.other-trans-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none !important;
+}
+
+.other-trans-btn:disabled:hover {
+  transform: none !important;
+  box-shadow: none !important;
+}
+
+/* Footer */
+.other-trans-footer-section {
+  text-align: center;
+  margin-top: 2rem;
+  color: #6b7280;
+  font-size: 0.875rem;
+}
+
+.other-trans-footer-section p {
+  margin: 0;
+}
+
+/* Success/Error Messages */
+.other-trans-message {
+  padding: 1rem 1.5rem;
+  border-radius: 0.15rem;
+  margin-bottom: 1.5rem;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.other-trans-message.other-trans-success {
+  background: linear-gradient(135deg, #dcfce7, #bbf7d0);
+  border: 1px solid #86efac;
+  color: #166534;
+}
+
+.other-trans-message.other-trans-error {
+  background: linear-gradient(135deg, #fee2e2, #fecaca);
+  border: 1px solid #f87171;
+  color: #991b1b;
+}
+
+.other-trans-message::before {
+  content: '';
+  width: 1.25rem;
+  height: 1.25rem;
+  background-size: contain;
+  background-repeat: no-repeat;
+}
+
+.other-trans-message.other-trans-success::before {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%23166534'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M5 13l4 4L19 7'%3E%3C/path%3E%3C/svg%3E");
+}
+
+.other-trans-message.other-trans-error::before {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%23991b1b'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M6 18L18 6M6 6l12 12'%3E%3C/path%3E%3C/svg%3E");
+}
+
+/* Responsive Design */
+@media (max-width: 1100px) {
+  .other-trans-header-section {
+    gap: 1.2rem;
+    padding-top: 1.2rem;
+    padding-bottom: 1.2rem;
+  }
+  
+  .other-trans-main-title {
+    font-size: 2.2rem;
+  }
+  
+  .other-trans-header-icon {
+    width: 4rem;
+    height: 4rem;
+  }
+  
+  .other-trans-icon {
+    width: 2rem;
+    height: 2rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .other-trans-page-container {
+    padding: 1rem 0.5rem;
+  }
+  
+  .other-trans-content-wrapper {
+    max-width: 100%;
+  }
+  
+  .other-trans-header-section {
+    flex-direction: column;
+    gap: 1rem;
+    text-align: center;
+    padding: 1.5rem 1rem;
+  }
+  
+  .other-trans-header-icon {
+    width: 4rem;
+    height: 4rem;
+  }
+  
+  .other-trans-icon {
+    width: 2rem;
+    height: 2rem;
+  }
+  
+  .other-trans-main-title {
+    font-size: 2rem;
+  }
+  
+  .other-trans-subtitle {
+    font-size: 1.1rem;
+  }
+  
+  .other-trans-form-content {
+    padding: 1.5rem;
+  }
+  
+  .other-trans-form-grid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+  
+  .other-trans-button-section {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  
+  .other-trans-btn {
+    width: 100%;
+    justify-content: center;
+  }
+  
+  .other-trans-card-header {
+    padding: 1rem 1.5rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .other-trans-header-icon {
+    width: 3rem;
+    height: 3rem;
+  }
+  
+  .other-trans-icon {
+    width: 1.5rem;
+    height: 1.5rem;
+  }
+  
+  .other-trans-main-title {
+    font-size: 1.8rem;
+  }
+  
+  .other-trans-subtitle {
+    font-size: 1rem;
+  }
+}
