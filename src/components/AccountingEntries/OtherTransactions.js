@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import './Styles/OtherTransactions.css';
-import { accountAPI } from '../../services/api';
+import { accountAPI, otherTransactionAPI } from '../../services/api';
+import { authService } from '../../services/authService';
 
 // Function to generate unique voucher numbers
 const generateVoucherNumber = () => {
@@ -50,6 +52,12 @@ const OtherTransactions = () => {
   const [accounts, setAccounts] = useState([]);
   const [accountsLoading, setAccountsLoading] = useState(true);
   const [showPreviewModal, setShowPreviewModal] = useState(false);
+  
+  // New states for viewing vouchers
+  const [activeTab, setActiveTab] = useState('create'); // 'create' or 'view'
+  const [activeCategory, setActiveCategory] = useState('all'); // 'all', 'income', 'expense', 'asset', 'liability'
+  const [vouchers, setVouchers] = useState([]);
+  const [vouchersLoading, setVouchersLoading] = useState(false);
 
   // Fetch accounts on mount
   useEffect(() => {
@@ -67,6 +75,38 @@ const OtherTransactions = () => {
     };
     fetchAccounts();
   }, []);
+
+  // Fetch vouchers when viewing tab is active
+  useEffect(() => {
+    if (activeTab === 'view') {
+      fetchVouchers();
+    }
+  }, [activeTab]);
+
+  // Fetch vouchers based on category filter
+  const fetchVouchers = async () => {
+    try {
+      setVouchersLoading(true);
+      const user = authService.getStoredUser();
+      const userEmail = user?.email || '';
+      
+      const data = await otherTransactionAPI.getTransactionsByUser(userEmail);
+      setVouchers(data || []);
+    } catch (error) {
+      console.error('Error fetching vouchers:', error);
+      setVouchers([]);
+    } finally {
+      setVouchersLoading(false);
+    }
+  };
+
+  // Filter vouchers by active category
+  const getFilteredVouchers = () => {
+    if (activeCategory === 'all') {
+      return vouchers;
+    }
+    return vouchers.filter(v => v.account_type === activeCategory);
+  };
 
   // Calculate Cash Flow On Settlement when amount or fxRate changes
   useEffect(() => {
@@ -128,15 +168,42 @@ const OtherTransactions = () => {
     setSubmitMessage('');
 
     try {
-      // TODO: Implement API call to save the transaction
-      console.log('Submitting transaction:', form);
+      // Get user email from auth service
+      const user = authService.getStoredUser();
+      const userEmail = user?.email || '';
+
+      // Prepare transaction data
+      const transactionData = {
+        voucherNumber: form.voucherNumber,
+        accountType: form.accountType,
+        transactionType: form.transactionType,
+        description: form.description,
+        amount: form.amount,
+        date: form.date,
+        reference: form.reference,
+        currency: form.currency,
+        fxRate: form.fxRate,
+        counterparty: form.counterparty,
+        notes: form.notes,
+        cashFlowOnSettlement: form.cashFlowOnSettlement,
+        paymentAccountName: form.paymentAccountName,
+        paymentAccountNumber: form.paymentAccountNumber,
+        paymentBankName: form.paymentBankName,
+        paymentBranchName: form.paymentBranchName,
+        paymentMethod: form.paymentMethod,
+        userEmail: userEmail
+      };
+
+      // Call API to save the transaction
+      const result = await otherTransactionAPI.createTransaction(transactionData);
       
+      console.log('Transaction saved successfully:', result);
       setSubmitMessage('Transaction saved successfully!');
       handleReset();
       
     } catch (error) {
       console.error('Error saving transaction:', error);
-      setSubmitMessage('Error saving transaction. Please try again.');
+      setSubmitMessage(`Error saving transaction: ${error.message}`);
     } finally {
       setIsSubmitting(false);
     }
@@ -167,6 +234,51 @@ const OtherTransactions = () => {
     setSubmitMessage('');
   };
 
+  // Handle view voucher details - reuse the existing preview modal
+  const handleViewVoucher = (voucher) => {
+    // Populate form with voucher data for preview
+    setForm({
+      voucherNumber: voucher.voucher_number,
+      accountType: voucher.account_type,
+      transactionType: voucher.transaction_type || '',
+      description: voucher.description || '',
+      amount: voucher.amount || '',
+      date: voucher.transaction_date || '',
+      reference: voucher.reference || '',
+      currency: voucher.currency || 'LKR',
+      fxRate: voucher.fx_rate || '1.00',
+      counterparty: voucher.counterparty || '',
+      notes: voucher.notes || '',
+      cashFlowOnSettlement: voucher.cash_flow_on_settlement || '',
+      selectedAccountId: '',
+      settlementAccount: `${voucher.payment_account_name || ''} - ${voucher.payment_account_number || ''}`.trim(),
+      paymentAccountName: voucher.payment_account_name || '',
+      paymentAccountNumber: voucher.payment_account_number || '',
+      paymentBankName: voucher.payment_bank_name || '',
+      paymentBranchName: voucher.payment_branch_name || '',
+      paymentMethod: voucher.payment_method || ''
+    });
+    setShowPreviewModal(true);
+  };
+
+  // Handle delete voucher
+  const handleDeleteVoucher = async (id) => {
+    if (!window.confirm('Are you sure you want to delete this voucher?')) {
+      return;
+    }
+    
+    try {
+      await otherTransactionAPI.deleteTransaction(id);
+      // Refresh the list
+      fetchVouchers();
+    } catch (error) {
+      console.error('Error deleting voucher:', error);
+      alert('Error deleting voucher. Please try again.');
+    }
+  };
+
+  const filteredVouchers = getFilteredVouchers();
+
   return (
     <div className="other-trans-page-container">
       <div className="other-trans-content-wrapper">
@@ -182,13 +294,56 @@ const OtherTransactions = () => {
           </div>
         </div>
 
-        {/* Form Card */}
-        <div className="other-trans-form-card">
-          <div className="other-trans-card-header">
-            <h2 className="other-trans-card-title">Transaction Information</h2>
-          </div>
+        {/* Tab Navigation */}
+        <div className="other-trans-tab-navigation" style={{
+          display: 'flex',
+          gap: '1rem',
+          marginBottom: '2rem',
+          borderBottom: '2px solid #e5e7eb'
+        }}>
+          <button
+            onClick={() => setActiveTab('create')}
+            style={{
+              padding: '1rem 2rem',
+              border: 'none',
+              background: 'transparent',
+              borderBottom: activeTab === 'create' ? '3px solid #3b82f6' : '3px solid transparent',
+              color: activeTab === 'create' ? '#3b82f6' : '#6b7280',
+              fontWeight: activeTab === 'create' ? '600' : '500',
+              cursor: 'pointer',
+              fontSize: '1rem',
+              transition: 'all 0.2s ease'
+            }}
+          >
+            Create Voucher
+          </button>
+          <button
+            onClick={() => setActiveTab('view')}
+            style={{
+              padding: '1rem 2rem',
+              border: 'none',
+              background: 'transparent',
+              borderBottom: activeTab === 'view' ? '3px solid #3b82f6' : '3px solid transparent',
+              color: activeTab === 'view' ? '#3b82f6' : '#6b7280',
+              fontWeight: activeTab === 'view' ? '600' : '500',
+              cursor: 'pointer',
+              fontSize: '1rem',
+              transition: 'all 0.2s ease'
+            }}
+          >
+            View Vouchers
+          </button>
+        </div>
 
-          <div className="other-trans-form-content">
+        {/* Conditional Render: Create Form or View List */}
+        {activeTab === 'create' ? (
+          /* Form Card */
+          <div className="other-trans-form-card">
+            <div className="other-trans-card-header">
+              <h2 className="other-trans-card-title">Transaction Information</h2>
+            </div>
+
+            <div className="other-trans-form-content">
             <form onSubmit={handleSubmit}>
               <div className="other-trans-form-grid">
 
@@ -559,12 +714,462 @@ const OtherTransactions = () => {
             </form>
           </div>
         </div>
+        ) : (
+          /* Voucher List View */
+          <div>
+            {/* Category Filter Tabs */}
+            <div style={{
+              display: 'flex',
+              gap: '0.5rem',
+              marginBottom: '2rem',
+              flexWrap: 'wrap'
+            }}>
+              <button
+                onClick={() => setActiveCategory('all')}
+                style={{
+                  padding: '0.75rem 1.5rem',
+                  border: 'none',
+                  borderRadius: '0.375rem',
+                  background: activeCategory === 'all' ? '#3b82f6' : '#f3f4f6',
+                  color: activeCategory === 'all' ? 'white' : '#374151',
+                  fontWeight: activeCategory === 'all' ? '600' : '500',
+                  cursor: 'pointer',
+                  transition: 'all 0.2s ease'
+                }}
+              >
+                All
+              </button>
+              <button
+                onClick={() => setActiveCategory('income')}
+                style={{
+                  padding: '0.75rem 1.5rem',
+                  border: 'none',
+                  borderRadius: '0.375rem',
+                  background: activeCategory === 'income' ? '#10b981' : '#f3f4f6',
+                  color: activeCategory === 'income' ? 'white' : '#374151',
+                  fontWeight: activeCategory === 'income' ? '600' : '500',
+                  cursor: 'pointer',
+                  transition: 'all 0.2s ease'
+                }}
+              >
+                Income
+              </button>
+              <button
+                onClick={() => setActiveCategory('expense')}
+                style={{
+                  padding: '0.75rem 1.5rem',
+                  border: 'none',
+                  borderRadius: '0.375rem',
+                  background: activeCategory === 'expense' ? '#ef4444' : '#f3f4f6',
+                  color: activeCategory === 'expense' ? 'white' : '#374151',
+                  fontWeight: activeCategory === 'expense' ? '600' : '500',
+                  cursor: 'pointer',
+                  transition: 'all 0.2s ease'
+                }}
+              >
+                Expense
+              </button>
+              <button
+                onClick={() => setActiveCategory('asset')}
+                style={{
+                  padding: '0.75rem 1.5rem',
+                  border: 'none',
+                  borderRadius: '0.375rem',
+                  background: activeCategory === 'asset' ? '#8b5cf6' : '#f3f4f6',
+                  color: activeCategory === 'asset' ? 'white' : '#374151',
+                  fontWeight: activeCategory === 'asset' ? '600' : '500',
+                  cursor: 'pointer',
+                  transition: 'all 0.2s ease'
+                }}
+              >
+                Asset
+              </button>
+              <button
+                onClick={() => setActiveCategory('liability')}
+                style={{
+                  padding: '0.75rem 1.5rem',
+                  border: 'none',
+                  borderRadius: '0.375rem',
+                  background: activeCategory === 'liability' ? '#f59e0b' : '#f3f4f6',
+                  color: activeCategory === 'liability' ? 'white' : '#374151',
+                  fontWeight: activeCategory === 'liability' ? '600' : '500',
+                  cursor: 'pointer',
+                  transition: 'all 0.2s ease'
+                }}
+              >
+                Liability
+              </button>
+            </div>
+
+            {/* Voucher Grid */}
+            {vouchersLoading ? (
+              <div style={{ textAlign: 'center', padding: '3rem' }}>
+                <p>Loading vouchers...</p>
+              </div>
+            ) : filteredVouchers.length === 0 ? (
+              <div style={{ 
+                textAlign: 'center', 
+                padding: '3rem',
+                background: 'white',
+                borderRadius: '0.375rem',
+                color: '#6b7280'
+              }}>
+                <p>No vouchers found. Create one using the "Create Voucher" tab.</p>
+              </div>
+            ) : (
+              <div style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))',
+                gap: '1.5rem'
+              }}>
+                {filteredVouchers.map((voucher) => (
+                  <div 
+                    key={voucher.id}
+                    style={{
+                      background: 'white',
+                      borderRadius: '0.375rem',
+                      padding: '1.5rem',
+                      boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
+                      border: '1px solid #e5e7eb',
+                      transition: 'all 0.2s ease',
+                      cursor: 'pointer'
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.transform = 'translateY(-2px)';
+                      e.currentTarget.style.boxShadow = '0 4px 12px rgba(0,0,0,0.15)';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.transform = 'translateY(0)';
+                      e.currentTarget.style.boxShadow = '0 1px 3px rgba(0,0,0,0.1)';
+                    }}
+                    onClick={() => handleViewVoucher(voucher)}
+                  >
+                    <div style={{
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'start',
+                      marginBottom: '1rem'
+                    }}>
+                      <div>
+                        <h3 style={{ 
+                          fontSize: '0.875rem',
+                          fontWeight: '600',
+                          color: '#6b7280',
+                          margin: 0,
+                          textTransform: 'uppercase',
+                          letterSpacing: '0.5px'
+                        }}>
+                          {voucher.voucher_number}
+                        </h3>
+                        <p style={{ 
+                          fontSize: '0.75rem',
+                          color: '#9ca3af',
+                          margin: '0.25rem 0 0 0'
+                        }}>
+                          {voucher.transaction_date}
+                        </p>
+                      </div>
+                      <span style={{
+                        padding: '0.25rem 0.75rem',
+                        borderRadius: '9999px',
+                        fontSize: '0.75rem',
+                        fontWeight: '600',
+                        textTransform: 'capitalize',
+                        background: voucher.account_type === 'income' ? '#d1fae5' : 
+                                   voucher.account_type === 'expense' ? '#fee2e2' :
+                                   voucher.account_type === 'asset' ? '#ede9fe' : '#fef3c7',
+                        color: voucher.account_type === 'income' ? '#065f46' : 
+                               voucher.account_type === 'expense' ? '#991b1b' :
+                               voucher.account_type === 'asset' ? '#6d28d9' : '#92400e'
+                      }}>
+                        {voucher.account_type}
+                      </span>
+                    </div>
+
+                    <h4 style={{
+                      fontSize: '1.125rem',
+                      fontWeight: '700',
+                      color: '#1f2937',
+                      margin: '0.5rem 0'
+                    }}>
+                      {voucher.transaction_type || 'N/A'}
+                    </h4>
+
+                    {voucher.amount && (
+                      <div style={{
+                        margin: '0.75rem 0',
+                        padding: '0.75rem',
+                        background: '#f9fafb',
+                        borderRadius: '0.25rem'
+                      }}>
+                        <div style={{ fontSize: '0.875rem', color: '#6b7280' }}>Amount</div>
+                        <div style={{ 
+                          fontSize: '1.25rem', 
+                          fontWeight: '700', 
+                          color: '#1f2937' 
+                        }}>
+                          {parseFloat(voucher.amount).toLocaleString('en-US', {
+                            minimumFractionDigits: 2,
+                            maximumFractionDigits: 2
+                          })} {voucher.currency}
+                        </div>
+                      </div>
+                    )}
+
+                    {voucher.counterparty && (
+                      <p style={{ 
+                        fontSize: '0.875rem',
+                        color: '#6b7280',
+                        margin: '0.5rem 0'
+                      }}>
+                        Counterparty: {voucher.counterparty}
+                      </p>
+                    )}
+
+                    <div style={{
+                      display: 'flex',
+                      gap: '0.5rem',
+                      marginTop: '1rem',
+                      paddingTop: '1rem',
+                      borderTop: '1px solid #e5e7eb'
+                    }}>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleViewVoucher(voucher);
+                        }}
+                        style={{
+                          flex: 1,
+                          padding: '0.5rem',
+                          border: '1px solid #3b82f6',
+                          background: 'transparent',
+                          color: '#3b82f6',
+                          borderRadius: '0.25rem',
+                          cursor: 'pointer',
+                          fontWeight: '500',
+                          fontSize: '0.875rem'
+                        }}
+                      >
+                        View
+                      </button>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleDeleteVoucher(voucher.id);
+                        }}
+                        style={{
+                          flex: 1,
+                          padding: '0.5rem',
+                          border: '1px solid #ef4444',
+                          background: 'transparent',
+                          color: '#ef4444',
+                          borderRadius: '0.25rem',
+                          cursor: 'pointer',
+                          fontWeight: '500',
+                          fontSize: '0.875rem'
+                        }}
+                      >
+                        Delete
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
 
         {/* Footer */}
         <div className="other-trans-footer-section">
           <p>SHERWOOD TECHNOLOGIES (PVT) LTD • Non-Trading Transactions Management • All data is encrypted and protected</p>
         </div>
       </div>
+
+      {/* Preview Modal */}
+      {showPreviewModal && typeof document !== 'undefined' && createPortal(
+        <div 
+          className="other-trans-preview-modal-overlay" 
+          onClick={() => setShowPreviewModal(false)}
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: 'rgba(0, 0, 0, 0.5)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 9999999,
+            overflow: 'auto'
+          }}
+        >
+          <div 
+            className="other-trans-preview-modal-content" 
+            onClick={(e) => e.stopPropagation()}
+            style={{
+              background: 'white',
+              borderRadius: '0.18rem',
+              boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)',
+              maxWidth: '900px',
+              width: '90%',
+              maxHeight: '90vh',
+              overflow: 'hidden',
+              position: 'relative'
+            }}
+          >
+            <div className="other-trans-preview-modal-header">
+              <h2 className="other-trans-preview-modal-title">
+                <svg style={{ width: '1.5rem', height: '1.5rem', marginRight: '0.75rem' }} fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clipRule="evenodd"/>
+                </svg>
+                Voucher Preview
+              </h2>
+              <button 
+                className="other-trans-preview-close-btn"
+                onClick={() => setShowPreviewModal(false)}
+              >
+                <svg width="24" height="24" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd"/>
+                </svg>
+              </button>
+            </div>
+
+            <div className="other-trans-preview-modal-body">
+              <div className="other-trans-preview-section">
+                <h3 className="other-trans-preview-section-title">Transaction Details</h3>
+                <div className="other-trans-preview-grid">
+                  <div className="other-trans-preview-field">
+                    <span className="other-trans-preview-label">Voucher Number:</span>
+                    <span className={`other-trans-preview-value ${!form.voucherNumber ? 'empty-value' : ''}`}>
+                      {form.voucherNumber || 'N/A'}
+                    </span>
+                  </div>
+                  <div className="other-trans-preview-field">
+                    <span className="other-trans-preview-label">Defined Item:</span>
+                    <span className={`other-trans-preview-value ${!form.accountType ? 'empty-value' : ''}`}>
+                      {form.accountType || 'N/A'}
+                    </span>
+                  </div>
+                  <div className="other-trans-preview-field">
+                    <span className="other-trans-preview-label">Transaction Type:</span>
+                    <span className={`other-trans-preview-value ${!form.transactionType ? 'empty-value' : ''}`}>
+                      {form.transactionType || 'N/A'}
+                    </span>
+                  </div>
+                  <div className="other-trans-preview-field">
+                    <span className="other-trans-preview-label">Date:</span>
+                    <span className={`other-trans-preview-value ${!form.date ? 'empty-value' : ''}`}>
+                      {form.date || 'N/A'}
+                    </span>
+                  </div>
+                  <div className="other-trans-preview-field">
+                    <span className="other-trans-preview-label">Amount:</span>
+                    <span className={`other-trans-preview-value ${!form.amount ? 'empty-value' : ''}`}>
+                      {form.amount ? `${form.amount} ${form.currency || 'LKR'}` : 'N/A'}
+                    </span>
+                  </div>
+                  <div className="other-trans-preview-field">
+                    <span className="other-trans-preview-label">Currency:</span>
+                    <span className="other-trans-preview-value">{form.currency || 'LKR'}</span>
+                  </div>
+                  <div className="other-trans-preview-field">
+                    <span className="other-trans-preview-label">FX Rate:</span>
+                    <span className={`other-trans-preview-value ${!form.fxRate ? 'empty-value' : ''}`}>
+                      {form.fxRate || 'N/A'}
+                    </span>
+                  </div>
+                  <div className="other-trans-preview-field">
+                    <span className="other-trans-preview-label">Reference:</span>
+                    <span className={`other-trans-preview-value ${!form.reference ? 'empty-value' : ''}`}>
+                      {form.reference || 'N/A'}
+                    </span>
+                  </div>
+                  <div className="other-trans-preview-field">
+                    <span className="other-trans-preview-label">Counterparty:</span>
+                    <span className={`other-trans-preview-value ${!form.counterparty ? 'empty-value' : ''}`}>
+                      {form.counterparty || 'N/A'}
+                    </span>
+                  </div>
+                  <div className="other-trans-preview-field" style={{ gridColumn: '1 / -1' }}>
+                    <span className="other-trans-preview-label">Description:</span>
+                    <span className={`other-trans-preview-value ${!form.description ? 'empty-value' : ''}`}>
+                      {form.description || 'N/A'}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="other-trans-preview-section">
+                <h3 className="other-trans-preview-section-title">Payment & Settlement Details</h3>
+                <div className="other-trans-preview-grid">
+                  <div className="other-trans-preview-field">
+                    <span className="other-trans-preview-label">Cash Flow On Settlement:</span>
+                    <span className={`other-trans-preview-value ${!form.cashFlowOnSettlement ? 'empty-value' : ''}`}>
+                      {form.cashFlowOnSettlement ? `Rs. ${form.cashFlowOnSettlement}` : 'N/A'}
+                    </span>
+                  </div>
+                  <div className="other-trans-preview-field" style={{ gridColumn: '1 / -1' }}>
+                    <span className="other-trans-preview-label">Account:</span>
+                    <span className={`other-trans-preview-value ${!form.settlementAccount ? 'empty-value' : ''}`}>
+                      {form.settlementAccount || 'N/A'}
+                    </span>
+                  </div>
+                  <div className="other-trans-preview-field">
+                    <span className="other-trans-preview-label">Account Name:</span>
+                    <span className={`other-trans-preview-value ${!form.paymentAccountName ? 'empty-value' : ''}`}>
+                      {form.paymentAccountName || 'N/A'}
+                    </span>
+                  </div>
+                  <div className="other-trans-preview-field">
+                    <span className="other-trans-preview-label">Account Number:</span>
+                    <span className={`other-trans-preview-value ${!form.paymentAccountNumber ? 'empty-value' : ''}`}>
+                      {form.paymentAccountNumber || 'N/A'}
+                    </span>
+                  </div>
+                  <div className="other-trans-preview-field">
+                    <span className="other-trans-preview-label">Bank Name:</span>
+                    <span className={`other-trans-preview-value ${!form.paymentBankName ? 'empty-value' : ''}`}>
+                      {form.paymentBankName || 'N/A'}
+                    </span>
+                  </div>
+                  <div className="other-trans-preview-field">
+                    <span className="other-trans-preview-label">Branch Name:</span>
+                    <span className={`other-trans-preview-value ${!form.paymentBranchName ? 'empty-value' : ''}`}>
+                      {form.paymentBranchName || 'N/A'}
+                    </span>
+                  </div>
+                  <div className="other-trans-preview-field">
+                    <span className="other-trans-preview-label">Payment Method:</span>
+                    <span className={`other-trans-preview-value ${!form.paymentMethod ? 'empty-value' : ''}`}>
+                      {form.paymentMethod || 'N/A'}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              {form.notes && (
+                <div className="other-trans-preview-section">
+                  <h3 className="other-trans-preview-section-title">Notes</h3>
+                  <div className="other-trans-preview-field">
+                    <span className="other-trans-preview-value" style={{ paddingLeft: 0 }}>{form.notes}</span>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            <div className="other-trans-preview-modal-footer">
+              <button 
+                className="other-trans-btn other-trans-btn-secondary"
+                onClick={() => setShowPreviewModal(false)}
+              >
+                Close Preview
+              </button>
+            </div>
+          </div>
+        </div>,
+        document.body
+      )}
     </div>
   );
 };

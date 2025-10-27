@@ -1093,6 +1093,123 @@ export const costOfFundsAPI = {
   }
 };
 
+// API service for Other Transactions operations
+export const otherTransactionAPI = {
+  // Get all other transactions
+  getAllTransactions: async () => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/other-transactions`, {
+        headers: getAuthHeaders()
+      });
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      return await response.json();
+    } catch (error) {
+      console.error('Error fetching other transactions:', error);
+      throw error;
+    }
+  },
+
+  // Get other transaction by ID
+  getTransactionById: async (id) => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/other-transactions/${id}`, {
+        headers: getAuthHeaders()
+      });
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      return await response.json();
+    } catch (error) {
+      console.error('Error fetching other transaction by ID:', error);
+      throw error;
+    }
+  },
+
+  // Create new other transaction
+  createTransaction: async (transactionData) => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/other-transactions`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...getAuthHeaders()
+        },
+        body: JSON.stringify(transactionData),
+      });
+      
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.error || errorData.message || `HTTP error! status: ${response.status}`);
+      }
+      
+      return await response.json();
+    } catch (error) {
+      console.error('Error creating other transaction:', error);
+      throw error;
+    }
+  },
+
+  // Update other transaction
+  updateTransaction: async (id, transactionData) => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/other-transactions/${id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          ...getAuthHeaders()
+        },
+        body: JSON.stringify(transactionData),
+      });
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      
+      return await response.json();
+    } catch (error) {
+      console.error('Error updating other transaction:', error);
+      throw error;
+    }
+  },
+
+  // Delete other transaction
+  deleteTransaction: async (id) => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/other-transactions/${id}`, {
+        method: 'DELETE',
+        headers: getAuthHeaders()
+      });
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      
+      return await response.json();
+    } catch (error) {
+      console.error('Error deleting other transaction:', error);
+      throw error;
+    }
+  },
+
+  // Get transactions by user email
+  getTransactionsByUser: async (userEmail) => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/other-transactions/user/transactions?userEmail=${encodeURIComponent(userEmail)}`, {
+        headers: getAuthHeaders()
+      });
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      return await response.json();
+    } catch (error) {
+      console.error('Error fetching transactions by user:', error);
+      throw error;
+    }
+  }
+};
+
 export const chartOfAccountsAPI = {
   getAll: async () => {
     const response = await fetch(`${API_BASE_URL}/chart-of-accounts`);
