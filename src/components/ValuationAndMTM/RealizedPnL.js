@@ -182,22 +182,22 @@ const RealizedPnL = () => {
 
   if (isLoading) {
     return (
-      <div className="realized-pnl-loading">
-        <div className="loading-spinner"></div>
+      <div className="realized-pnl-loading-container">
+        <div className="realized-pnl-loading-spinner"></div>
         <p>Loading Realized Capital Gain data...</p>
       </div>
     );
   }
 
   return (
-    <div className="realized-pnl">
-      <div className="realized-pnl-content-wrapper">
-      <div className="realized-pnl-header">
-        <h1>Realized Gain/Loss Tracking</h1>
-        <div className="header-controls">
-          <div className="time-range-selector">
-            <label>Time Range:</label>
-            <select value={timeRange} onChange={(e) => setTimeRange(e.target.value)}>
+    <div className="realized-pnl-page">
+      <div className="realized-pnl-page-wrapper">
+      <div className="realized-pnl-page-header">
+        <h1 className="realized-pnl-page-title">Realized Gain/Loss Tracking</h1>
+        <div className="realized-pnl-page-controls">
+          <div className="realized-pnl-time-selector">
+            <label className="realized-pnl-time-label">Time Range:</label>
+            <select className="realized-pnl-time-dropdown" value={timeRange} onChange={(e) => setTimeRange(e.target.value)}>
               <option value="1M">1 Month</option>
               <option value="3M">3 Months</option>
               <option value="6M">6 Months</option>
@@ -206,9 +206,9 @@ const RealizedPnL = () => {
               <option value="5Y">5 Years</option>
             </select>
           </div>
-          <div className="portfolio-selector">
-            <label>Portfolio:</label>
-            <select 
+          <div className="realized-pnl-portfolio-selector">
+            <label className="realized-pnl-portfolio-label">Portfolio:</label>
+            <select className="realized-pnl-portfolio-dropdown"
               value={selectedPortfolio} 
               onChange={(e) => setSelectedPortfolio(e.target.value)}
               disabled={portfoliosLoading}
@@ -220,60 +220,60 @@ const RealizedPnL = () => {
                 </option>
               ))}
             </select>
-            {portfoliosLoading && <span className="loading-text">Loading portfolios...</span>}
+            {portfoliosLoading && <span className="realized-pnl-loading-indicator">Loading portfolios...</span>}
           </div>
         </div>
       </div>
 
       {/* Summary Cards */}
-      <div className="summary-cards">
-        <div className="summary-card">
-          <div className="card-header">Total Realized Gains</div>
-          <div className="card-value positive">{formatCurrency(parseFloat(realizedData.portfolioSummary.totalRealizedGains || 0))}</div>
-          <div className="card-subtitle">Profits from completed trades</div>
+      <div className="realized-pnl-summary-grid">
+        <div className="realized-pnl-summary-card">
+          <div className="realized-pnl-card-title">Total Realized Gains</div>
+          <div className="realized-pnl-card-amount positive">{formatCurrency(parseFloat(realizedData.portfolioSummary.totalRealizedGains || 0))}</div>
+          <div className="realized-pnl-card-description">Profits from completed trades</div>
         </div>
 
-        <div className="summary-card">
-          <div className="card-header">Total Realized Losses</div>
-          <div className="card-value negative">{formatCurrency(parseFloat(realizedData.portfolioSummary.totalRealizedLosses || 0))}</div>
-          <div className="card-subtitle">Losses from completed trades</div>
+        <div className="realized-pnl-summary-card">
+          <div className="realized-pnl-card-title">Total Realized Losses</div>
+          <div className="realized-pnl-card-amount negative">{formatCurrency(parseFloat(realizedData.portfolioSummary.totalRealizedLosses || 0))}</div>
+          <div className="realized-pnl-card-description">Losses from completed trades</div>
         </div>
 
-        <div className="summary-card">
-          <div className="card-header">Net Realized Capital Gain</div>
-          <div className={`card-value ${getPnLColor(realizedData.portfolioSummary.netRealizedPnL)}`}>
+        <div className="realized-pnl-summary-card">
+          <div className="realized-pnl-card-title">Net Realized Capital Gain</div>
+          <div className={`realized-pnl-card-amount ${getPnLColor(realizedData.portfolioSummary.netRealizedPnL)}`}>
             {formatCurrency(parseFloat(realizedData.portfolioSummary.netRealizedPnL || 0))}
           </div>
-          <div className="card-subtitle">Net profit/loss</div>
+          <div className="realized-pnl-card-description">Net profit/loss</div>
         </div>
 
-        <div className="summary-card">
-          <div className="card-header">Win Rate</div>
-          <div className="card-value">{parseFloat(realizedData.portfolioSummary.winRate || 0).toFixed(1)}%</div>
-          <div className="card-subtitle">Profitable trades</div>
+        <div className="realized-pnl-summary-card">
+          <div className="realized-pnl-card-title">Win Rate</div>
+          <div className="realized-pnl-card-amount">{parseFloat(realizedData.portfolioSummary.winRate || 0).toFixed(1)}%</div>
+          <div className="realized-pnl-card-description">Profitable trades</div>
         </div>
 
-        <div className="summary-card">
-          <div className="card-header">Realized P&L</div>
-          <div className={`card-value ${getPnLColor(realizedData.realizedPnL || 0)}`}>
+        <div className="realized-pnl-summary-card">
+          <div className="realized-pnl-card-title">Realized P&L</div>
+          <div className={`realized-pnl-card-amount ${getPnLColor(realizedData.realizedPnL || 0)}`}>
             {formatCurrency(parseFloat(realizedData.realizedPnL || 0))}
           </div>
-          <div className="card-subtitle">
+          <div className="realized-pnl-card-description">
             After fees and cost of funds
           </div>
         </div>
       </div>
 
       {/* Navigation Tabs */}
-      <div className="realized-pnl-tabs">
+      <div className="realized-pnl-tab-navigation">
         <button 
-          className={`tab-button ${activeTab === 'trades' ? 'active' : ''}`}
+          className={`realized-pnl-tab-button ${activeTab === 'trades' ? 'active' : ''}`}
           onClick={() => setActiveTab('trades')}
         >
           Trade History
         </button>
         <button 
-          className={`tab-button ${activeTab === 'performance' ? 'active' : ''}`}
+          className={`realized-pnl-tab-button ${activeTab === 'performance' ? 'active' : ''}`}
           onClick={() => setActiveTab('performance')}
         >
           Performance Analysis
@@ -281,38 +281,38 @@ const RealizedPnL = () => {
       </div>
 
       {/* Tab Content */}
-      <div className="tab-content">
+      <div className="realized-pnl-tab-content">
         {activeTab === 'trades' && (
-          <div className="trades-content">
+          <div className="realized-pnl-trades-content">
             {/* Buy Trade History */}
-            <div className="trade-history-section">
-              <h3>Buy Trade History</h3>
+            <div className="realized-pnl-trade-history-section">
+              <h3 className="realized-pnl-trade-history-title">Buy Trade History</h3>
               {realizedData.tradeHistory && realizedData.tradeHistory.filter(trade => trade.tradeType === 'BUY').length > 0 ? (
-                <div className="trades-table">
-                  <table>
+                <div className="realized-pnl-trade-history-table-container">
+                  <table className="realized-pnl-trade-history-table">
                     <thead>
                       <tr>
-                        <th>Symbol</th>
-                        <th>Quantity</th>
-                        <th>Buy Price</th>
-                        <th>Buy Date</th>
-                        <th>Cost Basis</th>
-                        <th>Charges</th>
-                        <th>Net Value</th>
+                        <th className="realized-pnl-trade-history-header">Symbol</th>
+                        <th className="realized-pnl-trade-history-header">Quantity</th>
+                        <th className="realized-pnl-trade-history-header">Buy Price</th>
+                        <th className="realized-pnl-trade-history-header">Buy Date</th>
+                        <th className="realized-pnl-trade-history-header">Cost Basis</th>
+                        <th className="realized-pnl-trade-history-header">Charges</th>
+                        <th className="realized-pnl-trade-history-header">Net Value</th>
                       </tr>
                     </thead>
                     <tbody>
                       {realizedData.tradeHistory
                         .filter(trade => trade.tradeType === 'BUY')
                         .map((trade) => (
-                        <tr key={`buy-${trade.id}`} className="trade-row buy-row">
-                          <td className="trade-symbol">{trade.symbol}</td>
-                          <td className="trade-quantity">{parseInt(trade.quantity || 0).toLocaleString()}</td>
-                          <td className="trade-buy-price">{formatCurrency(parseFloat(trade.buyPrice || 0))}</td>
-                          <td className="trade-buy-date">{formatDate(trade.buyDate)}</td>
-                          <td className="trade-cost-basis">{formatCurrency(parseFloat(trade.costBasis || 0))}</td>
-                          <td className="trade-charges">{formatCurrency(parseFloat(trade.charges || 0))}</td>
-                          <td className="trade-net-value">{
+                        <tr key={`buy-${trade.id}`} className="realized-pnl-trade-history-row realized-pnl-buy-row">
+                          <td className="realized-pnl-trade-history-cell realized-pnl-trade-symbol">{trade.symbol}</td>
+                          <td className="realized-pnl-trade-history-cell">{parseInt(trade.quantity || 0).toLocaleString()}</td>
+                          <td className="realized-pnl-trade-history-cell">{formatCurrency(parseFloat(trade.buyPrice || 0))}</td>
+                          <td className="realized-pnl-trade-history-cell">{formatDate(trade.buyDate)}</td>
+                          <td className="realized-pnl-trade-history-cell">{formatCurrency(parseFloat(trade.costBasis || 0))}</td>
+                          <td className="realized-pnl-trade-history-cell">{formatCurrency(parseFloat(trade.charges || 0))}</td>
+                          <td className="realized-pnl-trade-history-cell">{
                             (() => {
                               const costBasis = parseFloat(trade.costBasis || 0);
                               const charges = parseFloat(trade.charges || 0);
@@ -332,48 +332,48 @@ const RealizedPnL = () => {
             </div>
 
             {/* Sell Trade History */}
-            <div className="trade-history-section">
-              <h3>Sell Trade History</h3>
+            <div className="realized-pnl-trade-history-section">
+              <h3 className="realized-pnl-trade-history-title">Sell Trade History</h3>
               {realizedData.tradeHistory && realizedData.tradeHistory.filter(trade => trade.tradeType === 'SELL').length > 0 ? (
-                <div className="trades-table">
-                  <table>
+                <div className="realized-pnl-trade-history-table-container">
+                  <table className="realized-pnl-trade-history-table">
                     <thead>
                       <tr>
-                        <th>Symbol</th>
-                        <th>Quantity</th>
-                        <th>Buy Price</th>
-                        <th>Sell Price</th>
-                        <th>Buy Date</th>
-                        <th>Sell Date</th>
-                        <th>Holding Period</th>
-                          <th>Realized Capital Gain</th>
-                        <th>P&L %</th>
-                        <th>Charges</th>
-                          <th>Net Capital Gain</th>
+                        <th className="realized-pnl-trade-history-header">Symbol</th>
+                        <th className="realized-pnl-trade-history-header">Quantity</th>
+                        <th className="realized-pnl-trade-history-header">Buy Price</th>
+                        <th className="realized-pnl-trade-history-header">Sell Price</th>
+                        <th className="realized-pnl-trade-history-header">Buy Date</th>
+                        <th className="realized-pnl-trade-history-header">Sell Date</th>
+                        <th className="realized-pnl-trade-history-header">Holding Period</th>
+                        <th className="realized-pnl-trade-history-header">Realized Capital Gain</th>
+                        <th className="realized-pnl-trade-history-header">P&L %</th>
+                        <th className="realized-pnl-trade-history-header">Charges</th>
+                        <th className="realized-pnl-trade-history-header">Net Capital Gain</th>
                       </tr>
                     </thead>
                     <tbody>
                       {realizedData.tradeHistory
                         .filter(trade => trade.tradeType === 'SELL')
                         .map((trade) => (
-                        <tr key={`sell-${trade.id}`} className="trade-row sell-row">
-                          <td className="trade-symbol">{trade.symbol}</td>
-                          <td className="trade-quantity">{parseInt(trade.quantity || 0).toLocaleString()}</td>
-                          <td className="trade-buy-price">{formatCurrency(parseFloat(trade.buyPrice || 0))}</td>
-                          <td className="trade-sell-price">{formatCurrency(parseFloat(trade.sellPrice || 0))}</td>
-                          <td className="trade-buy-date">{formatDate(trade.buyDate)}</td>
-                          <td className="trade-sell-date">{formatDate(trade.sellDate)}</td>
-                          <td className="trade-holding-period">
+                        <tr key={`sell-${trade.id}`} className="realized-pnl-trade-history-row realized-pnl-sell-row">
+                          <td className="realized-pnl-trade-history-cell realized-pnl-trade-symbol">{trade.symbol}</td>
+                          <td className="realized-pnl-trade-history-cell">{parseInt(trade.quantity || 0).toLocaleString()}</td>
+                          <td className="realized-pnl-trade-history-cell">{formatCurrency(parseFloat(trade.buyPrice || 0))}</td>
+                          <td className="realized-pnl-trade-history-cell">{formatCurrency(parseFloat(trade.sellPrice || 0))}</td>
+                          <td className="realized-pnl-trade-history-cell">{formatDate(trade.buyDate)}</td>
+                          <td className="realized-pnl-trade-history-cell">{formatDate(trade.sellDate)}</td>
+                          <td className="realized-pnl-trade-history-cell realized-pnl-holding-period">
                             {trade.holdingPeriod}
                           </td>
-                          <td className={`trade-pnl ${getPnLColor(trade.realizedPnL)}`}>
+                          <td className={`realized-pnl-trade-history-cell realized-pnl-trade-pnl ${getPnLColor(trade.realizedPnL)}`}>
                             {formatCurrency(parseFloat(trade.realizedPnL || 0))}
                           </td>
-                          <td className={`trade-pnl-percentage ${getPnLColor(trade.pnLPercentage)}`}>
+                          <td className={`realized-pnl-trade-history-cell realized-pnl-trade-pnl-percentage ${getPnLColor(trade.pnLPercentage)}`}>
                             {formatPercentage(parseFloat(trade.pnLPercentage || 0))}
                           </td>
-                          <td className="trade-charges">{formatCurrency(parseFloat(trade.charges || 0))}</td>
-                          <td className={`trade-net-pnl ${getPnLColor((parseFloat(trade.realizedPnL || 0) - parseFloat(trade.charges || 0)))}`}>
+                          <td className="realized-pnl-trade-history-cell">{formatCurrency(parseFloat(trade.charges || 0))}</td>
+                          <td className={`realized-pnl-trade-history-cell realized-pnl-trade-net-pnl ${getPnLColor((parseFloat(trade.realizedPnL || 0) - parseFloat(trade.charges || 0)))}`}>
                             {
                               (() => {
                                 const realized = parseFloat(trade.realizedPnL || 0);
@@ -398,27 +398,27 @@ const RealizedPnL = () => {
         )}
 
         {activeTab === 'performance' && (
-          <div className="performance-content">
-            <h3>Performance by Time Period</h3>
-            <div className="performance-table">
-              <table>
+          <div className="realized-pnl-performance-content">
+            <h3 className="realized-pnl-performance-title">Performance by Time Period</h3>
+            <div className="realized-pnl-performance-container">
+              <table className="realized-pnl-performance-table">
                 <thead>
                   <tr>
-                    <th>Period</th>
-                    <th>Realized Capital Gain</th>
-                    <th>Number of Trades</th>
-                    <th>Win Rate</th>
+                    <th className="realized-pnl-performance-header">Period</th>
+                    <th className="realized-pnl-performance-header">Realized Capital Gain</th>
+                    <th className="realized-pnl-performance-header">Number of Trades</th>
+                    <th className="realized-pnl-performance-header">Win Rate</th>
                   </tr>
                 </thead>
                 <tbody>
                   {realizedData.performanceByPeriod.map((period, index) => (
                     <tr key={`performance-${period.period}-${index}`}>
-                      <td>{period.period}</td>
-                      <td className={getPnLColor(period.realizedPnL)}>
+                      <td className="realized-pnl-performance-cell">{period.period}</td>
+                      <td className={`realized-pnl-performance-cell ${getPnLColor(period.realizedPnL)}`}>
                         {formatCurrency(parseFloat(period.realizedPnL || 0))}
                       </td>
-                      <td>{parseInt(period.trades || 0)}</td>
-                      <td>{parseFloat(period.winRate || 0).toFixed(1)}%</td>
+                      <td className="realized-pnl-performance-cell">{parseInt(period.trades || 0)}</td>
+                      <td className="realized-pnl-performance-cell">{parseFloat(period.winRate || 0).toFixed(1)}%</td>
                     </tr>
                   ))}
                 </tbody>
@@ -429,14 +429,14 @@ const RealizedPnL = () => {
       </div>
 
       {/* Export and Actions */}
-      <div className="actions-section">
-        <button className="action-btn" onClick={() => handleGenerateReport()}>
+      <div className="realized-pnl-actions-container">
+        <button className="realized-pnl-action-button" onClick={() => handleGenerateReport()}>
           Generate Realized Capital Gain Report
         </button>
-        <button className="action-btn" onClick={() => handleExportToExcel()}>
+        <button className="realized-pnl-action-button" onClick={() => handleExportToExcel()}>
           Export to Excel
         </button>
-        <button className="action-btn" onClick={loadRealizedPnLData}>
+        <button className="realized-pnl-action-button" onClick={loadRealizedPnLData}>
           Refresh Data
         </button>
       </div>

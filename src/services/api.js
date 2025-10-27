@@ -1286,3 +1286,60 @@ export const accountReconciliationAPI = {
     }
   }
 };
+
+// API service for Profit & Loss operations
+export const profitLossAPI = {
+  // Get Profit & Loss Statement data
+  getProfitLoss: async (filters = {}) => {
+    try {
+      const queryParams = new URLSearchParams({
+        startDate: filters.startDate || new Date(new Date().getFullYear(), 0, 1).toISOString().split('T')[0],
+        endDate: filters.endDate || new Date().toISOString().split('T')[0]
+      });
+      
+      if (filters.portfolio) {
+        queryParams.append('portfolio', filters.portfolio);
+      }
+      
+      const response = await fetch(`${API_BASE_URL}/profit-loss?${queryParams}`, {
+        headers: getAuthHeaders()
+      });
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      
+      return await response.json();
+    } catch (error) {
+      console.error('Error fetching profit & loss:', error);
+      throw error;
+    }
+  },
+
+  // Get P&L Summary
+  getProfitLossSummary: async (filters = {}) => {
+    try {
+      const queryParams = new URLSearchParams({
+        startDate: filters.startDate || new Date(new Date().getFullYear(), 0, 1).toISOString().split('T')[0],
+        endDate: filters.endDate || new Date().toISOString().split('T')[0]
+      });
+      
+      if (filters.portfolio) {
+        queryParams.append('portfolio', filters.portfolio);
+      }
+      
+      const response = await fetch(`${API_BASE_URL}/profit-loss/summary?${queryParams}`, {
+        headers: getAuthHeaders()
+      });
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      
+      return await response.json();
+    } catch (error) {
+      console.error('Error fetching P&L summary:', error);
+      throw error;
+    }
+  }
+};

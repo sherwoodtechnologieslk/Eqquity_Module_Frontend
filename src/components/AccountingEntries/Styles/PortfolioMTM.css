@@ -141,8 +141,8 @@
 }
 
 .portfolio-mtm-table th {
-  background-color: #f8fafc;
-  color: #475569;
+  background: linear-gradient(135deg, #3b82f6, #2563eb);
+  color: white;
   font-weight: 600;
   font-size: 14px;
   padding: 16px 12px;
