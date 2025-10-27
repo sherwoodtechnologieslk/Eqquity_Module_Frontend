@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import './Styles/TrialBalance.css';
-import { trialBalanceAPI } from '../../services/api';
+import { trialBalanceAPI, transactionEntryAPI, portfolioAPI } from '../../services/api';
 import AccountDetailsModal from './AccountDetailsModal';
 
 const TrialBalance = () => {
@@ -16,6 +16,12 @@ const TrialBalance = () => {
   const [viewMode, setViewMode] = useState('detailed'); // 'detailed' or 'summary'
   const [showAccountModal, setShowAccountModal] = useState(false);
   const [selectedAccountData, setSelectedAccountData] = useState(null);
+  const [portfolios, setPortfolios] = useState([]);
+  const [mtmData, setMtmData] = useState({
+    totalUnrealizedCapitalGain: 0,
+    fairValueAdjustment: 0
+  });
+  const [mtmLoading, setMtmLoading] = useState(false);
 
   const fetchTrialBalance = useCallback(async () => {
     try {
@@ -42,6 +48,20 @@ const TrialBalance = () => {
     fetchPortfolios();
   }, [fetchTrialBalance]);
 
+  // Auto-fetch MTM data when portfolios are loaded
+  useEffect(() => {
+    if (portfolios.length > 0) {
+      console.log('🚀 Portfolios loaded, fetching MTM data...');
+      fetchMTMData();
+    }
+  }, [portfolios]);
+
+  // Force re-render when MTM data changes
+  useEffect(() => {
+    console.log('🔄 MTM data changed:', mtmData);
+    // This will trigger a re-render of the trial balance table
+  }, [mtmData]);
+
   const fetchPortfolios = async () => {
     try {
       const token = localStorage.getItem('token');
@@ -54,6 +74,7 @@ const TrialBalance = () => {
       if (response.ok) {
         const data = await response.json();
         setAvailablePortfolios(data);
+        setPortfolios(data); // Also set portfolios for MTM calculations
       }
     } catch (err) {
       console.error('Error fetching portfolios:', err);
@@ -93,6 +114,56 @@ const TrialBalance = () => {
     setSelectedAccountData(null);
   };
 
+  // Function to fetch MTM data and calculate unrealized capital gains (same logic as Mark-to-Market Valuation screen)
+  const fetchMTMData = async () => {
+    console.log('🚀 Starting MTM data fetch...');
+    console.log('📊 Portfolios available:', portfolios.length);
+    
+    setMtmLoading(true);
+    try {
+      let totalUnrealizedCapitalGain = 0;
+      
+      // Fetch MTM data for all portfolios (same as Mark-to-Market Valuation screen)
+      for (const portfolio of portfolios) {
+        console.log(`📈 Fetching MTM data for portfolio: ${portfolio.portfolioName}`);
+        try {
+          const mtmData = await transactionEntryAPI.getPortfolioPositions(portfolio.id);
+          console.log(`📊 MTM data for ${portfolio.portfolioName}:`, mtmData);
+          
+          // Calculate portfolio totals (same logic as Mark-to-Market Valuation screen)
+          const totalCost = mtmData.reduce((sum, item) => sum + (item.costValue || 0), 0);
+          const totalGrossSales = mtmData.reduce((sum, item) => sum + (item.grossSales || 0), 0);
+          
+          // Calculate unrealized capital gain (same as Mark-to-Market Valuation: totalGrossSales - totalCost)
+          const portfolioUnrealizedCapitalGain = totalGrossSales - totalCost;
+          
+          console.log(`💰 Portfolio ${portfolio.portfolioName}:`);
+          console.log(`   Total Cost: ${totalCost}`);
+          console.log(`   Total Gross Sales: ${totalGrossSales}`);
+          console.log(`   Unrealized Capital Gain: ${portfolioUnrealizedCapitalGain}`);
+          
+          totalUnrealizedCapitalGain += portfolioUnrealizedCapitalGain;
+        } catch (error) {
+          console.error(`Error fetching MTM data for portfolio ${portfolio.portfolioName}:`, error);
+        }
+      }
+      
+      // Update MTM data state with single total value
+      setMtmData({
+        totalUnrealizedCapitalGain,
+        fairValueAdjustment: totalUnrealizedCapitalGain
+      });
+      
+      console.log('✅ MTM data auto-fetched for Trial Balance');
+      console.log('Total Unrealized Capital Gain (from Mark-to-Market Valuation):', totalUnrealizedCapitalGain);
+      console.log('Fair Value Adjustment:', totalUnrealizedCapitalGain);
+    } catch (error) {
+      console.error('❌ Error auto-fetching MTM data:', error);
+    } finally {
+      setMtmLoading(false);
+    }
+  };
+
   const formatCurrency = (amount) => {
     return new Intl.NumberFormat('en-US', {
       minimumFractionDigits: 2,
@@ -108,6 +179,79 @@ const TrialBalance = () => {
   const getBalanceColor = (balance, balanceType) => {
     if (balanceType === 'ZERO') return 'neutral';
     return balance > 0 ? 'positive' : 'negative';
+  };
+
+  // Add hardcoded MTM accounts to trial balance data (only if they don't already exist)
+  const addMTMAccounts = (data) => {
+    if (!data || !data.accountsByType) return data;
+
+    console.log('🔍 Adding MTM accounts with data:', mtmData);
+    console.log('🔍 MTM Loading state:', mtmLoading);
+    console.log('🔍 Portfolios available:', portfolios.length);
+
+    // Create MTM accounts with real-time data
+    const mtmAccounts = [
+      {
+        account_code: '1-100-01-01-02',
+        account_name: 'Asset Fair Value Adjustment',
+        account_type: 'Asset',
+        total_debit: mtmData.fairValueAdjustment > 0 ? mtmData.fairValueAdjustment : 0,
+        total_credit: mtmData.fairValueAdjustment < 0 ? Math.abs(mtmData.fairValueAdjustment) : 0,
+        net_balance: mtmData.fairValueAdjustment,
+        balance_type: mtmData.fairValueAdjustment > 0 ? 'DR' : mtmData.fairValueAdjustment < 0 ? 'CR' : 'ZERO'
+      },
+      {
+        account_code: '4-017-01-01-01',
+        account_name: 'Other Income Unrealized Capital Gain/Loss',
+        account_type: 'Income',
+        total_debit: mtmData.totalUnrealizedCapitalGain < 0 ? Math.abs(mtmData.totalUnrealizedCapitalGain) : 0,
+        total_credit: mtmData.totalUnrealizedCapitalGain > 0 ? mtmData.totalUnrealizedCapitalGain : 0,
+        net_balance: -mtmData.totalUnrealizedCapitalGain,
+        balance_type: mtmData.totalUnrealizedCapitalGain > 0 ? 'CR' : mtmData.totalUnrealizedCapitalGain < 0 ? 'DR' : 'ZERO'
+      }
+    ];
+
+    console.log('🔍 Created MTM accounts:', mtmAccounts);
+
+    // Add MTM accounts to their respective categories (only if they don't already exist)
+    const updatedData = { ...data };
+    const updatedAccountsByType = { ...data.accountsByType };
+
+    console.log('🔍 Original accountsByType:', updatedAccountsByType);
+
+    mtmAccounts.forEach(account => {
+      const type = account.account_type;
+      console.log(`🔍 Processing account ${account.account_code} for type ${type}`);
+      
+      if (!updatedAccountsByType[type]) {
+        console.log(`🔍 Creating new ${type} array`);
+        updatedAccountsByType[type] = [];
+      }
+      
+      // Check if account already exists
+      const accountExists = updatedAccountsByType[type].some(existingAccount => 
+        existingAccount.account_code === account.account_code
+      );
+      
+      console.log(`🔍 Account ${account.account_code} exists:`, accountExists);
+      
+      // Only add if it doesn't exist
+      if (!accountExists) {
+        console.log(`🔍 Adding account ${account.account_code} to ${type}`);
+        updatedAccountsByType[type].push(account);
+      }
+    });
+
+    console.log('🔍 Updated accountsByType:', updatedAccountsByType);
+
+    // Sort accounts within each type by account code
+    Object.keys(updatedAccountsByType).forEach(type => {
+      updatedAccountsByType[type].sort((a, b) => a.account_code.localeCompare(b.account_code));
+    });
+
+    updatedData.accountsByType = updatedAccountsByType;
+    console.log('🔍 Final updatedData:', updatedData);
+    return updatedData;
   };
 
   const renderAccountRow = (account, index) => (
@@ -264,6 +408,8 @@ const TrialBalance = () => {
           Total Debits: {formatCurrency(trialBalanceData?.totals.total_debits)} | 
           Total Credits: {formatCurrency(trialBalanceData?.totals.total_credits)} | 
           Accounts: {trialBalanceData?.totals.account_count}
+          {mtmLoading && ' | Loading MTM Data...'}
+          {!mtmLoading && portfolios.length > 0 && ` | MTM Data: ${mtmData.totalUnrealizedCapitalGain.toFixed(2)}`}
         </span>
       </div>
 
@@ -285,14 +431,17 @@ const TrialBalance = () => {
                   </tr>
                 </thead>
                 <tbody>
-                  {trialBalanceData?.accountsByType && Object.entries(trialBalanceData.accountsByType).map(([type, accounts]) => (
-                    <React.Fragment key={type}>
-                      {accounts.map((account, index) => renderAccountRow(account, index))}
-                      {trialBalanceData.typeSubtotals[type] && 
-                        renderTypeSubtotal(type, trialBalanceData.typeSubtotals[type])
-                      }
-                    </React.Fragment>
-                  ))}
+                  {(() => {
+                    const dataWithMTM = addMTMAccounts(trialBalanceData);
+                    return dataWithMTM?.accountsByType && Object.entries(dataWithMTM.accountsByType).map(([type, accounts]) => (
+                      <React.Fragment key={type}>
+                        {accounts.map((account, index) => renderAccountRow(account, index))}
+                        {trialBalanceData.typeSubtotals[type] && 
+                          renderTypeSubtotal(type, trialBalanceData.typeSubtotals[type])
+                        }
+                      </React.Fragment>
+                    ));
+                  })()}
                 </tbody>
                 <tfoot>
                   <tr className="tb-grand-total-row">

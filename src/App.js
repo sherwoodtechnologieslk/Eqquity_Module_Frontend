@@ -31,6 +31,7 @@ import ChartOfAccounts from './components/AccountingEntries/ChartOfAccounts';
 import GeneralLedger from './components/AccountingEntries/GeneralLedger';
 import JournalEntries from './components/AccountingEntries/JournalEntries';
 import TrialBalance from './components/AccountingEntries/TrialBalance';
+import ProfitLoss from './components/AccountingEntries/ProfitLoss';
 import AccountReconciliation from './components/AccountingEntries/AccountReconciliation';
 import NewGLAccount from './components/AccountingEntries/NewGLAccount';
 import PortfolioMTM from './components/AccountingEntries/PortfolioMTM';
@@ -174,7 +175,7 @@ function App() {
     'General Ledger': <GeneralLedger />,
     'Trial Balance': <TrialBalance />,
     'Account Reconciliation': <AccountReconciliation />,
-    'P&L': <div style={{ padding: '2rem' }}><h3>Profit & Loss Statement</h3><p>Coming Soon...</p></div>,
+    'P&L': <ProfitLoss />,
     'Portfolio MTM': <PortfolioMTM />,
     'New GL Account': <NewGLAccount />,
     'Trade Report': <TradeReport />,

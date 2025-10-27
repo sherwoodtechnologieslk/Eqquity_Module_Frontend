@@ -6,7 +6,7 @@ const PortfolioMTM = () => {
   const [portfolioMTMData, setPortfolioMTMData] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-  const [selectedPortfolio, setSelectedPortfolio] = useState('All');
+  const [selectedPortfolio, setSelectedPortfolio] = useState('');
   const [portfolios, setPortfolios] = useState([]);
   const [portfoliosLoading, setPortfoliosLoading] = useState(true);
   const [mtmData, setMtmData] = useState([]);
@@ -15,31 +15,11 @@ const PortfolioMTM = () => {
     endDate: ''
   });
 
-  // Load MTM data function (same as Mark-to-Market Valuation screen)
+  // Load MTM data function for single portfolio
   const loadMtmData = async (portfolioId) => {
     setLoading(true);
     try {
-      if (portfolioId === 'All') {
-        console.log('🔍 PORTFOLIO MTM - Loading MTM data for all portfolios');
-        // Load data for all portfolios
-        const allPortfolioData = [];
-        for (const portfolio of portfolios) {
-          try {
-            const data = await transactionEntryAPI.getPortfolioPositions(portfolio.id);
-            // Add portfolio name to each item for identification
-            const dataWithPortfolio = data.map(item => ({
-              ...item,
-              portfolioName: portfolio.portfolioName,
-              portfolioId: portfolio.id
-            }));
-            allPortfolioData.push(...dataWithPortfolio);
-          } catch (error) {
-            console.error(`❌ PORTFOLIO MTM - Error loading data for portfolio ${portfolio.portfolioName}:`, error);
-          }
-        }
-        console.log('🔍 PORTFOLIO MTM - All portfolios MTM data loaded:', allPortfolioData);
-        setMtmData(allPortfolioData);
-      } else if (portfolioId) {
+      if (portfolioId) {
         console.log('🔍 PORTFOLIO MTM - Loading MTM data for portfolio:', portfolioId);
         const data = await transactionEntryAPI.getPortfolioPositions(portfolioId);
         // Add portfolio name to each item
@@ -116,10 +96,13 @@ const PortfolioMTM = () => {
 
   // Load MTM data when portfolio selection changes
   useEffect(() => {
-    if (portfolios.length > 0 && selectedPortfolio) {
+    if (selectedPortfolio && selectedPortfolio !== '') {
       loadMtmData(selectedPortfolio);
+    } else {
+      // Clear data when no portfolio is selected
+      setMtmData([]);
     }
-  }, [selectedPortfolio, portfolios]);
+  }, [selectedPortfolio]);
 
   const formatCurrency = (amount) => {
     return new Intl.NumberFormat('en-US', {
@@ -143,14 +126,14 @@ const PortfolioMTM = () => {
 
   const getUniquePortfolios = () => {
     if (!portfolios || portfolios.length === 0) {
-      return ['All'];
+      return [''];
     }
-    // Use portfolio IDs for selection (same as Mark-to-Market Valuation screen)
-    return ['All', ...portfolios.map(portfolio => portfolio.id)];
+    // Include empty string for "None" option, then portfolio IDs
+    return ['', ...portfolios.map(portfolio => portfolio.id)];
   };
 
   const getPortfolioName = (portfolioId) => {
-    if (portfolioId === 'All') return 'All';
+    if (portfolioId === '') return 'Select a portfolio...';
     const portfolio = portfolios.find(p => p.id === portfolioId);
     return portfolio ? portfolio.portfolioName : portfolioId;
   };
@@ -158,47 +141,15 @@ const PortfolioMTM = () => {
   // Get calculated totals from MTM data
   const totals = calculatePortfolioTotals();
   
-  // Create filtered data based on selection
-  const filteredData = mtmData.length > 0 ? (() => {
-    if (selectedPortfolio === 'All') {
-      // Group by portfolio and show each portfolio's totals
-      const portfolioGroups = {};
-      mtmData.forEach(item => {
-        const portfolioName = item.portfolioName || 'Unknown';
-        if (!portfolioGroups[portfolioName]) {
-          portfolioGroups[portfolioName] = {
-            costValue: 0,
-            grossSales: 0,
-            charges: 0,
-            projectedSalesWithCOF: 0
-          };
-        }
-        portfolioGroups[portfolioName].costValue += item.costValue || 0;
-        portfolioGroups[portfolioName].grossSales += item.grossSales || 0;
-        portfolioGroups[portfolioName].charges += item.charges || 0;
-        portfolioGroups[portfolioName].projectedSalesWithCOF += item.projectedSalesWithCOF || 0;
-      });
-
-      return Object.entries(portfolioGroups).map(([portfolioName, data], index) => ({
-        id: index + 1,
-        date: new Date().toISOString().split('T')[0],
-        portfolioName: portfolioName,
-        portfolioValue: data.costValue,
-        currentMTMValue: data.grossSales,
-        unrealizedPnL: data.projectedSalesWithCOF - (data.costValue + data.charges)
-      }));
-    } else {
-      // Show single portfolio data
-      return [{
-        id: 1,
-        date: new Date().toISOString().split('T')[0],
-        portfolioName: getPortfolioName(selectedPortfolio),
-        portfolioValue: totals.totalCost,
-        currentMTMValue: totals.totalMarket,
-        unrealizedPnL: totals.totalUnrealizedPnL
-      }];
-    }
-  })() : [];
+  // Create filtered data for single portfolio
+  const filteredData = mtmData.length > 0 ? [{
+    id: 1,
+    date: new Date().toISOString().split('T')[0],
+    portfolioName: getPortfolioName(selectedPortfolio),
+    portfolioValue: totals.totalCost,
+    currentMTMValue: totals.totalMarket,
+    unrealizedCapitalGain: totals.totalMarket - totals.totalCost
+  }] : [];
 
   const totalUnrealizedPnL = totals.totalUnrealizedPnL;
   const totalPortfolioValue = totals.totalCost;
@@ -245,7 +196,7 @@ const PortfolioMTM = () => {
             disabled={portfoliosLoading}
           >
             {portfoliosLoading ? (
-              <option value="All">Loading portfolios...</option>
+              <option value="">Loading portfolios...</option>
             ) : (
               getUniquePortfolios().map(portfolioId => (
                 <option key={portfolioId} value={portfolioId}>
@@ -312,7 +263,7 @@ const PortfolioMTM = () => {
               <th>Portfolio</th>
               <th>Portfolio Value</th>
               <th>Current MTM Value</th>
-              <th>Unrealized P&L</th>
+              <th>Unrealized Capital Gain</th>
               <th>Return %</th>
             </tr>
           </thead>
@@ -323,10 +274,10 @@ const PortfolioMTM = () => {
                 <td>{item.portfolioName}</td>
                 <td>{formatCurrency(item.portfolioValue)}</td>
                 <td>{formatCurrency(item.currentMTMValue)}</td>
-                <td className={item.unrealizedPnL >= 0 ? 'positive' : 'negative'}>
-                  {formatCurrency(item.unrealizedPnL)}
+                <td className={item.unrealizedCapitalGain >= 0 ? 'positive' : 'negative'}>
+                  {formatCurrency(item.unrealizedCapitalGain)}
                 </td>
-                <td className={item.unrealizedPnL >= 0 ? 'positive' : 'negative'}>
+                <td className={item.unrealizedCapitalGain >= 0 ? 'positive' : 'negative'}>
                   {formatPercentage(item.currentMTMValue, item.portfolioValue)}
                 </td>
               </tr>
@@ -335,10 +286,17 @@ const PortfolioMTM = () => {
         </table>
       </div>
 
-      {filteredData.length === 0 && !loading && (
+      {!selectedPortfolio && !portfoliosLoading && (
+        <div className="pmtm-no-data-message">
+          <h3>Select a Portfolio</h3>
+          <p>Please select a portfolio from the dropdown above to view MTM data.</p>
+        </div>
+      )}
+
+      {filteredData.length === 0 && !loading && selectedPortfolio && (
         <div className="pmtm-no-data-message">
           <h3>No Portfolio MTM Data Available</h3>
-          <p>No portfolio mark-to-market data found. Data will appear here once portfolio valuations are calculated.</p>
+          <p>No portfolio mark-to-market data found for the selected portfolio. Data will appear here once portfolio valuations are calculated.</p>
         </div>
       )}
     </div>
