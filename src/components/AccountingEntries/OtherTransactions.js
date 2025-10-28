@@ -54,7 +54,7 @@ const OtherTransactions = () => {
   const [showPreviewModal, setShowPreviewModal] = useState(false);
   
   // New states for viewing vouchers and general ledger
-  const [activeTab, setActiveTab] = useState('create'); // 'create', 'view', or 'generalLedger'
+  const [activeTab, setActiveTab] = useState('create'); // 'create', 'view', 'generalLedger', or 'glMapping'
   const [activeCategory, setActiveCategory] = useState('all'); // 'all', 'income', 'expense', 'asset', 'liability'
   const [vouchers, setVouchers] = useState([]);
   const [vouchersLoading, setVouchersLoading] = useState(false);
@@ -368,6 +368,22 @@ const OtherTransactions = () => {
             }}
           >
             General Ledger
+          </button>
+          <button
+            onClick={() => setActiveTab('glMapping')}
+            style={{
+              padding: '1rem 2rem',
+              border: 'none',
+              background: 'transparent',
+              borderBottom: activeTab === 'glMapping' ? '3px solid #3b82f6' : '3px solid transparent',
+              color: activeTab === 'glMapping' ? '#3b82f6' : '#6b7280',
+              fontWeight: activeTab === 'glMapping' ? '600' : '500',
+              cursor: 'pointer',
+              fontSize: '1rem',
+              transition: 'all 0.2s ease'
+            }}
+          >
+            GL Mapping
           </button>
         </div>
 
@@ -901,7 +917,7 @@ const OtherTransactions = () => {
                           color: '#9ca3af',
                           margin: '0.25rem 0 0 0'
                         }}>
-                          {voucher.transaction_date}
+                          {voucher.transaction_date ? voucher.transaction_date.substring(0, 10) : 'N/A'}
                         </p>
                       </div>
                       <span style={{
@@ -1012,7 +1028,7 @@ const OtherTransactions = () => {
               </div>
             )}
           </div>
-        ) : activeTab === 'generalLedger' && (
+        ) : activeTab === 'generalLedger' ? (
           <div>
             {generalLedgerLoading ? (
               <div style={{ textAlign: 'center', padding: '3rem' }}>
@@ -1049,6 +1065,7 @@ const OtherTransactions = () => {
                     <thead>
                       <tr style={{ background: '#f9fafb' }}>
                         <th style={{ padding: '0.75rem 1rem', textAlign: 'left', fontSize: '0.875rem', fontWeight: '600', color: '#374151', borderBottom: '1px solid #e5e7eb' }}>Date</th>
+                        <th style={{ padding: '0.75rem 1rem', textAlign: 'left', fontSize: '0.875rem', fontWeight: '600', color: '#374151', borderBottom: '1px solid #e5e7eb' }}>Voucher #</th>
                         <th style={{ padding: '0.75rem 1rem', textAlign: 'left', fontSize: '0.875rem', fontWeight: '600', color: '#374151', borderBottom: '1px solid #e5e7eb' }}>Account Code</th>
                         <th style={{ padding: '0.75rem 1rem', textAlign: 'left', fontSize: '0.875rem', fontWeight: '600', color: '#374151', borderBottom: '1px solid #e5e7eb' }}>Account Name</th>
                         <th style={{ padding: '0.75rem 1rem', textAlign: 'right', fontSize: '0.875rem', fontWeight: '600', color: '#374151', borderBottom: '1px solid #e5e7eb' }}>Debit</th>
@@ -1071,7 +1088,13 @@ const OtherTransactions = () => {
                         }}
                         >
                           <td style={{ padding: '0.75rem 1rem', fontSize: '0.875rem', color: '#6b7280' }}>
-                            {entry.date || 'N/A'}
+                            {(() => {
+                              const dateToDisplay = entry.transaction_date || entry.date || null;
+                              return dateToDisplay ? dateToDisplay.substring(0, 10) : 'N/A';
+                            })()}
+                          </td>
+                          <td style={{ padding: '0.75rem 1rem', fontSize: '0.875rem', fontWeight: '600', color: '#3b82f6' }}>
+                            {entry.reference || 'N/A'}
                           </td>
                           <td style={{ padding: '0.75rem 1rem', fontSize: '0.875rem', fontWeight: '600', color: '#1f2937' }}>
                             {entry.account_code || 'N/A'}
@@ -1119,7 +1142,54 @@ const OtherTransactions = () => {
               </div>
             )}
           </div>
-        )}
+        ) : activeTab === 'glMapping' ? (
+          /* GL Mapping Tab */
+          <div style={{
+            background: 'white',
+            borderRadius: '0.375rem',
+            padding: '2rem',
+            boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
+          }}>
+            <div style={{ marginBottom: '1.5rem' }}>
+              <h2 style={{ 
+                fontSize: '1.25rem',
+                fontWeight: '600',
+                color: '#1f2937',
+                marginBottom: '0.5rem'
+              }}>
+                GL Account Mapping
+              </h2>
+              <p style={{ 
+                fontSize: '0.875rem',
+                color: '#6b7280'
+              }}>
+                Map your payment accounts to specific GL account codes from the Chart of Accounts
+              </p>
+            </div>
+            <div style={{ 
+              padding: '3rem', 
+              textAlign: 'center',
+              color: '#6b7280',
+              background: '#f9fafb',
+              borderRadius: '0.375rem'
+            }}>
+              <p style={{ 
+                fontSize: '1rem',
+                marginBottom: '0.5rem',
+                fontWeight: '500'
+              }}>
+                GL Mapping functionality coming soon
+              </p>
+              <p style={{ 
+                marginTop: '1rem',
+                fontSize: '0.875rem',
+                color: '#9ca3af'
+              }}>
+                This feature will allow you to map payment accounts to specific GL accounts
+              </p>
+            </div>
+          </div>
+        ) : null}
 
         {/* Footer */}
         <div className="other-trans-footer-section">

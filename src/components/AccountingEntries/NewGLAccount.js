@@ -1,7 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import './Styles/NewGLAccount.css';
 
 const NewGLAccount = () => {
+  // Tab state
+  const [activeTab, setActiveTab] = useState('newGLAccount'); // 'newGLAccount' or 'glMapping'
+  
   const [formData, setFormData] = useState({
     accountCode: '',
     description: '',
@@ -122,7 +125,7 @@ const NewGLAccount = () => {
 
     // Simulate API call delay
     setTimeout(() => {
-      console.log('New GL Account Data:', formData);
+      console.log('GL Account Specification Data:', formData);
       setIsSubmitting(false);
       setShowSuccess(true);
       
@@ -183,8 +186,8 @@ const NewGLAccount = () => {
           </svg>
         </div>
         <div className="new-gl-header-text-group">
-          <h1 className="new-gl-main-title">New GL Account</h1>
-          <p className="new-gl-subtitle">Create a new general ledger account for your chart of accounts</p>
+          <h1 className="new-gl-main-title">GL Account Specification</h1>
+          <p className="new-gl-subtitle">Define general ledger account mappings for your chart of accounts</p>
         </div>
       </div>
 
@@ -194,16 +197,59 @@ const NewGLAccount = () => {
           <div className="success-icon">✓</div>
           <div className="success-text">
             <h3>Account Created Successfully!</h3>
-            <p>Your new GL account has been added to the chart of accounts.</p>
+            <p>Your GL account specification has been added to the chart of accounts.</p>
           </div>
         </div>
       )}
 
-      {/* Form Card */}
+      {/* Tab Navigation */}
+      <div style={{
+        display: 'flex',
+        gap: '1rem',
+        marginBottom: '2rem',
+        borderBottom: '2px solid #e5e7eb'
+      }}>
+        <button
+          onClick={() => setActiveTab('newGLAccount')}
+          style={{
+            padding: '0.75rem 1.5rem',
+            fontSize: '1rem',
+            fontWeight: activeTab === 'newGLAccount' ? '600' : '400',
+            color: activeTab === 'newGLAccount' ? '#3b82f6' : '#6b7280',
+            background: 'transparent',
+            border: 'none',
+            borderBottom: activeTab === 'newGLAccount' ? '3px solid #3b82f6' : '3px solid transparent',
+            cursor: 'pointer',
+            transition: 'all 0.2s ease'
+          }}
+        >
+          New GL Account
+        </button>
+        <button
+          onClick={() => setActiveTab('glMapping')}
+          style={{
+            padding: '0.75rem 1.5rem',
+            fontSize: '1rem',
+            fontWeight: activeTab === 'glMapping' ? '600' : '400',
+            color: activeTab === 'glMapping' ? '#3b82f6' : '#6b7280',
+            background: 'transparent',
+            border: 'none',
+            borderBottom: activeTab === 'glMapping' ? '3px solid #3b82f6' : '3px solid transparent',
+            cursor: 'pointer',
+            transition: 'all 0.2s ease'
+          }}
+        >
+          GL Mapping
+        </button>
+      </div>
+
+      {/* Conditional Content Based on Active Tab */}
+      {activeTab === 'newGLAccount' ? (
+      /* New GL Account Form */
       <div className="new-gl-form-card">
         <div className="new-gl-form-header">
           <h2 className="new-gl-form-title">Account Details</h2>
-          <p className="new-gl-form-subtitle">Fill in the details below to create a new general ledger account</p>
+          <p className="new-gl-form-subtitle">Define the GL account specification details below</p>
         </div>
 
         <form onSubmit={handleSubmit} className="new-gl-form">
@@ -405,6 +451,28 @@ const NewGLAccount = () => {
           </div>
         </form>
       </div>
+      ) : (
+      /* GL Mapping Tab */
+      <div className="new-gl-form-card">
+        <div className="new-gl-form-header">
+          <h2 className="new-gl-form-title">GL Account Mapping</h2>
+          <p className="new-gl-form-subtitle">Map payment accounts to specific GL account codes</p>
+        </div>
+        <div style={{ 
+          padding: '3rem', 
+          textAlign: 'center',
+          color: '#6b7280'
+        }}>
+          <p>GL Mapping functionality coming soon</p>
+          <p style={{ 
+            marginTop: '1rem',
+            fontSize: '0.875rem'
+          }}>
+            Map your payment accounts (banks, cash) to specific GL account codes from the Chart of Accounts
+          </p>
+        </div>
+      </div>
+      )}
 
       {/* Footer */}
       <div className="new-gl-footer-section">
