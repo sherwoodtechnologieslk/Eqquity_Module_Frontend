@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import './Styles/OtherTransactions.css';
-import { accountAPI, otherTransactionAPI } from '../../services/api';
+import { accountAPI, otherTransactionAPI, otherTransactionGLEntryAPI } from '../../services/api';
 import { authService } from '../../services/authService';
 
 // Function to generate unique voucher numbers
@@ -53,11 +53,13 @@ const OtherTransactions = () => {
   const [accountsLoading, setAccountsLoading] = useState(true);
   const [showPreviewModal, setShowPreviewModal] = useState(false);
   
-  // New states for viewing vouchers
-  const [activeTab, setActiveTab] = useState('create'); // 'create' or 'view'
+  // New states for viewing vouchers and general ledger
+  const [activeTab, setActiveTab] = useState('create'); // 'create', 'view', or 'generalLedger'
   const [activeCategory, setActiveCategory] = useState('all'); // 'all', 'income', 'expense', 'asset', 'liability'
   const [vouchers, setVouchers] = useState([]);
   const [vouchersLoading, setVouchersLoading] = useState(false);
+  const [generalLedgerEntries, setGeneralLedgerEntries] = useState([]);
+  const [generalLedgerLoading, setGeneralLedgerLoading] = useState(false);
 
   // Fetch accounts on mount
   useEffect(() => {
@@ -80,8 +82,26 @@ const OtherTransactions = () => {
   useEffect(() => {
     if (activeTab === 'view') {
       fetchVouchers();
+    } else if (activeTab === 'generalLedger') {
+      fetchGeneralLedger();
     }
   }, [activeTab]);
+
+  // Fetch general ledger entries for Other Transactions only
+  const fetchGeneralLedger = async () => {
+    try {
+      setGeneralLedgerLoading(true);
+      
+      // Fetch GL entries specific to Other Transactions for the logged-in user
+      const data = await otherTransactionGLEntryAPI.getEntriesByUser();
+      setGeneralLedgerEntries(data || []);
+    } catch (error) {
+      console.error('Error fetching other transaction GL entries:', error);
+      setGeneralLedgerEntries([]);
+    } finally {
+      setGeneralLedgerLoading(false);
+    }
+  };
 
   // Fetch vouchers based on category filter
   const fetchVouchers = async () => {
@@ -332,6 +352,22 @@ const OtherTransactions = () => {
             }}
           >
             View Vouchers
+          </button>
+          <button
+            onClick={() => setActiveTab('generalLedger')}
+            style={{
+              padding: '1rem 2rem',
+              border: 'none',
+              background: 'transparent',
+              borderBottom: activeTab === 'generalLedger' ? '3px solid #3b82f6' : '3px solid transparent',
+              color: activeTab === 'generalLedger' ? '#3b82f6' : '#6b7280',
+              fontWeight: activeTab === 'generalLedger' ? '600' : '500',
+              cursor: 'pointer',
+              fontSize: '1rem',
+              transition: 'all 0.2s ease'
+            }}
+          >
+            General Ledger
           </button>
         </div>
 
@@ -714,10 +750,9 @@ const OtherTransactions = () => {
             </form>
           </div>
         </div>
-        ) : (
+        ) : activeTab === 'view' ? (
           /* Voucher List View */
           <div>
-            {/* Category Filter Tabs */}
             <div style={{
               display: 'flex',
               gap: '0.5rem',
@@ -974,6 +1009,113 @@ const OtherTransactions = () => {
                     </div>
                   </div>
                 ))}
+              </div>
+            )}
+          </div>
+        ) : activeTab === 'generalLedger' && (
+          <div>
+            {generalLedgerLoading ? (
+              <div style={{ textAlign: 'center', padding: '3rem' }}>
+                <p>Loading general ledger entries...</p>
+              </div>
+            ) : generalLedgerEntries.length === 0 ? (
+              <div style={{ 
+                textAlign: 'center', 
+                padding: '3rem',
+                background: 'white',
+                borderRadius: '0.375rem',
+                color: '#6b7280'
+              }}>
+                <p>No general ledger entries found.</p>
+              </div>
+            ) : (
+              <div style={{
+                background: 'white',
+                borderRadius: '0.375rem',
+                overflow: 'hidden',
+                boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
+              }}>
+                <div style={{
+                  padding: '1.5rem',
+                  background: 'linear-gradient(90deg, #3b82f6 0%, #2563eb 100%)',
+                  color: 'white',
+                  fontWeight: '600',
+                  fontSize: '1.125rem'
+                }}>
+                  General Ledger Entries ({generalLedgerEntries.length})
+                </div>
+                <div style={{ overflowX: 'auto' }}>
+                  <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                    <thead>
+                      <tr style={{ background: '#f9fafb' }}>
+                        <th style={{ padding: '0.75rem 1rem', textAlign: 'left', fontSize: '0.875rem', fontWeight: '600', color: '#374151', borderBottom: '1px solid #e5e7eb' }}>Date</th>
+                        <th style={{ padding: '0.75rem 1rem', textAlign: 'left', fontSize: '0.875rem', fontWeight: '600', color: '#374151', borderBottom: '1px solid #e5e7eb' }}>Account Code</th>
+                        <th style={{ padding: '0.75rem 1rem', textAlign: 'left', fontSize: '0.875rem', fontWeight: '600', color: '#374151', borderBottom: '1px solid #e5e7eb' }}>Account Name</th>
+                        <th style={{ padding: '0.75rem 1rem', textAlign: 'right', fontSize: '0.875rem', fontWeight: '600', color: '#374151', borderBottom: '1px solid #e5e7eb' }}>Debit</th>
+                        <th style={{ padding: '0.75rem 1rem', textAlign: 'right', fontSize: '0.875rem', fontWeight: '600', color: '#374151', borderBottom: '1px solid #e5e7eb' }}>Credit</th>
+                        <th style={{ padding: '0.75rem 1rem', textAlign: 'left', fontSize: '0.875rem', fontWeight: '600', color: '#374151', borderBottom: '1px solid #e5e7eb' }}>Description</th>
+                        <th style={{ padding: '0.75rem 1rem', textAlign: 'left', fontSize: '0.875rem', fontWeight: '600', color: '#374151', borderBottom: '1px solid #e5e7eb' }}>Status</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {generalLedgerEntries.slice(0, 50).map((entry, index) => (
+                        <tr key={entry.id || index} style={{ 
+                          borderBottom: '1px solid #e5e7eb',
+                          transition: 'all 0.2s ease'
+                        }}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.style.background = '#f9fafb';
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.background = 'white';
+                        }}
+                        >
+                          <td style={{ padding: '0.75rem 1rem', fontSize: '0.875rem', color: '#6b7280' }}>
+                            {entry.date || 'N/A'}
+                          </td>
+                          <td style={{ padding: '0.75rem 1rem', fontSize: '0.875rem', fontWeight: '600', color: '#1f2937' }}>
+                            {entry.account_code || 'N/A'}
+                          </td>
+                          <td style={{ padding: '0.75rem 1rem', fontSize: '0.875rem', color: '#374151' }}>
+                            {entry.account_name || 'N/A'}
+                          </td>
+                          <td style={{ padding: '0.75rem 1rem', fontSize: '0.875rem', textAlign: 'right', color: entry.debit > 0 ? '#059669' : '#6b7280', fontWeight: entry.debit > 0 ? '600' : '400' }}>
+                            {entry.debit && entry.debit > 0 ? parseFloat(entry.debit).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : '0.00'}
+                          </td>
+                          <td style={{ padding: '0.75rem 1rem', fontSize: '0.875rem', textAlign: 'right', color: entry.credit > 0 ? '#dc2626' : '#6b7280', fontWeight: entry.credit > 0 ? '600' : '400' }}>
+                            {entry.credit && entry.credit > 0 ? parseFloat(entry.credit).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : '0.00'}
+                          </td>
+                          <td style={{ padding: '0.75rem 1rem', fontSize: '0.875rem', color: '#6b7280' }}>
+                            {entry.description || 'N/A'}
+                          </td>
+                          <td style={{ padding: '0.75rem 1rem' }}>
+                            <span style={{
+                              padding: '0.25rem 0.75rem',
+                              borderRadius: '9999px',
+                              fontSize: '0.75rem',
+                              fontWeight: '600',
+                              background: entry.status === 'Posted' ? '#d1fae5' : '#fee2e2',
+                              color: entry.status === 'Posted' ? '#065f46' : '#991b1b'
+                            }}>
+                              {entry.status || 'Unknown'}
+                            </span>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+                {generalLedgerEntries.length > 50 && (
+                  <div style={{ 
+                    padding: '1rem',
+                    textAlign: 'center',
+                    color: '#6b7280',
+                    fontSize: '0.875rem',
+                    borderTop: '1px solid #e5e7eb'
+                  }}>
+                    Showing first 50 entries of {generalLedgerEntries.length} total entries
+                  </div>
+                )}
               </div>
             )}
           </div>
