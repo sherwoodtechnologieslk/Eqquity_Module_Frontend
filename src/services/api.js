@@ -1210,6 +1210,127 @@ export const otherTransactionAPI = {
   }
 };
 
+// API service for Other Transaction GL Entry operations
+export const otherTransactionGLEntryAPI = {
+  // Get all GL entries
+  getAllEntries: async () => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/other-transaction-gl-entries`, {
+        headers: getAuthHeaders()
+      });
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      return await response.json();
+    } catch (error) {
+      console.error('Error fetching all GL entries:', error);
+      throw error;
+    }
+  },
+
+  // Get GL entries by user email
+  getEntriesByUser: async () => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/other-transaction-gl-entries/user`, {
+        headers: getAuthHeaders()
+      });
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      return await response.json();
+    } catch (error) {
+      console.error('Error fetching GL entries by user:', error);
+      throw error;
+    }
+  },
+
+  // Get GL entries by transaction ID
+  getEntriesByTransactionId: async (transactionId) => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/other-transaction-gl-entries/transaction/${transactionId}`, {
+        headers: getAuthHeaders()
+      });
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      return await response.json();
+    } catch (error) {
+      console.error('Error fetching GL entries by transaction ID:', error);
+      throw error;
+    }
+  },
+
+  // Get GL entries by date range
+  getEntriesByDateRange: async (startDate, endDate) => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/other-transaction-gl-entries/date-range?startDate=${startDate}&endDate=${endDate}`, {
+        headers: getAuthHeaders()
+      });
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      return await response.json();
+    } catch (error) {
+      console.error('Error fetching GL entries by date range:', error);
+      throw error;
+    }
+  },
+
+  // Get GL entries by account code
+  getEntriesByAccountCode: async (accountCode) => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/other-transaction-gl-entries/account/${accountCode}`, {
+        headers: getAuthHeaders()
+      });
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      return await response.json();
+    } catch (error) {
+      console.error('Error fetching GL entries by account code:', error);
+      throw error;
+    }
+  },
+
+  // Update GL entry
+  updateEntry: async (entryId, entryData) => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/other-transaction-gl-entries/${entryId}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          ...getAuthHeaders()
+        },
+        body: JSON.stringify(entryData),
+      });
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      return await response.json();
+    } catch (error) {
+      console.error('Error updating GL entry:', error);
+      throw error;
+    }
+  },
+
+  // Delete GL entry
+  deleteEntry: async (entryId) => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/other-transaction-gl-entries/${entryId}`, {
+        method: 'DELETE',
+        headers: getAuthHeaders()
+      });
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      return await response.json();
+    } catch (error) {
+      console.error('Error deleting GL entry:', error);
+      throw error;
+    }
+  }
+};
+
 export const chartOfAccountsAPI = {
   getAll: async () => {
     const response = await fetch(`${API_BASE_URL}/chart-of-accounts`);
