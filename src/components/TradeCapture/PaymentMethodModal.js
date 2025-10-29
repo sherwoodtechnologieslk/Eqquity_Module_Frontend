@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { accountAPI } from '../../services/api';
+import { accountAPI, glAccountMappingAPI } from '../../services/api';
 import './Styles/PaymentMethodModal.css';
 
 const PaymentMethodModal = ({ paymentMethod, onClose, onSelectAccount }) => {
@@ -7,6 +7,7 @@ const PaymentMethodModal = ({ paymentMethod, onClose, onSelectAccount }) => {
   const [accounts, setAccounts] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [accountsWithMapping, setAccountsWithMapping] = useState([]); // Accounts that have GL mappings
   //const [selectedAccount, setSelectedAccount] = useState(null);
 
   const transformAccountData = (accountData) => {
@@ -33,11 +34,23 @@ const PaymentMethodModal = ({ paymentMethod, onClose, onSelectAccount }) => {
     try {
       setLoading(true);
       setError('');
-      const accountData = await accountAPI.getAccountsByPaymentMethod(method);
+      const [accountData, mappingData] = await Promise.all([
+        accountAPI.getAccountsByPaymentMethod(method),
+        glAccountMappingAPI.getAll().catch(() => [])
+      ]);
       
       // Transform the data from Account Master format to PaymentMethodModal format
       const transformedAccounts = transformAccountData(accountData);
       setAccounts(transformedAccounts);
+      
+      // Build list of account IDs that have GL mappings
+      const mappedAccountIds = [];
+      if (mappingData && Array.isArray(mappingData)) {
+        mappingData.forEach(mapping => {
+          mappedAccountIds.push(mapping.account_id);
+        });
+      }
+      setAccountsWithMapping(mappedAccountIds);
     } catch (err) {
       console.error('Error fetching accounts:', err);
       setError('Failed to load settlement accounts');
@@ -122,15 +135,20 @@ const PaymentMethodModal = ({ paymentMethod, onClose, onSelectAccount }) => {
                 </div>
               ) : (
                 <div className="payment-accounts-grid">
-                  {accounts.map((account, index) => (
+                  {accounts.map((account, index) => {
+                    const hasMapping = accountsWithMapping.includes(account.id);
+                    return (
                     <div 
                       key={account.id} 
-                      className="payment-account-card"
-                      onClick={() => handleAccountSelect(account)}
+                      className={`payment-account-card ${!hasMapping ? 'disabled-account' : ''}`}
+                      onClick={() => hasMapping && handleAccountSelect(account)}
                     >
                       <div className="account-card-inner">
                         <div className="account-card-header">
-                          <div className="account-name">{account.accountName}</div>
+                          <div className="account-name">
+                            {account.accountName}
+                            {!hasMapping && <span style={{ color: '#ef4444', marginLeft: '0.5rem', fontSize: '0.875rem' }}>No GL Mapping</span>}
+                          </div>
                           <div className="account-number">
                             <span className="account-number-label">Account</span>
                             <span className="account-number-value">{account.accountNumber}</span>
@@ -155,8 +173,8 @@ const PaymentMethodModal = ({ paymentMethod, onClose, onSelectAccount }) => {
                           </div>
                         </div>
                         <div className="account-card-footer">
-                          <button className="select-account-btn">
-                            <span>Select Account</span>
+                          <button className={`select-account-btn ${!hasMapping ? 'disabled' : ''}`} disabled={!hasMapping}>
+                            <span>{hasMapping ? 'Select Account' : 'No GL Mapping'}</span>
                             <svg className="btn-arrow" viewBox="0 0 20 20" fill="currentColor">
                               <path fillRule="evenodd" d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z" clipRule="evenodd" />
                             </svg>
@@ -164,7 +182,8 @@ const PaymentMethodModal = ({ paymentMethod, onClose, onSelectAccount }) => {
                         </div>
                       </div>
                     </div>
-                  ))}
+                  );
+                  })}
                 </div>
               )}
             </div>

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { equityAPI, portfolioAPI, costOfFundsAPI, transactionEntryAPI, portfolioCostingMethodAPI, tradeSummaryAPI, accountAPI } from '../../services/api';
+import { equityAPI, portfolioAPI, costOfFundsAPI, transactionEntryAPI, portfolioCostingMethodAPI, tradeSummaryAPI, accountAPI, glAccountMappingAPI } from '../../services/api';
 import SellEquitySelectorModal from '../TradeCapture/SellEquitySelectorModal';
 import './Styles/BulkSellEntry.css';
 
@@ -18,6 +18,7 @@ const BulkSellEntry = () => {
   const [totalShares, setTotalShares] = useState('');
   const [accounts, setAccounts] = useState([]);
   const [accountsLoading, setAccountsLoading] = useState(true);
+  const [accountsWithMapping, setAccountsWithMapping] = useState([]); // Accounts that have GL mappings
 
   const [form, setForm] = useState({
     companyName: '',
@@ -64,10 +65,11 @@ const BulkSellEntry = () => {
         setPortfoliosLoading(true);
         setAccountsLoading(true);
         console.log('Fetching active portfolios...');
-        const [equitiesData, portfoliosData, accountsData] = await Promise.all([
+        const [equitiesData, portfoliosData, accountsData, mappingData] = await Promise.all([
           equityAPI.getActiveEquities(),
           portfolioAPI.getActivePortfolios(),
-          accountAPI.getAllAccounts()
+          accountAPI.getAllAccounts(),
+          glAccountMappingAPI.getAll().catch(() => [])
         ]);
         console.log('Active portfolios fetched:', portfoliosData);
         console.log('Portfolio structure:', portfoliosData[0]); // Log first portfolio structure
@@ -75,6 +77,15 @@ const BulkSellEntry = () => {
         setEquities(equitiesData);
         setPortfolios(portfoliosData);
         setAccounts(accountsData);
+        
+        // Build list of account IDs that have GL mappings
+        const mappedAccountIds = [];
+        if (mappingData && Array.isArray(mappingData)) {
+          mappingData.forEach(mapping => {
+            mappedAccountIds.push(mapping.account_id);
+          });
+        }
+        setAccountsWithMapping(mappedAccountIds);
         
         // Fetch cost of funds separately since it has different API
         try {
@@ -1030,11 +1041,19 @@ const BulkSellEntry = () => {
                     <option value="">
                       {accountsLoading ? 'Loading accounts...' : 'Select Account'}
                     </option>
-                    {accounts.map(account => (
-                      <option key={account.id} value={`${account.account_name} - ${account.account_number}`}>
-                        {account.account_name} - {account.account_number} ({account.bank_name})
-                      </option>
-                    ))}
+                    {accounts.map(account => {
+                      const hasMapping = accountsWithMapping.includes(account.id);
+                      return (
+                        <option 
+                          key={account.id} 
+                          value={hasMapping ? `${account.account_name} - ${account.account_number}` : ''}
+                          disabled={!hasMapping}
+                        >
+                          {account.account_name} - {account.account_number} ({account.bank_name})
+                          {!hasMapping ? ' - No GL Mapping' : ''}
+                        </option>
+                      );
+                    })}
                   </select>
                   <small className="bulk-sell-field-note">Account where you will receive the sale proceeds</small>
                 </div>

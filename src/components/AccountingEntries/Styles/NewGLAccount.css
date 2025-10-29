@@ -345,6 +345,45 @@
   margin: 0; 
 }
 
+/* GL Mapping Instructions Box */
+.gl-mapping-instructions {
+  margin: 0 auto 2rem auto;
+  padding: 1rem 1.25rem;
+  max-width: 900px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-left: 4px solid #3b82f6;
+  border-radius: 8px;
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+}
+
+.gl-mapping-instructions-icon {
+  font-size: 1.25rem;
+  line-height: 1;
+  margin-top: 0.125rem;
+}
+
+.gl-mapping-instructions-content {
+  flex: 1;
+}
+
+.gl-mapping-instructions-title {
+  margin: 0 0 0.5rem 0;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: #1e293b;
+  line-height: 1.4;
+}
+
+.gl-mapping-instructions-text {
+  margin: 0;
+  font-size: 0.875rem;
+  color: #64748b;
+  line-height: 1.5;
+}
+
 /* Responsive Design */
 @media (max-width: 1100px) {
   .new-gl-header-section {

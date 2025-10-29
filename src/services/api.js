@@ -1339,6 +1339,56 @@ export const chartOfAccountsAPI = {
   }
 };
 
+// API service for GL Account Mappings operations
+export const glAccountMappingAPI = {
+  // Get all mappings for the current user
+  getAll: async () => {
+    const response = await makeAuthenticatedRequest(`${API_BASE_URL}/gl-account-mappings`);
+    return response;
+  },
+
+  // Get mapping by account ID
+  getByAccountId: async (accountId) => {
+    const response = await makeAuthenticatedRequest(`${API_BASE_URL}/gl-account-mappings/${accountId}`);
+    return response;
+  },
+
+  // Save a single mapping
+  save: async (mapping) => {
+    const response = await makeAuthenticatedRequest(`${API_BASE_URL}/gl-account-mappings`, {
+      method: 'POST',
+      body: JSON.stringify(mapping)
+    });
+    return response;
+  },
+
+  // Save multiple mappings (bulk)
+  saveBulk: async (mappings) => {
+    const response = await makeAuthenticatedRequest(`${API_BASE_URL}/gl-account-mappings/bulk`, {
+      method: 'POST',
+      body: JSON.stringify({ mappings })
+    });
+    return response;
+  },
+
+  // Update a mapping
+  update: async (accountId, mapping) => {
+    const response = await makeAuthenticatedRequest(`${API_BASE_URL}/gl-account-mappings/${accountId}`, {
+      method: 'PUT',
+      body: JSON.stringify(mapping)
+    });
+    return response;
+  },
+
+  // Delete a mapping
+  delete: async (accountId) => {
+    const response = await makeAuthenticatedRequest(`${API_BASE_URL}/gl-account-mappings/${accountId}`, {
+      method: 'DELETE'
+    });
+    return response;
+  }
+};
+
 // API service for Trial Balance operations
 export const trialBalanceAPI = {
   // Get Trial Balance data
