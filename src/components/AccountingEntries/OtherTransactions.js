@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import './Styles/OtherTransactions.css';
-import { accountAPI, otherTransactionAPI, otherTransactionGLEntryAPI, glAccountMappingAPI } from '../../services/api';
+import { accountAPI, otherTransactionAPI, otherTransactionGLEntryAPI, glAccountMappingAPI, otherTransactionTypeAPI } from '../../services/api';
 import { authService } from '../../services/authService';
 
 // Function to generate unique voucher numbers
@@ -39,13 +39,13 @@ const OtherTransactions = () => {
     paymentMethod: ''
   });
 
-  // Transaction type options based on defined item
-  const transactionTypes = {
-    income: ['Salary', 'Rent Income', 'Interest Income', 'Dividend Income', 'Commission Income', 'Other Income'],
-    expense: ['Rental Payment', 'Educational Expenses', 'Travel Expenses', 'Office Expenses', 'Utilities', 'Professional Fees', 'Insurance', 'Other Expenses'],
-    liability: ['Accounts Payable', 'Loans Payable', 'Tax Payable', 'Accrued Liabilities', 'Bonds Payable', 'Other Liabilities'],
-    asset: ['Cash', 'Bank Deposits', 'Accounts Receivable', 'Inventory', 'Fixed Assets', 'Investments', 'Other Assets']
-  };
+  // Transaction type options based on defined item (dynamically populated from database)
+  const [transactionTypes, setTransactionTypes] = useState({
+    income: [],
+    expense: [],
+    liability: [],
+    asset: []
+  });
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitMessage, setSubmitMessage] = useState('');
@@ -55,12 +55,25 @@ const OtherTransactions = () => {
   const [accountsWithMapping, setAccountsWithMapping] = useState([]); // Accounts that have GL mappings
   
   // New states for viewing vouchers and general ledger
-  const [activeTab, setActiveTab] = useState('create'); // 'create', 'view', 'generalLedger', or 'glMapping'
+  const [activeTab, setActiveTab] = useState('create'); // 'create', 'defineTransaction', 'view', 'generalLedger'
   const [activeCategory, setActiveCategory] = useState('all'); // 'all', 'income', 'expense', 'asset', 'liability'
   const [vouchers, setVouchers] = useState([]);
   const [vouchersLoading, setVouchersLoading] = useState(false);
   const [generalLedgerEntries, setGeneralLedgerEntries] = useState([]);
   const [generalLedgerLoading, setGeneralLedgerLoading] = useState(false);
+
+  // States for Define Transaction tab
+  const [transactionTypeForm, setTransactionTypeForm] = useState({
+    category: '',
+    transaction_type_name: '',
+    gl_account_code: '',
+    description: ''
+  });
+  const [definedTransactionTypes, setDefinedTransactionTypes] = useState([]);
+  const [transactionTypesLoading, setTransactionTypesLoading] = useState(false);
+  const [editingTransactionTypeId, setEditingTransactionTypeId] = useState(null);
+  const [transactionTypeMessage, setTransactionTypeMessage] = useState('');
+  const [selectedCategoryFilter, setSelectedCategoryFilter] = useState(''); // For filtering defined transaction types
 
   // Fetch accounts and GL mappings on mount
   useEffect(() => {
@@ -99,6 +112,8 @@ const OtherTransactions = () => {
       fetchVouchers();
     } else if (activeTab === 'generalLedger') {
       fetchGeneralLedger();
+    } else if (activeTab === 'defineTransaction') {
+      fetchTransactionTypes();
     }
   }, [activeTab]);
 
@@ -142,6 +157,139 @@ const OtherTransactions = () => {
     }
     return vouchers.filter(v => v.account_type === activeCategory);
   };
+
+  // Fetch all transaction types
+  const fetchTransactionTypes = async () => {
+    try {
+      setTransactionTypesLoading(true);
+      const data = await otherTransactionTypeAPI.getAll();
+      setDefinedTransactionTypes(data || []);
+    } catch (error) {
+      console.error('Error fetching transaction types:', error);
+      setDefinedTransactionTypes([]);
+    } finally {
+      setTransactionTypesLoading(false);
+    }
+  };
+
+  // Handle transaction type form changes
+  const handleTransactionTypeChange = (e) => {
+    const { name, value } = e.target;
+    setTransactionTypeForm(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
+
+  // Handle transaction type form submission
+  const handleTransactionTypeSubmit = async (e) => {
+    e.preventDefault();
+    
+    if (!transactionTypeForm.category || !transactionTypeForm.transaction_type_name) {
+      setTransactionTypeMessage('Category and Transaction Type Name are required');
+      setTimeout(() => setTransactionTypeMessage(''), 3000);
+      return;
+    }
+
+    try {
+      if (editingTransactionTypeId) {
+        // Update existing transaction type
+        await otherTransactionTypeAPI.update(editingTransactionTypeId, transactionTypeForm);
+        setTransactionTypeMessage('Transaction type updated successfully!');
+      } else {
+        // Create new transaction type
+        await otherTransactionTypeAPI.create(transactionTypeForm);
+        setTransactionTypeMessage('Transaction type created successfully!');
+      }
+      
+      // Reset form and fetch updated list
+      setTransactionTypeForm({
+        category: '',
+        transaction_type_name: '',
+        gl_account_code: '',
+        description: ''
+      });
+      setEditingTransactionTypeId(null);
+      fetchTransactionTypes();
+      
+      setTimeout(() => setTransactionTypeMessage(''), 3000);
+    } catch (error) {
+      console.error('Error saving transaction type:', error);
+      setTransactionTypeMessage('Error saving transaction type. Please try again.');
+      setTimeout(() => setTransactionTypeMessage(''), 3000);
+    }
+  };
+
+  // Handle edit transaction type
+  const handleEditTransactionType = (transactionType) => {
+    setTransactionTypeForm({
+      category: transactionType.category,
+      transaction_type_name: transactionType.transaction_type_name,
+      gl_account_code: transactionType.gl_account_code || '',
+      description: transactionType.description || ''
+    });
+    setEditingTransactionTypeId(transactionType.id);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  // Handle delete transaction type
+  const handleDeleteTransactionType = async (id) => {
+    if (!window.confirm('Are you sure you want to delete this transaction type?')) {
+      return;
+    }
+
+    try {
+      await otherTransactionTypeAPI.delete(id);
+      setTransactionTypeMessage('Transaction type deleted successfully!');
+      fetchTransactionTypes();
+      setTimeout(() => setTransactionTypeMessage(''), 3000);
+    } catch (error) {
+      console.error('Error deleting transaction type:', error);
+      setTransactionTypeMessage('Error deleting transaction type. Please try again.');
+      setTimeout(() => setTransactionTypeMessage(''), 3000);
+    }
+  };
+
+  // Cancel editing
+  const handleCancelEdit = () => {
+    setTransactionTypeForm({
+      category: '',
+      transaction_type_name: '',
+      gl_account_code: '',
+      description: ''
+    });
+    setEditingTransactionTypeId(null);
+  };
+
+  // Group transaction types by category
+  const groupedTransactionTypes = {
+    income: definedTransactionTypes.filter(t => t.category === 'income'),
+    expense: definedTransactionTypes.filter(t => t.category === 'expense'),
+    asset: definedTransactionTypes.filter(t => t.category === 'asset'),
+    liability: definedTransactionTypes.filter(t => t.category === 'liability')
+  };
+
+  // Fetch transaction types when account type changes
+  useEffect(() => {
+    if (form.accountType) {
+      const fetchTransactionTypesForCategory = async () => {
+        try {
+          const data = await otherTransactionTypeAPI.getByCategory(form.accountType);
+          setTransactionTypes(prev => ({
+            ...prev,
+            [form.accountType]: data.map(t => t.transaction_type_name)
+          }));
+        } catch (error) {
+          console.error('Error fetching transaction types for category:', error);
+          setTransactionTypes(prev => ({
+            ...prev,
+            [form.accountType]: []
+          }));
+        }
+      };
+      fetchTransactionTypesForCategory();
+    }
+  }, [form.accountType]);
 
   // Calculate Cash Flow On Settlement when amount or fxRate changes
   useEffect(() => {
@@ -353,6 +501,22 @@ const OtherTransactions = () => {
             Create Voucher
           </button>
           <button
+            onClick={() => setActiveTab('defineTransaction')}
+            style={{
+              padding: '1rem 2rem',
+              border: 'none',
+              background: 'transparent',
+              borderBottom: activeTab === 'defineTransaction' ? '3px solid #3b82f6' : '3px solid transparent',
+              color: activeTab === 'defineTransaction' ? '#3b82f6' : '#6b7280',
+              fontWeight: activeTab === 'defineTransaction' ? '600' : '500',
+              cursor: 'pointer',
+              fontSize: '1rem',
+              transition: 'all 0.2s ease'
+            }}
+          >
+            Define Transaction
+          </button>
+          <button
             onClick={() => setActiveTab('view')}
             style={{
               padding: '1rem 2rem',
@@ -383,22 +547,6 @@ const OtherTransactions = () => {
             }}
           >
             General Ledger
-          </button>
-          <button
-            onClick={() => setActiveTab('glMapping')}
-            style={{
-              padding: '1rem 2rem',
-              border: 'none',
-              background: 'transparent',
-              borderBottom: activeTab === 'glMapping' ? '3px solid #3b82f6' : '3px solid transparent',
-              color: activeTab === 'glMapping' ? '#3b82f6' : '#6b7280',
-              fontWeight: activeTab === 'glMapping' ? '600' : '500',
-              cursor: 'pointer',
-              fontSize: '1rem',
-              transition: 'all 0.2s ease'
-            }}
-          >
-            GL Mapping
           </button>
         </div>
 
@@ -664,9 +812,9 @@ const OtherTransactions = () => {
                             value={hasMapping ? account.id : ''}
                             disabled={!hasMapping}
                           >
-                            {account.account_name} - {account.account_number} ({account.bank_name})
+                          {account.account_name} - {account.account_number} ({account.bank_name})
                             {!hasMapping ? ' - No GL Mapping' : ''}
-                          </option>
+                        </option>
                         );
                       })}
                     </select>
@@ -799,6 +947,224 @@ const OtherTransactions = () => {
             </form>
           </div>
         </div>
+        ) : activeTab === 'defineTransaction' ? (
+          /* Define Transaction Tab */
+          <div className="other-trans-form-card">
+            <div className="other-trans-card-header">
+              <h2 className="other-trans-card-title">Define Transaction Types</h2>
+              <p style={{ color: '#ffffff', fontSize: '0.875rem', marginTop: '0.5rem', textAlign: 'center' }}>
+                Define custom transaction types for Income, Expense, Asset, and Liability categories
+              </p>
+            </div>
+            <div className="other-trans-form-content">
+              {/* Transaction Type Form */}
+              <form onSubmit={handleTransactionTypeSubmit} style={{ marginBottom: '2rem' }}>
+                <div className="other-trans-form-grid">
+                  <div className="other-trans-field-group">
+                    <label className="other-trans-field-label">Category *</label>
+                    <select
+                      name="category"
+                      value={transactionTypeForm.category}
+                      onChange={handleTransactionTypeChange}
+                      className="other-trans-form-select"
+                      required
+                    >
+                      <option value="">Select Category</option>
+                      <option value="income">Income</option>
+                      <option value="expense">Expense</option>
+                      <option value="asset">Asset</option>
+                      <option value="liability">Liability</option>
+                    </select>
+        </div>
+
+                  <div className="other-trans-field-group">
+                    <label className="other-trans-field-label">Transaction Type Name *</label>
+                    <input
+                      type="text"
+                      name="transaction_type_name"
+                      value={transactionTypeForm.transaction_type_name}
+                      onChange={handleTransactionTypeChange}
+                      className="other-trans-form-input"
+                      placeholder="e.g., Salary, Rent Payment, etc."
+                      required
+                    />
+                  </div>
+
+                  <div className="other-trans-field-group">
+                    <label className="other-trans-field-label">GL Account Code *</label>
+                    <input
+                      type="text"
+                      name="gl_account_code"
+                      value={transactionTypeForm.gl_account_code}
+                      onChange={handleTransactionTypeChange}
+                      className="other-trans-form-input"
+                      placeholder="e.g., 4-100-01-01-01"
+                      required
+                    />
+                  </div>
+
+                  <div className="other-trans-field-group" style={{ gridColumn: '1 / -1' }}>
+                    <label className="other-trans-field-label">Description (Optional)</label>
+                    <textarea
+                      name="description"
+                      value={transactionTypeForm.description}
+                      onChange={handleTransactionTypeChange}
+                      className="other-trans-form-input"
+                      placeholder="Brief description of this transaction type"
+                      rows="2"
+                      style={{ resize: 'vertical' }}
+                    />
+                  </div>
+                </div>
+
+                {transactionTypeMessage && (
+                  <div style={{
+                    padding: '0.75rem',
+                    marginTop: '1rem',
+                    backgroundColor: transactionTypeMessage.includes('Error') ? '#fee2e2' : '#d1fae5',
+                    color: transactionTypeMessage.includes('Error') ? '#dc2626' : '#059669',
+                    borderRadius: '0.375rem',
+                    fontSize: '0.875rem'
+                  }}>
+                    {transactionTypeMessage}
+                  </div>
+                )}
+
+                <div style={{ display: 'flex', gap: '1rem', marginTop: '1.5rem' }}>
+                  <button
+                    type="submit"
+                    className="other-trans-submit-btn"
+                  >
+                    {editingTransactionTypeId ? 'Update Transaction Type' : 'Add Transaction Type'}
+                  </button>
+                  {editingTransactionTypeId && (
+                    <button
+                      type="button"
+                      onClick={handleCancelEdit}
+                      className="other-trans-cancel-btn"
+                    >
+                      Cancel
+                    </button>
+                  )}
+                </div>
+              </form>
+
+              {/* Transaction Types List */}
+              <div style={{ marginTop: '2rem' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '1rem' }}>
+                  <h3 style={{ fontSize: '1.25rem', fontWeight: '600', color: '#1f2937', margin: 0 }}>
+                    Defined Transaction Types
+                  </h3>
+                  <select
+                    value={selectedCategoryFilter}
+                    onChange={(e) => setSelectedCategoryFilter(e.target.value)}
+                    className="other-trans-form-select"
+                    style={{ width: 'auto', minWidth: '200px' }}
+                  >
+                    <option value="">Select Category to View</option>
+                    <option value="income">Income</option>
+                    <option value="expense">Expense</option>
+                    <option value="asset">Asset</option>
+                    <option value="liability">Liability</option>
+                  </select>
+                </div>
+
+                {transactionTypesLoading ? (
+                  <div style={{ textAlign: 'center', padding: '2rem', color: '#6b7280' }}>
+                    Loading transaction types...
+                  </div>
+                ) : !selectedCategoryFilter ? (
+                  <div style={{ textAlign: 'center', padding: '2rem', color: '#6b7280' }}>
+                    Please select a category from the dropdown above to view transaction types.
+                  </div>
+                ) : definedTransactionTypes.length === 0 ? (
+                  <div style={{ textAlign: 'center', padding: '2rem', color: '#6b7280' }}>
+                    No transaction types defined yet. Add your first transaction type above.
+                  </div>
+                ) : groupedTransactionTypes[selectedCategoryFilter].length === 0 ? (
+                  <div style={{ textAlign: 'center', padding: '2rem', color: '#6b7280' }}>
+                    No transaction types defined for {selectedCategoryFilter}. Add one using the form above.
+                  </div>
+                ) : (
+                  <div style={{ display: 'grid', gap: '1.5rem' }}>
+                    {[selectedCategoryFilter].map(category => (
+                      groupedTransactionTypes[category].length > 0 && (
+                        <div key={category} style={{
+                          border: '1px solid #e5e7eb',
+                          borderRadius: '0.5rem',
+                          padding: '1rem'
+                        }}>
+                          <h4 style={{
+                            fontSize: '1rem',
+                            fontWeight: '600',
+                            marginBottom: '1rem',
+                            color: '#374151',
+                            textTransform: 'capitalize'
+                          }}>
+                            {category}
+                          </h4>
+                          <div style={{ display: 'grid', gap: '0.75rem' }}>
+                            {groupedTransactionTypes[category].map(type => (
+                              <div key={type.id} style={{
+                                display: 'flex',
+                                justifyContent: 'space-between',
+                                alignItems: 'center',
+                                padding: '0.75rem',
+                                backgroundColor: '#f9fafb',
+                                borderRadius: '0.375rem',
+                                border: '1px solid #e5e7eb'
+                              }}>
+                                <div style={{ flex: 1 }}>
+                                  <div style={{ fontWeight: '500', color: '#1f2937' }}>
+                                    {type.transaction_type_name}
+                                  </div>
+                                  {type.description && (
+                                    <div style={{ fontSize: '0.875rem', color: '#6b7280', marginTop: '0.25rem' }}>
+                                      {type.description}
+                                    </div>
+                                  )}
+                                </div>
+                                <div style={{ display: 'flex', gap: '0.5rem' }}>
+                                  <button
+                                    onClick={() => handleEditTransactionType(type)}
+                                    style={{
+                                      padding: '0.5rem 1rem',
+                                      background: '#3b82f6',
+                                      color: 'white',
+                                      border: 'none',
+                                      borderRadius: '0.25rem',
+                                      cursor: 'pointer',
+                                      fontSize: '0.875rem'
+                                    }}
+                                  >
+                                    Edit
+                                  </button>
+                                  <button
+                                    onClick={() => handleDeleteTransactionType(type.id)}
+                                    style={{
+                                      padding: '0.5rem 1rem',
+                                      background: '#ef4444',
+                                      color: 'white',
+                                      border: 'none',
+                                      borderRadius: '0.25rem',
+                                      cursor: 'pointer',
+                                      fontSize: '0.875rem'
+                                    }}
+                                  >
+                                    Delete
+                                  </button>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
         ) : activeTab === 'view' ? (
           /* Voucher List View */
           <div>
@@ -1174,53 +1540,6 @@ const OtherTransactions = () => {
                 )}
               </div>
             )}
-          </div>
-        ) : activeTab === 'glMapping' ? (
-          /* GL Mapping Tab */
-          <div style={{
-            background: 'white',
-            borderRadius: '0.375rem',
-            padding: '2rem',
-            boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
-          }}>
-            <div style={{ marginBottom: '1.5rem' }}>
-              <h2 style={{ 
-                fontSize: '1.25rem',
-                fontWeight: '600',
-                color: '#1f2937',
-                marginBottom: '0.5rem'
-              }}>
-                GL Account Mapping
-              </h2>
-              <p style={{ 
-                fontSize: '0.875rem',
-                color: '#6b7280'
-              }}>
-                Map your payment accounts to specific GL account codes from the Chart of Accounts
-              </p>
-            </div>
-            <div style={{ 
-              padding: '3rem', 
-              textAlign: 'center',
-              color: '#6b7280',
-              background: '#f9fafb',
-              borderRadius: '0.375rem'
-            }}>
-              <p style={{ 
-                fontSize: '1rem',
-                marginBottom: '0.5rem',
-                fontWeight: '500'
-              }}>
-                GL Mapping functionality coming soon
-              </p>
-              <p style={{ 
-                marginTop: '1rem',
-                fontSize: '0.875rem',
-                color: '#9ca3af'
-              }}>
-                This feature will allow you to map payment accounts to specific GL accounts
-              </p>
-            </div>
           </div>
         ) : null}
 

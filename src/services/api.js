@@ -1389,6 +1389,120 @@ export const glAccountMappingAPI = {
   }
 };
 
+// API service for GL Accounts operations
+export const glAccountAPI = {
+  // Get all GL accounts
+  getAll: async () => {
+    const response = await makeAuthenticatedRequest(`${API_BASE_URL}/gl-accounts`);
+    return response;
+  },
+
+  // Get user-created GL accounts
+  getUserAccounts: async () => {
+    const response = await makeAuthenticatedRequest(`${API_BASE_URL}/gl-accounts/user`);
+    return response;
+  },
+
+  // Get GL accounts by type
+  getByType: async (type) => {
+    const response = await makeAuthenticatedRequest(`${API_BASE_URL}/gl-accounts/type/${type}`);
+    return response;
+  },
+
+  // Get a single GL account by ID
+  getById: async (id) => {
+    const response = await makeAuthenticatedRequest(`${API_BASE_URL}/gl-accounts/${id}`);
+    return response;
+  },
+
+  // Create a new GL account
+  create: async (accountData) => {
+    const response = await makeAuthenticatedRequest(`${API_BASE_URL}/gl-accounts`, {
+      method: 'POST',
+      body: JSON.stringify(accountData)
+    });
+    return response;
+  },
+
+  // Update a GL account
+  update: async (id, accountData) => {
+    const response = await makeAuthenticatedRequest(`${API_BASE_URL}/gl-accounts/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(accountData)
+    });
+    return response;
+  },
+
+  // Delete a GL account
+  delete: async (id) => {
+    const response = await makeAuthenticatedRequest(`${API_BASE_URL}/gl-accounts/${id}`, {
+      method: 'DELETE'
+    });
+    return response;
+  }
+};
+
+// API service for Other Transaction Types operations
+export const otherTransactionTypeAPI = {
+  // Get all transaction types for the current user
+  getAll: async () => {
+    const response = await makeAuthenticatedRequest(`${API_BASE_URL}/other-transaction-types`);
+    return response;
+  },
+
+  // Get active transaction types for the current user
+  getActive: async () => {
+    const response = await makeAuthenticatedRequest(`${API_BASE_URL}/other-transaction-types/active`);
+    return response;
+  },
+
+  // Get transaction types by category
+  getByCategory: async (category) => {
+    const response = await makeAuthenticatedRequest(`${API_BASE_URL}/other-transaction-types/category/${category}`);
+    return response;
+  },
+
+  // Get a single transaction type by ID
+  getById: async (id) => {
+    const response = await makeAuthenticatedRequest(`${API_BASE_URL}/other-transaction-types/${id}`);
+    return response;
+  },
+
+  // Create a new transaction type
+  create: async (transactionType) => {
+    const response = await makeAuthenticatedRequest(`${API_BASE_URL}/other-transaction-types`, {
+      method: 'POST',
+      body: JSON.stringify(transactionType)
+    });
+    return response;
+  },
+
+  // Update a transaction type
+  update: async (id, transactionType) => {
+    const response = await makeAuthenticatedRequest(`${API_BASE_URL}/other-transaction-types/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(transactionType)
+    });
+    return response;
+  },
+
+  // Deactivate a transaction type (soft delete)
+  deactivate: async (id) => {
+    const response = await makeAuthenticatedRequest(`${API_BASE_URL}/other-transaction-types/${id}/deactivate`, {
+      method: 'PATCH'
+    });
+    return response;
+  },
+
+  // Delete a transaction type (hard delete)
+  delete: async (id) => {
+    const response = await makeAuthenticatedRequest(`${API_BASE_URL}/other-transaction-types/${id}`, {
+      method: 'DELETE'
+    });
+    return response;
+  }
+};
+
 // API service for Trial Balance operations
 export const trialBalanceAPI = {
   // Get Trial Balance data
