@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import './Styles/NewGLAccount.css';
-import { accountAPI, chartOfAccountsAPI, glAccountMappingAPI } from '../../services/api';
+import { accountAPI, chartOfAccountsAPI, glAccountMappingAPI, glAccountAPI } from '../../services/api';
 
 const NewGLAccount = () => {
   // Tab state
@@ -13,7 +13,7 @@ const NewGLAccount = () => {
     parentAccount: '',
     activeStatus: 'Yes',
     accountCategory: '',
-    normalBalance: 'Debit'
+    normalBalance: ''
   });
 
   const [errors, setErrors] = useState({});
@@ -131,9 +131,21 @@ const NewGLAccount = () => {
 
     setIsSubmitting(true);
 
-    // Simulate API call delay
-    setTimeout(() => {
-      console.log('GL Account Specification Data:', formData);
+    try {
+      // Prepare data for API
+      const accountData = {
+        accountCode: formData.accountCode,
+        description: formData.description,
+        accountType: formData.accountType,
+        accountCategory: formData.accountCategory,
+        normalBalance: formData.normalBalance,
+        parentAccount: formData.parentAccount || null,
+        activeStatus: formData.activeStatus
+      };
+
+      // Call the API to create GL account
+      await glAccountAPI.create(accountData);
+      
       setIsSubmitting(false);
       setShowSuccess(true);
       
@@ -146,12 +158,30 @@ const NewGLAccount = () => {
           parentAccount: '',
           activeStatus: 'Yes',
           accountCategory: '',
-          normalBalance: 'Debit'
+          normalBalance: ''
         });
         setSuggestedCode('');
         setShowSuccess(false);
       }, 3000);
-    }, 1500);
+    } catch (error) {
+      console.error('Error creating GL account:', error);
+      setIsSubmitting(false);
+      
+      // Parse error message from response
+      let errorMessage = 'Failed to create GL account. Please try again.';
+      
+      if (error.message && error.message.includes('409')) {
+        errorMessage = 'An account with this code already exists. Please use a different account code.';
+      } else if (error.message && error.message.includes('400')) {
+        errorMessage = 'Invalid account code format. Must follow pattern: X-XXX-XX-XX-XX (e.g., 1-100-01-01-01)';
+      }
+      
+      // Set error for accountCode field
+      setErrors({ accountCode: errorMessage });
+      
+      // Also show alert for visibility
+      alert(errorMessage);
+    }
   };
 
   // Handle reset form
@@ -163,7 +193,7 @@ const NewGLAccount = () => {
       parentAccount: '',
       activeStatus: 'Yes',
       accountCategory: '',
-      normalBalance: 'Debit'
+      normalBalance: ''
     });
     setErrors({});
     setSuggestedCode('');
@@ -498,7 +528,7 @@ const NewGLAccount = () => {
             <div className="form-row">
               <div className="form-group">
                 <label htmlFor="normalBalance" className="form-label">
-                  Normal Balance
+                  Normal Balance (Optional)
                 </label>
                 <select
                   id="normalBalance"
@@ -507,10 +537,11 @@ const NewGLAccount = () => {
                   onChange={handleInputChange}
                   className="form-select"
                 >
+                  <option value="">Select if applicable</option>
                   <option value="Debit">Debit</option>
                   <option value="Credit">Credit</option>
                 </select>
-                <div className="input-hint">Determines how debits and credits affect this account</div>
+                <div className="input-hint">Leave empty if debit/credit depends on transaction context</div>
               </div>
 
               <div className="form-group">

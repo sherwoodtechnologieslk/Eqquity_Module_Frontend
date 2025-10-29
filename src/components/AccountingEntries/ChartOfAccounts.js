@@ -6,6 +6,7 @@ const ChartOfAccounts = () => {
   const [accounts, setAccounts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [searchTerm, setSearchTerm] = useState('');
 
   useEffect(() => {
     loadAccounts();
@@ -25,8 +26,18 @@ const ChartOfAccounts = () => {
     // You can add navigation to edit form or open modal here
   };
 
-  const activeCount = accounts.filter(acc => acc.active_status === 'Yes').length;
-  const inactiveCount = accounts.length - activeCount;
+  // Filter accounts based on search term
+  const filteredAccounts = accounts.filter(acc => {
+    const searchLower = searchTerm.toLowerCase();
+    return (
+      acc.account_code?.toLowerCase().includes(searchLower) ||
+      acc.description?.toLowerCase().includes(searchLower) ||
+      acc.account_type?.toLowerCase().includes(searchLower)
+    );
+  });
+
+  const activeCount = filteredAccounts.filter(acc => acc.active_status === 'Yes').length;
+  const inactiveCount = filteredAccounts.length - activeCount;
 
   return (
     <div className="coa-page-container">
@@ -55,6 +66,24 @@ const ChartOfAccounts = () => {
           >
             {loading ? 'Loading...' : 'Refresh'}
           </button>
+        </div>
+
+        {/* Search Bar */}
+        <div className="coa-search-container">
+          <div className="coa-search-wrapper">
+            <input
+              type="text"
+              className="coa-search-input"
+              placeholder="Search by account code, description, or type..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
+          </div>
+          {searchTerm && (
+            <div className="coa-search-results">
+              Showing {filteredAccounts.length} of {accounts.length} accounts
+            </div>
+          )}
         </div>
 
         {/* Stats Section */}
@@ -88,8 +117,12 @@ const ChartOfAccounts = () => {
           {!loading && !error && accounts.length === 0 && (
             <div className="coa-no-data">No accounts found in the database.</div>
           )}
+
+          {!loading && !error && searchTerm && filteredAccounts.length === 0 && (
+            <div className="coa-no-data">No accounts match your search criteria.</div>
+          )}
           
-          {!loading && !error && accounts.length > 0 && (
+          {!loading && !error && filteredAccounts.length > 0 && (
             <table className="coa-data-table">
               <thead>
                 <tr>
@@ -101,7 +134,7 @@ const ChartOfAccounts = () => {
                 </tr>
               </thead>
               <tbody>
-                {accounts.map(acc => (
+                {filteredAccounts.map(acc => (
                   <tr key={acc.id}>
                     <td className="coa-account-code">{acc.account_code}</td>
                     <td className="coa-description">{acc.description}</td>
