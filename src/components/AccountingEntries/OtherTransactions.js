@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import './Styles/OtherTransactions.css';
-import { accountAPI, otherTransactionAPI, otherTransactionGLEntryAPI } from '../../services/api';
+import { accountAPI, otherTransactionAPI, otherTransactionGLEntryAPI, glAccountMappingAPI } from '../../services/api';
 import { authService } from '../../services/authService';
 
 // Function to generate unique voucher numbers
@@ -52,6 +52,7 @@ const OtherTransactions = () => {
   const [accounts, setAccounts] = useState([]);
   const [accountsLoading, setAccountsLoading] = useState(true);
   const [showPreviewModal, setShowPreviewModal] = useState(false);
+  const [accountsWithMapping, setAccountsWithMapping] = useState([]); // Accounts that have GL mappings
   
   // New states for viewing vouchers and general ledger
   const [activeTab, setActiveTab] = useState('create'); // 'create', 'view', 'generalLedger', or 'glMapping'
@@ -61,21 +62,35 @@ const OtherTransactions = () => {
   const [generalLedgerEntries, setGeneralLedgerEntries] = useState([]);
   const [generalLedgerLoading, setGeneralLedgerLoading] = useState(false);
 
-  // Fetch accounts on mount
+  // Fetch accounts and GL mappings on mount
   useEffect(() => {
-    const fetchAccounts = async () => {
+    const fetchData = async () => {
       try {
         setAccountsLoading(true);
-        const accountData = await accountAPI.getAllAccounts();
+        const [accountData, mappingData] = await Promise.all([
+          accountAPI.getAllAccounts().catch(() => []),
+          glAccountMappingAPI.getAll().catch(() => [])
+        ]);
+        
         setAccounts(accountData || []);
+        
+        // Build list of account IDs that have GL mappings
+        const mappedAccountIds = [];
+        if (mappingData && Array.isArray(mappingData)) {
+          mappingData.forEach(mapping => {
+            mappedAccountIds.push(mapping.account_id);
+          });
+        }
+        
+        setAccountsWithMapping(mappedAccountIds);
       } catch (error) {
-        console.error('Error fetching accounts:', error);
+        console.error('Error fetching data:', error);
         setAccounts([]);
       } finally {
         setAccountsLoading(false);
       }
     };
-    fetchAccounts();
+    fetchData();
   }, []);
 
   // Fetch vouchers when viewing tab is active
@@ -390,12 +405,12 @@ const OtherTransactions = () => {
         {/* Conditional Render: Create Form or View List */}
         {activeTab === 'create' ? (
           /* Form Card */
-          <div className="other-trans-form-card">
-            <div className="other-trans-card-header">
-              <h2 className="other-trans-card-title">Transaction Information</h2>
-            </div>
+        <div className="other-trans-form-card">
+          <div className="other-trans-card-header">
+            <h2 className="other-trans-card-title">Transaction Information</h2>
+          </div>
 
-            <div className="other-trans-form-content">
+          <div className="other-trans-form-content">
             <form onSubmit={handleSubmit}>
               <div className="other-trans-form-grid">
 
@@ -641,13 +656,31 @@ const OtherTransactions = () => {
                       disabled={accountsLoading}
                     >
                       <option value="">Select an account</option>
-                      {accounts.map((account) => (
-                        <option key={account.id} value={account.id}>
-                          {account.account_name} - {account.account_number} ({account.bank_name})
-                        </option>
-                      ))}
+                      {accounts.map((account) => {
+                        const hasMapping = accountsWithMapping.includes(account.id);
+                        return (
+                          <option 
+                            key={account.id} 
+                            value={hasMapping ? account.id : ''}
+                            disabled={!hasMapping}
+                          >
+                            {account.account_name} - {account.account_number} ({account.bank_name})
+                            {!hasMapping ? ' - No GL Mapping' : ''}
+                          </option>
+                        );
+                      })}
                     </select>
                     {accountsLoading && <small style={{ color: '#6b7280' }}>Loading accounts...</small>}
+                    {accounts.length > 0 && (
+                      <small style={{ 
+                        display: 'block',
+                        marginTop: '0.5rem',
+                        color: '#ef4444',
+                        fontSize: '0.875rem'
+                      }}>
+                        Only accounts with GL mappings can be selected
+                      </small>
+                    )}
                   </div>
 
                   {/* Account Name */}
@@ -850,7 +883,7 @@ const OtherTransactions = () => {
               >
                 Liability
               </button>
-            </div>
+        </div>
 
             {/* Voucher Grid */}
             {vouchersLoading ? (
@@ -1191,7 +1224,7 @@ const OtherTransactions = () => {
           </div>
         ) : null}
 
-        {/* Footer */}
+              {/* Footer */}
         <div className="other-trans-footer-section">
           <p>SHERWOOD TECHNOLOGIES (PVT) LTD • Non-Trading Transactions Management • All data is encrypted and protected</p>
         </div>

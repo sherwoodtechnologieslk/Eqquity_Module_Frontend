@@ -4,7 +4,7 @@ import { portfolioAPI } from '../../services/api';
 import { equityAPI } from '../../services/api';
 import { portfolioCostingMethodAPI } from '../../services/api'; // <-- Add this import
 import { transactionEntryAPI } from '../../services/api'; // <-- Add this import
-import { costOfFundsAPI, tradeSummaryAPI, accountAPI } from '../../services/api';
+import { costOfFundsAPI, tradeSummaryAPI, accountAPI, glAccountMappingAPI } from '../../services/api';
 import SellTransactionListView from './SellTransactionListView';
 import TransactionDetails from './TransactionDetails';
 import SellEquitySelectorModal from './SellEquitySelectorModal';
@@ -69,6 +69,7 @@ const SellTransactionEntry = ({ setFifoParams, setActiveTab }) => {
   const [showEquitySelector, setShowEquitySelector] = useState(false);
   const [accounts, setAccounts] = useState([]);
   const [accountsLoading, setAccountsLoading] = useState(true);
+  const [accountsWithMapping, setAccountsWithMapping] = useState([]); // Accounts that have GL mappings
   
   // Add state for available deal numbers
   const [availableDealNumbers, setAvailableDealNumbers] = useState([]);
@@ -105,10 +106,23 @@ const SellTransactionEntry = ({ setFifoParams, setActiveTab }) => {
     portfolioCostingMethodAPI.getAllAssignedCostingMethods()
       .then(data => setAssignedCostingMethods(data))
       .catch(() => setAssignedCostingMethods([]));
-    // Fetch accounts
-    accountAPI.getAllAccounts()
-      .then(data => setAccounts(data))
-      .catch(() => setAccounts([]))
+    // Fetch accounts and GL mappings
+    Promise.all([
+      accountAPI.getAllAccounts().catch(() => []),
+      glAccountMappingAPI.getAll().catch(() => [])
+    ])
+      .then(([accountData, mappingData]) => {
+        setAccounts(accountData);
+        
+        // Build list of account IDs that have GL mappings
+        const mappedAccountIds = [];
+        if (mappingData && Array.isArray(mappingData)) {
+          mappingData.forEach(mapping => {
+            mappedAccountIds.push(mapping.account_id);
+          });
+        }
+        setAccountsWithMapping(mappedAccountIds);
+      })
       .finally(() => setAccountsLoading(false));
   }, []);
 
@@ -1235,11 +1249,19 @@ const SellTransactionEntry = ({ setFifoParams, setActiveTab }) => {
                     <option value="">
                       {accountsLoading ? 'Loading accounts...' : 'Select Account'}
                     </option>
-                    {accounts.map(account => (
-                      <option key={account.id} value={`${account.account_name} - ${account.account_number}`}>
-                        {account.account_name} - {account.account_number} ({account.bank_name})
-                      </option>
-                    ))}
+                    {accounts.map(account => {
+                      const hasMapping = accountsWithMapping.includes(account.id);
+                      return (
+                        <option 
+                          key={account.id} 
+                          value={hasMapping ? `${account.account_name} - ${account.account_number}` : ''}
+                          disabled={!hasMapping}
+                        >
+                          {account.account_name} - {account.account_number} ({account.bank_name})
+                          {!hasMapping ? ' - No GL Mapping' : ''}
+                        </option>
+                      );
+                    })}
                   </select>
                   {errors.settlementAccount && <span className="sell-error-text">{errors.settlementAccount}</span>}
                   <small className="sell-field-note">Account where you will receive the sale proceeds</small>

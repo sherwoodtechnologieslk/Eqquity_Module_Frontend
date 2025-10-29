@@ -1,9 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import './Styles/NewGLAccount.css';
+import { accountAPI, chartOfAccountsAPI, glAccountMappingAPI } from '../../services/api';
 
 const NewGLAccount = () => {
   // Tab state
-  const [activeTab, setActiveTab] = useState('newGLAccount'); // 'newGLAccount' or 'glMapping'
+  const [activeTab, setActiveTab] = useState('newGLAccount'); // 'newGLAccount', 'glMapping', or 'journalEntry'
   
   const [formData, setFormData] = useState({
     accountCode: '',
@@ -19,6 +20,13 @@ const NewGLAccount = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
   const [suggestedCode, setSuggestedCode] = useState('');
+
+  // GL Mapping states
+  const [bankAccounts, setBankAccounts] = useState([]);
+  const [chartOfAccounts, setChartOfAccounts] = useState([]);
+  const [mappings, setMappings] = useState({}); // { bankAccountId: glAccountCode }
+  const [loading, setLoading] = useState(false);
+  const [mappingErrors, setMappingErrors] = useState({});
 
   // Account type options based on existing chart of accounts
   const accountTypes = [
@@ -176,6 +184,118 @@ const NewGLAccount = () => {
     }
   };
 
+  // Track which accounts already have mappings (loaded from database)
+  const [existingMappings, setExistingMappings] = useState({});
+
+  // Fetch bank accounts and chart of accounts for GL Mapping
+  useEffect(() => {
+    const fetchDataForMapping = async () => {
+      if (activeTab === 'glMapping') {
+        setLoading(true);
+        try {
+          const [accountsResponse, chartResponse, existingMappingsData] = await Promise.all([
+            accountAPI.getAllAccounts(),
+            chartOfAccountsAPI.getAll(),
+            glAccountMappingAPI.getAll().catch(() => []) // Fetch existing mappings, return empty array if none exist
+          ]);
+          
+          // Filter only active accounts
+          const activeAccounts = accountsResponse.filter(acc => acc.active_status !== 'No');
+          setBankAccounts(activeAccounts);
+          setChartOfAccounts(chartResponse);
+          
+          // Populate existing mappings into state (for display - these won't be saved again)
+          const mappingsObj = {};
+          const existingMappingsObj = {};
+          existingMappingsData.forEach(mapping => {
+            mappingsObj[mapping.account_id] = mapping.gl_account_code;
+            existingMappingsObj[mapping.account_id] = {
+              gl_account_code: mapping.gl_account_code,
+              gl_account_name: mapping.gl_account_name || ''
+            };
+          });
+          setMappings(mappingsObj);
+          setExistingMappings(existingMappingsObj);
+        } catch (error) {
+          console.error('Error fetching data for GL Mapping:', error);
+        } finally {
+          setLoading(false);
+        }
+      }
+    };
+
+    fetchDataForMapping();
+  }, [activeTab]);
+
+  // Handle GL mapping changes
+  const handleMappingChange = (bankAccountId, glAccountCode) => {
+    setMappings(prev => ({
+      ...prev,
+      [bankAccountId]: glAccountCode
+    }));
+    
+    // Clear error for this mapping
+    if (mappingErrors[bankAccountId]) {
+      setMappingErrors(prev => ({
+        ...prev,
+        [bankAccountId]: ''
+      }));
+    }
+  };
+
+  // Handle save mappings
+  const handleSaveMappings = async () => {
+    // Validate only NEW mappings (not existing ones)
+    const newErrors = {};
+    let hasErrors = false;
+
+    // Check if all accounts that don't have existing mappings have been mapped
+    bankAccounts.forEach(account => {
+      if (!existingMappings[account.id] && !mappings[account.id]) {
+        newErrors[account.id] = 'Please select a GL account';
+        hasErrors = true;
+      }
+    });
+
+    if (hasErrors) {
+      setMappingErrors(newErrors);
+      return;
+    }
+
+    // Prepare mappings for API (exclude accounts that already have mappings in the database)
+    const mappingsArray = Object.entries(mappings)
+      .filter(([accountId, glAccountCode]) => {
+        // Only include new mappings (not already in the database)
+        return glAccountCode && !existingMappings[accountId];
+      })
+      .map(([accountId, glAccountCode]) => {
+        // Find the GL account name
+        const glAccount = chartOfAccounts.find(coa => coa.account_code === glAccountCode);
+        return {
+          account_id: parseInt(accountId),
+          gl_account_code: glAccountCode,
+          gl_account_name: glAccount ? glAccount.description : ''
+        };
+      });
+
+    // If no new mappings to save, show a message
+    if (mappingsArray.length === 0) {
+      alert('All accounts are already mapped. No new mappings to save.');
+      return;
+    }
+
+    try {
+      // Save only new mappings to the backend
+      await glAccountMappingAPI.saveBulk(mappingsArray);
+      
+      setShowSuccess(true);
+      setTimeout(() => setShowSuccess(false), 3000);
+    } catch (error) {
+      console.error('Error saving GL mappings:', error);
+      alert('Failed to save GL mappings. Please try again.');
+    }
+  };
+
   return (
     <div className="new-gl-account-container">
       {/* Header Section */}
@@ -240,6 +360,22 @@ const NewGLAccount = () => {
           }}
         >
           GL Mapping
+        </button>
+        <button
+          onClick={() => setActiveTab('journalEntry')}
+          style={{
+            padding: '0.75rem 1.5rem',
+            fontSize: '1rem',
+            fontWeight: activeTab === 'journalEntry' ? '600' : '400',
+            color: activeTab === 'journalEntry' ? '#3b82f6' : '#6b7280',
+            background: 'transparent',
+            border: 'none',
+            borderBottom: activeTab === 'journalEntry' ? '3px solid #3b82f6' : '3px solid transparent',
+            cursor: 'pointer',
+            transition: 'all 0.2s ease'
+          }}
+        >
+          General Ledger - Journal Entry
         </button>
       </div>
 
@@ -451,25 +587,189 @@ const NewGLAccount = () => {
           </div>
         </form>
       </div>
-      ) : (
+      ) : activeTab === 'glMapping' ? (
       /* GL Mapping Tab */
       <div className="new-gl-form-card">
         <div className="new-gl-form-header">
           <h2 className="new-gl-form-title">GL Account Mapping</h2>
-          <p className="new-gl-form-subtitle">Map payment accounts to specific GL account codes</p>
+          <p className="new-gl-form-subtitle">Map your payment accounts to specific GL account codes from the Chart of Accounts</p>
+        </div>
+
+        {loading ? (
+          <div style={{ 
+            padding: '3rem', 
+            textAlign: 'center',
+            color: '#6b7280'
+          }}>
+            <div className="loading-spinner"></div>
+            <p style={{ marginTop: '1rem' }}>Loading accounts...</p>
+          </div>
+        ) : bankAccounts.length === 0 ? (
+          <div style={{ 
+            padding: '3rem', 
+            textAlign: 'center',
+            color: '#6b7280'
+          }}>
+            <p>No bank accounts found. Please add accounts first.</p>
+          </div>
+        ) : (
+          <div style={{ padding: '2rem 0' }}>
+            <div className="gl-mapping-instructions">
+              <div className="gl-mapping-instructions-content">
+                <p className="gl-mapping-instructions-title">
+                  Instructions
+                </p>
+                <p className="gl-mapping-instructions-text">
+                  Select the appropriate GL account from the Chart of Accounts for each payment account below. This mapping will be used for automatic posting of transactions.
+                </p>
+              </div>
+            </div>
+
+            {/* Mappings Table */}
+            <div style={{ overflowX: 'auto' }}>
+              <table style={{ 
+                width: '100%',
+                borderCollapse: 'collapse',
+                border: '1px solid #e5e7eb'
+              }}>
+                <thead>
+                  <tr style={{ backgroundColor: '#f9fafb' }}>
+                    <th style={{ 
+                      padding: '1rem', 
+                      textAlign: 'left',
+                      fontSize: '0.875rem',
+                      fontWeight: '600',
+                      color: '#374151',
+                      borderBottom: '2px solid #e5e7eb'
+                    }}>
+                      Bank Account
+                    </th>
+                    <th style={{ 
+                      padding: '1rem', 
+                      textAlign: 'left',
+                      fontSize: '0.875rem',
+                      fontWeight: '600',
+                      color: '#374151',
+                      borderBottom: '2px solid #e5e7eb'
+                    }}>
+                      GL Account Code
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {bankAccounts.map(account => (
+                    <tr key={account.id} style={{ borderBottom: '1px solid #e5e7eb' }}>
+                      <td style={{ padding: '1rem', fontSize: '0.875rem' }}>
+                        <div style={{ marginBottom: '0.25rem' }}>
+                          <strong>{account.bank_name}</strong>
+                        </div>
+                        <div style={{ color: '#6b7280', fontSize: '0.8125rem' }}>
+                          {account.account_name} ({account.account_number})
+                        </div>
+                        {mappingErrors[account.id] && (
+                          <div style={{ color: '#ef4444', fontSize: '0.75rem', marginTop: '0.25rem' }}>
+                            {mappingErrors[account.id]}
+                          </div>
+                        )}
+                      </td>
+                      <td style={{ padding: '1rem' }}>
+                        {(() => {
+                          const hasExistingMapping = existingMappings[account.id];
+                          const existingMapping = hasExistingMapping ? hasExistingMapping.gl_account_code : '';
+                          
+                          return hasExistingMapping ? (
+                            <div style={{
+                              padding: '0.5rem',
+                              fontSize: '0.875rem',
+                              color: '#059669',
+                              backgroundColor: '#d1fae5',
+                              borderRadius: '6px',
+                              border: '1px solid #059669'
+                            }}>
+                              <div style={{ fontWeight: '600', marginBottom: '0.25rem' }}>
+                                {existingMapping}
+                              </div>
+                              <div style={{ fontSize: '0.8125rem', color: '#047857' }}>
+                                Already Mapped
+                              </div>
+                            </div>
+                          ) : (
+                            <select
+                              value={mappings[account.id] || ''}
+                              onChange={(e) => handleMappingChange(account.id, e.target.value)}
+                              style={{
+                                width: '100%',
+                                padding: '0.5rem',
+                                fontSize: '0.875rem',
+                                border: `1px solid ${mappingErrors[account.id] ? '#ef4444' : '#d1d5db'}`,
+                                borderRadius: '6px',
+                                backgroundColor: '#fff',
+                                cursor: 'pointer'
+                              }}
+                            >
+                              <option value="">Select GL Account...</option>
+                              {chartOfAccounts
+                                .filter(coa => coa.active_status === 'Yes')
+                                .map(coa => (
+                                  <option key={coa.account_code} value={coa.account_code}>
+                                    {coa.account_code} - {coa.description}
+                                  </option>
+                                ))}
+                            </select>
+                          );
+                        })()}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            {/* Action Buttons */}
+            <div style={{ 
+              marginTop: '2rem',
+              paddingTop: '2rem',
+              borderTop: '1px solid #e5e7eb',
+              display: 'flex',
+              justifyContent: 'flex-end',
+              gap: '1rem',
+              maxWidth: '90%'
+            }}>
+              <button
+                onClick={handleSaveMappings}
+                style={{
+                  padding: '0.75rem 1.5rem',
+                  fontSize: '1rem',
+                  fontWeight: '500',
+                  color: '#fff',
+                  backgroundColor: '#3b82f6',
+                  border: 'none',
+                  borderRadius: '8px',
+                  cursor: 'pointer',
+                  transition: 'background-color 0.2s'
+                }}
+                onMouseEnter={(e) => e.target.style.backgroundColor = '#2563eb'}
+                onMouseLeave={(e) => e.target.style.backgroundColor = '#3b82f6'}
+              >
+                Save Mappings
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
+      ) : (
+      /* General Ledger - Journal Entry Tab */
+      <div className="new-gl-form-card">
+        <div className="new-gl-form-header">
+          <h2 className="new-gl-form-title">General Ledger - Journal Entry</h2>
+          <p className="new-gl-form-subtitle">Create manual journal entries for GL adjustments</p>
         </div>
         <div style={{ 
           padding: '3rem', 
           textAlign: 'center',
           color: '#6b7280'
         }}>
-          <p>GL Mapping functionality coming soon</p>
-          <p style={{ 
-            marginTop: '1rem',
-            fontSize: '0.875rem'
-          }}>
-            Map your payment accounts (banks, cash) to specific GL account codes from the Chart of Accounts
-          </p>
+          <p>Journal Entry functionality coming soon</p>
         </div>
       </div>
       )}
