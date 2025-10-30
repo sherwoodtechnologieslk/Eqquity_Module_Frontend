@@ -1333,7 +1333,9 @@ export const otherTransactionGLEntryAPI = {
 
 export const chartOfAccountsAPI = {
   getAll: async () => {
-    const response = await fetch(`${API_BASE_URL}/chart-of-accounts`);
+    const response = await fetch(`${API_BASE_URL}/chart-of-accounts`, {
+      headers: getAuthHeaders()
+    });
     if (!response.ok) throw new Error('Failed to fetch chart of accounts');
     return await response.json();
   }
