@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import './Styles/NewGLAccount.css';
 import { accountAPI, chartOfAccountsAPI, glAccountMappingAPI, glAccountAPI } from '../../services/api';
 
@@ -27,6 +28,18 @@ const NewGLAccount = () => {
   const [mappings, setMappings] = useState({}); // { bankAccountId: glAccountCode }
   const [loading, setLoading] = useState(false);
   const [mappingErrors, setMappingErrors] = useState({});
+  const [coaSearchByAccount, setCoaSearchByAccount] = useState({}); // { bankAccountId: term }
+  const [showCoaListByAccount, setShowCoaListByAccount] = useState({}); // { bankAccountId: boolean }
+  const [coaDropdownPosByAccount, setCoaDropdownPosByAccount] = useState({}); // { id: {left, top, width} }
+
+  const updateDropdownPosition = (accountId, inputEl) => {
+    if (!inputEl || typeof window === 'undefined') return;
+    const rect = inputEl.getBoundingClientRect();
+    setCoaDropdownPosByAccount(prev => ({
+      ...prev,
+      [accountId]: { left: rect.left, top: rect.bottom, width: rect.width }
+    }));
+  };
 
   // Account type options based on existing chart of accounts
   const accountTypes = [
@@ -657,7 +670,7 @@ const NewGLAccount = () => {
             </div>
 
             {/* Mappings Table */}
-            <div style={{ overflowX: 'auto' }}>
+            <div style={{ overflowX: 'auto', overflowY: 'visible', position: 'relative' }}>
               <table style={{ 
                 width: '100%',
                 borderCollapse: 'collapse',
@@ -703,7 +716,7 @@ const NewGLAccount = () => {
                           </div>
                         )}
                       </td>
-                      <td style={{ padding: '1rem' }}>
+                      <td style={{ padding: '1rem', overflow: 'visible', position: 'relative' }}>
                         {(() => {
                           const hasExistingMapping = existingMappings[account.id];
                           const existingMapping = hasExistingMapping ? hasExistingMapping.gl_account_code : '';
@@ -725,28 +738,84 @@ const NewGLAccount = () => {
                               </div>
                             </div>
                           ) : (
-                            <select
-                              value={mappings[account.id] || ''}
-                              onChange={(e) => handleMappingChange(account.id, e.target.value)}
-                              style={{
-                                width: '100%',
-                                padding: '0.5rem',
-                                fontSize: '0.875rem',
-                                border: `1px solid ${mappingErrors[account.id] ? '#ef4444' : '#d1d5db'}`,
-                                borderRadius: '6px',
-                                backgroundColor: '#fff',
-                                cursor: 'pointer'
-                              }}
-                            >
-                              <option value="">Select GL Account...</option>
-                              {chartOfAccounts
-                                .filter(coa => coa.active_status === 'Yes')
-                                .map(coa => (
-                                  <option key={coa.account_code} value={coa.account_code}>
-                                    {coa.account_code} - {coa.description}
-                                  </option>
-                                ))}
-                            </select>
+                            <div style={{ position: 'relative' }}>
+                              <input
+                                type="text"
+                                placeholder="Search GL (code or name)"
+                                value={coaSearchByAccount[account.id] ?? (mappings[account.id] || '')}
+                                onChange={(e) => {
+                                  const term = e.target.value;
+                                  setCoaSearchByAccount(prev => ({ ...prev, [account.id]: term }));
+                                  setShowCoaListByAccount(prev => ({ ...prev, [account.id]: true }));
+                                  updateDropdownPosition(account.id, e.target);
+                                }}
+                                onFocus={(e) => {
+                                  setShowCoaListByAccount(prev => ({ ...prev, [account.id]: true }));
+                                  updateDropdownPosition(account.id, e.target);
+                                }}
+                                onBlur={() => {
+                                  // Delay to allow click selection
+                                  setTimeout(() => setShowCoaListByAccount(prev => ({ ...prev, [account.id]: false })), 150);
+                                }}
+                                style={{
+                                  width: '100%',
+                                  padding: '0.5rem',
+                                  fontSize: '0.875rem',
+                                  border: `1px solid ${mappingErrors[account.id] ? '#ef4444' : '#d1d5db'}`,
+                                  borderRadius: '6px',
+                                  backgroundColor: '#fff'
+                                }}
+                              />
+                              {showCoaListByAccount[account.id] && coaDropdownPosByAccount[account.id] && typeof document !== 'undefined' && createPortal(
+                                <div
+                                  style={{
+                                    position: 'fixed',
+                                    left: coaDropdownPosByAccount[account.id].left,
+                                    top: coaDropdownPosByAccount[account.id].top,
+                                    width: coaDropdownPosByAccount[account.id].width,
+                                    background: 'white',
+                                    border: '1px solid #e5e7eb',
+                                    borderRadius: '6px',
+                                    maxHeight: '260px',
+                                    overflowY: 'auto',
+                                    zIndex: 10000,
+                                    boxShadow: '0 8px 24px rgba(0,0,0,0.12)'
+                                  }}
+                                  onMouseDown={(e) => e.preventDefault()}
+                                >
+                                  {chartOfAccounts
+                                    .filter(coa => coa.active_status === 'Yes')
+                                    .filter((coa) => {
+                                      const term = (coaSearchByAccount[account.id] || '').toLowerCase();
+                                      if (!term) return true;
+                                      return (
+                                        (coa.account_code || '').toLowerCase().includes(term) ||
+                                        (coa.description || '').toLowerCase().includes(term)
+                                      );
+                                    })
+                                    .map((coa) => (
+                                      <div
+                                        key={`${account.id}-${coa.account_code}`}
+                                        onClick={() => {
+                                          handleMappingChange(account.id, coa.account_code);
+                                          setCoaSearchByAccount(prev => ({ ...prev, [account.id]: `${coa.account_code} - ${coa.description}` }));
+                                          setShowCoaListByAccount(prev => ({ ...prev, [account.id]: false }));
+                                        }}
+                                        style={{ padding: '0.5rem 0.75rem', cursor: 'pointer', borderBottom: '1px solid #f3f4f6' }}
+                                        onMouseEnter={(e) => { e.currentTarget.style.background = '#f9fafb'; }}
+                                        onMouseLeave={(e) => { e.currentTarget.style.background = 'white'; }}
+                                      >
+                                        <div style={{ fontWeight: 600, color: '#111827', fontSize: '0.875rem' }}>{coa.account_code}</div>
+                                        <div style={{ color: '#6b7280', fontSize: '0.8125rem' }}>{coa.description}</div>
+                                      </div>
+                                    ))}
+                                  {chartOfAccounts.length === 0 && (
+                                    <div style={{ padding: '0.5rem 0.75rem', color: '#6b7280' }}>No accounts loaded</div>
+                                  )}
+                                </div>,
+                                document.body
+                              )}
+                            </div>
                           );
                         })()}
                       </td>

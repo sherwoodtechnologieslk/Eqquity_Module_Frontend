@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import './Styles/OtherTransactions.css';
-import { accountAPI, otherTransactionAPI, otherTransactionGLEntryAPI, glAccountMappingAPI, otherTransactionTypeAPI } from '../../services/api';
+import { accountAPI, otherTransactionAPI, otherTransactionGLEntryAPI, glAccountMappingAPI, otherTransactionTypeAPI, chartOfAccountsAPI } from '../../services/api';
 import { authService } from '../../services/authService';
 
 // Function to generate unique voucher numbers
@@ -55,7 +55,7 @@ const OtherTransactions = () => {
   const [accountsWithMapping, setAccountsWithMapping] = useState([]); // Accounts that have GL mappings
   
   // New states for viewing vouchers and general ledger
-  const [activeTab, setActiveTab] = useState('create'); // 'create', 'defineTransaction', 'view', 'generalLedger'
+  const [activeTab, setActiveTab] = useState('create'); // 'create', 'defineTransaction', 'view', 'generalLedger', 'reverseTransaction'
   const [activeCategory, setActiveCategory] = useState('all'); // 'all', 'income', 'expense', 'asset', 'liability'
   const [vouchers, setVouchers] = useState([]);
   const [vouchersLoading, setVouchersLoading] = useState(false);
@@ -67,6 +67,7 @@ const OtherTransactions = () => {
     category: '',
     transaction_type_name: '',
     gl_account_code: '',
+    use_common_account: true,
     description: ''
   });
   const [definedTransactionTypes, setDefinedTransactionTypes] = useState([]);
@@ -74,6 +75,10 @@ const OtherTransactions = () => {
   const [editingTransactionTypeId, setEditingTransactionTypeId] = useState(null);
   const [transactionTypeMessage, setTransactionTypeMessage] = useState('');
   const [selectedCategoryFilter, setSelectedCategoryFilter] = useState(''); // For filtering defined transaction types
+  const [chartAccounts, setChartAccounts] = useState([]);
+  const [chartAccountsLoading, setChartAccountsLoading] = useState(false);
+  const [coaSearchTerm, setCoaSearchTerm] = useState('');
+  const [showCoaList, setShowCoaList] = useState(false);
 
   // Fetch accounts and GL mappings on mount
   useEffect(() => {
@@ -114,6 +119,20 @@ const OtherTransactions = () => {
       fetchGeneralLedger();
     } else if (activeTab === 'defineTransaction') {
       fetchTransactionTypes();
+      // Fetch Chart of Accounts for GL Account dropdown
+      const loadCoA = async () => {
+        try {
+          setChartAccountsLoading(true);
+          const coa = await chartOfAccountsAPI.getAll();
+          setChartAccounts(Array.isArray(coa) ? coa : []);
+        } catch (e) {
+          console.error('Error fetching chart of accounts:', e);
+          setChartAccounts([]);
+        } finally {
+          setChartAccountsLoading(false);
+        }
+      };
+      loadCoA();
     }
   }, [activeTab]);
 
@@ -190,6 +209,12 @@ const OtherTransactions = () => {
       setTimeout(() => setTransactionTypeMessage(''), 3000);
       return;
     }
+    // If not using common account, GL code is required
+    if (transactionTypeForm.use_common_account === false && !transactionTypeForm.gl_account_code) {
+      setTransactionTypeMessage('GL Account Code is required when not using the common account');
+      setTimeout(() => setTransactionTypeMessage(''), 3000);
+      return;
+    }
 
     try {
       if (editingTransactionTypeId) {
@@ -207,6 +232,7 @@ const OtherTransactions = () => {
         category: '',
         transaction_type_name: '',
         gl_account_code: '',
+        use_common_account: true,
         description: ''
       });
       setEditingTransactionTypeId(null);
@@ -226,6 +252,7 @@ const OtherTransactions = () => {
       category: transactionType.category,
       transaction_type_name: transactionType.transaction_type_name,
       gl_account_code: transactionType.gl_account_code || '',
+      use_common_account: transactionType.use_common_account !== undefined ? !!transactionType.use_common_account : true,
       description: transactionType.description || ''
     });
     setEditingTransactionTypeId(transactionType.id);
@@ -547,6 +574,22 @@ const OtherTransactions = () => {
             }}
           >
             General Ledger
+          </button>
+          <button
+            onClick={() => setActiveTab('reverseTransaction')}
+            style={{
+              padding: '1rem 2rem',
+              border: 'none',
+              background: 'transparent',
+              borderBottom: activeTab === 'reverseTransaction' ? '3px solid #3b82f6' : '3px solid transparent',
+              color: activeTab === 'reverseTransaction' ? '#3b82f6' : '#6b7280',
+              fontWeight: activeTab === 'reverseTransaction' ? '600' : '500',
+              cursor: 'pointer',
+              fontSize: '1rem',
+              transition: 'all 0.2s ease'
+            }}
+          >
+            Reverse Transaction
           </button>
         </div>
 
@@ -990,17 +1033,104 @@ const OtherTransactions = () => {
                     />
                   </div>
 
-                  <div className="other-trans-field-group">
+                  <div className="other-trans-field-group" style={{ position: 'relative' }}>
                     <label className="other-trans-field-label">GL Account Code *</label>
                     <input
                       type="text"
                       name="gl_account_code"
                       value={transactionTypeForm.gl_account_code}
-                      onChange={handleTransactionTypeChange}
+                      onChange={(e) => {
+                        handleTransactionTypeChange(e);
+                        setCoaSearchTerm(e.target.value);
+                        setShowCoaList(true);
+                      }}
+                      onFocus={() => setShowCoaList(true)}
                       className="other-trans-form-input"
-                      placeholder="e.g., 4-100-01-01-01"
-                      required
+                      placeholder="Type to search code or name"
+                      disabled={transactionTypeForm.use_common_account || chartAccountsLoading}
+                      autoComplete="off"
                     />
+                    {(!transactionTypeForm.use_common_account && !chartAccountsLoading && showCoaList) && (
+                      <div style={{
+                        position: 'absolute',
+                        top: '100%',
+                        left: 0,
+                        right: 0,
+                        background: 'white',
+                        border: '1px solid #e5e7eb',
+                        borderRadius: '0.25rem',
+                        maxHeight: '220px',
+                        overflowY: 'auto',
+                        zIndex: 10
+                      }}>
+                        {chartAccounts
+                          .filter((acc) => {
+                            const term = (coaSearchTerm || '').toLowerCase();
+                            if (!term) return true;
+                            return (
+                              (acc.account_code || '').toLowerCase().includes(term) ||
+                              (acc.description || '').toLowerCase().includes(term)
+                            );
+                          })
+                          .map((acc) => (
+                            <div
+                              key={acc.account_code}
+                              onMouseDown={(e) => e.preventDefault()}
+                              onClick={() => {
+                                setTransactionTypeForm(prev => ({ ...prev, gl_account_code: acc.account_code }));
+                                setCoaSearchTerm(`${acc.account_code} - ${acc.description}`);
+                                setShowCoaList(false);
+                              }}
+                              style={{
+                                padding: '0.5rem 0.75rem',
+                                cursor: 'pointer',
+                                borderBottom: '1px solid #f3f4f6'
+                              }}
+                              onMouseEnter={(e) => { e.currentTarget.style.background = '#f9fafb'; }}
+                              onMouseLeave={(e) => { e.currentTarget.style.background = 'white'; }}
+                            >
+                              <div style={{ fontWeight: 600, color: '#111827', fontSize: '0.875rem' }}>{acc.account_code}</div>
+                              <div style={{ color: '#6b7280', fontSize: '0.8125rem' }}>{acc.description}</div>
+                            </div>
+                          ))}
+                        {chartAccounts.length === 0 && (
+                          <div style={{ padding: '0.5rem 0.75rem', color: '#6b7280' }}>No accounts loaded</div>
+                        )}
+                      </div>
+                    )}
+                    {chartAccountsLoading && (
+                      <small style={{ color: '#6b7280' }}>Loading Chart of Accounts...</small>
+                    )}
+                  </div>
+
+                  {/* Use common account toggle */}
+                  <div className="other-trans-field-group" style={{ alignSelf: 'end' }}>
+                    <label className="other-trans-field-label" style={{ display: 'block' }}>
+                      &nbsp;
+                    </label>
+                    <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#374151', cursor: 'pointer' }}>
+                      <input
+                        type="checkbox"
+                        checked={!!transactionTypeForm.use_common_account}
+                        onChange={(e) => {
+                          const checked = e.target.checked;
+                          setTransactionTypeForm(prev => ({
+                            ...prev,
+                            use_common_account: checked,
+                            gl_account_code: checked ? '' : prev.gl_account_code
+                          }));
+                        }}
+                        style={{ width: '1rem', height: '1rem' }}
+                      />
+                      <span>
+                        {transactionTypeForm.category
+                          ? `Use the common ${transactionTypeForm.category.charAt(0).toUpperCase() + transactionTypeForm.category.slice(1)} Account`
+                          : 'Use the common account'}
+                      </span>
+                    </label>
+                    <small style={{ color: '#6b7280' }}>
+                      Turn off to select a specific GL Account Code
+                    </small>
                   </div>
 
                   <div className="other-trans-field-group" style={{ gridColumn: '1 / -1' }}>
@@ -1540,6 +1670,31 @@ const OtherTransactions = () => {
                 )}
               </div>
             )}
+          </div>
+        ) : activeTab === 'reverseTransaction' ? (
+          /* Reverse Transaction Tab */
+          <div className="other-trans-form-card">
+            <div className="other-trans-card-header">
+              <h2 className="other-trans-card-title">Reverse Transaction</h2>
+              <p style={{ color: '#ffffff', fontSize: '0.875rem', marginTop: '0.5rem', textAlign: 'center' }}>
+                Reverse or cancel an existing transaction by creating an opposite entry
+              </p>
+            </div>
+            <div className="other-trans-form-content">
+              <div style={{
+                textAlign: 'center',
+                padding: '3rem',
+                background: '#f9fafb',
+                borderRadius: '0.5rem',
+                color: '#6b7280'
+              }}>
+                <h3 style={{ color: '#374151', marginBottom: '0.5rem' }}>Reverse Transaction</h3>
+                <p>This feature will allow you to reverse existing transactions.</p>
+                <p style={{ fontSize: '0.875rem', marginTop: '1rem' }}>
+                  Select a transaction from the View Vouchers tab to reverse it.
+                </p>
+              </div>
+            </div>
           </div>
         ) : null}
 
