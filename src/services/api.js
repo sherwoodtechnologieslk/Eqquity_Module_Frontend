@@ -1207,6 +1207,28 @@ export const otherTransactionAPI = {
       console.error('Error fetching transactions by user:', error);
       throw error;
     }
+  },
+
+  // Reverse an existing other transaction by voucher number
+  reverse: async ({ voucherNumber, amount, date, notes }) => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/other-transactions/reverse`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...getAuthHeaders()
+        },
+        body: JSON.stringify({ voucherNumber, amount, date, notes })
+      });
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
+      }
+      return await response.json();
+    } catch (error) {
+      console.error('Error reversing other transaction:', error);
+      throw error;
+    }
   }
 };
 
