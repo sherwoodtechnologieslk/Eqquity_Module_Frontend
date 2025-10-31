@@ -61,6 +61,10 @@ const OtherTransactions = () => {
   const [vouchersLoading, setVouchersLoading] = useState(false);
   const [generalLedgerEntries, setGeneralLedgerEntries] = useState([]);
   const [generalLedgerLoading, setGeneralLedgerLoading] = useState(false);
+  // Reverse Transaction form state
+  const [reverseForm, setReverseForm] = useState({ category: '', voucherId: '', voucherNumber: '', amount: '', cashFlowOnSettlement: '', date: new Date().toISOString().split('T')[0], notes: '' });
+  const [reverseSubmitting, setReverseSubmitting] = useState(false);
+  const [reverseMessage, setReverseMessage] = useState('');
 
   // States for Define Transaction tab
   const [transactionTypeForm, setTransactionTypeForm] = useState({
@@ -133,6 +137,9 @@ const OtherTransactions = () => {
         }
       };
       loadCoA();
+    } else if (activeTab === 'reverseTransaction') {
+      // Ensure vouchers are available for the voucher dropdown
+      fetchVouchers();
     }
   }, [activeTab]);
 
@@ -175,6 +182,42 @@ const OtherTransactions = () => {
       return vouchers;
     }
     return vouchers.filter(v => v.account_type === activeCategory);
+  };
+
+  // Filter out reversed transactions and reversals for the Reverse Transaction dropdown
+  const getAvailableVouchersForReversal = () => {
+    // Group reversals by original voucher number and sum their amounts
+    const reversalAmountsByOriginal = {};
+    vouchers
+      .filter(v => v.voucher_number && v.voucher_number.startsWith('RV-'))
+      .forEach(v => {
+        const originalVoucherNumber = v.voucher_number.substring(3); // Remove "RV-" prefix
+        const reversalAmount = parseFloat(v.amount) || 0;
+        if (!reversalAmountsByOriginal[originalVoucherNumber]) {
+          reversalAmountsByOriginal[originalVoucherNumber] = 0;
+        }
+        reversalAmountsByOriginal[originalVoucherNumber] += reversalAmount;
+      });
+    
+    // Filter out:
+    // 1. Vouchers that are reversals themselves (start with "RV-")
+    // 2. Vouchers that have been fully reversed (total reversed amount >= original amount)
+    return vouchers.filter(v => {
+      if (!v.voucher_number) return false;
+      if (v.voucher_number.startsWith('RV-')) return false; // Exclude reversal vouchers
+      
+      // Check if this voucher has been fully reversed
+      const totalReversed = reversalAmountsByOriginal[v.voucher_number] || 0;
+      const originalAmount = parseFloat(v.amount) || 0;
+      
+      // Only exclude if fully reversed (with small tolerance for floating point)
+      if (totalReversed >= originalAmount - 0.01) {
+        return false; // Fully reversed, exclude
+      }
+      
+      // Partially reversed or not reversed at all, show it
+      return true;
+    });
   };
 
   // Fetch all transaction types
@@ -1681,19 +1724,180 @@ const OtherTransactions = () => {
               </p>
             </div>
             <div className="other-trans-form-content">
-              <div style={{
-                textAlign: 'center',
-                padding: '3rem',
-                background: '#f9fafb',
-                borderRadius: '0.5rem',
-                color: '#6b7280'
+              <form onSubmit={async (e) => {
+                e.preventDefault();
+                if (!reverseForm.category) {
+                  setReverseMessage('Please select category');
+                  setTimeout(() => setReverseMessage(''), 2500);
+                  return;
+                }
+                if (!reverseForm.voucherNumber) {
+                  setReverseMessage('Please select a voucher');
+                  setTimeout(() => setReverseMessage(''), 2500);
+                  return;
+                }
+                setReverseSubmitting(true);
+                setReverseMessage('');
+                try {
+                  const payload = {
+                    voucherNumber: reverseForm.voucherNumber,
+                    amount: reverseForm.amount ? parseFloat(reverseForm.amount) : undefined,
+                    cashFlowOnSettlement: reverseForm.cashFlowOnSettlement ? parseFloat(reverseForm.cashFlowOnSettlement) : undefined,
+                    date: reverseForm.date,
+                    notes: reverseForm.notes
+                  };
+                  await otherTransactionAPI.reverse(payload);
+                  setReverseMessage('Reversal posted successfully');
+                  setReverseForm({ category: '', voucherId: '', voucherNumber: '', amount: '', cashFlowOnSettlement: '', date: new Date().toISOString().split('T')[0], notes: '' });
+                  // Refresh GL and vouchers tabs data after reversal
+                  fetchGeneralLedger();
+                  fetchVouchers();
+                } catch (err) {
+                  setReverseMessage(err.message || 'Failed to post reversal');
+                } finally {
+                  setReverseSubmitting(false);
+                }
               }}>
-                <h3 style={{ color: '#374151', marginBottom: '0.5rem' }}>Reverse Transaction</h3>
-                <p>This feature will allow you to reverse existing transactions.</p>
-                <p style={{ fontSize: '0.875rem', marginTop: '1rem' }}>
-                  Select a transaction from the View Vouchers tab to reverse it.
-                </p>
-              </div>
+                <div className="other-trans-form-grid">
+                  <div className="other-trans-field-group">
+                    <label className="other-trans-field-label">Category *</label>
+                    <select
+                      value={reverseForm.category}
+                      onChange={(e) => {
+                        const cat = e.target.value;
+                        setReverseForm(prev => ({ ...prev, category: cat, voucherId: '', voucherNumber: '', amount: '', cashFlowOnSettlement: '' }));
+                      }}
+                      className="other-trans-form-select"
+                    >
+                      <option value="">Select</option>
+                      <option value="income">Income</option>
+                      <option value="expense">Expense</option>
+                      <option value="asset">Asset</option>
+                      <option value="liability">Liability</option>
+                    </select>
+                  </div>
+                  <div className="other-trans-field-group" style={{ gridColumn: '1 / -1' }}>
+                    <label className="other-trans-field-label">Voucher *</label>
+                    <select
+                      value={reverseForm.voucherId}
+                      onChange={(e) => {
+                        const id = e.target.value;
+                        const v = vouchers.find(x => String(x.id) === String(id));
+                        if (v) {
+                          // Calculate remaining amount if partially reversed
+                          const totalReversed = vouchers
+                            .filter(rev => rev.voucher_number && rev.voucher_number.startsWith('RV-') && rev.voucher_number.substring(3) === v.voucher_number)
+                            .reduce((sum, rev) => sum + (parseFloat(rev.amount) || 0), 0);
+                          const originalAmount = parseFloat(v.amount) || 0;
+                          const remainingAmount = originalAmount - totalReversed;
+                          
+                          setReverseForm(prev => ({
+                            ...prev,
+                            voucherId: id,
+                            voucherNumber: v.voucher_number,
+                            amount: remainingAmount > 0 ? remainingAmount.toFixed(2) : '',
+                            cashFlowOnSettlement: v.cash_flow_on_settlement != null ? (parseFloat(v.cash_flow_on_settlement).toFixed(2)) : ''
+                          }));
+                        } else {
+                          setReverseForm(prev => ({ ...prev, voucherId: id }));
+                        }
+                      }}
+                      className="other-trans-form-select"
+                      disabled={!reverseForm.category}
+                    >
+                      <option value="">Select voucher</option>
+                      {getAvailableVouchersForReversal()
+                        .filter(v => !reverseForm.category || v.account_type === reverseForm.category)
+                        .map(v => {
+                          // Calculate remaining amount if partially reversed
+                          const reversalAmountsByOriginal = {};
+                          vouchers
+                            .filter(rev => rev.voucher_number && rev.voucher_number.startsWith('RV-'))
+                            .forEach(rev => {
+                              const origVoucher = rev.voucher_number.substring(3);
+                              const revAmount = parseFloat(rev.amount) || 0;
+                              if (!reversalAmountsByOriginal[origVoucher]) {
+                                reversalAmountsByOriginal[origVoucher] = 0;
+                              }
+                              reversalAmountsByOriginal[origVoucher] += revAmount;
+                            });
+                          const totalReversed = reversalAmountsByOriginal[v.voucher_number] || 0;
+                          const originalAmount = parseFloat(v.amount) || 0;
+                          const remainingAmount = originalAmount - totalReversed;
+                          const displayAmount = totalReversed > 0 
+                            ? `${remainingAmount.toFixed(2)} (of ${originalAmount.toFixed(2)})`
+                            : originalAmount.toFixed(2);
+                          
+                          return (
+                            <option key={v.id} value={v.id}>
+                              {v.voucher_number} — {v.transaction_type || v.account_type} — {displayAmount}
+                            </option>
+                          );
+                        })}
+                    </select>
+                    {!reverseForm.category && (
+                      <small style={{ color: '#6b7280' }}>Choose a category first</small>
+                    )}
+                  </div>
+                  <div className="other-trans-field-group">
+                    <label className="other-trans-field-label">Reversal Amount (Optional)</label>
+                    <input
+                      type="number"
+                      value={reverseForm.amount}
+                      onChange={(e) => setReverseForm(prev => ({ ...prev, amount: e.target.value }))}
+                      onBlur={() => setReverseForm(prev => ({ ...prev, amount: prev.amount !== '' && prev.amount != null ? (parseFloat(prev.amount).toFixed(2)) : '' }))}
+                      className="other-trans-form-input"
+                      placeholder="Leave empty to use original amount"
+                      min="0"
+                      step="0.01"
+                    />
+                  </div>
+                  <div className="other-trans-field-group">
+                    <label className="other-trans-field-label">Cash Flow On Settlement (Rs.)</label>
+                    <input
+                      type="number"
+                      value={reverseForm.cashFlowOnSettlement}
+                      readOnly
+                      className="other-trans-form-input other-trans-readonly-field"
+                      placeholder="Auto-filled"
+                      step="0.01"
+                    />
+                  </div>
+                  <div className="other-trans-field-group">
+                    <label className="other-trans-field-label">Reversal Date</label>
+                    <input
+                      type="date"
+                      value={reverseForm.date}
+                      onChange={(e) => setReverseForm(prev => ({ ...prev, date: e.target.value }))}
+                      className="other-trans-form-input"
+                    />
+                  </div>
+                  <div className="other-trans-field-group" style={{ gridColumn: '1 / -1' }}>
+                    <label className="other-trans-field-label">Notes</label>
+                    <textarea
+                      value={reverseForm.notes}
+                      onChange={(e) => setReverseForm(prev => ({ ...prev, notes: e.target.value }))}
+                      className="other-trans-form-textarea"
+                      rows="3"
+                      placeholder="Reason for reversal"
+                    />
+                  </div>
+                </div>
+                {reverseMessage && (
+                  <div className={`other-trans-message ${reverseMessage.toLowerCase().includes('fail') || reverseMessage.toLowerCase().includes('error') ? 'other-trans-error' : 'other-trans-success'}`}>
+                    {reverseMessage}
+                  </div>
+                )}
+                <div className="other-trans-button-section">
+                  <button
+                    type="submit"
+                    className="other-trans-btn other-trans-btn-primary"
+                    disabled={reverseSubmitting}
+                  >
+                    {reverseSubmitting ? 'Posting...' : 'Post Reversal'}
+                  </button>
+                </div>
+              </form>
             </div>
           </div>
         ) : null}
