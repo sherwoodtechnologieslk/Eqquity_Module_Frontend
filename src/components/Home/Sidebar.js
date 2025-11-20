@@ -54,6 +54,19 @@ const menuItems = [
   {
     icon: (
       <svg fill="currentColor" viewBox="0 0 20 20">
+        <path d="M4 3a1 1 0 00-1 1v12a1 1 0 001 1h12a1 1 0 001-1V9.414a1 1 0 00-.293-.707l-4.414-4.414A1 1 0 0011.586 4H4z"/>
+      </svg>
+    ),
+    name: "Financial Reporting",
+    subTopics: [
+      "Statement of Financial Position",
+      "Statement of Comprehensive Income",
+      "Financial Reports Export"
+    ]
+  },
+  {
+    icon: (
+      <svg fill="currentColor" viewBox="0 0 20 20">
         <path fillRule="evenodd" d="M4 4a2 2 0 00-2 2v8a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2H4zm2 2v8h8V6H6z" clipRule="evenodd"/>
         <path d="M8 8a1 1 0 011-1h2a1 1 0 110 2H9a1 1 0 01-1-1zm0 2a1 1 0 011-1h2a1 1 0 110 2H9a1 1 0 01-1-1zm1 1a1 1 0 100 2h2a1 1 0 100-2H9z"/>
       </svg>
@@ -64,6 +77,19 @@ const menuItems = [
       "New GL Account",
       "Account Reconciliation",
       "Other Transactions"
+    ]
+  },
+  {
+    icon: (
+      <svg fill="currentColor" viewBox="0 0 20 20">
+        <path fillRule="evenodd" d="M3 3a1 1 0 000 2v8a2 2 0 002 2h2.586l-1.293 1.293a1 1 0 101.414 1.414L10 15.414l2.293 2.293a1 1 0 001.414-1.414L12.414 15H15a2 2 0 002-2V5a1 1 0 100-2H3zm11.707 4.707a1 1 0 00-1.414-1.414L10 9.586 8.707 8.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd"/>
+      </svg>
+    ),
+    name: "Opening Balance Management",
+    subTopics: [
+      "Opening Balance Entry",
+      "Opening Balance List",
+      "Account Balance Setup"
     ]
   },
   {

@@ -378,27 +378,27 @@
 }
 
 .pnl-metric-card.primary {
-  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
-  color: white;
-  border-color: #3b82f6;
-  box-shadow: 0 4px 6px rgba(59, 130, 246, 0.1), 0 1px 3px rgba(59, 130, 246, 0.08);
+  background: white;
+  color: #1f2937;
+  border-color: #e2e8f0;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1), 0 1px 3px rgba(0, 0, 0, 0.08);
 }
 
 .pnl-metric-card.primary::before {
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0.05) 100%);
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.8) 0%, rgba(248, 250, 252, 0.4) 100%);
 }
 
 .pnl-metric-card.primary:hover {
-  background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
-  box-shadow: 0 10px 25px rgba(59, 130, 246, 0.2), 0 4px 6px rgba(59, 130, 246, 0.1);
+  background: white;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1), 0 4px 6px rgba(0, 0, 0, 0.05);
   transform: translateY(-2px);
 }
 
 .metric-icon {
-  width: 48px;
-  height: 48px;
-  background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
-  border-radius: 12px;
+  width: 64px;
+  height: 64px;
+  background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%) !important;
+  border-radius: 14px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -409,9 +409,13 @@
   transition: all 0.3s ease;
 }
 
+.pnl-metric-card .metric-icon {
+  background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%) !important;
+}
+
 .metric-icon svg {
-  width: 24px;
-  height: 24px;
+  width: 36px;
+  height: 36px;
   color: #3b82f6;
   transition: all 0.3s ease;
 }
@@ -419,6 +423,7 @@
 .pnl-metric-card:hover .metric-icon {
   transform: scale(1.05);
   box-shadow: 0 4px 8px rgba(59, 130, 246, 0.15);
+  background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%) !important;
 }
 
 .pnl-metric-card:hover .metric-icon svg {
@@ -460,33 +465,38 @@
 }
 
 .pnl-metric-card.primary .metric-title {
-  color: rgba(255, 255, 255, 0.9);
+  color: #374151;
 }
 
 .pnl-metric-card.primary .metric-value {
-  color: white;
+  color: #1f2937;
 }
 
 .pnl-metric-card.primary .metric-icon {
-  background: rgba(255, 255, 255, 0.15);
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
+  box-shadow: 0 2px 4px rgba(59, 130, 246, 0.1);
 }
 
 .pnl-metric-card.primary .metric-icon svg {
-  color: white;
+  color: #3b82f6;
 }
 
 .pnl-metric-card.primary:hover .metric-icon {
-  background: rgba(255, 255, 255, 0.2);
+  background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
   transform: scale(1.05);
+  box-shadow: 0 4px 8px rgba(59, 130, 246, 0.15);
+}
+
+.pnl-metric-card.primary:hover .metric-icon svg {
+  color: #2563eb;
 }
 
 .pnl-metric-card.primary:hover .metric-title {
-  color: white;
+  color: #1f2937;
 }
 
 .pnl-metric-card.primary:hover .metric-value {
-  color: white;
+  color: #111827;
 }
 
 /* Sector Pie Chart Styles - Matching Portfolio Overview */
@@ -1342,13 +1352,13 @@
 }
 
 .pnl-metric-card.primary {
-  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
-  color: white;
-  box-shadow: 0 8px 20px rgba(59, 130, 246, 0.3);
+  background: white;
+  color: #1f2937;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
 }
 
 .pnl-metric-card.primary:hover {
-  box-shadow: 0 12px 30px rgba(59, 130, 246, 0.4);
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.12);
 }
 
 .metric-header {
@@ -1371,7 +1381,7 @@
 }
 
 .pnl-metric-card.primary .metric-info h4 {
-  color: rgba(255, 255, 255, 0.9);
+  color: #64748b;
 }
 
 .metric-value {
@@ -1383,7 +1393,7 @@
 }
 
 .pnl-metric-card.primary .metric-value {
-  color: white;
+  color: #1e293b;
 }
 
 /* Responsive Design */

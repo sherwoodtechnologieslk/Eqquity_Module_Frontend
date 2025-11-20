@@ -36,6 +36,9 @@ import AccountReconciliation from './components/AccountingEntries/AccountReconci
 import NewGLAccount from './components/AccountingEntries/NewGLAccount';
 import PortfolioMTM from './components/AccountingEntries/PortfolioMTM';
 import OtherTransactions from './components/AccountingEntries/OtherTransactions';
+import OpeningBalEntry from './components/OpeningBalManage/OpeningBalEntry';
+import OpeningBalList from './components/OpeningBalManage/OpeningBalList';
+import AccountBalanceSetup from './components/OpeningBalManage/AccountBalanceSetup';
 import MarkToMarketValuation from './components/ValuationAndMTM/MarkToMarketValuation';
 import RealizedPnL from './components/ValuationAndMTM/RealizedPnL';
 import TradeSummaryData from './components/ValuationAndMTM/TradeSummaryData';
@@ -45,6 +48,9 @@ import RecentActivity from './components/RecentActivity/RecentActivity';
 import PerformanceMetrics from './components/PerformanceMetrics/PerformanceMetrics';
 import MarketAnnouncements from './components/CSEAnnouncements/MarketAnnouncements';
 import CorporateNotices from './components/CSEAnnouncements/CorporateNotices';
+import FinancialPosition from './components/FinancialReporting/FinancialPosition';
+import StatementOfComprehensiveIncome from './components/FinancialReporting/StatementOfComprehensiveIncome';
+import PremiumModal from './components/PremiumModal/premiumModal';
 
 
 function App() {
@@ -54,6 +60,7 @@ function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [user, setUser] = useState(null);
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
+  const [isPremiumModalOpen, setIsPremiumModalOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   
 
@@ -81,41 +88,51 @@ function App() {
       },
       {
         index: 3,
+        name: "Financial Reporting",
+        subTopics: ["Statement of Financial Position", "Statement of Comprehensive Income", "Financial Reports Export"]
+      },
+      {
+        index: 4,
         name: "Account Management",
         subTopics: ["Chart Of Accounts", "New GL Account", "Account Reconciliation", "Other Transactions"]
       },
       {
-        index: 4,
+        index: 5,
+        name: "Opening Balance Management",
+        subTopics: ["Opening Balance Entry", "Opening Balance List", "Account Balance Setup"]
+      },
+      {
+        index: 6,
         name: "Trade Capture",
         subTopics: ["Buy", "Sell", "Transactions", "Portfolio", "Deal Slip", "Cost of Funds"]
       },
       {
-        index: 5,
+        index: 7,
         name: "Batch Transaction Import",
         subTopics: ["Bulk Buy Entry", "Bulk Sell Entry", "Import History", "Trade Confirmation", "Trade Report"]
       },
       {
-        index: 6,
+        index: 8,
         name: "Settlement and Accounting",
         subTopics: ["Settlement Instructions", "Cash Flow Mapping", "GL Mapping"]
       },
       {
-        index: 7,
+        index: 9,
         name: "Valuation and MTM",
         subTopics: ["Mark-to-Market Valuation", "Realized Gain/Loss Tracking", "Trade Summary Data", "Market Price Feed"]
       },
       {
-        index: 8,
+        index: 10,
         name: "CSE Announcements",
         subTopics: ["Corporate Notices", "Market Announcements", "Trading Updates", "Regulatory Updates", "News & Events"]
       },
       {
-        index: 9,
+        index: 11,
         name: "Corporate Actions",
         subTopics: ["Dividend", "Rights Issue", "Stock Split"]
       },
       {
-        index: 14,
+        index: 15,
         name: "IPO",
         subTopics: ["IPO Entry", "IPO Allocation", "Refund Processing", "Allocation Summary"]
       }
@@ -180,13 +197,27 @@ function App() {
     'P&L': <ProfitLoss />,
     'Portfolio MTM': <PortfolioMTM />,
     'New GL Account': <NewGLAccount />,
+    'Opening Balance Entry': <OpeningBalEntry />,
+    'Opening Balance List': <OpeningBalList />,
+    'Account Balance Setup': <AccountBalanceSetup />,
     'Trade Report': <TradeReport />,
     'Market Announcements': <MarketAnnouncements />,
     'Corporate Notices': <CorporateNotices />,
+    'Statement of Financial Position': <FinancialPosition />,
+    'Statement of Comprehensive Income': <StatementOfComprehensiveIncome />,
+    'Financial Reports Export': <div style={{ padding: '2rem' }}><h3>Financial Reports Export</h3><p>Coming Soon...</p></div>,
   };
 
   // Handle sidebar selection
   const handleSidebarSelect = (index, subTopics) => {
+    // CSE Announcements is at index 10 - show premium modal instead
+    // Corporate Actions is at index 11 - show premium modal instead
+    // Security Identity is at index 12 - show premium modal instead
+    if (index === 10 || index === 11 || index === 12) {
+      setIsPremiumModalOpen(true);
+      return;
+    }
+
     setActiveSidebarItem(index);
 
     if (Array.isArray(subTopics) && subTopics.length > 0) {
@@ -196,6 +227,15 @@ function App() {
       setVisibleTabs([]);
       setActiveTab('');
     }
+  };
+
+  // Handle Contact Sales button click
+  const handleContactSales = () => {
+    setIsPremiumModalOpen(false);
+    // Add your contact sales logic here
+    // For example: window.open('mailto:sales@example.com', '_blank');
+    // Or navigate to a contact page
+    console.log('Contact Sales clicked');
   };
 
   // Check authentication status on app load
@@ -299,6 +339,12 @@ function App() {
         onClose={() => setIsProfileModalOpen(false)}
       />
       
+      {/* Premium Modal */}
+      <PremiumModal
+        isOpen={isPremiumModalOpen}
+        onClose={() => setIsPremiumModalOpen(false)}
+        onContactSales={handleContactSales}
+      />
 
     </div>
   );

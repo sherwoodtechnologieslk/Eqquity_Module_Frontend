@@ -63,12 +63,13 @@ const AccountDetailsModal = ({ isOpen, onClose, accountCode, accountData }) => {
                       <div className="summary-item">
                         <span className="summary-label">Account Type:</span>
                         <span className="summary-value">
-                          {accountData.accountCode?.startsWith('1-') ? 'Asset' :
-                           accountData.accountCode?.startsWith('2-') ? 'Liability' :
-                           accountData.accountCode?.startsWith('3-') ? 'Equity' :
-                           accountData.accountCode?.startsWith('4-') ? 'Income' :
-                           accountData.accountCode?.startsWith('5-') ? 'Cost of Sales' :
-                           accountData.accountCode?.startsWith('6-') ? 'Expense' : 'Other'}
+                          {accountData.accountCode?.charAt(0) === '1' ? 'Asset' :
+                           accountData.accountCode?.charAt(0) === '2' ? 'Liability' :
+                           accountData.accountCode?.charAt(0) === '3' ? 'Revenue' :
+                           accountData.accountCode?.charAt(0) === '4' ? 'Other' :
+                           accountData.accountCode?.charAt(0) === '6' ? 'Expense' :
+                           accountData.accountCode?.charAt(0) === '8' ? 'Equity' :
+                           accountData.accountCode?.charAt(0) === '9' ? 'Other' : 'Other'}
                         </span>
                       </div>
                       <div className="summary-item">

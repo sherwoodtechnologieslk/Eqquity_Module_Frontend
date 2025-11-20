@@ -8,7 +8,6 @@ const ProfitLoss = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
   const [portfolios, setPortfolios] = useState([]);
-  const [mtmData, setMtmData] = useState([]);
   const [mtmLoading, setMtmLoading] = useState(false);
   const [filters, setFilters] = useState({
     startDate: new Date(new Date().getFullYear(), 0, 1).toISOString().split('T')[0], // Start of current year
@@ -144,6 +143,33 @@ const ProfitLoss = () => {
     </tr>
   );
 
+  const renderCategorySubtotal = (categoryName, subtotal) => (
+    <tr key={`category-subtotal-${categoryName}`} className="profit-loss-category-subtotal-row">
+      <td colSpan="2" className="profit-loss-category-subtotal-label">
+        <strong>{categoryName} Subtotal</strong>
+      </td>
+      <td className="profit-loss-category-subtotal-type">{categoryName}</td>
+      <td className={`profit-loss-category-subtotal-balance ${getBalanceColor(subtotal)}`}>
+        <strong>{formatCurrency(Math.abs(subtotal))} {subtotal > 0 ? 'CR' : 'DR'}</strong>
+      </td>
+    </tr>
+  );
+
+  const renderCategorySection = (categoryName, accounts, isExpense = false) => {
+    if (!accounts || accounts.length === 0) return null;
+    
+    return (
+      <React.Fragment key={categoryName}>
+        <tr className="profit-loss-category-header-row">
+          <td colSpan="4" className="profit-loss-category-header">
+            <strong>{categoryName}</strong>
+          </td>
+        </tr>
+        {accounts.map((account, index) => renderAccountRow(account, index))}
+      </React.Fragment>
+    );
+  };
+
   if (isLoading) {
     return (
       <div className="profit-loss-loading-container">
@@ -246,9 +272,17 @@ const ProfitLoss = () => {
       {/* P&L Summary Cards */}
       <div className="profit-loss-summary-cards">
         <div className="profit-loss-summary-card">
-          <div className="profit-loss-card-header">Total Income</div>
-          <div className="profit-loss-card-value positive">{formatCurrency(profitLossData?.totals.total_income || 0)}</div>
-          <div className="profit-loss-card-subtitle">Income from all sources</div>
+          <div className="profit-loss-card-header">Total Revenue</div>
+          <div className="profit-loss-card-value positive">{formatCurrency(profitLossData?.totals.total_revenue || 0)}</div>
+          <div className="profit-loss-card-subtitle">Revenue from all sources (before expenses)</div>
+        </div>
+
+        <div className="profit-loss-summary-card">
+          <div className="profit-loss-card-header">Realized Capital Gains</div>
+          <div className={`profit-loss-card-value ${getBalanceColor(profitLossData?.totals.realized_capital_gains || 0)}`}>
+            {formatCurrency(profitLossData?.totals.realized_capital_gains || 0)}
+          </div>
+          <div className="profit-loss-card-subtitle">Gains/losses from selling shares</div>
         </div>
 
         <div className="profit-loss-summary-card">
@@ -262,7 +296,7 @@ const ProfitLoss = () => {
           <div className={`profit-loss-card-value ${getBalanceColor(profitLossData?.totals.operating_profit || 0)}`}>
             {formatCurrency(profitLossData?.totals.operating_profit || 0)}
           </div>
-          <div className="profit-loss-card-subtitle">Income minus expenses</div>
+          <div className="profit-loss-card-subtitle">Revenue minus expenses (Income/Profit)</div>
         </div>
 
         <div className="profit-loss-summary-card">
@@ -296,9 +330,9 @@ const ProfitLoss = () => {
       <div className="profit-loss-main-content">
         {viewMode === 'detailed' ? (
           <div className="profit-loss-detailed-view">
-            {/* Income Section */}
+            {/* Revenue Section */}
             <div className="profit-loss-section">
-              <h3 className="profit-loss-section-title">Income</h3>
+              <h3 className="profit-loss-section-title">Revenue</h3>
               <div className="profit-loss-table-container">
                 <table className="profit-loss-data-table">
                   <thead>
@@ -310,9 +344,54 @@ const ProfitLoss = () => {
                     </tr>
                   </thead>
                   <tbody>
-                    {profitLossData?.incomeAccounts?.map((account, index) => renderAccountRow(account, index))}
-                    {profitLossData?.incomeSubtotal && 
-                      renderTypeSubtotal('Income', profitLossData.incomeSubtotal)
+                    {profitLossData?.revenueByCategory && Object.keys(profitLossData.revenueByCategory).length > 0 ? (
+                      Object.keys(profitLossData.revenueByCategory).map(category => (
+                        <React.Fragment key={category}>
+                          {renderCategorySection(category, profitLossData.revenueByCategory[category], false)}
+                          {profitLossData.revenueCategorySubtotals && profitLossData.revenueCategorySubtotals[category] && 
+                            renderCategorySubtotal(category, profitLossData.revenueCategorySubtotals[category])
+                          }
+                        </React.Fragment>
+                      ))
+                    ) : (
+                      profitLossData?.revenueAccounts?.map((account, index) => renderAccountRow(account, index))
+                    )}
+                    {profitLossData?.revenueSubtotal && 
+                      renderTypeSubtotal('Total Revenue', profitLossData.revenueSubtotal)
+                    }
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            {/* Realized Capital Gains Section */}
+            <div className="profit-loss-section">
+              <h3 className="profit-loss-section-title">Realized Capital Gains</h3>
+              <div className="profit-loss-table-container">
+                <table className="profit-loss-data-table">
+                  <thead>
+                    <tr className="profit-loss-table-header">
+                      <th className="profit-loss-th-account-code">Account Code</th>
+                      <th className="profit-loss-th-account-name">Account Name</th>
+                      <th className="profit-loss-th-type">Type</th>
+                      <th className="profit-loss-th-balance">Amount</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {profitLossData?.capitalGainsByCategory && Object.keys(profitLossData.capitalGainsByCategory).length > 0 ? (
+                      Object.keys(profitLossData.capitalGainsByCategory).map(category => (
+                        <React.Fragment key={category}>
+                          {renderCategorySection(category, profitLossData.capitalGainsByCategory[category], false)}
+                          {profitLossData.capitalGainsCategorySubtotals && profitLossData.capitalGainsCategorySubtotals[category] && 
+                            renderCategorySubtotal(category, profitLossData.capitalGainsCategorySubtotals[category])
+                          }
+                        </React.Fragment>
+                      ))
+                    ) : (
+                      profitLossData?.realizedCapitalGainAccounts?.map((account, index) => renderAccountRow(account, index))
+                    )}
+                    {profitLossData?.realizedCapitalGainsSubtotal && 
+                      renderTypeSubtotal('Total Realized Capital Gains', profitLossData.realizedCapitalGainsSubtotal)
                     }
                   </tbody>
                 </table>
@@ -333,9 +412,20 @@ const ProfitLoss = () => {
                     </tr>
                   </thead>
                   <tbody>
-                    {profitLossData?.expenseAccounts?.map((account, index) => renderAccountRow(account, index))}
+                    {profitLossData?.expensesByCategory && Object.keys(profitLossData.expensesByCategory).length > 0 ? (
+                      Object.keys(profitLossData.expensesByCategory).map(category => (
+                        <React.Fragment key={category}>
+                          {renderCategorySection(category, profitLossData.expensesByCategory[category], true)}
+                          {profitLossData.expenseCategorySubtotals && profitLossData.expenseCategorySubtotals[category] && 
+                            renderCategorySubtotal(category, profitLossData.expenseCategorySubtotals[category])
+                          }
+                        </React.Fragment>
+                      ))
+                    ) : (
+                      profitLossData?.expenseAccounts?.map((account, index) => renderAccountRow(account, index))
+                    )}
                     {profitLossData?.expenseSubtotal && 
-                      renderTypeSubtotal('Expenses', profitLossData.expenseSubtotal)
+                      renderTypeSubtotal('Total Expenses', profitLossData.expenseSubtotal)
                     }
                   </tbody>
                 </table>
@@ -383,6 +473,12 @@ const ProfitLoss = () => {
                     <span className="profit-loss-net-label">Operating Profit:</span>
                     <span className={`profit-loss-net-value ${getBalanceColor(profitLossData?.totals.operating_profit || 0)}`}>
                       {formatCurrency(profitLossData?.totals.operating_profit || 0)}
+                    </span>
+                  </div>
+                  <div className="profit-loss-net-item">
+                    <span className="profit-loss-net-label">Realized Capital Gains:</span>
+                    <span className={`profit-loss-net-value ${getBalanceColor(profitLossData?.totals.realized_capital_gains || 0)}`}>
+                      {formatCurrency(profitLossData?.totals.realized_capital_gains || 0)}
                     </span>
                   </div>
                   <div className="profit-loss-net-item">

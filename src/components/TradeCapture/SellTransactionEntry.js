@@ -11,6 +11,60 @@ import SellEquitySelectorModal from './SellEquitySelectorModal';
 
 const getToday = () => new Date().toISOString().slice(0, 10);
 
+// Function to get today's date string in YYYYMMDD format
+const getTodayDateString = () => {
+  const date = new Date();
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}${month}${day}`;
+};
+
+// Function to extract sequence number from deal number
+const extractSequenceFromDealNumber = (dealNumber) => {
+  // Format: SELL-YYYYMMDD-XXXXXX where XXXXXX is the sequence
+  const match = dealNumber.match(/SELL-\d{8}-(\d{6})/);
+  return match ? parseInt(match[1], 10) : 0;
+};
+
+// Function to generate unique deal numbers with sequential numbering per day for SELL transactions
+const generateSellDealNumber = async () => {
+  const todayDateString = getTodayDateString();
+  const datePrefix = `SELL-${todayDateString}-`;
+  
+  try {
+    // Try to fetch all sell transactions from the backend
+    // We'll check for today's transactions to find the max sequence
+    const response = await fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:8080/api'}/transaction-entries/sell-all`, {
+      headers: {
+        'Authorization': `Bearer ${localStorage.getItem('token') || ''}`
+      }
+    });
+    
+    if (response.ok) {
+      const transactions = await response.json();
+      // Filter transactions for today and extract sequence numbers
+      const todayTransactions = (transactions || []).filter(t => {
+        if (!t.deal_number) return false;
+        return t.deal_number.startsWith(datePrefix);
+      });
+      
+      if (todayTransactions.length > 0) {
+        const maxSequence = Math.max(
+          ...todayTransactions.map(t => extractSequenceFromDealNumber(t.deal_number))
+        );
+        const nextSequence = maxSequence + 1;
+        return `${datePrefix}${String(nextSequence).padStart(6, '0')}`;
+      }
+    }
+  } catch (error) {
+    console.log('Could not fetch sell transactions from backend, using default:', error);
+  }
+  
+  // If no transactions found for today, start from 000001
+  return `${datePrefix}000001`;
+};
+
 const SellTransactionEntry = ({ setFifoParams, setActiveTab }) => {
   const [form, setForm] = useState({
     
@@ -19,6 +73,7 @@ const SellTransactionEntry = ({ setFifoParams, setActiveTab }) => {
     portfolioName: '',
     portfolioId: '', // <-- Add this field
     valuationMethod: '', // <-- Added field
+    dealNumber: '', // Will be set in useEffect
     contractNumber: '',
     quantity: '',
     soldPrice: '',
@@ -94,6 +149,21 @@ const SellTransactionEntry = ({ setFifoParams, setActiveTab }) => {
 
     fetchActiveCostOfFunds();
   }, []);
+
+  // Initialize deal number on component mount
+  useEffect(() => {
+    const initDealNumber = async () => {
+      const newDealNumber = await generateSellDealNumber();
+      setForm(prev => ({ ...prev, dealNumber: newDealNumber }));
+    };
+    initDealNumber();
+  }, []);
+
+  // Function to regenerate deal number
+  const regenerateDealNumber = async () => {
+    const newDealNumber = await generateSellDealNumber();
+    setForm(prev => ({ ...prev, dealNumber: newDealNumber }));
+  };
 
   useEffect(() => {
     setPortfoliosLoading(true);
@@ -404,7 +474,7 @@ const SellTransactionEntry = ({ setFifoParams, setActiveTab }) => {
     if (!form.companyName) newErrors.companyName = 'Company name is required';
     if (!form.portfolioName) newErrors.portfolioName = 'Portfolio name is required';
     if (!form.valuationMethod) newErrors.valuationMethod = 'Valuation method is required'; // <-- Added validation
-    if (!form.contractNumber) newErrors.contractNumber = 'Contract number is required';
+    // Contract Number is now optional - validation removed
     if (!form.quantity || form.quantity <= 0) newErrors.quantity = 'Valid quantity is required';
     
     // Add quantity validation against total shares
@@ -510,6 +580,7 @@ const SellTransactionEntry = ({ setFifoParams, setActiveTab }) => {
       portfolio_name: form.portfolioName,
       portfolioId: form.portfolioId,
       valuation_method: form.valuationMethod,
+      deal_number: form.dealNumber,
       contract_number: form.contractNumber,
       quantity: parseFloat(form.quantity),
       sold_price: parseFloat(form.soldPrice),
@@ -549,6 +620,9 @@ const SellTransactionEntry = ({ setFifoParams, setActiveTab }) => {
       setShowSuccess(true);
       setTimeout(() => setShowSuccess(false), 3000);
       handleReset();
+      // Generate new deal number for next transaction
+      const newDealNumber = await generateSellDealNumber();
+      setForm(prev => ({ ...prev, dealNumber: newDealNumber }));
     } catch (error) {
       console.error('Submission error:', error);
       alert('Failed to save sell transaction. Please try again.');
@@ -557,13 +631,15 @@ const SellTransactionEntry = ({ setFifoParams, setActiveTab }) => {
     }
   };
 
-  const handleReset = () => {
+  const handleReset = async () => {
+    const newDealNumber = await generateSellDealNumber();
     setForm({
       companyName: '',
       symbol: '', // <-- Add to reset
       portfolioName: '',
       portfolioId: '', // <-- Reset this field
       valuationMethod: '', // <-- Added reset
+      dealNumber: newDealNumber, // <-- Generate new deal number on reset
       contractNumber: '',
       quantity: '',
       soldPrice: '',
@@ -878,6 +954,39 @@ const SellTransactionEntry = ({ setFifoParams, setActiveTab }) => {
                     className="sell-form-input"
                     placeholder="Auto-fetched total shares"
                   />
+                </div>
+                <div className="sell-form-group">
+                  <label htmlFor="dealNumber">Deal Number</label>
+                  <div style={{ display: 'flex', gap: '0.5rem' }}>
+                    <input
+                      type="text"
+                      id="dealNumber"
+                      name="dealNumber"
+                      value={form.dealNumber}
+                      readOnly
+                      className="sell-form-input"
+                      placeholder="Auto-generated"
+                      style={{ flex: 1 }}
+                    />
+                    <button
+                      type="button"
+                      onClick={regenerateDealNumber}
+                      style={{
+                        padding: '0.5rem 1rem',
+                        backgroundColor: '#f3f4f6',
+                        border: '1px solid #d1d5db',
+                        borderRadius: '0.375rem',
+                        cursor: 'pointer',
+                        fontSize: '0.875rem',
+                        fontWeight: '500',
+                        color: '#374151'
+                      }}
+                      onMouseEnter={(e) => e.target.style.backgroundColor = '#e5e7eb'}
+                      onMouseLeave={(e) => e.target.style.backgroundColor = '#f3f4f6'}
+                    >
+                      Regenerate
+                    </button>
+                  </div>
                 </div>
                 <div className="sell-form-group">
                   <label htmlFor="contractNumber">Contract Number</label>
