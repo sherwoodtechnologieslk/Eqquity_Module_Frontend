@@ -20,7 +20,15 @@ const makeAuthenticatedRequest = async (url, options = {}) => {
     });
     
     if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+        // Try to parse error response
+        let errorMessage = `HTTP error! status: ${response.status}`;
+        try {
+            const errorData = await response.json();
+            errorMessage = errorData.error || errorData.message || errorMessage;
+        } catch (e) {
+            // If response is not JSON, use default error message
+        }
+        throw new Error(errorMessage);
     }
     
     return await response.json();
@@ -1360,6 +1368,202 @@ export const chartOfAccountsAPI = {
     });
     if (!response.ok) throw new Error('Failed to fetch chart of accounts');
     return await response.json();
+  },
+  
+  update: async (id, accountData) => {
+    const response = await makeAuthenticatedRequest(`${API_BASE_URL}/chart-of-accounts/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(accountData)
+    });
+    return response;
+  }
+};
+
+// API service for Account Categories operations
+export const accountCategoryAPI = {
+  getAll: async () => {
+    try {
+      return await makeAuthenticatedRequest(`${API_BASE_URL}/account-categories`, {
+        method: 'GET'
+      });
+    } catch (error) {
+      throw new Error(error.message || 'Failed to fetch account categories');
+    }
+  },
+
+  getByType: async (accountType) => {
+    try {
+      return await makeAuthenticatedRequest(`${API_BASE_URL}/account-categories/type/${accountType}`, {
+        method: 'GET'
+      });
+    } catch (error) {
+      throw new Error(error.message || 'Failed to fetch categories by type');
+    }
+  },
+
+  create: async (categoryData) => {
+    try {
+      return await makeAuthenticatedRequest(`${API_BASE_URL}/account-categories`, {
+        method: 'POST',
+        body: JSON.stringify(categoryData)
+      });
+    } catch (error) {
+      // Try to extract error message from response if available
+      const errorMessage = error.message || 'Failed to create account category';
+      throw new Error(errorMessage);
+    }
+  },
+
+  update: async (id, categoryData) => {
+    try {
+      return await makeAuthenticatedRequest(`${API_BASE_URL}/account-categories/${id}`, {
+        method: 'PUT',
+        body: JSON.stringify(categoryData)
+      });
+    } catch (error) {
+      const errorMessage = error.message || 'Failed to update account category';
+      throw new Error(errorMessage);
+    }
+  },
+
+  delete: async (id) => {
+    try {
+      return await makeAuthenticatedRequest(`${API_BASE_URL}/account-categories/${id}`, {
+        method: 'DELETE'
+      });
+    } catch (error) {
+      const errorMessage = error.message || 'Failed to delete account category';
+      throw new Error(errorMessage);
+    }
+  },
+
+  deleteByType: async (accountType) => {
+    try {
+      return await makeAuthenticatedRequest(`${API_BASE_URL}/account-categories/type/${accountType}`, {
+        method: 'DELETE'
+      });
+    } catch (error) {
+      const errorMessage = error.message || 'Failed to delete categories by type';
+      throw new Error(errorMessage);
+    }
+  },
+
+  // Transaction Type methods
+  getAllTransactionTypes: async () => {
+    try {
+      return await makeAuthenticatedRequest(`${API_BASE_URL}/account-categories/transaction-types`, {
+        method: 'GET'
+      });
+    } catch (error) {
+      const errorMessage = error.message || 'Failed to fetch transaction types';
+      throw new Error(errorMessage);
+    }
+  },
+
+  createTransactionType: async (transactionTypeData) => {
+    try {
+      return await makeAuthenticatedRequest(`${API_BASE_URL}/account-categories/transaction-types`, {
+        method: 'POST',
+        body: JSON.stringify(transactionTypeData)
+      });
+    } catch (error) {
+      const errorMessage = error.message || 'Failed to create transaction type';
+      throw new Error(errorMessage);
+    }
+  },
+
+  getTransactionTypesByCategory: async (categoryId) => {
+    try {
+      return await makeAuthenticatedRequest(`${API_BASE_URL}/account-categories/transaction-types/category/${categoryId}`, {
+        method: 'GET'
+      });
+    } catch (error) {
+      const errorMessage = error.message || 'Failed to fetch transaction types';
+      throw new Error(errorMessage);
+    }
+  },
+  
+  getTransactionTypesByCategoryName: async (categoryName, accountType) => {
+    try {
+      const encodedCategoryName = encodeURIComponent(categoryName);
+      return await makeAuthenticatedRequest(`${API_BASE_URL}/account-categories/transaction-types/category-name/${encodedCategoryName}/type/${accountType}`, {
+        method: 'GET'
+      });
+    } catch (error) {
+      console.error('Error fetching transaction types by category name:', error);
+      throw error;
+    }
+  },
+
+  updateTransactionType: async (id, transactionTypeData) => {
+    try {
+      return await makeAuthenticatedRequest(`${API_BASE_URL}/account-categories/transaction-types/${id}`, {
+        method: 'PUT',
+        body: JSON.stringify(transactionTypeData)
+      });
+    } catch (error) {
+      const errorMessage = error.message || 'Failed to update transaction type';
+      throw new Error(errorMessage);
+    }
+  },
+
+  deleteTransactionType: async (id) => {
+    try {
+      return await makeAuthenticatedRequest(`${API_BASE_URL}/account-categories/transaction-types/${id}`, {
+        method: 'DELETE'
+      });
+    } catch (error) {
+      const errorMessage = error.message || 'Failed to delete transaction type';
+      throw new Error(errorMessage);
+    }
+  }
+};
+
+// API service for Custom Account Types operations
+export const customAccountTypeAPI = {
+  getAll: async () => {
+    try {
+      return await makeAuthenticatedRequest(`${API_BASE_URL}/custom-account-types`, {
+        method: 'GET'
+      });
+    } catch (error) {
+      throw new Error(error.message || 'Failed to fetch custom account types');
+    }
+  },
+
+  create: async (typeData) => {
+    try {
+      return await makeAuthenticatedRequest(`${API_BASE_URL}/custom-account-types`, {
+        method: 'POST',
+        body: JSON.stringify(typeData)
+      });
+    } catch (error) {
+      const errorMessage = error.message || 'Failed to create custom account type';
+      throw new Error(errorMessage);
+    }
+  },
+
+  update: async (id, typeData) => {
+    try {
+      return await makeAuthenticatedRequest(`${API_BASE_URL}/custom-account-types/${id}`, {
+        method: 'PUT',
+        body: JSON.stringify(typeData)
+      });
+    } catch (error) {
+      const errorMessage = error.message || 'Failed to update custom account type';
+      throw new Error(errorMessage);
+    }
+  },
+
+  delete: async (value) => {
+    try {
+      return await makeAuthenticatedRequest(`${API_BASE_URL}/custom-account-types/${value}`, {
+        method: 'DELETE'
+      });
+    } catch (error) {
+      const errorMessage = error.message || 'Failed to delete custom account type';
+      throw new Error(errorMessage);
+    }
   }
 };
 
@@ -1766,6 +1970,149 @@ export const profitLossAPI = {
     } catch (error) {
       console.error('Error fetching P&L summary:', error);
       throw error;
+    }
+  }
+};
+
+export const financialPositionAPI = {
+  // Get Statement of Financial Position (Balance Sheet) data
+  getFinancialPosition: async (filters = {}) => {
+    try {
+      const queryParams = new URLSearchParams({
+        asOfDate: filters.asOfDate || new Date().toISOString().split('T')[0]
+      });
+      
+      if (filters.portfolio) {
+        queryParams.append('portfolioId', filters.portfolio);
+      }
+      
+      const response = await fetch(`${API_BASE_URL}/financial-position?${queryParams}`, {
+        headers: getAuthHeaders()
+      });
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      
+      return await response.json();
+    } catch (error) {
+      console.error('Error fetching financial position:', error);
+      throw error;
+    }
+  },
+
+  // Get Financial Position Summary
+  getFinancialPositionSummary: async (filters = {}) => {
+    try {
+      const queryParams = new URLSearchParams({
+        asOfDate: filters.asOfDate || new Date().toISOString().split('T')[0]
+      });
+      
+      if (filters.portfolio) {
+        queryParams.append('portfolioId', filters.portfolio);
+      }
+      
+      const response = await fetch(`${API_BASE_URL}/financial-position/summary?${queryParams}`, {
+        headers: getAuthHeaders()
+      });
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      
+      return await response.json();
+    } catch (error) {
+      console.error('Error fetching financial position summary:', error);
+      throw error;
+    }
+  }
+};
+
+// API service for Opening Balance operations
+export const openingBalanceAPI = {
+  // Create a new opening balance entry
+  create: async (openingBalanceData) => {
+    try {
+      return await makeAuthenticatedRequest(`${API_BASE_URL}/opening-balances`, {
+        method: 'POST',
+        body: JSON.stringify(openingBalanceData)
+      });
+    } catch (error) {
+      const errorMessage = error.message || 'Failed to create opening balance entry';
+      throw new Error(errorMessage);
+    }
+  },
+
+  // Get all opening balance entries
+  getAll: async () => {
+    try {
+      return await makeAuthenticatedRequest(`${API_BASE_URL}/opening-balances`, {
+        method: 'GET'
+      });
+    } catch (error) {
+      const errorMessage = error.message || 'Failed to fetch opening balance entries';
+      throw new Error(errorMessage);
+    }
+  },
+
+  // Get opening balance entry by ID
+  getById: async (id) => {
+    try {
+      return await makeAuthenticatedRequest(`${API_BASE_URL}/opening-balances/${id}`, {
+        method: 'GET'
+      });
+    } catch (error) {
+      const errorMessage = error.message || 'Failed to fetch opening balance entry';
+      throw new Error(errorMessage);
+    }
+  },
+
+  // Get opening balances by account code
+  getByAccountCode: async (accountCode) => {
+    try {
+      return await makeAuthenticatedRequest(`${API_BASE_URL}/opening-balances/account/${accountCode}`, {
+        method: 'GET'
+      });
+    } catch (error) {
+      const errorMessage = error.message || 'Failed to fetch opening balances by account code';
+      throw new Error(errorMessage);
+    }
+  },
+
+  // Get opening balances by date range
+  getByDateRange: async (startDate, endDate) => {
+    try {
+      return await makeAuthenticatedRequest(`${API_BASE_URL}/opening-balances/date-range?startDate=${startDate}&endDate=${endDate}`, {
+        method: 'GET'
+      });
+    } catch (error) {
+      const errorMessage = error.message || 'Failed to fetch opening balances by date range';
+      throw new Error(errorMessage);
+    }
+  },
+
+  // Update opening balance entry
+  update: async (id, openingBalanceData) => {
+    try {
+      return await makeAuthenticatedRequest(`${API_BASE_URL}/opening-balances/${id}`, {
+        method: 'PUT',
+        body: JSON.stringify(openingBalanceData)
+      });
+    } catch (error) {
+      const errorMessage = error.message || 'Failed to update opening balance entry';
+      throw new Error(errorMessage);
+    }
+  },
+
+  // Delete opening balance entry
+  delete: async (id) => {
+    try {
+      return await makeAuthenticatedRequest(`${API_BASE_URL}/opening-balances/${id}`, {
+        method: 'DELETE'
+      });
+    } catch (error) {
+      const errorMessage = error.message || 'Failed to delete opening balance entry';
+      throw new Error(errorMessage);
     }
   }
 };

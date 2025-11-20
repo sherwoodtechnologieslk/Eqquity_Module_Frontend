@@ -154,11 +154,13 @@
 }
 
 .profit-loss-summary-card {
-  background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+  background: white;
   border-radius: 8px;
   padding: 24px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  border: 2px solid #cbd5e1;
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.2), 0 2px 4px rgba(0, 0, 0, 0.1);
+  border: none;
+  border-top: 4px solid #3b82f6;
+  border-bottom: 4px solid #3b82f6;
   transition: all 0.3s ease;
   position: relative;
   overflow: hidden;
@@ -166,14 +168,16 @@
   flex-direction: column;
   align-items: center;
   text-align: center;
+  transform: translateY(0);
 }
 
 
 .profit-loss-summary-card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
-  border-color: #94a3b8;
-  background: linear-gradient(135deg, #ffffff 0%, #f1f5f9 100%);
+  transform: translateY(-4px);
+  box-shadow: 0 8px 20px rgba(59, 130, 246, 0.3), 0 4px 8px rgba(0, 0, 0, 0.15);
+  border-top-color: #2563eb;
+  border-bottom-color: #2563eb;
+  background: white;
 }
 
 .profit-loss-card-header {
@@ -289,13 +293,16 @@
 }
 
 .profit-loss-section-title {
-  font-size: 20px;
+  font-size: 15px;
   font-weight: 700;
-  color: #1e293b;
+  color: white;
+  background: linear-gradient(135deg, #64748b 0%, #475569 100%);
   margin: 0 0 16px 0;
-  padding: 20px 24px 0 24px;
-  border-bottom: 2px solid #e2e8f0;
-  padding-bottom: 12px;
+  padding: 8px 16px;
+  border-radius: 4px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  box-shadow: 0 2px 6px rgba(100, 116, 139, 0.2);
 }
 
 .profit-loss-table-container {
@@ -397,6 +404,51 @@
   border-top: 2px solid #cbd5e1;
   border-bottom: 1px solid #cbd5e1;
   font-weight: 600;
+}
+
+.profit-loss-category-header-row {
+  background: #f1f5f9;
+  border-top: 1px solid #cbd5e1;
+  border-bottom: 1px solid #cbd5e1;
+  font-weight: 600;
+}
+
+.profit-loss-category-header {
+  padding: 10px 16px !important;
+  color: #475569;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.profit-loss-category-subtotal-row {
+  background: #f8fafc;
+  border-top: 1px solid #e2e8f0;
+  border-bottom: 1px solid #e2e8f0;
+  font-weight: 500;
+}
+
+.profit-loss-category-subtotal-label {
+  padding: 8px 16px;
+  color: #64748b;
+  font-size: 12px;
+  padding-left: 32px;
+  font-weight: 500;
+}
+
+.profit-loss-category-subtotal-type {
+  padding: 8px 16px;
+  color: #94a3b8;
+  font-size: 11px;
+  font-weight: 500;
+}
+
+.profit-loss-category-subtotal-balance {
+  padding: 8px 16px;
+  text-align: right;
+  font-family: 'Courier New', monospace;
+  font-weight: 500;
+  font-size: 12px;
+  color: #64748b;
 }
 
 .profit-loss-subtotal-label {

@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { createPortal } from 'react-dom';
 import './Styles/OtherTransactions.css';
-import { accountAPI, otherTransactionAPI, otherTransactionGLEntryAPI, glAccountMappingAPI, otherTransactionTypeAPI, chartOfAccountsAPI } from '../../services/api';
+import { accountAPI, otherTransactionAPI, otherTransactionGLEntryAPI, glAccountMappingAPI, otherTransactionTypeAPI, chartOfAccountsAPI, accountCategoryAPI } from '../../services/api';
 import { authService } from '../../services/authService';
 
 // Function to generate unique voucher numbers
@@ -19,8 +19,12 @@ const generateVoucherNumber = () => {
 const OtherTransactions = () => {
   const [form, setForm] = useState({
     voucherNumber: generateVoucherNumber(),
-    accountType: '',
+    category: '', // Main category (Income, Expense, Asset, Liability)
+    subCategory: '', // Sub category (specific category name from account_categories)
     transactionType: '',
+    selectedTransactionTypeId: '', // Selected defined transaction type ID
+    glAccountCode: '', // Selected GL account code from defined transaction type
+    coaDescription: '', // Selected COA description from defined transaction type
     description: '',
     amount: '',
     date: new Date().toISOString().split('T')[0],
@@ -39,13 +43,32 @@ const OtherTransactions = () => {
     paymentMethod: ''
   });
 
-  // Transaction type options based on defined item (dynamically populated from database)
-  const [transactionTypes, setTransactionTypes] = useState({
+  // Transaction type options based on selected category (dynamically populated from database)
+  // For Create Voucher tab
+  const [transactionTypes, setTransactionTypes] = useState([]);
+  // For Define Transaction tab - store full objects to access transaction_type_code
+  const [transactionTypesForDefine, setTransactionTypesForDefine] = useState([]);
+  // Defined transaction types for the selected transaction type name (for Create Voucher tab)
+  const [definedTransactionTypesForVoucher, setDefinedTransactionTypesForVoucher] = useState([]);
+  const [definedTransactionTypesLoading, setDefinedTransactionTypesLoading] = useState(false);
+  
+  // Account categories grouped by account_type (for Category dropdown)
+  const [accountCategories, setAccountCategories] = useState({
     income: [],
     expense: [],
+    asset: [],
     liability: [],
-    asset: []
+    equity: []
   });
+  // Full category objects grouped by account_type (for Sub Category dropdown)
+  const [categoriesByType, setCategoriesByType] = useState({
+    income: [],
+    expense: [],
+    asset: [],
+    liability: [],
+    equity: []
+  });
+  const [categoriesLoading, setCategoriesLoading] = useState(false);
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitMessage, setSubmitMessage] = useState('');
@@ -57,22 +80,79 @@ const OtherTransactions = () => {
   // New states for viewing vouchers and general ledger
   const [activeTab, setActiveTab] = useState('create'); // 'create', 'defineTransaction', 'view', 'generalLedger', 'reverseTransaction'
   const [activeCategory, setActiveCategory] = useState('all'); // 'all', 'income', 'expense', 'asset', 'liability'
+  
+  // Form type state for Create Voucher tab (voucher, assetDepreciation, assetDerecognition, or liabilitySettlement)
+  const [activeFormType, setActiveFormType] = useState('voucher'); // 'voucher', 'assetDepreciation', 'assetDerecognition', or 'liabilitySettlement'
+  
+  // Asset Depreciation form state
+  const [assetDepreciationForm, setAssetDepreciationForm] = useState({
+    voucherNumber: generateVoucherNumber(),
+    assetAccountCode: '',
+    assetAccountName: '',
+    depreciationExpenseAccountCode: '',
+    depreciationExpenseAccountName: '',
+    accumulatedDepreciationAccountCode: '',
+    accumulatedDepreciationAccountName: '',
+    depreciationAmount: '',
+    depreciationDate: new Date().toISOString().split('T')[0],
+    description: '',
+    reference: '',
+    notes: ''
+  });
+
+  // Asset Derecognition form state
+  const [assetDerecognitionForm, setAssetDerecognitionForm] = useState({
+    voucherNumber: generateVoucherNumber(),
+    assetAccountCode: '',
+    assetAccountName: '',
+    accumulatedDepreciationAccountCode: '',
+    accumulatedDepreciationAccountName: '',
+    proceedsAccountCode: '',
+    proceedsAccountName: '',
+    gainLossAccountCode: '',
+    gainLossAccountName: '',
+    assetBookValue: '',
+    saleProceeds: '',
+    gainLossAmount: '',
+    derecognitionDate: new Date().toISOString().split('T')[0],
+    description: '',
+    reference: '',
+    notes: ''
+  });
+
+  // Liability Settlement form state
+  const [liabilitySettlementForm, setLiabilitySettlementForm] = useState({
+    voucherNumber: generateVoucherNumber(),
+    liabilityAccountCode: '',
+    liabilityAccountName: '',
+    paymentAccountCode: '',
+    paymentAccountName: '',
+    settlementAmount: '',
+    settlementDate: new Date().toISOString().split('T')[0],
+    description: '',
+    reference: '',
+    notes: ''
+  });
   const [vouchers, setVouchers] = useState([]);
   const [vouchersLoading, setVouchersLoading] = useState(false);
   const [generalLedgerEntries, setGeneralLedgerEntries] = useState([]);
   const [generalLedgerLoading, setGeneralLedgerLoading] = useState(false);
   // Reverse Transaction form state
-  const [reverseForm, setReverseForm] = useState({ category: '', voucherId: '', voucherNumber: '', amount: '', cashFlowOnSettlement: '', date: new Date().toISOString().split('T')[0], notes: '' });
+  const [reverseForm, setReverseForm] = useState({ category: '', subCategory: '', transactionType: '', voucherId: '', voucherNumber: '', amount: '', cashFlowOnSettlement: '', date: new Date().toISOString().split('T')[0], notes: '' });
   const [reverseSubmitting, setReverseSubmitting] = useState(false);
   const [reverseMessage, setReverseMessage] = useState('');
+  // Transaction types for Reverse Transaction tab
+  const [transactionTypesForReverse, setTransactionTypesForReverse] = useState([]);
 
   // States for Define Transaction tab
   const [transactionTypeForm, setTransactionTypeForm] = useState({
-    category: '',
+    category: '', // Main category (Income, Expense, Asset, Liability)
+    sub_category: '', // Sub category (specific category name from account_categories)
     transaction_type_name: '',
     gl_account_code: '',
     use_common_account: true,
-    description: ''
+    description: '',
+    coa_description: '' // Description from chart of accounts (auto-filled when account code is selected)
   });
   const [definedTransactionTypes, setDefinedTransactionTypes] = useState([]);
   const [transactionTypesLoading, setTransactionTypesLoading] = useState(false);
@@ -84,14 +164,17 @@ const OtherTransactions = () => {
   const [coaSearchTerm, setCoaSearchTerm] = useState('');
   const [showCoaList, setShowCoaList] = useState(false);
 
-  // Fetch accounts and GL mappings on mount
+  // Fetch accounts, GL mappings, and account categories on mount
   useEffect(() => {
     const fetchData = async () => {
       try {
         setAccountsLoading(true);
-        const [accountData, mappingData] = await Promise.all([
+        setCategoriesLoading(true);
+        const [accountData, mappingData, categoriesData, transactionTypesData] = await Promise.all([
           accountAPI.getAllAccounts().catch(() => []),
-          glAccountMappingAPI.getAll().catch(() => [])
+          glAccountMappingAPI.getAll().catch(() => []),
+          accountCategoryAPI.getAll().catch(() => []),
+          accountCategoryAPI.getAllTransactionTypes().catch(() => [])
         ]);
         
         setAccounts(accountData || []);
@@ -105,11 +188,124 @@ const OtherTransactions = () => {
         }
         
         setAccountsWithMapping(mappedAccountIds);
+        
+        // Group categories by account_type (income, expense, asset, liability, equity)
+        // This structure: { income: ['Category1', 'Category2'], expense: [...], etc. }
+        const grouped = {
+          income: [],
+          expense: [],
+          asset: [],
+          liability: [],
+          equity: []
+        };
+        
+        // Also store full category objects for sub-category dropdown
+        const categoriesByType = {
+          income: [],
+          expense: [],
+          asset: [],
+          liability: [],
+          equity: []
+        };
+        
+        // Process top-level categories from database
+        categoriesData.forEach(cat => {
+          const accountType = cat.account_type?.toLowerCase();
+          if (accountType === 'revenue' || accountType === 'income') {
+            grouped.income.push(cat.category_name);
+            categoriesByType.income.push(cat);
+          } else if (accountType === 'expense') {
+            grouped.expense.push(cat.category_name);
+            categoriesByType.expense.push(cat);
+          } else if (accountType === 'asset') {
+            grouped.asset.push(cat.category_name);
+            categoriesByType.asset.push(cat);
+          } else if (accountType === 'liability') {
+            grouped.liability.push(cat.category_name);
+            categoriesByType.liability.push(cat);
+          } else if (accountType === 'equity') {
+            grouped.equity.push(cat.category_name);
+            categoriesByType.equity.push(cat);
+          }
+        });
+        
+        // Extract sub-categories from transaction types (like in NewGLAccount.js)
+        const subCategoriesFromTransactionTypes = {
+          income: [],
+          expense: [],
+          asset: [],
+          liability: [],
+          equity: []
+        };
+        
+        transactionTypesData.forEach(tt => {
+          const accountType = tt.account_type?.toLowerCase();
+          let mappedType = '';
+          
+          if (accountType === 'revenue' || accountType === 'income') {
+            mappedType = 'income';
+          } else if (accountType === 'expense') {
+            mappedType = 'expense';
+          } else if (accountType === 'asset') {
+            mappedType = 'asset';
+          } else if (accountType === 'liability') {
+            mappedType = 'liability';
+          } else if (accountType === 'equity') {
+            mappedType = 'equity';
+          }
+          
+          if (mappedType && tt.category_name) {
+            // Check if this sub-category already exists
+            if (!subCategoriesFromTransactionTypes[mappedType].some(cat => cat.category_name === tt.category_name)) {
+              // Create a category object from transaction type data
+              subCategoriesFromTransactionTypes[mappedType].push({
+                id: tt.id || `tt-${tt.category_name}`,
+                category_name: tt.category_name,
+                account_type: tt.account_type,
+                category_number: tt.category_number
+              });
+            }
+          }
+        });
+        
+        // Merge categories from database with sub-categories from transaction types
+        Object.keys(subCategoriesFromTransactionTypes).forEach(type => {
+          subCategoriesFromTransactionTypes[type].forEach(subCat => {
+            // Add to grouped if not already present
+            if (!grouped[type].includes(subCat.category_name)) {
+              grouped[type].push(subCat.category_name);
+            }
+            // Add to categoriesByType if not already present
+            if (!categoriesByType[type].some(cat => cat.category_name === subCat.category_name)) {
+              categoriesByType[type].push(subCat);
+            }
+          });
+        });
+        
+        // Remove duplicates and sort
+        grouped.income = [...new Set(grouped.income)].sort();
+        grouped.expense = [...new Set(grouped.expense)].sort();
+        grouped.asset = [...new Set(grouped.asset)].sort();
+        grouped.liability = [...new Set(grouped.liability)].sort();
+        grouped.equity = [...new Set(grouped.equity)].sort();
+        
+        setAccountCategories(grouped);
+        setCategoriesByType(categoriesByType);
+        
+        // Debug: Verify equity categories are loaded
+        if (categoriesByType.equity && categoriesByType.equity.length > 0) {
+          console.log('✅ Equity categories loaded:', categoriesByType.equity);
+        } else {
+          console.log('⚠️ No equity categories found. Equity array:', categoriesByType.equity);
+        }
       } catch (error) {
         console.error('Error fetching data:', error);
         setAccounts([]);
+        setAccountCategories({ income: [], expense: [], asset: [], liability: [], equity: [] });
+        setCategoriesByType({ income: [], expense: [], asset: [], liability: [], equity: [] });
       } finally {
         setAccountsLoading(false);
+        setCategoriesLoading(false);
       }
     };
     fetchData();
@@ -123,6 +319,123 @@ const OtherTransactions = () => {
       fetchGeneralLedger();
     } else if (activeTab === 'defineTransaction') {
       fetchTransactionTypes();
+      // Refresh account categories in case new ones were added
+      const refreshCategories = async () => {
+        try {
+          setCategoriesLoading(true);
+          const [categoriesData, transactionTypesData] = await Promise.all([
+            accountCategoryAPI.getAll().catch(() => []),
+            accountCategoryAPI.getAllTransactionTypes().catch(() => [])
+          ]);
+          
+          // Group categories by account_type (income, expense, asset, liability, equity)
+          const grouped = {
+            income: [],
+            expense: [],
+            asset: [],
+            liability: [],
+            equity: []
+          };
+          
+          const categoriesByType = {
+            income: [],
+            expense: [],
+            asset: [],
+            liability: [],
+            equity: []
+          };
+          
+          // Process top-level categories from database
+          categoriesData.forEach(cat => {
+            const accountType = cat.account_type?.toLowerCase();
+            if (accountType === 'revenue' || accountType === 'income') {
+              grouped.income.push(cat.category_name);
+              categoriesByType.income.push(cat);
+            } else if (accountType === 'expense') {
+              grouped.expense.push(cat.category_name);
+              categoriesByType.expense.push(cat);
+            } else if (accountType === 'asset') {
+              grouped.asset.push(cat.category_name);
+              categoriesByType.asset.push(cat);
+            } else if (accountType === 'liability') {
+              grouped.liability.push(cat.category_name);
+              categoriesByType.liability.push(cat);
+            } else if (accountType === 'equity') {
+              grouped.equity.push(cat.category_name);
+              categoriesByType.equity.push(cat);
+            }
+          });
+          
+          // Extract sub-categories from transaction types
+          const subCategoriesFromTransactionTypes = {
+            income: [],
+            expense: [],
+            asset: [],
+            liability: [],
+            equity: []
+          };
+          
+          transactionTypesData.forEach(tt => {
+            const accountType = tt.account_type?.toLowerCase();
+            let mappedType = '';
+            
+            if (accountType === 'revenue' || accountType === 'income') {
+              mappedType = 'income';
+            } else if (accountType === 'expense') {
+              mappedType = 'expense';
+            } else if (accountType === 'asset') {
+              mappedType = 'asset';
+            } else if (accountType === 'liability') {
+              mappedType = 'liability';
+            } else if (accountType === 'equity') {
+              mappedType = 'equity';
+            }
+            
+            if (mappedType && tt.category_name) {
+              // Check if this sub-category already exists
+              if (!subCategoriesFromTransactionTypes[mappedType].some(cat => cat.category_name === tt.category_name)) {
+                // Create a category object from transaction type data
+                subCategoriesFromTransactionTypes[mappedType].push({
+                  id: tt.id || `tt-${tt.category_name}`,
+                  category_name: tt.category_name,
+                  account_type: tt.account_type,
+                  category_number: tt.category_number
+                });
+              }
+            }
+          });
+          
+          // Merge categories from database with sub-categories from transaction types
+          Object.keys(subCategoriesFromTransactionTypes).forEach(type => {
+            subCategoriesFromTransactionTypes[type].forEach(subCat => {
+              // Add to grouped if not already present
+              if (!grouped[type].includes(subCat.category_name)) {
+                grouped[type].push(subCat.category_name);
+              }
+              // Add to categoriesByType if not already present
+              if (!categoriesByType[type].some(cat => cat.category_name === subCat.category_name)) {
+                categoriesByType[type].push(subCat);
+              }
+            });
+          });
+          
+          // Remove duplicates and sort
+          grouped.income = [...new Set(grouped.income)].sort();
+          grouped.expense = [...new Set(grouped.expense)].sort();
+          grouped.asset = [...new Set(grouped.asset)].sort();
+          grouped.liability = [...new Set(grouped.liability)].sort();
+          grouped.equity = [...new Set(grouped.equity)].sort();
+          
+          setAccountCategories(grouped);
+          setCategoriesByType(categoriesByType);
+        } catch (error) {
+          console.error('Error refreshing categories:', error);
+        } finally {
+          setCategoriesLoading(false);
+        }
+      };
+      refreshCategories();
+      
       // Fetch Chart of Accounts for GL Account dropdown
       const loadCoA = async () => {
         try {
@@ -181,7 +494,12 @@ const OtherTransactions = () => {
     if (activeCategory === 'all') {
       return vouchers;
     }
-    return vouchers.filter(v => v.account_type === activeCategory);
+    // Filter by base category - handle both old base categories and new specific categories
+    return vouchers.filter(v => {
+      if (v.account_type === activeCategory) return true; // Exact match for old data
+      const baseCategory = getBaseCategory(v.account_type);
+      return baseCategory === activeCategory; // Match by base category for new specific categories
+    });
   };
 
   // Filter out reversed transactions and reversals for the Reverse Transaction dropdown
@@ -225,9 +543,15 @@ const OtherTransactions = () => {
     try {
       setTransactionTypesLoading(true);
       const data = await otherTransactionTypeAPI.getAll();
-      setDefinedTransactionTypes(data || []);
+      console.log('📥 All transaction types fetched:', data);
+      
+      // Filter to only show active transaction types
+      const activeTypes = (data || []).filter(t => t.is_active !== false);
+      console.log('✅ Active transaction types:', activeTypes);
+      
+      setDefinedTransactionTypes(activeTypes);
     } catch (error) {
-      console.error('Error fetching transaction types:', error);
+      console.error('❌ Error fetching transaction types:', error);
       setDefinedTransactionTypes([]);
     } finally {
       setTransactionTypesLoading(false);
@@ -237,18 +561,58 @@ const OtherTransactions = () => {
   // Handle transaction type form changes
   const handleTransactionTypeChange = (e) => {
     const { name, value } = e.target;
-    setTransactionTypeForm(prev => ({
-      ...prev,
-      [name]: value
-    }));
+    
+    // If category (main category) changes, clear sub_category and transaction_type_name
+    if (name === 'category') {
+      // Debug: Log when equity is selected
+      if (value === 'equity') {
+        console.log('🔵 Equity selected. Available categories:', categoriesByType.equity);
+        console.log('🔵 categoriesByType object keys:', Object.keys(categoriesByType));
+        console.log('🔵 categoriesByType.equity exists?', !!categoriesByType.equity);
+        console.log('🔵 categoriesByType.equity length:', categoriesByType.equity?.length || 0);
+      }
+      setTransactionTypeForm(prev => ({
+        ...prev,
+        category: value,
+        sub_category: '', // Clear sub category when main category changes
+        transaction_type_name: '', // Clear transaction type name when category changes
+        gl_account_code: '', // Clear GL account code when category changes
+        coa_description: '' // Clear COA description when category changes
+      }));
+    } else if (name === 'sub_category') {
+      // If sub_category changes, clear transaction_type_name
+      setTransactionTypeForm(prev => ({
+        ...prev,
+        sub_category: value,
+        transaction_type_name: '', // Clear transaction type name when sub category changes
+        gl_account_code: '', // Clear GL account code when sub category changes
+        coa_description: '' // Clear COA description when sub category changes
+      }));
+    } else if (name === 'transaction_type_name') {
+      // If transaction_type_name changes, clear GL account code and COA description
+      // This ensures filtering works correctly when a new transaction type is selected
+      setTransactionTypeForm(prev => ({
+        ...prev,
+        transaction_type_name: value,
+        gl_account_code: '', // Clear GL account code when transaction type changes
+        coa_description: '', // Clear COA description when transaction type changes
+        coaSearchTerm: '' // Clear search term
+      }));
+      setCoaSearchTerm(''); // Clear the search term state
+    } else {
+      setTransactionTypeForm(prev => ({
+        ...prev,
+        [name]: value
+      }));
+    }
   };
 
   // Handle transaction type form submission
   const handleTransactionTypeSubmit = async (e) => {
     e.preventDefault();
     
-    if (!transactionTypeForm.category || !transactionTypeForm.transaction_type_name) {
-      setTransactionTypeMessage('Category and Transaction Type Name are required');
+    if (!transactionTypeForm.category || !transactionTypeForm.sub_category || !transactionTypeForm.transaction_type_name) {
+      setTransactionTypeMessage('Category, Sub Category, and Transaction Type Name are required');
       setTimeout(() => setTransactionTypeMessage(''), 3000);
       return;
     }
@@ -260,23 +624,44 @@ const OtherTransactions = () => {
     }
 
     try {
+      // Prepare data for backend: send base category (income, expense, asset, liability) as category
+      // The backend validation expects base categories or specific hardcoded categories
+      const submitData = {
+        category: transactionTypeForm.category, // Send base category (income, expense, asset, liability)
+        sub_category: transactionTypeForm.sub_category, // Store the sub-category name separately
+        transaction_type_name: transactionTypeForm.transaction_type_name,
+        gl_account_code: transactionTypeForm.gl_account_code,
+        use_common_account: transactionTypeForm.use_common_account,
+        description: transactionTypeForm.description,
+        coa_description: transactionTypeForm.coa_description || null // Description from Chart of Accounts
+      };
+      
+      // Debug: Log what we're sending
+      console.log('📤 Submitting transaction type with coa_description:', {
+        gl_account_code: submitData.gl_account_code,
+        coa_description: submitData.coa_description,
+        has_coa_description: !!submitData.coa_description
+      });
+      
       if (editingTransactionTypeId) {
         // Update existing transaction type
-        await otherTransactionTypeAPI.update(editingTransactionTypeId, transactionTypeForm);
+        await otherTransactionTypeAPI.update(editingTransactionTypeId, submitData);
         setTransactionTypeMessage('Transaction type updated successfully!');
       } else {
         // Create new transaction type
-        await otherTransactionTypeAPI.create(transactionTypeForm);
+        await otherTransactionTypeAPI.create(submitData);
         setTransactionTypeMessage('Transaction type created successfully!');
       }
       
       // Reset form and fetch updated list
       setTransactionTypeForm({
         category: '',
+        sub_category: '',
         transaction_type_name: '',
         gl_account_code: '',
         use_common_account: true,
-        description: ''
+        description: '',
+        coa_description: ''
       });
       setEditingTransactionTypeId(null);
       fetchTransactionTypes();
@@ -291,12 +676,34 @@ const OtherTransactions = () => {
 
   // Handle edit transaction type
   const handleEditTransactionType = (transactionType) => {
+    // Determine main category from the sub_category (category_name)
+    // The backend stores the sub-category name in the 'category' field
+    const subCategoryName = transactionType.category || transactionType.sub_category || '';
+    
+    // Find which main category this sub-category belongs to
+    let mainCategory = '';
+    for (const [type, categories] of Object.entries(categoriesByType)) {
+      if (categories.some(cat => cat.category_name === subCategoryName)) {
+        mainCategory = type;
+        break;
+      }
+    }
+    
+    // Get coa_description from saved transaction type, or find from chart of accounts if not saved
+    let coaDescription = transactionType.coa_description || '';
+    if (!coaDescription && transactionType.gl_account_code) {
+      const selectedCoaAccount = chartAccounts.find(acc => acc.account_code === transactionType.gl_account_code);
+      coaDescription = selectedCoaAccount?.description || '';
+    }
+    
     setTransactionTypeForm({
-      category: transactionType.category,
+      category: mainCategory, // Main category (Income, Expense, Asset, Liability)
+      sub_category: subCategoryName, // Sub category (the actual category name)
       transaction_type_name: transactionType.transaction_type_name,
       gl_account_code: transactionType.gl_account_code || '',
       use_common_account: transactionType.use_common_account !== undefined ? !!transactionType.use_common_account : true,
-      description: transactionType.description || ''
+      description: transactionType.description || '',
+      coa_description: coaDescription
     });
     setEditingTransactionTypeId(transactionType.id);
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -324,42 +731,204 @@ const OtherTransactions = () => {
   const handleCancelEdit = () => {
     setTransactionTypeForm({
       category: '',
+      sub_category: '',
       transaction_type_name: '',
       gl_account_code: '',
-      description: ''
+      use_common_account: true,
+      description: '',
+      coa_description: ''
     });
     setEditingTransactionTypeId(null);
   };
 
-  // Group transaction types by category
-  const groupedTransactionTypes = {
-    income: definedTransactionTypes.filter(t => t.category === 'income'),
-    expense: definedTransactionTypes.filter(t => t.category === 'expense'),
-    asset: definedTransactionTypes.filter(t => t.category === 'asset'),
-    liability: definedTransactionTypes.filter(t => t.category === 'liability')
+  // Helper function to get base category from specific category
+  const getBaseCategory = (category) => {
+    if (!category) return null;
+    const catLower = category.toLowerCase();
+    if (catLower === 'income') return 'income';
+    if (catLower === 'expense') return 'expense';
+    if (catLower === 'asset' || catLower.includes('asset')) return 'asset';
+    if (catLower === 'liability' || catLower.includes('liability')) return 'liability';
+    return null;
   };
 
-  // Fetch transaction types when account type changes
+  // Group transaction types by base category (for backward compatibility)
+  // Use useMemo to ensure it recalculates when definedTransactionTypes changes
+  const groupedTransactionTypes = useMemo(() => {
+    console.log('🔄 Regrouping transaction types. Total items:', definedTransactionTypes.length);
+    
+    const groups = {
+      income: [],
+      expense: [],
+      asset: [],
+      liability: []
+    };
+    
+    // First, let's see what we're working with
+    const allCategories = definedTransactionTypes.map(t => t.category);
+    console.log('📋 All categories in data:', allCategories);
+    
+    definedTransactionTypes.forEach(t => {
+      if (!t.category) {
+        console.warn('⚠️ Transaction type with no category:', t);
+        return;
+      }
+      
+      // Normalize category - handle both original case and lowercase versions
+      const originalCategory = String(t.category);
+      const cat = originalCategory.toLowerCase().trim();
+      
+      console.log(`🔍 Processing: "${originalCategory}" -> normalized: "${cat}"`);
+      
+      // Match income
+      if (cat === 'income') {
+        groups.income.push(t);
+        console.log(`  ✅ Added to income`);
+        return;
+      }
+      
+      // Match expense
+      if (cat === 'expense') {
+        groups.expense.push(t);
+        console.log(`  ✅ Added to expense`);
+        return;
+      }
+      
+      // Match asset (including Current Assets, Non-Current Assets, etc.)
+      if (cat === 'asset' || cat.includes('asset')) {
+        groups.asset.push(t);
+        console.log(`  ✅ Added to asset`);
+        return;
+      }
+      
+      // Match liability (including Current Liabilities, Non-Current Liabilities, etc.)
+      if (cat === 'liability' || cat.includes('liability')) {
+        groups.liability.push(t);
+        console.log(`  ✅ Added to liability`);
+        return;
+      }
+      
+      // If it didn't match any category, log it for debugging
+      console.warn(`  ❌ UNMATCHED category:`, {
+        id: t.id,
+        name: t.transaction_type_name,
+        original: originalCategory,
+        normalized: cat
+      });
+    });
+    
+    // Debug logging - always log to help diagnose
+    console.log('=== 📊 FINAL GROUPING RESULTS ===');
+    console.log('Income count:', groups.income.length);
+    console.log('Expense count:', groups.expense.length);
+    console.log('Asset count:', groups.asset.length);
+    console.log('Liability count:', groups.liability.length);
+    console.log('================================');
+    
+    return groups;
+  }, [definedTransactionTypes]);
+
+  // Fetch transaction types when subCategory changes (for Create Voucher tab)
   useEffect(() => {
-    if (form.accountType) {
-      const fetchTransactionTypesForCategory = async () => {
+    if (form.subCategory && form.category) {
+      const fetchTransactionTypesForSubCategory = async () => {
         try {
-          const data = await otherTransactionTypeAPI.getByCategory(form.accountType);
-          setTransactionTypes(prev => ({
-            ...prev,
-            [form.accountType]: data.map(t => t.transaction_type_name)
-          }));
+          // Fetch transaction types by sub category (category_name) and account type
+          // Map form.category (income, expense, asset, liability) to account_type
+          const accountType = form.category.toLowerCase();
+          const data = await accountCategoryAPI.getTransactionTypesByCategoryName(form.subCategory, accountType);
+          setTransactionTypes(data.map(t => t.transaction_type_name));
         } catch (error) {
-          console.error('Error fetching transaction types for category:', error);
-          setTransactionTypes(prev => ({
-            ...prev,
-            [form.accountType]: []
-          }));
+          console.error('Error fetching transaction types for sub category:', error);
+          setTransactionTypes([]);
         }
       };
-      fetchTransactionTypesForCategory();
+      fetchTransactionTypesForSubCategory();
+    } else {
+      // Clear transaction types when sub category or category is cleared
+      setTransactionTypes([]);
     }
-  }, [form.accountType]);
+  }, [form.subCategory, form.category]);
+
+  // Fetch defined transaction types when transactionType changes (for Create Voucher tab)
+  useEffect(() => {
+    if (form.transactionType && form.category) {
+      const fetchDefinedTransactionTypes = async () => {
+        try {
+          setDefinedTransactionTypesLoading(true);
+          // Fetch all defined transaction types for the current user
+          const allDefinedTypes = await otherTransactionTypeAPI.getAll();
+          // Filter by transaction_type_name and category, and only show active ones
+          const filtered = (allDefinedTypes || []).filter(type => 
+            type.transaction_type_name === form.transactionType &&
+            type.category?.toLowerCase() === form.category.toLowerCase() &&
+            type.is_active !== false
+          );
+          setDefinedTransactionTypesForVoucher(filtered);
+        } catch (error) {
+          console.error('Error fetching defined transaction types:', error);
+          setDefinedTransactionTypesForVoucher([]);
+        } finally {
+          setDefinedTransactionTypesLoading(false);
+        }
+      };
+      fetchDefinedTransactionTypes();
+    } else {
+      // Clear defined transaction types when transaction type is cleared
+      setDefinedTransactionTypesForVoucher([]);
+      setForm(prev => ({
+        ...prev,
+        selectedTransactionTypeId: '',
+        glAccountCode: '',
+        coaDescription: ''
+      }));
+    }
+  }, [form.transactionType, form.category]);
+
+  // Fetch transaction types when sub_category changes (for Define Transaction tab)
+  useEffect(() => {
+    if (transactionTypeForm.sub_category && transactionTypeForm.category) {
+      const fetchTransactionTypesForSubCategory = async () => {
+        try {
+          // Fetch transaction types by sub category (category_name) and account type
+          // Map transactionTypeForm.category (income, expense, asset, liability) to account_type
+          const accountType = transactionTypeForm.category.toLowerCase();
+          const data = await accountCategoryAPI.getTransactionTypesByCategoryName(transactionTypeForm.sub_category, accountType);
+          // Store full objects to access transaction_type_code for filtering
+          setTransactionTypesForDefine(data || []);
+        } catch (error) {
+          console.error('Error fetching transaction types for sub category:', error);
+          setTransactionTypesForDefine([]);
+        }
+      };
+      fetchTransactionTypesForSubCategory();
+    } else {
+      // Clear transaction types when sub category or category is cleared
+      setTransactionTypesForDefine([]);
+    }
+  }, [transactionTypeForm.sub_category, transactionTypeForm.category]);
+
+  // Fetch transaction types when subCategory changes (for Reverse Transaction tab)
+  useEffect(() => {
+    if (reverseForm.subCategory && reverseForm.category) {
+      const fetchTransactionTypesForSubCategory = async () => {
+        try {
+          // Fetch transaction types by sub category (category_name) and account type
+          // Map reverseForm.category (income, expense, asset, liability) to account_type
+          const accountType = reverseForm.category.toLowerCase();
+          const data = await accountCategoryAPI.getTransactionTypesByCategoryName(reverseForm.subCategory, accountType);
+          setTransactionTypesForReverse(data.map(t => t.transaction_type_name));
+        } catch (error) {
+          console.error('Error fetching transaction types for sub category:', error);
+          setTransactionTypesForReverse([]);
+        }
+      };
+      fetchTransactionTypesForSubCategory();
+    } else {
+      // Clear transaction types when sub category or category is cleared
+      setTransactionTypesForReverse([]);
+    }
+  }, [reverseForm.subCategory, reverseForm.category]);
 
   // Calculate Cash Flow On Settlement when amount or fxRate changes
   useEffect(() => {
@@ -396,9 +965,21 @@ const OtherTransactions = () => {
       return;
     }
 
-    // If defined item changes, reset transaction type
-    if (name === 'accountType') {
-      setForm({ ...form, [name]: value, transactionType: '' });
+    // If main category changes, reset sub category and transaction type
+    if (name === 'category') {
+      setForm({ ...form, [name]: value, subCategory: '', transactionType: '', selectedTransactionTypeId: '', glAccountCode: '', coaDescription: '' });
+      return;
+    }
+    
+    // If sub category changes, reset transaction type
+    if (name === 'subCategory') {
+      setForm({ ...form, [name]: value, transactionType: '', selectedTransactionTypeId: '', glAccountCode: '', coaDescription: '' });
+      return;
+    }
+
+    // If transaction type changes, reset selected transaction type details
+    if (name === 'transactionType') {
+      setForm({ ...form, [name]: value, selectedTransactionTypeId: '', glAccountCode: '', coaDescription: '' });
       return;
     }
     
@@ -408,14 +989,45 @@ const OtherTransactions = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    const requiredFields = ['accountType'];
+    // Validate required fields
+    const requiredFields = [];
+    const missingFields = [];
 
-    const missingFields = requiredFields.filter(field => !form[field].trim());
+    if (!form.category || !form.category.trim()) {
+      missingFields.push('Category');
+    }
+    
+    if (!form.subCategory || !form.subCategory.trim()) {
+      missingFields.push('Sub Category');
+    }
+    
+    if (!form.transactionType || !form.transactionType.trim()) {
+      missingFields.push('Transaction Type Name');
+    }
+
+    if (!form.selectedTransactionTypeId || !form.selectedTransactionTypeId.toString().trim()) {
+      missingFields.push('Select Defined Transaction Account');
+    }
+    
+    if (!form.amount || form.amount === '' || isNaN(parseFloat(form.amount)) || parseFloat(form.amount) <= 0) {
+      missingFields.push('Amount (must be greater than zero)');
+    }
+    
+    if (!form.currency || !form.currency.trim()) {
+      missingFields.push('Currency');
+    }
+    
+    if (!form.date || !form.date.trim()) {
+      missingFields.push('Transaction Date');
+    }
 
     if (missingFields.length > 0) {
       alert(`Please fill in all required fields:\n- ${missingFields.join('\n- ')}`);
       return;
     }
+
+    // Account selection is optional - if not selected, backend will use default accounts
+    // No need to show warning since the field is marked as optional
 
     setIsSubmitting(true);
     setSubmitMessage('');
@@ -426,10 +1038,16 @@ const OtherTransactions = () => {
       const userEmail = user?.email || '';
 
       // Prepare transaction data
+      // Map main category to accountType for backend compatibility
+      const accountType = form.category.toLowerCase(); // category is now the main category (income, expense, asset, liability)
+      
       const transactionData = {
         voucherNumber: form.voucherNumber,
-        accountType: form.accountType,
+        accountType: accountType,
+        category: form.subCategory, // Send sub category as category (for backward compatibility)
         transactionType: form.transactionType,
+        glAccountCode: form.glAccountCode || null, // Selected GL account code from defined transaction type
+        coaDescription: form.coaDescription || null, // Selected COA description from defined transaction type
         description: form.description,
         amount: form.amount,
         date: form.date,
@@ -465,8 +1083,12 @@ const OtherTransactions = () => {
   const handleReset = () => {
     setForm({
       voucherNumber: generateVoucherNumber(),
-      accountType: '',
+      category: '',
+      subCategory: '',
       transactionType: '',
+      selectedTransactionTypeId: '',
+      glAccountCode: '',
+      coaDescription: '',
       description: '',
       amount: '',
       date: new Date().toISOString().split('T')[0],
@@ -487,12 +1109,114 @@ const OtherTransactions = () => {
     setSubmitMessage('');
   };
 
+  // Handler for Asset Depreciation form changes
+  const handleAssetDepreciationChange = (e) => {
+    const { name, value } = e.target;
+    setAssetDepreciationForm(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
+
+  // Handler for Asset Depreciation form reset
+  const handleAssetDepreciationReset = () => {
+    setAssetDepreciationForm({
+      voucherNumber: generateVoucherNumber(),
+      assetAccountCode: '',
+      assetAccountName: '',
+      depreciationExpenseAccountCode: '',
+      depreciationExpenseAccountName: '',
+      accumulatedDepreciationAccountCode: '',
+      accumulatedDepreciationAccountName: '',
+      depreciationAmount: '',
+      depreciationDate: new Date().toISOString().split('T')[0],
+      description: '',
+      reference: '',
+      notes: ''
+    });
+    setSubmitMessage('');
+  };
+
+  // Handler for Asset Derecognition form changes
+  const handleAssetDerecognitionChange = (e) => {
+    const { name, value } = e.target;
+    setAssetDerecognitionForm(prev => {
+      const updated = { ...prev, [name]: value };
+      
+      // Auto-calculate gain/loss if both book value and sale proceeds are provided
+      if (name === 'assetBookValue' || name === 'saleProceeds') {
+        const bookValue = parseFloat(name === 'assetBookValue' ? value : prev.assetBookValue) || 0;
+        const proceeds = parseFloat(name === 'saleProceeds' ? value : prev.saleProceeds) || 0;
+        const gainLoss = proceeds - bookValue;
+        updated.gainLossAmount = gainLoss !== 0 ? gainLoss.toFixed(2) : '';
+      }
+      
+      return updated;
+    });
+  };
+
+  // Handler for Asset Derecognition form reset
+  const handleAssetDerecognitionReset = () => {
+    setAssetDerecognitionForm({
+      voucherNumber: generateVoucherNumber(),
+      assetAccountCode: '',
+      assetAccountName: '',
+      accumulatedDepreciationAccountCode: '',
+      accumulatedDepreciationAccountName: '',
+      proceedsAccountCode: '',
+      proceedsAccountName: '',
+      gainLossAccountCode: '',
+      gainLossAccountName: '',
+      assetBookValue: '',
+      saleProceeds: '',
+      gainLossAmount: '',
+      derecognitionDate: new Date().toISOString().split('T')[0],
+      description: '',
+      reference: '',
+      notes: ''
+    });
+    setSubmitMessage('');
+  };
+
+  // Handler for Liability Settlement form changes
+  const handleLiabilitySettlementChange = (e) => {
+    const { name, value } = e.target;
+    setLiabilitySettlementForm(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
+
+  // Handler for Liability Settlement form reset
+  const handleLiabilitySettlementReset = () => {
+    setLiabilitySettlementForm({
+      voucherNumber: generateVoucherNumber(),
+      liabilityAccountCode: '',
+      liabilityAccountName: '',
+      paymentAccountCode: '',
+      paymentAccountName: '',
+      settlementAmount: '',
+      settlementDate: new Date().toISOString().split('T')[0],
+      description: '',
+      reference: '',
+      notes: ''
+    });
+    setSubmitMessage('');
+  };
+
   // Handle view voucher details - reuse the existing preview modal
   const handleViewVoucher = (voucher) => {
+    // Determine main category from account_type
+    const mainCategory = voucher.account_type?.toLowerCase() || '';
+    
+    // Find sub category from voucher's category field (which stores the sub category name)
+    const subCategoryName = voucher.category || '';
+    
     // Populate form with voucher data for preview
     setForm({
       voucherNumber: voucher.voucher_number,
-      accountType: voucher.account_type,
+      category: mainCategory,
+      subCategory: subCategoryName,
       transactionType: voucher.transaction_type || '',
       description: voucher.description || '',
       amount: voucher.amount || '',
@@ -644,7 +1368,115 @@ const OtherTransactions = () => {
             <h2 className="other-trans-card-title">Transaction Information</h2>
           </div>
 
+          {/* Form Type Selection Buttons */}
+          <div style={{
+            display: 'flex',
+            gap: '1rem',
+            marginTop: '1.5rem',
+            marginBottom: '2rem',
+            padding: '0 1.5rem',
+            borderBottom: '2px solid #e5e7eb'
+          }}>
+            <button
+              type="button"
+              onClick={() => setActiveFormType('voucher')}
+              style={{
+                padding: '0.75rem 1.5rem',
+                border: 'none',
+                background: activeFormType === 'voucher' ? 'linear-gradient(135deg, #3b82f6, #2563eb)' : 'transparent',
+                color: activeFormType === 'voucher' ? 'white' : '#6b7280',
+                fontWeight: activeFormType === 'voucher' ? '600' : '500',
+                cursor: 'pointer',
+                fontSize: '0.9375rem',
+                borderRadius: '0.5rem 0.5rem 0 0',
+                borderBottom: activeFormType === 'voucher' ? '3px solid #3b82f6' : '3px solid transparent',
+                transition: 'all 0.2s ease',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.5rem'
+              }}
+            >
+              <svg width="18" height="18" fill="currentColor" viewBox="0 0 20 20">
+                <path fillRule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z" clipRule="evenodd"/>
+              </svg>
+              Create Voucher
+            </button>
+            <button
+              type="button"
+              onClick={() => setActiveFormType('assetDepreciation')}
+              style={{
+                padding: '0.75rem 1.5rem',
+                border: 'none',
+                background: activeFormType === 'assetDepreciation' ? 'linear-gradient(135deg, #3b82f6, #2563eb)' : 'transparent',
+                color: activeFormType === 'assetDepreciation' ? 'white' : '#6b7280',
+                fontWeight: activeFormType === 'assetDepreciation' ? '600' : '500',
+                cursor: 'pointer',
+                fontSize: '0.9375rem',
+                borderRadius: '0.5rem 0.5rem 0 0',
+                borderBottom: activeFormType === 'assetDepreciation' ? '3px solid #3b82f6' : '3px solid transparent',
+                transition: 'all 0.2s ease',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.5rem'
+              }}
+            >
+              <svg width="18" height="18" fill="currentColor" viewBox="0 0 20 20">
+                <path fillRule="evenodd" d="M11.49 3.17c-.38-1.56-2.6-1.56-2.98 0a1.532 1.532 0 01-2.286.948c-1.372-.836-2.942.734-2.106 2.106.54.886.061 2.042-.947 2.287-1.561.379-1.561 2.6 0 2.978a1.532 1.532 0 01.947 2.287c-.836 1.372.734 2.942 2.106 2.106a1.532 1.532 0 012.287.947c.379 1.561 2.6 1.561 2.978 0a1.533 1.533 0 012.287-.947c1.372.836 2.942-.734 2.106-2.106a1.533 1.533 0 01.947-2.287c1.561-.379 1.561-2.6 0-2.978a1.532 1.532 0 01-.947-2.287c.836-1.372-.734-2.942-2.106-2.106a1.532 1.532 0 01-2.287-.947zM10 13a3 3 0 100-6 3 3 0 000 6z" clipRule="evenodd"/>
+              </svg>
+              Asset Depreciation
+            </button>
+            <button
+              type="button"
+              onClick={() => setActiveFormType('assetDerecognition')}
+              style={{
+                padding: '0.75rem 1.5rem',
+                border: 'none',
+                background: activeFormType === 'assetDerecognition' ? 'linear-gradient(135deg, #3b82f6, #2563eb)' : 'transparent',
+                color: activeFormType === 'assetDerecognition' ? 'white' : '#6b7280',
+                fontWeight: activeFormType === 'assetDerecognition' ? '600' : '500',
+                cursor: 'pointer',
+                fontSize: '0.9375rem',
+                borderRadius: '0.5rem 0.5rem 0 0',
+                borderBottom: activeFormType === 'assetDerecognition' ? '3px solid #3b82f6' : '3px solid transparent',
+                transition: 'all 0.2s ease',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.5rem'
+              }}
+            >
+              <svg width="18" height="18" fill="currentColor" viewBox="0 0 20 20">
+                <path fillRule="evenodd" d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01.61-1.276z" clipRule="evenodd"/>
+              </svg>
+              Asset Derecognition
+            </button>
+            <button
+              type="button"
+              onClick={() => setActiveFormType('liabilitySettlement')}
+              style={{
+                padding: '0.75rem 1.5rem',
+                border: 'none',
+                background: activeFormType === 'liabilitySettlement' ? 'linear-gradient(135deg, #3b82f6, #2563eb)' : 'transparent',
+                color: activeFormType === 'liabilitySettlement' ? 'white' : '#6b7280',
+                fontWeight: activeFormType === 'liabilitySettlement' ? '600' : '500',
+                cursor: 'pointer',
+                fontSize: '0.9375rem',
+                borderRadius: '0.5rem 0.5rem 0 0',
+                borderBottom: activeFormType === 'liabilitySettlement' ? '3px solid #3b82f6' : '3px solid transparent',
+                transition: 'all 0.2s ease',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.5rem'
+              }}
+            >
+              <svg width="18" height="18" fill="currentColor" viewBox="0 0 20 20">
+                <path fillRule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm9.707 4.707a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd"/>
+              </svg>
+              Liability Settlement
+            </button>
+          </div>
+
           <div className="other-trans-form-content">
+            {activeFormType === 'voucher' ? (
             <form onSubmit={handleSubmit}>
               <div className="other-trans-form-grid">
 
@@ -695,56 +1527,215 @@ const OtherTransactions = () => {
                   </small>
                 </div>
 
-                {/* Account Type */}
+                {/* Main Category */}
                 <div className="other-trans-field-group">
-                  <label className="other-trans-field-label">Defined Item *</label>
+                  <label className="other-trans-field-label">Category *</label>
                   <select
-                    name="accountType"
-                    value={form.accountType}
+                    name="category"
+                    value={form.category}
                     onChange={handleChange}
                     className="other-trans-form-select"
+                    disabled={categoriesLoading}
                   >
-                    <option value="">Select Defined Item</option>
-                    <option value="asset">Asset</option>
-                    <option value="liability">Liability</option>
+                    <option value="">Select Main Category</option>
                     <option value="income">Income</option>
                     <option value="expense">Expense</option>
+                    <option value="asset">Asset</option>
+                    <option value="liability">Liability</option>
+                    <option value="equity">Equity</option>
                   </select>
+                  {categoriesLoading && (
+                    <small style={{ color: '#6b7280', fontSize: '0.75rem' }}>
+                      Loading categories...
+                    </small>
+                  )}
                 </div>
 
-                {/* Transaction Type */}
+                {/* Sub Category */}
                 <div className="other-trans-field-group">
-                  <label className="other-trans-field-label">Transaction Type</label>
+                  <label className="other-trans-field-label">Sub Category *</label>
+                  <select
+                    name="subCategory"
+                    value={form.subCategory}
+                    onChange={handleChange}
+                    className="other-trans-form-select"
+                    disabled={!form.category || categoriesLoading}
+                  >
+                    <option value="">Select Sub Category</option>
+                    {form.category && categoriesByType[form.category] && categoriesByType[form.category].map((cat) => (
+                      <option key={cat.id || cat.category_name} value={cat.category_name}>
+                        {cat.category_name}
+                          </option>
+                        ))}
+                  </select>
+                  {!form.category && (
+                    <small style={{ color: '#6b7280', fontSize: '0.75rem' }}>
+                      Please select a main category first
+                    </small>
+                  )}
+                  {form.category && (!categoriesByType[form.category] || categoriesByType[form.category].length === 0) && (
+                    <small style={{ color: '#f59e0b', fontSize: '0.75rem' }}>
+                      No sub-categories found for this main category. Please add categories in the "Account Category" screen first.
+                    </small>
+                  )}
+                </div>
+
+                {/* Transaction Type Name */}
+                <div className="other-trans-field-group">
+                  <label className="other-trans-field-label">Transaction Type Name *</label>
                   <select
                     name="transactionType"
                     value={form.transactionType}
                     onChange={handleChange}
                     className="other-trans-form-select"
-                    disabled={!form.accountType}
+                    disabled={!form.subCategory}
                   >
-                    <option value="">Select Transaction Type</option>
-                    {form.accountType && transactionTypes[form.accountType]?.map((type) => (
+                    <option value="">Select Transaction Type Name</option>
+                    {transactionTypes.map((type) => (
                       <option key={type} value={type}>
                         {type}
                       </option>
                     ))}
                   </select>
-                  {!form.accountType && (
+                  {!form.subCategory && (
                     <small style={{ color: '#6b7280', fontSize: '0.75rem' }}>
-                      Please select a Defined Item first
+                      Please select a Sub Category first
+                    </small>
+                  )}
+                  {form.subCategory && transactionTypes.length === 0 && (
+                    <small style={{ color: '#f59e0b', fontSize: '0.75rem' }}>
+                      No transaction types defined for this sub category. Define one in the "Define Transaction" tab.
                     </small>
                   )}
                 </div>
 
+                {/* Defined Transaction Accounts Selection */}
+                {form.transactionType && (
+                  <div className="other-trans-field-group" style={{ gridColumn: '1 / -1' }}>
+                    <label className="other-trans-field-label">Select Defined Transaction Account *</label>
+                    {definedTransactionTypesLoading ? (
+                      <div style={{ padding: '1rem', textAlign: 'center', color: '#6b7280' }}>
+                        Loading defined transaction accounts...
+                      </div>
+                    ) : definedTransactionTypesForVoucher.length === 0 ? (
+                      <div style={{ 
+                        padding: '1rem', 
+                        background: '#fee2e2', 
+                        border: '1px solid #ef4444', 
+                        borderRadius: '0.375rem',
+                        color: '#991b1b',
+                        fontSize: '0.875rem',
+                        fontWeight: '500'
+                      }}>
+                        ⚠️ No defined transaction accounts found for "{form.transactionType}". You must define at least one in the "Define Transaction" tab before creating a voucher.
+                      </div>
+                    ) : (
+                      <div style={{
+                        display: 'grid',
+                        gap: '0.75rem',
+                        marginTop: '0.5rem'
+                      }}>
+                        {definedTransactionTypesForVoucher.map((definedType) => (
+                          <div
+                            key={definedType.id}
+                            onClick={() => {
+                              setForm(prev => ({
+                                ...prev,
+                                selectedTransactionTypeId: definedType.id,
+                                glAccountCode: definedType.gl_account_code || '',
+                                coaDescription: definedType.coa_description || ''
+                              }));
+                            }}
+                            style={{
+                              padding: '1rem',
+                              border: `2px solid ${form.selectedTransactionTypeId === definedType.id ? '#3b82f6' : '#e5e7eb'}`,
+                              borderRadius: '0.5rem',
+                              background: form.selectedTransactionTypeId === definedType.id ? '#eff6ff' : 'white',
+                              cursor: 'pointer',
+                              transition: 'all 0.2s ease'
+                            }}
+                            onMouseEnter={(e) => {
+                              if (form.selectedTransactionTypeId !== definedType.id) {
+                                e.currentTarget.style.borderColor = '#93c5fd';
+                                e.currentTarget.style.background = '#f0f9ff';
+                              }
+                            }}
+                            onMouseLeave={(e) => {
+                              if (form.selectedTransactionTypeId !== definedType.id) {
+                                e.currentTarget.style.borderColor = '#e5e7eb';
+                                e.currentTarget.style.background = 'white';
+                              }
+                            }}
+                          >
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
+                              <div style={{
+                                width: '1.25rem',
+                                height: '1.25rem',
+                                borderRadius: '50%',
+                                border: `2px solid ${form.selectedTransactionTypeId === definedType.id ? '#3b82f6' : '#d1d5db'}`,
+                                background: form.selectedTransactionTypeId === definedType.id ? '#3b82f6' : 'white',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center'
+                              }}>
+                                {form.selectedTransactionTypeId === definedType.id && (
+                                  <div style={{
+                                    width: '0.625rem',
+                                    height: '0.625rem',
+                                    borderRadius: '50%',
+                                    background: 'white'
+                                  }} />
+                                )}
+                              </div>
+                              <div style={{ flex: 1 }}>
+                                {definedType.gl_account_code ? (
+                                  <div style={{ fontWeight: '600', color: '#1f2937', fontSize: '0.9375rem' }}>
+                                    {definedType.gl_account_code}
+                                  </div>
+                                ) : (
+                                  <div style={{ fontWeight: '600', color: '#6b7280', fontSize: '0.9375rem', fontStyle: 'italic' }}>
+                                    Common {form.category.charAt(0).toUpperCase() + form.category.slice(1)} Account
+                                  </div>
+                                )}
+                                {definedType.coa_description && (
+                                  <div style={{ color: '#059669', fontSize: '0.875rem', marginTop: '0.25rem', fontStyle: 'italic' }}>
+                                    {definedType.coa_description}
+                                  </div>
+                                )}
+                                {definedType.description && (
+                                  <div style={{ color: '#6b7280', fontSize: '0.8125rem', marginTop: '0.25rem' }}>
+                                    {definedType.description}
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                    {definedTransactionTypesForVoucher.length > 0 && !form.selectedTransactionTypeId && (
+                      <small style={{ color: '#dc2626', fontSize: '0.75rem', marginTop: '0.5rem', display: 'block', fontWeight: '500' }}>
+                        You must select a defined transaction account to proceed.
+                      </small>
+                    )}
+                    {definedTransactionTypesForVoucher.length > 0 && form.selectedTransactionTypeId && (
+                      <small style={{ color: '#059669', fontSize: '0.75rem', marginTop: '0.5rem', display: 'block' }}>
+                        ✓ Selected account will be used for GL entries.
+                      </small>
+                    )}
+                  </div>
+                )}
+
                 {/* Date */}
                 <div className="other-trans-field-group">
-                  <label className="other-trans-field-label">Transaction Date</label>
+                  <label className="other-trans-field-label">Transaction Date *</label>
                   <input
                     type="date"
                     name="date"
                     value={form.date}
                     onChange={handleChange}
                     className="other-trans-form-input"
+                    required
                   />
                 </div>
 
@@ -788,15 +1779,20 @@ const OtherTransactions = () => {
 
                 {/* Amount */}
                 <div className="other-trans-field-group">
-                  <label className="other-trans-field-label">Amount</label>
+                  <label className="other-trans-field-label">Amount *</label>
                   <input
                     type="number"
                     name="amount"
+                    step="0.01"
                     placeholder="Enter amount"
                     value={form.amount}
                     onChange={handleChange}
                     className="other-trans-form-input"
+                    required
                   />
+                  <small style={{ color: '#6b7280', fontSize: '0.75rem' }}>
+                    Must be greater than zero
+                  </small>
                 </div>
 
                 {/* Reference */}
@@ -889,7 +1885,7 @@ const OtherTransactions = () => {
                       className="other-trans-form-select"
                       disabled={accountsLoading}
                     >
-                      <option value="">Select an account</option>
+                      <option value="">Select an account (optional - defaults will be used if not selected)</option>
                       {accounts.map((account) => {
                         const hasMapping = accountsWithMapping.includes(account.id);
                         return (
@@ -905,14 +1901,24 @@ const OtherTransactions = () => {
                       })}
                     </select>
                     {accountsLoading && <small style={{ color: '#6b7280' }}>Loading accounts...</small>}
-                    {accounts.length > 0 && (
+                    {accounts.length > 0 && accountsWithMapping.length === 0 && (
                       <small style={{ 
                         display: 'block',
                         marginTop: '0.5rem',
-                        color: '#ef4444',
+                        color: '#f59e0b',
                         fontSize: '0.875rem'
                       }}>
-                        Only accounts with GL mappings can be selected
+                        ⚠️ No accounts with GL mappings found. Default accounts will be used for GL entries.
+                      </small>
+                    )}
+                    {accounts.length > 0 && accountsWithMapping.length > 0 && (
+                      <small style={{ 
+                        display: 'block',
+                        marginTop: '0.5rem',
+                        color: '#6b7280',
+                        fontSize: '0.875rem'
+                      }}>
+                        Only accounts with GL mappings are available. If no account is selected, defaults will be used.
                       </small>
                     )}
                   </div>
@@ -1031,6 +2037,998 @@ const OtherTransactions = () => {
                 </button>
               </div>
             </form>
+            ) : activeFormType === 'assetDepreciation' ? (
+            /* Asset Depreciation Form */
+            <form onSubmit={(e) => { e.preventDefault(); setSubmitMessage('Asset Depreciation form submission - Backend integration pending'); }}>
+              <div className="other-trans-form-grid">
+                
+                {/* Voucher Number */}
+                <div className="other-trans-field-group" style={{ gridColumn: '1 / -1' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
+                    <label className="other-trans-field-label" style={{ marginBottom: 0 }}>Voucher Number</label>
+                    <button
+                      type="button"
+                      onClick={() => setAssetDepreciationForm(prev => ({ ...prev, voucherNumber: generateVoucherNumber() }))}
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '0.5rem',
+                        padding: '0.5rem 1rem',
+                        background: 'linear-gradient(90deg, #3b82f6 0%, #2563eb 100%)',
+                        color: 'white',
+                        border: 'none',
+                        borderRadius: '0.15rem',
+                        cursor: 'pointer',
+                        fontSize: '0.875rem',
+                        fontWeight: '500',
+                        transition: 'all 0.2s ease'
+                      }}
+                    >
+                      <svg width="16" height="16" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01.61-1.276z" clipRule="evenodd"/>
+                      </svg>
+                      Regenerate
+                    </button>
+                  </div>
+                  <input
+                    name="voucherNumber"
+                    value={assetDepreciationForm.voucherNumber}
+                    onChange={handleAssetDepreciationChange}
+                    className="other-trans-form-input"
+                  />
+                  <small style={{ color: '#6b7280', fontSize: '0.75rem' }}>
+                    Auto-generated voucher number
+                  </small>
+                </div>
+
+                {/* Depreciation Date */}
+                <div className="other-trans-field-group">
+                  <label className="other-trans-field-label">Depreciation Date *</label>
+                  <input
+                    type="date"
+                    name="depreciationDate"
+                    value={assetDepreciationForm.depreciationDate}
+                    onChange={handleAssetDepreciationChange}
+                    className="other-trans-form-input"
+                    required
+                  />
+                </div>
+
+                {/* Reference */}
+                <div className="other-trans-field-group">
+                  <label className="other-trans-field-label">Reference</label>
+                  <input
+                    name="reference"
+                    placeholder="Enter reference number"
+                    value={assetDepreciationForm.reference}
+                    onChange={handleAssetDepreciationChange}
+                    className="other-trans-form-input"
+                  />
+                </div>
+
+                {/* Asset Account Section */}
+                <div className="other-trans-section-divider" style={{ 
+                  gridColumn: '1 / -1',
+                  margin: '2rem 0 1rem 0',
+                  borderTop: '2px solid #e5e7eb',
+                  paddingTop: '1.5rem'
+                }}>
+                  <div style={{ 
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '0.75rem',
+                    marginBottom: '1.5rem'
+                  }}>
+                    <div style={{
+                      width: '2.5rem',
+                      height: '2.5rem',
+                      background: 'linear-gradient(135deg, #10b981, #059669)',
+                      borderRadius: '0.15rem',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      boxShadow: '0 4px 6px -1px rgba(16, 185, 129, 0.11)'
+                    }}>
+                      <svg style={{ width: '1.25rem', height: '1.25rem', color: 'white' }} fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z" clipRule="evenodd"/>
+                      </svg>
+                    </div>
+                    <h3 style={{ fontSize: '1.125rem', fontWeight: '600', color: '#1f2937', margin: 0 }}>Asset Account</h3>
+                  </div>
+                  
+                  <div className="other-trans-form-grid">
+                    {/* Asset Account Code */}
+                    <div className="other-trans-field-group">
+                      <label className="other-trans-field-label">Asset Account Code *</label>
+                      <input
+                        name="assetAccountCode"
+                        placeholder="Enter asset account code (e.g., 101-XXX-XXX-XX)"
+                        value={assetDepreciationForm.assetAccountCode}
+                        onChange={handleAssetDepreciationChange}
+                        className="other-trans-form-input"
+                        required
+                      />
+                    </div>
+
+                    {/* Asset Account Name */}
+                    <div className="other-trans-field-group">
+                      <label className="other-trans-field-label">Asset Account Name *</label>
+                      <input
+                        name="assetAccountName"
+                        placeholder="Enter asset account name"
+                        value={assetDepreciationForm.assetAccountName}
+                        onChange={handleAssetDepreciationChange}
+                        className="other-trans-form-input"
+                        required
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Depreciation Expense Account Section */}
+                <div className="other-trans-section-divider" style={{ 
+                  gridColumn: '1 / -1',
+                  margin: '2rem 0 1rem 0',
+                  borderTop: '2px solid #e5e7eb',
+                  paddingTop: '1.5rem'
+                }}>
+                  <div style={{ 
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '0.75rem',
+                    marginBottom: '1.5rem'
+                  }}>
+                    <div style={{
+                      width: '2.5rem',
+                      height: '2.5rem',
+                      background: 'linear-gradient(135deg, #f59e0b, #d97706)',
+                      borderRadius: '0.15rem',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      boxShadow: '0 4px 6px -1px rgba(245, 158, 11, 0.11)'
+                    }}>
+                      <svg style={{ width: '1.25rem', height: '1.25rem', color: 'white' }} fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clipRule="evenodd"/>
+                      </svg>
+                    </div>
+                    <h3 style={{ fontSize: '1.125rem', fontWeight: '600', color: '#1f2937', margin: 0 }}>Depreciation Expense Account</h3>
+                  </div>
+                  
+                  <div className="other-trans-form-grid">
+                    {/* Depreciation Expense Account Code */}
+                    <div className="other-trans-field-group">
+                      <label className="other-trans-field-label">Depreciation Expense Account Code *</label>
+                      <input
+                        name="depreciationExpenseAccountCode"
+                        placeholder="Enter depreciation expense account code (e.g., 601-XXX-XXX-XX)"
+                        value={assetDepreciationForm.depreciationExpenseAccountCode}
+                        onChange={handleAssetDepreciationChange}
+                        className="other-trans-form-input"
+                        required
+                      />
+                    </div>
+
+                    {/* Depreciation Expense Account Name */}
+                    <div className="other-trans-field-group">
+                      <label className="other-trans-field-label">Depreciation Expense Account Name *</label>
+                      <input
+                        name="depreciationExpenseAccountName"
+                        placeholder="Enter depreciation expense account name"
+                        value={assetDepreciationForm.depreciationExpenseAccountName}
+                        onChange={handleAssetDepreciationChange}
+                        className="other-trans-form-input"
+                        required
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Accumulated Depreciation Account Section */}
+                <div className="other-trans-section-divider" style={{ 
+                  gridColumn: '1 / -1',
+                  margin: '2rem 0 1rem 0',
+                  borderTop: '2px solid #e5e7eb',
+                  paddingTop: '1.5rem'
+                }}>
+                  <div style={{ 
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '0.75rem',
+                    marginBottom: '1.5rem'
+                  }}>
+                    <div style={{
+                      width: '2.5rem',
+                      height: '2.5rem',
+                      background: 'linear-gradient(135deg, #8b5cf6, #7c3aed)',
+                      borderRadius: '0.15rem',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      boxShadow: '0 4px 6px -1px rgba(139, 92, 246, 0.11)'
+                    }}>
+                      <svg style={{ width: '1.25rem', height: '1.25rem', color: 'white' }} fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M3 3a1 1 0 000 2v8a2 2 0 002 2h2.586l-1.293 1.293a1 1 0 101.414 1.414L10 15.414l2.293 2.293a1 1 0 001.414-1.414L12.414 15H15a2 2 0 002-2V5a1 1 0 100-2H3zm11.707 4.707a1 1 0 00-1.414-1.414L10 9.586 8.707 8.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd"/>
+                      </svg>
+                    </div>
+                    <h3 style={{ fontSize: '1.125rem', fontWeight: '600', color: '#1f2937', margin: 0 }}>Accumulated Depreciation Account</h3>
+                  </div>
+                  
+                  <div className="other-trans-form-grid">
+                    {/* Accumulated Depreciation Account Code */}
+                    <div className="other-trans-field-group">
+                      <label className="other-trans-field-label">Accumulated Depreciation Account Code *</label>
+                      <input
+                        name="accumulatedDepreciationAccountCode"
+                        placeholder="Enter accumulated depreciation account code (e.g., 101-XXX-XXX-XX)"
+                        value={assetDepreciationForm.accumulatedDepreciationAccountCode}
+                        onChange={handleAssetDepreciationChange}
+                        className="other-trans-form-input"
+                        required
+                      />
+                    </div>
+
+                    {/* Accumulated Depreciation Account Name */}
+                    <div className="other-trans-field-group">
+                      <label className="other-trans-field-label">Accumulated Depreciation Account Name *</label>
+                      <input
+                        name="accumulatedDepreciationAccountName"
+                        placeholder="Enter accumulated depreciation account name"
+                        value={assetDepreciationForm.accumulatedDepreciationAccountName}
+                        onChange={handleAssetDepreciationChange}
+                        className="other-trans-form-input"
+                        required
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Depreciation Amount */}
+                <div className="other-trans-field-group">
+                  <label className="other-trans-field-label">Depreciation Amount *</label>
+                  <input
+                    type="number"
+                    name="depreciationAmount"
+                    step="0.01"
+                    placeholder="Enter depreciation amount"
+                    value={assetDepreciationForm.depreciationAmount}
+                    onChange={handleAssetDepreciationChange}
+                    className="other-trans-form-input"
+                    required
+                  />
+                  <small style={{ color: '#6b7280', fontSize: '0.75rem' }}>
+                    Must be greater than zero
+                  </small>
+                </div>
+
+                {/* Description */}
+                <div className="other-trans-field-group" style={{ gridColumn: '1 / -1' }}>
+                  <label className="other-trans-field-label">Description</label>
+                  <textarea
+                    name="description"
+                    placeholder="Enter depreciation description (e.g., Monthly depreciation for Machinery)"
+                    value={assetDepreciationForm.description}
+                    onChange={handleAssetDepreciationChange}
+                    rows="3"
+                    className="other-trans-form-textarea"
+                  ></textarea>
+                </div>
+
+                {/* Notes */}
+                <div className="other-trans-notes-section" style={{ gridColumn: '1 / -1' }}>
+                  <label className="other-trans-field-label">Notes & Additional Information</label>
+                  <textarea
+                    name="notes"
+                    placeholder="Add any additional notes or information..."
+                    value={assetDepreciationForm.notes}
+                    onChange={handleAssetDepreciationChange}
+                    rows="4"
+                    className="other-trans-form-textarea"
+                  ></textarea>
+                </div>
+              </div>
+
+              {/* Success/Error Message */}
+              {submitMessage && (
+                <div className={`other-trans-message ${submitMessage.includes('Error') ? 'other-trans-error' : 'other-trans-success'}`}>
+                  {submitMessage}
+                </div>
+              )}
+
+              {/* Buttons */}
+              <div className="other-trans-button-section">
+                <button
+                  type="button"
+                  onClick={handleAssetDepreciationReset}
+                  className="other-trans-btn other-trans-btn-secondary"
+                  disabled={isSubmitting}
+                >
+                  Reset Form
+                </button>
+                <button
+                  type="submit"
+                  className="other-trans-btn other-trans-btn-primary"
+                  disabled={isSubmitting}
+                >
+                  {isSubmitting ? 'Saving...' : 'Save Depreciation Entry'}
+                </button>
+              </div>
+            </form>
+            ) : activeFormType === 'assetDerecognition' ? (
+            /* Asset Derecognition Form */
+            <form onSubmit={(e) => { e.preventDefault(); setSubmitMessage('Asset Derecognition form submission - Backend integration pending'); }}>
+              <div className="other-trans-form-grid">
+                
+                {/* Voucher Number */}
+                <div className="other-trans-field-group" style={{ gridColumn: '1 / -1' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
+                    <label className="other-trans-field-label" style={{ marginBottom: 0 }}>Voucher Number</label>
+                    <button
+                      type="button"
+                      onClick={() => setAssetDerecognitionForm(prev => ({ ...prev, voucherNumber: generateVoucherNumber() }))}
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '0.5rem',
+                        padding: '0.5rem 1rem',
+                        background: 'linear-gradient(90deg, #3b82f6 0%, #2563eb 100%)',
+                        color: 'white',
+                        border: 'none',
+                        borderRadius: '0.15rem',
+                        cursor: 'pointer',
+                        fontSize: '0.875rem',
+                        fontWeight: '500',
+                        transition: 'all 0.2s ease'
+                      }}
+                    >
+                      <svg width="16" height="16" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01.61-1.276z" clipRule="evenodd"/>
+                      </svg>
+                      Regenerate
+                    </button>
+                  </div>
+                  <input
+                    name="voucherNumber"
+                    value={assetDerecognitionForm.voucherNumber}
+                    onChange={handleAssetDerecognitionChange}
+                    className="other-trans-form-input"
+                  />
+                  <small style={{ color: '#6b7280', fontSize: '0.75rem' }}>
+                    Auto-generated voucher number
+                  </small>
+                </div>
+
+                {/* Derecognition Date */}
+                <div className="other-trans-field-group">
+                  <label className="other-trans-field-label">Derecognition Date *</label>
+                  <input
+                    type="date"
+                    name="derecognitionDate"
+                    value={assetDerecognitionForm.derecognitionDate}
+                    onChange={handleAssetDerecognitionChange}
+                    className="other-trans-form-input"
+                    required
+                  />
+                </div>
+
+                {/* Reference */}
+                <div className="other-trans-field-group">
+                  <label className="other-trans-field-label">Reference</label>
+                  <input
+                    name="reference"
+                    placeholder="Enter reference number"
+                    value={assetDerecognitionForm.reference}
+                    onChange={handleAssetDerecognitionChange}
+                    className="other-trans-form-input"
+                  />
+                </div>
+
+                {/* Asset Account Section */}
+                <div className="other-trans-section-divider" style={{ 
+                  gridColumn: '1 / -1',
+                  margin: '2rem 0 1rem 0',
+                  borderTop: '2px solid #e5e7eb',
+                  paddingTop: '1.5rem'
+                }}>
+                  <div style={{ 
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '0.75rem',
+                    marginBottom: '1.5rem'
+                  }}>
+                    <div style={{
+                      width: '2.5rem',
+                      height: '2.5rem',
+                      background: 'linear-gradient(135deg, #10b981, #059669)',
+                      borderRadius: '0.15rem',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      boxShadow: '0 4px 6px -1px rgba(16, 185, 129, 0.11)'
+                    }}>
+                      <svg style={{ width: '1.25rem', height: '1.25rem', color: 'white' }} fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z" clipRule="evenodd"/>
+                      </svg>
+                    </div>
+                    <h3 style={{ fontSize: '1.125rem', fontWeight: '600', color: '#1f2937', margin: 0 }}>Asset Being Sold/Disposed</h3>
+                  </div>
+                  
+                  <div className="other-trans-form-grid">
+                    {/* Asset Account Code */}
+                    <div className="other-trans-field-group">
+                      <label className="other-trans-field-label">Asset Account Code *</label>
+                      <input
+                        name="assetAccountCode"
+                        placeholder="Enter asset account code (e.g., 101-XXX-XXX-XX)"
+                        value={assetDerecognitionForm.assetAccountCode}
+                        onChange={handleAssetDerecognitionChange}
+                        className="other-trans-form-input"
+                        required
+                      />
+                    </div>
+
+                    {/* Asset Account Name */}
+                    <div className="other-trans-field-group">
+                      <label className="other-trans-field-label">Asset Account Name *</label>
+                      <input
+                        name="assetAccountName"
+                        placeholder="Enter asset account name"
+                        value={assetDerecognitionForm.assetAccountName}
+                        onChange={handleAssetDerecognitionChange}
+                        className="other-trans-form-input"
+                        required
+                      />
+                    </div>
+
+                    {/* Accumulated Depreciation Account Code */}
+                    <div className="other-trans-field-group">
+                      <label className="other-trans-field-label">Accumulated Depreciation Account Code *</label>
+                      <input
+                        name="accumulatedDepreciationAccountCode"
+                        placeholder="Enter accumulated depreciation account code"
+                        value={assetDerecognitionForm.accumulatedDepreciationAccountCode}
+                        onChange={handleAssetDerecognitionChange}
+                        className="other-trans-form-input"
+                        required
+                      />
+                    </div>
+
+                    {/* Accumulated Depreciation Account Name */}
+                    <div className="other-trans-field-group">
+                      <label className="other-trans-field-label">Accumulated Depreciation Account Name *</label>
+                      <input
+                        name="accumulatedDepreciationAccountName"
+                        placeholder="Enter accumulated depreciation account name"
+                        value={assetDerecognitionForm.accumulatedDepreciationAccountName}
+                        onChange={handleAssetDerecognitionChange}
+                        className="other-trans-form-input"
+                        required
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Financial Details Section */}
+                <div className="other-trans-section-divider" style={{ 
+                  gridColumn: '1 / -1',
+                  margin: '2rem 0 1rem 0',
+                  borderTop: '2px solid #e5e7eb',
+                  paddingTop: '1.5rem'
+                }}>
+                  <div style={{ 
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '0.75rem',
+                    marginBottom: '1.5rem'
+                  }}>
+                    <div style={{
+                      width: '2.5rem',
+                      height: '2.5rem',
+                      background: 'linear-gradient(135deg, #3b82f6, #2563eb)',
+                      borderRadius: '0.15rem',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      boxShadow: '0 4px 6px -1px rgba(59, 130, 246, 0.11)'
+                    }}>
+                      <svg style={{ width: '1.25rem', height: '1.25rem', color: 'white' }} fill="currentColor" viewBox="0 0 20 20">
+                        <path d="M8 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0zM15 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0z"/>
+                        <path d="M3 4a1 1 0 00-1 1v10a1 1 0 001 1h1.05a2.5 2.5 0 014.9 0H10a1 1 0 001-1V5a1 1 0 00-1-1H3zM14 7a1 1 0 00-1 1v6.05A2.5 2.5 0 0115.95 16H17a1 1 0 001-1v-5a1 1 0 00-.293-.707l-2-2A1 1 0 0015 7h-1z"/>
+                      </svg>
+                    </div>
+                    <h3 style={{ fontSize: '1.125rem', fontWeight: '600', color: '#1f2937', margin: 0 }}>Financial Details</h3>
+                  </div>
+                  
+                  <div className="other-trans-form-grid">
+                    {/* Asset Book Value */}
+                    <div className="other-trans-field-group">
+                      <label className="other-trans-field-label">Asset Book Value *</label>
+                      <input
+                        type="number"
+                        name="assetBookValue"
+                        step="0.01"
+                        placeholder="Enter asset book value"
+                        value={assetDerecognitionForm.assetBookValue}
+                        onChange={handleAssetDerecognitionChange}
+                        className="other-trans-form-input"
+                        required
+                      />
+                      <small style={{ color: '#6b7280', fontSize: '0.75rem' }}>
+                        Net book value of the asset
+                      </small>
+                    </div>
+
+                    {/* Sale Proceeds */}
+                    <div className="other-trans-field-group">
+                      <label className="other-trans-field-label">Sale Proceeds *</label>
+                      <input
+                        type="number"
+                        name="saleProceeds"
+                        step="0.01"
+                        placeholder="Enter sale proceeds"
+                        value={assetDerecognitionForm.saleProceeds}
+                        onChange={handleAssetDerecognitionChange}
+                        className="other-trans-form-input"
+                        required
+                      />
+                      <small style={{ color: '#6b7280', fontSize: '0.75rem' }}>
+                        Amount received from sale
+                      </small>
+                    </div>
+
+                    {/* Gain/Loss Amount */}
+                    <div className="other-trans-field-group">
+                      <label className="other-trans-field-label">Gain/Loss Amount</label>
+                      <input
+                        type="number"
+                        name="gainLossAmount"
+                        step="0.01"
+                        placeholder="Auto-calculated"
+                        value={assetDerecognitionForm.gainLossAmount}
+                        onChange={handleAssetDerecognitionChange}
+                        className="other-trans-form-input"
+                        readOnly
+                        style={{ background: '#f3f4f6', cursor: 'not-allowed' }}
+                      />
+                      <small style={{ color: '#6b7280', fontSize: '0.75rem' }}>
+                        {parseFloat(assetDerecognitionForm.gainLossAmount || 0) > 0 ? 'Gain' : parseFloat(assetDerecognitionForm.gainLossAmount || 0) < 0 ? 'Loss' : 'Calculated automatically'}
+                      </small>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Proceeds Account Section */}
+                <div className="other-trans-section-divider" style={{ 
+                  gridColumn: '1 / -1',
+                  margin: '2rem 0 1rem 0',
+                  borderTop: '2px solid #e5e7eb',
+                  paddingTop: '1.5rem'
+                }}>
+                  <div style={{ 
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '0.75rem',
+                    marginBottom: '1.5rem'
+                  }}>
+                    <div style={{
+                      width: '2.5rem',
+                      height: '2.5rem',
+                      background: 'linear-gradient(135deg, #10b981, #059669)',
+                      borderRadius: '0.15rem',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      boxShadow: '0 4px 6px -1px rgba(16, 185, 129, 0.11)'
+                    }}>
+                      <svg style={{ width: '1.25rem', height: '1.25rem', color: 'white' }} fill="currentColor" viewBox="0 0 20 20">
+                        <path d="M4 4a2 2 0 00-2 2v1h16V6a2 2 0 00-2-2H4z"/>
+                        <path fillRule="evenodd" d="M18 9H2v5a2 2 0 002 2h12a2 2 0 002-2V9zM4 13a1 1 0 011-1h1a1 1 0 110 2H5a1 1 0 01-1-1zm5-1a1 1 0 100 2h1a1 1 0 100-2H9z" clipRule="evenodd"/>
+                      </svg>
+                    </div>
+                    <h3 style={{ fontSize: '1.125rem', fontWeight: '600', color: '#1f2937', margin: 0 }}>Proceeds Account (Cash/Bank)</h3>
+                  </div>
+                  
+                  <div className="other-trans-form-grid">
+                    {/* Proceeds Account Code */}
+                    <div className="other-trans-field-group">
+                      <label className="other-trans-field-label">Proceeds Account Code *</label>
+                      <input
+                        name="proceedsAccountCode"
+                        placeholder="Enter proceeds account code (e.g., 101-XXX-XXX-XX)"
+                        value={assetDerecognitionForm.proceedsAccountCode}
+                        onChange={handleAssetDerecognitionChange}
+                        className="other-trans-form-input"
+                        required
+                      />
+                    </div>
+
+                    {/* Proceeds Account Name */}
+                    <div className="other-trans-field-group">
+                      <label className="other-trans-field-label">Proceeds Account Name *</label>
+                      <input
+                        name="proceedsAccountName"
+                        placeholder="Enter proceeds account name"
+                        value={assetDerecognitionForm.proceedsAccountName}
+                        onChange={handleAssetDerecognitionChange}
+                        className="other-trans-form-input"
+                        required
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Gain/Loss Account Section */}
+                <div className="other-trans-section-divider" style={{ 
+                  gridColumn: '1 / -1',
+                  margin: '2rem 0 1rem 0',
+                  borderTop: '2px solid #e5e7eb',
+                  paddingTop: '1.5rem'
+                }}>
+                  <div style={{ 
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '0.75rem',
+                    marginBottom: '1.5rem'
+                  }}>
+                    <div style={{
+                      width: '2.5rem',
+                      height: '2.5rem',
+                      background: 'linear-gradient(135deg, #ef4444, #dc2626)',
+                      borderRadius: '0.15rem',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      boxShadow: '0 4px 6px -1px rgba(239, 68, 68, 0.11)'
+                    }}>
+                      <svg style={{ width: '1.25rem', height: '1.25rem', color: 'white' }} fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd"/>
+                      </svg>
+                    </div>
+                    <h3 style={{ fontSize: '1.125rem', fontWeight: '600', color: '#1f2937', margin: 0 }}>Gain/Loss on Disposal Account</h3>
+                  </div>
+                  
+                  <div className="other-trans-form-grid">
+                    {/* Gain/Loss Account Code */}
+                    <div className="other-trans-field-group">
+                      <label className="other-trans-field-label">Gain/Loss Account Code *</label>
+                      <input
+                        name="gainLossAccountCode"
+                        placeholder="Enter gain/loss account code (e.g., 401-XXX-XXX-XX for gain, 601-XXX-XXX-XX for loss)"
+                        value={assetDerecognitionForm.gainLossAccountCode}
+                        onChange={handleAssetDerecognitionChange}
+                        className="other-trans-form-input"
+                        required
+                      />
+                    </div>
+
+                    {/* Gain/Loss Account Name */}
+                    <div className="other-trans-field-group">
+                      <label className="other-trans-field-label">Gain/Loss Account Name *</label>
+                      <input
+                        name="gainLossAccountName"
+                        placeholder="Enter gain/loss account name"
+                        value={assetDerecognitionForm.gainLossAccountName}
+                        onChange={handleAssetDerecognitionChange}
+                        className="other-trans-form-input"
+                        required
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Description */}
+                <div className="other-trans-field-group" style={{ gridColumn: '1 / -1' }}>
+                  <label className="other-trans-field-label">Description</label>
+                  <textarea
+                    name="description"
+                    placeholder="Enter asset derecognition description (e.g., Sale of Machinery - Invoice #12345)"
+                    value={assetDerecognitionForm.description}
+                    onChange={handleAssetDerecognitionChange}
+                    rows="3"
+                    className="other-trans-form-textarea"
+                  ></textarea>
+                </div>
+
+                {/* Notes */}
+                <div className="other-trans-notes-section" style={{ gridColumn: '1 / -1' }}>
+                  <label className="other-trans-field-label">Notes & Additional Information</label>
+                  <textarea
+                    name="notes"
+                    placeholder="Add any additional notes or information..."
+                    value={assetDerecognitionForm.notes}
+                    onChange={handleAssetDerecognitionChange}
+                    rows="4"
+                    className="other-trans-form-textarea"
+                  ></textarea>
+                </div>
+              </div>
+
+              {/* Success/Error Message */}
+              {submitMessage && (
+                <div className={`other-trans-message ${submitMessage.includes('Error') ? 'other-trans-error' : 'other-trans-success'}`}>
+                  {submitMessage}
+                </div>
+              )}
+
+              {/* Buttons */}
+              <div className="other-trans-button-section">
+                <button
+                  type="button"
+                  onClick={handleAssetDerecognitionReset}
+                  className="other-trans-btn other-trans-btn-secondary"
+                  disabled={isSubmitting}
+                >
+                  Reset Form
+                </button>
+                <button
+                  type="submit"
+                  className="other-trans-btn other-trans-btn-primary"
+                  disabled={isSubmitting}
+                >
+                  {isSubmitting ? 'Saving...' : 'Save Derecognition Entry'}
+                </button>
+              </div>
+            </form>
+            ) : (
+            /* Liability Settlement Form */
+            <form onSubmit={(e) => { e.preventDefault(); setSubmitMessage('Liability Settlement form submission - Backend integration pending'); }}>
+              <div className="other-trans-form-grid">
+                
+                {/* Voucher Number */}
+                <div className="other-trans-field-group" style={{ gridColumn: '1 / -1' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
+                    <label className="other-trans-field-label" style={{ marginBottom: 0 }}>Voucher Number</label>
+                    <button
+                      type="button"
+                      onClick={() => setLiabilitySettlementForm(prev => ({ ...prev, voucherNumber: generateVoucherNumber() }))}
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '0.5rem',
+                        padding: '0.5rem 1rem',
+                        background: 'linear-gradient(90deg, #3b82f6 0%, #2563eb 100%)',
+                        color: 'white',
+                        border: 'none',
+                        borderRadius: '0.15rem',
+                        cursor: 'pointer',
+                        fontSize: '0.875rem',
+                        fontWeight: '500',
+                        transition: 'all 0.2s ease'
+                      }}
+                    >
+                      <svg width="16" height="16" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01.61-1.276z" clipRule="evenodd"/>
+                      </svg>
+                      Regenerate
+                    </button>
+                  </div>
+                  <input
+                    name="voucherNumber"
+                    value={liabilitySettlementForm.voucherNumber}
+                    onChange={handleLiabilitySettlementChange}
+                    className="other-trans-form-input"
+                  />
+                  <small style={{ color: '#6b7280', fontSize: '0.75rem' }}>
+                    Auto-generated voucher number
+                  </small>
+                </div>
+
+                {/* Settlement Date */}
+                <div className="other-trans-field-group">
+                  <label className="other-trans-field-label">Settlement Date *</label>
+                  <input
+                    type="date"
+                    name="settlementDate"
+                    value={liabilitySettlementForm.settlementDate}
+                    onChange={handleLiabilitySettlementChange}
+                    className="other-trans-form-input"
+                    required
+                  />
+                </div>
+
+                {/* Reference */}
+                <div className="other-trans-field-group">
+                  <label className="other-trans-field-label">Reference</label>
+                  <input
+                    name="reference"
+                    placeholder="Enter reference number"
+                    value={liabilitySettlementForm.reference}
+                    onChange={handleLiabilitySettlementChange}
+                    className="other-trans-form-input"
+                  />
+                </div>
+
+                {/* Liability Account Section */}
+                <div className="other-trans-section-divider" style={{ 
+                  gridColumn: '1 / -1',
+                  margin: '2rem 0 1rem 0',
+                  borderTop: '2px solid #e5e7eb',
+                  paddingTop: '1.5rem'
+                }}>
+                  <div style={{ 
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '0.75rem',
+                    marginBottom: '1.5rem'
+                  }}>
+                    <div style={{
+                      width: '2.5rem',
+                      height: '2.5rem',
+                      background: 'linear-gradient(135deg, #ef4444, #dc2626)',
+                      borderRadius: '0.15rem',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      boxShadow: '0 4px 6px -1px rgba(239, 68, 68, 0.11)'
+                    }}>
+                      <svg style={{ width: '1.25rem', height: '1.25rem', color: 'white' }} fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd"/>
+                      </svg>
+                    </div>
+                    <h3 style={{ fontSize: '1.125rem', fontWeight: '600', color: '#1f2937', margin: 0 }}>Liability Account</h3>
+                  </div>
+                  
+                  <div className="other-trans-form-grid">
+                    {/* Liability Account Code */}
+                    <div className="other-trans-field-group">
+                      <label className="other-trans-field-label">Liability Account Code *</label>
+                      <input
+                        name="liabilityAccountCode"
+                        placeholder="Enter liability account code (e.g., 201-XXX-XXX-XX)"
+                        value={liabilitySettlementForm.liabilityAccountCode}
+                        onChange={handleLiabilitySettlementChange}
+                        className="other-trans-form-input"
+                        required
+                      />
+                    </div>
+
+                    {/* Liability Account Name */}
+                    <div className="other-trans-field-group">
+                      <label className="other-trans-field-label">Liability Account Name *</label>
+                      <input
+                        name="liabilityAccountName"
+                        placeholder="Enter liability account name"
+                        value={liabilitySettlementForm.liabilityAccountName}
+                        onChange={handleLiabilitySettlementChange}
+                        className="other-trans-form-input"
+                        required
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Payment Account Section */}
+                <div className="other-trans-section-divider" style={{ 
+                  gridColumn: '1 / -1',
+                  margin: '2rem 0 1rem 0',
+                  borderTop: '2px solid #e5e7eb',
+                  paddingTop: '1.5rem'
+                }}>
+                  <div style={{ 
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '0.75rem',
+                    marginBottom: '1.5rem'
+                  }}>
+                    <div style={{
+                      width: '2.5rem',
+                      height: '2.5rem',
+                      background: 'linear-gradient(135deg, #10b981, #059669)',
+                      borderRadius: '0.15rem',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      boxShadow: '0 4px 6px -1px rgba(16, 185, 129, 0.11)'
+                    }}>
+                      <svg style={{ width: '1.25rem', height: '1.25rem', color: 'white' }} fill="currentColor" viewBox="0 0 20 20">
+                        <path d="M4 4a2 2 0 00-2 2v1h16V6a2 2 0 00-2-2H4z"/>
+                        <path fillRule="evenodd" d="M18 9H2v5a2 2 0 002 2h12a2 2 0 002-2V9zM4 13a1 1 0 011-1h1a1 1 0 110 2H5a1 1 0 01-1-1zm5-1a1 1 0 100 2h1a1 1 0 100-2H9z" clipRule="evenodd"/>
+                      </svg>
+                    </div>
+                    <h3 style={{ fontSize: '1.125rem', fontWeight: '600', color: '#1f2937', margin: 0 }}>Payment Account (Cash/Bank)</h3>
+                  </div>
+                  
+                  <div className="other-trans-form-grid">
+                    {/* Payment Account Code */}
+                    <div className="other-trans-field-group">
+                      <label className="other-trans-field-label">Payment Account Code *</label>
+                      <input
+                        name="paymentAccountCode"
+                        placeholder="Enter payment account code (e.g., 101-XXX-XXX-XX)"
+                        value={liabilitySettlementForm.paymentAccountCode}
+                        onChange={handleLiabilitySettlementChange}
+                        className="other-trans-form-input"
+                        required
+                      />
+                    </div>
+
+                    {/* Payment Account Name */}
+                    <div className="other-trans-field-group">
+                      <label className="other-trans-field-label">Payment Account Name *</label>
+                      <input
+                        name="paymentAccountName"
+                        placeholder="Enter payment account name"
+                        value={liabilitySettlementForm.paymentAccountName}
+                        onChange={handleLiabilitySettlementChange}
+                        className="other-trans-form-input"
+                        required
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Settlement Amount */}
+                <div className="other-trans-field-group">
+                  <label className="other-trans-field-label">Settlement Amount *</label>
+                  <input
+                    type="number"
+                    name="settlementAmount"
+                    step="0.01"
+                    placeholder="Enter settlement amount"
+                    value={liabilitySettlementForm.settlementAmount}
+                    onChange={handleLiabilitySettlementChange}
+                    className="other-trans-form-input"
+                    required
+                  />
+                  <small style={{ color: '#6b7280', fontSize: '0.75rem' }}>
+                    Must be greater than zero
+                  </small>
+                </div>
+
+                {/* Description */}
+                <div className="other-trans-field-group" style={{ gridColumn: '1 / -1' }}>
+                  <label className="other-trans-field-label">Description</label>
+                  <textarea
+                    name="description"
+                    placeholder="Enter liability settlement description (e.g., Settlement of Accounts Payable - Invoice #12345)"
+                    value={liabilitySettlementForm.description}
+                    onChange={handleLiabilitySettlementChange}
+                    rows="3"
+                    className="other-trans-form-textarea"
+                  ></textarea>
+                </div>
+
+                {/* Notes */}
+                <div className="other-trans-notes-section" style={{ gridColumn: '1 / -1' }}>
+                  <label className="other-trans-field-label">Notes & Additional Information</label>
+                  <textarea
+                    name="notes"
+                    placeholder="Add any additional notes or information..."
+                    value={liabilitySettlementForm.notes}
+                    onChange={handleLiabilitySettlementChange}
+                    rows="4"
+                    className="other-trans-form-textarea"
+                  ></textarea>
+                </div>
+              </div>
+
+              {/* Success/Error Message */}
+              {submitMessage && (
+                <div className={`other-trans-message ${submitMessage.includes('Error') ? 'other-trans-error' : 'other-trans-success'}`}>
+                  {submitMessage}
+                </div>
+              )}
+
+              {/* Buttons */}
+              <div className="other-trans-button-section">
+                <button
+                  type="button"
+                  onClick={handleLiabilitySettlementReset}
+                  className="other-trans-btn other-trans-btn-secondary"
+                  disabled={isSubmitting}
+                >
+                  Reset Form
+                </button>
+                <button
+                  type="submit"
+                  className="other-trans-btn other-trans-btn-primary"
+                  disabled={isSubmitting}
+                >
+                  {isSubmitting ? 'Saving...' : 'Save Settlement Entry'}
+                </button>
+              </div>
+            </form>
+            )}
           </div>
         </div>
         ) : activeTab === 'defineTransaction' ? (
@@ -1039,7 +3037,7 @@ const OtherTransactions = () => {
             <div className="other-trans-card-header">
               <h2 className="other-trans-card-title">Define Transaction Types</h2>
               <p style={{ color: '#ffffff', fontSize: '0.875rem', marginTop: '0.5rem', textAlign: 'center' }}>
-                Define custom transaction types for Income, Expense, Asset, and Liability categories
+                Define custom transaction types for Income, Expense, and Asset categories
               </p>
             </div>
             <div className="other-trans-form-content">
@@ -1054,26 +3052,78 @@ const OtherTransactions = () => {
                       onChange={handleTransactionTypeChange}
                       className="other-trans-form-select"
                       required
+                      disabled={categoriesLoading}
                     >
-                      <option value="">Select Category</option>
+                      <option value="">Select Main Category</option>
                       <option value="income">Income</option>
                       <option value="expense">Expense</option>
                       <option value="asset">Asset</option>
                       <option value="liability">Liability</option>
+                      <option value="equity">Equity</option>
                     </select>
-        </div>
+                    {categoriesLoading && (
+                      <small style={{ color: '#6b7280', fontSize: '0.75rem' }}>
+                        Loading categories...
+                      </small>
+                    )}
+                  </div>
+
+                  <div className="other-trans-field-group">
+                    <label className="other-trans-field-label">Sub Category *</label>
+                    <select
+                      name="sub_category"
+                      value={transactionTypeForm.sub_category}
+                      onChange={handleTransactionTypeChange}
+                      className="other-trans-form-select"
+                      required
+                      disabled={!transactionTypeForm.category || categoriesLoading}
+                    >
+                      <option value="">Select Sub Category</option>
+                      {transactionTypeForm.category && categoriesByType[transactionTypeForm.category]?.map((cat) => (
+                        <option key={cat.id || cat.category_name} value={cat.category_name}>
+                          {cat.category_name}
+                        </option>
+                      ))}
+                    </select>
+                    {!transactionTypeForm.category && (
+                      <small style={{ color: '#6b7280', fontSize: '0.75rem' }}>
+                        Please select a main category first
+                      </small>
+                    )}
+                    {transactionTypeForm.category && (!categoriesByType[transactionTypeForm.category] || categoriesByType[transactionTypeForm.category]?.length === 0) && (
+                      <small style={{ color: '#f59e0b', fontSize: '0.75rem' }}>
+                        No sub-categories found for this main category. Please add categories in the "Account Category" screen first.
+                      </small>
+                    )}
+                  </div>
 
                   <div className="other-trans-field-group">
                     <label className="other-trans-field-label">Transaction Type Name *</label>
-                    <input
-                      type="text"
+                    <select
                       name="transaction_type_name"
                       value={transactionTypeForm.transaction_type_name}
                       onChange={handleTransactionTypeChange}
-                      className="other-trans-form-input"
-                      placeholder="e.g., Salary, Rent Payment, etc."
+                      className="other-trans-form-select"
                       required
-                    />
+                      disabled={!transactionTypeForm.sub_category}
+                    >
+                      <option value="">Select Transaction Type Name</option>
+                      {transactionTypesForDefine.map((type) => (
+                        <option key={type.transaction_type_name || type.id} value={type.transaction_type_name}>
+                          {type.transaction_type_name}
+                        </option>
+                      ))}
+                    </select>
+                    {!transactionTypeForm.sub_category && (
+                      <small style={{ color: '#6b7280', fontSize: '0.75rem' }}>
+                        Please select a Sub Category first
+                      </small>
+                    )}
+                    {transactionTypeForm.sub_category && transactionTypesForDefine.length === 0 && (
+                      <small style={{ color: '#f59e0b', fontSize: '0.75rem' }}>
+                        No transaction types defined for this sub category. Define one in the "Account Category" screen first.
+                      </small>
+                    )}
                   </div>
 
                   <div className="other-trans-field-group" style={{ position: 'relative' }}>
@@ -1086,6 +3136,35 @@ const OtherTransactions = () => {
                         handleTransactionTypeChange(e);
                         setCoaSearchTerm(e.target.value);
                         setShowCoaList(true);
+                        // Try to find matching account and populate description
+                        const matchingAccount = chartAccounts.find(acc => 
+                          acc.account_code && acc.account_code.toLowerCase() === e.target.value.toLowerCase().trim()
+                        );
+                        if (matchingAccount) {
+                          setTransactionTypeForm(prev => ({ 
+                            ...prev, 
+                            gl_account_code: e.target.value,
+                            coa_description: matchingAccount.description || ''
+                          }));
+                        } else {
+                          // Clear coa_description if no match found
+                          setTransactionTypeForm(prev => ({ ...prev, coa_description: '' }));
+                        }
+                      }}
+                      onBlur={() => {
+                        // When user leaves the field, try to find exact match
+                        if (transactionTypeForm.gl_account_code) {
+                          const matchingAccount = chartAccounts.find(acc => 
+                            acc.account_code && acc.account_code.toLowerCase() === transactionTypeForm.gl_account_code.toLowerCase().trim()
+                          );
+                          if (matchingAccount) {
+                            setTransactionTypeForm(prev => ({ 
+                              ...prev, 
+                              coa_description: matchingAccount.description || ''
+                            }));
+                          }
+                        }
+                        setShowCoaList(false);
                       }}
                       onFocus={() => setShowCoaList(true)}
                       className="other-trans-form-input"
@@ -1106,21 +3185,64 @@ const OtherTransactions = () => {
                         overflowY: 'auto',
                         zIndex: 10
                       }}>
-                        {chartAccounts
-                          .filter((acc) => {
-                            const term = (coaSearchTerm || '').toLowerCase();
-                            if (!term) return true;
-                            return (
-                              (acc.account_code || '').toLowerCase().includes(term) ||
-                              (acc.description || '').toLowerCase().includes(term)
-                            );
-                          })
-                          .map((acc) => (
+                        {(() => {
+                          // Filter by Category (account_type), Sub Category (account_category), and Transaction Type Name (transaction_type)
+                          const selectedCategory = transactionTypeForm.category?.toLowerCase();
+                          const selectedSubCategory = transactionTypeForm.sub_category;
+                          const selectedTransactionTypeName = transactionTypeForm.transaction_type_name;
+
+                          return chartAccounts
+                            .filter((acc) => {
+                              // First filter by Category (account_type) if one is selected
+                              if (selectedCategory) {
+                                const accType = (acc.account_type || '').toLowerCase();
+                                // Map form category to account_type
+                                // income/revenue -> income, expense -> expense, asset -> asset, liability -> liability, equity -> equity
+                                let expectedAccountType = selectedCategory;
+                                if (selectedCategory === 'income') {
+                                  // Income can be 'income' or 'revenue'
+                                  if (accType !== 'income' && accType !== 'revenue') {
+                                    return false;
+                                  }
+                                } else if (accType !== expectedAccountType) {
+                                  return false;
+                                }
+                              }
+
+                              // Filter by Sub Category (account_category)
+                              if (selectedSubCategory) {
+                                const accCategory = (acc.account_category || '').trim();
+                                if (accCategory && accCategory !== selectedSubCategory) {
+                                  return false;
+                                }
+                              }
+
+                              // Filter by Transaction Type Name (transaction_type column in chart_of_accounts)
+                              if (selectedTransactionTypeName) {
+                                const accTransactionType = (acc.transaction_type || '').trim();
+                                if (accTransactionType && accTransactionType !== selectedTransactionTypeName) {
+                                  return false;
+                                }
+                              }
+
+                              // Then filter by search term
+                              const term = (coaSearchTerm || '').toLowerCase();
+                              if (!term) return true;
+                              return (
+                                (acc.account_code || '').toLowerCase().includes(term) ||
+                                (acc.description || '').toLowerCase().includes(term)
+                              );
+                            })
+                            .map((acc) => (
                             <div
                               key={acc.account_code}
                               onMouseDown={(e) => e.preventDefault()}
                               onClick={() => {
-                                setTransactionTypeForm(prev => ({ ...prev, gl_account_code: acc.account_code }));
+                                setTransactionTypeForm(prev => ({ 
+                                  ...prev, 
+                                  gl_account_code: acc.account_code,
+                                  coa_description: acc.description || ''
+                                }));
                                 setCoaSearchTerm(`${acc.account_code} - ${acc.description}`);
                                 setShowCoaList(false);
                               }}
@@ -1135,10 +3257,72 @@ const OtherTransactions = () => {
                               <div style={{ fontWeight: 600, color: '#111827', fontSize: '0.875rem' }}>{acc.account_code}</div>
                               <div style={{ color: '#6b7280', fontSize: '0.8125rem' }}>{acc.description}</div>
                             </div>
-                          ))}
-                        {chartAccounts.length === 0 && (
-                          <div style={{ padding: '0.5rem 0.75rem', color: '#6b7280' }}>No accounts loaded</div>
-                        )}
+                          ));
+                        })()}
+                        {(() => {
+                          // Filter by Category (account_type), Sub Category (account_category), and Transaction Type Name (transaction_type)
+                          const selectedCategory = transactionTypeForm.category?.toLowerCase();
+                          const selectedSubCategory = transactionTypeForm.sub_category;
+                          const selectedTransactionTypeName = transactionTypeForm.transaction_type_name;
+
+                          // Filter accounts by Category, Sub Category, and Transaction Type Name
+                          const filteredAccounts = chartAccounts.filter((acc) => {
+                            // Filter by Category (account_type) if one is selected
+                            if (selectedCategory) {
+                              const accType = (acc.account_type || '').toLowerCase();
+                              let expectedAccountType = selectedCategory;
+                              if (selectedCategory === 'income') {
+                                // Income can be 'income' or 'revenue'
+                                if (accType !== 'income' && accType !== 'revenue') {
+                                  return false;
+                                }
+                              } else if (accType !== expectedAccountType) {
+                                return false;
+                              }
+                            }
+
+                            // Filter by Sub Category (account_category)
+                            if (selectedSubCategory) {
+                              const accCategory = (acc.account_category || '').trim();
+                              if (accCategory && accCategory !== selectedSubCategory) {
+                                return false;
+                              }
+                            }
+
+                            // Filter by Transaction Type Name (transaction_type column in chart_of_accounts)
+                            if (selectedTransactionTypeName) {
+                              const accTransactionType = (acc.transaction_type || '').trim();
+                              if (accTransactionType && accTransactionType !== selectedTransactionTypeName) {
+                                return false;
+                              }
+                            }
+
+                            return true;
+                          });
+
+                          // Filter by search term
+                          const term = (coaSearchTerm || '').toLowerCase();
+                          const searchFiltered = term 
+                            ? filteredAccounts.filter(acc => 
+                                (acc.account_code || '').toLowerCase().includes(term) ||
+                                (acc.description || '').toLowerCase().includes(term)
+                              )
+                            : filteredAccounts;
+
+                          if (chartAccounts.length === 0) {
+                            return <div style={{ padding: '0.5rem 0.75rem', color: '#6b7280' }}>No accounts loaded</div>;
+                          }
+                          if ((selectedCategory || selectedSubCategory || selectedTransactionTypeName) && searchFiltered.length === 0) {
+                            const filterText = [];
+                            if (selectedCategory) filterText.push(`Category: ${transactionTypeForm.category}`);
+                            if (selectedSubCategory) filterText.push(`Sub Category: ${selectedSubCategory}`);
+                            if (selectedTransactionTypeName) filterText.push(`Transaction Type: ${selectedTransactionTypeName}`);
+                            return <div style={{ padding: '0.5rem 0.75rem', color: '#6b7280' }}>
+                              No accounts found matching {filterText.join(', ')}{term ? ` and search term "${coaSearchTerm}"` : ''}
+                            </div>;
+                          }
+                          return null;
+                        })()}
                       </div>
                     )}
                     {chartAccountsLoading && (
@@ -1160,7 +3344,8 @@ const OtherTransactions = () => {
                           setTransactionTypeForm(prev => ({
                             ...prev,
                             use_common_account: checked,
-                            gl_account_code: checked ? '' : prev.gl_account_code
+                            gl_account_code: checked ? '' : prev.gl_account_code,
+                            coa_description: checked ? '' : prev.coa_description
                           }));
                         }}
                         style={{ width: '1rem', height: '1rem' }}
@@ -1173,6 +3358,22 @@ const OtherTransactions = () => {
                     </label>
                     <small style={{ color: '#6b7280' }}>
                       Turn off to select a specific GL Account Code
+                    </small>
+                  </div>
+
+                  <div className="other-trans-field-group" style={{ gridColumn: '1 / -1' }}>
+                    <label className="other-trans-field-label">Description from Chart of Accounts</label>
+                    <textarea
+                      name="coa_description"
+                      value={transactionTypeForm.coa_description}
+                      readOnly
+                      className="other-trans-form-input other-trans-readonly-field"
+                      placeholder="Description will appear here when you select an account code"
+                      rows="2"
+                      style={{ resize: 'vertical', background: '#f3f4f6', cursor: 'not-allowed' }}
+                    />
+                    <small style={{ color: '#6b7280', fontSize: '0.75rem' }}>
+                      Auto-filled from selected Chart of Accounts entry
                     </small>
                   </div>
 
@@ -1230,7 +3431,19 @@ const OtherTransactions = () => {
                   </h3>
                   <select
                     value={selectedCategoryFilter}
-                    onChange={(e) => setSelectedCategoryFilter(e.target.value)}
+                    onChange={(e) => {
+                      const newValue = e.target.value;
+                      console.log('🎯 ========== CATEGORY FILTER CHANGED ==========');
+                      console.log('Selected value:', newValue);
+                      console.log('📦 Available groups:', {
+                        income: groupedTransactionTypes.income?.length || 0,
+                        expense: groupedTransactionTypes.expense?.length || 0,
+                        asset: groupedTransactionTypes.asset?.length || 0,
+                        liability: groupedTransactionTypes.liability?.length || 0
+                      });
+                      console.log('==========================================');
+                      setSelectedCategoryFilter(newValue);
+                    }}
                     className="other-trans-form-select"
                     style={{ width: 'auto', minWidth: '200px' }}
                   >
@@ -1254,14 +3467,44 @@ const OtherTransactions = () => {
                   <div style={{ textAlign: 'center', padding: '2rem', color: '#6b7280' }}>
                     No transaction types defined yet. Add your first transaction type above.
                   </div>
-                ) : groupedTransactionTypes[selectedCategoryFilter].length === 0 ? (
-                  <div style={{ textAlign: 'center', padding: '2rem', color: '#6b7280' }}>
-                    No transaction types defined for {selectedCategoryFilter}. Add one using the form above.
-                  </div>
-                ) : (
-                  <div style={{ display: 'grid', gap: '1.5rem' }}>
-                    {[selectedCategoryFilter].map(category => (
-                      groupedTransactionTypes[category].length > 0 && (
+                ) : (() => {
+                  // Debug the display logic
+                  const selectedGroup = groupedTransactionTypes[selectedCategoryFilter];
+                  const hasItems = selectedGroup && selectedGroup.length > 0;
+                  
+                  console.log('🎨 Display logic check:', {
+                    selectedCategoryFilter,
+                    hasGroup: !!selectedGroup,
+                    itemCount: selectedGroup?.length || 0,
+                    hasItems,
+                    items: selectedGroup?.map(t => ({ id: t.id, name: t.transaction_type_name, category: t.category }))
+                  });
+                  
+                  if (!selectedGroup || selectedGroup.length === 0) {
+                    return (
+                      <div style={{ textAlign: 'center', padding: '2rem', color: '#6b7280' }}>
+                        <div style={{ fontSize: '1.125rem', fontWeight: '600', marginBottom: '1rem' }}>
+                          No transaction types defined for {selectedCategoryFilter}
+                        </div>
+                        <div style={{ marginTop: '1rem', fontSize: '0.875rem', color: '#9ca3af' }}>
+                          {selectedGroup ? 
+                            `Found ${selectedGroup.length} items` : 
+                            'Category group not found. Check console for details.'}
+                        </div>
+                        <div style={{ marginTop: '1rem', fontSize: '0.875rem' }}>
+                          Add one using the form above.
+                        </div>
+                      </div>
+                    );
+                  }
+                  
+                  return (
+                    <div style={{ display: 'grid', gap: '1.5rem' }}>
+                      {[selectedCategoryFilter].map(category => {
+                        const items = groupedTransactionTypes[category] || [];
+                        console.log(`🎯 Rendering category "${category}" with ${items.length} items:`, items.map(t => t.transaction_type_name));
+                        if (items.length === 0) return null;
+                      return (
                         <div key={category} style={{
                           border: '1px solid #e5e7eb',
                           borderRadius: '0.5rem',
@@ -1277,7 +3520,7 @@ const OtherTransactions = () => {
                             {category}
                           </h4>
                           <div style={{ display: 'grid', gap: '0.75rem' }}>
-                            {groupedTransactionTypes[category].map(type => (
+                            {items.map(type => (
                               <div key={type.id} style={{
                                 display: 'flex',
                                 justifyContent: 'space-between',
@@ -1291,6 +3534,39 @@ const OtherTransactions = () => {
                                   <div style={{ fontWeight: '500', color: '#1f2937' }}>
                                     {type.transaction_type_name}
                                   </div>
+                                  <div style={{ fontSize: '0.8125rem', color: '#6b7280', marginTop: '0.125rem' }}>
+                                    {(() => {
+                                      // Determine main category from sub-category
+                                      const subCatName = type.category || type.sub_category || '';
+                                      let mainCat = '';
+                                      for (const [typeKey, categories] of Object.entries(categoriesByType)) {
+                                        if (categories.some(cat => cat.category_name === subCatName)) {
+                                          mainCat = typeKey.charAt(0).toUpperCase() + typeKey.slice(1);
+                                          break;
+                                        }
+                                      }
+                                      return mainCat ? `${mainCat} > ${subCatName}` : subCatName;
+                                    })()}
+                                  </div>
+                                  {type.gl_account_code && (
+                                    <div style={{ fontSize: '0.8125rem', color: '#3b82f6', marginTop: '0.25rem', fontWeight: '500' }}>
+                                      GL Account: {type.gl_account_code}
+                                    </div>
+                                  )}
+                                  {type.coa_description && (
+                                    <div style={{ 
+                                      fontSize: '0.875rem', 
+                                      color: '#059669', 
+                                      marginTop: '0.25rem',
+                                      fontStyle: 'italic',
+                                      padding: '0.5rem',
+                                      background: '#f0fdf4',
+                                      borderRadius: '0.25rem',
+                                      borderLeft: '3px solid #059669'
+                                    }}>
+                                      <strong>Chart of Accounts:</strong> {type.coa_description}
+                                    </div>
+                                  )}
                                   {type.description && (
                                     <div style={{ fontSize: '0.875rem', color: '#6b7280', marginTop: '0.25rem' }}>
                                       {type.description}
@@ -1331,10 +3607,11 @@ const OtherTransactions = () => {
                             ))}
                           </div>
                         </div>
-                      )
-                    ))}
-                  </div>
-                )}
+                      );
+                      })}
+                    </div>
+                  );
+                })()}
               </div>
             </div>
           </div>
@@ -1498,12 +3775,18 @@ const OtherTransactions = () => {
                         fontSize: '0.75rem',
                         fontWeight: '600',
                         textTransform: 'capitalize',
-                        background: voucher.account_type === 'income' ? '#d1fae5' : 
-                                   voucher.account_type === 'expense' ? '#fee2e2' :
-                                   voucher.account_type === 'asset' ? '#ede9fe' : '#fef3c7',
-                        color: voucher.account_type === 'income' ? '#065f46' : 
-                               voucher.account_type === 'expense' ? '#991b1b' :
-                               voucher.account_type === 'asset' ? '#6d28d9' : '#92400e'
+                        background: (() => {
+                          const baseCat = getBaseCategory(voucher.account_type);
+                          return baseCat === 'income' ? '#d1fae5' : 
+                                 baseCat === 'expense' ? '#fee2e2' :
+                                 baseCat === 'asset' ? '#ede9fe' : '#fef3c7';
+                        })(),
+                        color: (() => {
+                          const baseCat = getBaseCategory(voucher.account_type);
+                          return baseCat === 'income' ? '#065f46' : 
+                                 baseCat === 'expense' ? '#991b1b' :
+                                 baseCat === 'asset' ? '#6d28d9' : '#92400e';
+                        })()
                       }}>
                         {voucher.account_type}
                       </span>
@@ -1731,6 +4014,16 @@ const OtherTransactions = () => {
                   setTimeout(() => setReverseMessage(''), 2500);
                   return;
                 }
+                if (!reverseForm.subCategory) {
+                  setReverseMessage('Please select sub category');
+                  setTimeout(() => setReverseMessage(''), 2500);
+                  return;
+                }
+                if (!reverseForm.transactionType) {
+                  setReverseMessage('Please select transaction type name');
+                  setTimeout(() => setReverseMessage(''), 2500);
+                  return;
+                }
                 if (!reverseForm.voucherNumber) {
                   setReverseMessage('Please select a voucher');
                   setTimeout(() => setReverseMessage(''), 2500);
@@ -1748,7 +4041,7 @@ const OtherTransactions = () => {
                   };
                   await otherTransactionAPI.reverse(payload);
                   setReverseMessage('Reversal posted successfully');
-                  setReverseForm({ category: '', voucherId: '', voucherNumber: '', amount: '', cashFlowOnSettlement: '', date: new Date().toISOString().split('T')[0], notes: '' });
+                  setReverseForm({ category: '', subCategory: '', transactionType: '', voucherId: '', voucherNumber: '', amount: '', cashFlowOnSettlement: '', date: new Date().toISOString().split('T')[0], notes: '' });
                   // Refresh GL and vouchers tabs data after reversal
                   fetchGeneralLedger();
                   fetchVouchers();
@@ -1759,22 +4052,91 @@ const OtherTransactions = () => {
                 }
               }}>
                 <div className="other-trans-form-grid">
+                  {/* Main Category */}
                   <div className="other-trans-field-group">
                     <label className="other-trans-field-label">Category *</label>
                     <select
                       value={reverseForm.category}
                       onChange={(e) => {
                         const cat = e.target.value;
-                        setReverseForm(prev => ({ ...prev, category: cat, voucherId: '', voucherNumber: '', amount: '', cashFlowOnSettlement: '' }));
+                        setReverseForm(prev => ({ ...prev, category: cat, subCategory: '', transactionType: '', voucherId: '', voucherNumber: '', amount: '', cashFlowOnSettlement: '' }));
                       }}
                       className="other-trans-form-select"
+                      disabled={categoriesLoading}
                     >
-                      <option value="">Select</option>
+                      <option value="">Select Main Category</option>
                       <option value="income">Income</option>
                       <option value="expense">Expense</option>
                       <option value="asset">Asset</option>
                       <option value="liability">Liability</option>
+                      <option value="equity">Equity</option>
                     </select>
+                    {categoriesLoading && (
+                      <small style={{ color: '#6b7280', fontSize: '0.75rem' }}>
+                        Loading categories...
+                      </small>
+                    )}
+                  </div>
+
+                  {/* Sub Category */}
+                  <div className="other-trans-field-group">
+                    <label className="other-trans-field-label">Sub Category *</label>
+                    <select
+                      value={reverseForm.subCategory}
+                      onChange={(e) => {
+                        const subCat = e.target.value;
+                        setReverseForm(prev => ({ ...prev, subCategory: subCat, transactionType: '', voucherId: '', voucherNumber: '', amount: '', cashFlowOnSettlement: '' }));
+                      }}
+                      className="other-trans-form-select"
+                      disabled={!reverseForm.category || categoriesLoading}
+                    >
+                      <option value="">Select Sub Category</option>
+                      {reverseForm.category && categoriesByType[reverseForm.category] && categoriesByType[reverseForm.category].map((cat) => (
+                        <option key={cat.id || cat.category_name} value={cat.category_name}>
+                          {cat.category_name}
+                        </option>
+                      ))}
+                    </select>
+                    {!reverseForm.category && (
+                      <small style={{ color: '#6b7280', fontSize: '0.75rem' }}>
+                        Please select a main category first
+                      </small>
+                    )}
+                    {reverseForm.category && (!categoriesByType[reverseForm.category] || categoriesByType[reverseForm.category].length === 0) && (
+                      <small style={{ color: '#f59e0b', fontSize: '0.75rem' }}>
+                        No sub-categories found for this main category. Please add categories in the "Account Category" screen first.
+                      </small>
+                    )}
+                  </div>
+
+                  {/* Transaction Type Name */}
+                  <div className="other-trans-field-group">
+                    <label className="other-trans-field-label">Transaction Type Name *</label>
+                    <select
+                      value={reverseForm.transactionType}
+                      onChange={(e) => {
+                        setReverseForm(prev => ({ ...prev, transactionType: e.target.value }));
+                      }}
+                      className="other-trans-form-select"
+                      disabled={!reverseForm.subCategory}
+                    >
+                      <option value="">Select Transaction Type Name</option>
+                      {transactionTypesForReverse.map((type) => (
+                        <option key={type} value={type}>
+                          {type}
+                        </option>
+                      ))}
+                    </select>
+                    {!reverseForm.subCategory && (
+                      <small style={{ color: '#6b7280', fontSize: '0.75rem' }}>
+                        Please select a Sub Category first
+                      </small>
+                    )}
+                    {reverseForm.subCategory && transactionTypesForReverse.length === 0 && (
+                      <small style={{ color: '#f59e0b', fontSize: '0.75rem' }}>
+                        No transaction types defined for this sub category. Define one in the "Define Transaction" tab.
+                      </small>
+                    )}
                   </div>
                   <div className="other-trans-field-group" style={{ gridColumn: '1 / -1' }}>
                     <label className="other-trans-field-label">Voucher *</label>
@@ -1803,11 +4165,17 @@ const OtherTransactions = () => {
                         }
                       }}
                       className="other-trans-form-select"
-                      disabled={!reverseForm.category}
+                      disabled={!reverseForm.category || !reverseForm.subCategory || !reverseForm.transactionType}
                     >
                       <option value="">Select voucher</option>
                       {getAvailableVouchersForReversal()
-                        .filter(v => !reverseForm.category || v.account_type === reverseForm.category)
+                        .filter(v => {
+                          // Filter by transaction type name
+                          if (!reverseForm.transactionType) return false;
+                          // Match transaction type name (case-insensitive)
+                          const voucherTransactionType = v.transaction_type || '';
+                          return voucherTransactionType.toLowerCase().trim() === reverseForm.transactionType.toLowerCase().trim();
+                        })
                         .map(v => {
                           // Calculate remaining amount if partially reversed
                           const reversalAmountsByOriginal = {};
@@ -1835,8 +4203,8 @@ const OtherTransactions = () => {
                           );
                         })}
                     </select>
-                    {!reverseForm.category && (
-                      <small style={{ color: '#6b7280' }}>Choose a category first</small>
+                    {(!reverseForm.category || !reverseForm.subCategory || !reverseForm.transactionType) && (
+                      <small style={{ color: '#6b7280' }}>Please select Category, Sub Category, and Transaction Type Name first</small>
                     )}
                   </div>
                   <div className="other-trans-field-group">
@@ -1969,9 +4337,9 @@ const OtherTransactions = () => {
                     </span>
                   </div>
                   <div className="other-trans-preview-field">
-                    <span className="other-trans-preview-label">Defined Item:</span>
-                    <span className={`other-trans-preview-value ${!form.accountType ? 'empty-value' : ''}`}>
-                      {form.accountType || 'N/A'}
+                    <span className="other-trans-preview-label">Category:</span>
+                    <span className={`other-trans-preview-value ${!form.category ? 'empty-value' : ''}`}>
+                      {form.category || 'N/A'}
                     </span>
                   </div>
                   <div className="other-trans-preview-field">

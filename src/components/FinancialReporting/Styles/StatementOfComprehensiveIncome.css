@@ -1,0 +1,269 @@
+/* Statement of Comprehensive Income Styles */
+
+.comprehensive-income {
+  min-height: 100vh;
+  padding: 2rem 1rem;
+  background-color: #f8fafc;
+}
+
+.ci-header {
+  text-align: center;
+  margin-bottom: 2rem;
+  padding-bottom: 1rem;
+  border-bottom: 2px solid #e2e8f0;
+}
+
+.ci-header h1 {
+  font-size: 28px;
+  font-weight: 700;
+  color: #1e293b;
+  margin: 0 0 0.5rem 0;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.ci-period {
+  font-size: 16px;
+  color: #64748b;
+  font-weight: 500;
+}
+
+.ci-content {
+  max-width: 1400px;
+  margin: 0 auto;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  border: 1px solid #e2e8f0;
+  padding: 2rem;
+  overflow-x: auto;
+}
+
+.ci-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+  margin-bottom: 1.5rem;
+}
+
+.ci-table thead {
+  background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+  border-bottom: 2px solid #cbd5e1;
+}
+
+.ci-table thead th {
+  padding: 12px 16px;
+  text-align: left;
+  font-weight: 700;
+  color: #374151;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-size: 12px;
+  border-bottom: 2px solid #cbd5e1;
+}
+
+.ci-label-col {
+  width: 50%;
+  text-align: left;
+}
+
+.ci-note-col {
+  width: 5%;
+  text-align: center;
+}
+
+.ci-amount-col {
+  width: 15%;
+  text-align: right;
+}
+
+.ci-table tbody tr {
+  border-bottom: 1px solid #e5e7eb;
+  transition: background-color 0.2s ease;
+}
+
+.ci-table tbody tr:hover {
+  background-color: #f8fafc;
+}
+
+.ci-section-row {
+  background: white;
+}
+
+.ci-section-row td {
+  padding: 10px 16px;
+  vertical-align: middle;
+}
+
+.ci-section-header {
+  background: #f1f5f9;
+  border-top: 2px solid #cbd5e1;
+  border-bottom: 1px solid #cbd5e1;
+}
+
+.ci-section-header td {
+  padding: 14px 16px;
+  font-weight: 700;
+  color: #374151;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.ci-total-row {
+  background: #f8fafc;
+  border-top: 2px solid #cbd5e1;
+  border-bottom: 1px solid #cbd5e1;
+  font-weight: 600;
+}
+
+.ci-total-row td {
+  padding: 14px 16px;
+}
+
+.ci-final-row {
+  background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
+  border-top: 3px solid #3b82f6;
+  border-bottom: none;
+}
+
+.ci-final-row td {
+  color: white;
+  font-weight: 700;
+  font-size: 16px;
+}
+
+.ci-label {
+  color: #1f2937;
+  font-weight: 500;
+  padding-left: 0;
+}
+
+.ci-total-row .ci-label {
+  font-weight: 700;
+  color: inherit;
+}
+
+.ci-final-row .ci-label {
+  font-weight: 700;
+  color: white;
+}
+
+.ci-note {
+  text-align: center;
+  color: #64748b;
+  font-weight: 500;
+  font-size: 13px;
+}
+
+.ci-amount {
+  text-align: right;
+  font-family: 'Courier New', monospace;
+  font-weight: 600;
+  font-size: 14px;
+  padding-right: 0;
+}
+
+.ci-amount.positive {
+  color: #059669;
+}
+
+.ci-amount.negative {
+  color: #dc2626;
+}
+
+.ci-amount.neutral {
+  color: #374151;
+}
+
+.ci-final-row .ci-amount {
+  color: white;
+  font-size: 18px;
+}
+
+.ci-footer {
+  margin-top: 2rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid #e2e8f0;
+  text-align: center;
+}
+
+.ci-footer p {
+  font-size: 12px;
+  color: #64748b;
+  font-style: italic;
+  margin: 0;
+}
+
+/* Responsive Design */
+@media (max-width: 1200px) {
+  .ci-content {
+    padding: 1.5rem;
+  }
+
+  .ci-table {
+    font-size: 13px;
+  }
+
+  .ci-amount {
+    font-size: 13px;
+  }
+}
+
+@media (max-width: 768px) {
+  .comprehensive-income {
+    padding: 1rem 0.5rem;
+  }
+
+  .ci-header h1 {
+    font-size: 24px;
+  }
+
+  .ci-content {
+    padding: 1rem;
+  }
+
+  .ci-table {
+    font-size: 12px;
+  }
+
+  .ci-table thead th,
+  .ci-table tbody td {
+    padding: 8px 12px;
+  }
+
+  .ci-label-col {
+    width: 40%;
+  }
+
+  .ci-note-col {
+    width: 8%;
+  }
+
+  .ci-amount-col {
+    width: 17%;
+  }
+
+  .ci-amount {
+    font-size: 12px;
+  }
+}
+
+@media (max-width: 480px) {
+  .ci-header h1 {
+    font-size: 20px;
+  }
+
+  .ci-table {
+    font-size: 11px;
+  }
+
+  .ci-table thead th,
+  .ci-table tbody td {
+    padding: 6px 8px;
+  }
+
+  .ci-amount {
+    font-size: 11px;
+  }
+}
+

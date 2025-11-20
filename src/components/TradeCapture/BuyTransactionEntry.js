@@ -11,16 +11,77 @@ const STORAGE_KEY = 'buy_transactions';
 
 const getToday = () => new Date().toISOString().slice(0, 10);
 
-// Function to generate unique deal numbers
-const generateDealNumber = () => {
+// Function to get today's date string in YYYYMMDD format
+const getTodayDateString = () => {
   const date = new Date();
   const year = date.getFullYear();
   const month = String(date.getMonth() + 1).padStart(2, '0');
   const day = String(date.getDate()).padStart(2, '0');
-  const hour = String(date.getHours()).padStart(2, '0');
-  const minute = String(date.getMinutes()).padStart(2, '0');
-  const second = String(date.getSeconds()).padStart(2, '0');
-  return `BUY-${year}${month}${day}-${hour}${minute}${second}`;
+  return `${year}${month}${day}`;
+};
+
+// Function to extract sequence number from deal number
+const extractSequenceFromDealNumber = (dealNumber) => {
+  // Format: BUY-YYYYMMDD-XXXXXX where XXXXXX is the sequence
+  const match = dealNumber.match(/BUY-\d{8}-(\d{6})/);
+  return match ? parseInt(match[1], 10) : 0;
+};
+
+// Function to generate unique deal numbers with sequential numbering per day
+const generateDealNumber = async () => {
+  const todayDateString = getTodayDateString();
+  const datePrefix = `BUY-${todayDateString}-`;
+  
+  try {
+    // Try to fetch all buy transactions from the backend
+    // We'll check for today's transactions to find the max sequence
+    const response = await fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:8080/api'}/transaction-entries/buy-all`, {
+      headers: {
+        'Authorization': `Bearer ${localStorage.getItem('token') || ''}`
+      }
+    });
+    
+    if (response.ok) {
+      const transactions = await response.json();
+      // Filter transactions for today and extract sequence numbers
+      const todayTransactions = (transactions || []).filter(t => {
+        if (!t.deal_number) return false;
+        return t.deal_number.startsWith(datePrefix);
+      });
+      
+      if (todayTransactions.length > 0) {
+        const maxSequence = Math.max(
+          ...todayTransactions.map(t => extractSequenceFromDealNumber(t.deal_number))
+        );
+        const nextSequence = maxSequence + 1;
+        return `${datePrefix}${String(nextSequence).padStart(6, '0')}`;
+      }
+    }
+  } catch (error) {
+    console.log('Could not fetch transactions from backend, using localStorage or default:', error);
+    // Fallback to localStorage if backend is not available
+    try {
+      const stored = localStorage.getItem(STORAGE_KEY);
+      const transactions = stored ? JSON.parse(stored) : [];
+      const todayTransactions = transactions.filter(t => {
+        if (!t.dealNumber) return false;
+        return t.dealNumber.startsWith(datePrefix);
+      });
+      
+      if (todayTransactions.length > 0) {
+        const maxSequence = Math.max(
+          ...todayTransactions.map(t => extractSequenceFromDealNumber(t.dealNumber))
+        );
+        const nextSequence = maxSequence + 1;
+        return `${datePrefix}${String(nextSequence).padStart(6, '0')}`;
+      }
+    } catch (localError) {
+      console.log('Could not read from localStorage:', localError);
+    }
+  }
+  
+  // If no transactions found for today, start from 000001
+  return `${datePrefix}000001`;
 };
 
 const BuyTransactionEntry = () => {
@@ -43,7 +104,7 @@ const BuyTransactionEntry = () => {
     symbol: '', // <-- Add symbol to form state
     portfolio: '',
     portfolioId: '', // <-- Add this field
-    dealNumber: generateDealNumber(), // <-- Auto-generate deal number
+    dealNumber: '', // Will be set in useEffect
     description: '', // <-- Add description field
     quantity: '',
     price: '',
@@ -79,9 +140,19 @@ const BuyTransactionEntry = () => {
   const [showEquitySelector, setShowEquitySelector] = useState(false);
 
   // Function to regenerate deal number
-  const regenerateDealNumber = () => {
-    setForm(prev => ({ ...prev, dealNumber: generateDealNumber() }));
+  const regenerateDealNumber = async () => {
+    const newDealNumber = await generateDealNumber();
+    setForm(prev => ({ ...prev, dealNumber: newDealNumber }));
   };
+
+  // Initialize deal number on component mount
+  useEffect(() => {
+    const initDealNumber = async () => {
+      const newDealNumber = await generateDealNumber();
+      setForm(prev => ({ ...prev, dealNumber: newDealNumber }));
+    };
+    initDealNumber();
+  }, []);
 
   // Fetch active cost of funds on mount
   useEffect(() => {
@@ -227,7 +298,7 @@ const BuyTransactionEntry = () => {
 
     // Required fields validation
     const requiredFields = [
-      'companyName', 'symbol', 'portfolio', 'quantity', 'price', 'contractNumber',
+      'companyName', 'symbol', 'portfolio', 'quantity', 'price',
       'brokerName', 'tradeDate', 'settlementDate'
     ];
 
@@ -285,7 +356,8 @@ const BuyTransactionEntry = () => {
       alert('Buy Transaction submitted successfully!');
       handleReset();
       // Generate new deal number for next transaction
-      setForm(prev => ({ ...prev, dealNumber: generateDealNumber() }));
+      const newDealNumber = await generateDealNumber();
+      setForm(prev => ({ ...prev, dealNumber: newDealNumber }));
     } catch (err) {
       console.error('Error saving transaction:', err);
       console.error('Error details:', {
@@ -297,13 +369,14 @@ const BuyTransactionEntry = () => {
     }
   };
 
-  const handleReset = () => {
+  const handleReset = async () => {
+    const newDealNumber = await generateDealNumber();
     setForm({
       companyName: '',
       symbol: '',
       portfolio: '',
       portfolioId: '',
-      dealNumber: generateDealNumber(), // <-- Generate new deal number on reset
+      dealNumber: newDealNumber, // <-- Generate new deal number on reset
       description: '',
       quantity: '',
       price: '',

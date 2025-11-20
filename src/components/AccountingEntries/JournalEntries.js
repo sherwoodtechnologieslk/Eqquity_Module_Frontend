@@ -68,8 +68,12 @@ const JournalEntries = ({ onTabChange }) => {
 
   const loadAccounts = async () => {
     try {
+      console.log('📋 Loading chart of accounts for Journal Entries...');
       const token = localStorage.getItem('token');
-      const response = await fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:8080/api'}/journal-entries/accounts/list`, {
+      const apiUrl = `${process.env.REACT_APP_API_URL || 'http://localhost:8080/api'}/journal-entries/accounts/list`;
+      console.log('API URL:', apiUrl);
+      
+      const response = await fetch(apiUrl, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
@@ -77,14 +81,30 @@ const JournalEntries = ({ onTabChange }) => {
         }
       });
 
+      console.log('Response status:', response.status);
+      
       if (response.ok) {
         const result = await response.json();
+        console.log('API Response:', result);
+        
         if (result.success) {
-          setAccounts(result.data);
+          console.log(`✅ Loaded ${result.data?.length || 0} accounts`);
+          setAccounts(result.data || []);
+          
+          if (!result.data || result.data.length === 0) {
+            console.warn('⚠️ No accounts returned from API');
+          }
+        } else {
+          console.error('API returned success=false:', result.error);
         }
+      } else {
+        const errorText = await response.text();
+        console.error('❌ Failed to fetch accounts. Status:', response.status);
+        console.error('Error response:', errorText);
       }
     } catch (error) {
-      console.error('Error loading accounts:', error);
+      console.error('❌ Error loading accounts:', error);
+      console.error('Error details:', error.message);
     }
   };
 

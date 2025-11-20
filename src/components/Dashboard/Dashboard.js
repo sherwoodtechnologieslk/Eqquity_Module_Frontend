@@ -578,7 +578,7 @@ const Dashboard = ({ onTabChange }) => {
             <div className="pnl-metric-card">
               <div className="metric-icon">
                 <svg viewBox="0 0 24 24" fill="currentColor">
-                  <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                  <path d="M7.41 15.41L12 10.83l4.59 4.58L18 14l-6-6-6 6z"/>
                 </svg>
               </div>
               <div className="metric-content">
@@ -608,7 +608,7 @@ const Dashboard = ({ onTabChange }) => {
             <div className="pnl-metric-card">
               <div className="metric-icon">
                 <svg viewBox="0 0 24 24" fill="currentColor">
-                  <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                  <path d="M12,20A8,8 0 0,0 20,12A8,8 0 0,0 12,4A8,8 0 0,0 4,12A8,8 0 0,0 12,20M12,2A10,10 0 0,1 22,12A10,10 0 0,1 12,22C6.47,22 2,17.5 2,12A10,10 0 0,1 12,2M12.5,7V12.25L17,14.92L16.25,16.15L11,13V7H12.5Z"/>
                 </svg>
               </div>
               <div className="metric-content">
@@ -623,7 +623,7 @@ const Dashboard = ({ onTabChange }) => {
             <div className="pnl-metric-card primary">
               <div className="metric-icon">
                 <svg viewBox="0 0 24 24" fill="currentColor">
-                  <path d="M16 6l2.29 2.29-4.88 4.88-4-4L2 16.59 3.41 18l6-6 4 4 6.3-6.29L22 12V6z"/>
+                  <path d="M22,21H2V3H4V19H6V17H10V19H12V16H16V19H18V17H22V21Z"/>
                 </svg>
               </div>
               <div className="metric-content">

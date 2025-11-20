@@ -1,0 +1,648 @@
+/* Statement of Financial Position (Balance Sheet) Styles */
+
+/* Page Layout */
+.fp-main-container {
+  min-height: 100vh;
+  padding: 2rem 1rem;
+  background-color: #f8fafc;
+}
+
+.fp-content-wrapper {
+  max-width: 1600px;
+  margin: 0 auto;
+}
+
+/* Header Section */
+.fp-header-section {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 32px;
+  padding-bottom: 16px;
+  border-bottom: 2px solid #e2e8f0;
+}
+
+.fp-header-left {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.fp-main-title {
+  font-size: 28px;
+  font-weight: 700;
+  color: #1e293b;
+  margin: 0;
+}
+
+.fp-period-info {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  color: #64748b;
+}
+
+.fp-period-label {
+  font-weight: 600;
+  color: #475569;
+}
+
+.fp-period-date {
+  color: #64748b;
+}
+
+.fp-portfolio-info {
+  color: #64748b;
+  font-style: italic;
+}
+
+.fp-header-right {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.fp-generated-info {
+  font-size: 12px;
+  color: #64748b;
+  background: rgba(148, 163, 184, 0.1);
+  padding: 4px 8px;
+  border-radius: 4px;
+  border: 1px solid rgba(148, 163, 184, 0.2);
+}
+
+.fp-export-button {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 15px rgba(16, 185, 129, 0.4);
+}
+
+.fp-export-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(16, 185, 129, 0.6);
+}
+
+/* Filters Section */
+.fp-filters-section {
+  background: white;
+  border-radius: 8px;
+  padding: 24px;
+  margin-bottom: 24px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  border: 1px solid #e2e8f0;
+}
+
+.fp-filters-row {
+  display: flex;
+  align-items: end;
+  gap: 24px;
+  flex-wrap: wrap;
+}
+
+.fp-filter-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  flex: 1;
+  min-width: 150px;
+}
+
+.fp-filter-actions {
+  display: flex;
+  align-items: end;
+  margin-left: auto;
+}
+
+.fp-filter-label {
+  font-weight: 600;
+  color: #374151;
+  font-size: 14px;
+}
+
+.fp-filter-input,
+.fp-filter-select {
+  padding: 8px 12px;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  font-size: 14px;
+  transition: all 0.2s ease;
+  background: white;
+}
+
+.fp-filter-input:focus,
+.fp-filter-select:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.fp-refresh-button {
+  background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 15px rgba(59, 130, 246, 0.4);
+}
+
+.fp-refresh-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(59, 130, 246, 0.6);
+}
+
+/* Summary Cards */
+.fp-summary-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 20px;
+  margin-bottom: 32px;
+}
+
+.fp-summary-card {
+  background: white;
+  border-radius: 8px;
+  padding: 24px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  border: none;
+  transition: all 0.3s ease;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+/* Remove colored top borders from summary cards */
+
+.fp-summary-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+}
+
+.fp-card-header {
+  font-size: 12px;
+  font-weight: 600;
+  color: #475569;
+  margin-bottom: 16px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.fp-card-value {
+  font-size: 28px;
+  font-weight: 700;
+  margin-bottom: 12px;
+  font-family: 'SF Pro Display', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  letter-spacing: -0.02em;
+  line-height: 1;
+  text-align: center;
+}
+
+.fp-card-value.positive {
+  color: #10b981;
+}
+
+.fp-card-value.negative {
+  color: #dc2626;
+}
+
+.fp-card-value.neutral {
+  color: #374151;
+}
+
+.fp-card-subtitle {
+  font-size: 12px;
+  color: #64748b;
+  margin: 0;
+  font-weight: 500;
+  line-height: 1.4;
+  text-align: center;
+}
+
+/* Main Content - Balance Sheet Layout */
+.fp-main-content {
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  border: 1px solid #e2e8f0;
+  overflow: hidden;
+}
+
+.fp-balance-sheet-layout {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2px;
+  background: #e2e8f0;
+}
+
+.fp-balance-sheet-column {
+  background: white;
+  padding: 24px;
+}
+
+.fp-assets-column {
+  border-right: 2px solid #e2e8f0;
+}
+
+.fp-liabilities-equity-column {
+  border-left: 2px solid #e2e8f0;
+}
+
+.fp-column-title {
+  font-size: 24px;
+  font-weight: 700;
+  color: #1e293b;
+  margin: 0 0 24px 0;
+  text-align: center;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  border-bottom: 3px solid #3b82f6;
+  padding-bottom: 12px;
+}
+
+/* Sections */
+.fp-section {
+  margin-bottom: 32px;
+}
+
+.fp-section-title {
+  font-size: 18px;
+  font-weight: 700;
+  color: #374151;
+  margin: 0 0 16px 0;
+  padding-bottom: 8px;
+  border-bottom: 2px solid #e2e8f0;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.fp-table-container {
+  overflow-x: auto;
+}
+
+.fp-data-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+
+.fp-table-header {
+  background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+  border-bottom: 2px solid #cbd5e1;
+}
+
+.fp-table-header th {
+  padding: 12px 8px;
+  text-align: left;
+  font-weight: 700;
+  color: #374151;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-size: 11px;
+  border-bottom: 2px solid #cbd5e1;
+}
+
+.fp-th-code {
+  width: 15%;
+}
+
+.fp-th-name {
+  width: 60%;
+}
+
+.fp-th-balance {
+  width: 25%;
+  text-align: right;
+}
+
+.fp-account-row {
+  border-bottom: 1px solid #e5e7eb;
+  transition: background-color 0.2s ease;
+}
+
+.fp-account-row:hover {
+  background-color: #f8fafc;
+}
+
+.fp-account-row td {
+  padding: 12px 8px;
+  vertical-align: top;
+}
+
+.fp-account-code {
+  font-family: 'Courier New', monospace;
+  font-weight: 600;
+  color: #374151;
+  font-size: 12px;
+}
+
+.fp-account-name {
+  color: #1f2937;
+  font-weight: 500;
+}
+
+.fp-account-balance {
+  text-align: right;
+  font-family: 'Courier New', monospace;
+  font-weight: 600;
+}
+
+.fp-account-balance.positive {
+  color: #059669;
+}
+
+.fp-account-balance.negative {
+  color: #dc2626;
+}
+
+.fp-account-balance.neutral {
+  color: #374151;
+}
+
+/* Subtotal Rows */
+.fp-subtotal-row {
+  background: #f8fafc;
+  border-top: 2px solid #cbd5e1;
+  border-bottom: 1px solid #cbd5e1;
+  font-weight: 600;
+}
+
+.fp-subtotal-row td {
+  padding: 14px 8px;
+}
+
+.fp-subtotal-label {
+  color: #374151;
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.fp-subtotal-balance {
+  text-align: right;
+  font-family: 'Courier New', monospace;
+  font-weight: 600;
+}
+
+.fp-subtotal-balance.positive {
+  color: #059669;
+}
+
+.fp-subtotal-balance.negative {
+  color: #dc2626;
+}
+
+/* Subtotal Section for Total Liabilities */
+.fp-subtotal-section {
+  margin: 24px 0;
+  padding: 16px;
+  background: #f8fafc;
+  border: 2px solid #cbd5e1;
+  border-radius: 6px;
+}
+
+.fp-subtotal-row-large {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.fp-subtotal-label-large {
+  font-size: 16px;
+  font-weight: 700;
+  color: #374151;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.fp-subtotal-value-large {
+  font-family: 'Courier New', monospace;
+  font-size: 18px;
+  font-weight: 700;
+  color: #374151;
+}
+
+/* Total Section */
+.fp-total-section {
+  margin-top: 32px;
+  padding: 20px;
+  background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
+  border-radius: 8px;
+}
+
+.fp-total-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.fp-total-label {
+  font-size: 18px;
+  font-weight: 700;
+  color: white;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.fp-total-value {
+  font-family: 'Courier New', monospace;
+  font-size: 24px;
+  font-weight: 700;
+}
+
+.fp-total-value.positive {
+  color: #10b981;
+}
+
+.fp-total-value.negative {
+  color: #f87171;
+}
+
+/* Loading and Error States */
+.fp-loading-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 4rem 2rem;
+  text-align: center;
+}
+
+.fp-loading-spinner {
+  width: 3rem;
+  height: 3rem;
+  border: 4px solid #e5e7eb;
+  border-top: 4px solid #3b82f6;
+  border-radius: 50%;
+  animation: fp-spin 1s linear infinite;
+  margin-bottom: 1rem;
+}
+
+@keyframes fp-spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.fp-loading-text {
+  font-size: 18px;
+  color: #6b7280;
+  margin: 0;
+}
+
+.fp-error-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 4rem 2rem;
+  text-align: center;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  border: 1px solid #e2e8f0;
+}
+
+.fp-error-title {
+  font-size: 24px;
+  font-weight: 700;
+  color: #dc2626;
+  margin: 0 0 1rem 0;
+}
+
+.fp-error-message {
+  font-size: 16px;
+  color: #6b7280;
+  margin: 0 0 2rem 0;
+}
+
+.fp-retry-button {
+  background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+  color: white;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.fp-retry-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(220, 38, 38, 0.6);
+}
+
+/* Responsive Design */
+@media (max-width: 1200px) {
+  .fp-balance-sheet-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .fp-assets-column {
+    border-right: none;
+    border-bottom: 2px solid #e2e8f0;
+  }
+
+  .fp-liabilities-equity-column {
+    border-left: none;
+  }
+}
+
+@media (max-width: 768px) {
+  .fp-main-container {
+    padding: 1rem 0.5rem;
+  }
+  
+  .fp-header-section {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 16px;
+  }
+  
+  .fp-header-right {
+    flex-direction: column;
+    align-items: flex-start;
+    width: 100%;
+  }
+
+  .fp-export-button {
+    width: 100%;
+  }
+  
+  .fp-filters-section {
+    padding: 16px;
+  }
+  
+  .fp-filters-row {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 16px;
+  }
+  
+  .fp-filter-group {
+    min-width: auto;
+  }
+  
+  .fp-filter-actions {
+    margin-left: 0;
+    align-self: flex-start;
+  }
+  
+  .fp-summary-cards {
+    grid-template-columns: 1fr;
+  }
+  
+  .fp-data-table {
+    font-size: 12px;
+  }
+  
+  .fp-table-header th,
+  .fp-account-row td {
+    padding: 10px 6px;
+  }
+
+  .fp-column-title {
+    font-size: 20px;
+  }
+
+  .fp-total-value {
+    font-size: 20px;
+  }
+}
+
+@media (max-width: 480px) {
+  .fp-main-title {
+    font-size: 24px;
+  }
+  
+  .fp-data-table {
+    font-size: 11px;
+  }
+  
+  .fp-table-header th,
+  .fp-account-row td {
+    padding: 8px 4px;
+  }
+  
+  .fp-card-value {
+    font-size: 24px;
+  }
+
+  .fp-column-title {
+    font-size: 18px;
+  }
+}
+

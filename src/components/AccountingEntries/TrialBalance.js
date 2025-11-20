@@ -8,7 +8,7 @@ const TrialBalance = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
   const [filters, setFilters] = useState({
-    startDate: new Date(new Date().getFullYear(), 0, 1).toISOString().split('T')[0], // Start of current year
+    startDate: new Date(new Date().getFullYear(), 0, 1).toISOString().split('T')[0],
     endDate: new Date().toISOString().split('T')[0],
     portfolio: ''
   });
@@ -189,10 +189,10 @@ const TrialBalance = () => {
     console.log('🔍 MTM Loading state:', mtmLoading);
     console.log('🔍 Portfolios available:', portfolios.length);
 
-    // Create MTM accounts with real-time data
+    // Create MTM accounts with real-time data (using new format: XXX-XXX-XXX-XX)
     const mtmAccounts = [
       {
-        account_code: '1-100-01-01-02',
+        account_code: '100-001-001-02',
         account_name: 'Asset Fair Value Adjustment',
         account_type: 'Asset',
         total_debit: mtmData.fairValueAdjustment > 0 ? mtmData.fairValueAdjustment : 0,
@@ -201,9 +201,9 @@ const TrialBalance = () => {
         balance_type: mtmData.fairValueAdjustment > 0 ? 'DR' : mtmData.fairValueAdjustment < 0 ? 'CR' : 'ZERO'
       },
       {
-        account_code: '4-017-01-01-01',
-        account_name: 'Other Income Unrealized Capital Gain/Loss',
-        account_type: 'Income',
+        account_code: '401-017-001-01',
+        account_name: 'Other Revenue Unrealized Capital Gain/Loss',
+        account_type: 'Other',
         total_debit: mtmData.totalUnrealizedCapitalGain < 0 ? Math.abs(mtmData.totalUnrealizedCapitalGain) : 0,
         total_credit: mtmData.totalUnrealizedCapitalGain > 0 ? mtmData.totalUnrealizedCapitalGain : 0,
         net_balance: -mtmData.totalUnrealizedCapitalGain,
@@ -431,17 +431,14 @@ const TrialBalance = () => {
                   </tr>
                 </thead>
                 <tbody>
-                  {(() => {
-                    const dataWithMTM = addMTMAccounts(trialBalanceData);
-                    return dataWithMTM?.accountsByType && Object.entries(dataWithMTM.accountsByType).map(([type, accounts]) => (
-                      <React.Fragment key={type}>
-                        {accounts.map((account, index) => renderAccountRow(account, index))}
-                        {trialBalanceData.typeSubtotals[type] && 
-                          renderTypeSubtotal(type, trialBalanceData.typeSubtotals[type])
-                        }
-                      </React.Fragment>
-                    ));
-                  })()}
+                  {trialBalanceData?.accountsByType && Object.entries(trialBalanceData.accountsByType).map(([type, accounts]) => (
+                    <React.Fragment key={type}>
+                      {accounts.map((account, index) => renderAccountRow(account, index))}
+                      {trialBalanceData.typeSubtotals[type] && 
+                        renderTypeSubtotal(type, trialBalanceData.typeSubtotals[type])
+                      }
+                    </React.Fragment>
+                  ))}
                 </tbody>
                 <tfoot>
                   <tr className="tb-grand-total-row">
