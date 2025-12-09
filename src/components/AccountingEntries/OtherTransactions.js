@@ -16,6 +16,18 @@ const generateVoucherNumber = () => {
   return `V-${year}${month}${day}-${hour}${minute}${second}`;
 };
 
+// Function to generate unique voucher numbers for liability settlements
+const generateLiabilitySettlementVoucherNumber = () => {
+  const date = new Date();
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  const hour = String(date.getHours()).padStart(2, '0');
+  const minute = String(date.getMinutes()).padStart(2, '0');
+  const second = String(date.getSeconds()).padStart(2, '0');
+  return `LS-${year}${month}${day}-${hour}${minute}${second}`;
+};
+
 const OtherTransactions = () => {
   const [form, setForm] = useState({
     voucherNumber: generateVoucherNumber(),
@@ -122,18 +134,36 @@ const OtherTransactions = () => {
 
   // Liability Settlement form state
   const [liabilitySettlementForm, setLiabilitySettlementForm] = useState({
-    voucherNumber: generateVoucherNumber(),
-    liabilityAccountCode: '',
-    liabilityAccountName: '',
-    paymentAccountCode: '',
-    paymentAccountName: '',
-    settlementAmount: '',
-    settlementDate: new Date().toISOString().split('T')[0],
+    voucherNumber: generateLiabilitySettlementVoucherNumber(),
+    selectedVoucherId: '', // For voucher dropdown
+    accountType: 'liability', // Fixed to liability for this form type
+    category: 'liability', // Main category (fixed to liability)
+    subCategory: '', // Sub category (specific category name from account_categories)
+    transactionType: '', // Transaction type name
+    glAccountCode: '', // Liability account code (mapped from liabilityAccountCode)
+    coaDescription: '', // Liability account name/description (mapped from liabilityAccountName)
+    amount: '', // Settlement amount (mapped from settlementAmount)
+    date: new Date().toISOString().split('T')[0], // Settlement date (mapped from settlementDate)
     description: '',
     reference: '',
-    notes: ''
+    currency: 'LKR', // Default currency
+    fxRate: '1.00', // Default FX rate
+    counterparty: '', // Optional
+    notes: '',
+    cashFlowOnSettlement: '', // Auto-calculated
+    selectedAccountId: '', // For account dropdown
+    paymentAccountName: '',
+    paymentAccountNumber: '',
+    paymentBankName: '',
+    paymentBranchName: '',
+    paymentMethod: ''
   });
+  
+  // Transaction types for Liability Settlement form
+  const [transactionTypesForLiabilitySettlement, setTransactionTypesForLiabilitySettlement] = useState([]);
   const [vouchers, setVouchers] = useState([]);
+  // Store original voucher details for description generation
+  const [originalVoucherDetails, setOriginalVoucherDetails] = useState({ voucherNumber: '', amount: '' });
   const [vouchersLoading, setVouchersLoading] = useState(false);
   const [generalLedgerEntries, setGeneralLedgerEntries] = useState([]);
   const [generalLedgerLoading, setGeneralLedgerLoading] = useState(false);
@@ -163,6 +193,9 @@ const OtherTransactions = () => {
   const [chartAccountsLoading, setChartAccountsLoading] = useState(false);
   const [coaSearchTerm, setCoaSearchTerm] = useState('');
   const [showCoaList, setShowCoaList] = useState(false);
+  // For Liability Settlement form - liability account search
+  const [liabilityAccountSearchTerm, setLiabilityAccountSearchTerm] = useState('');
+  const [showLiabilityAccountList, setShowLiabilityAccountList] = useState(false);
 
   // Fetch accounts, GL mappings, and account categories on mount
   useEffect(() => {
@@ -453,8 +486,11 @@ const OtherTransactions = () => {
     } else if (activeTab === 'reverseTransaction') {
       // Ensure vouchers are available for the voucher dropdown
       fetchVouchers();
+    } else if (activeTab === 'create' && activeFormType === 'liabilitySettlement') {
+      // Ensure vouchers are available for the liability settlement voucher dropdown
+      fetchVouchers();
     }
-  }, [activeTab]);
+  }, [activeTab, activeFormType]);
 
   // Fetch general ledger entries for Other Transactions only
   const fetchGeneralLedger = async () => {
@@ -946,6 +982,43 @@ const OtherTransactions = () => {
     }
   }, [form.amount, form.fxRate]);
 
+  // Calculate Cash Flow On Settlement for Liability Settlement form when amount or fxRate changes
+  useEffect(() => {
+    if (liabilitySettlementForm.amount && liabilitySettlementForm.fxRate) {
+      const calculatedValue = (parseFloat(liabilitySettlementForm.amount) || 0) * (parseFloat(liabilitySettlementForm.fxRate) || 0);
+      setLiabilitySettlementForm(prev => ({
+        ...prev,
+        cashFlowOnSettlement: calculatedValue.toFixed(2)
+      }));
+    } else {
+      setLiabilitySettlementForm(prev => ({
+        ...prev,
+        cashFlowOnSettlement: ''
+      }));
+    }
+  }, [liabilitySettlementForm.amount, liabilitySettlementForm.fxRate]);
+
+  // Fetch transaction types when subCategory changes (for Liability Settlement form)
+  useEffect(() => {
+    if (liabilitySettlementForm.subCategory && liabilitySettlementForm.category) {
+      const fetchTransactionTypesForLiabilitySettlement = async () => {
+        try {
+          // Fetch transaction types by sub category (category_name) and account type
+          const accountType = liabilitySettlementForm.category.toLowerCase();
+          const data = await accountCategoryAPI.getTransactionTypesByCategoryName(liabilitySettlementForm.subCategory, accountType);
+          setTransactionTypesForLiabilitySettlement(data.map(t => t.transaction_type_name));
+        } catch (error) {
+          console.error('Error fetching transaction types for liability settlement sub category:', error);
+          setTransactionTypesForLiabilitySettlement([]);
+        }
+      };
+      fetchTransactionTypesForLiabilitySettlement();
+    } else {
+      // Clear transaction types when sub category or category is cleared
+      setTransactionTypesForLiabilitySettlement([]);
+    }
+  }, [liabilitySettlementForm.subCategory, liabilitySettlementForm.category]);
+
   const handleChange = (e) => {
     const { name, value } = e.target;
     
@@ -1178,9 +1251,280 @@ const OtherTransactions = () => {
     setSubmitMessage('');
   };
 
+  // Helper function to generate description for liability settlement
+  const generateLiabilitySettlementDescription = (originalVoucherNumber, settlementAmount, originalAmount) => {
+    if (!originalVoucherNumber) return '';
+    
+    const settlementAmt = parseFloat(settlementAmount) || 0;
+    const originalAmt = parseFloat(originalAmount) || 0;
+    
+    // If amounts are equal (or very close), it's a full settlement
+    if (settlementAmt > 0 && originalAmt > 0 && Math.abs(settlementAmt - originalAmt) < 0.01) {
+      return `Settling ${originalVoucherNumber}`;
+    } else if (settlementAmt > 0) {
+      // Format amount with 2 decimal places
+      const formattedAmount = settlementAmt.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+      return `Settling ${formattedAmount} from ${originalVoucherNumber}`;
+    }
+    
+    return '';
+  };
+
+// Helper: get total amount already settled for a voucher (sums LS- vouchers referencing it)
+const getVoucherSettlementAmount = (voucherNumber) => {
+  if (!voucherNumber) return 0;
+  const settlementVouchers = vouchers.filter(v => 
+    v.voucher_number &&
+    v.voucher_number.startsWith('LS-') &&
+    v.description &&
+    v.description.toLowerCase().includes(voucherNumber.toLowerCase())
+  );
+  return settlementVouchers.reduce((sum, settlement) => {
+    const amt = parseFloat(settlement.amount) || 0;
+    const desc = (settlement.description || '').trim();
+    // Only count if description references this voucher explicitly
+    const fullMatch = desc === `Settling ${voucherNumber}`;
+    const partialMatch = new RegExp(`Settling\\s+[\\d,]+(?:\\.\\d+)?\\s+from\\s+${voucherNumber.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}`, 'i').test(desc);
+    return (fullMatch || partialMatch) ? sum + amt : sum;
+  }, 0);
+};
+
+// Helper: remaining amount = original - settled (never below zero)
+const getVoucherRemainingAmount = (voucher) => {
+  if (!voucher || !voucher.voucher_number) return 0;
+  const originalAmount = parseFloat(voucher.amount) || 0;
+  const settled = getVoucherSettlementAmount(voucher.voucher_number);
+  return Math.max(originalAmount - settled, 0);
+};
+
+// Helper function to check if a liability voucher has been settled (fully)
+const isVoucherSettled = (voucher) => {
+  return getVoucherRemainingAmount(voucher) <= 0.001;
+};
+
   // Handler for Liability Settlement form changes
   const handleLiabilitySettlementChange = (e) => {
-    const { name, value } = e.target;
+    const { name, value } = e.target; 
+    
+    // Handle account selection from dropdown
+    if (name === 'selectedAccountId') {
+      const selectedAccount = accounts.find(acc => acc.id.toString() === value);
+      if (selectedAccount) {
+        setLiabilitySettlementForm(prev => ({
+          ...prev,
+          paymentAccountName: selectedAccount.account_name,
+          paymentAccountNumber: selectedAccount.account_number,
+          paymentBankName: selectedAccount.bank_name,
+          paymentBranchName: selectedAccount.branch_name
+        }));
+      }
+      return;
+    }
+
+    // Handle voucher selection from dropdown
+    if (name === 'selectedVoucherId') {
+      const selectedVoucher = vouchers.find(v => v.id.toString() === value);
+      if (selectedVoucher) {
+        // Determine main category from account_type
+        const mainCategory = selectedVoucher.account_type?.toLowerCase() || 'liability';
+        const transactionTypeName = selectedVoucher.transaction_type || '';
+        
+        // Look up sub_category, gl_account_code, and account_name from other_transaction_types and other_transaction_gl_entries tables
+        const lookupTransactionTypeDetails = async () => {
+          try {
+            let subCategoryName = selectedVoucher.category || ''; // Fallback to voucher's category field
+            let glAccountCode = selectedVoucher.gl_account_code || ''; // Fallback to voucher's gl_account_code
+            let accountName = selectedVoucher.coa_description || selectedVoucher.description || ''; // Fallback to voucher's description
+            
+            if (transactionTypeName) {
+              // Fetch all transaction types for the current user
+              const allTransactionTypes = await otherTransactionTypeAPI.getAll();
+              
+              // Find the transaction type that matches the transaction_type_name
+              const matchingTransactionType = allTransactionTypes.find(
+                type => type.transaction_type_name === transactionTypeName
+              );
+              
+              // If found, use its sub_category and gl_account_code
+              if (matchingTransactionType) {
+                if (matchingTransactionType.sub_category) {
+                  subCategoryName = matchingTransactionType.sub_category;
+                }
+                if (matchingTransactionType.gl_account_code) {
+                  glAccountCode = matchingTransactionType.gl_account_code;
+                  
+                  // Look up account_name from other_transaction_gl_entries using the account_code
+                  try {
+                    const glEntries = await otherTransactionGLEntryAPI.getEntriesByAccountCode(glAccountCode);
+                    // Get the account_name from the first entry (all entries for same account_code should have same account_name)
+                    if (glEntries && glEntries.length > 0 && glEntries[0].account_name) {
+                      accountName = glEntries[0].account_name;
+                    }
+                  } catch (glError) {
+                    console.error('Error fetching account name from GL entries:', glError);
+                    // Keep the fallback accountName if GL lookup fails
+                  }
+                }
+              }
+            }
+            
+            // Store original voucher details for description generation
+            const originalVoucherNumber = selectedVoucher.voucher_number || '';
+            const originalAmount = selectedVoucher.amount || '';
+            setOriginalVoucherDetails({ voucherNumber: originalVoucherNumber, amount: originalAmount });
+            
+            // Generate description based on settlement amount
+            const settlementAmount = selectedVoucher.amount || '';
+            const generatedDescription = generateLiabilitySettlementDescription(
+              originalVoucherNumber,
+              settlementAmount,
+              originalAmount
+            );
+            
+            const remainingAmount = getVoucherRemainingAmount(selectedVoucher) || settlementAmount;
+            const remainingDescription = generateLiabilitySettlementDescription(
+              originalVoucherNumber,
+              remainingAmount,
+              originalAmount
+            );
+            
+            setLiabilitySettlementForm(prev => ({
+              ...prev,
+              voucherNumber: generateLiabilitySettlementVoucherNumber(), // Generate new liability settlement voucher number
+              selectedVoucherId: value,
+              category: mainCategory,
+              subCategory: subCategoryName,
+              transactionType: transactionTypeName,
+              glAccountCode: glAccountCode,
+              coaDescription: accountName,
+              amount: remainingAmount,
+              date: selectedVoucher.transaction_date ? selectedVoucher.transaction_date.substring(0, 10) : new Date().toISOString().split('T')[0],
+              description: remainingDescription || generatedDescription || selectedVoucher.description || '',
+              reference: selectedVoucher.reference || '',
+              currency: selectedVoucher.currency || 'LKR',
+              fxRate: selectedVoucher.fx_rate || '1.00',
+              counterparty: selectedVoucher.counterparty || '',
+              notes: selectedVoucher.notes || '',
+              cashFlowOnSettlement: selectedVoucher.cash_flow_on_settlement || '',
+              paymentAccountName: selectedVoucher.payment_account_name || '',
+              paymentAccountNumber: selectedVoucher.payment_account_number || '',
+              paymentBankName: selectedVoucher.payment_bank_name || '',
+              paymentBranchName: selectedVoucher.payment_branch_name || '',
+              paymentMethod: selectedVoucher.payment_method || ''
+            }));
+          } catch (error) {
+            console.error('Error looking up transaction type details:', error);
+            // Fallback to voucher's fields if lookup fails
+            const subCategoryName = selectedVoucher.category || '';
+            const glAccountCode = selectedVoucher.gl_account_code || '';
+            const accountName = selectedVoucher.coa_description || selectedVoucher.description || '';
+            
+            // Store original voucher details for description generation
+            const originalVoucherNumber = selectedVoucher.voucher_number || '';
+            const originalAmount = selectedVoucher.amount || '';
+            setOriginalVoucherDetails({ voucherNumber: originalVoucherNumber, amount: originalAmount });
+            
+            // Generate description based on remaining amount
+            const settlementAmount = selectedVoucher.amount || '';
+            const remainingAmount = getVoucherRemainingAmount(selectedVoucher) || settlementAmount;
+            const generatedDescription = generateLiabilitySettlementDescription(
+              originalVoucherNumber,
+              remainingAmount,
+              originalAmount
+            );
+            
+            setLiabilitySettlementForm(prev => ({
+              ...prev,
+              voucherNumber: generateLiabilitySettlementVoucherNumber(),
+              selectedVoucherId: value,
+              category: mainCategory,
+              subCategory: subCategoryName,
+              transactionType: transactionTypeName,
+              glAccountCode: glAccountCode,
+              coaDescription: accountName,
+              amount: remainingAmount,
+              date: selectedVoucher.transaction_date ? selectedVoucher.transaction_date.substring(0, 10) : new Date().toISOString().split('T')[0],
+              description: generatedDescription || selectedVoucher.description || '',
+              reference: selectedVoucher.reference || '',
+              currency: selectedVoucher.currency || 'LKR',
+              fxRate: selectedVoucher.fx_rate || '1.00',
+              counterparty: selectedVoucher.counterparty || '',
+              notes: selectedVoucher.notes || '',
+              cashFlowOnSettlement: selectedVoucher.cash_flow_on_settlement || '',
+              paymentAccountName: selectedVoucher.payment_account_name || '',
+              paymentAccountNumber: selectedVoucher.payment_account_number || '',
+              paymentBankName: selectedVoucher.payment_bank_name || '',
+              paymentBranchName: selectedVoucher.payment_branch_name || '',
+              paymentMethod: selectedVoucher.payment_method || ''
+            }));
+          }
+        };
+        
+        lookupTransactionTypeDetails();
+      }
+      return;
+    }
+
+    // If sub category changes, reset transaction type
+    if (name === 'subCategory') {
+      setLiabilitySettlementForm(prev => ({ 
+        ...prev, 
+        [name]: value, 
+        transactionType: '' 
+      }));
+      return;
+    }
+
+    // If transaction type changes, just update it
+    if (name === 'transactionType') {
+      setLiabilitySettlementForm(prev => ({ 
+        ...prev, 
+        [name]: value 
+      }));
+      return;
+    }
+
+    // If amount changes, regenerate description based on full/partial settlement
+    if (name === 'amount') {
+      const generatedDescription = generateLiabilitySettlementDescription(
+        originalVoucherDetails.voucherNumber,
+        value,
+        originalVoucherDetails.amount
+      );
+      setLiabilitySettlementForm(prev => ({ 
+        ...prev, 
+        [name]: value,
+        description: generatedDescription || prev.description
+      }));
+      return;
+    }
+
+    // Handle liability account code input with search
+    if (name === 'glAccountCode') {
+      setLiabilityAccountSearchTerm(value);
+      setShowLiabilityAccountList(true);
+      
+      // Try to find matching account and populate description
+      const matchingAccount = chartAccounts.find(acc => 
+        acc.account_code && acc.account_code.toLowerCase() === value.toLowerCase().trim()
+      );
+      if (matchingAccount) {
+        setLiabilitySettlementForm(prev => ({ 
+          ...prev, 
+          glAccountCode: value,
+          coaDescription: matchingAccount.description || ''
+        }));
+      } else {
+        // Clear coaDescription if no match found
+        setLiabilitySettlementForm(prev => ({ 
+          ...prev, 
+          glAccountCode: value,
+          coaDescription: prev.coaDescription // Keep existing if user is typing
+        }));
+      }
+      return;
+    }
+    
     setLiabilitySettlementForm(prev => ({
       ...prev,
       [name]: value
@@ -1189,19 +1533,134 @@ const OtherTransactions = () => {
 
   // Handler for Liability Settlement form reset
   const handleLiabilitySettlementReset = () => {
+    setOriginalVoucherDetails({ voucherNumber: '', amount: '' });
     setLiabilitySettlementForm({
-      voucherNumber: generateVoucherNumber(),
-      liabilityAccountCode: '',
-      liabilityAccountName: '',
-      paymentAccountCode: '',
-      paymentAccountName: '',
-      settlementAmount: '',
-      settlementDate: new Date().toISOString().split('T')[0],
+      voucherNumber: generateLiabilitySettlementVoucherNumber(),
+      selectedVoucherId: '',
+      accountType: 'liability',
+      category: 'liability',
+      subCategory: '',
+      transactionType: '',
+      glAccountCode: '',
+      coaDescription: '',
+      amount: '',
+      date: new Date().toISOString().split('T')[0],
       description: '',
       reference: '',
-      notes: ''
+      currency: 'LKR',
+      fxRate: '1.00',
+      counterparty: '',
+      notes: '',
+      cashFlowOnSettlement: '',
+      selectedAccountId: '',
+      paymentAccountName: '',
+      paymentAccountNumber: '',
+      paymentBankName: '',
+      paymentBranchName: '',
+      paymentMethod: ''
     });
+    setLiabilityAccountSearchTerm('');
+    setShowLiabilityAccountList(false);
+    setTransactionTypesForLiabilitySettlement([]);
     setSubmitMessage('');
+  };
+
+  // Handler for Liability Settlement form submission
+  const handleLiabilitySettlementSubmit = async (e) => {
+    e.preventDefault();
+
+    // Validate required fields
+    const missingFields = [];
+
+    if (!liabilitySettlementForm.selectedVoucherId || !liabilitySettlementForm.selectedVoucherId.toString().trim()) {
+      missingFields.push('Select Previous Voucher');
+    }
+
+    if (!liabilitySettlementForm.subCategory || !liabilitySettlementForm.subCategory.trim()) {
+      missingFields.push('Sub Category');
+    }
+
+    if (!liabilitySettlementForm.transactionType || !liabilitySettlementForm.transactionType.trim()) {
+      missingFields.push('Transaction Type Name');
+    }
+
+    if (!liabilitySettlementForm.glAccountCode || !liabilitySettlementForm.glAccountCode.trim()) {
+      missingFields.push('Liability Account Code');
+    }
+
+    if (!liabilitySettlementForm.coaDescription || !liabilitySettlementForm.coaDescription.trim()) {
+      missingFields.push('Liability Account Name');
+    }
+
+    if (!liabilitySettlementForm.amount || liabilitySettlementForm.amount === '' || isNaN(parseFloat(liabilitySettlementForm.amount)) || parseFloat(liabilitySettlementForm.amount) <= 0) {
+      missingFields.push('Settlement Amount (must be greater than zero)');
+    }
+
+    if (!liabilitySettlementForm.date || !liabilitySettlementForm.date.trim()) {
+      missingFields.push('Settlement Date');
+    }
+
+    if (missingFields.length > 0) {
+      alert(`Please fill in all required fields:\n- ${missingFields.join('\n- ')}`);
+      return;
+    }
+
+    // Ensure settlement does not exceed remaining balance on the selected voucher
+    const selectedVoucher = vouchers.find(v => liabilitySettlementForm.selectedVoucherId && v.id.toString() === liabilitySettlementForm.selectedVoucherId.toString());
+    if (selectedVoucher) {
+      const remaining = getVoucherRemainingAmount(selectedVoucher);
+      const settleAmount = parseFloat(liabilitySettlementForm.amount) || 0;
+      if (settleAmount - remaining > 0.001) {
+        alert(`Settlement amount exceeds remaining balance. Remaining: ${remaining.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`);
+        return;
+      }
+    }
+
+    setIsSubmitting(true);
+    setSubmitMessage('');
+
+    try {
+      // Get user email from auth service
+      const user = authService.getStoredUser();
+      const userEmail = user?.email || '';
+
+      // Prepare transaction data matching the other_transactions table structure
+      const transactionData = {
+        voucherNumber: liabilitySettlementForm.voucherNumber,
+        accountType: 'liability', // Fixed for liability settlement
+        transactionType: liabilitySettlementForm.transactionType || 'Liability Settlement', // Use selected transaction type or default
+        glAccountCode: liabilitySettlementForm.glAccountCode.trim(),
+        coaDescription: liabilitySettlementForm.coaDescription.trim(),
+        description: liabilitySettlementForm.description,
+        amount: liabilitySettlementForm.amount,
+        date: liabilitySettlementForm.date,
+        reference: liabilitySettlementForm.reference,
+        currency: liabilitySettlementForm.currency || 'LKR',
+        fxRate: liabilitySettlementForm.fxRate || '1.00',
+        counterparty: liabilitySettlementForm.counterparty || '',
+        notes: liabilitySettlementForm.notes,
+        cashFlowOnSettlement: liabilitySettlementForm.cashFlowOnSettlement || (parseFloat(liabilitySettlementForm.amount) * parseFloat(liabilitySettlementForm.fxRate || 1)).toFixed(2),
+        paymentAccountName: liabilitySettlementForm.paymentAccountName,
+        paymentAccountNumber: liabilitySettlementForm.paymentAccountNumber,
+        paymentBankName: liabilitySettlementForm.paymentBankName,
+        paymentBranchName: liabilitySettlementForm.paymentBranchName,
+        paymentMethod: liabilitySettlementForm.paymentMethod,
+        userEmail: userEmail
+      };
+
+      // Call API to save the transaction
+      const result = await otherTransactionAPI.createTransaction(transactionData);
+      
+      console.log('Liability settlement transaction saved successfully:', result);
+      setSubmitMessage('Liability settlement transaction saved successfully!');
+      handleLiabilitySettlementReset();
+      
+    } catch (error) {
+      console.error('Error saving liability settlement transaction:', error);
+      setSubmitMessage(`Error saving transaction: ${error.message}`);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   // Handle view voucher details - reuse the existing preview modal
@@ -1627,7 +2086,7 @@ const OtherTransactions = () => {
                         fontSize: '0.875rem',
                         fontWeight: '500'
                       }}>
-                        ⚠️ No defined transaction accounts found for "{form.transactionType}". You must define at least one in the "Define Transaction" tab before creating a voucher.
+                        No defined transaction accounts found for "{form.transactionType}". You must define at least one in the "Define Transaction" tab before creating a voucher.
                       </div>
                     ) : (
                       <div style={{
@@ -2771,37 +3230,73 @@ const OtherTransactions = () => {
             </form>
             ) : (
             /* Liability Settlement Form */
-            <form onSubmit={(e) => { e.preventDefault(); setSubmitMessage('Liability Settlement form submission - Backend integration pending'); }}>
+            <form onSubmit={handleLiabilitySettlementSubmit}>
               <div className="other-trans-form-grid">
                 
-                {/* Voucher Number */}
+                {/* Select Previous Voucher */}
                 <div className="other-trans-field-group" style={{ gridColumn: '1 / -1' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
-                    <label className="other-trans-field-label" style={{ marginBottom: 0 }}>Voucher Number</label>
-                    <button
-                      type="button"
-                      onClick={() => setLiabilitySettlementForm(prev => ({ ...prev, voucherNumber: generateVoucherNumber() }))}
-                      style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '0.5rem',
-                        padding: '0.5rem 1rem',
-                        background: 'linear-gradient(90deg, #3b82f6 0%, #2563eb 100%)',
-                        color: 'white',
-                        border: 'none',
-                        borderRadius: '0.15rem',
-                        cursor: 'pointer',
-                        fontSize: '0.875rem',
-                        fontWeight: '500',
-                        transition: 'all 0.2s ease'
-                      }}
-                    >
-                      <svg width="16" height="16" fill="currentColor" viewBox="0 0 20 20">
-                        <path fillRule="evenodd" d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01.61-1.276z" clipRule="evenodd"/>
-                      </svg>
-                      Regenerate
-                    </button>
-                  </div>
+                  <label className="other-trans-field-label">Select Previous Voucher *</label>
+                  <select
+                    name="selectedVoucherId"
+                    value={liabilitySettlementForm.selectedVoucherId}
+                    onChange={handleLiabilitySettlementChange}
+                    className="other-trans-form-select"
+                    disabled={vouchersLoading}
+                    required
+                  >
+                    <option value="">Select a previous liability settlement voucher to copy details</option>
+                    {vouchers
+                      .filter(v => {
+                        // Filter for liability transactions only
+                        const accountType = (v.account_type || '').toLowerCase();
+                        if (accountType !== 'liability') return false;
+                        
+                        // Exclude reversal vouchers (those starting with "RV-")
+                        if (v.voucher_number && v.voucher_number.startsWith('RV-')) return false;
+                        
+                        // Exclude settlement vouchers themselves (those starting with "LS-")
+                        if (v.voucher_number && v.voucher_number.startsWith('LS-')) return false;
+                        
+                        // Exclude vouchers that have already been fully settled
+                        if (isVoucherSettled(v)) return false;
+                        
+                        // Keep if there is a remaining balance to settle
+                        const remaining = getVoucherRemainingAmount(v);
+                        return remaining > 0;
+                      })
+                      .map(v => {
+                        const remaining = getVoucherRemainingAmount(v);
+                        const originalAmt = parseFloat(v.amount) || 0;
+                        return (
+                          <option key={v.id} value={v.id}>
+                            {v.voucher_number} — {v.transaction_type || 'Liability Settlement'} — Original: {originalAmt ? `${originalAmt.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ${v.currency || 'LKR'}` : 'N/A'} — Remaining: {remaining.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} {v.currency || 'LKR'} — {v.transaction_date ? v.transaction_date.substring(0, 10) : 'N/A'}
+                          </option>
+                        );
+                      })}
+                  </select>
+                  {vouchersLoading && (
+                    <small style={{ color: '#6b7280', fontSize: '0.75rem' }}>
+                      Loading vouchers...
+                    </small>
+                  )}
+                  {!vouchersLoading && vouchers.filter(v => {
+                    const accountType = (v.account_type || '').toLowerCase();
+                    if (accountType !== 'liability') return false;
+                    if (v.voucher_number && v.voucher_number.startsWith('RV-')) return false;
+                    if (v.voucher_number && v.voucher_number.startsWith('LS-')) return false;
+                    if (isVoucherSettled(v)) return false;
+                    if (getVoucherRemainingAmount(v) <= 0) return false;
+                    return true;
+                  }).length === 0 && (
+                    <small style={{ color: '#6b7280', fontSize: '0.75rem' }}>
+                      No previous liability settlement vouchers found
+                    </small>
+                  )}
+                </div>
+
+                {/* New Voucher Number */}
+                <div className="other-trans-field-group" style={{ gridColumn: '1 / -1' }}>
+                  <label className="other-trans-field-label">Voucher Number</label>
                   <input
                     name="voucherNumber"
                     value={liabilitySettlementForm.voucherNumber}
@@ -2809,7 +3304,7 @@ const OtherTransactions = () => {
                     className="other-trans-form-input"
                   />
                   <small style={{ color: '#6b7280', fontSize: '0.75rem' }}>
-                    Auto-generated voucher number
+                    Auto-generated voucher number (new voucher will be created)
                   </small>
                 </div>
 
@@ -2818,8 +3313,8 @@ const OtherTransactions = () => {
                   <label className="other-trans-field-label">Settlement Date *</label>
                   <input
                     type="date"
-                    name="settlementDate"
-                    value={liabilitySettlementForm.settlementDate}
+                    name="date"
+                    value={liabilitySettlementForm.date}
                     onChange={handleLiabilitySettlementChange}
                     className="other-trans-form-input"
                     required
@@ -2869,30 +3364,208 @@ const OtherTransactions = () => {
                   </div>
                   
                   <div className="other-trans-form-grid">
-                    {/* Liability Account Code */}
+                    {/* Category */}
                     <div className="other-trans-field-group">
-                      <label className="other-trans-field-label">Liability Account Code *</label>
-                      <input
-                        name="liabilityAccountCode"
-                        placeholder="Enter liability account code (e.g., 201-XXX-XXX-XX)"
-                        value={liabilitySettlementForm.liabilityAccountCode}
-                        onChange={handleLiabilitySettlementChange}
-                        className="other-trans-form-input"
-                        required
-                      />
+                      <label className="other-trans-field-label">Category *</label>
+                      <select
+                        name="category"
+                        value={liabilitySettlementForm.category}
+                        className="other-trans-form-select"
+                        disabled
+                      >
+                        <option value="liability">Liability</option>
+                      </select>
+                      <small style={{ color: '#6b7280', fontSize: '0.75rem' }}>
+                        Fixed to Liability for settlement transactions
+                      </small>
                     </div>
 
-                    {/* Liability Account Name */}
+                    {/* Sub Category */}
+                    <div className="other-trans-field-group">
+                      <label className="other-trans-field-label">Sub Category *</label>
+                      <select
+                        name="subCategory"
+                        value={liabilitySettlementForm.subCategory}
+                        onChange={handleLiabilitySettlementChange}
+                        className="other-trans-form-select"
+                        disabled={categoriesLoading}
+                        required
+                      >
+                        <option value="">Select Sub Category</option>
+                        {liabilitySettlementForm.category && categoriesByType[liabilitySettlementForm.category] && categoriesByType[liabilitySettlementForm.category].map((cat) => (
+                          <option key={cat.id || cat.category_name} value={cat.category_name}>
+                            {cat.category_name}
+                          </option>
+                        ))}
+                      </select>
+                      {categoriesLoading && (
+                        <small style={{ color: '#6b7280', fontSize: '0.75rem' }}>
+                          Loading categories...
+                        </small>
+                      )}
+                      {!liabilitySettlementForm.category && (
+                        <small style={{ color: '#6b7280', fontSize: '0.75rem' }}>
+                          Please select a main category first
+                        </small>
+                      )}
+                      {liabilitySettlementForm.category && (!categoriesByType[liabilitySettlementForm.category] || categoriesByType[liabilitySettlementForm.category].length === 0) && (
+                        <small style={{ color: '#f59e0b', fontSize: '0.75rem' }}>
+                          No sub-categories found for this main category. Please add categories in the "Account Category" screen first.
+                        </small>
+                      )}
+                    </div>
+
+                    {/* Transaction Type Name */}
+                    <div className="other-trans-field-group">
+                      <label className="other-trans-field-label">Transaction Type Name *</label>
+                      <select
+                        name="transactionType"
+                        value={liabilitySettlementForm.transactionType}
+                        onChange={handleLiabilitySettlementChange}
+                        className="other-trans-form-select"
+                        disabled={!liabilitySettlementForm.subCategory}
+                        required
+                      >
+                        <option value="">Select Transaction Type Name</option>
+                        {transactionTypesForLiabilitySettlement.map((type) => (
+                          <option key={type} value={type}>
+                            {type}
+                          </option>
+                        ))}
+                      </select>
+                      {!liabilitySettlementForm.subCategory && (
+                        <small style={{ color: '#6b7280', fontSize: '0.75rem' }}>
+                          Please select a Sub Category first
+                        </small>
+                      )}
+                      {liabilitySettlementForm.subCategory && transactionTypesForLiabilitySettlement.length === 0 && (
+                        <small style={{ color: '#f59e0b', fontSize: '0.75rem' }}>
+                          No transaction types defined for this sub category. Define one in the "Define Transaction" tab.
+                        </small>
+                      )}
+                    </div>
+
+                    {/* Liability Account Code with Search */}
+                    <div className="other-trans-field-group" style={{ position: 'relative' }}>
+                      <label className="other-trans-field-label">Liability Account Code *</label>
+                      <input
+                        type="text"
+                        name="glAccountCode"
+                        value={liabilitySettlementForm.glAccountCode}
+                        onChange={handleLiabilitySettlementChange}
+                        onBlur={() => {
+                          // When user leaves the field, try to find exact match
+                          if (liabilitySettlementForm.glAccountCode) {
+                            const matchingAccount = chartAccounts.find(acc => 
+                              acc.account_code && acc.account_code.toLowerCase() === liabilitySettlementForm.glAccountCode.toLowerCase().trim()
+                            );
+                            if (matchingAccount) {
+                              setLiabilitySettlementForm(prev => ({ 
+                                ...prev, 
+                                coaDescription: matchingAccount.description || ''
+                              }));
+                            }
+                          }
+                          setShowLiabilityAccountList(false);
+                        }}
+                        onFocus={() => setShowLiabilityAccountList(true)}
+                        className="other-trans-form-input"
+                        placeholder="Type to search code or name"
+                        disabled={chartAccountsLoading}
+                        autoComplete="off"
+                        required
+                      />
+                      {(!chartAccountsLoading && showLiabilityAccountList) && (
+                        <div style={{
+                          position: 'absolute',
+                          top: '100%',
+                          left: 0,
+                          right: 0,
+                          background: 'white',
+                          border: '1px solid #e5e7eb',
+                          borderRadius: '0.25rem',
+                          maxHeight: '220px',
+                          overflowY: 'auto',
+                          zIndex: 10,
+                          boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
+                        }}>
+                          {(() => {
+                            // Filter chart accounts by liability accounts (account_type = 'liability')
+                            const term = (liabilityAccountSearchTerm || liabilitySettlementForm.glAccountCode || '').toLowerCase();
+                            const filteredAccounts = chartAccounts.filter((acc) => {
+                              // Filter by account_type = liability
+                              const accType = (acc.account_type || '').toLowerCase();
+                              if (accType !== 'liability') {
+                                return false;
+                              }
+                              
+                              // Then filter by search term
+                              if (!term) return true;
+                              return (
+                                (acc.account_code || '').toLowerCase().includes(term) ||
+                                (acc.description || '').toLowerCase().includes(term)
+                              );
+                            });
+
+                            if (chartAccounts.length === 0) {
+                              return <div style={{ padding: '0.5rem 0.75rem', color: '#6b7280' }}>No accounts loaded</div>;
+                            }
+                            if (filteredAccounts.length === 0) {
+                              return <div style={{ padding: '0.5rem 0.75rem', color: '#6b7280' }}>
+                                No liability accounts found matching "{liabilityAccountSearchTerm || liabilitySettlementForm.glAccountCode}"
+                              </div>;
+                            }
+
+                            return filteredAccounts.map((acc) => (
+                              <div
+                                key={acc.account_code}
+                                onMouseDown={(e) => e.preventDefault()}
+                                onClick={() => {
+                                  setLiabilitySettlementForm(prev => ({ 
+                                    ...prev, 
+                                    glAccountCode: acc.account_code,
+                                    coaDescription: acc.description || ''
+                                  }));
+                                  setLiabilityAccountSearchTerm(`${acc.account_code} - ${acc.description}`);
+                                  setShowLiabilityAccountList(false);
+                                }}
+                                style={{
+                                  padding: '0.5rem 0.75rem',
+                                  cursor: 'pointer',
+                                  borderBottom: '1px solid #f3f4f6'
+                                }}
+                                onMouseEnter={(e) => { e.currentTarget.style.background = '#f9fafb'; }}
+                                onMouseLeave={(e) => { e.currentTarget.style.background = 'white'; }}
+                              >
+                                <div style={{ fontWeight: 600, color: '#111827', fontSize: '0.875rem' }}>{acc.account_code}</div>
+                                <div style={{ color: '#6b7280', fontSize: '0.8125rem' }}>{acc.description}</div>
+                              </div>
+                            ));
+                          })()}
+                        </div>
+                      )}
+                      {chartAccountsLoading && (
+                        <small style={{ color: '#6b7280' }}>Loading Chart of Accounts...</small>
+                      )}
+                      <small style={{ color: '#6b7280', fontSize: '0.75rem', marginTop: '0.25rem', display: 'block' }}>
+                        Type to search for liability accounts from Chart of Accounts
+                      </small>
+                    </div>
+
+                    {/* Liability Account Name (Auto-filled) */}
                     <div className="other-trans-field-group">
                       <label className="other-trans-field-label">Liability Account Name *</label>
                       <input
-                        name="liabilityAccountName"
-                        placeholder="Enter liability account name"
-                        value={liabilitySettlementForm.liabilityAccountName}
+                        name="coaDescription"
+                        placeholder="Auto-filled from Chart of Accounts"
+                        value={liabilitySettlementForm.coaDescription}
                         onChange={handleLiabilitySettlementChange}
                         className="other-trans-form-input"
                         required
                       />
+                      <small style={{ color: '#6b7280', fontSize: '0.75rem' }}>
+                        Auto-filled when you select an account code, or enter manually
+                      </small>
                     </div>
                   </div>
                 </div>
@@ -2929,30 +3602,128 @@ const OtherTransactions = () => {
                   </div>
                   
                   <div className="other-trans-form-grid">
-                    {/* Payment Account Code */}
+                    {/* Cash Flow On Settlement */}
                     <div className="other-trans-field-group">
-                      <label className="other-trans-field-label">Payment Account Code *</label>
+                      <label className="other-trans-field-label">Cash Flow On Settlement (Rs.)</label>
                       <input
-                        name="paymentAccountCode"
-                        placeholder="Enter payment account code (e.g., 101-XXX-XXX-XX)"
-                        value={liabilitySettlementForm.paymentAccountCode}
-                        onChange={handleLiabilitySettlementChange}
-                        className="other-trans-form-input"
-                        required
+                        name="cashFlowOnSettlement"
+                        value={liabilitySettlementForm.cashFlowOnSettlement}
+                        readOnly
+                        className="other-trans-form-input other-trans-readonly-field"
                       />
                     </div>
 
-                    {/* Payment Account Name */}
+                    {/* Account Selection Dropdown */}
+                    <div className="other-trans-field-group" style={{ gridColumn: '1 / -1' }}>
+                      <label className="other-trans-field-label">Select Payment Account</label>
+                      <select
+                        name="selectedAccountId"
+                        value={liabilitySettlementForm.selectedAccountId}
+                        onChange={handleLiabilitySettlementChange}
+                        className="other-trans-form-select"
+                        disabled={accountsLoading}
+                      >
+                        <option value="">Select an account (optional - defaults will be used if not selected)</option>
+                        {accounts.map((account) => {
+                          const hasMapping = accountsWithMapping.includes(account.id);
+                          return (
+                            <option 
+                              key={account.id} 
+                              value={hasMapping ? account.id : ''}
+                              disabled={!hasMapping}
+                            >
+                              {account.account_name} - {account.account_number} ({account.bank_name})
+                              {!hasMapping ? ' - No GL Mapping' : ''}
+                            </option>
+                          );
+                        })}
+                      </select>
+                      {accountsLoading && <small style={{ color: '#6b7280' }}>Loading accounts...</small>}
+                      {accounts.length > 0 && accountsWithMapping.length === 0 && (
+                        <small style={{ 
+                          display: 'block',
+                          marginTop: '0.5rem',
+                          color: '#f59e0b',
+                          fontSize: '0.875rem'
+                        }}>
+                          ⚠️ No accounts with GL mappings found. Default accounts will be used for GL entries.
+                        </small>
+                      )}
+                      {accounts.length > 0 && accountsWithMapping.length > 0 && (
+                        <small style={{ 
+                          display: 'block',
+                          marginTop: '0.5rem',
+                          color: '#6b7280',
+                          fontSize: '0.875rem'
+                        }}>
+                          Only accounts with GL mappings are available. If no account is selected, defaults will be used.
+                        </small>
+                      )}
+                    </div>
+
+                    {/* Account Name */}
                     <div className="other-trans-field-group">
-                      <label className="other-trans-field-label">Payment Account Name *</label>
+                      <label className="other-trans-field-label">Account Name</label>
                       <input
                         name="paymentAccountName"
-                        placeholder="Enter payment account name"
+                        placeholder="Auto-filled"
                         value={liabilitySettlementForm.paymentAccountName}
-                        onChange={handleLiabilitySettlementChange}
-                        className="other-trans-form-input"
-                        required
+                        readOnly
+                        className="other-trans-form-input other-trans-readonly-field"
                       />
+                    </div>
+
+                    {/* Account Number */}
+                    <div className="other-trans-field-group">
+                      <label className="other-trans-field-label">Account Number</label>
+                      <input
+                        name="paymentAccountNumber"
+                        placeholder="Auto-filled"
+                        value={liabilitySettlementForm.paymentAccountNumber}
+                        readOnly
+                        className="other-trans-form-input other-trans-readonly-field"
+                      />
+                    </div>
+
+                    {/* Bank Name */}
+                    <div className="other-trans-field-group">
+                      <label className="other-trans-field-label">Bank Name</label>
+                      <input
+                        name="paymentBankName"
+                        placeholder="Auto-filled"
+                        value={liabilitySettlementForm.paymentBankName}
+                        readOnly
+                        className="other-trans-form-input other-trans-readonly-field"
+                      />
+                    </div>
+
+                    {/* Branch Name */}
+                    <div className="other-trans-field-group">
+                      <label className="other-trans-field-label">Branch Name</label>
+                      <input
+                        name="paymentBranchName"
+                        placeholder="Auto-filled"
+                        value={liabilitySettlementForm.paymentBranchName}
+                        readOnly
+                        className="other-trans-form-input other-trans-readonly-field"
+                      />
+                    </div>
+
+                    {/* Payment Method */}
+                    <div className="other-trans-field-group">
+                      <label className="other-trans-field-label">Payment Method</label>
+                      <select
+                        name="paymentMethod"
+                        value={liabilitySettlementForm.paymentMethod}
+                        onChange={handleLiabilitySettlementChange}
+                        className="other-trans-form-select"
+                      >
+                        <option value="">Select Payment Method</option>
+                        <option value="Bank Transfer">Bank Transfer</option>
+                        <option value="Online Banking">Online Banking</option>
+                        <option value="Cheque">Cheque</option>
+                        <option value="Cash">Cash</option>
+                      </select>
                     </div>
                   </div>
                 </div>
@@ -2962,10 +3733,10 @@ const OtherTransactions = () => {
                   <label className="other-trans-field-label">Settlement Amount *</label>
                   <input
                     type="number"
-                    name="settlementAmount"
+                    name="amount"
                     step="0.01"
                     placeholder="Enter settlement amount"
-                    value={liabilitySettlementForm.settlementAmount}
+                    value={liabilitySettlementForm.amount}
                     onChange={handleLiabilitySettlementChange}
                     className="other-trans-form-input"
                     required
@@ -2973,6 +3744,56 @@ const OtherTransactions = () => {
                   <small style={{ color: '#6b7280', fontSize: '0.75rem' }}>
                     Must be greater than zero
                   </small>
+                </div>
+
+                {/* Currency */}
+                <div className="other-trans-field-group">
+                  <label className="other-trans-field-label">Currency *</label>
+                  <select
+                    name="currency"
+                    value={liabilitySettlementForm.currency}
+                    onChange={handleLiabilitySettlementChange}
+                    className="other-trans-form-select"
+                  >
+                    <option value="LKR">LKR - Sri Lankan Rupee</option>
+                    <option value="USD">USD - US Dollar</option>
+                    <option value="EUR">EUR - Euro</option>
+                    <option value="GBP">GBP - British Pound</option>
+                    <option value="INR">INR - Indian Rupee</option>
+                    <option value="JPY">JPY - Japanese Yen</option>
+                    <option value="AUD">AUD - Australian Dollar</option>
+                    <option value="CAD">CAD - Canadian Dollar</option>
+                    <option value="CHF">CHF - Swiss Franc</option>
+                    <option value="CNY">CNY - Chinese Yuan</option>
+                    <option value="AED">AED - UAE Dirham</option>
+                    <option value="SGD">SGD - Singapore Dollar</option>
+                  </select>
+                </div>
+
+                {/* FX Rate */}
+                <div className="other-trans-field-group">
+                  <label className="other-trans-field-label">FX Rate → LKR</label>
+                  <input
+                    type="number"
+                    name="fxRate"
+                    step="0.0001"
+                    placeholder="Enter exchange rate"
+                    value={liabilitySettlementForm.fxRate}
+                    onChange={handleLiabilitySettlementChange}
+                    className="other-trans-form-input"
+                  />
+                </div>
+
+                {/* Counterparty (Optional) */}
+                <div className="other-trans-field-group">
+                  <label className="other-trans-field-label">Counterparty</label>
+                  <input
+                    name="counterparty"
+                    placeholder="Enter counterparty name (optional)"
+                    value={liabilitySettlementForm.counterparty}
+                    onChange={handleLiabilitySettlementChange}
+                    className="other-trans-form-input"
+                  />
                 </div>
 
                 {/* Description */}
