@@ -39,6 +39,7 @@ import OtherTransactions from './components/AccountingEntries/OtherTransactions'
 import OpeningBalEntry from './components/OpeningBalManage/OpeningBalEntry';
 import OpeningBalList from './components/OpeningBalManage/OpeningBalList';
 import AccountBalanceSetup from './components/OpeningBalManage/AccountBalanceSetup';
+import DoubleEntries from './components/AccountingEntries/DoubleEntries';
 import MarkToMarketValuation from './components/ValuationAndMTM/MarkToMarketValuation';
 import RealizedPnL from './components/ValuationAndMTM/RealizedPnL';
 import TradeSummaryData from './components/ValuationAndMTM/TradeSummaryData';
@@ -50,6 +51,7 @@ import MarketAnnouncements from './components/CSEAnnouncements/MarketAnnouncemen
 import CorporateNotices from './components/CSEAnnouncements/CorporateNotices';
 import FinancialPosition from './components/FinancialReporting/FinancialPosition';
 import StatementOfComprehensiveIncome from './components/FinancialReporting/StatementOfComprehensiveIncome';
+import CashFlow from './components/FinancialReporting/CashFlow';
 import PremiumModal from './components/PremiumModal/premiumModal';
 
 
@@ -89,7 +91,7 @@ function App() {
       {
         index: 3,
         name: "Financial Reporting",
-        subTopics: ["Statement of Financial Position", "Statement of Comprehensive Income", "Financial Reports Export"]
+        subTopics: ["Statement of Financial Position", "Statement of Comprehensive Income", "Cash Flow", "Financial Reports Export"]
       },
       {
         index: 4,
@@ -99,7 +101,7 @@ function App() {
       {
         index: 5,
         name: "Opening Balance Management",
-        subTopics: ["Opening Balance Entry", "Opening Balance List", "Account Balance Setup"]
+        subTopics: ["Opening Balance Entry", "Opening Balance List", "Account Balance Setup", "Double Entries"]
       },
       {
         index: 6,
@@ -196,6 +198,7 @@ function App() {
     'Other Transactions': <OtherTransactions />,
     'P&L': <ProfitLoss />,
     'Portfolio MTM': <PortfolioMTM />,
+    'Double Entries': <DoubleEntries />,
     'New GL Account': <NewGLAccount />,
     'Opening Balance Entry': <OpeningBalEntry />,
     'Opening Balance List': <OpeningBalList />,
@@ -205,15 +208,25 @@ function App() {
     'Corporate Notices': <CorporateNotices />,
     'Statement of Financial Position': <FinancialPosition />,
     'Statement of Comprehensive Income': <StatementOfComprehensiveIncome />,
+    'Cash Flow': <CashFlow />,
     'Financial Reports Export': <div style={{ padding: '2rem' }}><h3>Financial Reports Export</h3><p>Coming Soon...</p></div>,
   };
 
   // Handle sidebar selection
   const handleSidebarSelect = (index, subTopics) => {
+    // Settlement and Accounting is at index 8 - show premium modal instead
     // CSE Announcements is at index 10 - show premium modal instead
     // Corporate Actions is at index 11 - show premium modal instead
     // Security Identity is at index 12 - show premium modal instead
-    if (index === 10 || index === 11 || index === 12) {
+    // Voluntary Corporate Actions is at index 13 - show premium modal instead
+    // Mandatory Corporate Actions is at index 14 - show premium modal instead
+    // IPO is at index 15 - show premium modal instead
+    // Portfolio Monitoring is at index 16 - show premium modal instead
+    // Risk and Limit Management is at index 17 - show premium modal instead
+    // Reporting and Compliance is at index 18 - show premium modal instead
+    // Integration and Automation is at index 19 - show premium modal instead
+    // Portfolio Transfers is at index 20 - show premium modal instead
+    if (index === 8 || index === 10 || index === 11 || index === 12 || index === 13 || index === 14 || index === 15 || index === 16 || index === 17 || index === 18 || index === 19 || index === 20) {
       setIsPremiumModalOpen(true);
       return;
     }

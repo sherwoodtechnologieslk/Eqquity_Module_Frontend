@@ -61,6 +61,7 @@ const menuItems = [
     subTopics: [
       "Statement of Financial Position",
       "Statement of Comprehensive Income",
+      "Cash Flow",
       "Financial Reports Export"
     ]
   },
@@ -89,7 +90,8 @@ const menuItems = [
     subTopics: [
       "Opening Balance Entry",
       "Opening Balance List",
-      "Account Balance Setup"
+      "Account Balance Setup",
+      "Double Entries"
     ]
   },
   {
