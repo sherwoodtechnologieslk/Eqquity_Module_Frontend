@@ -101,27 +101,78 @@ const CashFlow = () => {
       {/* Summary Cards */}
       <div className="cf-summary-cards">
         <div className="cf-summary-card operating">
-          <div className="cf-card-header">Operating Activities</div>
-          <div className={`cf-card-value ${getAmountClass(summaryData.netCashFromOperating)}`}>
-            {formatCurrency(summaryData.netCashFromOperating)}
+          <div className="cf-card-inner">
+            <div className="cf-card-header-wrapper">
+              <div className="cf-card-header">Operating Activities</div>
+              <div className="cf-card-icon">
+                <svg viewBox="0 0 24 24" fill="white">
+                  <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/>
+                </svg>
+              </div>
+            </div>
+            <div className="cf-card-value-wrapper">
+              <div className={`cf-card-value ${getAmountClass(summaryData.netCashFromOperating)}`}>
+                {formatCurrency(summaryData.netCashFromOperating)}
+              </div>
+              <div className="cf-card-subtitle">Cash from operations</div>
+            </div>
           </div>
         </div>
         <div className="cf-summary-card investing">
-          <div className="cf-card-header">Investing Activities</div>
-          <div className={`cf-card-value ${getAmountClass(summaryData.netCashUsedInInvesting)}`}>
-            {formatCurrency(summaryData.netCashUsedInInvesting)}
+          <div className="cf-card-inner">
+            <div className="cf-card-header-wrapper">
+              <div className="cf-card-header">Investing Activities</div>
+              <div className="cf-card-icon">
+                <svg viewBox="0 0 24 24" fill="white">
+                  <path d="M12 2L2 7l10 5 10-5-10-5z"/>
+                  <path d="M2 17l10 5 10-5"/>
+                  <path d="M2 12l10 5 10-5"/>
+                </svg>
+              </div>
+            </div>
+            <div className="cf-card-value-wrapper">
+              <div className={`cf-card-value ${getAmountClass(summaryData.netCashUsedInInvesting)}`}>
+                {formatCurrency(summaryData.netCashUsedInInvesting)}
+              </div>
+              <div className="cf-card-subtitle">Net investment flow</div>
+            </div>
           </div>
         </div>
         <div className="cf-summary-card financing">
-          <div className="cf-card-header">Financing Activities</div>
-          <div className={`cf-card-value ${getAmountClass(summaryData.netCashFromFinancing)}`}>
-            {formatCurrency(summaryData.netCashFromFinancing)}
+          <div className="cf-card-inner">
+            <div className="cf-card-header-wrapper">
+              <div className="cf-card-header">Financing Activities</div>
+              <div className="cf-card-icon">
+                <svg viewBox="0 0 24 24" fill="white">
+                  <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+                </svg>
+              </div>
+            </div>
+            <div className="cf-card-value-wrapper">
+              <div className={`cf-card-value ${getAmountClass(summaryData.netCashFromFinancing)}`}>
+                {formatCurrency(summaryData.netCashFromFinancing)}
+              </div>
+              <div className="cf-card-subtitle">Capital transactions</div>
+            </div>
           </div>
         </div>
         <div className="cf-summary-card net">
-          <div className="cf-card-header">Net Increase in Cash</div>
-          <div className={`cf-card-value ${getAmountClass(summaryData.netIncreaseInCash)}`}>
-            {formatCurrency(summaryData.netIncreaseInCash)}
+          <div className="cf-card-inner">
+            <div className="cf-card-header-wrapper">
+              <div className="cf-card-header">Net Increase in Cash</div>
+              <div className="cf-card-icon">
+                <svg viewBox="0 0 24 24" fill="white">
+                  <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+                  <circle cx="19" cy="19" r="2"/>
+                </svg>
+              </div>
+            </div>
+            <div className="cf-card-value-wrapper">
+              <div className={`cf-card-value ${getAmountClass(summaryData.netIncreaseInCash)}`}>
+                {formatCurrency(summaryData.netIncreaseInCash)}
+              </div>
+              <div className="cf-card-subtitle">Total cash movement</div>
+            </div>
           </div>
         </div>
       </div>

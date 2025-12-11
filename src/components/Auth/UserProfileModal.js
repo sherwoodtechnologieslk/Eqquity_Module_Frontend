@@ -85,6 +85,13 @@ const UserProfileModal = ({ user, isOpen, onClose }) => {
                         </div>
                         
                         <div className="upm-form-group">
+                            <label>Funds Center</label>
+                            <div className="upm-readonly-input upm-funds-center">
+                                {user?.fundsCenter || 'Colombo (Colombo Stock Exchange – CSE) 🇱🇰'}
+                            </div>
+                        </div>
+                        
+                        <div className="upm-form-group">
                             <label>Account Status</label>
                             <div className="upm-status-badge">
                                 <span className="upm-status-dot"></span>

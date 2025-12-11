@@ -8,13 +8,30 @@ const Signup = ({ onSignup, switchToLogin }) => {
         last_name: '',
         email: '',
         password: '',
-        confirmPassword: ''
+        confirmPassword: '',
+        fundsCenter: 'Colombo (Colombo Stock Exchange – CSE) 🇱🇰'
     });
     const [errors, setErrors] = useState({});
     const [isLoading, setIsLoading] = useState(false);
     const [serverError, setServerError] = useState('');
+    
+    const fundsCenters = [
+        { name: 'Colombo (Colombo Stock Exchange – CSE)', flag: '🇱🇰' },
+        { name: 'New York (NYSE, NASDAQ)', flag: '🇺🇸' },
+        { name: 'Chicago (CBOE)', flag: '🇺🇸' },
+        { name: 'London (London Stock Exchange)', flag: '🇬🇧' },
+        { name: 'Tokyo (Tokyo Stock Exchange)', flag: '🇯🇵' },
+        { name: 'Sydney (ASX)', flag: '🇦🇺' },
+        { name: 'Singapore (SGX)', flag: '🇸🇬' },
+        { name: 'Shanghai (SSE)', flag: '🇨🇳' }
+    ];
 
     const handleChange = (e) => {
+        // Prevent changing fundsCenter - keep it locked to Colombo
+        if (e.target.name === 'fundsCenter') {
+            return;
+        }
+        
         setFormData({
             ...formData,
             [e.target.name]: e.target.value
@@ -56,6 +73,10 @@ const Signup = ({ onSignup, switchToLogin }) => {
             newErrors.confirmPassword = 'Please confirm your password';
         } else if (formData.password !== formData.confirmPassword) {
             newErrors.confirmPassword = 'Passwords do not match';
+        }
+
+        if (!formData.fundsCenter) {
+            newErrors.fundsCenter = 'Funds center is required';
         }
 
         setErrors(newErrors);
@@ -150,6 +171,25 @@ const Signup = ({ onSignup, switchToLogin }) => {
                             placeholder="Enter your email"
                         />
                         {errors.email && <span className="error-text">{errors.email}</span>}
+                    </div>
+
+                    <div className="form-group">
+                        <label htmlFor="fundsCenter">Funds Center</label>
+                        <select
+                            id="fundsCenter"
+                            name="fundsCenter"
+                            value={formData.fundsCenter}
+                            onChange={handleChange}
+                            className={errors.fundsCenter ? 'error' : 'locked'}
+                            title="Colombo is the default funds center - view only"
+                        >
+                            {fundsCenters.map((center, index) => (
+                                <option key={index} value={`${center.name} ${center.flag}`}>
+                                    {center.name} {center.flag}
+                                </option>
+                            ))}
+                        </select>
+                        {errors.fundsCenter && <span className="error-text">{errors.fundsCenter}</span>}
                     </div>
 
                     <div className="form-group">

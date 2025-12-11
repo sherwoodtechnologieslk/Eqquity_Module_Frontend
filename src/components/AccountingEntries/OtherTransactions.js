@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+ import React, { useState, useEffect, useMemo } from 'react';
 import { createPortal } from 'react-dom';
 import './Styles/OtherTransactions.css';
 import { accountAPI, otherTransactionAPI, otherTransactionGLEntryAPI, glAccountMappingAPI, otherTransactionTypeAPI, chartOfAccountsAPI, accountCategoryAPI } from '../../services/api';
@@ -1251,6 +1251,109 @@ const OtherTransactions = () => {
     setSubmitMessage('');
   };
 
+  // Handler for Asset Derecognition form submission
+  const handleAssetDerecognitionSubmit = async (e) => {
+    e.preventDefault();
+
+    // Validate required fields
+    const missingFields = [];
+
+    if (!assetDerecognitionForm.assetAccountCode || !assetDerecognitionForm.assetAccountCode.trim()) {
+      missingFields.push('Asset Account Code');
+    }
+
+    if (!assetDerecognitionForm.assetAccountName || !assetDerecognitionForm.assetAccountName.trim()) {
+      missingFields.push('Asset Account Name');
+    }
+
+    if (!assetDerecognitionForm.accumulatedDepreciationAccountCode || !assetDerecognitionForm.accumulatedDepreciationAccountCode.trim()) {
+      missingFields.push('Accumulated Depreciation Account Code');
+    }
+
+    if (!assetDerecognitionForm.accumulatedDepreciationAccountName || !assetDerecognitionForm.accumulatedDepreciationAccountName.trim()) {
+      missingFields.push('Accumulated Depreciation Account Name');
+    }
+
+    if (!assetDerecognitionForm.proceedsAccountCode || !assetDerecognitionForm.proceedsAccountCode.trim()) {
+      missingFields.push('Proceeds Account Code');
+    }
+
+    if (!assetDerecognitionForm.proceedsAccountName || !assetDerecognitionForm.proceedsAccountName.trim()) {
+      missingFields.push('Proceeds Account Name');
+    }
+
+    if (!assetDerecognitionForm.gainLossAccountCode || !assetDerecognitionForm.gainLossAccountCode.trim()) {
+      missingFields.push('Gain/Loss Account Code');
+    }
+
+    if (!assetDerecognitionForm.gainLossAccountName || !assetDerecognitionForm.gainLossAccountName.trim()) {
+      missingFields.push('Gain/Loss Account Name');
+    }
+
+    if (!assetDerecognitionForm.assetBookValue || assetDerecognitionForm.assetBookValue === '' || isNaN(parseFloat(assetDerecognitionForm.assetBookValue)) || parseFloat(assetDerecognitionForm.assetBookValue) < 0) {
+      missingFields.push('Asset Book Value (must be greater than or equal to zero)');
+    }
+
+    if (!assetDerecognitionForm.saleProceeds || assetDerecognitionForm.saleProceeds === '' || isNaN(parseFloat(assetDerecognitionForm.saleProceeds)) || parseFloat(assetDerecognitionForm.saleProceeds) < 0) {
+      missingFields.push('Sale Proceeds (must be greater than or equal to zero)');
+    }
+
+    if (!assetDerecognitionForm.derecognitionDate || !assetDerecognitionForm.derecognitionDate.trim()) {
+      missingFields.push('Derecognition Date');
+    }
+
+    if (missingFields.length > 0) {
+      alert(`Please fill in all required fields:\n- ${missingFields.join('\n- ')}`);
+      return;
+    }
+
+    setIsSubmitting(true);
+    setSubmitMessage('');
+
+    try {
+      // Get user email from auth service
+      const user = authService.getStoredUser();
+      const userEmail = user?.email || '';
+
+      // Prepare transaction data for asset derecognition
+      const transactionData = {
+        voucherNumber: assetDerecognitionForm.voucherNumber,
+        accountType: 'asset', // Fixed for asset derecognition
+        transactionType: 'Asset Derecognition', // Fixed transaction type
+        date: assetDerecognitionForm.derecognitionDate,
+        reference: assetDerecognitionForm.reference || '',
+        description: assetDerecognitionForm.description || '',
+        notes: assetDerecognitionForm.notes || '',
+        userEmail: userEmail,
+        // Asset derecognition specific fields
+        assetAccountCode: assetDerecognitionForm.assetAccountCode.trim(),
+        assetAccountName: assetDerecognitionForm.assetAccountName.trim(),
+        accumulatedDepreciationAccountCode: assetDerecognitionForm.accumulatedDepreciationAccountCode.trim(),
+        accumulatedDepreciationAccountName: assetDerecognitionForm.accumulatedDepreciationAccountName.trim(),
+        proceedsAccountCode: assetDerecognitionForm.proceedsAccountCode.trim(),
+        proceedsAccountName: assetDerecognitionForm.proceedsAccountName.trim(),
+        gainLossAccountCode: assetDerecognitionForm.gainLossAccountCode.trim(),
+        gainLossAccountName: assetDerecognitionForm.gainLossAccountName.trim(),
+        assetBookValue: parseFloat(assetDerecognitionForm.assetBookValue),
+        saleProceeds: parseFloat(assetDerecognitionForm.saleProceeds),
+        gainLossAmount: parseFloat(assetDerecognitionForm.gainLossAmount || 0)
+      };
+
+      // Call API to save the asset derecognition transaction
+      const result = await otherTransactionAPI.createTransaction(transactionData);
+      
+      console.log('Asset derecognition transaction saved successfully:', result);
+      setSubmitMessage('Asset derecognition transaction saved successfully!');
+      handleAssetDerecognitionReset();
+      
+    } catch (error) {
+      console.error('Error saving asset derecognition transaction:', error);
+      setSubmitMessage(`Error saving transaction: ${error.message}`);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   // Helper function to generate description for liability settlement
   const generateLiabilitySettlementDescription = (originalVoucherNumber, settlementAmount, originalAmount) => {
     if (!originalVoucherNumber) return '';
@@ -1563,6 +1666,104 @@ const isVoucherSettled = (voucher) => {
     setShowLiabilityAccountList(false);
     setTransactionTypesForLiabilitySettlement([]);
     setSubmitMessage('');
+  };
+
+  // Handler for Liability Settlement form submission
+  const handleLiabilitySettlementSubmit = async (e) => {
+    e.preventDefault();
+
+    // Validate required fields
+    const missingFields = [];
+
+    if (!liabilitySettlementForm.selectedVoucherId || !liabilitySettlementForm.selectedVoucherId.toString().trim()) {
+      missingFields.push('Select Previous Voucher');
+    }
+
+    if (!liabilitySettlementForm.subCategory || !liabilitySettlementForm.subCategory.trim()) {
+      missingFields.push('Sub Category');
+    }
+
+    if (!liabilitySettlementForm.transactionType || !liabilitySettlementForm.transactionType.trim()) {
+      missingFields.push('Transaction Type Name');
+    }
+
+    if (!liabilitySettlementForm.glAccountCode || !liabilitySettlementForm.glAccountCode.trim()) {
+      missingFields.push('Liability Account Code');
+    }
+
+    if (!liabilitySettlementForm.coaDescription || !liabilitySettlementForm.coaDescription.trim()) {
+      missingFields.push('Liability Account Name');
+    }
+
+    if (!liabilitySettlementForm.amount || liabilitySettlementForm.amount === '' || isNaN(parseFloat(liabilitySettlementForm.amount)) || parseFloat(liabilitySettlementForm.amount) <= 0) {
+      missingFields.push('Settlement Amount (must be greater than zero)');
+    }
+
+    if (!liabilitySettlementForm.date || !liabilitySettlementForm.date.trim()) {
+      missingFields.push('Settlement Date');
+    }
+
+    if (missingFields.length > 0) {
+      alert(`Please fill in all required fields:\n- ${missingFields.join('\n- ')}`);
+      return;
+    }
+
+    // Ensure settlement does not exceed remaining balance on the selected voucher
+    const selectedVoucher = vouchers.find(v => liabilitySettlementForm.selectedVoucherId && v.id.toString() === liabilitySettlementForm.selectedVoucherId.toString());
+    if (selectedVoucher) {
+      const remaining = getVoucherRemainingAmount(selectedVoucher);
+      const settleAmount = parseFloat(liabilitySettlementForm.amount) || 0;
+      if (settleAmount - remaining > 0.001) {
+        alert(`Settlement amount exceeds remaining balance. Remaining: ${remaining.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`);
+        return;
+      }
+    }
+
+    setIsSubmitting(true);
+    setSubmitMessage('');
+
+    try {
+      // Get user email from auth service
+      const user = authService.getStoredUser();
+      const userEmail = user?.email || '';
+
+      // Prepare transaction data matching the other_transactions table structure
+      const transactionData = {
+        voucherNumber: liabilitySettlementForm.voucherNumber,
+        accountType: 'liability', // Fixed for liability settlement
+        transactionType: liabilitySettlementForm.transactionType || 'Liability Settlement', // Use selected transaction type or default
+        glAccountCode: liabilitySettlementForm.glAccountCode.trim(),
+        coaDescription: liabilitySettlementForm.coaDescription.trim(),
+        description: liabilitySettlementForm.description,
+        amount: liabilitySettlementForm.amount,
+        date: liabilitySettlementForm.date,
+        reference: liabilitySettlementForm.reference,
+        currency: liabilitySettlementForm.currency || 'LKR',
+        fxRate: liabilitySettlementForm.fxRate || '1.00',
+        counterparty: liabilitySettlementForm.counterparty || '',
+        notes: liabilitySettlementForm.notes,
+        cashFlowOnSettlement: liabilitySettlementForm.cashFlowOnSettlement || (parseFloat(liabilitySettlementForm.amount) * parseFloat(liabilitySettlementForm.fxRate || 1)).toFixed(2),
+        paymentAccountName: liabilitySettlementForm.paymentAccountName,
+        paymentAccountNumber: liabilitySettlementForm.paymentAccountNumber,
+        paymentBankName: liabilitySettlementForm.paymentBankName,
+        paymentBranchName: liabilitySettlementForm.paymentBranchName,
+        paymentMethod: liabilitySettlementForm.paymentMethod,
+        userEmail: userEmail
+      };
+
+      // Call API to save the transaction
+      const result = await otherTransactionAPI.createTransaction(transactionData);
+      
+      console.log('Liability settlement transaction saved successfully:', result);
+      setSubmitMessage('Liability settlement transaction saved successfully!');
+      handleLiabilitySettlementReset();
+      
+    } catch (error) {
+      console.error('Error saving liability settlement transaction:', error);
+      setSubmitMessage(`Error saving transaction: ${error.message}`);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   // Handler for Liability Settlement form submission
@@ -2815,7 +3016,7 @@ const isVoucherSettled = (voucher) => {
             </form>
             ) : activeFormType === 'assetDerecognition' ? (
             /* Asset Derecognition Form */
-            <form onSubmit={(e) => { e.preventDefault(); setSubmitMessage('Asset Derecognition form submission - Backend integration pending'); }}>
+            <form onSubmit={handleAssetDerecognitionSubmit}>
               <div className="other-trans-form-grid">
                 
                 {/* Voucher Number */}

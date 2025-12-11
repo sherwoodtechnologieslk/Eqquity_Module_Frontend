@@ -393,6 +393,22 @@
   left: 100%;
 }
 
+/* Funds Center Styling */
+.upm-funds-center {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #1e40af;
+  background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
+  border-color: #93c5fd;
+  padding: 0.75rem 1rem;
+  max-width: 400px;
+}
+
+.upm-funds-center:hover {
+  background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
+  border-color: #60a5fa;
+}
+
 /* Status Badge - Enhanced Design */
 .upm-status-badge {
   display: inline-flex;

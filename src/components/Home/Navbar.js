@@ -18,6 +18,16 @@ const Navbar = ({ activeTab, onTabChange, visibleTabs = [], user, onLogout, onOp
         </svg>
       )
     },
+    'Holiday Calendar': {
+      className: 'nav-calendar',
+      description: 'View holidays on calendar',
+      icon: (
+        <svg className="tab-icon" fill="currentColor" viewBox="0 0 20 20">
+          <path d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1z" />
+          <path d="M5 8h10v2H5V8zm0 4h6v2H5v-2z" />
+        </svg>
+      )
+    },
     'Buy': {
       className: 'nav-buy',
       description: 'Purchase securities',
