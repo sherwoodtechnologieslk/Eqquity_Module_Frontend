@@ -53,6 +53,7 @@ import FinancialPosition from './components/FinancialReporting/FinancialPosition
 import StatementOfComprehensiveIncome from './components/FinancialReporting/StatementOfComprehensiveIncome';
 import CashFlow from './components/FinancialReporting/CashFlow';
 import PremiumModal from './components/PremiumModal/premiumModal';
+import HolidayCalendar from './components/HolidayCalendar/HolidayCalendar';
 
 
 function App() {
@@ -85,56 +86,61 @@ function App() {
       },
       {
         index: 2,
+        name: "Holiday Calendar",
+        subTopics: ["Holiday Calendar", "Holiday List", "Add Holiday", "Holiday Settings"]
+      },
+      {
+        index: 3,
         name: "Accounting Entries",
         subTopics: ["Journal Entries", "General Ledger", "Trial Balance", "P&L", "Portfolio MTM"]
       },
       {
-        index: 3,
+        index: 4,
         name: "Financial Reporting",
         subTopics: ["Statement of Financial Position", "Statement of Comprehensive Income", "Cash Flow", "Financial Reports Export"]
       },
       {
-        index: 4,
+        index: 5,
         name: "Account Management",
         subTopics: ["Chart Of Accounts", "New GL Account", "Account Reconciliation", "Other Transactions"]
       },
       {
-        index: 5,
+        index: 6,
         name: "Opening Balance Management",
         subTopics: ["Opening Balance Entry", "Opening Balance List", "Account Balance Setup", "Double Entries"]
       },
       {
-        index: 6,
+        index: 7,
         name: "Trade Capture",
         subTopics: ["Buy", "Sell", "Transactions", "Portfolio", "Deal Slip", "Cost of Funds"]
       },
       {
-        index: 7,
+        index: 8,
         name: "Batch Transaction Import",
         subTopics: ["Bulk Buy Entry", "Bulk Sell Entry", "Import History", "Trade Confirmation", "Trade Report"]
       },
       {
-        index: 8,
+        index: 9,
         name: "Settlement and Accounting",
         subTopics: ["Settlement Instructions", "Cash Flow Mapping", "GL Mapping"]
       },
       {
-        index: 9,
+        index: 10,
         name: "Valuation and MTM",
         subTopics: ["Mark-to-Market Valuation", "Realized Gain/Loss Tracking", "Trade Summary Data", "Market Price Feed"]
       },
       {
-        index: 10,
+        index: 11,
         name: "CSE Announcements",
         subTopics: ["Corporate Notices", "Market Announcements", "Trading Updates", "Regulatory Updates", "News & Events"]
       },
       {
-        index: 11,
+        index: 12,
         name: "Corporate Actions",
         subTopics: ["Dividend", "Rights Issue", "Stock Split"]
       },
       {
-        index: 15,
+        index: 16,
         name: "IPO",
         subTopics: ["IPO Entry", "IPO Allocation", "Refund Processing", "Allocation Summary"]
       }
@@ -163,6 +169,10 @@ function App() {
     'Account Master': <AccountMaster/>,
     'Portfolio Master': <PortfolioMaster/>,
     'Valuation Method': <CostingMethodSelection/>,
+    'Holiday Calendar': <HolidayCalendar mode="calendar" />,
+    'Holiday List': <HolidayCalendar mode="list" />,
+    'Add Holiday': <HolidayCalendar mode="create" />,
+    'Holiday Settings': <HolidayCalendar mode="settings" />,
 
     'Buy': <BuyTransactionEntry />,
     'Sell': <SellTransactionEntry setActiveTab={setActiveTab} />,
@@ -214,19 +224,19 @@ function App() {
 
   // Handle sidebar selection
   const handleSidebarSelect = (index, subTopics) => {
-    // Settlement and Accounting is at index 8 - show premium modal instead
-    // CSE Announcements is at index 10 - show premium modal instead
-    // Corporate Actions is at index 11 - show premium modal instead
-    // Security Identity is at index 12 - show premium modal instead
-    // Voluntary Corporate Actions is at index 13 - show premium modal instead
-    // Mandatory Corporate Actions is at index 14 - show premium modal instead
-    // IPO is at index 15 - show premium modal instead
-    // Portfolio Monitoring is at index 16 - show premium modal instead
-    // Risk and Limit Management is at index 17 - show premium modal instead
-    // Reporting and Compliance is at index 18 - show premium modal instead
-    // Integration and Automation is at index 19 - show premium modal instead
-    // Portfolio Transfers is at index 20 - show premium modal instead
-    if (index === 8 || index === 10 || index === 11 || index === 12 || index === 13 || index === 14 || index === 15 || index === 16 || index === 17 || index === 18 || index === 19 || index === 20) {
+    // Settlement and Accounting is at index 9 - show premium modal instead
+    // CSE Announcements is at index 11 - show premium modal instead
+    // Corporate Actions is at index 12 - show premium modal instead
+    // Security Identity is at index 13 - show premium modal instead
+    // Voluntary Corporate Actions is at index 14 - show premium modal instead
+    // Mandatory Corporate Actions is at index 15 - show premium modal instead
+    // IPO is at index 16 - show premium modal instead
+    // Portfolio Monitoring is at index 17 - show premium modal instead
+    // Risk and Limit Management is at index 18 - show premium modal instead
+    // Reporting and Compliance is at index 19 - show premium modal instead
+    // Integration and Automation is at index 20 - show premium modal instead
+    // Portfolio Transfers is at index 21 - show premium modal instead
+    if (index === 9 || index === 11 || index === 12 || index === 13 || index === 14 || index === 15 || index === 16 || index === 17 || index === 18 || index === 19 || index === 20 || index === 21) {
       setIsPremiumModalOpen(true);
       return;
     }
