@@ -78,6 +78,10 @@ const HolidayCalendar = ({ mode = 'calendar' }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [filterType, setFilterType] = useState('All');
 
+  // Modal state for viewing holidays on a specific date
+  const [selectedDate, setSelectedDate] = useState(null);
+  const [showHolidayModal, setShowHolidayModal] = useState(false);
+
   // Load holidays from backend on component mount
   useEffect(() => {
     if (mode === 'list' || mode === 'calendar') {
@@ -308,6 +312,18 @@ const HolidayCalendar = ({ mode = 'calendar' }) => {
     setEditingId(holiday.id);
     setSuccessMessage('Holiday loaded for editing. Please navigate to "Add Holiday" tab to update.');
     setTimeout(() => setSuccessMessage(''), 5000);
+  };
+
+  const handleDateClick = (date, dayHolidays) => {
+    if (dayHolidays.length > 0) {
+      setSelectedDate(date);
+      setShowHolidayModal(true);
+    }
+  };
+
+  const closeHolidayModal = () => {
+    setShowHolidayModal(false);
+    setSelectedDate(null);
   };
 
   const filteredHolidays = holidays.filter(holiday => {
@@ -989,8 +1005,9 @@ const HolidayCalendar = ({ mode = 'calendar' }) => {
             return (
               <div
                 key={date.toISOString()}
-                className={`hc-day${isToday ? ' today' : ''}${hasHolidays ? ' has-holiday' : ''}`}
+                className={`hc-day${isToday ? ' today' : ''}${hasHolidays ? ' has-holiday' : ''}${hasHolidays ? ' clickable' : ''}`}
                 title={hasHolidays ? dayHolidays.map(h => h.name).join(', ') : ''}
+                onClick={() => handleDateClick(date, dayHolidays)}
               >
                 <div className="hc-day-header">
                   <span className="hc-day-number">{date.getDate()}</span>
@@ -1010,6 +1027,80 @@ const HolidayCalendar = ({ mode = 'calendar' }) => {
             );
           })}
         </div>
+
+        {/* Holiday Details Modal */}
+        {showHolidayModal && selectedDate && (
+          <div className="hc-modal-overlay" onClick={closeHolidayModal}>
+            <div className="hc-holiday-details-modal" onClick={(e) => e.stopPropagation()}>
+              <div className="hc-holiday-modal-header">
+                <div>
+                  <h3>Holidays on {selectedDate.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</h3>
+                  <p className="hc-holiday-modal-subtitle">{holidays.filter(h => {
+                    let holidayDate = h.date;
+                    if (typeof holidayDate === 'string') {
+                      holidayDate = holidayDate.split('T')[0];
+                    }
+                    return holidayDate === selectedDate.toISOString().split('T')[0];
+                  }).length} holiday(s) observed</p>
+                </div>
+                <button 
+                  className="hc-modal-close"
+                  onClick={closeHolidayModal}
+                >
+                  ×
+                </button>
+              </div>
+              <div className="hc-holiday-modal-content">
+                {holidays.filter(h => {
+                  let holidayDate = h.date;
+                  if (typeof holidayDate === 'string') {
+                    holidayDate = holidayDate.split('T')[0];
+                  }
+                  return holidayDate === selectedDate.toISOString().split('T')[0];
+                }).map(holiday => (
+                  <div key={holiday.id} className="hc-holiday-card">
+                    <div className="hc-holiday-card-header">
+                      <div className="hc-holiday-card-icon-wrapper">
+                        <div className={`hc-holiday-card-icon hc-holiday-${holiday.type.toLowerCase().replace('/', '')}`}>
+                          <svg fill="currentColor" viewBox="0 0 20 20">
+                            <circle cx="10" cy="10" r="8"/>
+                          </svg>
+                        </div>
+                      </div>
+                      <div className="hc-holiday-card-title">
+                        <h4>{holiday.name}</h4>
+                        <span className={`hc-type-badge hc-type-${holiday.type.toLowerCase().replace('/', '').replace(/\s+/g, '-')}`}>
+                          {holiday.type}
+                        </span>
+                      </div>
+                    </div>
+                    {holiday.fundsCenter && (
+                      <div className="hc-holiday-card-info">
+                        <svg fill="currentColor" viewBox="0 0 20 20">
+                          <path fillRule="evenodd" d="M4 4a2 2 0 012-2h8a2 2 0 012 2v12a1 1 0 110 2h-3a1 1 0 01-1-1v-2a1 1 0 00-1-1H9a1 1 0 00-1 1v2a1 1 0 01-1 1H4a1 1 0 110-2V4zm3 1h2v2H7V5zm2 4H7v2h2V9zm2-4h2v2h-2V5zm2 4h-2v2h2V9z" clipRule="evenodd" />
+                        </svg>
+                        <span>{holiday.fundsCenter}</span>
+                      </div>
+                    )}
+                    {holiday.description && (
+                      <div className="hc-holiday-card-description">
+                        <p>{holiday.description}</p>
+                      </div>
+                    )}
+                    {holiday.isRecurring && (
+                      <div className="hc-holiday-card-recurring">
+                        <svg fill="currentColor" viewBox="0 0 20 20">
+                          <path fillRule="evenodd" d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01.61-1.276z" clipRule="evenodd" />
+                        </svg>
+                        <span>Recurring annually</span>
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     );
   };
