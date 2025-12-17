@@ -924,6 +924,46 @@ export const transactionEntryAPI = {
       throw error;
     }
   },
+  updateBuyTransaction: async (id, transactionData) => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/transaction-entries/buy/${id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          ...getAuthHeaders()
+        },
+        body: JSON.stringify(transactionData),
+      });
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.error || errorData.message || `HTTP error! status: ${response.status}`);
+      }
+      return await response.json();
+    } catch (error) {
+      console.error('Error updating buy transaction:', error);
+      throw error;
+    }
+  },
+  updateSellTransaction: async (id, transactionData) => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/transaction-entries/sell/${id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          ...getAuthHeaders()
+        },
+        body: JSON.stringify(transactionData),
+      });
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.error || errorData.message || `HTTP error! status: ${response.status}`);
+      }
+      return await response.json();
+    } catch (error) {
+      console.error('Error updating sell transaction:', error);
+      throw error;
+    }
+  },
   getFifoDetails: async (sellTransactionId) => {
     try {
       const response = await fetch(`${API_BASE_URL}/transaction-entries/sell/${sellTransactionId}/fifo-details`);
