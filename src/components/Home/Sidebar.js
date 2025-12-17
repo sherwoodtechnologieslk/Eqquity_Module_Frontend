@@ -121,7 +121,8 @@ const menuItems = [
       "Transactions",
       "Portfolio",
       "Deal Slip",
-      "Cost of Funds"
+      "Cost of Funds",
+      "Equity GL Mapping"
     ]
   },
   {

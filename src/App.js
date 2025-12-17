@@ -34,6 +34,7 @@ import TrialBalance from './components/AccountingEntries/TrialBalance';
 import ProfitLoss from './components/AccountingEntries/ProfitLoss';
 import AccountReconciliation from './components/AccountingEntries/AccountReconciliation';
 import NewGLAccount from './components/AccountingEntries/NewGLAccount';
+import EquityGLMapping from './components/TradeCapture/EquityGLMapping';
 import PortfolioMTM from './components/AccountingEntries/PortfolioMTM';
 import OtherTransactions from './components/AccountingEntries/OtherTransactions';
 import OpeningBalEntry from './components/OpeningBalManage/OpeningBalEntry';
@@ -112,7 +113,7 @@ function App() {
       {
         index: 7,
         name: "Trade Capture",
-        subTopics: ["Buy", "Sell", "Transactions", "Portfolio", "Deal Slip", "Cost of Funds"]
+      subTopics: ["Buy", "Sell", "Transactions", "Portfolio", "Deal Slip", "Cost of Funds", "Equity GL Mapping"]
       },
       {
         index: 8,
@@ -214,6 +215,7 @@ function App() {
     'Opening Balance List': <OpeningBalList />,
     'Account Balance Setup': <AccountBalanceSetup />,
     'Trade Report': <TradeReport />,
+    'Equity GL Mapping': <EquityGLMapping />,
     'Market Announcements': <MarketAnnouncements />,
     'Corporate Notices': <CorporateNotices />,
     'Statement of Financial Position': <FinancialPosition />,
@@ -224,6 +226,7 @@ function App() {
 
   // Handle sidebar selection
   const handleSidebarSelect = (index, subTopics) => {
+    // Financial Reporting is at index 4 - show premium modal instead
     // Settlement and Accounting is at index 9 - show premium modal instead
     // CSE Announcements is at index 11 - show premium modal instead
     // Corporate Actions is at index 12 - show premium modal instead
@@ -236,7 +239,7 @@ function App() {
     // Reporting and Compliance is at index 19 - show premium modal instead
     // Integration and Automation is at index 20 - show premium modal instead
     // Portfolio Transfers is at index 21 - show premium modal instead
-    if (index === 9 || index === 11 || index === 12 || index === 13 || index === 14 || index === 15 || index === 16 || index === 17 || index === 18 || index === 19 || index === 20 || index === 21) {
+    if (index === 4 || index === 9 || index === 11 || index === 12 || index === 13 || index === 14 || index === 15 || index === 16 || index === 17 || index === 18 || index === 19 || index === 20 || index === 21) {
       setIsPremiumModalOpen(true);
       return;
     }
