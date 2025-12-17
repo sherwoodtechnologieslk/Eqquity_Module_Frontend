@@ -197,7 +197,7 @@ const BuyTransactionEntry = () => {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(transactions));
   }, [transactions]);
 
-  // Remove calculateValues and use backend API instead
+  // Input handler with non-blocking calculations to avoid typing delay
   const handleChange = async (e) => {
     const { name, value } = e.target;
     let updatedForm = { ...form, [name]: value };
@@ -228,33 +228,63 @@ const BuyTransactionEntry = () => {
       return;
     }
 
-    // Only recalculate if quantity or price changes
+    // Always update form state immediately to avoid input lag
+    setForm(updatedForm);
+
+    // Recalculate only when quantity or price changes, in the background
     if (name === 'quantity' || name === 'price') {
+      const latestQuantity = name === 'quantity' ? value : updatedForm.quantity;
+      const latestPrice = name === 'price' ? value : updatedForm.price;
+
+      // If either value is empty, just clear calculated fields and skip API
+      if (!latestQuantity || !latestPrice) {
+        setForm(prev => ({
+          ...prev,
+          grossValue: '',
+          brokerage: '',
+          cseFees: '',
+          cdsFees: '',
+          clearingFees: '',
+          sec: '',
+          stl: '',
+          netValue: '',
+          cashFlowOnSettlement: '',
+          stepUp: undefined,
+          moneyGenerationCost: ''
+        }));
+        return;
+      }
+
       try {
         const calc = await tradeSummaryAPI.calculateBuyTransaction({
-          quantity: name === 'quantity' ? value : updatedForm.quantity,
-          price: name === 'price' ? value : updatedForm.price,
+          quantity: latestQuantity,
+          price: latestPrice,
           costOfFunds: updatedForm.costOfFunds
         });
-        setForm({
-          ...updatedForm,
-          grossValue: calc.grossValue,
-          brokerage: calc.brokerage,
-          cseFees: calc.cseFees,
-          cdsFees: calc.cdsFees,
-          clearingFees: calc.clearingFees,
-          sec: calc.sec,
-          stl: calc.stl,
-          netValue: calc.netValue,
-          cashFlowOnSettlement: calc.netValue,
-          stepUp: calc.stepUp,
-          moneyGenerationCost: calc.moneyGenerationCost ?? ''
+
+        // Only apply results if quantity/price haven't changed since we started the call
+        setForm(prev => {
+          if (prev.quantity !== latestQuantity || prev.price !== latestPrice) {
+            return prev;
+          }
+          return {
+            ...prev,
+            grossValue: calc.grossValue,
+            brokerage: calc.brokerage,
+            cseFees: calc.cseFees,
+            cdsFees: calc.cdsFees,
+            clearingFees: calc.clearingFees,
+            sec: calc.sec,
+            stl: calc.stl,
+            netValue: calc.netValue,
+            cashFlowOnSettlement: calc.netValue,
+            stepUp: calc.stepUp,
+            moneyGenerationCost: calc.moneyGenerationCost ?? prev.moneyGenerationCost
+          };
         });
       } catch (err) {
-        setForm(updatedForm);
+        // Ignore calculation errors for typing; keep latest manual input
       }
-    } else {
-      setForm(updatedForm);
     }
   };
 

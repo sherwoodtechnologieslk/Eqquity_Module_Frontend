@@ -1419,6 +1419,24 @@ export const chartOfAccountsAPI = {
   }
 };
 
+// Investment account mapping API (per user + per portfolio)
+export const investmentAccountAPI = {
+  getMappings: async () => {
+    return await makeAuthenticatedRequest(`${API_BASE_URL}/investment-account-mappings`);
+  },
+  saveMapping: async (mappingData) => {
+    return await makeAuthenticatedRequest(`${API_BASE_URL}/investment-account-mappings`, {
+      method: 'POST',
+      body: JSON.stringify(mappingData)
+    });
+  },
+  deleteMapping: async (id) => {
+    return await makeAuthenticatedRequest(`${API_BASE_URL}/investment-account-mappings/${id}`, {
+      method: 'DELETE'
+    });
+  }
+};
+
 // API service for Account Categories operations
 export const accountCategoryAPI = {
   getAll: async () => {

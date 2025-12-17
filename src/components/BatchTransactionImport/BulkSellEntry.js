@@ -364,36 +364,6 @@ const BulkSellEntry = () => {
     }
   };
 
-  // Handle key press for quantity field to prevent exceeding total shares
-  const handleQuantityKeyDown = (e) => {
-    if (e.target.name === 'quantity' && totalShares) {
-      const currentValue = e.target.value;
-      const key = e.key;
-      
-      // Allow backspace, delete, arrow keys, tab, etc.
-      if (['Backspace', 'Delete', 'ArrowLeft', 'ArrowRight', 'Tab', 'Enter'].includes(key)) {
-        return;
-      }
-      
-      // Allow numbers and decimal point
-      if (!/[\d.]/.test(key)) {
-        e.preventDefault();
-        return;
-      }
-      
-      // Check if adding this key would exceed total shares
-      const newValue = currentValue + key;
-      const newQuantity = parseFloat(newValue);
-      const total = parseFloat(totalShares);
-      
-      if (!isNaN(newQuantity) && newQuantity > total) {
-        e.preventDefault();
-        // Set to max allowed value
-        setForm(prev => ({ ...prev, quantity: totalShares }));
-      }
-    }
-  };
-
   const handleInputChange = async (e) => {
     const { name, value } = e.target;
     
@@ -767,19 +737,11 @@ const BulkSellEntry = () => {
                     name="quantity"
                     value={form.quantity}
                     onChange={handleInputChange}
-                    onKeyDown={handleQuantityKeyDown}
                     className="bulk-sell-input"
-                    placeholder={totalShares ? `Max: ${totalShares} shares` : "Number of shares"}
+                    placeholder="Number of shares"
                     required
-                    min="1"
-                    max={totalShares || undefined}
                     step="1"
                   />
-                  {totalShares && (
-                    <small className="bulk-sell-field-note">
-                      Maximum: {totalShares} shares available
-                    </small>
-                  )}
                 </div>
 
                 <div className="bulk-sell-form-group">

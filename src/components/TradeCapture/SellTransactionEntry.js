@@ -494,74 +494,86 @@ const SellTransactionEntry = ({ setFifoParams, setActiveTab }) => {
   };
 
   // --- Handlers ---
+  // Input handler with non-blocking calculations and no hard caps on quantity
   const handleChange = async (e) => {
     const { name, value } = e.target;
-    
-    // Special handling for quantity field - prevent exceeding total shares
-    if (name === 'quantity') {
-      const quantity = parseFloat(value);
-      const total = parseFloat(totalShares);
-      
-      // If user tries to exceed total shares, cap it at total shares
-      if (!isNaN(quantity) && !isNaN(total) && quantity > total) {
-        setForm(prev => ({ ...prev, [name]: totalShares }));
-        return; // Don't proceed with normal update
-      }
-      
-      // If value is empty or valid, proceed normally
-      setForm(prev => ({ ...prev, [name]: value }));
-      
-      // Clear any existing quantity errors
-      if (errors.quantity) {
-        setErrors(prev => ({ ...prev, quantity: '' }));
-      }
-      return;
-    }
-    
+
     // If portfolioName changes, clear valuationMethod (it will be autofilled by useEffect)
     if (name === 'portfolioName') {
-      // Autofill portfolioId
       const selectedPortfolio = portfolios.find(p => p.portfolioName === value);
-      setForm({ ...form, [name]: value, valuationMethod: '', portfolioId: selectedPortfolio ? (selectedPortfolio.portfolioId || selectedPortfolio.id || '') : '' });
+      setForm({
+        ...form,
+        [name]: value,
+        valuationMethod: '',
+        portfolioId: selectedPortfolio ? (selectedPortfolio.portfolioId || selectedPortfolio.id || '') : ''
+      });
     } else {
       let updatedForm = { ...form, [name]: value };
+
       // Autofill symbol when companyName changes
       if (name === 'companyName') {
         const selectedEquity = equities.find(eq => eq.name === value);
         updatedForm.symbol = selectedEquity ? selectedEquity.symbol : '';
       }
-      
-      // Only recalculate if quantity or soldPrice changes
+
+      // Always update form state immediately to avoid input lag
+      setForm(updatedForm);
+
+      // Recalculate only when quantity or soldPrice changes, in the background
       if (name === 'quantity' || name === 'soldPrice') {
-        try {
-          const calc = await tradeSummaryAPI.calculateSellTransaction({
-            quantity: name === 'quantity' ? value : updatedForm.quantity,
-            soldPrice: name === 'soldPrice' ? value : updatedForm.soldPrice,
-            costOfFunds: updatedForm.costOfFunds,
-            holdingDays: updatedForm.hdays || 0
-          });
-          setForm({
-            ...updatedForm,
-            grossValue: calc.grossValue,
-            brokerage: calc.brokerage,
-            cseFees: calc.cseFees,
-            cdsFees: calc.cdsFees,
-            clearingFees: calc.clearingFees,
-            sec: calc.sec,
-            stl: calc.stl,
-            netValue: calc.netValue,
-            stepUp: calc.stepUp,
-            moneyGenerationCost: calc.moneyGenerationCost ?? ''
-          });
-        } catch (err) {
-          console.error('Error calculating sell transaction:', err);
-          setForm(updatedForm);
+        const latestQuantity = name === 'quantity' ? value : updatedForm.quantity;
+        const latestSoldPrice = name === 'soldPrice' ? value : updatedForm.soldPrice;
+
+        // If either value is empty, clear calculated fields and skip API
+        if (!latestQuantity || !latestSoldPrice) {
+          setForm(prev => ({
+            ...prev,
+            grossValue: '',
+            brokerage: '',
+            cseFees: '',
+            cdsFees: '',
+            clearingFees: '',
+            sec: '',
+            stl: '',
+            netValue: '',
+            stepUp: null,
+            moneyGenerationCost: ''
+          }));
+        } else {
+          try {
+            const calc = await tradeSummaryAPI.calculateSellTransaction({
+              quantity: latestQuantity,
+              soldPrice: latestSoldPrice,
+              costOfFunds: updatedForm.costOfFunds,
+              holdingDays: updatedForm.hdays || 0
+            });
+
+            // Only apply results if quantity/soldPrice haven't changed since we started the call
+            setForm(prev => {
+              if (prev.quantity !== latestQuantity || prev.soldPrice !== latestSoldPrice) {
+                return prev;
+              }
+              return {
+                ...prev,
+                grossValue: calc.grossValue,
+                brokerage: calc.brokerage,
+                cseFees: calc.cseFees,
+                cdsFees: calc.cdsFees,
+                clearingFees: calc.clearingFees,
+                sec: calc.sec,
+                stl: calc.stl,
+                netValue: calc.netValue,
+                stepUp: calc.stepUp,
+                moneyGenerationCost: calc.moneyGenerationCost ?? prev.moneyGenerationCost
+              };
+            });
+          } catch (err) {
+            console.error('Error calculating sell transaction:', err);
+          }
         }
-      } else {
-        setForm(updatedForm);
       }
     }
-    
+
     // Clear error for this field
     if (errors[name]) setErrors({ ...errors, [name]: '' });
   };
@@ -755,36 +767,6 @@ const SellTransactionEntry = ({ setFifoParams, setActiveTab }) => {
         swiftCode: '',
         iban: ''
       }));
-    }
-  };
-
-  // Handle key press for quantity field to prevent exceeding total shares
-  const handleQuantityKeyDown = (e) => {
-    if (e.target.name === 'quantity' && totalShares) {
-      const currentValue = e.target.value;
-      const key = e.key;
-      
-      // Allow backspace, delete, arrow keys, tab, etc.
-      if (['Backspace', 'Delete', 'ArrowLeft', 'ArrowRight', 'Tab', 'Enter'].includes(key)) {
-        return;
-      }
-      
-      // Allow numbers and decimal point
-      if (!/[\d.]/.test(key)) {
-        e.preventDefault();
-        return;
-      }
-      
-      // Check if adding this key would exceed total shares
-      const newValue = currentValue + key;
-      const newQuantity = parseFloat(newValue);
-      const total = parseFloat(totalShares);
-      
-      if (!isNaN(newQuantity) && newQuantity > total) {
-        e.preventDefault();
-        // Set to max allowed value
-        setForm(prev => ({ ...prev, quantity: totalShares }));
-      }
     }
   };
 
@@ -1034,11 +1016,8 @@ const SellTransactionEntry = ({ setFifoParams, setActiveTab }) => {
                     name="quantity"
                     value={form.quantity}
                     onChange={handleChange}
-                    onKeyDown={handleQuantityKeyDown}
                     className={getFieldClassName('quantity')}
-                    placeholder={totalShares ? `Max: ${totalShares} shares` : "Number of shares"}
-                    min="1"
-                    max={totalShares || undefined}
+                    placeholder="Number of shares"
                   />
                   {errors.quantity && <span className="sell-error-text">{errors.quantity}</span>}
                   {totalShares && !errors.quantity && (
