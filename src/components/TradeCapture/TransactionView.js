@@ -1,14 +1,17 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { transactionEntryAPI } from '../../services/api';
+import TransactionDetailsModal from './TransactionDetailsModal';
 import './Styles/TransactionView.css';
 
-const TransactionView = () => {
+const TransactionView = ({ onTabChange }) => {
   const [buyTransactions, setBuyTransactions] = useState([]);
   const [sellTransactions, setSellTransactions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('all'); // 'all', 'buy', 'sell'
   const [selectedCompany, setSelectedCompany] = useState('');
   const [companies, setCompanies] = useState([]);
+  const [selectedTransaction, setSelectedTransaction] = useState(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
   
   // Ref for the scrollable table container
   const tableWrapperRef = useRef(null);
@@ -85,6 +88,21 @@ const TransactionView = () => {
     
     if (quantity === 0) return 0;
     return netValue / quantity;
+  };
+
+  const handleRowClick = (transaction) => {
+    setSelectedTransaction(transaction);
+    setIsModalOpen(true);
+  };
+
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+    setSelectedTransaction(null);
+  };
+
+  const handleSave = async () => {
+    // Refresh the transactions list
+    await fetchTransactions();
   };
 
   return (
@@ -184,7 +202,12 @@ const TransactionView = () => {
               </thead>
               <tbody className="transaction-table-body">
                 {filteredTransactions.map((transaction, index) => (
-                  <tr key={`${transaction.type}-${transaction.id}`} className={`transaction-row ${transaction.type.toLowerCase()}-row`}>
+                  <tr 
+                    key={`${transaction.type}-${transaction.id}`} 
+                    className={`transaction-row ${transaction.type.toLowerCase()}-row`}
+                    onClick={() => handleRowClick(transaction)}
+                    style={{ cursor: 'pointer' }}
+                  >
                     <td className="transaction-type-cell">
                       <span className={`transaction-type-badge ${transaction.type.toLowerCase()}`}>
                         {transaction.type}
@@ -247,6 +270,15 @@ const TransactionView = () => {
           </div>
         )}
       </div>
+
+      {/* Transaction Details Modal */}
+      {isModalOpen && (
+        <TransactionDetailsModal
+          transaction={selectedTransaction}
+          onClose={handleCloseModal}
+          onSave={handleSave}
+        />
+      )}
     </div>
   );
 };

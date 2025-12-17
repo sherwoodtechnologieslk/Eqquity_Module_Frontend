@@ -2158,9 +2158,6 @@
 }
 
 /* All Transactions Table - Clean styling without colors */
-.pf-all-transaction-row {
-  /* Use default table row styling */
-}
 
 .pf-gap-large {
   margin-bottom: 2.5rem;
@@ -2378,8 +2375,28 @@
   color: #1f2937;
 }
 
-.ph-total-charges {
-  color: #6b7280;
+.ph-empty-cell {
+  background: transparent;
+  border: none;
+  padding: 1rem;
+}
+
+/* Unique classes for Portfolio Holdings table */
+.ph-total-row-unique {
+  background: #f8fafc;
+  font-weight: 700;
+}
+
+.ph-total-row-unique td {
+  border-top: 2px solid #e2e8f0;
+  font-size: 1rem;
+}
+
+.ph-empty-cell-unique {
+  background: transparent;
+  border: none;
+  padding: 1rem;
+  color: transparent;
 }
 
 .ph-total-net-value {

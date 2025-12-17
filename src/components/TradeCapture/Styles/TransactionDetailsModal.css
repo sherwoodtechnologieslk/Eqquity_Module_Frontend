@@ -1,0 +1,391 @@
+/* Transaction Details Modal */
+.transaction-details-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 2rem;
+  animation: fadeIn 0.2s ease;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.transaction-details-modal {
+  background: white;
+  border-radius: 0;
+  max-width: 900px;
+  width: 100%;
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  animation: slideUp 0.3s ease;
+  overflow: hidden;
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(30px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.transaction-details-header {
+  background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%);
+  padding: 1.5rem 2rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 2px solid rgba(255, 255, 255, 0.1);
+}
+
+.transaction-details-title-section {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.transaction-details-type-badge {
+  display: inline-block;
+  padding: 0.4rem 1rem;
+  border-radius: 0;
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.transaction-details-type-badge.buy {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  color: white;
+}
+
+.transaction-details-type-badge.sell {
+  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+  color: white;
+}
+
+.transaction-details-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: white;
+  margin: 0;
+}
+
+.transaction-details-close {
+  background: rgba(255, 255, 255, 0.2);
+  border: none;
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: white;
+  transition: all 0.2s ease;
+}
+
+.transaction-details-close:hover {
+  background: rgba(255, 255, 255, 0.3);
+  transform: rotate(90deg);
+}
+
+.transaction-details-close svg {
+  width: 1.5rem;
+  height: 1.5rem;
+}
+
+.transaction-details-body {
+  padding: 2rem;
+  overflow-y: auto;
+  flex: 1;
+}
+
+.transaction-details-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 2rem;
+}
+
+.transaction-details-section {
+  background: #f9fafb;
+  padding: 1.5rem;
+  border: 1px solid #e5e7eb;
+}
+
+.transaction-details-section-title {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #1e293b;
+  margin: 0 0 1rem 0;
+  padding-bottom: 0.75rem;
+  border-bottom: 2px solid #3b82f6;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.transaction-details-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.75rem 0;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.transaction-details-row:last-child {
+  border-bottom: none;
+}
+
+.transaction-details-label {
+  font-weight: 600;
+  color: #4b5563;
+  font-size: 0.875rem;
+}
+
+.transaction-details-value {
+  font-weight: 500;
+  color: #1f2937;
+  font-size: 0.875rem;
+  text-align: right;
+  font-family: 'SF Mono', 'Monaco', 'Courier New', monospace;
+}
+
+.transaction-details-value.highlight {
+  color: #1e40af;
+  font-weight: 700;
+  font-size: 0.95rem;
+}
+
+.transaction-details-value.highlight-purple {
+  color: #7c3aed;
+  font-weight: 700;
+  background: linear-gradient(135deg, #f3e8ff 0%, #e9d5ff 100%);
+  padding: 0.25rem 0.75rem;
+  display: inline-block;
+}
+
+.transaction-details-value.highlight-green {
+  color: #059669;
+  font-weight: 700;
+}
+
+.transaction-details-value.highlight-red {
+  color: #dc2626;
+  font-weight: 700;
+}
+
+.transaction-details-footer {
+  padding: 1.5rem 2rem;
+  background: #f9fafb;
+  border-top: 1px solid #e5e7eb;
+  display: flex;
+  justify-content: flex-end;
+  gap: 1rem;
+}
+
+.transaction-details-edit-btn {
+  padding: 0.75rem 2rem;
+  background: #10b981;
+  color: white;
+  border: none;
+  border-radius: 0;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 0.875rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.transaction-details-edit-btn:hover {
+  background: #059669;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(16, 185, 129, 0.3);
+}
+
+.transaction-details-edit-btn:active {
+  transform: translateY(0);
+}
+
+.transaction-details-edit-btn svg {
+  width: 1.125rem;
+  height: 1.125rem;
+}
+
+.transaction-details-close-btn {
+  padding: 0.75rem 2rem;
+  background: #3b82f6;
+  color: white;
+  border: none;
+  border-radius: 0;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 0.875rem;
+}
+
+.transaction-details-close-btn:hover {
+  background: #2563eb;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(59, 130, 246, 0.3);
+}
+
+.transaction-details-close-btn:active {
+  transform: translateY(0);
+}
+
+.transaction-details-input {
+  padding: 0.5rem 0.75rem;
+  border: 2px solid #d1d5db;
+  border-radius: 0;
+  font-size: 0.875rem;
+  font-family: 'SF Mono', 'Monaco', 'Courier New', monospace;
+  color: #1f2937;
+  background: white;
+  width: 100%;
+  max-width: 200px;
+  transition: all 0.2s ease;
+}
+
+.transaction-details-input:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.transaction-details-input:disabled {
+  background: #f3f4f6;
+  color: #9ca3af;
+  cursor: not-allowed;
+}
+
+.transaction-details-message {
+  padding: 1rem 1.5rem;
+  margin-bottom: 1.5rem;
+  border-radius: 0;
+  font-weight: 500;
+  font-size: 0.875rem;
+}
+
+.transaction-details-message.error {
+  background: #fee2e2;
+  color: #991b1b;
+  border: 1px solid #fca5a5;
+}
+
+.transaction-details-message.success {
+  background: #d1fae5;
+  color: #065f46;
+  border: 1px solid #6ee7b7;
+}
+
+.transaction-details-cancel-btn {
+  padding: 0.75rem 2rem;
+  background: #6b7280;
+  color: white;
+  border: none;
+  border-radius: 0;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 0.875rem;
+}
+
+.transaction-details-cancel-btn:hover:not(:disabled) {
+  background: #4b5563;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(107, 114, 128, 0.3);
+}
+
+.transaction-details-cancel-btn:disabled {
+  background: #9ca3af;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.transaction-details-save-btn {
+  padding: 0.75rem 2rem;
+  background: #10b981;
+  color: white;
+  border: none;
+  border-radius: 0;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 0.875rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.transaction-details-save-btn:hover:not(:disabled) {
+  background: #059669;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(16, 185, 129, 0.3);
+}
+
+.transaction-details-save-btn:disabled {
+  background: #94a3b8;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .transaction-details-overlay {
+    padding: 1rem;
+  }
+
+  .transaction-details-modal {
+    max-height: 95vh;
+  }
+
+  .transaction-details-header {
+    padding: 1rem 1.5rem;
+  }
+
+  .transaction-details-title {
+    font-size: 1.25rem;
+  }
+
+  .transaction-details-body {
+    padding: 1.5rem;
+  }
+
+  .transaction-details-grid {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+  }
+
+  .transaction-details-row {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+
+  .transaction-details-value {
+    text-align: left;
+  }
+}
+

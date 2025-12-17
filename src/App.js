@@ -176,7 +176,7 @@ function App() {
 
     'Buy': <BuyTransactionEntry />,
     'Sell': <SellTransactionEntry setActiveTab={setActiveTab} />,
-    'Transactions': <TransactionView />,
+    'Transactions': <TransactionView onTabChange={handleTabChange} />,
     'Bulk Buy Entry': <BulkBuyEntry />,
     'Bulk Sell Entry': <BulkSellEntry />,
     'Import History': <ImportHistory />,
