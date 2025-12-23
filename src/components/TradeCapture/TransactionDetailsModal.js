@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { transactionEntryAPI } from '../../services/api';
+import { transactionEntryAPI, tradeSummaryAPI } from '../../services/api';
 import './Styles/TransactionDetailsModal.css';
 
 const TransactionDetailsModal = ({ transaction, onClose, onSave }) => {
@@ -29,6 +29,12 @@ const TransactionDetailsModal = ({ transaction, onClose, onSave }) => {
         trade_date: transaction.trade_date || transaction.tradeDate || '',
         settlement_date: transaction.settlement_date || transaction.settlementDate || '',
         broker_name: transaction.broker_name || transaction.brokerName || '',
+        brokerage: transaction.brokerage || transaction.brokerageFee || '',
+        cds_fees: transaction.cds_fees || transaction.cdsFees || '',
+        cse_fees: transaction.cse_fees || transaction.cseFees || '',
+        clearing_fees: transaction.clearing_fees || transaction.clearingFees || '',
+        sec: transaction.sec || transaction.secFee || '',
+        stl: transaction.stl || transaction.stampDuty || '',
         money_generation_cost: transaction.money_generation_cost || transaction.moneyGenerationCost || '',
         capital_gain: transaction.capital_gain || transaction.capitalGain || ''
       });
@@ -71,13 +77,62 @@ const TransactionDetailsModal = ({ transaction, onClose, onSave }) => {
     return netValue / quantity;
   };
 
-  const handleInputChange = (field, value) => {
-    setFormData(prev => ({
-      ...prev,
+  const handleInputChange = async (field, value) => {
+    const nextForm = {
+      ...formData,
       [field]: value
-    }));
+    };
+
+    setFormData(nextForm);
     setError('');
     setSuccess('');
+
+    // Recalculate dependent amounts when quantity or price changes
+    if (field === 'quantity' || field === 'price') {
+      try {
+        if (isBuy) {
+          const calc = await tradeSummaryAPI.calculateBuyTransaction({
+            quantity: nextForm.quantity,
+            price: nextForm.price,
+            costOfFunds: transaction.cost_of_funds || transaction.costOfFunds || null
+          });
+          setFormData(prev => ({
+            ...prev,
+            gross_value: calc.grossValue,
+            brokerage: calc.brokerage,
+            cse_fees: calc.cseFees,
+            cds_fees: calc.cdsFees,
+            clearing_fees: calc.clearingFees,
+            sec: calc.sec,
+            stl: calc.stl,
+            net_value: calc.netValue,
+            money_generation_cost: calc.moneyGenerationCost ?? prev.money_generation_cost
+          }));
+        } else {
+          const calc = await tradeSummaryAPI.calculateSellTransaction({
+            quantity: nextForm.quantity,
+            soldPrice: nextForm.price,
+            costOfFunds: transaction.cost_of_funds || transaction.costOfFunds || null,
+            holdingDays: transaction.hdays || transaction.holding_days || 0
+          });
+          setFormData(prev => ({
+            ...prev,
+            gross_value: calc.grossValue,
+            brokerage: calc.brokerage,
+            cse_fees: calc.cseFees,
+            cds_fees: calc.cdsFees,
+            clearing_fees: calc.clearingFees,
+            sec: calc.sec,
+            stl: calc.stl,
+            net_value: calc.netValue,
+            money_generation_cost: calc.moneyGenerationCost ?? prev.money_generation_cost
+          }));
+        }
+      } catch (err) {
+        // keep user input; surface error softly
+        console.error('Recalc failed', err);
+      }
+    }
   };
 
   const handleSave = async () => {
@@ -108,12 +163,12 @@ const TransactionDetailsModal = ({ transaction, onClose, onSave }) => {
         broker_name: formData.broker_name,
         // Preserve existing fields that aren't editable
         symbol: transaction.symbol || '',
-        brokerage: transaction.brokerage || 0,
-        cds_fees: transaction.cds_fees || 0,
-        cse_fees: transaction.cse_fees || 0,
-        clearing_fees: transaction.clearing_fees || 0,
-        sec: transaction.sec || 0,
-        stl: transaction.stl || 0,
+        brokerage: parseFloat(formData.brokerage) || 0,
+        cds_fees: parseFloat(formData.cds_fees) || 0,
+        cse_fees: parseFloat(formData.cse_fees) || 0,
+        clearing_fees: parseFloat(formData.clearing_fees) || 0,
+        sec: parseFloat(formData.sec) || 0,
+        stl: parseFloat(formData.stl) || 0,
         settlement_account: transaction.settlement_account || '',
         account_name: transaction.account_name || '',
         account_number: transaction.account_number || '',
@@ -178,6 +233,12 @@ const TransactionDetailsModal = ({ transaction, onClose, onSave }) => {
         trade_date: transaction.trade_date || transaction.tradeDate || '',
         settlement_date: transaction.settlement_date || transaction.settlementDate || '',
         broker_name: transaction.broker_name || transaction.brokerName || '',
+        brokerage: transaction.brokerage || transaction.brokerageFee || '',
+        cds_fees: transaction.cds_fees || transaction.cdsFees || '',
+        cse_fees: transaction.cse_fees || transaction.cseFees || '',
+        clearing_fees: transaction.clearing_fees || transaction.clearingFees || '',
+        sec: transaction.sec || transaction.secFee || '',
+        stl: transaction.stl || transaction.stampDuty || '',
         money_generation_cost: transaction.money_generation_cost || transaction.moneyGenerationCost || '',
         capital_gain: transaction.capital_gain || transaction.capitalGain || ''
       });
@@ -314,6 +375,17 @@ const TransactionDetailsModal = ({ transaction, onClose, onSave }) => {
             <div className="transaction-details-section">
               <h3 className="transaction-details-section-title">Broker Information</h3>
               {renderField('Broker Name', 'broker_name')}
+            </div>
+
+            {/* Fees */}
+            <div className="transaction-details-section">
+              <h3 className="transaction-details-section-title">Fees & Charges</h3>
+              {renderCurrencyField('Brokerage', 'brokerage')}
+              {renderCurrencyField('CDS Fees', 'cds_fees')}
+              {renderCurrencyField('CSE Fees', 'cse_fees')}
+              {renderCurrencyField('Clearing Fees', 'clearing_fees')}
+              {renderCurrencyField('SEC', 'sec')}
+              {renderCurrencyField('STL', 'stl')}
             </div>
 
             {/* Additional Information */}

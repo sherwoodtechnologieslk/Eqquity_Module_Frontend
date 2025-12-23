@@ -497,7 +497,7 @@ const SellTransactionEntry = ({ setFifoParams, setActiveTab }) => {
   // Input handler with non-blocking calculations and no hard caps on quantity
   const handleChange = async (e) => {
     const { name, value } = e.target;
-
+    
     // If portfolioName changes, clear valuationMethod (it will be autofilled by useEffect)
     if (name === 'portfolioName') {
       const selectedPortfolio = portfolios.find(p => p.portfolioName === value);
@@ -515,7 +515,7 @@ const SellTransactionEntry = ({ setFifoParams, setActiveTab }) => {
         const selectedEquity = equities.find(eq => eq.name === value);
         updatedForm.symbol = selectedEquity ? selectedEquity.symbol : '';
       }
-
+      
       // Always update form state immediately to avoid input lag
       setForm(updatedForm);
 
@@ -540,13 +540,13 @@ const SellTransactionEntry = ({ setFifoParams, setActiveTab }) => {
             moneyGenerationCost: ''
           }));
         } else {
-          try {
-            const calc = await tradeSummaryAPI.calculateSellTransaction({
+        try {
+          const calc = await tradeSummaryAPI.calculateSellTransaction({
               quantity: latestQuantity,
               soldPrice: latestSoldPrice,
-              costOfFunds: updatedForm.costOfFunds,
-              holdingDays: updatedForm.hdays || 0
-            });
+            costOfFunds: updatedForm.costOfFunds,
+            holdingDays: updatedForm.hdays || 0
+          });
 
             // Only apply results if quantity/soldPrice haven't changed since we started the call
             setForm(prev => {
@@ -555,25 +555,25 @@ const SellTransactionEntry = ({ setFifoParams, setActiveTab }) => {
               }
               return {
                 ...prev,
-                grossValue: calc.grossValue,
-                brokerage: calc.brokerage,
-                cseFees: calc.cseFees,
-                cdsFees: calc.cdsFees,
-                clearingFees: calc.clearingFees,
-                sec: calc.sec,
-                stl: calc.stl,
-                netValue: calc.netValue,
-                stepUp: calc.stepUp,
+            grossValue: calc.grossValue,
+            brokerage: calc.brokerage,
+            cseFees: calc.cseFees,
+            cdsFees: calc.cdsFees,
+            clearingFees: calc.clearingFees,
+            sec: calc.sec,
+            stl: calc.stl,
+            netValue: calc.netValue,
+            stepUp: calc.stepUp,
                 moneyGenerationCost: calc.moneyGenerationCost ?? prev.moneyGenerationCost
               };
-            });
-          } catch (err) {
-            console.error('Error calculating sell transaction:', err);
-          }
+          });
+        } catch (err) {
+          console.error('Error calculating sell transaction:', err);
+        }
         }
       }
     }
-
+    
     // Clear error for this field
     if (errors[name]) setErrors({ ...errors, [name]: '' });
   };
