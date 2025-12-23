@@ -269,16 +269,16 @@ const BuyTransactionEntry = () => {
           }
           return {
             ...prev,
-            grossValue: calc.grossValue,
-            brokerage: calc.brokerage,
-            cseFees: calc.cseFees,
-            cdsFees: calc.cdsFees,
-            clearingFees: calc.clearingFees,
-            sec: calc.sec,
-            stl: calc.stl,
-            netValue: calc.netValue,
-            cashFlowOnSettlement: calc.netValue,
-            stepUp: calc.stepUp,
+          grossValue: calc.grossValue,
+          brokerage: calc.brokerage,
+          cseFees: calc.cseFees,
+          cdsFees: calc.cdsFees,
+          clearingFees: calc.clearingFees,
+          sec: calc.sec,
+          stl: calc.stl,
+          netValue: calc.netValue,
+          cashFlowOnSettlement: calc.netValue,
+          stepUp: calc.stepUp,
             moneyGenerationCost: calc.moneyGenerationCost ?? prev.moneyGenerationCost
           };
         });
