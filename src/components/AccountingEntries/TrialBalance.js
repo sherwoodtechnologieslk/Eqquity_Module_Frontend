@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import './Styles/TrialBalance.css';
 import { trialBalanceAPI, transactionEntryAPI, portfolioAPI } from '../../services/api';
 import AccountDetailsModal from './AccountDetailsModal';
@@ -64,6 +64,7 @@ const TrialBalance = () => {
 
   const fetchPortfolios = async () => {
     try {
+      // Fetch portfolios for filter dropdown (from general ledger)
       const token = localStorage.getItem('token');
       const response = await fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:8080/api'}/general-ledger/portfolios`, {
         headers: {
@@ -74,8 +75,11 @@ const TrialBalance = () => {
       if (response.ok) {
         const data = await response.json();
         setAvailablePortfolios(data);
-        setPortfolios(data); // Also set portfolios for MTM calculations
       }
+      
+      // Fetch active portfolios with proper IDs for MTM calculations
+      const activePortfolios = await portfolioAPI.getActivePortfolios();
+      setPortfolios(activePortfolios || []); // Set portfolios for MTM calculations
     } catch (err) {
       console.error('Error fetching portfolios:', err);
     }
@@ -125,10 +129,19 @@ const TrialBalance = () => {
       
       // Fetch MTM data for all portfolios (same as Mark-to-Market Valuation screen)
       for (const portfolio of portfolios) {
-        console.log(`📈 Fetching MTM data for portfolio: ${portfolio.portfolioName}`);
+        // Prefer numeric primary key `id`; fall back to string `portfolioId` if needed
+        const portfolioId = portfolio.id || portfolio.portfolioId || portfolio.portfolio_id;
+        
+        if (!portfolioId) {
+          console.warn(`⚠️ Skipping portfolio "${portfolio.portfolioName || portfolio.portfolio}" - no portfolio ID found`);
+          continue;
+        }
+        
+        console.log(`📈 Fetching MTM data for portfolio: ${portfolio.portfolioName || portfolio.portfolio} (ID: ${portfolioId})`);
+        
         try {
-          const mtmData = await transactionEntryAPI.getPortfolioPositions(portfolio.id);
-          console.log(`📊 MTM data for ${portfolio.portfolioName}:`, mtmData);
+          const mtmData = await transactionEntryAPI.getPortfolioPositions(portfolioId);
+          console.log(`📊 MTM data for ${portfolio.portfolioName || portfolio.portfolio}:`, mtmData);
           
           // Calculate portfolio totals (same logic as Mark-to-Market Valuation screen)
           const totalCost = mtmData.reduce((sum, item) => sum + (item.costValue || 0), 0);
@@ -137,14 +150,14 @@ const TrialBalance = () => {
           // Calculate unrealized capital gain (same as Mark-to-Market Valuation: totalGrossSales - totalCost)
           const portfolioUnrealizedCapitalGain = totalGrossSales - totalCost;
           
-          console.log(`💰 Portfolio ${portfolio.portfolioName}:`);
+          console.log(`💰 Portfolio ${portfolio.portfolioName || portfolio.portfolio}:`);
           console.log(`   Total Cost: ${totalCost}`);
           console.log(`   Total Gross Sales: ${totalGrossSales}`);
           console.log(`   Unrealized Capital Gain: ${portfolioUnrealizedCapitalGain}`);
           
           totalUnrealizedCapitalGain += portfolioUnrealizedCapitalGain;
         } catch (error) {
-          console.error(`Error fetching MTM data for portfolio ${portfolio.portfolioName}:`, error);
+          console.error(`Error fetching MTM data for portfolio ${portfolio.portfolioName || portfolio.portfolio}:`, error);
         }
       }
       
@@ -249,10 +262,55 @@ const TrialBalance = () => {
       updatedAccountsByType[type].sort((a, b) => a.account_code.localeCompare(b.account_code));
     });
 
+    // Recalculate type subtotals after adding MTM accounts
+    const updatedTypeSubtotals = {};
+    const updatedSummary = [];
+    Object.keys(updatedAccountsByType).forEach(type => {
+      const typeAccounts = updatedAccountsByType[type];
+      const subtotal = typeAccounts.reduce((acc, account) => {
+        acc.debit += parseFloat(account.total_debit) || 0;
+        acc.credit += parseFloat(account.total_credit) || 0;
+        acc.net += parseFloat(account.net_balance) || 0;
+        return acc;
+      }, { debit: 0, credit: 0, net: 0 });
+      
+      updatedTypeSubtotals[type] = subtotal;
+      updatedSummary.push({
+        account_type: type,
+        total_debit: subtotal.debit,
+        total_credit: subtotal.credit,
+        net_balance: subtotal.net
+      });
+    });
+
+    // Recalculate grand totals
+    const updatedTotals = Object.values(updatedTypeSubtotals).reduce((acc, subtotal) => {
+      acc.total_debits += subtotal.debit;
+      acc.total_credits += subtotal.credit;
+      return acc;
+    }, { total_debits: 0, total_credits: 0 });
+
+    const isBalanced = Math.abs(updatedTotals.total_debits - updatedTotals.total_credits) < 0.01;
+
     updatedData.accountsByType = updatedAccountsByType;
+    updatedData.typeSubtotals = updatedTypeSubtotals;
+    updatedData.summary = updatedSummary;
+    updatedData.totals = {
+      ...updatedTotals,
+      is_balanced: isBalanced,
+      account_count: Object.values(updatedAccountsByType).reduce((sum, accounts) => sum + accounts.length, 0),
+      generated_date: data.totals?.generated_date || new Date().toISOString()
+    };
+    
     console.log('🔍 Final updatedData:', updatedData);
     return updatedData;
   };
+
+  // Compute enhanced trial balance data with MTM accounts
+  const enhancedTrialBalanceData = useMemo(() => {
+    if (!trialBalanceData) return null;
+    return addMTMAccounts(trialBalanceData);
+  }, [trialBalanceData, mtmData]);
 
   const renderAccountRow = (account, index) => (
     <tr key={account.account_code} className="tb-account-row">
@@ -374,7 +432,7 @@ const TrialBalance = () => {
             >
               <option value="">All Portfolios</option>
               {availablePortfolios.map(portfolio => (
-                <option key={portfolio.portfolioId} value={portfolio.portfolio}>
+                <option key={portfolio.portfolioId || portfolio.id} value={portfolio.portfolioId || portfolio.id || portfolio.portfolio}>
                   {portfolio.portfolioName || portfolio.portfolio}
                 </option>
               ))}
@@ -431,11 +489,11 @@ const TrialBalance = () => {
                   </tr>
                 </thead>
                 <tbody>
-                  {trialBalanceData?.accountsByType && Object.entries(trialBalanceData.accountsByType).map(([type, accounts]) => (
+                  {enhancedTrialBalanceData?.accountsByType && Object.entries(enhancedTrialBalanceData.accountsByType).map(([type, accounts]) => (
                     <React.Fragment key={type}>
                       {accounts.map((account, index) => renderAccountRow(account, index))}
-                      {trialBalanceData.typeSubtotals[type] && 
-                        renderTypeSubtotal(type, trialBalanceData.typeSubtotals[type])
+                      {enhancedTrialBalanceData.typeSubtotals && enhancedTrialBalanceData.typeSubtotals[type] && 
+                        renderTypeSubtotal(type, enhancedTrialBalanceData.typeSubtotals[type])
                       }
                     </React.Fragment>
                   ))}
@@ -444,13 +502,13 @@ const TrialBalance = () => {
                   <tr className="tb-grand-total-row">
                     <td colSpan="3" className="tb-grand-total-label"><strong>GRAND TOTAL</strong></td>
                     <td className="tb-grand-total-debit">
-                      <strong>{formatCurrency(trialBalanceData?.totals.total_debits)}</strong>
+                      <strong>{formatCurrency(enhancedTrialBalanceData?.totals?.total_debits || trialBalanceData?.totals?.total_debits || 0)}</strong>
                     </td>
                     <td className="tb-grand-total-credit">
-                      <strong>{formatCurrency(trialBalanceData?.totals.total_credits)}</strong>
+                      <strong>{formatCurrency(enhancedTrialBalanceData?.totals?.total_credits || trialBalanceData?.totals?.total_credits || 0)}</strong>
                     </td>
                     <td className="tb-grand-total-net">
-                      <strong>{formatCurrency(trialBalanceData?.totals.total_debits - trialBalanceData?.totals.total_credits)}</strong>
+                      <strong>{formatCurrency((enhancedTrialBalanceData?.totals?.total_debits || trialBalanceData?.totals?.total_debits || 0) - (enhancedTrialBalanceData?.totals?.total_credits || trialBalanceData?.totals?.total_credits || 0))}</strong>
                     </td>
                     <td className="tb-grand-total-actions">
                       {/* Empty cell for grand total row */}
@@ -463,7 +521,7 @@ const TrialBalance = () => {
         ) : (
           <div className="tb-summary-view">
             <div className="tb-summary-cards">
-              {trialBalanceData?.summary && trialBalanceData.summary.map((typeSummary, index) => (
+              {enhancedTrialBalanceData?.summary && enhancedTrialBalanceData.summary.map((typeSummary, index) => (
                 <div key={index} className="tb-summary-card">
                   <h3 className="tb-summary-card-title">{typeSummary.account_type}</h3>
                   <div className="tb-summary-details">

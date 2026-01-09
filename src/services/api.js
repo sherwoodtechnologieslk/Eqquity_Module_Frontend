@@ -456,6 +456,74 @@ export const tradeSummaryAPI = {
   },
 }; 
 
+// API service for parsed trade transactions
+export const parsedTradeTransactionAPI = {
+  // Save parsed trade transactions
+  saveParsedTransactions: async (transactions) => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/parsed-trade-transactions/save`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...getAuthHeaders()
+        },
+        body: JSON.stringify({ transactions }),
+      });
+      
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        const error = new Error(`HTTP error! status: ${response.status}`);
+        error.response = { data: errorData, status: response.status };
+        throw error;
+      }
+      
+      return await response.json();
+    } catch (error) {
+      console.error('Error saving parsed transactions:', error);
+      throw error;
+    }
+  },
+
+  // Get parsed trade transactions
+  getParsedTransactions: async () => {
+    try {
+      return await makeAuthenticatedRequest(`${API_BASE_URL}/parsed-trade-transactions`);
+    } catch (error) {
+      console.error('Error fetching parsed transactions:', error);
+      throw error;
+    }
+  },
+
+  // Get parsed trade transactions by date
+  getParsedTransactionsByDate: async (tradeDate) => {
+    try {
+      return await makeAuthenticatedRequest(`${API_BASE_URL}/parsed-trade-transactions/by-date?tradeDate=${tradeDate}`);
+    } catch (error) {
+      console.error('Error fetching parsed transactions by date:', error);
+      throw error;
+    }
+  },
+
+  // Delete parsed trade transactions
+  deleteParsedTransactions: async () => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/parsed-trade-transactions`, {
+        method: 'DELETE',
+        headers: getAuthHeaders()
+      });
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      
+      return await response.json();
+    } catch (error) {
+      console.error('Error deleting parsed transactions:', error);
+      throw error;
+    }
+  }
+};
+
 // API service for portfolio operations
 export const portfolioAPI = {
   // Get all portfolios

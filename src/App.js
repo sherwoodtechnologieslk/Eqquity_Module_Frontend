@@ -20,6 +20,7 @@ import RightsIssueEntry from './components/VoluntaryCorporateActions/RightsIssue
 import ScripDividendEntry from './components/CorporateActions/ScripDividendEntry';
 import PortfolioMaster from './components/MasterDataManagement/PortfolioMaster';
 import DealSlipScreen from './components/TradeCapture/DealSlipScreen';
+import TradeConfirmation from './components/TradeCapture/TradeConfirmation';
 import StrategyMaster from './components/MasterDataManagement/StrategyMaster';
 import AccountMaster from './components/MasterDataManagement/AccountMaster';
 import IPOEntry from './components/IPOEntry/IPOEntry';
@@ -192,7 +193,7 @@ function App() {
     
     'Deal Slip': <DealSlipScreen />,
     'Portfolio': <PortfolioDropdown />,
-    'Trade Confirmation': <div style={{ padding: '2rem' }}><h3>Trade Confirmation</h3><p>Coming Soon...</p></div>,
+    'Trade Confirmation': <TradeConfirmation />,
     'Equity Cost': <div style={{ padding: '2rem' }}><h3>Equity Cost Module</h3><p>Coming Soon...</p></div>,
     'Mark To Market': <MarkToMarketValuation />,
     
@@ -226,8 +227,6 @@ function App() {
 
   // Handle sidebar selection
   const handleSidebarSelect = (index, subTopics) => {
-    // Financial Reporting is at index 4 - show premium modal instead
-    // Settlement and Accounting is at index 9 - show premium modal instead
     // CSE Announcements is at index 11 - show premium modal instead
     // Corporate Actions is at index 12 - show premium modal instead
     // Security Identity is at index 13 - show premium modal instead
@@ -239,7 +238,7 @@ function App() {
     // Reporting and Compliance is at index 19 - show premium modal instead
     // Integration and Automation is at index 20 - show premium modal instead
     // Portfolio Transfers is at index 21 - show premium modal instead
-    if (index === 4 || index === 9 || index === 11 || index === 12 || index === 13 || index === 14 || index === 15 || index === 16 || index === 17 || index === 18 || index === 19 || index === 20 || index === 21) {
+    if (index === 11 || index === 12 || index === 13 || index === 14 || index === 15 || index === 16 || index === 17 || index === 18 || index === 19 || index === 20 || index === 21) {
       setIsPremiumModalOpen(true);
       return;
     }
