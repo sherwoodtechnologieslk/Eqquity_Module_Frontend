@@ -1,371 +1,39 @@
 import React, { useState, useEffect } from 'react';
 import './Styles/TradeReport.css';
-import { tradeSummaryAPI } from '../../services/api';
+import { tradeSummaryAPI, parsedTradeTransactionAPI } from '../../services/api';
 
 const TradeReport = () => {
   const [tradeData, setTradeData] = useState({
     clientInfo: {
-      accountNo: 'TSL-96306-LC/00',
-      clientName: 'SHERWOOD CAPITAL (PVT) LTD',
-      brokerName: 'Ambeon Securities (Private)',
-      address: '2nd Floor, No: 100 / 1, Elvitigala Mawatha, Colombo 08 Sri Lanka',
+      accountNo: '',
+      clientName: '',
+      brokerName: '',
+      address: '',
       contact: {
-        tel: '0115328100',
-        fax: '0115328177',
-        email: 'info@ambeonsecurities.lk'
+        tel: '',
+        fax: '',
+        email: ''
       }
     },
     tradeInfo: {
-      tradeDate: '12/08/2025',
-      attention: 'Charith Kamaladasa',
-      settlementDate: '14/08/2025'
+      tradeDate: '',
+      attention: '',
+      settlementDate: ''
     },
     transactions: {
-      sales: [
-        {
-          equity: 'HAYLEYS PLC',
-          symbol: 'HAYL.N0000',
-          isin: 'LK0080N00008',
-          contractNo: '2025150725',
-          shares: 12032.0064,
-          price: 10.11,
-          grossAmount: 188.00,
-          brokerage: 1.44,
-          govCess: 36.10,
-          netAmount: 11897.25,
-          settlementDate: '14/08/2025',
-          foreignBrokerage: 77.00,
-          clearingFees: 8.66
-        },
-        {
-          equity: 'HAYLEYS PLC',
-          symbol: 'HAYL.N0000',
-          isin: 'LK0080N00008',
-          contractNo: '2025150726',
-          shares: 9400.0050,
-          price: 7.90,
-          grossAmount: 188.00,
-          brokerage: 1.13,
-          govCess: 28.20,
-          netAmount: 9294.71,
-          settlementDate: '14/08/2025',
-          foreignBrokerage: 60.16,
-          clearingFees: 6.77
-        },
-        {
-          equity: 'HAYLEYS PLC',
-          symbol: 'HAYL.N0000',
-          isin: 'LK0080N00008',
-          contractNo: '2025150727',
-          shares: 7510.0040,
-          price: 6.31,
-          grossAmount: 187.75,
-          brokerage: 0.90,
-          govCess: 22.53,
-          netAmount: 7425.89,
-          settlementDate: '14/08/2025',
-          foreignBrokerage: 48.06,
-          clearingFees: 5.41
-        },
-        {
-          equity: 'HAYLEYS PLC',
-          symbol: 'HAYL.N0000',
-          isin: 'LK0080N00008',
-          contractNo: '2025150728',
-          shares: 187.751,
-          price: 0.16,
-          grossAmount: 187.75,
-          brokerage: 0.02,
-          govCess: 0.56,
-          netAmount: 185.65,
-          settlementDate: '14/08/2025',
-          foreignBrokerage: 1.20,
-          clearingFees: 0.14
-        },
-        {
-          equity: 'HAYLEYS PLC',
-          symbol: 'HAYL.N0000',
-          isin: 'LK0080N00008',
-          contractNo: '2025150729',
-          shares: 23844.25127,
-          price: 20.03,
-          grossAmount: 187.75,
-          brokerage: 2.86,
-          govCess: 71.53,
-          netAmount: 23577.20,
-          settlementDate: '14/08/2025',
-          foreignBrokerage: 152.60,
-          clearingFees: 17.17
-        },
-        {
-          equity: 'HAYLEYS PLC',
-          symbol: 'HAYL.N0000',
-          isin: 'LK0080N00008',
-          contractNo: '2025150730',
-          shares: 18775.00,
-          price: 15.77,
-          grossAmount: 187.75,
-          brokerage: 2.25,
-          govCess: 56.33,
-          netAmount: 18564.72,
-          settlementDate: '14/08/2025',
-          foreignBrokerage: 120.16,
-          clearingFees: 13.52
-        },
-        {
-          equity: 'HAYLEYS PLC',
-          symbol: 'HAYL.N0000',
-          isin: 'LK0080N00008',
-          contractNo: '2025150731',
-          shares: 9375.00,
-          price: 7.88,
-          grossAmount: 187.50,
-          brokerage: 1.13,
-          govCess: 28.13,
-          netAmount: 9269.98,
-          settlementDate: '14/08/2025',
-          foreignBrokerage: 60.00,
-          clearingFees: 6.75
-        },
-        {
-          equity: 'HAYLEYS PLC',
-          symbol: 'HAYL.N0000',
-          isin: 'LK0080N00008',
-          contractNo: '2025150732',
-          shares: 937.505,
-          price: 0.79,
-          grossAmount: 187.50,
-          brokerage: 0.11,
-          govCess: 2.81,
-          netAmount: 927.00,
-          settlementDate: '14/08/2025',
-          foreignBrokerage: 6.00,
-          clearingFees: 0.68
-        },
-        {
-          equity: 'HAYLEYS PLC',
-          symbol: 'HAYL.N0000',
-          isin: 'LK0080N00008',
-          contractNo: '2025150733',
-          shares: 1875000.00,
-          price: 1575.00,
-          grossAmount: 187.50,
-          brokerage: 225.00,
-          govCess: 5625.00,
-          netAmount: 1854000.00,
-          settlementDate: '14/08/2025',
-          foreignBrokerage: 12000.00,
-          clearingFees: 1350.00
-        },
-        {
-          equity: 'HAYLEYS PLC',
-          symbol: 'HAYL.N0000',
-          isin: 'LK0080N00008',
-          contractNo: '2025150734',
-          shares: 937500.00,
-          price: 787.50,
-          grossAmount: 187.50,
-          brokerage: 112.50,
-          govCess: 2812.50,
-          netAmount: 927000.00,
-          settlementDate: '14/08/2025',
-          foreignBrokerage: 6000.00,
-          clearingFees: 675.00
-        },
-        {
-          equity: 'HAYLEYS PLC',
-          symbol: 'HAYL.N0000',
-          isin: 'LK0080N00008',
-          contractNo: '2025150735',
-          shares: 1875000.00,
-          price: 1575.00,
-          grossAmount: 187.50,
-          brokerage: 225.00,
-          govCess: 5625.00,
-          netAmount: 1854000.00,
-          settlementDate: '14/08/2025',
-          foreignBrokerage: 12000.00,
-          clearingFees: 1350.00
-        },
-        {
-          equity: 'HAYLEYS PLC',
-          symbol: 'HAYL.N0000',
-          isin: 'LK0080N00008',
-          contractNo: '2025150736',
-          shares: 4605562.50,
-          price: 3868.67,
-          grossAmount: 187.50,
-          brokerage: 552.67,
-          govCess: 13816.69,
-          netAmount: 4553980.19,
-          settlementDate: '14/08/2025',
-          foreignBrokerage: 29475.60,
-          clearingFees: 3316.01
-        },
-        {
-          equity: 'HAYLEYS PLC',
-          symbol: 'HAYL.N0000',
-          isin: 'LK0080N00008',
-          contractNo: '2025150967',
-          shares: 862732.00,
-          price: 724.69,
-          grossAmount: 188.00,
-          brokerage: 103.53,
-          govCess: 2588.20,
-          netAmount: 853069.40,
-          settlementDate: '14/08/2025',
-          foreignBrokerage: 5521.48,
-          clearingFees: 621.17
-        },
-        {
-          equity: 'HAYLEYS PLC',
-          symbol: 'HAYL.N0000',
-          isin: 'LK0080N00008',
-          contractNo: '2025150968',
-          shares: 137428.00,
-          price: 115.44,
-          grossAmount: 188.00,
-          brokerage: 16.49,
-          govCess: 412.28,
-          netAmount: 135888.81,
-          settlementDate: '14/08/2025',
-          foreignBrokerage: 879.54,
-          clearingFees: 98.95
-        },
-        {
-          equity: 'HAYLEYS PLC',
-          symbol: 'HAYL.N0000',
-          isin: 'LK0080N00008',
-          contractNo: '2025151159',
-          shares: 8460.00,
-          price: 7.11,
-          grossAmount: 188.00,
-          brokerage: 1.02,
-          govCess: 25.38,
-          netAmount: 8365.24,
-          settlementDate: '14/08/2025',
-          foreignBrokerage: 54.14,
-          clearingFees: 6.09
-        },
-        {
-          equity: 'HAYLEYS PLC',
-          symbol: 'HAYL.N0000',
-          isin: 'LK0080N00008',
-          contractNo: '2025151187',
-          shares: 20116.00,
-          price: 16.90,
-          grossAmount: 188.00,
-          brokerage: 2.41,
-          govCess: 60.35,
-          netAmount: 19890.71,
-          settlementDate: '14/08/2025',
-          foreignBrokerage: 128.74,
-          clearingFees: 14.48
-        },
-        {
-          equity: 'HAYLEYS PLC',
-          symbol: 'HAYL.N0000',
-          isin: 'LK0080N00008',
-          contractNo: '2025151192',
-          shares: 188000.00,
-          price: 157.92,
-          grossAmount: 188.00,
-          brokerage: 22.56,
-          govCess: 564.00,
-          netAmount: 185894.40,
-          settlementDate: '14/08/2025',
-          foreignBrokerage: 1203.20,
-          clearingFees: 135.36
-        },
-        {
-          equity: 'HAYLEYS PLC',
-          symbol: 'HAYL.N0000',
-          isin: 'LK0080N00008',
-          contractNo: '2025151199',
-          shares: 94000.00,
-          price: 78.96,
-          grossAmount: 188.00,
-          brokerage: 11.28,
-          govCess: 282.00,
-          netAmount: 92947.20,
-          settlementDate: '14/08/2025',
-          foreignBrokerage: 601.60,
-          clearingFees: 67.68
-        }
-      ],
-      purchases: [
-        {
-          equity: 'R I L PROPERTY PLC',
-          symbol: 'RIL.N0000',
-          isin: 'LK0452N00009',
-          contractNo: '2025150587',
-          shares: 28458.00,
-          price: 27.90,
-          grossAmount: 1020,
-          brokerage: 3.41,
-          govCess: 85.37,
-          netAmount: 28776.71,
-          settlementDate: '14/08/2025',
-          foreignBrokerage: 182.13,
-          clearingFees: 20.49
-        },
-        {
-          equity: 'R I L PROPERTY PLC',
-          symbol: 'RIL.N0000',
-          isin: 'LK0452N00009',
-          contractNo: '2025150588',
-          shares: 167400.00,
-          price: 140.62,
-          grossAmount: 27.90,
-          brokerage: 20.09,
-          govCess: 502.20,
-          netAmount: 169274.89,
-          settlementDate: '14/08/2025',
-          foreignBrokerage: 1071.36,
-          clearingFees: 120.53
-        },
-        {
-          equity: 'R I L PROPERTY PLC',
-          symbol: 'RIL.N0000',
-          isin: 'LK0452N00009',
-          contractNo: '2025150589',
-          shares: 2790.00,
-          price: 2.34,
-          grossAmount: 27.90,
-          brokerage: 0.33,
-          govCess: 8.37,
-          netAmount: 2821.24,
-          settlementDate: '14/08/2025',
-          foreignBrokerage: 17.86,
-          clearingFees: 2.01
-        },
-        {
-          equity: 'R I L PROPERTY PLC',
-          symbol: 'RIL.N0000',
-          isin: 'LK0452N00009',
-          contractNo: '2025150590',
-          shares: 159030.00,
-          price: 133.59,
-          grossAmount: 27.90,
-          brokerage: 19.08,
-          govCess: 477.09,
-          netAmount: 160811.13,
-          settlementDate: '14/08/2025',
-          foreignBrokerage: 1017.79,
-          clearingFees: 114.50
-        }
-      ]
+      sales: [],
+      purchases: []
     },
     summary: {
-      totalSales: 10566178.35,
-      totalPurchases: 361683.97,
-      netSettlement: 10204494.38,
-      totalSalesShares: 56972,
-      totalPurchaseShares: 12820,
-      totalBrokerage: 1282.30,
-      totalGovCess: 32057.59,
-      totalForeignBrokerage: 68389.48,
-      totalClearingFees: 7693.84
+      totalSales: 0,
+      totalPurchases: 0,
+      netSettlement: 0,
+      totalSalesShares: 0,
+      totalPurchaseShares: 0,
+      totalBrokerage: 0,
+      totalGovCess: 0,
+      totalForeignBrokerage: 0,
+      totalClearingFees: 0
     }
   });
 
@@ -376,6 +44,10 @@ const TradeReport = () => {
   const [extractedText, setExtractedText] = useState('');
   const [isExtracting, setIsExtracting] = useState(false);
   const [parsedData, setParsedData] = useState([]);
+  const [submitMessage, setSubmitMessage] = useState('');
+  const [showSubmitModal, setShowSubmitModal] = useState(false);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
 
   const formatCurrency = (amount) => {
     return new Intl.NumberFormat('en-US', {
@@ -451,9 +123,67 @@ const TradeReport = () => {
     </tr>
   );
 
+  const renderParsedTransactionRow = (transaction, index) => {
+    // Calculate gross amount (quantity * price)
+    const grossAmount = (parseFloat(transaction.quantity) || 0) * (parseFloat(transaction.price) || 0);
+    
+    // Calculate total fees
+    const totalFees = (parseFloat(transaction.brokerage) || 0) +
+                     (parseFloat(transaction.governmentCess) || 0) +
+                     (parseFloat(transaction.clearingFees) || 0) +
+                     (parseFloat(transaction.cseFees) || 0) +
+                     (parseFloat(transaction.cdsFees) || 0) +
+                     (parseFloat(transaction.secCess) || 0) +
+                     (parseFloat(transaction.foreignBrokerage) || 0);
+    
+    // Calculate net amount
+    const netAmount = grossAmount - totalFees;
+    
+    // Use selling contract for sales, buying contract for purchases
+    const contractNo = transaction.buySell === 'S' || transaction.buySell === 's' 
+      ? transaction.sellingContractNo 
+      : transaction.buyingContractNo;
+    
+    return (
+      <tr key={index}>
+        <td>{contractNo || 'N/A'}</td>
+        <td>{transaction.companyId || transaction.companySymbol || 'N/A'}</td>
+        <td>{formatNumber(transaction.quantity)}</td>
+        <td>{formatNumber(transaction.price)}</td>
+        <td>{formatCurrency(grossAmount)}</td>
+        <td>{formatCurrency(transaction.brokerage)}</td>
+        <td>{formatCurrency(transaction.governmentCess)}</td>
+        <td>{formatCurrency(netAmount)}</td>
+        <td>{transaction.settlementDate || 'N/A'}</td>
+        <td>{formatCurrency(transaction.foreignBrokerage)}</td>
+        <td>{formatCurrency(transaction.clearingFees)}</td>
+      </tr>
+    );
+  };
+
   const renderOverview = () => {
     const filteredSummary = getFilteredSummary();
     const filteredData = getFilteredTransactions();
+    const hasData = filteredData.sales.length > 0 || filteredData.purchases.length > 0;
+    
+    if (!hasData) {
+      return (
+        <div className="tr-overview-section">
+          <div className="tr-no-data-message">
+            <div className="tr-no-data-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <circle cx="12" cy="12" r="10"/>
+                <line x1="12" y1="8" x2="12" y2="12"/>
+                <line x1="12" y1="16" x2="12.01" y2="16"/>
+              </svg>
+            </div>
+            <h3>No Trade Data Available</h3>
+            <p>Upload and parse a trade report file to view transaction overview and statistics.</p>
+            <p className="tr-hint">Go to the <strong>Documents</strong> tab to upload a trade report file.</p>
+          </div>
+        </div>
+      );
+    }
     
     return (
       <div className="tr-overview-section">
@@ -466,17 +196,17 @@ const TradeReport = () => {
         <div className="tr-summary-cards">
           <div className="tr-summary-card">
             <h3>Total Sales</h3>
-                            <div className="tr-amount">{formatCurrency(filteredSummary.totalSales)}</div>
+            <div className="tr-amount">{formatCurrency(filteredSummary.totalSales)}</div>
             <div className="tr-sub-info">{formatNumber(filteredSummary.totalSalesShares)} shares</div>
           </div>
           <div className="tr-summary-card">
             <h3>Total Purchases</h3>
-                            <div className="tr-amount">{formatCurrency(filteredSummary.totalPurchases)}</div>
+            <div className="tr-amount">{formatCurrency(filteredSummary.totalPurchases)}</div>
             <div className="tr-sub-info">{formatNumber(filteredSummary.totalPurchaseShares)} shares</div>
           </div>
           <div className="tr-summary-card">
             <h3>Net Settlement</h3>
-                            <div className="tr-amount">{formatCurrency(filteredSummary.netSettlement)}</div>
+            <div className="tr-amount">{formatCurrency(filteredSummary.netSettlement)}</div>
             <div className="tr-sub-info">Net Position</div>
           </div>
         </div>
@@ -494,19 +224,19 @@ const TradeReport = () => {
             </div>
             <div className="tr-stat-item">
               <span className="tr-label">Total Brokerage:</span>
-                              <span className="tr-value">{formatCurrency(filteredSummary.totalBrokerage)}</span>
+              <span className="tr-value">{formatCurrency(filteredSummary.totalBrokerage)}</span>
             </div>
             <div className="tr-stat-item">
               <span className="tr-label">Total GOV CESS:</span>
-                              <span className="tr-value">{formatCurrency(filteredSummary.totalGovCess)}</span>
+              <span className="tr-value">{formatCurrency(filteredSummary.totalGovCess)}</span>
             </div>
             <div className="tr-stat-item">
               <span className="tr-label">Total Foreign Brokerage:</span>
-                              <span className="tr-value">{formatCurrency(tradeData.summary.totalForeignBrokerage)}</span>
+              <span className="tr-value">{formatCurrency(tradeData.summary.totalForeignBrokerage)}</span>
             </div>
             <div className="tr-stat-item">
               <span className="tr-label">Total Clearing Fees:</span>
-                              <span className="tr-value">{formatCurrency(tradeData.summary.totalClearingFees)}</span>
+              <span className="tr-value">{formatCurrency(tradeData.summary.totalClearingFees)}</span>
             </div>
           </div>
         </div>
@@ -514,19 +244,19 @@ const TradeReport = () => {
         <div className="tr-quick-stats">
           <div className="tr-stat-item">
             <span className="tr-label">Trade Date:</span>
-            <span className="tr-value">{tradeData.tradeInfo.tradeDate}</span>
+            <span className="tr-value">{tradeData.tradeInfo.tradeDate || 'N/A'}</span>
           </div>
           <div className="tr-stat-item">
             <span className="tr-label">Settlement Date:</span>
-            <span className="tr-value">{tradeData.tradeInfo.settlementDate}</span>
+            <span className="tr-value">{tradeData.tradeInfo.settlementDate || 'N/A'}</span>
           </div>
           <div className="tr-stat-item">
             <span className="tr-label">Client Account:</span>
-            <span className="tr-value">{tradeData.clientInfo.accountNo}</span>
+            <span className="tr-value">{tradeData.clientInfo.accountNo || 'N/A'}</span>
           </div>
           <div className="tr-stat-item">
             <span className="tr-label">Client Name:</span>
-            <span className="tr-value">{tradeData.clientInfo.clientName}</span>
+            <span className="tr-value">{tradeData.clientInfo.clientName || 'N/A'}</span>
           </div>
         </div>
       </div>
@@ -534,7 +264,31 @@ const TradeReport = () => {
   };
 
   const renderSales = () => {
+    // Filter parsed data for sell transactions (S)
+    const sellTransactions = parsedData.filter(t => 
+      (t.buySell === 'S' || t.buySell === 's') &&
+      (selectedEquity === 'all' || t.companyId === selectedEquity || t.companySymbol === selectedEquity)
+    );
+    
+    // Fallback to old data if no parsed data
     const filteredData = getFilteredTransactions();
+    const hasParsedData = parsedData.length > 0;
+    const transactionsToShow = hasParsedData ? sellTransactions : filteredData.sales;
+    
+    if (transactionsToShow.length === 0) {
+      return (
+        <div className="tr-transactions-section">
+          <h3>Sales Transactions {selectedEquity !== 'all' && `- ${selectedEquity}`}</h3>
+          <div className="tr-no-data-message">
+            <h3>No Sales Transactions Available</h3>
+            <p>{hasParsedData 
+              ? 'No sell transactions found in the parsed data.' 
+              : 'Upload and parse a trade report file to view sales transactions.'}</p>
+          </div>
+        </div>
+      );
+    }
+    
     return (
       <div className="tr-transactions-section">
         <h3>Sales Transactions {selectedEquity !== 'all' && `- ${selectedEquity}`}</h3>
@@ -556,9 +310,14 @@ const TradeReport = () => {
               </tr>
             </thead>
             <tbody>
-              {filteredData.sales.map((sale, index) => 
-                renderTransactionRow(sale, index)
-              )}
+              {hasParsedData 
+                ? transactionsToShow.map((transaction, index) => 
+                    renderParsedTransactionRow(transaction, index)
+                  )
+                : transactionsToShow.map((sale, index) => 
+                    renderTransactionRow(sale, index)
+                  )
+              }
             </tbody>
           </table>
         </div>
@@ -567,7 +326,31 @@ const TradeReport = () => {
   };
 
   const renderPurchases = () => {
+    // Filter parsed data for buy transactions (B)
+    const buyTransactions = parsedData.filter(t => 
+      (t.buySell === 'B' || t.buySell === 'b') &&
+      (selectedEquity === 'all' || t.companyId === selectedEquity || t.companySymbol === selectedEquity)
+    );
+    
+    // Fallback to old data if no parsed data
     const filteredData = getFilteredTransactions();
+    const hasParsedData = parsedData.length > 0;
+    const transactionsToShow = hasParsedData ? buyTransactions : filteredData.purchases;
+    
+    if (transactionsToShow.length === 0) {
+      return (
+        <div className="tr-transactions-section">
+          <h3>Purchase Transactions {selectedEquity !== 'all' && `- ${selectedEquity}`}</h3>
+          <div className="tr-no-data-message">
+            <h3>No Purchase Transactions Available</h3>
+            <p>{hasParsedData 
+              ? 'No buy transactions found in the parsed data.' 
+              : 'Upload and parse a trade report file to view purchase transactions.'}</p>
+          </div>
+        </div>
+      );
+    }
+    
     return (
       <div className="tr-transactions-section">
         <h3>Purchase Transactions {selectedEquity !== 'all' && `- ${selectedEquity}`}</h3>
@@ -589,9 +372,14 @@ const TradeReport = () => {
               </tr>
             </thead>
             <tbody>
-              {filteredData.purchases.map((purchase, index) => 
-                renderTransactionRow(purchase, index)
-              )}
+              {hasParsedData 
+                ? transactionsToShow.map((transaction, index) => 
+                    renderParsedTransactionRow(transaction, index)
+                  )
+                : transactionsToShow.map((purchase, index) => 
+                    renderTransactionRow(purchase, index)
+                  )
+              }
             </tbody>
           </table>
         </div>
@@ -669,41 +457,83 @@ const TradeReport = () => {
     const transactions = [];
 
     lines.forEach((line, index) => {
-      if (line.length < 100) return; // Skip short lines
+      // Skip header lines and lines that are too short (minimum expected length ~240+)
+      if (line.length < 240) return;
+      
+      // Skip lines that look like headers or metadata
+      if (line.includes('COLUMN NAME') || line.includes('EXECUTIONS') || line.includes('COUNT')) return;
 
       try {
+        // Parse based on exact column structure provided
         const transaction = {
           id: index + 1,
+          // Position 0-9: trade_date CHAR(10)
           tradeDate: line.substring(0, 10).trim(),
+          // Position 11-18: trade_time CHAR(8)
           tradeTime: line.substring(11, 19).trim(),
+          // Position 20: buy_sell CHAR(1)
           buySell: line.substring(20, 21).trim(),
+          // Position 22-37: execution_id CHAR(16)
           executionId: line.substring(22, 38).trim(),
-          additionalTimestamp: line.substring(39, 58).trim(),
-          companySymbol: line.substring(59, 73).trim(),
-          quantity: parseInt(line.substring(74, 85).trim()) || 0,
-          price: parseFloat(line.substring(86, 96).trim()) || 0,
-          lotType: line.substring(97, 98).trim(),
-          buyingBroker: line.substring(100, 103).trim(),
-          sellingBroker: line.substring(104, 107).trim(),
-          buyingContractNo: line.substring(108, 116).trim(),
-          sellingContractNo: line.substring(117, 125).trim(),
-          clientAccount: line.substring(126, 135).trim(),
-          jointAcNo: line.substring(136, 138).trim(),
-          participantId: line.substring(139, 142).trim(),
-          foreignFlag: line.substring(143, 144).trim(),
-          brokerage: parseFloat(line.substring(145, 157).trim()) || 0,
-          cdsFees: parseFloat(line.substring(158, 170).trim()) || 0,
-          cseFees: parseFloat(line.substring(171, 183).trim()) || 0,
-          clearingFees: parseFloat(line.substring(184, 196).trim()) || 0,
-          secCess: parseFloat(line.substring(197, 209).trim()) || 0,
-          foreignBrokerage: parseFloat(line.substring(210, 222).trim()) || 0,
-          orderId: line.substring(224, 244).trim(),
-          status: line.substring(245, 247).trim(),
-          governmentCess: parseFloat(line.substring(248, 260).trim()) || 0,
-          tradeReportId: line.substring(261, 311).trim(),
-          clientName: line.substring(312, 325).trim(),
-          orderSource: line.substring(326, 327).trim(),
-          settlementDate: line.substring(328, 338).trim()
+          // Position 38-41: company_id CHAR(4)
+          companyId: line.substring(38, 42).trim(),
+          // Position 42: main_type CHAR(1)
+          mainType: line.substring(42, 43).trim(),
+          // Position 43-46: sub_type CHAR(4)
+          subType: line.substring(43, 47).trim(),
+          // Position 47-57: quantity NUM(11)
+          quantity: parseInt(line.substring(47, 58).trim()) || 0,
+          // Position 58-67: price NUM(9,2) - 10 chars total
+          price: parseFloat(line.substring(58, 68).trim()) || 0,
+          // Position 69: lot_type CHAR(1)
+          lotType: line.substring(69, 70).trim(),
+          // Position 72-74: broker_id_buy CHAR(3)
+          buyingBroker: line.substring(72, 75).trim(),
+          // Position 76-78: broker_id_sell CHAR(3)
+          sellingBroker: line.substring(76, 79).trim(),
+          // Position 80-87: buying_contract_no NUM(8)
+          buyingContractNo: line.substring(80, 88).trim(),
+          // Position 89-96: selling_contract_no NUM(8)
+          sellingContractNo: line.substring(89, 97).trim(),
+          // Position 98-107: client_prefix NUM(10)
+          clientPrefix: line.substring(98, 108).trim(),
+          // Position 108-109: client_suffix CHAR(2)
+          clientSuffix: line.substring(108, 110).trim(),
+          // Position 110-111: joint_ac_no NUM(2)
+          jointAcNo: line.substring(110, 112).trim(),
+          // Position 113-115: participant_id CHAR(3)
+          participantId: line.substring(113, 116).trim(),
+          // Position 117: foreign_flag NUM(1)
+          foreignFlag: line.substring(117, 118).trim(),
+          // Position 119-130: brokerage NUM(11,2) - 12 chars
+          brokerage: parseFloat(line.substring(119, 131).trim()) || 0,
+          // Position 131-142: cds_fees NUM(11,2) - 12 chars
+          cdsFees: parseFloat(line.substring(131, 143).trim()) || 0,
+          // Position 143-154: cse_fees NUM(11,2) - 12 chars
+          cseFees: parseFloat(line.substring(143, 155).trim()) || 0,
+          // Position 155-166: clearing_fees NUM(11,2) - 12 chars
+          clearingFees: parseFloat(line.substring(155, 167).trim()) || 0,
+          // Position 167-178: sec_cess NUM(11,2) - 12 chars
+          secCess: parseFloat(line.substring(167, 179).trim()) || 0,
+          // Position 179-190: brokerage_foreign NUM(11,2) - 12 chars
+          foreignBrokerage: parseFloat(line.substring(179, 191).trim()) || 0,
+          // Position 192-211: order_id CHAR(20)
+          orderId: line.substring(192, 212).trim(),
+          // Position 213-214: status NUM(2)
+          status: line.substring(213, 215).trim(),
+          // Position 216-227: government_cess NUM(11,2) - 12 chars
+          governmentCess: parseFloat(line.substring(216, 228).trim()) || 0,
+          // Position 228-277: trade_report_id CHAR(50)
+          tradeReportId: line.substring(228, 278).trim(),
+          // Position 279-289: order_source CHAR(11)
+          orderSource: line.substring(279, 290).trim(),
+          // Position 291-295: consolidation_no NUM(5)
+          consolidationNo: line.substring(291, 296).trim(),
+          // Position 297-306: date_settlement CHAR(10)
+          settlementDate: line.substring(297, 307).trim(),
+          // Computed fields for display
+          companySymbol: line.substring(38, 42).trim(), // Use company_id as symbol
+          clientAccount: (line.substring(98, 108).trim() + line.substring(108, 110).trim()).trim() // client_prefix + client_suffix
         };
         transactions.push(transaction);
       } catch (error) {
@@ -818,6 +648,249 @@ const TradeReport = () => {
     }
     
     return formatted;
+  };
+
+  const handleSubmit = () => {
+    if (parsedData.length === 0) {
+      setSubmitMessage('No parsed data to submit. Please upload and parse a trade report file first.');
+      setTimeout(() => setSubmitMessage(''), 3000);
+      return;
+    }
+    setShowSubmitModal(true);
+  };
+
+  const handleCloseModal = () => {
+    setShowSubmitModal(false);
+  };
+
+  const handleSaveBuyTransactions = async () => {
+    const buyTransactions = parsedData.filter(t => t.buySell === 'B' || t.buySell === 'b');
+    
+    if (buyTransactions.length === 0) {
+      setShowSubmitModal(false);
+      setSubmitMessage('No buy transactions to save.');
+      setTimeout(() => setSubmitMessage(''), 3000);
+      return;
+    }
+
+    setShowSubmitModal(false);
+    setIsSaving(true);
+    setSubmitMessage('');
+
+    try {
+      // Remove the computed fields before sending
+      const transactionsToSave = buyTransactions.map(({ id, companySymbol, clientAccount, ...rest }) => rest);
+      
+      const result = await parsedTradeTransactionAPI.saveParsedTransactions(transactionsToSave);
+      
+      setSubmitMessage(`Successfully saved ${result.rowsProcessed || buyTransactions.length} buy transaction records to database.`);
+      setTimeout(() => setSubmitMessage(''), 5000);
+    } catch (error) {
+      console.error('Error saving buy transactions:', error);
+      
+      let errorMessage = 'Error saving buy transactions. Please try again.';
+      if (error.response && error.response.data) {
+        errorMessage = error.response.data.error || errorMessage;
+        if (error.response.data.details) {
+          errorMessage += `: ${error.response.data.details}`;
+        }
+      } else if (error.message) {
+        errorMessage = `Error: ${error.message}`;
+      }
+      
+      setSubmitMessage(errorMessage);
+      setTimeout(() => setSubmitMessage(''), 5000);
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const handleSaveSellTransactions = async () => {
+    const sellTransactions = parsedData.filter(t => t.buySell === 'S' || t.buySell === 's');
+    
+    if (sellTransactions.length === 0) {
+      setShowSubmitModal(false);
+      setSubmitMessage('No sell transactions to save.');
+      setTimeout(() => setSubmitMessage(''), 3000);
+      return;
+    }
+
+    setShowSubmitModal(false);
+    setIsSaving(true);
+    setSubmitMessage('');
+
+    try {
+      // Remove the computed fields before sending
+      const transactionsToSave = sellTransactions.map(({ id, companySymbol, clientAccount, ...rest }) => rest);
+      
+      const result = await parsedTradeTransactionAPI.saveParsedTransactions(transactionsToSave);
+      
+      setSubmitMessage(`Successfully saved ${result.rowsProcessed || sellTransactions.length} sell transaction records to database.`);
+      setTimeout(() => setSubmitMessage(''), 5000);
+    } catch (error) {
+      console.error('Error saving sell transactions:', error);
+      
+      let errorMessage = 'Error saving sell transactions. Please try again.';
+      if (error.response && error.response.data) {
+        errorMessage = error.response.data.error || errorMessage;
+        if (error.response.data.details) {
+          errorMessage += `: ${error.response.data.details}`;
+        }
+      } else if (error.message) {
+        errorMessage = `Error: ${error.message}`;
+      }
+      
+      setSubmitMessage(errorMessage);
+      setTimeout(() => setSubmitMessage(''), 5000);
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const handleSaveAllTransactions = async () => {
+    setShowSubmitModal(false);
+    // Call the actual save function to save all transactions
+    await handleSaveTransactions();
+  };
+
+  const handleExportToCSV = () => {
+    // Convert parsed data to CSV
+    const headers = Object.keys(parsedData[0] || {}).join(',');
+    const rows = parsedData.map(t => Object.values(t).join(','));
+    const csvContent = [headers, ...rows].join('\n');
+    
+    const blob = new Blob([csvContent], { type: 'text/csv' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `trade-executions-${new Date().toISOString().split('T')[0]}.csv`;
+    a.click();
+    window.URL.revokeObjectURL(url);
+    
+    setShowSubmitModal(false);
+    setSubmitMessage('Transactions exported to CSV successfully.');
+    setTimeout(() => setSubmitMessage(''), 3000);
+  };
+
+  const handleReviewData = () => {
+    setShowSubmitModal(false);
+    setSelectedView('parsed');
+  };
+
+  const handleRefreshData = async () => {
+    setIsRefreshing(true);
+    
+    try {
+      // Clear existing parsed data and extracted text
+      setParsedData([]);
+      setExtractedText('');
+      
+      // Re-process all uploaded text files
+      const textFiles = uploadedFiles.filter(file => 
+        file.name.toLowerCase().endsWith('.txt') || 
+        file.name.toLowerCase().endsWith('.text')
+      );
+      
+      if (textFiles.length > 0) {
+        let allParsedData = [];
+        let allExtractedText = '';
+        
+        for (const fileObj of textFiles) {
+          try {
+            const textContent = await readTextFile(fileObj.file);
+            allExtractedText += `\n\n--- ${fileObj.name} ---\n${textContent}`;
+            
+            // Parse transaction data
+            const parsedTransactions = parseTransactionData(textContent);
+            allParsedData = [...allParsedData, ...parsedTransactions];
+          } catch (error) {
+            console.error(`Error re-processing file ${fileObj.name}:`, error);
+          }
+        }
+        
+        setExtractedText(allExtractedText);
+        setParsedData(allParsedData);
+        
+        setSubmitMessage(`Successfully refreshed ${allParsedData.length} transaction records from ${textFiles.length} file(s).`);
+        setTimeout(() => setSubmitMessage(''), 3000);
+      } else {
+        setSubmitMessage('No text files found to refresh. Please upload trade report files first.');
+        setTimeout(() => setSubmitMessage(''), 3000);
+      }
+    } catch (error) {
+      console.error('Error refreshing data:', error);
+      setSubmitMessage('Error refreshing data. Please try again.');
+      setTimeout(() => setSubmitMessage(''), 3000);
+    } finally {
+      setIsRefreshing(false);
+    }
+  };
+
+  const handleSaveTransactions = async () => {
+    console.log('Save Transactions button clicked');
+    console.log('Parsed data length:', parsedData.length);
+    
+    if (parsedData.length === 0) {
+      setSubmitMessage('No parsed data to save. Please upload and parse a trade report file first.');
+      setTimeout(() => setSubmitMessage(''), 3000);
+      return;
+    }
+
+    setIsSaving(true);
+    setSubmitMessage('');
+
+    try {
+      console.log('Saving transactions...', parsedData.length, 'records');
+      
+      // Remove the computed 'id' field before sending (it's just for display)
+      const transactionsToSave = parsedData.map(({ id, companySymbol, clientAccount, ...rest }) => rest);
+      
+      console.log('Transactions to save (first record):', transactionsToSave[0]);
+      
+      const result = await parsedTradeTransactionAPI.saveParsedTransactions(transactionsToSave);
+      
+      console.log('Save result:', result);
+      
+      const savedCount = result.rowsProcessed || result.uniqueSaved || 0;
+      const duplicatesCount = result.duplicatesSkipped || 0;
+      
+      let message = '';
+      
+      if (savedCount > 0 && duplicatesCount > 0) {
+        // Some saved, some duplicates
+        message = `Successfully saved ${savedCount} transaction record(s). ${duplicatesCount} duplicate transaction(s) skipped.`;
+      } else if (savedCount > 0) {
+        // All saved, no duplicates
+        message = `Successfully saved ${savedCount} transaction record(s) to database.`;
+      } else if (duplicatesCount > 0) {
+        // All duplicates, nothing saved
+        message = `${duplicatesCount} duplicate transaction(s) skipped. No new transactions saved.`;
+      } else {
+        // Fallback
+        message = 'Transactions processed.';
+      }
+      
+      setSubmitMessage(message);
+      setTimeout(() => setSubmitMessage(''), 7000);
+    } catch (error) {
+      console.error('Error saving transactions:', error);
+      console.error('Error details:', error.response?.data || error.message);
+      
+      let errorMessage = 'Error saving transactions. Please try again.';
+      if (error.response && error.response.data) {
+        errorMessage = error.response.data.error || errorMessage;
+        if (error.response.data.details) {
+          errorMessage += `: ${error.response.data.details}`;
+        }
+      } else if (error.message) {
+        errorMessage = `Error: ${error.message}`;
+      }
+      
+      setSubmitMessage(errorMessage);
+      setTimeout(() => setSubmitMessage(''), 5000);
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   const handleDrag = (e) => {
@@ -1023,6 +1096,14 @@ const TradeReport = () => {
                 Copy Text
               </button>
               <button 
+                className="tr-submit-btn"
+                onClick={handleSubmit}
+                title="Submit parsed transaction data"
+                disabled={parsedData.length === 0}
+              >
+                Submit
+              </button>
+              <button 
                 className="tr-clear-btn"
                 onClick={() => setExtractedText('')}
                 title="Clear extracted text"
@@ -1030,6 +1111,11 @@ const TradeReport = () => {
                 Clear Text
               </button>
             </div>
+            {submitMessage && (
+              <div className={`tr-submit-message ${submitMessage.includes('Successfully') ? 'success' : 'error'}`}>
+                {submitMessage}
+              </div>
+            )}
           </div>
         </div>
       )}
@@ -1048,9 +1134,51 @@ const TradeReport = () => {
       );
     }
 
+    // Calculate BUY and SELL counts
+    const buyCount = parsedData.filter(t => t.buySell === 'B' || t.buySell === 'b').length;
+    const sellCount = parsedData.filter(t => t.buySell === 'S' || t.buySell === 's').length;
+
     return (
       <div className="tr-parsed-data-section">
-        <h3>Parsed Transaction Data ({parsedData.length} records)</h3>
+        <div className="tr-parsed-header">
+          <div className="tr-parsed-title-row">
+            <h3>Parsed Transaction Data ({parsedData.length} records)</h3>
+            <button 
+              className="tr-update-portfolio-btn"
+              onClick={handleSaveTransactions}
+              disabled={isSaving || parsedData.length === 0}
+              title="Save parsed transactions to database"
+            >
+              <svg 
+                viewBox="0 0 24 24" 
+                fill="none" 
+                stroke="currentColor" 
+                strokeWidth="2"
+                className={isSaving ? 'spinning' : ''}
+              >
+                <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/>
+                <polyline points="17 21 17 13 7 13 7 21"/>
+                <polyline points="7 3 7 8 15 8"/>
+              </svg>
+              {isSaving ? 'Saving...' : 'Save Transactions'}
+            </button>
+          </div>
+          <div className="tr-execution-summary">
+            <div className="tr-summary-item">
+              <span className="tr-summary-label">BUY Executions:</span>
+              <span className="tr-summary-value tr-buy">{buyCount}</span>
+            </div>
+            <div className="tr-summary-item">
+              <span className="tr-summary-label">SELL Executions:</span>
+              <span className="tr-summary-value tr-sell">{sellCount}</span>
+            </div>
+          </div>
+        </div>
+        {submitMessage && (
+          <div className={`tr-submit-message ${submitMessage.includes('Successfully') || submitMessage.includes('saved') ? 'success' : 'error'}`}>
+            {submitMessage}
+          </div>
+        )}
         <div className="tr-parsed-table-container">
           <table className="tr-parsed-table">
             <thead>
@@ -1060,7 +1188,7 @@ const TradeReport = () => {
                 <th>Time</th>
                 <th>B/S</th>
                 <th>Execution ID</th>
-                <th>Company</th>
+                <th>Company ID</th>
                 <th>Quantity</th>
                 <th>Price</th>
                 <th>Brokerage</th>
@@ -1068,12 +1196,15 @@ const TradeReport = () => {
                 <th>CSE Fees</th>
                 <th>Clearing Fees</th>
                 <th>Sec Cess</th>
+                <th>Foreign Brokerage</th>
                 <th>Gov Cess</th>
                 <th>Buy Broker</th>
                 <th>Sell Broker</th>
                 <th>Buy Contract</th>
                 <th>Sell Contract</th>
-                <th>Client</th>
+                <th>Client Account</th>
+                <th>Order ID</th>
+                <th>Status</th>
                 <th>Settlement</th>
               </tr>
             </thead>
@@ -1087,7 +1218,7 @@ const TradeReport = () => {
                     {transaction.buySell}
                   </td>
                   <td>{transaction.executionId}</td>
-                  <td>{transaction.companySymbol}</td>
+                  <td>{transaction.companyId || transaction.companySymbol}</td>
                   <td>{formatNumber(transaction.quantity)}</td>
                   <td>{formatCurrency(transaction.price)}</td>
                   <td>{formatCurrency(transaction.brokerage)}</td>
@@ -1095,12 +1226,15 @@ const TradeReport = () => {
                   <td>{formatCurrency(transaction.cseFees)}</td>
                   <td>{formatCurrency(transaction.clearingFees)}</td>
                   <td>{formatCurrency(transaction.secCess)}</td>
+                  <td>{formatCurrency(transaction.foreignBrokerage)}</td>
                   <td>{formatCurrency(transaction.governmentCess)}</td>
                   <td>{transaction.buyingBroker}</td>
                   <td>{transaction.sellingBroker}</td>
                   <td>{transaction.buyingContractNo}</td>
                   <td>{transaction.sellingContractNo}</td>
-                  <td>{transaction.clientName}</td>
+                  <td>{transaction.clientAccount || `${transaction.clientPrefix || ''}${transaction.clientSuffix || ''}`}</td>
+                  <td>{transaction.orderId}</td>
+                  <td>{transaction.status}</td>
                   <td>{transaction.settlementDate}</td>
                 </tr>
               ))}
@@ -1165,6 +1299,24 @@ const TradeReport = () => {
           >
             Parsed Data
           </button>
+          <button 
+            className="tr-refresh-btn"
+            onClick={handleRefreshData}
+            disabled={isRefreshing}
+            title="Refresh data"
+          >
+            <svg 
+              viewBox="0 0 24 24" 
+              fill="none" 
+              stroke="currentColor" 
+              strokeWidth="2"
+              className={isRefreshing ? 'spinning' : ''}
+            >
+              <path d="M1 4v6h6M23 20v-6h-6"/>
+              <path d="M20.49 9A9 9 0 0 0 5.64 5.64L1 10m22 4l-4.64 4.36A9 9 0 0 1 3.51 15"/>
+            </svg>
+            {isRefreshing ? 'Refreshing...' : 'Refresh Data'}
+          </button>
         </div>
         
         <div className="tr-equity-filter">
@@ -1191,9 +1343,92 @@ const TradeReport = () => {
         {selectedView === 'parsed' && renderParsedData()}
       </div>
 
-      <div className="tr-report-footer">
-        <p>This is a computer generated report on {tradeData.tradeInfo.tradeDate}</p>
-      </div>
+      {/* Submit Modal */}
+      {showSubmitModal && (
+        <div className="tr-modal-overlay" onClick={handleCloseModal}>
+          <div className="tr-modal-content" onClick={(e) => e.stopPropagation()}>
+            <div className="tr-modal-header">
+              <h3>Submit Transaction Data</h3>
+              <button className="tr-modal-close" onClick={handleCloseModal}>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <line x1="18" y1="6" x2="6" y2="18"/>
+                  <line x1="6" y1="6" x2="18" y2="18"/>
+                </svg>
+              </button>
+            </div>
+            <div className="tr-modal-body">
+              <p className="tr-modal-description">
+                You have <strong>{parsedData.length}</strong> parsed transaction records ready to submit.
+                Choose an action below:
+              </p>
+              <div className="tr-modal-stats">
+                <div className="tr-stat-badge">
+                  <span className="tr-stat-label">BUY:</span>
+                  <span className="tr-stat-value tr-buy">
+                    {parsedData.filter(t => t.buySell === 'B' || t.buySell === 'b').length}
+                  </span>
+                </div>
+                <div className="tr-stat-badge">
+                  <span className="tr-stat-label">SELL:</span>
+                  <span className="tr-stat-value tr-sell">
+                    {parsedData.filter(t => t.buySell === 'S' || t.buySell === 's').length}
+                  </span>
+                </div>
+              </div>
+            </div>
+            <div className="tr-modal-actions">
+              <button 
+                className="tr-modal-btn tr-btn-primary"
+                onClick={handleSaveBuyTransactions}
+              >
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M12 5v14M5 12l7-7 7 7"/>
+                </svg>
+                Save Buy Transactions
+              </button>
+              <button 
+                className="tr-modal-btn tr-btn-secondary"
+                onClick={handleSaveSellTransactions}
+              >
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M12 19V5M5 12l7 7 7-7"/>
+                </svg>
+                Save Sell Transactions
+              </button>
+              <button 
+                className="tr-modal-btn tr-btn-success"
+                onClick={handleSaveAllTransactions}
+              >
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M20 6L9 17l-5-5"/>
+                </svg>
+                Save All Transactions
+              </button>
+              <button 
+                className="tr-modal-btn tr-btn-info"
+                onClick={handleExportToCSV}
+              >
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                  <polyline points="7 10 12 15 17 10"/>
+                  <line x1="12" y1="15" x2="12" y2="3"/>
+                </svg>
+                Export to CSV
+              </button>
+              <button 
+                className="tr-modal-btn tr-btn-warning"
+                onClick={handleReviewData}
+              >
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                  <circle cx="12" cy="12" r="3"/>
+                </svg>
+                Review Data First
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

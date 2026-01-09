@@ -325,7 +325,7 @@ const TradeSummaryUpload = () => {
         {/* CSE Link Button */}
         <div className="cse-link-container">
           <a 
-            href="https://www.cse.lk/pages/trade-summary/trade-summary.component.html" 
+            href="https://www.cse.lk/equity/trade-summary" 
             target="_blank" 
             rel="noopener noreferrer"
             className="cse-link-btn"

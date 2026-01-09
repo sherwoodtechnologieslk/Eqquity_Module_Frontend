@@ -212,20 +212,25 @@
   border-bottom: 2px solid #cbd5e1;
 }
 
-.ih-th-id {
-  width: 20%;
-}
-
-.ih-th-type {
+.ih-th-transactions-count {
   width: 10%;
+  text-align: center;
 }
 
-.ih-th-file {
-  width: 20%;
+.ih-transactions-count {
+  text-align: center;
+  font-weight: 600;
+  color: #374151;
+  font-family: 'Courier New', monospace;
+  font-size: 0.875rem;
+}
+
+.ih-th-trade-report-id {
+  width: 22%;
 }
 
 .ih-th-transactions {
-  width: 12%;
+  width: 15%;
 }
 
 .ih-th-status {
@@ -290,10 +295,17 @@
   color: #92400e;
 }
 
-.ih-file-name {
-  color: #1f2937;
-  font-weight: 500;
-  font-size: 0.75rem;
+.ih-type-badge.mixed {
+  background: #e0e7ff;
+  color: #4338ca;
+}
+
+.ih-trade-report-id {
+  font-family: 'Courier New', monospace;
+  font-weight: 600;
+  color: #374151;
+  font-size: 0.875rem;
+  word-break: break-all;
 }
 
 .ih-transaction-stats {

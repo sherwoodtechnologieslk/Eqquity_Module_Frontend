@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import './Styles/ImportHistory.css';
+import { parsedTradeTransactionAPI } from '../../services/api';
 
 const ImportHistory = () => {
   const [importHistory, setImportHistory] = useState([]);
@@ -25,43 +26,130 @@ const ImportHistory = () => {
       setIsLoading(true);
       setError('');
       
-      // TODO: Replace with actual API call
-      // For now, using empty data - no mock data
-      const emptyData = [];
+      // Fetch all parsed trade transactions for the current user
+      const transactions = await parsedTradeTransactionAPI.getParsedTransactions();
       
-      // Apply filters to empty data (will result in empty array)
-      let filteredData = emptyData;
+      // Group transactions by created_at (import time) and trade_report_id
+      // Transactions saved at the same time with the same trade_report_id are from the same import
+      const importGroups = {};
       
-      if (filters.transactionType !== 'all') {
-        filteredData = filteredData.filter(item => 
-          item.type?.toLowerCase().replace(' ', '-') === filters.transactionType
+      transactions.forEach(transaction => {
+        // Use created_at as the key, rounded to the minute for grouping
+        const importKey = transaction.created_at 
+          ? new Date(transaction.created_at).toISOString().slice(0, 16) // Round to minute
+          : new Date().toISOString().slice(0, 16);
+        
+        // Also use trade_report_id if available for better grouping
+        const groupKey = transaction.trade_report_id 
+          ? `${transaction.trade_report_id}_${importKey}`
+          : importKey;
+        
+        if (!importGroups[groupKey]) {
+          importGroups[groupKey] = {
+            id: groupKey,
+            transactions: [],
+            created_at: transaction.created_at,
+            trade_report_id: transaction.trade_report_id,
+            user_email: transaction.user_email
+          };
+        }
+        
+        importGroups[groupKey].transactions.push(transaction);
+      });
+      
+      // Transform grouped data to match UI format
+      const importHistoryData = Object.values(importGroups).map(group => {
+        const buyTransactions = group.transactions.filter(t => 
+          t.buy_sell === 'B' || t.buy_sell === 'b'
         );
+        const sellTransactions = group.transactions.filter(t => 
+          t.buy_sell === 'S' || t.buy_sell === 's'
+        );
+        
+        // Calculate total value (quantity * price for all transactions)
+        const totalValue = group.transactions.reduce((sum, t) => {
+          const qty = parseFloat(t.quantity) || 0;
+          const price = parseFloat(t.price) || 0;
+          return sum + (qty * price);
+        }, 0);
+        
+        // Determine type based on transaction mix
+        let type = 'Mixed';
+        if (buyTransactions.length > 0 && sellTransactions.length === 0) {
+          type = 'Bulk Buy';
+        } else if (sellTransactions.length > 0 && buyTransactions.length === 0) {
+          type = 'Bulk Sell';
+        }
+        
+        // Generate a file name from trade_report_id or use a default
+        const fileName = group.trade_report_id 
+          ? `Trade Report - ${group.trade_report_id.substring(0, 20)}${group.trade_report_id.length > 20 ? '...' : ''}`
+          : `Trade Import - ${new Date(group.created_at).toLocaleString()}`;
+        
+        return {
+          id: group.id.substring(0, 20) + '...',
+          type: type,
+          fileName: fileName,
+          trade_report_id: group.trade_report_id || null,
+          totalTransactions: group.transactions.length,
+          successfulTransactions: group.transactions.length, // All are successful if saved
+          failedTransactions: 0,
+          status: 'success', // All saved transactions are successful
+          totalValue: totalValue,
+          importedBy: group.user_email || 'Unknown',
+          importedAt: group.created_at,
+          buyCount: buyTransactions.length,
+          sellCount: sellTransactions.length,
+          transactions: group.transactions // Store full transaction data for details
+        };
+      });
+      
+      // Apply filters
+      let filteredData = importHistoryData;
+      
+      // Filter by transaction type
+      if (filters.transactionType !== 'all') {
+        if (filters.transactionType === 'bulk-buy') {
+          filteredData = filteredData.filter(item => item.buyCount > 0 && item.sellCount === 0);
+        } else if (filters.transactionType === 'bulk-sell') {
+          filteredData = filteredData.filter(item => item.sellCount > 0 && item.buyCount === 0);
+        }
       }
       
+      // Filter by status
       if (filters.status !== 'all') {
         filteredData = filteredData.filter(item => item.status === filters.status);
       }
       
-      // Apply date filter
+      // Apply date filter (based on importedAt)
       filteredData = filteredData.filter(item => {
+        if (!item.importedAt) return false;
         const importDate = new Date(item.importedAt).toISOString().split('T')[0];
         return importDate >= filters.startDate && importDate <= filters.endDate;
       });
       
       // Apply search filter
       if (searchTerm) {
+        const searchLower = searchTerm.toLowerCase();
         filteredData = filteredData.filter(item =>
-          item.id?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          item.fileName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          item.importedBy?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          item.portfolio?.toLowerCase().includes(searchTerm.toLowerCase())
+          item.id?.toLowerCase().includes(searchLower) ||
+          item.fileName?.toLowerCase().includes(searchLower) ||
+          item.importedBy?.toLowerCase().includes(searchLower) ||
+          item.trade_report_id?.toLowerCase().includes(searchLower)
         );
       }
+      
+      // Sort by importedAt descending (most recent first)
+      filteredData.sort((a, b) => {
+        const dateA = new Date(a.importedAt);
+        const dateB = new Date(b.importedAt);
+        return dateB - dateA;
+      });
       
       setImportHistory(filteredData);
     } catch (err) {
       console.error('Error fetching import history:', err);
-      setError('Failed to fetch import history');
+      setError('Failed to fetch import history. Please try again.');
     } finally {
       setIsLoading(false);
     }
@@ -210,8 +298,8 @@ const ImportHistory = () => {
               onChange={(e) => handleFilterChange('transactionType', e.target.value)}
             >
               <option value="all">All Types</option>
-              <option value="bulk-buy">Bulk Buy</option>
-              <option value="bulk-sell">Bulk Sell</option>
+              <option value="bulk-buy">Buy</option>
+              <option value="bulk-sell">Sell</option>
             </select>
           </div>
           <div className="ih-filter-group">
@@ -277,11 +365,9 @@ const ImportHistory = () => {
           <table className="ih-data-table">
             <thead>
               <tr className="ih-table-header">
-                <th className="ih-th-id">Import ID</th>
-                <th className="ih-th-type">Type</th>
-                <th className="ih-th-file">File Name</th>
+                <th className="ih-th-transactions-count">No. of Transactions</th>
+                <th className="ih-th-trade-report-id">Trade Report ID</th>
                 <th className="ih-th-transactions">Transactions</th>
-                <th className="ih-th-status">Status</th>
                 <th className="ih-th-value">Total Value</th>
                 <th className="ih-th-user">Imported By</th>
                 <th className="ih-th-date">Imported At</th>
@@ -289,29 +375,17 @@ const ImportHistory = () => {
               </tr>
             </thead>
             <tbody>
-              {importHistory.map((item) => (
+              {importHistory.map((item, index) => (
                 <tr key={item.id} className="ih-import-row">
-                  <td className="ih-import-id">{item.id}</td>
-                  <td className="ih-import-type">
-                    <span className={`ih-type-badge ${item.type.toLowerCase().replace(' ', '-')}`}>
-                      {item.type}
-                    </span>
-                  </td>
-                  <td className="ih-file-name">{item.fileName}</td>
+                  <td className="ih-transactions-count">{index + 1}</td>
+                  <td className="ih-trade-report-id">{item.trade_report_id || 'N/A'}</td>
                   <td className="ih-transactions">
                     <div className="ih-transaction-stats">
-                      <span className="ih-success-count">{item.successfulTransactions}</span>
-                      <span className="ih-separator">/</span>
-                      <span className="ih-total-count">{item.totalTransactions}</span>
-                      {item.failedTransactions > 0 && (
-                        <span className="ih-failed-count"> ({item.failedTransactions} failed)</span>
-                      )}
-                    </div>
-                  </td>
-                  <td className="ih-status">
-                    <div className="ih-status-badge" style={{ backgroundColor: getStatusColor(item.status) }}>
-                      {getStatusIcon(item.status)}
-                      <span className="ih-status-text">{item.status.toUpperCase()}</span>
+                      <span className="ih-success-count">B: {item.buyCount || 0}</span>
+                      <span className="ih-separator"> | </span>
+                      <span className="ih-failed-count">S: {item.sellCount || 0}</span>
+                      <span className="ih-separator"> | </span>
+                      <span className="ih-total-count">Total: {item.totalTransactions}</span>
                     </div>
                   </td>
                   <td className="ih-total-value">{formatCurrency(item.totalValue)}</td>
@@ -351,20 +425,20 @@ const ImportHistory = () => {
                   <span>{selectedImport.fileName}</span>
                 </div>
                 <div className="ih-detail-item">
-                  <label>Portfolio:</label>
-                  <span>{selectedImport.portfolio}</span>
+                  <label>Trade Report ID:</label>
+                  <span>{selectedImport.trade_report_id || 'N/A'}</span>
                 </div>
                 <div className="ih-detail-item">
                   <label>Total Transactions:</label>
                   <span>{selectedImport.totalTransactions}</span>
                 </div>
                 <div className="ih-detail-item">
-                  <label>Successful:</label>
-                  <span className="ih-success-text">{selectedImport.successfulTransactions}</span>
+                  <label>Buy Transactions:</label>
+                  <span className="ih-success-text">{selectedImport.buyCount || 0}</span>
                 </div>
                 <div className="ih-detail-item">
-                  <label>Failed:</label>
-                  <span className="ih-failed-text">{selectedImport.failedTransactions}</span>
+                  <label>Sell Transactions:</label>
+                  <span className="ih-failed-text">{selectedImport.sellCount || 0}</span>
                 </div>
                 <div className="ih-detail-item">
                   <label>Total Value:</label>
@@ -380,18 +454,52 @@ const ImportHistory = () => {
                 </div>
               </div>
               
-              {selectedImport.errors && selectedImport.errors.length > 0 && (
-                <div className="ih-errors-section">
-                  <h4 className="ih-errors-title">Errors Found:</h4>
-                  <div className="ih-errors-list">
-                    {selectedImport.errors.map((error, index) => (
-                      <div key={index} className="ih-error-item">
-                        <span className="ih-error-row">Row {error.row}:</span>
-                        <span className="ih-error-field">{error.field}</span>
-                        <span className="ih-error-message">{error.error}</span>
-                        <span className="ih-error-value">Value: "{error.value}"</span>
-                      </div>
-                    ))}
+              {selectedImport.transactions && selectedImport.transactions.length > 0 && (
+                <div className="ih-transactions-section" style={{ marginTop: '2rem' }}>
+                  <h4 className="ih-errors-title">Transaction Details:</h4>
+                  <div style={{ maxHeight: '400px', overflowY: 'auto', marginTop: '1rem' }}>
+                    <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.875rem' }}>
+                      <thead>
+                        <tr style={{ backgroundColor: '#f8fafc', borderBottom: '2px solid #e2e8f0' }}>
+                          <th style={{ padding: '0.5rem', textAlign: 'left' }}>Trade Date</th>
+                          <th style={{ padding: '0.5rem', textAlign: 'left' }}>Type</th>
+                          <th style={{ padding: '0.5rem', textAlign: 'left' }}>Company ID</th>
+                          <th style={{ padding: '0.5rem', textAlign: 'right' }}>Quantity</th>
+                          <th style={{ padding: '0.5rem', textAlign: 'right' }}>Price</th>
+                          <th style={{ padding: '0.5rem', textAlign: 'right' }}>Value</th>
+                          <th style={{ padding: '0.5rem', textAlign: 'left' }}>Execution ID</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {selectedImport.transactions.map((txn, index) => {
+                          const qty = parseFloat(txn.quantity) || 0;
+                          const price = parseFloat(txn.price) || 0;
+                          const value = qty * price;
+                          return (
+                            <tr key={index} style={{ borderBottom: '1px solid #e5e7eb' }}>
+                              <td style={{ padding: '0.5rem' }}>{txn.trade_date || 'N/A'}</td>
+                              <td style={{ padding: '0.5rem' }}>
+                                <span style={{
+                                  padding: '0.25rem 0.5rem',
+                                  borderRadius: '0.25rem',
+                                  fontSize: '0.75rem',
+                                  fontWeight: '600',
+                                  backgroundColor: (txn.buy_sell === 'B' || txn.buy_sell === 'b') ? '#dbeafe' : '#fef3c7',
+                                  color: (txn.buy_sell === 'B' || txn.buy_sell === 'b') ? '#1e40af' : '#92400e'
+                                }}>
+                                  {txn.buy_sell === 'B' || txn.buy_sell === 'b' ? 'BUY' : 'SELL'}
+                                </span>
+                              </td>
+                              <td style={{ padding: '0.5rem' }}>{txn.company_id || 'N/A'}</td>
+                              <td style={{ padding: '0.5rem', textAlign: 'right' }}>{qty.toLocaleString()}</td>
+                              <td style={{ padding: '0.5rem', textAlign: 'right' }}>{price.toFixed(4)}</td>
+                              <td style={{ padding: '0.5rem', textAlign: 'right' }}>{formatCurrency(value)}</td>
+                              <td style={{ padding: '0.5rem', fontFamily: 'monospace', fontSize: '0.75rem' }}>{txn.execution_id || 'N/A'}</td>
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                    </table>
                   </div>
                 </div>
               )}

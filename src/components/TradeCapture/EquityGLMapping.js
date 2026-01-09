@@ -130,16 +130,17 @@ const EquityGLMapping = () => {
             borderRadius: 8,
             padding: '1.5rem',
             background: '#ffffff',
-            boxShadow: '0 4px 12px rgba(15,23,42,0.06)'
+            boxShadow: '0 4px 12px rgba(15,23,42,0.06)',
+            minHeight: '450px'
           }}
         >
-          <h2 style={{ fontSize: '1.125rem', fontWeight: 600, marginTop: 0, marginBottom: '1rem' }}>
+          <h2 style={{ fontSize: '1.125rem', fontWeight: 600, marginTop: 0, marginBottom: '1.5rem' }}>
             Link Portfolio to Investment Account
           </h2>
 
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
             <div>
-              <label style={{ display: 'block', fontWeight: 600, fontSize: '0.875rem', marginBottom: 4 }}>
+              <label style={{ display: 'block', fontWeight: 600, fontSize: '0.875rem', marginBottom: '0.5rem' }}>
                 Portfolio <span style={{ color: '#dc2626' }}>*</span>
               </label>
               <select
@@ -147,7 +148,7 @@ const EquityGLMapping = () => {
                 onChange={(e) => setSelectedPortfolioId(e.target.value)}
                 style={{
                   width: '100%',
-                  padding: '0.6rem 0.75rem',
+                  padding: '0.75rem',
                   borderRadius: 4,
                   border: '1px solid #d1d5db',
                   fontSize: '0.875rem'
@@ -164,7 +165,7 @@ const EquityGLMapping = () => {
             </div>
 
             <div>
-              <label style={{ display: 'block', fontWeight: 600, fontSize: '0.875rem', marginBottom: 4 }}>
+              <label style={{ display: 'block', fontWeight: 600, fontSize: '0.875rem', marginBottom: '0.5rem' }}>
                 Investment GL Account <span style={{ color: '#dc2626' }}>*</span>
               </label>
               {/* Search box for GL accounts */}
@@ -175,11 +176,11 @@ const EquityGLMapping = () => {
                 placeholder="Search by code or description..."
                 style={{
                   width: '100%',
-                  padding: '0.5rem 0.75rem',
+                  padding: '0.625rem 0.75rem',
                   borderRadius: 4,
                   border: '1px solid #d1d5db',
                   fontSize: '0.8rem',
-                  marginBottom: '0.5rem'
+                  marginBottom: '0.75rem'
                 }}
                 disabled={loading || accounts.length === 0}
               />
@@ -188,7 +189,7 @@ const EquityGLMapping = () => {
                 onChange={(e) => setSelectedAccountCode(e.target.value)}
                 style={{
                   width: '100%',
-                  padding: '0.6rem 0.75rem',
+                  padding: '0.75rem',
                   borderRadius: 4,
                   border: '1px solid #d1d5db',
                   fontSize: '0.875rem'
@@ -208,13 +209,13 @@ const EquityGLMapping = () => {
                   </option>
                 ))}
               </select>
-              <small style={{ display: 'block', marginTop: 4, fontSize: '0.75rem', color: '#6b7280' }}>
-                Typically choose your “Investment in Equity Securities” account for each portfolio.
+              <small style={{ display: 'block', marginTop: '0.5rem', fontSize: '0.75rem', color: '#6b7280' }}>
+                Typically choose your "Investment in Equity Securities" account for each portfolio.
                 Use the search box above to quickly find it.
               </small>
             </div>
 
-            <div style={{ marginTop: '0.5rem' }}>
+            <div style={{ marginTop: '1rem' }}>
               <button
                 type="button"
                 onClick={handleSave}
@@ -243,41 +244,44 @@ const EquityGLMapping = () => {
             borderRadius: 8,
             padding: '1.5rem',
             background: '#ffffff',
-            boxShadow: '0 4px 12px rgba(15,23,42,0.06)'
+            boxShadow: '0 4px 12px rgba(15,23,42,0.06)',
+            minHeight: '450px',
+            display: 'flex',
+            flexDirection: 'column'
           }}
         >
-          <h2 style={{ fontSize: '1.125rem', fontWeight: 600, marginTop: 0, marginBottom: '1rem' }}>
+          <h2 style={{ fontSize: '1.125rem', fontWeight: 600, marginTop: 0, marginBottom: '1.5rem' }}>
             Existing Mappings
           </h2>
 
           {loading ? (
-            <div style={{ padding: '1rem', color: '#6b7280' }}>Loading mappings...</div>
+            <div style={{ padding: '1.5rem', color: '#6b7280' }}>Loading mappings...</div>
           ) : mappings.length === 0 ? (
-            <div style={{ padding: '1rem', color: '#6b7280' }}>
+            <div style={{ padding: '1.5rem', color: '#6b7280' }}>
               No investment account mappings defined yet. Select a portfolio and GL account to create one.
             </div>
           ) : (
-            <div style={{ overflowX: 'auto' }}>
+            <div style={{ overflowX: 'auto', flex: 1 }}>
               <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.875rem' }}>
                 <thead>
                   <tr style={{ background: '#f9fafb', borderBottom: '1px solid #e5e7eb' }}>
-                    <th style={{ textAlign: 'left', padding: '0.5rem 0.75rem' }}>Portfolio</th>
-                    <th style={{ textAlign: 'left', padding: '0.5rem 0.75rem' }}>Portfolio ID</th>
-                    <th style={{ textAlign: 'left', padding: '0.5rem 0.75rem' }}>GL Account Code</th>
-                    <th style={{ textAlign: 'left', padding: '0.5rem 0.75rem' }}>GL Account Name</th>
-                    <th style={{ textAlign: 'center', padding: '0.5rem 0.75rem' }}>Actions</th>
+                    <th style={{ textAlign: 'left', padding: '0.75rem' }}>Portfolio</th>
+                    <th style={{ textAlign: 'left', padding: '0.75rem' }}>Portfolio ID</th>
+                    <th style={{ textAlign: 'left', padding: '0.75rem' }}>GL Account Code</th>
+                    <th style={{ textAlign: 'left', padding: '0.75rem' }}>GL Account Name</th>
+                    <th style={{ textAlign: 'center', padding: '0.75rem' }}>Actions</th>
                   </tr>
                 </thead>
                 <tbody>
                   {mappings.map(m => (
                     <tr key={m.id} style={{ borderBottom: '1px solid #e5e7eb' }}>
-                      <td style={{ padding: '0.5rem 0.75rem' }}>
+                      <td style={{ padding: '0.75rem' }}>
                         {findPortfolioName(m.portfolio_id, m.portfolio_name)}
                       </td>
-                      <td style={{ padding: '0.5rem 0.75rem' }}>{m.portfolio_id}</td>
-                      <td style={{ padding: '0.5rem 0.75rem' }}>{m.account_code}</td>
-                      <td style={{ padding: '0.5rem 0.75rem' }}>{m.account_name || '-'}</td>
-                      <td style={{ padding: '0.5rem 0.75rem', textAlign: 'center' }}>
+                      <td style={{ padding: '0.75rem' }}>{m.portfolio_id}</td>
+                      <td style={{ padding: '0.75rem' }}>{m.account_code}</td>
+                      <td style={{ padding: '0.75rem' }}>{m.account_name || '-'}</td>
+                      <td style={{ padding: '0.75rem', textAlign: 'center' }}>
                         <button
                           type="button"
                           onClick={() => handleDelete(m.id)}
