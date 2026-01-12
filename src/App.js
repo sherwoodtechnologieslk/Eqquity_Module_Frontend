@@ -56,6 +56,9 @@ import StatementOfComprehensiveIncome from './components/FinancialReporting/Stat
 import CashFlow from './components/FinancialReporting/CashFlow';
 import PremiumModal from './components/PremiumModal/premiumModal';
 import HolidayCalendar from './components/HolidayCalendar/HolidayCalendar';
+import CashFlowMapping from './components/SettlementAndAccounting/CashFlowMapping';
+import SettlementInstructions from './components/SettlementAndAccounting/SettlementInstructions';
+import GLMapping from './components/SettlementAndAccounting/GLMapping';
 
 
 function App() {
@@ -223,6 +226,9 @@ function App() {
     'Statement of Comprehensive Income': <StatementOfComprehensiveIncome />,
     'Cash Flow': <CashFlow />,
     'Financial Reports Export': <div style={{ padding: '2rem' }}><h3>Financial Reports Export</h3><p>Coming Soon...</p></div>,
+    'Settlement Instructions': <SettlementInstructions />,
+    'Cash Flow Mapping': <CashFlowMapping />,
+    'GL Mapping': <GLMapping />,
   };
 
   // Handle sidebar selection

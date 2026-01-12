@@ -102,6 +102,40 @@ export const authService = {
     setAuth: (user, token) => {
         localStorage.setItem('token', token);
         localStorage.setItem('user', JSON.stringify(user));
+    },
+
+    // Change password for authenticated user
+    changePassword: async (currentPassword, newPassword) => {
+        const response = await authAPI.post('/auth/change-password', {
+            currentPassword,
+            newPassword
+        });
+        return response.data;
+    },
+
+    // Request password reset
+    forgotPassword: async (email) => {
+        const response = await authAPI.post('/auth/forgot-password', { email });
+        return response.data;
+    },
+
+    // Reset password using token
+    resetPassword: async (token, password) => {
+        const response = await authAPI.post('/auth/reset-password', {
+            token,
+            password
+        });
+        return response.data;
+    },
+
+    // Set new password using verification code
+    setNewPassword: async (email, code, newPassword) => {
+        const response = await authAPI.post('/auth/set-new-password', {
+            email,
+            code,
+            newPassword
+        });
+        return response.data;
     }
 };
 
