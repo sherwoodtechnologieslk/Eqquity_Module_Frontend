@@ -82,6 +82,20 @@ const menuItems = [
   {
     icon: (
       <svg fill="currentColor" viewBox="0 0 20 20">
+        <path d="M4 4a2 2 0 00-2 2v4a2 2 0 002 2V6h10a2 2 0 00-2-2H4z"/>
+        <path fillRule="evenodd" d="M6 4a2 2 0 012-2h8a2 2 0 012 2v10a2 2 0 01-2 2H8a2 2 0 01-2-2V4zm2 0h8v10H8V4z" clipRule="evenodd"/>
+      </svg>
+    ),
+    name: "Settlement and Accounting",
+    subTopics: [
+      "Settlement Instructions",
+      "Cash Flow Mapping",
+      "GL Mapping"
+    ]
+  },
+  {
+    icon: (
+      <svg fill="currentColor" viewBox="0 0 20 20">
         <path fillRule="evenodd" d="M4 4a2 2 0 00-2 2v8a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2H4zm2 2v8h8V6H6z" clipRule="evenodd"/>
         <path d="M8 8a1 1 0 011-1h2a1 1 0 110 2H9a1 1 0 01-1-1zm0 2a1 1 0 011-1h2a1 1 0 110 2H9a1 1 0 01-1-1zm1 1a1 1 0 100 2h2a1 1 0 100-2H9z"/>
       </svg>
@@ -138,20 +152,6 @@ const menuItems = [
       "Import History",
       "Trade Confirmation",
       "Trade Report"
-    ]
-  },
-  {
-    icon: (
-      <svg fill="currentColor" viewBox="0 0 20 20">
-        <path d="M4 4a2 2 0 00-2 2v4a2 2 0 002 2V6h10a2 2 0 00-2-2H4z"/>
-        <path fillRule="evenodd" d="M6 4a2 2 0 012-2h8a2 2 0 012 2v10a2 2 0 01-2 2H8a2 2 0 01-2-2V4zm2 0h8v10H8V4z" clipRule="evenodd"/>
-      </svg>
-    ),
-    name: "Settlement and Accounting",
-    subTopics: [
-      "Settlement Instructions",
-      "Cash Flow Mapping",
-      "GL Mapping"
     ]
   },
   {

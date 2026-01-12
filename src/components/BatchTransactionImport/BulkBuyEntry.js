@@ -7,6 +7,23 @@ import EquitySelectorModal from '../TradeCapture/EquitySelectorModal';
 
 const getToday = () => new Date().toISOString().slice(0, 10);
 
+// Function to add business days (excluding weekends)
+const addBusinessDays = (dateString, businessDays) => {
+  const date = new Date(dateString);
+  let daysAdded = 0;
+  
+  while (daysAdded < businessDays) {
+    date.setDate(date.getDate() + 1);
+    const dayOfWeek = date.getDay(); // 0 = Sunday, 6 = Saturday
+    // Skip weekends (0 = Sunday, 6 = Saturday)
+    if (dayOfWeek !== 0 && dayOfWeek !== 6) {
+      daysAdded++;
+    }
+  }
+  
+  return date.toISOString().slice(0, 10);
+};
+
 // Function to generate unique deal numbers for bulk transactions
 const generateDealNumber = () => {
   const date = new Date();
@@ -126,6 +143,12 @@ const BulkBuyEntry = () => {
     if (name === 'companyName') {
       const selectedEquity = equities.find(eq => eq.name === value);
       updatedForm.symbol = selectedEquity ? selectedEquity.symbol : '';
+    }
+
+    // Auto-set settlement date to 2 business days after trade date (excluding weekends)
+    if (name === 'tradeDate' && value) {
+      const settlementDate = addBusinessDays(value, 2);
+      updatedForm.settlementDate = settlementDate;
     }
 
     // If Cost of Funds is cleared, also clear Money Generation Cost
