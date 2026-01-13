@@ -233,6 +233,7 @@ function App() {
 
   // Handle sidebar selection
   const handleSidebarSelect = (index, subTopics) => {
+    // Financial Reporting is at index 4 - show premium modal instead
     // CSE Announcements is at index 11 - show premium modal instead
     // Corporate Actions is at index 12 - show premium modal instead
     // Security Identity is at index 13 - show premium modal instead
@@ -244,7 +245,7 @@ function App() {
     // Reporting and Compliance is at index 19 - show premium modal instead
     // Integration and Automation is at index 20 - show premium modal instead
     // Portfolio Transfers is at index 21 - show premium modal instead
-    if (index === 11 || index === 12 || index === 13 || index === 14 || index === 15 || index === 16 || index === 17 || index === 18 || index === 19 || index === 20 || index === 21) {
+    if (index === 4 || index === 11 || index === 12 || index === 13 || index === 14 || index === 15 || index === 16 || index === 17 || index === 18 || index === 19 || index === 20 || index === 21) {
       setIsPremiumModalOpen(true);
       return;
     }

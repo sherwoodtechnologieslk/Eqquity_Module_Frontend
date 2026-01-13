@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { equityAPI, portfolioAPI, costOfFundsAPI, transactionEntryAPI, portfolioCostingMethodAPI, tradeSummaryAPI, accountAPI, glAccountMappingAPI } from '../../services/api';
 import SellEquitySelectorModal from '../TradeCapture/SellEquitySelectorModal';
 import './Styles/BulkSellEntry.css';
+import holidayService from '../../services/holidayService';
 
 const getToday = () => new Date().toISOString().slice(0, 10);
 
@@ -22,6 +23,57 @@ const addBusinessDays = (dateString, businessDays) => {
   return date.toISOString().slice(0, 10);
 };
 
+// Helper function to normalize a date to YYYY-MM-DD format (avoiding timezone issues)
+// IMPORTANT: Extract date string directly, never create Date objects to avoid timezone shifts
+const normalizeDate = (dateInput, addOneDay = false) => {
+  if (!dateInput) return null;
+  
+  let normalizedDate = null;
+  
+  // If it's already a string in YYYY-MM-DD format, use it directly
+  if (typeof dateInput === 'string') {
+    const trimmed = dateInput.trim();
+    // Check if it's already in the correct format
+    if (/^\d{4}-\d{2}-\d{2}$/.test(trimmed)) {
+      normalizedDate = trimmed;
+    } else {
+      // Extract YYYY-MM-DD pattern from any string format
+      const dateMatch = trimmed.match(/(\d{4}-\d{2}-\d{2})/);
+      if (dateMatch && dateMatch[1]) {
+        normalizedDate = dateMatch[1];
+      }
+    }
+  }
+  // If it's a Date object, extract date part
+  else if (dateInput instanceof Date && !isNaN(dateInput.getTime())) {
+    // Use local date components to avoid timezone conversion issues
+    const year = dateInput.getFullYear();
+    const month = String(dateInput.getMonth() + 1).padStart(2, '0');
+    const day = String(dateInput.getDate()).padStart(2, '0');
+    normalizedDate = `${year}-${month}-${day}`;
+  }
+  // For any other type, convert to string and try to extract date
+  else {
+    const dateStr = String(dateInput).trim();
+    const dateMatch = dateStr.match(/(\d{4}-\d{2}-\d{2})/);
+    if (dateMatch && dateMatch[1]) {
+      normalizedDate = dateMatch[1];
+    }
+  }
+  
+  // If we need to add one day (workaround for timezone shift)
+  if (normalizedDate && addOneDay) {
+    const date = new Date(normalizedDate + 'T12:00:00'); // Use noon to avoid timezone issues
+    date.setDate(date.getDate() + 1); // Add one day
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  }
+  
+  return normalizedDate;
+};
+
 const BulkSellEntry = () => {
   const [equities, setEquities] = useState([]);
   const [portfolios, setPortfolios] = useState([]);
@@ -36,6 +88,13 @@ const BulkSellEntry = () => {
   const [accounts, setAccounts] = useState([]);
   const [accountsLoading, setAccountsLoading] = useState(true);
   const [accountsWithMapping, setAccountsWithMapping] = useState([]); // Accounts that have GL mappings
+
+  // Holidays for date validation
+  const [holidays, setHolidays] = useState([]);
+  const [dateErrors, setDateErrors] = useState({
+    tradeDate: '',
+    settlementDate: ''
+  });
 
   const [form, setForm] = useState({
     companyName: '',
@@ -139,6 +198,78 @@ const BulkSellEntry = () => {
 
     fetchInitialData();
   }, []);
+
+  // Fetch holidays for date validation on mount
+  useEffect(() => {
+    holidayService.getAllHolidays()
+      .then(data => {
+        const normalizedHolidays = (data || []).map(holiday => {
+          const originalDate = holiday.date;
+
+          // Normalize the date and add one day to compensate for timezone shift
+          let normalizedDate = normalizeDate(holiday.date, true);
+
+          if (!normalizedDate && holiday.date) {
+            const dateStr = String(holiday.date);
+            const match = dateStr.match(/(\d{4}-\d{2}-\d{2})/);
+            if (match && match[1]) {
+              const date = new Date(match[1] + 'T12:00:00');
+              date.setDate(date.getDate() + 1);
+              const year = date.getFullYear();
+              const month = String(date.getMonth() + 1).padStart(2, '0');
+              const day = String(date.getDate()).padStart(2, '0');
+              normalizedDate = `${year}-${month}-${day}`;
+            }
+          }
+
+          return {
+            ...holiday,
+            date: normalizedDate
+          };
+        }).filter(holiday => holiday.date && /^\d{4}-\d{2}-\d{2}$/.test(holiday.date));
+
+        setHolidays(normalizedHolidays);
+      })
+      .catch(err => {
+        console.error('Error loading holidays:', err);
+        setHolidays([]);
+      });
+  }, []);
+
+  // Helper function to check if a date is a holiday
+  const isHoliday = (dateString) => {
+    if (!dateString || holidays.length === 0) return null;
+
+    const checkDate = normalizeDate(dateString);
+    if (!checkDate) return null;
+
+    const holiday = holidays.find(h => {
+      const holidayDate = normalizeDate(h.date);
+      if (!holidayDate) return false;
+      return String(holidayDate) === String(checkDate);
+    });
+
+    return holiday || null;
+  };
+
+  // Helper function to validate a date field
+  const validateDateField = (fieldName, dateValue) => {
+    const holiday = isHoliday(dateValue);
+
+    if (holiday) {
+      setDateErrors(prev => ({
+        ...prev,
+        [fieldName]: `${holiday.name} - ${holiday.type}. Please select a business day.`
+      }));
+      return false;
+    }
+
+    setDateErrors(prev => ({
+      ...prev,
+      [fieldName]: ''
+    }));
+    return true;
+  };
 
   // Fetch companies when portfolio changes
   useEffect(() => {
@@ -383,6 +514,39 @@ const BulkSellEntry = () => {
 
   const handleInputChange = async (e) => {
     const { name, value } = e.target;
+
+    // Normalize date values to YYYY-MM-DD format to avoid timezone issues
+    let normalizedValue = value;
+    if ((name === 'tradeDate' || name === 'settlementDate') && value) {
+      normalizedValue = normalizeDate(value) || value;
+    }
+
+    // Check for holiday dates BEFORE updating form - prevent selection
+    if (name === 'tradeDate' && normalizedValue) {
+      const holiday = isHoliday(normalizedValue);
+      if (holiday) {
+        const previousDate = normalizeDate(form.tradeDate) || getToday();
+        e.target.value = previousDate;
+        setDateErrors(prev => ({
+          ...prev,
+          tradeDate: `${holiday.name} - ${holiday.type}. Please select a business day.`
+        }));
+        return;
+      }
+    }
+
+    if (name === 'settlementDate' && normalizedValue) {
+      const holiday = isHoliday(normalizedValue);
+      if (holiday) {
+        const previousDate = normalizeDate(form.settlementDate) || getToday();
+        e.target.value = previousDate;
+        setDateErrors(prev => ({
+          ...prev,
+          settlementDate: `${holiday.name} - ${holiday.type}. Please select a business day.`
+        }));
+        return;
+      }
+    }
     
     // Special handling for quantity field - prevent exceeding total shares
     if (name === 'quantity') {
@@ -412,7 +576,7 @@ const BulkSellEntry = () => {
         symbol: ''
       });
     } else {
-      let updatedForm = { ...form, [name]: value };
+      let updatedForm = { ...form, [name]: normalizedValue };
       
       // Autofill symbol when companyName changes
       if (name === 'companyName') {
@@ -429,9 +593,37 @@ const BulkSellEntry = () => {
       }
 
       // Auto-set settlement date to 2 business days after trade date (excluding weekends)
-      if (name === 'tradeDate' && value) {
-        const settlementDate = addBusinessDays(value, 2);
+      if (name === 'tradeDate' && normalizedValue) {
+        let settlementDate = addBusinessDays(normalizedValue, 2);
+
+        // Normalize calculated settlement date
+        settlementDate = normalizeDate(settlementDate) || settlementDate;
+
+        // Skip holidays
+        let attempts = 0;
+        const maxAttempts = 10;
+        while (isHoliday(settlementDate) && attempts < maxAttempts) {
+          settlementDate = addBusinessDays(settlementDate, 1);
+          settlementDate = normalizeDate(settlementDate) || settlementDate;
+          attempts++;
+        }
+
         updatedForm.settlementDate = settlementDate;
+
+        // Clear previous errors for dates
+        setDateErrors(prev => ({
+          ...prev,
+          tradeDate: '',
+          settlementDate: ''
+        }));
+      }
+
+      // Clear error when settlement date is manually changed to a valid date
+      if (name === 'settlementDate' && value) {
+        setDateErrors(prev => ({
+          ...prev,
+          settlementDate: ''
+        }));
       }
       
       // Only recalculate if quantity or soldPrice changes
@@ -512,6 +704,24 @@ const BulkSellEntry = () => {
       };
       
       console.log('Submitting bulk sell transaction:', submitForm);
+
+      // Validate dates against holidays before actual submit
+      const tradeDateHoliday = isHoliday(form.tradeDate);
+      const settlementDateHoliday = isHoliday(form.settlementDate);
+
+      if (tradeDateHoliday) {
+        validateDateField('tradeDate', form.tradeDate);
+        alert(`${tradeDateHoliday.name} - ${tradeDateHoliday.type}. Please select a business day for Trade Date.`);
+        setLoading(false);
+        return;
+      }
+
+      if (settlementDateHoliday) {
+        validateDateField('settlementDate', form.settlementDate);
+        alert(`${settlementDateHoliday.name} - ${settlementDateHoliday.type}. Please select a business day for Settlement Date.`);
+        setLoading(false);
+        return;
+      }
       
       // Call the actual API to save the sell transaction
       await transactionEntryAPI.saveSellTransaction(submitForm);
@@ -976,29 +1186,45 @@ const BulkSellEntry = () => {
                 <h3 className="bulk-sell-section-title">Dates & References</h3>
               </div>
               <div className="bulk-sell-form-grid">
-                <div className="bulk-sell-form-group">
-                  <label className="bulk-sell-label">Trade Date *</label>
-                  <input
-                    type="date"
-                    name="tradeDate"
-                    value={form.tradeDate}
-                    onChange={handleInputChange}
-                    className="bulk-sell-input"
-                    required
-                  />
-                </div>
+              <div className="bulk-sell-form-group">
+                <label className="bulk-sell-label">Trade Date *</label>
+                <input
+                  type="date"
+                  name="tradeDate"
+                  value={form.tradeDate}
+                  onChange={handleInputChange}
+                  className={`bulk-sell-input ${dateErrors.tradeDate ? 'error' : ''}`}
+                  required
+                />
+                {dateErrors.tradeDate && (
+                  <div className="bulk-sell-date-error-message">
+                    <svg className="bulk-sell-error-icon" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                    </svg>
+                    <span>{dateErrors.tradeDate}</span>
+                  </div>
+                )}
+              </div>
 
-                <div className="bulk-sell-form-group">
-                  <label className="bulk-sell-label">Settlement Date *</label>
-                  <input
-                    type="date"
-                    name="settlementDate"
-                    value={form.settlementDate}
-                    onChange={handleInputChange}
-                    className="bulk-sell-input"
-                    required
-                  />
-                </div>
+              <div className="bulk-sell-form-group">
+                <label className="bulk-sell-label">Settlement Date *</label>
+                <input
+                  type="date"
+                  name="settlementDate"
+                  value={form.settlementDate}
+                  onChange={handleInputChange}
+                  className={`bulk-sell-input ${dateErrors.settlementDate ? 'error' : ''}`}
+                  required
+                />
+                {dateErrors.settlementDate && (
+                  <div className="bulk-sell-date-error-message">
+                    <svg className="bulk-sell-error-icon" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                    </svg>
+                    <span>{dateErrors.settlementDate}</span>
+                  </div>
+                )}
+              </div>
 
                 <div className="bulk-sell-form-group">
                   <label className="bulk-sell-label">Related Deal Number</label>

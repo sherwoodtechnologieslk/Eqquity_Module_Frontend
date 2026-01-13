@@ -8,6 +8,7 @@ import { costOfFundsAPI, tradeSummaryAPI, accountAPI, glAccountMappingAPI } from
 import SellTransactionListView from './SellTransactionListView';
 import TransactionDetails from './TransactionDetails';
 import SellEquitySelectorModal from './SellEquitySelectorModal';
+import holidayService from '../../services/holidayService';
 
 const getToday = () => new Date().toISOString().slice(0, 10);
 
@@ -147,6 +148,120 @@ const SellTransactionEntry = ({ setFifoParams, setActiveTab }) => {
   const [availableDealNumbers, setAvailableDealNumbers] = useState([]);
   const [dealNumbersLoading, setDealNumbersLoading] = useState(false);
 
+  // Holidays for date validation
+  const [holidays, setHolidays] = useState([]);
+  const [dateErrors, setDateErrors] = useState({
+    tradeDate: '',
+    settlementDate: ''
+  });
+
+  // Helper function to normalize a date to YYYY-MM-DD format (avoiding timezone issues)
+  // IMPORTANT: Extract date string directly, never create Date objects to avoid timezone shifts
+  const normalizeDate = (dateInput, addOneDay = false) => {
+    if (!dateInput) return null;
+    
+    let normalizedDate = null;
+    
+    // If it's already a string in YYYY-MM-DD format, use it directly
+    if (typeof dateInput === 'string') {
+      const trimmed = dateInput.trim();
+      // Check if it's already in the correct format
+      if (/^\d{4}-\d{2}-\d{2}$/.test(trimmed)) {
+        normalizedDate = trimmed;
+      } else {
+        // Extract YYYY-MM-DD pattern from any string format
+        const dateMatch = trimmed.match(/(\d{4}-\d{2}-\d{2})/);
+        if (dateMatch && dateMatch[1]) {
+          normalizedDate = dateMatch[1];
+        }
+      }
+    }
+    // If it's a Date object, extract date part
+    else if (dateInput instanceof Date && !isNaN(dateInput.getTime())) {
+      // Use local date components to avoid timezone conversion issues
+      const year = dateInput.getFullYear();
+      const month = String(dateInput.getMonth() + 1).padStart(2, '0');
+      const day = String(dateInput.getDate()).padStart(2, '0');
+      normalizedDate = `${year}-${month}-${day}`;
+    }
+    // For any other type, convert to string and try to extract date
+    else {
+      const dateStr = String(dateInput).trim();
+      const dateMatch = dateStr.match(/(\d{4}-\d{2}-\d{2})/);
+      if (dateMatch && dateMatch[1]) {
+        normalizedDate = dateMatch[1];
+      }
+    }
+    
+    // If we need to add one day (workaround for timezone shift)
+    if (normalizedDate && addOneDay) {
+      const date = new Date(normalizedDate + 'T12:00:00'); // Use noon to avoid timezone issues
+      date.setDate(date.getDate() + 1); // Add one day
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const day = String(date.getDate()).padStart(2, '0');
+      return `${year}-${month}-${day}`;
+    }
+    
+    return normalizedDate;
+  };
+
+  // Helper function to check if a date is a holiday
+  const isHoliday = (dateString) => {
+    if (!dateString || holidays.length === 0) return null;
+    
+    // Normalize the input date to YYYY-MM-DD format (from HTML date input, should already be YYYY-MM-DD)
+    const checkDate = normalizeDate(dateString);
+    if (!checkDate) {
+      console.warn('Could not normalize date for holiday check:', dateString);
+      return null;
+    }
+    
+    // Find matching holiday by comparing normalized dates (both as strings)
+    const holiday = holidays.find(h => {
+      // Holiday dates are already normalized when fetched, but normalize again to be safe
+      const holidayDate = normalizeDate(h.date);
+      if (!holidayDate) return false;
+      
+      // Compare as strings - both should be in YYYY-MM-DD format
+      const matches = String(holidayDate) === String(checkDate);
+      
+      // Debug log for troubleshooting
+      if (matches) {
+        console.log('Holiday match found:', {
+          checkDate,
+          holidayDate,
+          holidayName: h.name,
+          originalInput: dateString,
+          originalHolidayDate: h.date
+        });
+      }
+      
+      return matches;
+    });
+    
+    return holiday || null;
+  };
+
+  // Helper function to validate a date field
+  const validateDateField = (fieldName, dateValue) => {
+    const holiday = isHoliday(dateValue);
+    
+    if (holiday) {
+      setDateErrors(prev => ({
+        ...prev,
+        [fieldName]: `${holiday.name} - ${holiday.type}. Please select a business day.`
+      }));
+      return false;
+    } else {
+      setDateErrors(prev => ({
+        ...prev,
+        [fieldName]: ''
+      }));
+      return true;
+    }
+  };
+
   // Fetch active cost of funds on mount
   useEffect(() => {
     const fetchActiveCostOfFunds = async () => {
@@ -165,6 +280,62 @@ const SellTransactionEntry = ({ setFifoParams, setActiveTab }) => {
     };
 
     fetchActiveCostOfFunds();
+  }, []);
+
+  // Fetch holidays for date validation on mount
+  useEffect(() => {
+    holidayService.getAllHolidays()
+      .then(data => {
+        // Normalize all holiday dates to YYYY-MM-DD format to avoid timezone issues
+        // WORKAROUND: Add one day to compensate for timezone shift (dates read as one day early)
+        const normalizedHolidays = (data || []).map(holiday => {
+          // Store original for debugging
+          const originalDate = holiday.date;
+          
+          // Normalize the date and add one day to compensate for timezone shift
+          let normalizedDate = normalizeDate(holiday.date, true); // true = add one day
+          
+          // If normalization failed, log for debugging
+          if (!normalizedDate && holiday.date) {
+            console.warn('Could not normalize holiday date:', {
+              original: holiday.date,
+              type: typeof holiday.date,
+              holidayName: holiday.name
+            });
+            
+            // Final fallback: try to extract YYYY-MM-DD pattern from string representation
+            const dateStr = String(holiday.date);
+            const match = dateStr.match(/(\d{4}-\d{2}-\d{2})/);
+            if (match && match[1]) {
+              // Add one day to the extracted date
+              const date = new Date(match[1] + 'T12:00:00');
+              date.setDate(date.getDate() + 1);
+              const year = date.getFullYear();
+              const month = String(date.getMonth() + 1).padStart(2, '0');
+              const day = String(date.getDate()).padStart(2, '0');
+              normalizedDate = `${year}-${month}-${day}`;
+            }
+          }
+          
+          return {
+            ...holiday,
+            date: normalizedDate
+          };
+        }).filter(holiday => {
+          // Only keep holidays with valid normalized dates
+          const isValid = holiday.date && /^\d{4}-\d{2}-\d{2}$/.test(holiday.date);
+          if (!isValid) {
+            console.warn('Filtered out holiday with invalid date:', holiday);
+          }
+          return isValid;
+        });
+        
+        setHolidays(normalizedHolidays);
+      })
+      .catch(err => {
+        console.error('Error loading holidays:', err);
+        setHolidays([]);
+      });
   }, []);
 
   // Initialize deal number on component mount
@@ -506,6 +677,20 @@ const SellTransactionEntry = ({ setFifoParams, setActiveTab }) => {
     if (!form.brokerName) newErrors.brokerName = 'Broker name is required';
     if (!form.symbol) newErrors.symbol = 'Ticker Symbol is required';
 
+    // Validate dates against holidays
+    const tradeDateHoliday = isHoliday(form.tradeDate);
+    const settlementDateHoliday = isHoliday(form.settlementDate);
+
+    if (tradeDateHoliday) {
+      validateDateField('tradeDate', form.tradeDate); // Show error message
+      newErrors.tradeDate = `${tradeDateHoliday.name} - ${tradeDateHoliday.type}. Please select a business day.`;
+    }
+
+    if (settlementDateHoliday) {
+      validateDateField('settlementDate', form.settlementDate); // Show error message
+      newErrors.settlementDate = `${settlementDateHoliday.name} - ${settlementDateHoliday.type}. Please select a business day.`;
+    }
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -514,6 +699,41 @@ const SellTransactionEntry = ({ setFifoParams, setActiveTab }) => {
   // Input handler with non-blocking calculations and no hard caps on quantity
   const handleChange = async (e) => {
     const { name, value } = e.target;
+    
+    // Normalize date values to YYYY-MM-DD format to avoid timezone issues
+    let normalizedValue = value;
+    if ((name === 'tradeDate' || name === 'settlementDate') && value) {
+      normalizedValue = normalizeDate(value) || value;
+    }
+    
+    // Check for holiday dates BEFORE updating form - prevent selection
+    if (name === 'tradeDate' && normalizedValue) {
+      const holiday = isHoliday(normalizedValue);
+      if (holiday) {
+        // Reset to previous valid date or today (ensure it's normalized)
+        const previousDate = normalizeDate(form.tradeDate) || getToday();
+        e.target.value = previousDate;
+        setDateErrors(prev => ({
+          ...prev,
+          tradeDate: `${holiday.name} - ${holiday.type}. Please select a business day.`
+        }));
+        return; // Prevent form update
+      }
+    }
+    
+    if (name === 'settlementDate' && normalizedValue) {
+      const holiday = isHoliday(normalizedValue);
+      if (holiday) {
+        // Reset to previous valid date or today (ensure it's normalized)
+        const previousDate = normalizeDate(form.settlementDate) || getToday();
+        e.target.value = previousDate;
+        setDateErrors(prev => ({
+          ...prev,
+          settlementDate: `${holiday.name} - ${holiday.type}. Please select a business day.`
+        }));
+        return; // Prevent form update
+      }
+    }
     
     // If portfolioName changes, clear valuationMethod (it will be autofilled by useEffect)
     if (name === 'portfolioName') {
@@ -525,7 +745,8 @@ const SellTransactionEntry = ({ setFifoParams, setActiveTab }) => {
         portfolioId: selectedPortfolio ? (selectedPortfolio.portfolioId || selectedPortfolio.id || '') : ''
       });
     } else {
-      let updatedForm = { ...form, [name]: value };
+      // Use normalized value for date fields, original value for others
+      let updatedForm = { ...form, [name]: normalizedValue };
 
       // Autofill symbol when companyName changes
       if (name === 'companyName') {
@@ -534,9 +755,38 @@ const SellTransactionEntry = ({ setFifoParams, setActiveTab }) => {
       }
 
       // Auto-set settlement date to 2 business days after trade date (excluding weekends)
-      if (name === 'tradeDate' && value) {
-        const settlementDate = addBusinessDays(value, 2);
+      if (name === 'tradeDate' && normalizedValue) {
+        let settlementDate = addBusinessDays(normalizedValue, 2);
+        
+        // Normalize the calculated settlement date
+        settlementDate = normalizeDate(settlementDate) || settlementDate;
+        
+        // Check if the auto-calculated settlement date is a holiday
+        let attempts = 0;
+        const maxAttempts = 10; // Prevent infinite loop
+        while (isHoliday(settlementDate) && attempts < maxAttempts) {
+          // Skip to next business day if settlement date falls on a holiday
+          settlementDate = addBusinessDays(settlementDate, 1);
+          settlementDate = normalizeDate(settlementDate) || settlementDate;
+          attempts++;
+        }
+        
         updatedForm.settlementDate = settlementDate;
+        
+        // Clear any previous errors since date is valid
+        setDateErrors(prev => ({
+          ...prev,
+          tradeDate: '',
+          settlementDate: ''
+        }));
+      }
+
+      // Clear error when settlement date is manually changed to a valid date
+      if (name === 'settlementDate' && normalizedValue) {
+        setDateErrors(prev => ({
+          ...prev,
+          settlementDate: ''
+        }));
       }
       
       // Always update form state immediately to avoid input lag
@@ -1302,9 +1552,17 @@ const SellTransactionEntry = ({ setFifoParams, setActiveTab }) => {
                     name="tradeDate"
                     value={form.tradeDate}
                     onChange={handleChange}
-                    className={getFieldClassName('tradeDate')}
+                    className={`${getFieldClassName('tradeDate')} ${dateErrors.tradeDate ? 'error' : ''}`}
                   />
-                  {errors.tradeDate && <span className="sell-error-text">{errors.tradeDate}</span>}
+                  {dateErrors.tradeDate && (
+                    <div className="sell-date-error-message">
+                      <svg className="sell-error-icon" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                      </svg>
+                      <span>{dateErrors.tradeDate}</span>
+                    </div>
+                  )}
+                  {errors.tradeDate && !dateErrors.tradeDate && <span className="sell-error-text">{errors.tradeDate}</span>}
                 </div>
                 <div className="sell-form-group">
                   <label htmlFor="settlementDate">Settlement Date *</label>
@@ -1314,9 +1572,17 @@ const SellTransactionEntry = ({ setFifoParams, setActiveTab }) => {
                     name="settlementDate"
                     value={form.settlementDate}
                     onChange={handleChange}
-                    className={getFieldClassName('settlementDate')}
+                    className={`${getFieldClassName('settlementDate')} ${dateErrors.settlementDate ? 'error' : ''}`}
                   />
-                  {errors.settlementDate && <span className="sell-error-text">{errors.settlementDate}</span>}
+                  {dateErrors.settlementDate && (
+                    <div className="sell-date-error-message">
+                      <svg className="sell-error-icon" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                      </svg>
+                      <span>{dateErrors.settlementDate}</span>
+                    </div>
+                  )}
+                  {errors.settlementDate && !dateErrors.settlementDate && <span className="sell-error-text">{errors.settlementDate}</span>}
                 </div>
                 <div className="sell-form-group">
                   <label htmlFor="buyContract">Related Deal Number</label>
