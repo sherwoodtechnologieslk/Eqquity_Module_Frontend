@@ -196,17 +196,17 @@ const TradeReport = () => {
         <div className="tr-summary-cards">
           <div className="tr-summary-card">
             <h3>Total Sales</h3>
-            <div className="tr-amount">{formatCurrency(filteredSummary.totalSales)}</div>
+                            <div className="tr-amount">{formatCurrency(filteredSummary.totalSales)}</div>
             <div className="tr-sub-info">{formatNumber(filteredSummary.totalSalesShares)} shares</div>
           </div>
           <div className="tr-summary-card">
             <h3>Total Purchases</h3>
-            <div className="tr-amount">{formatCurrency(filteredSummary.totalPurchases)}</div>
+                            <div className="tr-amount">{formatCurrency(filteredSummary.totalPurchases)}</div>
             <div className="tr-sub-info">{formatNumber(filteredSummary.totalPurchaseShares)} shares</div>
           </div>
           <div className="tr-summary-card">
             <h3>Net Settlement</h3>
-            <div className="tr-amount">{formatCurrency(filteredSummary.netSettlement)}</div>
+                            <div className="tr-amount">{formatCurrency(filteredSummary.netSettlement)}</div>
             <div className="tr-sub-info">Net Position</div>
           </div>
         </div>
@@ -224,19 +224,19 @@ const TradeReport = () => {
             </div>
             <div className="tr-stat-item">
               <span className="tr-label">Total Brokerage:</span>
-              <span className="tr-value">{formatCurrency(filteredSummary.totalBrokerage)}</span>
+                              <span className="tr-value">{formatCurrency(filteredSummary.totalBrokerage)}</span>
             </div>
             <div className="tr-stat-item">
               <span className="tr-label">Total GOV CESS:</span>
-              <span className="tr-value">{formatCurrency(filteredSummary.totalGovCess)}</span>
+                              <span className="tr-value">{formatCurrency(filteredSummary.totalGovCess)}</span>
             </div>
             <div className="tr-stat-item">
               <span className="tr-label">Total Foreign Brokerage:</span>
-              <span className="tr-value">{formatCurrency(tradeData.summary.totalForeignBrokerage)}</span>
+                              <span className="tr-value">{formatCurrency(tradeData.summary.totalForeignBrokerage)}</span>
             </div>
             <div className="tr-stat-item">
               <span className="tr-label">Total Clearing Fees:</span>
-              <span className="tr-value">{formatCurrency(tradeData.summary.totalClearingFees)}</span>
+                              <span className="tr-value">{formatCurrency(tradeData.summary.totalClearingFees)}</span>
             </div>
           </div>
         </div>
@@ -315,7 +315,7 @@ const TradeReport = () => {
                     renderParsedTransactionRow(transaction, index)
                   )
                 : transactionsToShow.map((sale, index) => 
-                    renderTransactionRow(sale, index)
+                renderTransactionRow(sale, index)
                   )
               }
             </tbody>
@@ -377,7 +377,7 @@ const TradeReport = () => {
                     renderParsedTransactionRow(transaction, index)
                   )
                 : transactionsToShow.map((purchase, index) => 
-                    renderTransactionRow(purchase, index)
+                renderTransactionRow(purchase, index)
                   )
               }
             </tbody>
@@ -1142,7 +1142,7 @@ const TradeReport = () => {
       <div className="tr-parsed-data-section">
         <div className="tr-parsed-header">
           <div className="tr-parsed-title-row">
-            <h3>Parsed Transaction Data ({parsedData.length} records)</h3>
+        <h3>Parsed Transaction Data ({parsedData.length} records)</h3>
             <button 
               className="tr-update-portfolio-btn"
               onClick={handleSaveTransactions}
@@ -1355,7 +1355,7 @@ const TradeReport = () => {
                   <line x1="6" y1="6" x2="18" y2="18"/>
                 </svg>
               </button>
-            </div>
+      </div>
             <div className="tr-modal-body">
               <p className="tr-modal-description">
                 You have <strong>{parsedData.length}</strong> parsed transaction records ready to submit.
