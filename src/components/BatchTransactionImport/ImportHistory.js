@@ -65,7 +65,7 @@ const ImportHistory = () => {
         const sellTransactions = group.transactions.filter(t => 
           t.buy_sell === 'S' || t.buy_sell === 's'
         );
-        
+      
         // Calculate total value (quantity * price for all transactions)
         const totalValue = group.transactions.reduce((sum, t) => {
           const qty = parseFloat(t.quantity) || 0;
@@ -113,7 +113,7 @@ const ImportHistory = () => {
           filteredData = filteredData.filter(item => item.buyCount > 0 && item.sellCount === 0);
         } else if (filters.transactionType === 'bulk-sell') {
           filteredData = filteredData.filter(item => item.sellCount > 0 && item.buyCount === 0);
-        }
+      }
       }
       
       // Filter by status
