@@ -20,6 +20,44 @@
   margin: 0;
 }
 
+/* Tabs */
+.cfm-tabs {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 2rem;
+  border-bottom: 2px solid #e5e7eb;
+  background: white;
+  padding: 0 1rem;
+  border-radius: 0.5rem 0.5rem 0 0;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.cfm-tab {
+  padding: 0.75rem 1.5rem;
+  background: transparent;
+  border: none;
+  border-bottom: 3px solid transparent;
+  font-size: 1rem;
+  font-weight: 600;
+  color: #64748b;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-family: 'Arial', 'Helvetica', sans-serif;
+  position: relative;
+  bottom: -2px;
+}
+
+.cfm-tab:hover {
+  color: #3b82f6;
+  background-color: #f8fafc;
+}
+
+.cfm-tab-active {
+  color: #3b82f6;
+  border-bottom-color: #3b82f6;
+  background-color: #eff6ff;
+}
+
 /* Summary Cards */
 .cfm-summary-cards {
   display: grid;
@@ -424,6 +462,8 @@
     min-width: 1200px;
   }
 }
+
+
 
 
 

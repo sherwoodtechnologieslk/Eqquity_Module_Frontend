@@ -3,6 +3,7 @@ import { transactionEntryAPI, otherTransactionAPI, portfolioAPI, accountAPI } fr
 import './Styles/CashFlowMapping.css';
 
 const CashFlowMapping = () => {
+  const [activeTab, setActiveTab] = useState('all'); // 'all', 'trading', 'gsec', 'other'
   const [cashFlows, setCashFlows] = useState([]);
   const [filteredCashFlows, setFilteredCashFlows] = useState([]);
   const [portfolios, setPortfolios] = useState([]);
@@ -38,6 +39,28 @@ const CashFlowMapping = () => {
   const applyFilters = useCallback(() => {
     let filtered = [...cashFlows];
     console.log('🔍 Applying filters. Initial count:', filtered.length);
+
+    // Tab filter - filter by transaction type
+    if (activeTab === 'trading') {
+      filtered = filtered.filter(cf => cf.type === 'Buy' || cf.type === 'Sell');
+      console.log('📑 After trading filter:', filtered.length);
+    } else if (activeTab === 'gsec') {
+      // Filter GSec transactions - typically identified by portfolio name containing 'GSec' or 'Government Securities'
+      filtered = filtered.filter(cf => {
+        const portfolioName = (cf.portfolio || '').toLowerCase();
+        const description = (cf.description || '').toLowerCase();
+        return portfolioName.includes('gsec') || 
+               portfolioName.includes('government') || 
+               portfolioName.includes('govt') ||
+               description.includes('gsec') ||
+               description.includes('government security');
+      });
+      console.log('📑 After GSec filter:', filtered.length);
+    } else if (activeTab === 'other') {
+      filtered = filtered.filter(cf => cf.type === 'Other');
+      console.log('📑 After other filter:', filtered.length);
+    }
+    // 'all' tab shows everything, no filtering needed
 
     // Date filter
     if (startDate) {
@@ -111,7 +134,7 @@ const CashFlowMapping = () => {
     
     console.log('📊 Summary:', summaryData);
     setSummary(summaryData);
-  }, [cashFlows, startDate, endDate, selectedPortfolio, selectedAccount, searchTerm]);
+  }, [cashFlows, activeTab, startDate, endDate, selectedPortfolio, selectedAccount, searchTerm]);
 
   useEffect(() => {
     applyFilters();
@@ -170,60 +193,68 @@ const CashFlowMapping = () => {
       }
 
       // Transform buy transactions
-      const buyCashFlows = (buyTransactions || []).map(tx => ({
-        id: tx.id,
-        type: 'Buy',
-        transactionId: tx.id,
-        portfolio: tx.portfolio || tx.portfolioId || 'N/A',
-        portfolioId: tx.portfolioId,
-        settlementDate: tx.settlement_date,
-        tradeDate: tx.trade_date,
-        symbol: tx.symbol,
-        companyName: tx.company_name,
-        quantity: tx.quantity,
-        price: tx.price,
-        netValue: tx.net_value,
-        cashFlowAmount: tx.cash_flow_on_settlement || tx.net_value || 0,
-        settlementAccount: tx.settlement_account || 'N/A',
-        accountName: tx.account_name || 'N/A',
-        accountNumber: tx.account_number || 'N/A',
-        bankName: tx.bank_name || 'N/A',
-        branchName: tx.branch_name || 'N/A',
-        brokerName: tx.broker_name || 'N/A',
-        dealNumber: tx.deal_number || 'N/A',
-        contractNumber: tx.contract_number || 'N/A',
-        paymentMethod: tx.payment_method || 'N/A',
-        description: tx.description || `${tx.quantity} ${tx.symbol} @ ${tx.price}`,
-        created_at: tx.created_at
-      }));
+      // Buy transactions are outflows (negative cash flow) - money going out to purchase shares
+      const buyCashFlows = (buyTransactions || []).map(tx => {
+        const amount = tx.cash_flow_on_settlement || tx.net_value || 0;
+        return {
+          id: tx.id,
+          type: 'Buy',
+          transactionId: tx.id,
+          portfolio: tx.portfolio || tx.portfolioId || 'N/A',
+          portfolioId: tx.portfolioId,
+          settlementDate: tx.settlement_date,
+          tradeDate: tx.trade_date,
+          symbol: tx.symbol,
+          companyName: tx.company_name,
+          quantity: tx.quantity,
+          price: tx.price,
+          netValue: tx.net_value,
+          cashFlowAmount: -Math.abs(amount), // Negative for outflows (money going out)
+          settlementAccount: tx.settlement_account || 'N/A',
+          accountName: tx.account_name || 'N/A',
+          accountNumber: tx.account_number || 'N/A',
+          bankName: tx.bank_name || 'N/A',
+          branchName: tx.branch_name || 'N/A',
+          brokerName: tx.broker_name || 'N/A',
+          dealNumber: tx.deal_number || 'N/A',
+          contractNumber: tx.contract_number || 'N/A',
+          paymentMethod: tx.payment_method || 'N/A',
+          description: tx.description || `${tx.quantity} ${tx.symbol} @ ${tx.price}`,
+          created_at: tx.created_at
+        };
+      });
 
       // Transform sell transactions
-      const sellCashFlows = (sellTransactions || []).map(tx => ({
-        id: `sell-${tx.id}`,
-        type: 'Sell',
-        transactionId: tx.id,
-        portfolio: tx.portfolio_name || tx.portfolio || 'N/A',
-        portfolioId: tx.portfolio_id,
-        settlementDate: tx.settlement_date,
-        tradeDate: tx.trade_date,
-        symbol: tx.symbol,
-        companyName: tx.company_name,
-        quantity: tx.quantity,
-        price: tx.sold_price || tx.price,
-        netValue: tx.net_value || tx.total_value || 0,
-        cashFlowAmount: tx.cash_flow_on_settlement || tx.net_value || tx.total_value || 0,
-        settlementAccount: tx.settlement_account || 'N/A',
-        accountName: tx.account_name || 'N/A',
-        accountNumber: tx.account_number || 'N/A',
-        bankName: tx.bank_name || 'N/A',
-        branchName: tx.branch_name || 'N/A',
-        brokerName: tx.broker_name || 'N/A',
-        dealNumber: tx.deal_number || 'N/A',
-        contractNumber: tx.contract_number || 'N/A',
-        paymentMethod: tx.payment_method || 'N/A',
-        description: tx.description || `Sold ${tx.quantity} ${tx.symbol} @ ${tx.sold_price || tx.price}`,
-        created_at: tx.created_at
-      }));
+      // Sell transactions are inflows (positive cash flow) - money coming in from selling shares
+      const sellCashFlows = (sellTransactions || []).map(tx => {
+        const amount = tx.cash_flow_on_settlement || tx.net_value || tx.total_value || 0;
+        return {
+          id: `sell-${tx.id}`,
+          type: 'Sell',
+          transactionId: tx.id,
+          portfolio: tx.portfolio_name || tx.portfolio || 'N/A',
+          portfolioId: tx.portfolio_id,
+          settlementDate: tx.settlement_date,
+          tradeDate: tx.trade_date,
+          symbol: tx.symbol,
+          companyName: tx.company_name,
+          quantity: tx.quantity,
+          price: tx.sold_price || tx.price,
+          netValue: tx.net_value || tx.total_value || 0,
+          cashFlowAmount: Math.abs(amount), // Positive for inflows (money coming in)
+          settlementAccount: tx.settlement_account || 'N/A',
+          accountName: tx.account_name || 'N/A',
+          accountNumber: tx.account_number || 'N/A',
+          bankName: tx.bank_name || 'N/A',
+          branchName: tx.branch_name || 'N/A',
+          brokerName: tx.broker_name || 'N/A',
+          dealNumber: tx.deal_number || 'N/A',
+          contractNumber: tx.contract_number || 'N/A',
+          paymentMethod: tx.payment_method || 'N/A',
+          description: tx.description || `Sold ${tx.quantity} ${tx.symbol} @ ${tx.sold_price || tx.price}`,
+          created_at: tx.created_at
+        };
+      });
 
       // Transform other transactions
       const otherCashFlows = (otherTransactions || []).map(tx => ({
@@ -447,6 +478,34 @@ const CashFlowMapping = () => {
       <div className="cfm-header">
         <h1 className="cfm-title">Cash Flow Mapping</h1>
         <p className="cfm-subtitle">Track and manage cash flows from all transactions</p>
+      </div>
+
+      {/* Tabs */}
+      <div className="cfm-tabs">
+        <button
+          className={`cfm-tab ${activeTab === 'all' ? 'cfm-tab-active' : ''}`}
+          onClick={() => setActiveTab('all')}
+        >
+          All Transactions
+        </button>
+        <button
+          className={`cfm-tab ${activeTab === 'trading' ? 'cfm-tab-active' : ''}`}
+          onClick={() => setActiveTab('trading')}
+        >
+          Trading Transactions
+        </button>
+        <button
+          className={`cfm-tab ${activeTab === 'gsec' ? 'cfm-tab-active' : ''}`}
+          onClick={() => setActiveTab('gsec')}
+        >
+          GSec Transactions
+        </button>
+        <button
+          className={`cfm-tab ${activeTab === 'other' ? 'cfm-tab-active' : ''}`}
+          onClick={() => setActiveTab('other')}
+        >
+          Other Transactions
+        </button>
       </div>
 
       {/* Summary Cards */}
