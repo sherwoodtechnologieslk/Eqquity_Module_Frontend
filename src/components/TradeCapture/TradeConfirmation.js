@@ -22,8 +22,28 @@ const TradeConfirmation = () => {
       // Fetch all parsed transactions for the user
       const data = await parsedTradeTransactionAPI.getParsedTransactions();
       
-      setTransactions(data);
-      groupTransactions(data);
+      // Find the latest trade date
+      if (data && data.length > 0) {
+        // Get all unique trade dates and find the latest one
+        const tradeDates = data
+          .map(t => t.trade_date)
+          .filter(date => date) // Remove null/undefined dates
+          .sort((a, b) => {
+            // Sort dates in descending order (newest first)
+            return new Date(b) - new Date(a);
+          });
+        
+        const latestTradeDate = tradeDates[0];
+        
+        // Filter transactions to show only the latest trade date
+        const filteredData = data.filter(t => t.trade_date === latestTradeDate);
+        
+        setTransactions(filteredData);
+        groupTransactions(filteredData);
+      } else {
+        setTransactions([]);
+        groupTransactions([]);
+      }
     } catch (err) {
       console.error('Error fetching transactions:', err);
       setError('Failed to fetch transactions. Please try again.');
