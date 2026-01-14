@@ -101,51 +101,56 @@ function App() {
       },
       {
         index: 4,
+        name: "GSec Entries",
+        subTopics: ["Balance Sheet", "GSec General Ledger", "GSec Chart of Accounts"]
+      },
+      {
+        index: 5,
         name: "Financial Reporting",
         subTopics: ["Statement of Financial Position", "Statement of Comprehensive Income", "Cash Flow", "Financial Reports Export"]
       },
       {
-        index: 5,
+        index: 6,
         name: "Account Management",
         subTopics: ["Chart Of Accounts", "New GL Account", "Account Reconciliation", "Other Transactions"]
       },
       {
-        index: 6,
+        index: 7,
         name: "Opening Balance Management",
         subTopics: ["Opening Balance Entry", "Opening Balance List", "Account Balance Setup", "Double Entries"]
       },
       {
-        index: 7,
+        index: 8,
         name: "Trade Capture",
       subTopics: ["Buy", "Sell", "Transactions", "Portfolio", "Deal Slip", "Cost of Funds", "Equity GL Mapping"]
       },
       {
-        index: 8,
+        index: 9,
         name: "Batch Transaction Import",
         subTopics: ["Bulk Buy Entry", "Bulk Sell Entry", "Import History", "Trade Confirmation", "Trade Report"]
       },
       {
-        index: 9,
+        index: 10,
         name: "Settlement and Accounting",
         subTopics: ["Settlement Instructions", "Cash Flow Mapping", "GL Mapping"]
       },
       {
-        index: 10,
+        index: 11,
         name: "Valuation and MTM",
         subTopics: ["Mark-to-Market Valuation", "Realized Gain/Loss Tracking", "Trade Summary Data", "Market Price Feed"]
       },
       {
-        index: 11,
+        index: 12,
         name: "CSE Announcements",
         subTopics: ["Corporate Notices", "Market Announcements", "Trading Updates", "Regulatory Updates", "News & Events"]
       },
       {
-        index: 12,
+        index: 13,
         name: "Corporate Actions",
         subTopics: ["Dividend", "Rights Issue", "Stock Split"]
       },
       {
-        index: 16,
+        index: 17,
         name: "IPO",
         subTopics: ["IPO Entry", "IPO Allocation", "Refund Processing", "Allocation Summary"]
       }
@@ -229,23 +234,26 @@ function App() {
     'Settlement Instructions': <SettlementInstructions />,
     'Cash Flow Mapping': <CashFlowMapping />,
     'GL Mapping': <GLMapping />,
+    'Balance Sheet': <div style={{ padding: '2rem' }}><h3>GSec Balance Sheet</h3><p>Coming Soon...</p></div>,
+    'GSec General Ledger': <div style={{ padding: '2rem' }}><h3>GSec General Ledger</h3><p>Coming Soon...</p></div>,
+    'GSec Chart of Accounts': <div style={{ padding: '2rem' }}><h3>GSec Chart of Accounts</h3><p>Coming Soon...</p></div>,
   };
 
   // Handle sidebar selection
   const handleSidebarSelect = (index, subTopics) => {
-    // Financial Reporting is at index 4 - show premium modal instead
-    // CSE Announcements is at index 11 - show premium modal instead
-    // Corporate Actions is at index 12 - show premium modal instead
-    // Security Identity is at index 13 - show premium modal instead
-    // Voluntary Corporate Actions is at index 14 - show premium modal instead
-    // Mandatory Corporate Actions is at index 15 - show premium modal instead
-    // IPO is at index 16 - show premium modal instead
-    // Portfolio Monitoring is at index 17 - show premium modal instead
-    // Risk and Limit Management is at index 18 - show premium modal instead
-    // Reporting and Compliance is at index 19 - show premium modal instead
-    // Integration and Automation is at index 20 - show premium modal instead
-    // Portfolio Transfers is at index 21 - show premium modal instead
-    if (index === 4 || index === 11 || index === 12 || index === 13 || index === 14 || index === 15 || index === 16 || index === 17 || index === 18 || index === 19 || index === 20 || index === 21) {
+    // Financial Reporting is at index 5 - show premium modal instead
+    // CSE Announcements is at index 12 - show premium modal instead
+    // Corporate Actions is at index 13 - show premium modal instead
+    // Security Identity is at index 14 - show premium modal instead
+    // Voluntary Corporate Actions is at index 15 - show premium modal instead
+    // Mandatory Corporate Actions is at index 16 - show premium modal instead
+    // IPO is at index 17 - show premium modal instead
+    // Portfolio Monitoring is at index 18 - show premium modal instead
+    // Risk and Limit Management is at index 19 - show premium modal instead
+    // Reporting and Compliance is at index 20 - show premium modal instead
+    // Integration and Automation is at index 21 - show premium modal instead
+    // Portfolio Transfers is at index 22 - show premium modal instead
+    if (index === 5 || index === 12 || index === 13 || index === 14 || index === 15 || index === 16 || index === 17 || index === 18 || index === 19 || index === 20 || index === 21 || index === 22) {
       setIsPremiumModalOpen(true);
       return;
     }
