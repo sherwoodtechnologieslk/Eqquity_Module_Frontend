@@ -3,6 +3,10 @@ import { createPortal } from 'react-dom';
 import './Styles/OtherTransactions.css';
 import { accountAPI, otherTransactionAPI, otherTransactionGLEntryAPI, glAccountMappingAPI, otherTransactionTypeAPI, chartOfAccountsAPI, accountCategoryAPI } from '../../services/api';
 import { authService } from '../../services/authService';
+import holidayService from '../../services/holidayService';
+
+// Helper function to get today's date in YYYY-MM-DD format
+const getToday = () => new Date().toISOString().slice(0, 10);
 
 // Function to generate unique voucher numbers
 const generateVoucherNumber = () => {
@@ -88,6 +92,12 @@ const OtherTransactions = () => {
   const [accountsLoading, setAccountsLoading] = useState(true);
   const [showPreviewModal, setShowPreviewModal] = useState(false);
   const [accountsWithMapping, setAccountsWithMapping] = useState([]); // Accounts that have GL mappings
+
+  // Holidays for date validation
+  const [holidays, setHolidays] = useState([]);
+  const [dateErrors, setDateErrors] = useState({
+    date: ''
+  });
   
   // New states for viewing vouchers and general ledger
   const [activeTab, setActiveTab] = useState('create'); // 'create', 'defineTransaction', 'view', 'generalLedger', 'reverseTransaction'
@@ -196,6 +206,183 @@ const OtherTransactions = () => {
   // For Liability Settlement form - liability account search
   const [liabilityAccountSearchTerm, setLiabilityAccountSearchTerm] = useState('');
   const [showLiabilityAccountList, setShowLiabilityAccountList] = useState(false);
+
+  // Helper function to normalize a date to YYYY-MM-DD format (avoiding timezone issues)
+  const normalizeDate = (dateInput, addOneDay = false) => {
+    if (!dateInput) return null;
+    
+    let normalizedDate = null;
+    
+    // If it's already a string in YYYY-MM-DD format, use it directly
+    if (typeof dateInput === 'string') {
+      const trimmed = dateInput.trim();
+      // Check if it's already in the correct format
+      if (/^\d{4}-\d{2}-\d{2}$/.test(trimmed)) {
+        normalizedDate = trimmed;
+      } else {
+        // Extract YYYY-MM-DD pattern from any string format
+        const dateMatch = trimmed.match(/(\d{4}-\d{2}-\d{2})/);
+        if (dateMatch && dateMatch[1]) {
+          normalizedDate = dateMatch[1];
+        }
+      }
+    }
+    // If it's a Date object, extract date part
+    else if (dateInput instanceof Date && !isNaN(dateInput.getTime())) {
+      // Use local date components to avoid timezone conversion issues
+      const year = dateInput.getFullYear();
+      const month = String(dateInput.getMonth() + 1).padStart(2, '0');
+      const day = String(dateInput.getDate()).padStart(2, '0');
+      normalizedDate = `${year}-${month}-${day}`;
+    }
+    // For any other type, convert to string and try to extract date
+    else {
+      const dateStr = String(dateInput).trim();
+      const dateMatch = dateStr.match(/(\d{4}-\d{2}-\d{2})/);
+      if (dateMatch && dateMatch[1]) {
+        normalizedDate = dateMatch[1];
+      }
+    }
+    
+    // If we need to add one day (workaround for timezone shift)
+    if (normalizedDate && addOneDay) {
+      const date = new Date(normalizedDate + 'T12:00:00'); // Use noon to avoid timezone issues
+      date.setDate(date.getDate() + 1); // Add one day
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const day = String(date.getDate()).padStart(2, '0');
+      return `${year}-${month}-${day}`;
+    }
+    
+    return normalizedDate;
+  };
+
+  // Helper function to check if a date is a weekend (Saturday or Sunday)
+  const isWeekend = (dateString) => {
+    if (!dateString) return false;
+    const normalizedDate = normalizeDate(dateString);
+    if (!normalizedDate) return false;
+    
+    const date = new Date(normalizedDate + 'T12:00:00');
+    const dayOfWeek = date.getDay(); // 0 = Sunday, 6 = Saturday
+    return dayOfWeek === 0 || dayOfWeek === 6;
+  };
+
+  // Helper function to check if a date is a holiday
+  const isHoliday = (dateString) => {
+    if (!dateString || holidays.length === 0) return null;
+    
+    // Normalize the input date to YYYY-MM-DD format
+    const checkDate = normalizeDate(dateString);
+    if (!checkDate) {
+      console.warn('Could not normalize date for holiday check:', dateString);
+      return null;
+    }
+    
+    // Find matching holiday by comparing normalized dates (both as strings)
+    const holiday = holidays.find(h => {
+      // Holiday dates are already normalized when fetched, but normalize again to be safe
+      const holidayDate = normalizeDate(h.date);
+      if (!holidayDate) return false;
+      
+      // Compare as strings - both should be in YYYY-MM-DD format
+      return String(holidayDate) === String(checkDate);
+    });
+    
+    return holiday || null;
+  };
+
+  // Helper function to validate a date field (checks both holidays and weekends)
+  const validateDateField = (fieldName, dateValue) => {
+    if (!dateValue) {
+      setDateErrors(prev => ({
+        ...prev,
+        [fieldName]: ''
+      }));
+      return true;
+    }
+
+    // Check if it's a weekend
+    if (isWeekend(dateValue)) {
+      const date = new Date(normalizeDate(dateValue) + 'T12:00:00');
+      const dayName = date.toLocaleDateString('en-US', { weekday: 'long' });
+      setDateErrors(prev => ({
+        ...prev,
+        [fieldName]: `${dayName} is not a business day. Please select a weekday.`
+      }));
+      return false;
+    }
+
+    // Check if it's a holiday
+    const holiday = isHoliday(dateValue);
+    if (holiday) {
+      setDateErrors(prev => ({
+        ...prev,
+        [fieldName]: `${holiday.name} - ${holiday.type}. Please select a business day.`
+      }));
+      return false;
+    }
+
+    // Valid date
+    setDateErrors(prev => ({
+      ...prev,
+      [fieldName]: ''
+    }));
+    return true;
+  };
+
+  // Fetch holidays for date validation on mount
+  useEffect(() => {
+    holidayService.getAllHolidays()
+      .then(data => {
+        // Normalize all holiday dates to YYYY-MM-DD format to avoid timezone issues
+        // WORKAROUND: Add one day to compensate for timezone shift (dates read as one day early)
+        const normalizedHolidays = (data || []).map(holiday => {
+          // Normalize the date and add one day to compensate for timezone shift
+          let normalizedDate = normalizeDate(holiday.date, true); // true = add one day
+          
+          // If normalization failed, log for debugging
+          if (!normalizedDate && holiday.date) {
+            console.warn('Could not normalize holiday date:', {
+              original: holiday.date,
+              type: typeof holiday.date,
+              holidayName: holiday.name
+            });
+            
+            // Final fallback: try to extract YYYY-MM-DD pattern from string representation
+            const dateStr = String(holiday.date);
+            const match = dateStr.match(/(\d{4}-\d{2}-\d{2})/);
+            if (match && match[1]) {
+              // Add one day to the extracted date
+              const date = new Date(match[1] + 'T12:00:00');
+              date.setDate(date.getDate() + 1);
+              const year = date.getFullYear();
+              const month = String(date.getMonth() + 1).padStart(2, '0');
+              const day = String(date.getDate()).padStart(2, '0');
+              normalizedDate = `${year}-${month}-${day}`;
+            }
+          }
+          
+          return {
+            ...holiday,
+            date: normalizedDate
+          };
+        }).filter(holiday => {
+          // Only keep holidays with valid normalized dates
+          const isValid = holiday.date && /^\d{4}-\d{2}-\d{2}$/.test(holiday.date);
+          if (!isValid) {
+            console.warn('Filtered out holiday with invalid date:', holiday);
+          }
+          return isValid;
+        });
+        
+        setHolidays(normalizedHolidays);
+      })
+      .catch(err => {
+        console.error('Error loading holidays:', err);
+        setHolidays([]);
+      });
+  }, []);
 
   // Fetch accounts, GL mappings, and account categories on mount
   useEffect(() => {
@@ -1022,6 +1209,48 @@ const OtherTransactions = () => {
   const handleChange = (e) => {
     const { name, value } = e.target;
     
+    // Normalize date values to YYYY-MM-DD format to avoid timezone issues
+    let normalizedValue = value;
+    if (name === 'date' && value) {
+      normalizedValue = normalizeDate(value) || value;
+    }
+    
+    // Check for holiday and weekend dates BEFORE updating form - prevent selection
+    if (name === 'date' && normalizedValue) {
+      // Check if it's a weekend
+      if (isWeekend(normalizedValue)) {
+        // Reset to previous valid date or today (ensure it's normalized)
+        const previousDate = normalizeDate(form.date) || getToday();
+        e.target.value = previousDate;
+        const date = new Date(normalizedValue + 'T12:00:00');
+        const dayName = date.toLocaleDateString('en-US', { weekday: 'long' });
+        setDateErrors(prev => ({
+          ...prev,
+          date: `${dayName} is not a business day. Please select a weekday.`
+        }));
+        return; // Prevent form update
+      }
+      
+      // Check if it's a holiday
+      const holiday = isHoliday(normalizedValue);
+      if (holiday) {
+        // Reset to previous valid date or today (ensure it's normalized)
+        const previousDate = normalizeDate(form.date) || getToday();
+        e.target.value = previousDate;
+        setDateErrors(prev => ({
+          ...prev,
+          date: `${holiday.name} - ${holiday.type}. Please select a business day.`
+        }));
+        return; // Prevent form update
+      }
+      
+      // Clear error if date is valid
+      setDateErrors(prev => ({
+        ...prev,
+        date: ''
+      }));
+    }
+    
     // Handle account selection from dropdown
     if (name === 'selectedAccountId') {
       const selectedAccount = accounts.find(acc => acc.id.toString() === value);
@@ -1056,7 +1285,8 @@ const OtherTransactions = () => {
       return;
     }
     
-    setForm({ ...form, [name]: value });
+    // Use normalized value for date fields, original value for others
+    setForm({ ...form, [name]: normalizedValue });
   };
 
   const handleSubmit = async (e) => {
@@ -1092,6 +1322,26 @@ const OtherTransactions = () => {
     
     if (!form.date || !form.date.trim()) {
       missingFields.push('Transaction Date');
+    }
+
+    // Validate date against holidays and weekends
+    if (form.date && form.date.trim()) {
+      // Check if it's a weekend
+      if (isWeekend(form.date)) {
+        const date = new Date(normalizeDate(form.date) + 'T12:00:00');
+        const dayName = date.toLocaleDateString('en-US', { weekday: 'long' });
+        validateDateField('date', form.date); // Show error message
+        alert(`${dayName} is not a business day. Please select a weekday.`);
+        return;
+      }
+
+      // Check if it's a holiday
+      const holiday = isHoliday(form.date);
+      if (holiday) {
+        validateDateField('date', form.date); // Show error message
+        alert(`${holiday.name} - ${holiday.type}. Please select a business day.`);
+        return;
+      }
     }
 
     if (missingFields.length > 0) {
@@ -2296,9 +2546,17 @@ const isVoucherSettled = (voucher) => {
                     name="date"
                     value={form.date}
                     onChange={handleChange}
-                    className="other-trans-form-input"
+                    className={`other-trans-form-input ${dateErrors.date ? 'error' : ''}`}
                     required
                   />
+                  {dateErrors.date && (
+                    <div className="other-trans-date-error-message">
+                      <svg className="other-trans-error-icon" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                      </svg>
+                      <span>{dateErrors.date}</span>
+                    </div>
+                  )}
                 </div>
 
                 {/* Currency */}
