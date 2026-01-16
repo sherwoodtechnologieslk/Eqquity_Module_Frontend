@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { accountAPI, portfolioAPI } from '../../services/api';
+import { accountAPI, portfolioAPI, portfolioSettlementMappingAPI } from '../../services/api';
 import './Styles/SettlementInstructions.css';
 
 const SettlementInstructions = () => {
@@ -18,6 +18,8 @@ const SettlementInstructions = () => {
   // Portfolio Mapping state
   const [portfolios, setPortfolios] = useState([]);
   const [portfolioMappings, setPortfolioMappings] = useState([]);
+  const [savingMappings, setSavingMappings] = useState(false);
+  const [saveMessage, setSaveMessage] = useState({ type: '', text: '' });
 
   // Settlement Preferences state
   const [preferences, setPreferences] = useState({
@@ -44,23 +46,57 @@ const SettlementInstructions = () => {
       const portfoliosData = await portfolioAPI.getAllPortfolios();
       setPortfolios(portfoliosData || []);
 
-      // Initialize portfolio mappings - merge with localStorage data
-      const savedMappings = localStorage.getItem('portfolio_settlement_mappings');
-      const savedMappingsData = savedMappings ? JSON.parse(savedMappings) : [];
-      const savedMappingsMap = new Map(savedMappingsData.map(m => [m.portfolioId, m]));
-      
-      const mappings = (portfoliosData || []).map(portfolio => {
-        const portfolioId = portfolio.id || portfolio.portfolioId;
-        const savedMapping = savedMappingsMap.get(portfolioId);
-        return {
-          portfolioId,
-          portfolioName: portfolio.portfolio_name || portfolio.portfolioName || portfolio.name,
-          accountId: savedMapping?.accountId || null,
-          accountName: savedMapping?.accountName || '',
-          paymentMethod: savedMapping?.paymentMethod || ''
-        };
-      });
-      setPortfolioMappings(mappings);
+      // Fetch portfolio settlement mappings from API
+      try {
+        const savedMappingsData = await portfolioSettlementMappingAPI.getAllMappings();
+        // Convert portfolio_id to string for consistent comparison
+        const savedMappingsMap = new Map((savedMappingsData || []).map(m => [String(m.portfolio_id), m]));
+        
+        // Filter out duplicates and create mappings
+        const seenPortfolioIds = new Set();
+        const mappings = (portfoliosData || []).filter(portfolio => {
+          const portfolioId = portfolio.id || portfolio.portfolioId;
+          if (!portfolioId || seenPortfolioIds.has(String(portfolioId))) {
+            return false; // Skip duplicates or invalid IDs
+          }
+          seenPortfolioIds.add(String(portfolioId));
+          return true;
+        }).map(portfolio => {
+          const portfolioId = String(portfolio.id || portfolio.portfolioId);
+          const savedMapping = savedMappingsMap.get(portfolioId);
+          return {
+            portfolioId,
+            portfolioName: portfolio.portfolio_name || portfolio.portfolioName || portfolio.name,
+            // Store accountId as string to match <select> value
+            accountId: savedMapping?.account_id != null ? String(savedMapping.account_id) : '',
+            accountName: savedMapping?.account_name || '',
+            paymentMethod: savedMapping?.payment_method || ''
+          };
+        });
+        setPortfolioMappings(mappings);
+      } catch (mappingError) {
+        console.error('Error fetching portfolio settlement mappings:', mappingError);
+        // Fallback to empty mappings if API fails
+        const seenPortfolioIds = new Set();
+        const mappings = (portfoliosData || []).filter(portfolio => {
+          const portfolioId = portfolio.id || portfolio.portfolioId;
+          if (!portfolioId || seenPortfolioIds.has(portfolioId)) {
+            return false; // Skip duplicates or invalid IDs
+          }
+          seenPortfolioIds.add(portfolioId);
+          return true;
+        }).map(portfolio => {
+          const portfolioId = portfolio.id || portfolio.portfolioId;
+          return {
+            portfolioId,
+            portfolioName: portfolio.portfolio_name || portfolio.portfolioName || portfolio.name,
+            accountId: null,
+            accountName: '',
+            paymentMethod: ''
+          };
+        });
+        setPortfolioMappings(mappings);
+      }
 
       // Load default accounts from localStorage (or could be from API)
       const savedDefaults = localStorage.getItem('settlement_defaults');
@@ -100,18 +136,131 @@ const SettlementInstructions = () => {
   const handleUpdatePortfolioMapping = (portfolioId, accountId, paymentMethod) => {
     const updated = portfolioMappings.map(mapping => {
       if (mapping.portfolioId === portfolioId) {
-        const selectedAccount = accounts.find(acc => acc.id === accountId);
+        // Ensure we compare IDs as strings so number/string differences don't break the match
+        const selectedAccount = accounts.find(acc => String(acc.id) === String(accountId));
+        // If account is deselected, clear payment method as well
+        const finalAccountId = accountId || null;
+        const finalPaymentMethod = finalAccountId ? paymentMethod : '';
         return {
           ...mapping,
-          accountId,
+          accountId: finalAccountId,
           accountName: selectedAccount ? `${selectedAccount.account_name} - ${selectedAccount.account_number}` : '',
-          paymentMethod
+          paymentMethod: finalPaymentMethod
         };
       }
       return mapping;
     });
     setPortfolioMappings(updated);
-    localStorage.setItem('portfolio_settlement_mappings', JSON.stringify(updated));
+    // Clear save message when user makes changes
+    setSaveMessage({ type: '', text: '' });
+  };
+
+  const handleSavePortfolioMappings = async () => {
+    setSavingMappings(true);
+    setSaveMessage({ type: '', text: '' });
+    
+    try {
+      // Separate mappings into those to save and those to delete
+      const mappingsToSave = portfolioMappings.filter(m => m.accountId);
+      const mappingsToDelete = portfolioMappings.filter(m => !m.accountId);
+      
+      const savePromises = [];
+      
+      // Save/update mappings that have an account selected
+      mappingsToSave.forEach(mapping => {
+        // Convert account_id to number for database
+        const accountIdNum = parseInt(mapping.accountId, 10);
+        if (isNaN(accountIdNum)) {
+          console.error('Invalid account_id:', mapping.accountId);
+          return; // Skip invalid account IDs
+        }
+        
+        savePromises.push(
+          portfolioSettlementMappingAPI.upsertMapping({
+            portfolio_id: String(mapping.portfolioId), // Ensure portfolio_id is string for consistency
+            portfolio_name: mapping.portfolioName,
+            account_id: accountIdNum, // Send as number
+            payment_method: mapping.paymentMethod || ''
+          })
+        );
+      });
+      
+      // Delete mappings that have been deselected
+      // The API now handles 404 gracefully (treats as success), so we can just call it
+      mappingsToDelete.forEach(mapping => {
+        savePromises.push(
+          portfolioSettlementMappingAPI.deleteMappingByPortfolio(mapping.portfolioId)
+        );
+      });
+
+      if (savePromises.length === 0) {
+        setSaveMessage({ type: 'info', text: 'No changes to save.' });
+        setSavingMappings(false);
+        return;
+      }
+
+      await Promise.all(savePromises);
+      
+      const saveCount = mappingsToSave.length;
+      const deleteCount = mappingsToDelete.length;
+      let message = '';
+      
+      if (saveCount > 0 && deleteCount > 0) {
+        message = `Successfully saved ${saveCount} mapping(s) and removed ${deleteCount} mapping(s)!`;
+      } else if (saveCount > 0) {
+        message = `Successfully saved ${saveCount} portfolio mapping(s)!`;
+      } else if (deleteCount > 0) {
+        message = `Successfully removed ${deleteCount} portfolio mapping(s)!`;
+      }
+      
+      setSaveMessage({ type: 'success', text: message });
+      
+      // Refresh mappings from API to get updated state
+      try {
+        const updatedMappingsData = await portfolioSettlementMappingAPI.getAllMappings();
+        // Convert portfolio_id to string for consistent comparison
+        const savedMappingsMap = new Map((updatedMappingsData || []).map(m => [String(m.portfolio_id), m]));
+        
+        // Filter out duplicates and create mappings
+        const seenPortfolioIds = new Set();
+        const updatedMappings = portfolios.filter(portfolio => {
+          const portfolioId = portfolio.id || portfolio.portfolioId;
+          if (!portfolioId || seenPortfolioIds.has(String(portfolioId))) {
+            return false; // Skip duplicates or invalid IDs
+          }
+          seenPortfolioIds.add(String(portfolioId));
+          return true;
+        }).map(portfolio => {
+          const portfolioId = String(portfolio.id || portfolio.portfolioId);
+          const savedMapping = savedMappingsMap.get(portfolioId);
+          return {
+            portfolioId,
+            portfolioName: portfolio.portfolio_name || portfolio.portfolioName || portfolio.name,
+            // Store accountId as string to match <select> value
+            accountId: savedMapping?.account_id != null ? String(savedMapping.account_id) : '',
+            accountName: savedMapping?.account_name || '',
+            paymentMethod: savedMapping?.payment_method || ''
+          };
+        });
+        setPortfolioMappings(updatedMappings);
+      } catch (refreshError) {
+        console.error('Error refreshing mappings:', refreshError);
+        // Continue even if refresh fails
+      }
+      
+      // Clear message after 3 seconds
+      setTimeout(() => {
+        setSaveMessage({ type: '', text: '' });
+      }, 3000);
+    } catch (error) {
+      console.error('Error saving portfolio mappings:', error);
+      setSaveMessage({ 
+        type: 'error', 
+        text: error.message || 'Failed to save portfolio mappings. Please try again.' 
+      });
+    } finally {
+      setSavingMappings(false);
+    }
   };
 
   const handlePreferenceChange = (key, value) => {
@@ -124,7 +273,7 @@ const SettlementInstructions = () => {
   };
 
   const getAccountName = (accountId) => {
-    const account = accounts.find(acc => acc.id === accountId);
+    const account = accounts.find(acc => String(acc.id) === String(accountId));
     return account ? `${account.account_name} - ${account.account_number} (${account.bank_name})` : 'Not Set';
   };
 
@@ -333,10 +482,10 @@ const SettlementInstructions = () => {
                       </td>
                     </tr>
                   ) : (
-                    portfolioMappings.map((mapping) => {
-                      const account = accounts.find(acc => acc.id === mapping.accountId);
+                    portfolioMappings.map((mapping, index) => {
+                      const account = accounts.find(acc => String(acc.id) === String(mapping.accountId));
                       return (
-                        <tr key={mapping.portfolioId}>
+                        <tr key={`portfolio-${mapping.portfolioId}-${index}`}>
                           <td>
                             <strong>{mapping.portfolioName}</strong>
                           </td>
@@ -367,6 +516,7 @@ const SettlementInstructions = () => {
                                 e.target.value
                               )}
                               className="si-select-small"
+                              disabled={!mapping.accountId}
                             >
                               <option value="">-- Select Method --</option>
                               <option value="Bank Transfer">Bank Transfer</option>
@@ -393,6 +543,54 @@ const SettlementInstructions = () => {
                   )}
                 </tbody>
               </table>
+            </div>
+
+            {/* Save Button and Message */}
+            <div className="si-mapping-actions">
+              <button 
+                className="si-btn si-btn-primary" 
+                onClick={handleSavePortfolioMappings}
+                disabled={savingMappings}
+              >
+                {savingMappings ? (
+                  <>
+                    <span className="si-spinner-small"></span>
+                    Saving...
+                  </>
+                ) : (
+                  <>
+                    <svg viewBox="0 0 24 24" fill="currentColor" width="16" height="16">
+                      <path d="M17 3H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V7l-4-4zm-5 16c-1.66 0-3-1.34-3-3s1.34-3 3-3 3 1.34 3 3-1.34 3-3 3zm3-10H5V5h10v4z"/>
+                    </svg>
+                    Save Portfolio Mappings
+                  </>
+                )}
+              </button>
+              {saveMessage.text && (
+                <div className={`si-save-message si-save-message-${saveMessage.type}`}>
+                  {saveMessage.type === 'success' && (
+                    <svg viewBox="0 0 24 24" fill="currentColor" width="16" height="16">
+                      <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/>
+                    </svg>
+                  )}
+                  {saveMessage.type === 'error' && (
+                    <svg viewBox="0 0 24 24" fill="currentColor" width="16" height="16">
+                      <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/>
+                    </svg>
+                  )}
+                  {saveMessage.type === 'warning' && (
+                    <svg viewBox="0 0 24 24" fill="currentColor" width="16" height="16">
+                      <path d="M1 21h22L12 2 1 21zm12-3h-2v-2h2v2zm0-4h-2v-4h2v4z"/>
+                    </svg>
+                  )}
+                  {saveMessage.type === 'info' && (
+                    <svg viewBox="0 0 24 24" fill="currentColor" width="16" height="16">
+                      <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/>
+                    </svg>
+                  )}
+                  <span>{saveMessage.text}</span>
+                </div>
+              )}
             </div>
           </div>
         )}
