@@ -4,7 +4,7 @@ import { portfolioAPI } from '../../services/api';
 import { equityAPI } from '../../services/api';
 import { portfolioCostingMethodAPI } from '../../services/api'; // <-- Add this import
 import { transactionEntryAPI } from '../../services/api'; // <-- Add this import
-import { costOfFundsAPI, tradeSummaryAPI, accountAPI, glAccountMappingAPI } from '../../services/api';
+import { costOfFundsAPI, tradeSummaryAPI, accountAPI, glAccountMappingAPI, portfolioSettlementMappingAPI } from '../../services/api';
 import SellTransactionListView from './SellTransactionListView';
 import TransactionDetails from './TransactionDetails';
 import SellEquitySelectorModal from './SellEquitySelectorModal';
@@ -636,6 +636,83 @@ const SellTransactionEntry = ({ setFifoParams, setActiveTab }) => {
     }
   }, [form.capitalGain, form.moneyGenerationCost]);
 
+  // Auto-fill bank account details when portfolio changes
+  useEffect(() => {
+    const fetchAndFillBankAccount = async () => {
+      const currentPortfolio = form.portfolioName;
+      
+      if (!currentPortfolio) {
+        return;
+      }
+
+      try {
+        console.log('🔄 Sell useEffect: Portfolio changed, fetching mappings...', {
+          portfolio: currentPortfolio
+        });
+
+        const response = await portfolioSettlementMappingAPI.getAllMappings();
+        console.log('🔍 Sell useEffect: Raw API response:', response);
+
+        // Handle different response formats
+        let mappings = [];
+        if (Array.isArray(response)) {
+          mappings = response;
+        } else if (response && Array.isArray(response.data)) {
+          mappings = response.data;
+        } else if (response && response.success && Array.isArray(response.data)) {
+          mappings = response.data;
+        }
+
+        console.log('📋 Sell useEffect: Processed mappings:', mappings);
+        console.log('📝 Sell useEffect: Looking for portfolio name:', currentPortfolio);
+
+        // Try to find mapping by portfolio_name (compare as strings, case-insensitive)
+        const mapping = mappings.find(m => {
+          const mappingPortfolioName = String(m.portfolio_name || '').trim();
+          const searchPortfolioName = String(currentPortfolio || '').trim();
+          const matches = mappingPortfolioName.toLowerCase() === searchPortfolioName.toLowerCase();
+          console.log(`🔍 Sell useEffect: Comparing portfolio names: "${mappingPortfolioName}" === "${searchPortfolioName}" ? ${matches}`);
+          return matches;
+        });
+
+        console.log('✅ Sell useEffect: Found mapping:', mapping);
+
+        if (mapping && mapping.account_id) {
+          const bankAccountData = {
+            settlementAccount: mapping.account_name && mapping.account_number 
+              ? `${mapping.account_name} - ${mapping.account_number}` 
+              : mapping.account_number || '',
+            accountName: mapping.account_name || '',
+            accountNumber: mapping.account_number || '',
+            bankName: mapping.bank_name || '',
+            branchName: mapping.branch_name || '',
+            paymentMethod: mapping.payment_method || ''
+          };
+          console.log('💾 Sell useEffect: Auto-filling bank account details:', bankAccountData);
+          
+          setForm(prevForm => {
+            // Only update if portfolio hasn't changed (to avoid race conditions)
+            if (prevForm.portfolioName === currentPortfolio) {
+              console.log('✅ Sell useEffect: Updating form with bank account data');
+              return {
+                ...prevForm,
+                ...bankAccountData
+              };
+            }
+            console.log('⚠️ Sell useEffect: Portfolio changed, skipping update');
+            return prevForm;
+          });
+        } else {
+          console.log('❌ Sell useEffect: No mapping found');
+        }
+      } catch (error) {
+        console.error('❌ Sell useEffect: Error fetching portfolio settlement mapping:', error);
+      }
+    };
+
+    fetchAndFillBankAccount();
+  }, [form.portfolioName]);
+
   // Recalculate Money Gen Cost when holding days change
   useEffect(() => {
     if (form.quantity && form.soldPrice && form.costOfFunds && form.hdays) {
@@ -738,12 +815,109 @@ const SellTransactionEntry = ({ setFifoParams, setActiveTab }) => {
     // If portfolioName changes, clear valuationMethod (it will be autofilled by useEffect)
     if (name === 'portfolioName') {
       const selectedPortfolio = portfolios.find(p => p.portfolioName === value);
+      const portfolioId = selectedPortfolio ? (selectedPortfolio.portfolioId || selectedPortfolio.id || '') : '';
+      
+      // Update form immediately with portfolio and portfolioId
       setForm({
         ...form,
         [name]: value,
         valuationMethod: '',
-        portfolioId: selectedPortfolio ? (selectedPortfolio.portfolioId || selectedPortfolio.id || '') : ''
+        portfolioId: portfolioId
       });
+      
+      // Fetch portfolio settlement mapping if portfolio is selected (async)
+      if (value) {
+        portfolioSettlementMappingAPI.getAllMappings()
+          .then(response => {
+            console.log('🔍 Sell: Raw API response:', response);
+            
+            // Handle different response formats
+            let mappings = [];
+            if (Array.isArray(response)) {
+              mappings = response;
+            } else if (response && Array.isArray(response.data)) {
+              mappings = response.data;
+            } else if (response && response.success && Array.isArray(response.data)) {
+              mappings = response.data;
+            }
+            
+            console.log('📋 Sell: Processed mappings array:', mappings);
+            console.log('📦 Sell: Selected portfolio name:', value);
+            
+            // Try to find mapping by portfolio_name (compare as strings, case-insensitive)
+            const mapping = mappings.find(m => {
+              const mappingPortfolioName = String(m.portfolio_name || '').trim();
+              const searchPortfolioName = String(value || '').trim();
+              const matches = mappingPortfolioName.toLowerCase() === searchPortfolioName.toLowerCase();
+              console.log(`🔍 Sell: Comparing portfolio names: "${mappingPortfolioName}" === "${searchPortfolioName}" ? ${matches}`);
+              return matches;
+            });
+            
+            console.log('✅ Sell: Found mapping:', mapping);
+            
+            if (mapping && mapping.account_id) {
+              // Auto-fill bank account details from the mapping
+              const bankAccountData = {
+                settlementAccount: mapping.account_name && mapping.account_number 
+                  ? `${mapping.account_name} - ${mapping.account_number}` 
+                  : mapping.account_number || '',
+                accountName: mapping.account_name || '',
+                accountNumber: mapping.account_number || '',
+                bankName: mapping.bank_name || '',
+                branchName: mapping.branch_name || ''
+              };
+              console.log('💾 Sell: Auto-filling bank account details:', bankAccountData);
+              
+              setForm(prevForm => {
+                // Only update if portfolio hasn't changed (to avoid race conditions)
+                if (prevForm.portfolioName === value) {
+                  return {
+                    ...prevForm,
+                    ...bankAccountData
+                  };
+                }
+                return prevForm;
+              });
+            } else {
+              console.log('❌ Sell: No mapping found for portfolio:', value);
+              // Clear bank account fields if no mapping exists
+              setForm(prevForm => ({
+                ...prevForm,
+                settlementAccount: '',
+                accountName: '',
+                accountNumber: '',
+                bankName: '',
+                branchName: ''
+              }));
+            }
+          })
+          .catch(error => {
+            console.error('❌ Sell: Error fetching portfolio settlement mapping:', error);
+            // Clear bank account fields on error
+            setForm(prevForm => ({
+              ...prevForm,
+              settlementAccount: '',
+              accountName: '',
+              accountNumber: '',
+              bankName: '',
+              branchName: '',
+              paymentMethod: ''
+            }));
+          });
+      } else {
+        // Clear bank account fields if portfolio is deselected
+        setForm(prevForm => ({
+          ...prevForm,
+          settlementAccount: '',
+          accountName: '',
+          accountNumber: '',
+          bankName: '',
+          branchName: '',
+          paymentMethod: ''
+        }));
+      }
+      
+      return; // Return early to prevent further processing
     } else {
       // Use normalized value for date fields, original value for others
       let updatedForm = { ...form, [name]: normalizedValue };
