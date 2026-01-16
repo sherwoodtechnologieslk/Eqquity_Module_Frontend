@@ -2242,3 +2242,100 @@ export const openingBalanceAPI = {
     }
   }
 };
+
+// API service for portfolio settlement mappings
+export const portfolioSettlementMappingAPI = {
+  // Get all portfolio settlement mappings for current user
+  getAllMappings: async () => {
+    try {
+      const response = await makeAuthenticatedRequest(`${API_BASE_URL}/portfolio-settlement-mappings`);
+      return response.success ? response.data : response;
+    } catch (error) {
+      console.error('Error fetching portfolio settlement mappings:', error);
+      throw error;
+    }
+  },
+
+  // Create or update a portfolio settlement mapping
+  upsertMapping: async (mappingData) => {
+    try {
+      const response = await makeAuthenticatedRequest(`${API_BASE_URL}/portfolio-settlement-mappings`, {
+        method: 'POST',
+        body: JSON.stringify(mappingData)
+      });
+      return response;
+    } catch (error) {
+      console.error('Error saving portfolio settlement mapping:', error);
+      throw error;
+    }
+  },
+
+  // Delete a portfolio settlement mapping by id
+  deleteMapping: async (id) => {
+    try {
+      return await makeAuthenticatedRequest(`${API_BASE_URL}/portfolio-settlement-mappings/${id}`, {
+        method: 'DELETE'
+      });
+    } catch (error) {
+      console.error('Error deleting portfolio settlement mapping:', error);
+      throw error;
+    }
+  },
+
+  // Delete a portfolio settlement mapping by portfolio_id
+  deleteMappingByPortfolio: async (portfolioId) => {
+    try {
+      return await makeAuthenticatedRequest(`${API_BASE_URL}/portfolio-settlement-mappings/portfolio/${portfolioId}`, {
+        method: 'DELETE'
+      });
+    } catch (error) {
+      // If mapping doesn't exist (404), that's fine - treat as success (idempotent)
+      if (error.message && (error.message.includes('404') || error.message.includes('not found'))) {
+        return { success: true, message: 'Mapping already deleted' };
+      }
+      console.error('Error deleting portfolio settlement mapping:', error);
+      throw error;
+    }
+  }
+};
+
+// API service for monthly portfolio updates
+export const monthlyPortfolioUpdateAPI = {
+  // Save CSV data to database
+  saveMonthlyPortfolioData: async (data) => {
+    try {
+      const response = await makeAuthenticatedRequest(`${API_BASE_URL}/monthly-portfolio-updates/save`, {
+        method: 'POST',
+        body: JSON.stringify({ data })
+      });
+      return response;
+    } catch (error) {
+      console.error('Error saving monthly portfolio data:', error);
+      throw error;
+    }
+  },
+
+  // Get all monthly portfolio updates
+  getAllMonthlyPortfolioUpdates: async () => {
+    try {
+      const response = await makeAuthenticatedRequest(`${API_BASE_URL}/monthly-portfolio-updates/all`);
+      return response.success ? response.data : response;
+    } catch (error) {
+      console.error('Error fetching monthly portfolio updates:', error);
+      throw error;
+    }
+  },
+
+  // Get monthly portfolio updates by date range
+  getMonthlyPortfolioUpdatesByDateRange: async (startDate, endDate) => {
+    try {
+      const response = await makeAuthenticatedRequest(
+        `${API_BASE_URL}/monthly-portfolio-updates/by-date-range?startDate=${startDate}&endDate=${endDate}`
+      );
+      return response.success ? response.data : response;
+    } catch (error) {
+      console.error('Error fetching monthly portfolio updates by date range:', error);
+      throw error;
+    }
+  }
+};
