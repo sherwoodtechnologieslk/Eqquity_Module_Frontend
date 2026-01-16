@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import './Styles/TradeReport.css';
-import { tradeSummaryAPI, parsedTradeTransactionAPI } from '../../services/api';
+import { tradeSummaryAPI, parsedTradeTransactionAPI, monthlyPortfolioUpdateAPI } from '../../services/api';
 
 const TradeReport = () => {
   const [tradeData, setTradeData] = useState({
@@ -37,6 +37,7 @@ const TradeReport = () => {
     }
   });
 
+  const [mainTab, setMainTab] = useState('daily-updates'); // Main tab: 'daily-updates' or 'portfolio-update'
   const [selectedView, setSelectedView] = useState('documents');
   const [selectedEquity, setSelectedEquity] = useState('all');
   const [uploadedFiles, setUploadedFiles] = useState([]);
@@ -48,6 +49,17 @@ const TradeReport = () => {
   const [showSubmitModal, setShowSubmitModal] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  
+  // CSV Import state for Monthly Updates
+  const [csvFile, setCsvFile] = useState(null);
+  const [csvData, setCsvData] = useState([]);
+  const [csvHeaders, setCsvHeaders] = useState([]);
+  const [csvLoading, setCsvLoading] = useState(false);
+  const [csvError, setCsvError] = useState('');
+  const [csvDragActive, setCsvDragActive] = useState(false);
+  const [csvPreviewData, setCsvPreviewData] = useState([]);
+  const [isSavingCSV, setIsSavingCSV] = useState(false);
+  const [saveMessage, setSaveMessage] = useState('');
 
   const formatCurrency = (amount) => {
     return new Intl.NumberFormat('en-US', {
@@ -1245,6 +1257,484 @@ const TradeReport = () => {
     );
   };
 
+  // CSV Parsing Functions - Read CSV as-is without interpretation
+  const parseCSV = (text) => {
+    // Normalize line endings (handle both \r\n and \n)
+    const normalizedText = text.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
+    const lines = normalizedText.split('\n');
+    
+    if (lines.length === 0) return { headers: [], data: [] };
+    
+    // Parse CSV properly handling quoted fields
+    const parseCSVLine = (line) => {
+      const values = [];
+      let currentValue = '';
+      let insideQuotes = false;
+      
+      for (let j = 0; j < line.length; j++) {
+        const char = line[j];
+        const nextChar = line[j + 1];
+        
+        if (char === '"') {
+          if (insideQuotes && nextChar === '"') {
+            currentValue += '"';
+            j++; // Skip next quote
+          } else {
+            insideQuotes = !insideQuotes;
+          }
+        } else if (char === ',' && !insideQuotes) {
+          values.push(currentValue);
+          currentValue = '';
+        } else {
+          currentValue += char;
+        }
+      }
+      // Always add the last value, even if line doesn't end with comma
+      values.push(currentValue);
+      return values;
+    };
+    
+    // Exact column headers as they appear in the CSV
+    const exactHeaders = [
+      'Client A/C No', 'Client Name', 'Contract Number', 'Trade Date', 'Buy/Sell Type',
+      'Stock Code', 'No of Shares', 'Price', 'Value', 'Trans. Cost',
+      'Settlement Amount', 'Settlement Date', 'Order No', 'Trader ID', 'Foreign Brokerage',
+      'Staff Member', 'Group Staff Member', 'Related Party', 'Relationship', 'Broker Fees',
+      'SEC Fees', 'Exchange Fees', 'CDS Fees', 'GOV Fees', 'Clearing Fees',
+      'Order Source', 'Mobile Number'
+    ];
+    
+    // Key identifiers to find the header row
+    const headerIdentifiers = ['Client A/C No', 'Client Name', 'Contract Number', 'Trade Date', 'Buy/Sell Type', 'Stock Code'];
+    
+    // Find the header line by looking for the exact header row
+    let headerLineIndex = -1;
+    
+    // Check first 30 lines to find the header row
+    for (let i = 0; i < Math.min(30, lines.length); i++) {
+      const trimmed = lines[i].trim();
+      if (!trimmed || !trimmed.includes(',')) continue;
+      
+      const values = parseCSVLine(trimmed);
+      const normalizedValues = values.map(v => v.trim());
+      
+      // Check if this row starts with the expected header identifiers
+      let matches = 0;
+      for (let j = 0; j < Math.min(headerIdentifiers.length, normalizedValues.length); j++) {
+        if (normalizedValues[j] === headerIdentifiers[j] || 
+            normalizedValues[j].toUpperCase() === headerIdentifiers[j].toUpperCase()) {
+          matches++;
+        }
+      }
+      
+      // If we found a row that matches the first few headers, it's likely the header row
+      if (matches >= 3) {
+        headerLineIndex = i;
+        console.log('Found header row at index:', i, 'with', matches, 'matches');
+        break;
+      }
+    }
+    
+    // Fallback: if we didn't find exact match, look for row with most columns (should be 27+)
+    if (headerLineIndex === -1) {
+      let maxColumns = 0;
+      for (let i = 0; i < Math.min(30, lines.length); i++) {
+        const trimmed = lines[i].trim();
+        if (!trimmed || !trimmed.includes(',')) continue;
+        
+        const values = parseCSVLine(trimmed);
+        if (values.length >= 27 && values.length > maxColumns) {
+          maxColumns = values.length;
+          headerLineIndex = i;
+        }
+      }
+    }
+    
+    // Parse headers from the identified header line
+    let headers = [];
+    if (headerLineIndex >= 0) {
+      const headerLine = lines[headerLineIndex];
+      const headerValues = parseCSVLine(headerLine);
+      
+      console.log('Header line index:', headerLineIndex);
+      console.log('Header line parsed:', headerLine);
+      console.log('Header values count:', headerValues.length);
+      
+      headers = headerValues.map((h, index) => {
+        // Remove quotes and trim
+        let cleaned = h.trim();
+        if ((cleaned.startsWith('"') && cleaned.endsWith('"')) || 
+            (cleaned.startsWith("'") && cleaned.endsWith("'"))) {
+          cleaned = cleaned.slice(1, -1);
+        }
+        // Use cleaned value or fallback to exact header name if available
+        return cleaned || (exactHeaders[index] || `Column ${index + 1}`);
+      });
+      
+      console.log('Parsed headers:', headers);
+      console.log('Header count:', headers.length);
+    } else {
+      // If we couldn't find header row, use the exact headers
+      console.warn('Could not find header row, using predefined headers');
+      headers = [...exactHeaders];
+    }
+    
+    console.log('Processed headers count:', headers.length);
+    console.log('Processed headers:', headers);
+    
+    // Parse data rows - keep everything as-is
+    const data = [];
+    for (let i = headerLineIndex + 1; i < lines.length; i++) {
+      const line = lines[i].trim();
+      if (!line) continue;
+      
+      const values = parseCSVLine(line);
+      
+      // Ensure we have the same number of values as headers (pad with empty strings if needed)
+      while (values.length < headers.length) {
+        values.push('');
+      }
+      
+      // Create object from headers and values - preserve all data as-is
+      const row = {};
+      headers.forEach((header, index) => {
+        // Keep value exactly as it appears in CSV
+        let value = values[index] || '';
+        // Remove surrounding quotes if present
+        if ((value.startsWith('"') && value.endsWith('"')) || 
+            (value.startsWith("'") && value.endsWith("'"))) {
+          value = value.slice(1, -1);
+        }
+        row[header] = value;
+      });
+      
+      // Add row even if some values are empty - preserve all rows
+      data.push(row);
+    }
+    
+    console.log('Total rows parsed:', data.length);
+    if (data.length > 0) {
+      console.log('First row column count:', Object.keys(data[0]).length);
+      console.log('First row keys:', Object.keys(data[0]));
+    }
+    
+    return { headers, data };
+  };
+
+  const readCSVFile = (file) => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = (e) => resolve(e.target.result);
+      reader.onerror = (e) => reject(e);
+      reader.readAsText(file);
+    });
+  };
+
+  const handleCSVUpload = async (file) => {
+    setCsvLoading(true);
+    setCsvError('');
+    setCsvFile(file);
+    
+    try {
+      const text = await readCSVFile(file);
+      const { headers, data } = parseCSV(text);
+      
+      setCsvHeaders(headers);
+      setCsvData(data);
+      setCsvPreviewData(data); // Show all rows
+      
+      console.log('CSV parsed successfully:', {
+        headers,
+        headerCount: headers.length,
+        rowCount: data.length,
+        sampleRow: data[0],
+        allHeaders: headers
+      });
+      
+      // Debug: Log to ensure all columns are present
+      if (data.length > 0) {
+        console.log('First row keys:', Object.keys(data[0]));
+        console.log('Headers vs Row keys match:', headers.length === Object.keys(data[0]).length);
+      }
+    } catch (error) {
+      console.error('Error parsing CSV:', error);
+      setCsvError(`Error parsing CSV file: ${error.message}`);
+      setCsvData([]);
+      setCsvHeaders([]);
+      setCsvPreviewData([]);
+    } finally {
+      setCsvLoading(false);
+    }
+  };
+
+  const handleCSVDrag = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (e.type === "dragenter" || e.type === "dragover") {
+      setCsvDragActive(true);
+    } else if (e.type === "dragleave") {
+      setCsvDragActive(false);
+    }
+  };
+
+  const handleCSVDrop = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setCsvDragActive(false);
+    
+    if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+      const file = e.dataTransfer.files[0];
+      if (file.name.toLowerCase().endsWith('.csv')) {
+        handleCSVUpload(file);
+      } else {
+        setCsvError('Please upload a CSV file.');
+      }
+    }
+  };
+
+  const handleCSVFileInput = (e) => {
+    if (e.target.files && e.target.files[0]) {
+      const file = e.target.files[0];
+      if (file.name.toLowerCase().endsWith('.csv')) {
+        handleCSVUpload(file);
+      } else {
+        setCsvError('Please upload a CSV file.');
+      }
+    }
+  };
+
+  const clearCSVData = () => {
+    setCsvFile(null);
+    setCsvData([]);
+    setCsvHeaders([]);
+    setCsvPreviewData([]);
+    setCsvError('');
+  };
+
+  // Identify transaction type from CSV data (optional - only if transaction type column exists)
+  const getTransactionType = (row) => {
+    // Check if there's a column that might indicate transaction type
+    const transactionTypeColumns = ['Transaction Type', 'Type', 'Buy/Sell', 'B/S', 'Transaction', 'Txn Type'];
+    
+    for (const colName of transactionTypeColumns) {
+      if (row[colName]) {
+        const value = String(row[colName]).toUpperCase().trim();
+        if (value === 'BUY' || value === 'B' || value === 'PURCHASE' || value === 'P') return 'BUY';
+        if (value === 'SELL' || value === 'S' || value === 'SALE') return 'SELL';
+        return value; // Return the actual value if it exists
+      }
+    }
+    
+    return ''; // Return empty if no transaction type column found
+  };
+
+  const renderPortfolioUpdate = () => (
+    <div className="tr-portfolio-update-section">
+      <div className="tr-csv-import-container">
+        <div className="tr-csv-import-header">
+          <h3>CSV Import - Monthly Portfolio Updates</h3>
+          <p className="tr-csv-description">
+            Upload a CSV file containing transaction data. The system will automatically extract buy (B) and sell (S) transactions along with all other data columns.
+          </p>
+        </div>
+
+        {/* CSV Upload Section */}
+        <div className="tr-csv-upload-section">
+          <div 
+            className={`tr-csv-drop-zone ${csvDragActive ? 'tr-csv-drag-active' : ''}`}
+            onDragEnter={handleCSVDrag}
+            onDragLeave={handleCSVDrag}
+            onDragOver={handleCSVDrag}
+            onDrop={handleCSVDrop}
+          >
+            <div className="tr-csv-upload-icon">
+              <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M21 15V19C21 19.5304 20.7893 20.0391 20.4142 20.4142C20.0391 20.7893 19.5304 21 19 21H5C4.46957 21 3.96086 20.7893 3.58579 20.4142C3.21071 20.0391 3 19.5304 3 19V15" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                <path d="M7 10L12 15L17 10" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                <path d="M12 15V3" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+            </div>
+            <div className="tr-csv-upload-text">
+              <h4>Drag & Drop CSV file here</h4>
+              <p>or</p>
+              <label htmlFor="csv-file-upload" className="tr-csv-upload-button">
+                Choose CSV File
+                <input
+                  id="csv-file-upload"
+                  type="file"
+                  accept=".csv"
+                  onChange={handleCSVFileInput}
+                  style={{ display: 'none' }}
+                />
+              </label>
+              {csvFile && (
+                <div className="tr-csv-file-info">
+                  <span>Selected: {csvFile.name}</span>
+                  <button 
+                    type="button" 
+                    className="tr-csv-clear-btn"
+                    onClick={clearCSVData}
+                  >
+                    Clear
+                  </button>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* Loading Indicator */}
+        {csvLoading && (
+          <div className="tr-csv-loading">
+            <div className="tr-spinner"></div>
+            <span>Parsing CSV file...</span>
+          </div>
+        )}
+
+        {/* Error Message */}
+        {csvError && (
+          <div className="tr-csv-error">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <circle cx="12" cy="12" r="10"/>
+              <line x1="12" y1="8" x2="12" y2="12"/>
+              <line x1="12" y1="16" x2="12.01" y2="16"/>
+            </svg>
+            <span>{csvError}</span>
+          </div>
+        )}
+
+        {/* Save Message */}
+        {saveMessage && (
+          <div className={`tr-csv-message ${saveMessage.includes('Successfully') ? 'tr-csv-message-success' : 'tr-csv-message-error'}`}>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              {saveMessage.includes('Successfully') ? (
+                <path d="M20 6L9 17l-5-5"/>
+              ) : (
+                <circle cx="12" cy="12" r="10"/>
+              )}
+            </svg>
+            <span>{saveMessage}</span>
+          </div>
+        )}
+
+        {/* CSV Summary */}
+        {csvData.length > 0 && !csvLoading && (
+          <div className="tr-csv-summary">
+            <div className="tr-csv-summary-stats">
+              <div className="tr-csv-stat-item">
+                <span className="tr-csv-stat-label">Total Rows:</span>
+                <span className="tr-csv-stat-value">{csvData.length}</span>
+              </div>
+              <div className="tr-csv-stat-item">
+                <span className="tr-csv-stat-label">Total Columns:</span>
+                <span className="tr-csv-stat-value">{csvHeaders.length}</span>
+              </div>
+              {csvHeaders.length > 0 && (
+                <div className="tr-csv-stat-item">
+                  <span className="tr-csv-stat-label">File Name:</span>
+                  <span className="tr-csv-stat-value" style={{ fontSize: '0.875rem', fontWeight: 'normal' }}>
+                    {csvFile?.name || 'N/A'}
+                  </span>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* CSV Preview Table */}
+        {csvData.length > 0 && !csvLoading && (
+          <div className="tr-csv-preview-section">
+            <div className="tr-csv-preview-header">
+              <h4>All Data ({csvData.length} rows × {csvHeaders.length} columns)</h4>
+              <button 
+                className="tr-csv-save-btn"
+                onClick={async () => {
+                  // Save CSV data to backend
+                  if (csvData.length === 0) {
+                    alert('No data to save. Please upload a CSV file first.');
+                    return;
+                  }
+                  
+                  setIsSavingCSV(true);
+                  setSaveMessage('');
+                  
+                  try {
+                    console.log('Saving CSV data:', csvData.length, 'rows');
+                    const result = await monthlyPortfolioUpdateAPI.saveMonthlyPortfolioData(csvData);
+                    
+                    if (result.success) {
+                      setSaveMessage(`Successfully saved ${result.inserted} records to database!`);
+                      setTimeout(() => setSaveMessage(''), 5000);
+                    } else {
+                      setSaveMessage(`Error: ${result.error || 'Failed to save data'}`);
+                      setTimeout(() => setSaveMessage(''), 5000);
+                    }
+                  } catch (error) {
+                    console.error('Error saving CSV data:', error);
+                    setSaveMessage(`Error saving data: ${error.message || 'Unknown error'}`);
+                    setTimeout(() => setSaveMessage(''), 5000);
+                  } finally {
+                    setIsSavingCSV(false);
+                  }
+                }}
+                disabled={isSavingCSV || csvData.length === 0}
+              >
+                {isSavingCSV ? 'Saving...' : 'Save Data'}
+              </button>
+            </div>
+            <div className="tr-csv-table-container">
+              <table className="tr-csv-preview-table">
+                <thead>
+                  <tr>
+                    <th>#</th>
+                    {csvHeaders.map((header, index) => (
+                      <th key={index}>{header || `Column ${index + 1}`}</th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {csvPreviewData.map((row, rowIndex) => (
+                    <tr key={rowIndex}>
+                      <td className="tr-row-number">{rowIndex + 1}</td>
+                      {csvHeaders.map((header, colIndex) => {
+                        const cellValue = row[header] || '';
+                        return (
+                          <td key={colIndex} title={cellValue}>
+                            {cellValue}
+                          </td>
+                        );
+                      })}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+            <div className="tr-csv-preview-footer">
+              <p>Showing all {csvData.length} rows with {csvHeaders.length} columns. Use horizontal and vertical scroll to view all data.</p>
+            </div>
+          </div>
+        )}
+
+        {/* Empty State */}
+        {csvData.length === 0 && !csvLoading && !csvError && (
+          <div className="tr-csv-empty-state">
+            <div className="tr-csv-empty-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                <polyline points="14 2 14 8 20 8"/>
+                <line x1="16" y1="13" x2="8" y2="13"/>
+                <line x1="16" y1="17" x2="8" y2="17"/>
+                <polyline points="10 9 9 9 8 9"/>
+              </svg>
+            </div>
+            <h4>No CSV file uploaded</h4>
+            <p>Upload a CSV file to start importing transaction data.</p>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+
   return (
     <div className="tr-equity-module-main-container">
       <div className="tr-page-header-section">
@@ -1261,7 +1751,28 @@ const TradeReport = () => {
         </div>
       </div>
 
-      <div className="tr-controls-section">
+      {/* Main Tab Navigation */}
+      <div className="tr-main-tabs-section">
+        <div className="tr-main-tabs">
+          <button 
+            className={`tr-main-tab ${mainTab === 'daily-updates' ? 'tr-main-tab-active' : ''}`}
+            onClick={() => setMainTab('daily-updates')}
+          >
+            Daily Updates
+          </button>
+          <button 
+            className={`tr-main-tab ${mainTab === 'portfolio-update' ? 'tr-main-tab-active' : ''}`}
+            onClick={() => setMainTab('portfolio-update')}
+          >
+            Portfolio Update - Monthly Updates
+          </button>
+        </div>
+      </div>
+
+      {/* Daily Updates Tab Content */}
+      {mainTab === 'daily-updates' && (
+        <>
+          <div className="tr-controls-section">
         <div className="tr-view-tabs">
           <button 
             className={selectedView === 'documents' ? 'tr-active' : ''}
@@ -1334,14 +1845,23 @@ const TradeReport = () => {
         </div>
       </div>
 
-      <div className="tr-report-content">
-        {selectedView === 'documents' && renderDocuments()}
-        {selectedView === 'overview' && renderOverview()}
-        {selectedView === 'sales' && renderSales()}
-        {selectedView === 'purchases' && renderPurchases()}
-        {selectedView === 'client' && renderClientInfo()}
-        {selectedView === 'parsed' && renderParsedData()}
-      </div>
+          <div className="tr-report-content">
+            {selectedView === 'documents' && renderDocuments()}
+            {selectedView === 'overview' && renderOverview()}
+            {selectedView === 'sales' && renderSales()}
+            {selectedView === 'purchases' && renderPurchases()}
+            {selectedView === 'client' && renderClientInfo()}
+            {selectedView === 'parsed' && renderParsedData()}
+          </div>
+        </>
+      )}
+
+      {/* Portfolio Update Tab Content */}
+      {mainTab === 'portfolio-update' && (
+        <div className="tr-report-content">
+          {renderPortfolioUpdate()}
+        </div>
+      )}
 
       {/* Submit Modal */}
       {showSubmitModal && (
