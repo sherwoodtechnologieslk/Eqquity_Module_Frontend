@@ -11,7 +11,7 @@
   align-items: center;
   justify-content: space-between;
   background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%);
-  border-radius: 50px;
+  border-radius: 4px;
   padding: 1.5rem 2.5rem;
   margin: 2rem auto;
   max-width: 1000px;
@@ -104,7 +104,7 @@
   padding: 2rem;
   background: linear-gradient(135deg, #2648b8 0%, #4989f0 100%);
   margin: 2rem auto;
-  border-radius: 20px;
+  border-radius: 6px;
   max-width: 1200px;
   overflow: hidden;
 }
@@ -122,7 +122,7 @@
   width: 48px;
   height: 48px;
   background: rgba(255, 255, 255, 0.2);
-  border-radius: 12px;
+  border-radius: 4px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -345,7 +345,7 @@
   padding: 1.5rem;
   background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
   border: 1px solid #e2e8f0;
-  border-radius: 16px;
+  border-radius: 6px;
   cursor: pointer;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   position: relative;
@@ -398,7 +398,7 @@
   width: 64px;
   height: 64px;
   background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%) !important;
-  border-radius: 14px;
+  border-radius: 4px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -548,7 +548,7 @@
   gap: 1rem;
   padding: 0.5rem;
   background: #f8fafc;
-  border-radius: 8px;
+  border-radius: 4px;
   transition: background-color 0.2s ease;
 }
 
@@ -605,7 +605,7 @@
 /* Status Card */
 .status-card {
   background: white;
-  border-radius: 20px;
+  border-radius: 6px;
   padding: 2rem;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
   border: 1px solid rgba(255, 255, 255, 0.2);
@@ -638,7 +638,7 @@
   width: 60px;
   height: 60px;
   background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
-  border-radius: 16px;
+  border-radius: 6px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -738,7 +738,7 @@
 /* Content Cards */
 .content-card {
   background: white;
-  border-radius: 20px;
+  border-radius: 6px;
   padding: 2rem;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
   border: 1px solid rgba(255, 255, 255, 0.2);
@@ -789,7 +789,7 @@
   color: white;
   border: none;
   padding: 0.5rem 1rem;
-  border-radius: 8px;
+  border-radius: 4px;
   font-size: 0.75rem;
   font-weight: 600;
   cursor: pointer;
@@ -818,7 +818,7 @@
 
 .transaction-card {
   background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
-  border-radius: 12px;
+  border-radius: 4px;
   padding: 1rem;
   border: 1px solid rgba(226, 232, 240, 0.5);
   transition: all 0.3s ease;
@@ -853,7 +853,7 @@
 
 .transaction-badge {
   padding: 0.375rem 0.75rem;
-  border-radius: 16px;
+  border-radius: 6px;
   font-size: 0.7rem;
   font-weight: 700;
   text-transform: uppercase;
@@ -923,7 +923,7 @@
   gap: 1.5rem;
   padding: 1.5rem;
   background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
-  border-radius: 16px;
+  border-radius: 6px;
   border: 1px solid rgba(226, 232, 240, 0.5);
   transition: all 0.3s ease;
   position: relative;
@@ -951,7 +951,7 @@
   height: 40px;
   background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
   color: white;
-  border-radius: 12px;
+  border-radius: 4px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1014,7 +1014,7 @@
   align-items: flex-start;
   gap: 1rem;
   padding: 1.5rem;
-  border-radius: 16px;
+  border-radius: 6px;
   border-left: 4px solid;
   transition: all 0.3s ease;
   position: relative;
@@ -1104,7 +1104,7 @@
   padding: 1.5rem;
   background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
   border: 1px solid rgba(226, 232, 240, 0.5);
-  border-radius: 16px;
+  border-radius: 6px;
   cursor: pointer;
   transition: all 0.3s ease;
   position: relative;
@@ -1143,7 +1143,7 @@
   width: 48px;
   height: 48px;
   background: rgba(255, 255, 255, 0.2);
-  border-radius: 12px;
+  border-radius: 4px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1336,7 +1336,7 @@
 
 .pnl-metric-card {
   background: white;
-  border-radius: 16px;
+  border-radius: 6px;
   padding: 1.5rem;
   box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
   border: 1px solid rgba(255, 255, 255, 0.2);

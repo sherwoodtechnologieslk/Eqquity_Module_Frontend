@@ -207,6 +207,8 @@ const SellTransactionEntry = ({ setFifoParams, setActiveTab }) => {
   };
 
   // Helper function to check if a date is a holiday
+  // For recurring holidays, matches by month and day (ignoring year)
+  // For non-recurring holidays, matches exact date
   const isHoliday = (dateString) => {
     if (!dateString || holidays.length === 0) return null;
     
@@ -217,13 +219,20 @@ const SellTransactionEntry = ({ setFifoParams, setActiveTab }) => {
       return null;
     }
     
-    // Find matching holiday by comparing normalized dates (both as strings)
+    // Find matching holiday
     const holiday = holidays.find(h => {
       // Holiday dates are already normalized when fetched, but normalize again to be safe
       const holidayDate = normalizeDate(h.date);
       if (!holidayDate) return false;
       
-      // Compare as strings - both should be in YYYY-MM-DD format
+      // If holiday is recurring, match by month and day (MM-DD)
+      if (h.isRecurring) {
+        const checkMonthDay = checkDate.substring(5); // Extract MM-DD from YYYY-MM-DD
+        const holidayMonthDay = holidayDate.substring(5); // Extract MM-DD from YYYY-MM-DD
+        return checkMonthDay === holidayMonthDay;
+      }
+      
+      // For non-recurring holidays, match exact date
       const matches = String(holidayDate) === String(checkDate);
       
       // Debug log for troubleshooting
@@ -232,6 +241,7 @@ const SellTransactionEntry = ({ setFifoParams, setActiveTab }) => {
           checkDate,
           holidayDate,
           holidayName: h.name,
+          isRecurring: h.isRecurring,
           originalInput: dateString,
           originalHolidayDate: h.date
         });

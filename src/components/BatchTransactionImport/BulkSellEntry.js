@@ -296,6 +296,8 @@ const BulkSellEntry = () => {
   }, []);
 
   // Helper function to check if a date is a holiday
+  // For recurring holidays, matches by month and day (ignoring year)
+  // For non-recurring holidays, matches exact date
   const isHoliday = (dateString) => {
     if (!dateString || holidays.length === 0) return null;
 
@@ -305,6 +307,15 @@ const BulkSellEntry = () => {
     const holiday = holidays.find(h => {
       const holidayDate = normalizeDate(h.date);
       if (!holidayDate) return false;
+      
+      // If holiday is recurring, match by month and day (MM-DD)
+      if (h.isRecurring) {
+        const checkMonthDay = checkDate.substring(5); // Extract MM-DD from YYYY-MM-DD
+        const holidayMonthDay = holidayDate.substring(5); // Extract MM-DD from YYYY-MM-DD
+        return checkMonthDay === holidayMonthDay;
+      }
+      
+      // For non-recurring holidays, match exact date
       return String(holidayDate) === String(checkDate);
     });
 

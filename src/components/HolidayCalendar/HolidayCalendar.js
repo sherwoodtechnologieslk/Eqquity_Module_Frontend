@@ -120,6 +120,41 @@ const HolidayCalendar = ({ mode = 'calendar' }) => {
     }
   };
 
+  // Helper function to check if a holiday matches a given date
+  // For recurring holidays, matches by month and day (ignoring year)
+  // For non-recurring holidays, matches exact date
+  const holidayMatchesDate = (holiday, checkDate) => {
+    if (!holiday || !checkDate) return false;
+    
+    // Extract date string from checkDate (could be Date object or string)
+    let checkDateStr;
+    if (checkDate instanceof Date) {
+      checkDateStr = checkDate.toISOString().split('T')[0]; // Format: YYYY-MM-DD
+    } else {
+      checkDateStr = String(checkDate).split('T')[0]; // Handle string input
+    }
+    
+    // Extract date string from holiday
+    let holidayDateStr = holiday.date;
+    if (typeof holidayDateStr === 'string') {
+      holidayDateStr = holidayDateStr.split('T')[0]; // Handle ISO format
+    } else if (holidayDateStr instanceof Date) {
+      holidayDateStr = holidayDateStr.toISOString().split('T')[0];
+    } else {
+      holidayDateStr = String(holidayDateStr).split('T')[0];
+    }
+    
+    // If holiday is recurring, match by month and day (MM-DD)
+    if (holiday.isRecurring) {
+      const checkMonthDay = checkDateStr.substring(5); // Extract MM-DD from YYYY-MM-DD
+      const holidayMonthDay = holidayDateStr.substring(5); // Extract MM-DD from YYYY-MM-DD
+      return checkMonthDay === holidayMonthDay;
+    }
+    
+    // For non-recurring holidays, match exact date
+    return holidayDateStr === checkDateStr;
+  };
+
   const calendarCells = useMemo(
     () => buildCalendar(viewDate.getFullYear(), viewDate.getMonth()),
     [viewDate]
@@ -987,18 +1022,8 @@ const HolidayCalendar = ({ mode = 'calendar' }) => {
             
             const isToday = date.toDateString() === today.toDateString();
             
-            // Find holidays for this date
-            const dateString = date.toISOString().split('T')[0]; // Format: YYYY-MM-DD
-            
-            // Match holidays - handle different date formats from backend
-            const dayHolidays = holidays.filter(h => {
-              // Extract just the date part from various formats
-              let holidayDate = h.date;
-              if (typeof holidayDate === 'string') {
-                holidayDate = holidayDate.split('T')[0]; // Handle ISO format
-              }
-              return holidayDate === dateString;
-            });
+            // Find holidays for this date (including recurring holidays)
+            const dayHolidays = holidays.filter(h => holidayMatchesDate(h, date));
             
             const hasHolidays = dayHolidays.length > 0;
             
@@ -1035,13 +1060,7 @@ const HolidayCalendar = ({ mode = 'calendar' }) => {
               <div className="hc-holiday-modal-header">
                 <div>
                   <h3>Holidays on {selectedDate.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</h3>
-                  <p className="hc-holiday-modal-subtitle">{holidays.filter(h => {
-                    let holidayDate = h.date;
-                    if (typeof holidayDate === 'string') {
-                      holidayDate = holidayDate.split('T')[0];
-                    }
-                    return holidayDate === selectedDate.toISOString().split('T')[0];
-                  }).length} holiday(s) observed</p>
+                  <p className="hc-holiday-modal-subtitle">{holidays.filter(h => holidayMatchesDate(h, selectedDate)).length} holiday(s) observed</p>
                 </div>
                 <button 
                   className="hc-modal-close"
@@ -1051,13 +1070,7 @@ const HolidayCalendar = ({ mode = 'calendar' }) => {
                 </button>
               </div>
               <div className="hc-holiday-modal-content">
-                {holidays.filter(h => {
-                  let holidayDate = h.date;
-                  if (typeof holidayDate === 'string') {
-                    holidayDate = holidayDate.split('T')[0];
-                  }
-                  return holidayDate === selectedDate.toISOString().split('T')[0];
-                }).map(holiday => (
+                {holidays.filter(h => holidayMatchesDate(h, selectedDate)).map(holiday => (
                   <div key={holiday.id} className="hc-holiday-card">
                     <div className="hc-holiday-card-header">
                       <div className="hc-holiday-card-icon-wrapper">
@@ -1087,12 +1100,19 @@ const HolidayCalendar = ({ mode = 'calendar' }) => {
                         <p>{holiday.description}</p>
                       </div>
                     )}
-                    {holiday.isRecurring && (
+                    {holiday.isRecurring ? (
                       <div className="hc-holiday-card-recurring">
                         <svg fill="currentColor" viewBox="0 0 20 20">
                           <path fillRule="evenodd" d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01.61-1.276z" clipRule="evenodd" />
                         </svg>
                         <span>Recurring annually</span>
+                      </div>
+                    ) : (
+                      <div className="hc-holiday-card-once">
+                        <svg fill="currentColor" viewBox="0 0 20 20">
+                          <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clipRule="evenodd" />
+                        </svg>
+                        <span>One-time occurrence</span>
                       </div>
                     )}
                   </div>

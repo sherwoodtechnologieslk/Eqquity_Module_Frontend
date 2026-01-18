@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { tradeSummaryAPI, transactionEntryAPI } from '../../services/api';
 import { realizedPnLService } from '../../services/realizedPnLService';
+import { authService } from '../../services/authService';
 import './Dashboard.css';
 
 const Dashboard = ({ onTabChange }) => {
@@ -22,6 +23,45 @@ const Dashboard = ({ onTabChange }) => {
 
   const [isLoading, setIsLoading] = useState(true);
   const [currentTime, setCurrentTime] = useState(new Date());
+  const [userRegion, setUserRegion] = useState('');
+
+  // Load user region from localStorage or API
+  useEffect(() => {
+    const loadUserRegion = () => {
+      try {
+        // Try to get user data from localStorage first
+        const storedUser = authService.getStoredUser();
+        if (storedUser && storedUser.fundsCenter) {
+          setUserRegion(storedUser.fundsCenter);
+        } else {
+          // If not in localStorage, fetch from API
+          const token = localStorage.getItem('token');
+          if (token) {
+            fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:8080/api'}/auth/me`, {
+              method: 'GET',
+              headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+              }
+            })
+              .then(response => response.json())
+              .then(data => {
+                if (data.user && data.user.fundsCenter) {
+                  setUserRegion(data.user.fundsCenter);
+                }
+              })
+              .catch(error => {
+                console.error('Error fetching user region:', error);
+              });
+          }
+        }
+      } catch (error) {
+        console.error('Error loading user region:', error);
+      }
+    };
+
+    loadUserRegion();
+  }, []);
 
   // Update time every second
   useEffect(() => {
@@ -496,26 +536,21 @@ const Dashboard = ({ onTabChange }) => {
           {/* Market Status Card */}
           <div className="status-card">
             <div className="status-header">
-              <div className="status-icon">
-            <svg viewBox="0 0 24 24" fill="currentColor">
-              <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
-            </svg>
-          </div>
               <div className="status-info">
             <h3>Market Status</h3>
                 <p className={`status-value ${getMarketStatus(currentTime).isLive ? 'open' : 'closed'}`}>
                   {getMarketStatus(currentTime).status}
                 </p>
-                <span className="status-subtitle">{getMarketStatus(currentTime).subtitle}</span>
+                {userRegion && (
+                  <div className="user-region" style={{ marginTop: '0.5rem', marginBottom: '0.5rem' }}>
+                    <span style={{ fontSize: '0.875rem', color: '#64748b', fontWeight: 500 }}>{userRegion}</span>
+                  </div>
+                )}
                 <div className="live-time">
                   <span className="time-display">{formatTime(currentTime)}</span>
                   <span className="date-display">{formatDate(currentTime)}</span>
                 </div>
           </div>
-        </div>
-            <div className="status-indicator">
-              <div className={`indicator-dot ${getMarketStatus(currentTime).isLive ? 'active' : 'inactive'}`}></div>
-              <span>{getMarketStatus(currentTime).isLive ? 'Live' : 'Offline'}</span>
         </div>
       </div>
 
