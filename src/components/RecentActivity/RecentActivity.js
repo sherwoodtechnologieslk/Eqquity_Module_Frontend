@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import './RecentActivity.css';
+import { transactionEntryAPI, otherTransactionAPI } from '../../services/api';
 
 const RecentActivity = () => {
   const [activities, setActivities] = useState([]);
@@ -17,46 +18,135 @@ const RecentActivity = () => {
 
   const loadRecentActivities = async () => {
     try {
-      console.log('🔄 Loading recent activities from API...');
-      console.log('API URL:', `${process.env.REACT_APP_API_URL || 'http://localhost:8080/api'}/dashboard/recent-activities`);
+      setIsLoading(true);
+      console.log('🔄 Loading recent activities from multiple sources...');
       
-      // Fetch real data from API
-      const token = localStorage.getItem('token');
-      const response = await fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:8080/api'}/dashboard/recent-activities`, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-          ...(token && { 'Authorization': `Bearer ${token}` })
-        }
-      });
+      const allActivities = [];
 
-      console.log('Response status:', response.status);
-      console.log('Response ok:', response.ok);
+      // 1. Fetch activities from dashboard endpoint (existing trades)
+      try {
+        const token = localStorage.getItem('token');
+        const response = await fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:8080/api'}/dashboard/recent-activities`, {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+            ...(token && { 'Authorization': `Bearer ${token}` })
+          }
+        });
 
-      if (response.ok) {
-        const result = await response.json();
-        console.log('✅ API response received:', result);
-        
-        if (result.success && result.data && Array.isArray(result.data)) {
-          console.log(`📊 Found ${result.data.length} activities`);
-          setActivities(result.data);
-        } else {
-          console.error('❌ API returned invalid data structure:', result);
-          console.log('Using empty data...');
-          setActivities([]);
+        if (response.ok) {
+          const result = await response.json();
+          if (result.success && result.data && Array.isArray(result.data)) {
+            console.log(`📊 Found ${result.data.length} activities from dashboard`);
+            allActivities.push(...result.data);
+          }
         }
-      } else {
-        const errorText = await response.text();
-        console.error('❌ API request failed:', response.status, response.statusText);
-        console.error('Error response:', errorText);
-        console.log('Using empty data...');
-        setActivities([]);
+      } catch (error) {
+        console.error('❌ Error fetching dashboard activities:', error);
       }
+
+      // 2. Fetch buy transactions
+      try {
+        const buyTransactions = await transactionEntryAPI.getAllBuyTransactions();
+        console.log(`📊 Found ${buyTransactions?.length || 0} buy transactions`);
+        
+        if (buyTransactions && Array.isArray(buyTransactions)) {
+          const buyActivities = buyTransactions.map(tx => ({
+            id: `buy_${tx.id}`,
+            type: 'trade',
+            action: 'BUY',
+            symbol: tx.symbol || tx.company_symbol || 'N/A',
+            quantity: parseFloat(tx.quantity) || 0,
+            price: parseFloat(tx.price) || 0,
+            value: (parseFloat(tx.quantity) || 0) * (parseFloat(tx.price) || 0),
+            netValue: parseFloat(tx.net_value) || 0,
+            portfolio: tx.portfolio || 'N/A',
+            timestamp: new Date(tx.trade_date || tx.created_at || new Date()),
+            status: 'completed',
+            contractNumber: tx.contract_number || tx.contractNumber || 'N/A',
+            settlementDate: tx.settlement_date || tx.settlementDate || 'N/A',
+            brokerage: parseFloat(tx.brokerage) || 0,
+            govCess: parseFloat(tx.gov_cess) || 0
+          }));
+          allActivities.push(...buyActivities);
+        }
+      } catch (error) {
+        console.error('❌ Error fetching buy transactions:', error);
+      }
+
+      // 3. Fetch sell transactions
+      try {
+        const sellTransactions = await transactionEntryAPI.getAllSellTransactions();
+        console.log(`📊 Found ${sellTransactions?.length || 0} sell transactions`);
+        
+        if (sellTransactions && Array.isArray(sellTransactions)) {
+          const sellActivities = sellTransactions.map(tx => {
+            const price = parseFloat(tx.sold_price || tx.price || 0);
+            const quantity = Math.abs(parseFloat(tx.quantity) || 0);
+            const portfolio = tx.portfolio_name || tx.portfolio || 'N/A';
+            
+            return {
+              id: `sell_${tx.id}`,
+              type: 'trade',
+              action: 'SELL',
+              symbol: tx.symbol || tx.company_symbol || 'N/A',
+              quantity: quantity,
+              price: price,
+              value: quantity * price,
+              netValue: parseFloat(tx.net_value) || 0,
+              portfolio: portfolio,
+              timestamp: new Date(tx.trade_date || tx.created_at || new Date()),
+              status: 'completed',
+              contractNumber: tx.contract_number || tx.contractNumber || 'N/A',
+              settlementDate: tx.settlement_date || tx.settlementDate || 'N/A',
+              brokerage: parseFloat(tx.brokerage) || 0,
+              govCess: parseFloat(tx.gov_cess) || 0
+            };
+          });
+          allActivities.push(...sellActivities);
+        }
+      } catch (error) {
+        console.error('❌ Error fetching sell transactions:', error);
+      }
+
+      // 4. Fetch other transactions
+      try {
+        const otherTransactions = await otherTransactionAPI.getAllTransactions();
+        console.log(`📊 Found ${otherTransactions?.length || 0} other transactions`);
+        
+        if (otherTransactions && Array.isArray(otherTransactions)) {
+          const otherActivities = otherTransactions.map(tx => ({
+            id: `other_${tx.id}`,
+            type: 'other_transaction',
+            action: tx.transaction_type || tx.transactionType || 'OTHER',
+            symbol: tx.description || 'N/A',
+            quantity: 0,
+            price: 0,
+            value: parseFloat(tx.amount) || 0,
+            portfolio: 'N/A',
+            timestamp: new Date(tx.date || tx.created_at || new Date()),
+            status: 'completed',
+            voucherNumber: tx.voucher_number || tx.voucherNumber || 'N/A',
+            accountType: tx.account_type || tx.accountType || 'N/A',
+            glAccountCode: tx.gl_account_code || tx.glAccountCode || 'N/A',
+            description: tx.description || '',
+            reference: tx.reference || '',
+            counterparty: tx.counterparty || ''
+          }));
+          allActivities.push(...otherActivities);
+        }
+      } catch (error) {
+        console.error('❌ Error fetching other transactions:', error);
+      }
+
+      // Sort all activities by timestamp (most recent first)
+      const sortedActivities = allActivities.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
       
+      console.log(`✅ Total activities loaded: ${sortedActivities.length}`);
+      setActivities(sortedActivities);
       setIsLoading(false);
     } catch (error) {
       console.error('❌ Network error loading recent activities:', error);
-      console.log('Using empty data...');
       setActivities([]);
       setIsLoading(false);
     }
@@ -66,9 +156,19 @@ const RecentActivity = () => {
   const filterActivities = () => {
     let filtered = [...activities];
 
-    // Filter by type only
+    // Filter by type
     if (activeFilter !== 'all') {
-      filtered = filtered.filter(activity => activity.type === activeFilter);
+      if (activeFilter === 'buy') {
+        filtered = filtered.filter(activity => 
+          activity.type === 'trade' && activity.action === 'BUY'
+        );
+      } else if (activeFilter === 'sell') {
+        filtered = filtered.filter(activity => 
+          activity.type === 'trade' && activity.action === 'SELL'
+        );
+      } else {
+        filtered = filtered.filter(activity => activity.type === activeFilter);
+      }
     }
 
     console.log('🔍 Filtering - Active filter:', activeFilter);
@@ -111,6 +211,8 @@ const RecentActivity = () => {
     switch (type) {
       case 'trade':
         return action === 'BUY' ? 'BUY' : 'SELL';
+      case 'other_transaction':
+        return 'OTHER';
       case 'dividend':
         return 'DIV';
       case 'corporate_action':
@@ -149,12 +251,60 @@ const RecentActivity = () => {
           <div className="activity-details">
             <div className="trade-info">
               <span className={`action-badge ${activity.action.toLowerCase()}`}>{activity.action}</span>
-              <span className="quantity">{activity.quantity} shares</span>
+              <span className="quantity">{formatNumber(activity.quantity)} shares</span>
               <span className="price">@ {formatCurrency(activity.price)}</span>
             </div>
             <div className="trade-value">
-              Gross Value: {formatCurrency(activity.value)}
+              {activity.netValue ? (
+                <>
+                  Gross Value: {formatCurrency(activity.value)} | 
+                  Net Value: {formatCurrency(activity.netValue)}
+                </>
+              ) : (
+                `Gross Value: ${formatCurrency(activity.value)}`
+              )}
             </div>
+            {activity.contractNumber && activity.contractNumber !== 'N/A' && (
+              <div className="trade-meta">
+                Contract: {activity.contractNumber} | 
+                Settlement: {activity.settlementDate !== 'N/A' ? activity.settlementDate : 'N/A'}
+              </div>
+            )}
+          </div>
+        );
+      case 'other_transaction':
+        return (
+          <div className="activity-details">
+            <div className="other-transaction-info">
+              <span className="action-badge other">{activity.action}</span>
+              <span className="account-type">{activity.accountType}</span>
+            </div>
+            <div className="other-transaction-value">
+              Amount: {formatCurrency(activity.value)}
+            </div>
+            {activity.voucherNumber && activity.voucherNumber !== 'N/A' && (
+              <div className="other-transaction-meta">
+                Voucher: {activity.voucherNumber}
+                {activity.glAccountCode && activity.glAccountCode !== 'N/A' && (
+                  <> | GL Account: {activity.glAccountCode}</>
+                )}
+              </div>
+            )}
+            {activity.description && (
+              <div className="other-transaction-description">
+                {activity.description}
+              </div>
+            )}
+            {activity.reference && (
+              <div className="other-transaction-reference">
+                Reference: {activity.reference}
+              </div>
+            )}
+            {activity.counterparty && (
+              <div className="other-transaction-counterparty">
+                Counterparty: {activity.counterparty}
+              </div>
+            )}
           </div>
         );
       case 'dividend':
@@ -198,7 +348,7 @@ const RecentActivity = () => {
           </div>
         );
       default:
-        return <div className="activity-details">{activity.details}</div>;
+        return <div className="activity-details">{activity.details || 'No details available'}</div>;
     }
   };
 
@@ -254,10 +404,28 @@ const RecentActivity = () => {
               All
             </button>
             <button 
+              className={`filter-btn ${activeFilter === 'buy' ? 'active' : ''}`}
+              onClick={() => setActiveFilter('buy')}
+            >
+              Buy Transactions
+            </button>
+            <button 
+              className={`filter-btn ${activeFilter === 'sell' ? 'active' : ''}`}
+              onClick={() => setActiveFilter('sell')}
+            >
+              Sell Transactions
+            </button>
+            <button 
+              className={`filter-btn ${activeFilter === 'other_transaction' ? 'active' : ''}`}
+              onClick={() => setActiveFilter('other_transaction')}
+            >
+              Other Transactions
+            </button>
+            <button 
               className={`filter-btn ${activeFilter === 'trade' ? 'active' : ''}`}
               onClick={() => setActiveFilter('trade')}
             >
-              Trades
+              All Trades
             </button>
             <button 
               className={`filter-btn ${activeFilter === 'dividend' ? 'active' : ''}`}
@@ -307,8 +475,17 @@ const RecentActivity = () => {
               <div className="activity-content">
                 <div className="activity-header">
                   <div className="activity-title">
-                    <span className="symbol">{activity.symbol || 'N/A'}</span>
-                    <span className="portfolio">{activity.portfolio}</span>
+                    <span className="symbol">
+                      {activity.type === 'other_transaction' 
+                        ? (activity.description || activity.action || 'Other Transaction')
+                        : (activity.symbol || 'N/A')}
+                    </span>
+                    {activity.type !== 'other_transaction' && (
+                      <span className="portfolio">{activity.portfolio}</span>
+                    )}
+                    {activity.type === 'other_transaction' && activity.accountType && (
+                      <span className="portfolio">{activity.accountType}</span>
+                    )}
                   </div>
                   <div className="activity-meta">
                     <span className="timestamp">{formatDateTime(activity.timestamp)}</span>
