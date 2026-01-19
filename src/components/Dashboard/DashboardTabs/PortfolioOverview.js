@@ -29,11 +29,26 @@ const PortfolioOverview = ({ onTabChange }) => {
   const [portfoliosLoading, setPortfoliosLoading] = useState(true);
   const [selectedTimeRange, setSelectedTimeRange] = useState('3M');
 
-  // Generate empty portfolio value history data
-  const generateValueHistory = (timeRange, currentValue) => {
-    // Return empty array - no mock data
-    return [];
-  };
+  // Fetch portfolio value history from API
+  const fetchValueHistory = useCallback(async (portfolioId, timeRange) => {
+    try {
+      console.log('🔍 PORTFOLIO OVERVIEW - Fetching value history for portfolio:', portfolioId, 'timeRange:', timeRange);
+      const result = await portfolioAPI.getPortfolioValueHistory(portfolioId, timeRange);
+      console.log('🔍 PORTFOLIO OVERVIEW - Value history response:', result);
+      
+      if (result.success && result.data) {
+        // Transform data to match chart component expectations
+        return result.data.map(item => ({
+          date: item.date,
+          value: item.value || 0
+        }));
+      }
+      return [];
+    } catch (error) {
+      console.error('❌ PORTFOLIO OVERVIEW - Error fetching value history:', error);
+      return [];
+    }
+  }, []);
 
   const loadActivePortfolios = async () => {
     try {
@@ -191,6 +206,9 @@ const PortfolioOverview = ({ onTabChange }) => {
           source: 'Same calculations as dashboard'
         });
         
+        // Fetch value history
+        const valueHistory = await fetchValueHistory(selectedPortfolio, selectedTimeRange);
+        
         setPortfolioData({
           summary: {
             ...result.data.summary,
@@ -202,7 +220,7 @@ const PortfolioOverview = ({ onTabChange }) => {
           },
           holdings: result.data.holdings || [],
           assetAllocation: result.data.assetAllocation || { equity: 0, cash: 0 },
-          valueHistory: generateValueHistory(selectedTimeRange, portfolioValue)
+          valueHistory: valueHistory
         });
       } else {
         // API returned error, use empty data
@@ -230,21 +248,25 @@ const PortfolioOverview = ({ onTabChange }) => {
 
   // Regenerate chart data when time range changes
   useEffect(() => {
-    const currentTotalValue = portfolioData.summary?.totalValue || 0;
-    if (currentTotalValue > 0) {
-      const newValueHistory = generateValueHistory(selectedTimeRange, currentTotalValue);
-      setPortfolioData(prev => ({
-        ...prev,
-        valueHistory: newValueHistory
-      }));
-    } else {
-      // No data available, clear value history
-      setPortfolioData(prev => ({
-        ...prev,
-        valueHistory: []
-      }));
-    }
-  }, [selectedTimeRange, portfolioData.summary?.totalValue]);
+    const updateValueHistory = async () => {
+      const currentTotalValue = portfolioData.summary?.totalValue || 0;
+      if (currentTotalValue > 0 && portfolios.length > 0) {
+        const newValueHistory = await fetchValueHistory(selectedPortfolio, selectedTimeRange);
+        setPortfolioData(prev => ({
+          ...prev,
+          valueHistory: newValueHistory
+        }));
+      } else {
+        // No data available, clear value history
+        setPortfolioData(prev => ({
+          ...prev,
+          valueHistory: []
+        }));
+      }
+    };
+    
+    updateValueHistory();
+  }, [selectedTimeRange, selectedPortfolio, portfolios.length, portfolioData.summary?.totalValue, fetchValueHistory]);
 
 
   const formatCurrency = (amount) => {

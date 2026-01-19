@@ -1,20 +1,21 @@
-import React, { useState, useEffect } from 'react';
-import { parsedTradeTransactionAPI } from '../../services/api';
+import React, { useState, useEffect, useCallback } from 'react';
+import { parsedTradeTransactionAPI, equityAPI, portfolioAPI } from '../../services/api';
+import UpdateBuyTransactionsModal from './UpdateBuyTransactionsModal';
+import UpdateSellTransactionsModal from './UpdateSellTransactionsModal';
 import './Styles/TradeConfirmation.css';
 
 const TradeConfirmation = () => {
-  const [activeTab, setActiveTab] = useState('trade-confirmation');
-  const [transactions, setTransactions] = useState([]);
+  const [activeTab, setActiveTab] = useState('purchases');
   const [groupedData, setGroupedData] = useState({ sales: {}, purchases: {} });
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
-  const [selectedCompany, setSelectedCompany] = useState(null);
+  const [latestTradeDate, setLatestTradeDate] = useState(null);
+  const [showUpdateBuyModal, setShowUpdateBuyModal] = useState(false);
+  const [showUpdateSellModal, setShowUpdateSellModal] = useState(false);
+  const [equities, setEquities] = useState([]);
+  const [portfolios, setPortfolios] = useState([]);
 
-  useEffect(() => {
-    fetchTransactions();
-  }, []);
-
-  const fetchTransactions = async () => {
+  const fetchTransactions = useCallback(async () => {
     try {
       setIsLoading(true);
       setError('');
@@ -38,10 +39,10 @@ const TradeConfirmation = () => {
         // Filter transactions to show only the latest trade date
         const filteredData = data.filter(t => t.trade_date === latestTradeDate);
         
-        setTransactions(filteredData);
+        setLatestTradeDate(latestTradeDate);
         groupTransactions(filteredData);
       } else {
-        setTransactions([]);
+        setLatestTradeDate(null);
         groupTransactions([]);
       }
     } catch (err) {
@@ -50,7 +51,11 @@ const TradeConfirmation = () => {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    fetchTransactions();
+  }, [fetchTransactions]);
 
   const groupTransactions = (data) => {
     const sales = {};
@@ -74,6 +79,12 @@ const TradeConfirmation = () => {
     });
 
     setGroupedData({ sales, purchases });
+  };
+
+  const formatTradeDate = (dateString) => {
+    if (!dateString) return '';
+    // Convert YYYY-MM-DD to YYYY/MM/DD
+    return dateString.split('-').join('/');
   };
 
   const formatCurrency = (amount) => {
@@ -107,6 +118,7 @@ const TradeConfirmation = () => {
     let totalQuantity = 0;
     let totalBrokerage = 0;
     let totalClearingFees = 0;
+    let totalGovernmentCess = 0;
     let totalFees = 0;
     let totalNet = 0;
     let avgPrice = 0;
@@ -116,6 +128,7 @@ const TradeConfirmation = () => {
       const qty = parseFloat(t.quantity) || 0;
       const brokerage = parseFloat(t.brokerage) || 0;
       const clearingFees = parseFloat(t.clearing_fees) || 0;
+      const governmentCess = parseFloat(t.government_cess) || 0;
       const fees = calculateFees(t);
       const net = value - fees;
 
@@ -123,6 +136,7 @@ const TradeConfirmation = () => {
       totalQuantity += qty;
       totalBrokerage += brokerage;
       totalClearingFees += clearingFees;
+      totalGovernmentCess += governmentCess;
       totalFees += fees;
       totalNet += net;
     });
@@ -134,6 +148,7 @@ const TradeConfirmation = () => {
       totalQuantity,
       totalBrokerage,
       totalClearingFees,
+      totalGovernmentCess,
       totalFees,
       totalNet,
       avgPrice
@@ -163,6 +178,7 @@ const TradeConfirmation = () => {
                  <th className="tc-col-price">Price</th>
                  <th className="tc-col-clearing">Clearing Fees</th>
                  <th className="tc-col-cse">CSE Fees</th>
+                 <th className="tc-col-gov-cess">Government Cess</th>
                  <th className="tc-col-net">Net Amount</th>
                  <th className="tc-col-exec-id">Execution ID</th>
                  <th className="tc-col-settlement">Settlement Date</th>
@@ -176,6 +192,7 @@ const TradeConfirmation = () => {
                 const brokerage = parseFloat(transaction.brokerage) || 0;
                 const clearingFees = parseFloat(transaction.clearing_fees) || 0;
                 const cseFees = parseFloat(transaction.cse_fees) || 0;
+                const governmentCess = parseFloat(transaction.government_cess) || 0;
                 const fees = calculateFees(transaction);
                 const netAmount = value - fees;
 
@@ -188,6 +205,7 @@ const TradeConfirmation = () => {
                      <td className="tc-col-price">{formatCurrency(price)}</td>
                      <td className="tc-col-clearing">{formatCurrency(clearingFees)}</td>
                      <td className="tc-col-cse">{formatCurrency(cseFees)}</td>
+                     <td className="tc-col-gov-cess">{formatCurrency(governmentCess)}</td>
                      <td className="tc-col-net">{formatCurrency(netAmount)}</td>
                      <td className="tc-col-exec-id">{transaction.execution_id || 'N/A'}</td>
                      <td className="tc-col-settlement">{transaction.settlement_date || 'N/A'}</td>
@@ -205,7 +223,8 @@ const TradeConfirmation = () => {
                  <td className="tc-col-brokerage">{formatCurrency(totals.totalBrokerage)}</td>
                  <td className="tc-col-price">{formatCurrency(totals.avgPrice)}</td>
                  <td className="tc-col-clearing">{formatCurrency(totals.totalClearingFees)}</td>
-                 <td className="tc-col-cse">{formatCurrency(totals.totalFees - totals.totalBrokerage - totals.totalClearingFees)}</td>
+                 <td className="tc-col-cse">{formatCurrency(totals.totalFees - totals.totalBrokerage - totals.totalClearingFees - totals.totalGovernmentCess)}</td>
+                 <td className="tc-col-gov-cess">{formatCurrency(totals.totalGovernmentCess)}</td>
                  <td className="tc-col-net">{formatCurrency(totals.totalNet)}</td>
                  <td className="tc-col-exec-id" colSpan="2"></td>
                </tr>
@@ -214,25 +233,6 @@ const TradeConfirmation = () => {
         </div>
       </div>
     );
-  };
-
-  const calculateOverallTotals = () => {
-    let purchaseTotal = 0;
-    let salesTotal = 0;
-
-    Object.values(groupedData.purchases).forEach(group => {
-      const totals = calculateGroupTotals(group);
-      purchaseTotal += totals.totalNet;
-    });
-
-    Object.values(groupedData.sales).forEach(group => {
-      const totals = calculateGroupTotals(group);
-      salesTotal += totals.totalNet;
-    });
-
-    const netSettlement = salesTotal - purchaseTotal;
-
-    return { purchaseTotal, salesTotal, netSettlement };
   };
 
   if (isLoading) {
@@ -258,246 +258,366 @@ const TradeConfirmation = () => {
     );
   }
 
-  const overallTotals = calculateOverallTotals();
-  const hasData = Object.keys(groupedData.sales).length > 0 || Object.keys(groupedData.purchases).length > 0;
+  const renderPurchases = () => {
+    const hasPurchases = Object.keys(groupedData.purchases).length > 0;
+    
+    return (
+      <>
+        {!hasPurchases ? (
+          <div className="tc-no-data">
+            <p>No purchase transactions found.</p>
+          </div>
+        ) : (
+          Object.entries(groupedData.purchases).map(([companyId, transactions]) =>
+            renderCompanyGroup(companyId, transactions, 'purchase')
+          )
+        )}
+      </>
+    );
+  };
+
+  const renderSales = () => {
+    const hasSales = Object.keys(groupedData.sales).length > 0;
+    
+    return (
+      <>
+        {!hasSales ? (
+          <div className="tc-no-data">
+            <p>No sales transactions found.</p>
+          </div>
+        ) : (
+          Object.entries(groupedData.sales).map(([companyId, transactions]) =>
+            renderCompanyGroup(companyId, transactions, 'sale')
+          )
+        )}
+      </>
+    );
+  };
+
+  const fetchEquitiesAndPortfolios = async () => {
+    try {
+      const [equitiesData, portfoliosData] = await Promise.all([
+        equityAPI.getAllEquities(),
+        portfolioAPI.getAllPortfolios()
+      ]);
+      setEquities(equitiesData);
+      setPortfolios(portfoliosData);
+    } catch (err) {
+      console.error('Error fetching equities/portfolios:', err);
+    }
+  };
 
   const handleUpdateBuyTransactions = () => {
-    // TODO: Implement update buy transactions functionality
-    console.log('Update Buy Transactions clicked');
-    // This can be implemented to update/manage buy transactions
+    setShowUpdateBuyModal(true);
+    fetchEquitiesAndPortfolios();
   };
 
   const handleUpdateSellTransactions = () => {
-    // TODO: Implement update sell transactions functionality
-    console.log('Update Sell Transactions clicked');
-    // This can be implemented to update/manage sell transactions
+    setShowUpdateSellModal(true);
+    fetchEquitiesAndPortfolios();
   };
 
-  const renderPortfolioUpdate = () => {
-    // Calculate portfolio holdings
-    const portfolio = {};
-    
-    transactions.forEach(transaction => {
-      const companyId = transaction.company_id || 'UNKNOWN';
-      const buySell = (transaction.buy_sell || '').toUpperCase();
-      const qty = parseFloat(transaction.quantity) || 0;
-      const price = parseFloat(transaction.price) || 0;
-      
-      if (!portfolio[companyId]) {
-        portfolio[companyId] = {
-          companyId,
-          quantity: 0,
-          totalCost: 0,
-          avgPrice: 0,
-          currentValue: 0
-        };
-      }
-      
-      if (buySell === 'B') {
-        // Purchase - add to holdings
-        portfolio[companyId].quantity += qty;
-        portfolio[companyId].totalCost += (qty * price);
-      } else if (buySell === 'S') {
-        // Sale - reduce holdings
-        portfolio[companyId].quantity -= qty;
-        portfolio[companyId].totalCost -= (qty * price);
-      }
-    });
+  const renderUpdatePortfolio = () => {
+    const purchaseTransactions = Object.values(groupedData.purchases).flat();
+    const sellTransactions = Object.values(groupedData.sales).flat();
 
-    // Calculate averages - show all companies including zero/negative holdings
-    const holdings = Object.values(portfolio)
-      .map(h => ({
-        ...h,
-        avgPrice: h.quantity !== 0 ? h.totalCost / h.quantity : 0,
-        currentValue: h.quantity * (h.quantity !== 0 ? h.totalCost / h.quantity : 0)
-      }))
-      .sort((a, b) => a.companyId.localeCompare(b.companyId));
+    const formatNumber = (value) => {
+      if (!value || value === 0) return '0.00';
+      return parseFloat(value).toLocaleString('en-US', {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+      });
+    };
 
-    const totalPortfolioValue = holdings.reduce((sum, h) => sum + h.currentValue, 0);
-    const totalCost = holdings.reduce((sum, h) => sum + h.totalCost, 0);
-    const totalGainLoss = totalPortfolioValue - totalCost;
+    const getSummary = (transactions) => {
+      const totalQuantity = transactions.reduce((sum, t) => {
+        return sum + (parseFloat(t.quantity) || 0);
+      }, 0);
+
+      const totalValue = transactions.reduce((sum, t) => {
+        return sum + calculateTransactionValue(t);
+      }, 0);
+
+      return {
+        count: transactions.length,
+        totalQuantity,
+        totalValue
+      };
+    };
+
+    const purchaseSummary = getSummary(purchaseTransactions);
+    const sellSummary = getSummary(sellTransactions);
+
+    const purchaseCompanies = Object.keys(groupedData.purchases);
+    const sellCompanies = Object.keys(groupedData.sales);
 
     return (
-      <div className="tc-portfolio-update">
-        <div className="tc-portfolio-header">
-          <h2>Portfolio Holdings</h2>
-          <div className="tc-portfolio-actions">
-            <button onClick={handleUpdateBuyTransactions} className="tc-update-btn tc-update-buy-btn">
-              Update Buy Transactions
-            </button>
-            <button onClick={handleUpdateSellTransactions} className="tc-update-btn tc-update-sell-btn">
-              Update Sell Transactions
-            </button>
-            <button onClick={fetchTransactions} className="tc-refresh-btn">Refresh</button>
+      <div className="tc-update-portfolio">
+        <div className="tc-update-summary">
+          <div className="tc-update-summary-header">
+            <h2>Transactions Ready to Update</h2>
+            <p>
+              Convert these uploaded trade transactions into portfolio entries with automatic journal entries.
+            </p>
+          </div>
+          <div className="tc-update-summary-grid">
+            <div className="tc-update-card tc-update-card-buy">
+              <div className="tc-update-card-header">
+                <h3>Buy Transactions</h3>
+                <span className="tc-update-count">{purchaseSummary.count} transactions</span>
+              </div>
+              <div className="tc-update-metrics">
+                <div className="tc-update-metric">
+                  <span>Companies:</span>
+                  <strong>{purchaseCompanies.length}</strong>
+                </div>
+                <div className="tc-update-metric">
+                  <span>Total Quantity:</span>
+                  <strong>{formatNumber(purchaseSummary.totalQuantity)}</strong>
+                </div>
+                <div className="tc-update-metric">
+                  <span>Total Value:</span>
+                  <strong>Rs. {formatCurrency(purchaseSummary.totalValue)}</strong>
+                </div>
+              </div>
+              <div className="tc-update-companies">
+                <span>Companies:</span>
+                <strong>
+                  {purchaseCompanies.length > 0 ? purchaseCompanies.join(', ') : 'N/A'}
+                </strong>
+              </div>
+              <button onClick={handleUpdateBuyTransactions} className="tc-update-btn tc-update-buy-btn">
+                Update Buy Transactions
+              </button>
+            </div>
+
+            <div className="tc-update-card tc-update-card-sell">
+              <div className="tc-update-card-header">
+                <h3>Sell Transactions</h3>
+                <span className="tc-update-count">{sellSummary.count} transactions</span>
+              </div>
+              <div className="tc-update-metrics">
+                <div className="tc-update-metric">
+                  <span>Companies:</span>
+                  <strong>{sellCompanies.length}</strong>
+                </div>
+                <div className="tc-update-metric">
+                  <span>Total Quantity:</span>
+                  <strong>{formatNumber(sellSummary.totalQuantity)}</strong>
+                </div>
+                <div className="tc-update-metric">
+                  <span>Total Value:</span>
+                  <strong>Rs. {formatCurrency(sellSummary.totalValue)}</strong>
+                </div>
+              </div>
+              <div className="tc-update-companies">
+                <span>Companies:</span>
+                <strong>
+                  {sellCompanies.length > 0 ? sellCompanies.join(', ') : 'N/A'}
+                </strong>
+              </div>
+              <button onClick={handleUpdateSellTransactions} className="tc-update-btn tc-update-sell-btn">
+                Update Sell Transactions
+              </button>
+            </div>
           </div>
         </div>
-
-        {holdings.length === 0 ? (
-          <div className="tc-no-data">
-            <p>No portfolio holdings found.</p>
-          </div>
-        ) : (
-          <>
-            <div className="tc-portfolio-table-container">
-              <table className="tc-transaction-table">
-                <thead>
-                  <tr className="tc-table-header-row">
-                    <th className="tc-col-company">Company ID</th>
-                    <th className="tc-col-qty">Quantity</th>
-                    <th className="tc-col-price">Avg. Price</th>
-                    <th className="tc-col-amount">Total Cost</th>
-                    <th className="tc-col-amount">Current Value</th>
-                    <th className="tc-col-net">Gain/Loss</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {holdings.map((holding, index) => {
-                    const gainLoss = holding.currentValue - holding.totalCost;
-                    const isSelected = selectedCompany === holding.companyId;
-                    const companyTransactions = transactions.filter(
-                      t => (t.company_id || 'UNKNOWN') === holding.companyId
-                    ).sort((a, b) => {
-                      // Sort by trade date and time
-                      const dateA = a.trade_date || '';
-                      const dateB = b.trade_date || '';
-                      if (dateA !== dateB) return dateB.localeCompare(dateA);
-                      return (b.trade_time || '').localeCompare(a.trade_time || '');
-                    });
-
-                    return (
-                      <React.Fragment key={index}>
-                        <tr 
-                          className={`tc-transaction-row ${isSelected ? 'tc-row-selected' : ''} tc-clickable-row`}
-                          onClick={() => setSelectedCompany(isSelected ? null : holding.companyId)}
-                        >
-                          <td className="tc-col-company">
-                            {holding.companyId}
-                            <span className="tc-expand-icon">{isSelected ? '▼' : '▶'}</span>
-                          </td>
-                          <td className="tc-col-qty">{formatCurrency(holding.quantity)}</td>
-                          <td className="tc-col-price">{formatCurrency(holding.avgPrice)}</td>
-                          <td className="tc-col-amount">{formatCurrency(holding.totalCost)}</td>
-                          <td className="tc-col-amount">{formatCurrency(holding.currentValue)}</td>
-                          <td className={`tc-col-net ${gainLoss >= 0 ? 'tc-positive' : 'tc-negative'}`}>
-                            {formatCurrency(gainLoss)}
-                          </td>
-                        </tr>
-                        {isSelected && companyTransactions.length > 0 && (
-                          <tr className="tc-expanded-row">
-                            <td colSpan="6" className="tc-expanded-cell">
-                              <div className="tc-company-transactions">
-                                <h4 className="tc-transactions-title">Transactions for {holding.companyId}</h4>
-                                <div className="tc-transactions-table-container">
-                                  <table className="tc-transaction-table">
-                                    <thead>
-                                      <tr className="tc-table-header-row">
-                                        <th className="tc-col-trade-date">Trade Date</th>
-                                        <th className="tc-col-trade-time">Trade Time</th>
-                                        <th>Type</th>
-                                        <th className="tc-col-qty">Quantity</th>
-                                        <th className="tc-col-price">Price</th>
-                                        <th className="tc-col-amount">Amount</th>
-                                        <th className="tc-col-exec-id">Execution ID</th>
-                                        <th className="tc-col-settlement">Settlement Date</th>
-                                      </tr>
-                                    </thead>
-                                    <tbody>
-                                      {companyTransactions.map((transaction, txIndex) => {
-                                        const value = calculateTransactionValue(transaction);
-                                        const buySell = (transaction.buy_sell || '').toUpperCase();
-                                        return (
-                                          <tr key={txIndex} className="tc-transaction-row">
-                                            <td className="tc-col-trade-date">{transaction.trade_date || 'N/A'}</td>
-                                            <td className="tc-col-trade-time">{transaction.trade_time || 'N/A'}</td>
-                                            <td>
-                                              <span className={buySell === 'B' ? 'tc-buy-badge' : 'tc-sell-badge'}>
-                                                {buySell === 'B' ? 'BUY' : 'SELL'}
-                                              </span>
-                                            </td>
-                                            <td className="tc-col-qty">{formatCurrency(transaction.quantity || 0)}</td>
-                                            <td className="tc-col-price">{formatCurrency(transaction.price || 0)}</td>
-                                            <td className="tc-col-amount">{formatCurrency(value)}</td>
-                                            <td className="tc-col-exec-id">{transaction.execution_id || 'N/A'}</td>
-                                            <td className="tc-col-settlement">{transaction.settlement_date || 'N/A'}</td>
-                                          </tr>
-                                        );
-                                      })}
-                                    </tbody>
-                                  </table>
-                                </div>
-                              </div>
-                            </td>
-                          </tr>
-                        )}
-                      </React.Fragment>
-                    );
-                  })}
-                </tbody>
-                <tfoot>
-                  <tr className="tc-total-row">
-                    <td className="tc-col-company">
-                      <strong>Total</strong>
-                    </td>
-                    <td className="tc-col-qty"></td>
-                    <td className="tc-col-price"></td>
-                    <td className="tc-col-amount">{formatCurrency(totalCost)}</td>
-                    <td className="tc-col-amount">{formatCurrency(totalPortfolioValue)}</td>
-                    <td className={`tc-col-net ${totalGainLoss >= 0 ? 'tc-positive' : 'tc-negative'}`}>
-                      <strong>{formatCurrency(totalGainLoss)}</strong>
-                    </td>
-                  </tr>
-                </tfoot>
-              </table>
-            </div>
-          </>
+        {showUpdateBuyModal && (
+          <UpdateBuyTransactionsModal
+            isOpen={showUpdateBuyModal}
+            onClose={() => setShowUpdateBuyModal(false)}
+            purchaseTransactions={purchaseTransactions}
+            equities={equities}
+            portfolios={portfolios}
+            latestTradeDate={latestTradeDate}
+          />
+        )}
+        {showUpdateSellModal && (
+          <UpdateSellTransactionsModal
+            isOpen={showUpdateSellModal}
+            onClose={() => setShowUpdateSellModal(false)}
+            sellTransactions={sellTransactions}
+            equities={equities}
+            portfolios={portfolios}
+            latestTradeDate={latestTradeDate}
+          />
         )}
       </div>
     );
   };
 
-  const renderTradeConfirmation = () => {
-    return (
-      <>
-        {!hasData ? (
-          <div className="tc-no-data">
-            <p>No transactions found.</p>
+  const renderTradeReport = () => {
+    const reportDate = latestTradeDate ? formatTradeDate(latestTradeDate) : 'N/A';
+
+    const getContractNo = (transaction) => {
+      const buySell = (transaction.buy_sell || '').toUpperCase();
+      if (buySell === 'B') {
+        return transaction.buying_contract_no || transaction.execution_id || 'N/A';
+      }
+      if (buySell === 'S') {
+        return transaction.selling_contract_no || transaction.execution_id || 'N/A';
+      }
+      return transaction.execution_id || 'N/A';
+    };
+
+    const calculateNetAmount = (transaction) => {
+      const value = calculateTransactionValue(transaction);
+      const fees = calculateFees(transaction);
+      const buySell = (transaction.buy_sell || '').toUpperCase();
+      if (buySell === 'B') {
+        return value + fees;
+      }
+      return value - fees;
+    };
+
+    const calculateReportTotals = (transactions) => {
+      return transactions.reduce(
+        (totals, t) => {
+          const value = calculateTransactionValue(t);
+          totals.gross += value;
+          totals.brokerage += parseFloat(t.brokerage) || 0;
+          totals.sec += parseFloat(t.sec_cess) || 0;
+          totals.exchange += parseFloat(t.cse_fees) || 0;
+          totals.cds += parseFloat(t.cds_fees) || 0;
+          totals.govCess += parseFloat(t.government_cess) || 0;
+          totals.clearing += parseFloat(t.clearing_fees) || 0;
+          totals.net += calculateNetAmount(t);
+          totals.foreignBrokerage += parseFloat(t.foreign_brokerage) || 0;
+          totals.quantity += parseFloat(t.quantity) || 0;
+          return totals;
+        },
+        {
+          gross: 0,
+          brokerage: 0,
+          sec: 0,
+          exchange: 0,
+          cds: 0,
+          govCess: 0,
+          clearing: 0,
+          net: 0,
+          foreignBrokerage: 0,
+          quantity: 0
+        }
+      );
+    };
+
+    const renderReportSection = (companyId, transactions, type) => {
+      const totals = calculateReportTotals(transactions);
+      const isSale = type === 'sale';
+
+      return (
+        <div key={`${type}-${companyId}`} className="tc-report-section">
+          <div className="tc-report-section-header">
+            <h3>
+              {isSale ? 'Sale of' : 'Purchase of'} {companyId}{' '}
+              ({companyId}.N0000 / LK{companyId.padStart(4, '0')}N00000)
+            </h3>
           </div>
-        ) : (
-          <>
-            <div className="tc-report-section">
-              {/* Sales Section */}
-              {Object.keys(groupedData.sales).length > 0 && (
-                <div className="tc-section">
-                  {Object.entries(groupedData.sales).map(([companyId, transactions]) =>
-                    renderCompanyGroup(companyId, transactions, 'sale')
-                  )}
-                </div>
-              )}
+          <div className="tc-report-table-wrapper">
+            <table className="tc-report-table">
+              <thead>
+                <tr>
+                  <th>Trade Date</th>
+                  <th>Contract No</th>
+                  <th>No of Shares</th>
+                  <th>Price/Avg</th>
+                  <th>Gross Amount</th>
+                  <th>Brokerage</th>
+                  <th>SEC</th>
+                  <th>Exchange</th>
+                  <th>CDS</th>
+                  <th>GOV CESS</th>
+                  <th>Clearing Fees</th>
+                  <th>Net Amount</th>
+                  <th>Settlement</th>
+                  <th>Foreign Brokerage</th>
+                </tr>
+              </thead>
+              <tbody>
+                {transactions.map((t, idx) => {
+                  const value = calculateTransactionValue(t);
+                  return (
+                    <tr key={`${companyId}-${idx}`}>
+                      <td>{t.trade_date || 'N/A'}</td>
+                      <td>{getContractNo(t)}</td>
+                      <td>{formatCurrency(t.quantity)}</td>
+                      <td>{formatCurrency(t.price)}</td>
+                      <td>{formatCurrency(value)}</td>
+                      <td>{formatCurrency(t.brokerage)}</td>
+                      <td>{formatCurrency(t.sec_cess)}</td>
+                      <td>{formatCurrency(t.cse_fees)}</td>
+                      <td>{formatCurrency(t.cds_fees)}</td>
+                      <td>{formatCurrency(t.government_cess)}</td>
+                      <td>{formatCurrency(t.clearing_fees)}</td>
+                      <td>{formatCurrency(calculateNetAmount(t))}</td>
+                      <td>{t.settlement_date || 'N/A'}</td>
+                      <td>{formatCurrency(t.foreign_brokerage)}</td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+              <tfoot>
+                <tr>
+                  <td>Total</td>
+                  <td></td>
+                  <td>{formatCurrency(totals.quantity)}</td>
+                  <td></td>
+                  <td>{formatCurrency(totals.gross)}</td>
+                  <td>{formatCurrency(totals.brokerage)}</td>
+                  <td>{formatCurrency(totals.sec)}</td>
+                  <td>{formatCurrency(totals.exchange)}</td>
+                  <td>{formatCurrency(totals.cds)}</td>
+                  <td>{formatCurrency(totals.govCess)}</td>
+                  <td>{formatCurrency(totals.clearing)}</td>
+                  <td>{formatCurrency(totals.net)}</td>
+                  <td></td>
+                  <td>{formatCurrency(totals.foreignBrokerage)}</td>
+                </tr>
+              </tfoot>
+            </table>
+          </div>
+        </div>
+      );
+    };
 
-              {/* Purchases Section */}
-              {Object.keys(groupedData.purchases).length > 0 && (
-                <div className="tc-section">
-                  {Object.entries(groupedData.purchases).map(([companyId, transactions]) =>
-                    renderCompanyGroup(companyId, transactions, 'purchase')
-                  )}
-                </div>
-              )}
+    const purchaseGroups = Object.entries(groupedData.purchases);
+    const saleGroups = Object.entries(groupedData.sales);
+    const purchaseTotals = calculateReportTotals(Object.values(groupedData.purchases).flat());
+    const saleTotals = calculateReportTotals(Object.values(groupedData.sales).flat());
+    const netSettlement = saleTotals.net - purchaseTotals.net;
 
-               {/* Overall Summary */}
-               <div className="tc-summary-section">
-                 <div className="tc-summary-row">
-                   <span className="tc-summary-label">Purchase Total:</span>
-                   <span className="tc-summary-value">{formatCurrency(overallTotals.purchaseTotal)}</span>
-                 </div>
-                 <div className="tc-summary-row">
-                   <span className="tc-summary-label">Sales Total:</span>
-                   <span className="tc-summary-value">{formatCurrency(overallTotals.salesTotal)}</span>
-                 </div>
-               </div>
-             </div>
-          </>
+    return (
+      <div className="tc-trade-report">
+        <div className="tc-trade-report-header">
+          <p>Dear Sir/Madam,</p>
+          <p>
+            We wish to inform you that the following transaction(s) were done on {reportDate}.
+          </p>
+        </div>
+
+        {saleGroups.map(([companyId, transactions]) =>
+          renderReportSection(companyId, transactions, 'sale')
         )}
-      </>
+
+        {purchaseGroups.map(([companyId, transactions]) =>
+          renderReportSection(companyId, transactions, 'purchase')
+        )}
+
+        <div className="tc-trade-report-summary">
+          <div className="tc-trade-report-summary-row">
+            <span>Purchase Total</span>
+            <strong>{formatCurrency(purchaseTotals.net)}</strong>
+          </div>
+          <div className="tc-trade-report-summary-row">
+            <span>Sales Total</span>
+            <strong>{formatCurrency(saleTotals.net)}</strong>
+          </div>
+          <div className="tc-trade-report-summary-row tc-trade-report-net">
+            <span>Net Settlement Value</span>
+            <strong>{formatCurrency(netSettlement)}</strong>
+          </div>
+        </div>
+      </div>
     );
   };
 
@@ -507,6 +627,11 @@ const TradeConfirmation = () => {
         <div className="tc-header-top">
           <div className="tc-header-left">
             <h1 className="tc-main-title">Trade Confirmation</h1>
+            {latestTradeDate && (
+              <p className="tc-report-date">
+                Trade Report for {formatTradeDate(latestTradeDate)}
+              </p>
+            )}
           </div>
           <div className="tc-filters">
             <button onClick={fetchTransactions} className="tc-refresh-btn">Refresh</button>
@@ -514,23 +639,37 @@ const TradeConfirmation = () => {
         </div>
         <div className="tc-tabs">
           <button
-            className={`tc-tab ${activeTab === 'trade-confirmation' ? 'tc-tab-active' : ''}`}
-            onClick={() => setActiveTab('trade-confirmation')}
+            className={`tc-tab ${activeTab === 'purchases' ? 'tc-tab-active' : ''}`}
+            onClick={() => setActiveTab('purchases')}
           >
-            Trade Confirmation Report
+            Purchases
           </button>
           <button
-            className={`tc-tab ${activeTab === 'portfolio-update' ? 'tc-tab-active' : ''}`}
-            onClick={() => setActiveTab('portfolio-update')}
+            className={`tc-tab ${activeTab === 'sales' ? 'tc-tab-active' : ''}`}
+            onClick={() => setActiveTab('sales')}
           >
-            Portfolio Update
+            Sales
+          </button>
+          <button
+            className={`tc-tab ${activeTab === 'trade-report' ? 'tc-tab-active' : ''}`}
+            onClick={() => setActiveTab('trade-report')}
+          >
+            Trade Report
+          </button>
+          <button
+            className={`tc-tab ${activeTab === 'update-portfolio' ? 'tc-tab-active' : ''}`}
+            onClick={() => setActiveTab('update-portfolio')}
+          >
+            Update Portfolio
           </button>
         </div>
       </div>
 
       <div className="tc-tab-content">
-        {activeTab === 'trade-confirmation' && renderTradeConfirmation()}
-        {activeTab === 'portfolio-update' && renderPortfolioUpdate()}
+        {activeTab === 'purchases' && renderPurchases()}
+        {activeTab === 'sales' && renderSales()}
+        {activeTab === 'trade-report' && renderTradeReport()}
+        {activeTab === 'update-portfolio' && renderUpdatePortfolio()}
       </div>
     </div>
   );
