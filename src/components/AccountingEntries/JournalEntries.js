@@ -8,11 +8,13 @@ const JournalEntries = ({ onTabChange }) => {
   const [showModal, setShowModal] = useState(false);
   const [editingEntry, setEditingEntry] = useState(null);
   const [accounts, setAccounts] = useState([]);
+  const [availablePortfolios, setAvailablePortfolios] = useState([]);
   const [filters, setFilters] = useState({
     status: 'all',
     transactionType: 'all',
     dateFrom: '',
-    dateTo: ''
+    dateTo: '',
+    portfolio: 'all'
   });
 
   const [formData, setFormData] = useState({
@@ -30,7 +32,12 @@ const JournalEntries = ({ onTabChange }) => {
   useEffect(() => {
     loadJournalEntries();
     loadAccounts();
+    loadPortfolios();
   }, []);
+
+  useEffect(() => {
+    loadJournalEntries();
+  }, [filters.portfolio]);
 
   useEffect(() => {
     filterEntries();
@@ -38,9 +45,16 @@ const JournalEntries = ({ onTabChange }) => {
 
   const loadJournalEntries = async () => {
     try {
-      console.log('📋 Loading journal entries...');
+      setIsLoading(true);
+      console.log('📋 Loading journal entries...', filters.portfolio !== 'all' ? `(portfolio: ${filters.portfolio})` : '');
       const token = localStorage.getItem('token');
-      const response = await fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:8080/api'}/journal-entries`, {
+      
+      let url = `${process.env.REACT_APP_API_URL || 'http://localhost:8080/api'}/journal-entries`;
+      if (filters.portfolio && filters.portfolio !== 'all') {
+        url += `?portfolio=${encodeURIComponent(filters.portfolio)}`;
+      }
+      
+      const response = await fetch(url, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
@@ -63,6 +77,37 @@ const JournalEntries = ({ onTabChange }) => {
       console.error('Error loading journal entries:', error);
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const loadPortfolios = async () => {
+    try {
+      console.log('📋 Loading available portfolios...');
+      const token = localStorage.getItem('token');
+      const response = await fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:8080/api'}/journal-entries/portfolios`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token && { 'Authorization': `Bearer ${token}` })
+        }
+      });
+
+      if (response.ok) {
+        const result = await response.json();
+        console.log('Portfolios API response:', result);
+        if (result.success) {
+          setAvailablePortfolios(result.data || []);
+          console.log(`📊 Loaded ${result.data?.length || 0} portfolios`);
+          console.log('Portfolios data:', result.data);
+        } else {
+          console.error('API error:', result.error);
+        }
+      } else {
+        const errorText = await response.text();
+        console.error('Failed to fetch portfolios:', response.status, errorText);
+      }
+    } catch (error) {
+      console.error('Error loading portfolios:', error);
     }
   };
 
@@ -301,6 +346,21 @@ const JournalEntries = ({ onTabChange }) => {
       {/* Filters */}
       <div className="filters-section">
         <div className="filter-group">
+          <label>Portfolio:</label>
+          <select 
+            value={filters.portfolio} 
+            onChange={(e) => setFilters(prev => ({ ...prev, portfolio: e.target.value }))}
+          >
+            <option value="all">All Portfolios</option>
+            {availablePortfolios.map((portfolio) => (
+              <option key={portfolio.portfolioId || portfolio.portfolio} value={portfolio.portfolioId || portfolio.portfolio}>
+                {portfolio.portfolioName || portfolio.portfolio}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        <div className="filter-group">
           <label>Status:</label>
           <select 
             value={filters.status} 
@@ -351,7 +411,8 @@ const JournalEntries = ({ onTabChange }) => {
             status: 'all',
             transactionType: 'all',
             dateFrom: '',
-            dateTo: ''
+            dateTo: '',
+            portfolio: 'all'
           })}
         >
           Clear Filters

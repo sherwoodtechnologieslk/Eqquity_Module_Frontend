@@ -765,6 +765,31 @@
   box-shadow: 0 0 0 4px rgba(14, 165, 233, 0.1), inset 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
+/* Smaller toggles for Working Days section */
+.hc-settings-grid .hc-toggle {
+  width: 2.25rem;
+  height: 1.25rem;
+}
+
+.hc-settings-grid .hc-toggle-slider {
+  border-radius: 1.25rem;
+}
+
+.hc-settings-grid .hc-toggle-slider:before {
+  height: 0.875rem;
+  width: 0.875rem;
+  left: 0.1875rem;
+  bottom: 0.1875rem;
+}
+
+.hc-settings-grid .hc-toggle input:checked + .hc-toggle-slider:before {
+  transform: translateX(1rem);
+}
+
+.hc-settings-grid .hc-toggle:hover .hc-toggle-slider {
+  box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.1), inset 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
 /* Settings Form Grid */
 .hc-settings-form-grid {
   display: grid;

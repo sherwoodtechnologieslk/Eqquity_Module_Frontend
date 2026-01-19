@@ -687,6 +687,27 @@ portfolioAPI.getPortfolioOverview = async (portfolioId = null) => {
   }
 };
 
+portfolioAPI.getPortfolioValueHistory = async (portfolioId = null, timeRange = '3M') => {
+  try {
+    let url = `${API_BASE_URL}/portfolios/value-history?timeRange=${timeRange}`;
+    if (portfolioId && portfolioId !== 'all') {
+      url += `&portfolioId=${portfolioId}`;
+    }
+    
+    const response = await fetch(url, {
+      headers: getAuthHeaders()
+    });
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    const result = await response.json();
+    return result;
+  } catch (error) {
+    console.error('Error fetching portfolio value history:', error);
+    throw error;
+  }
+};
+
 export const portfolioCostingMethodAPI = {
   // Assign a costing method to a portfolio
   assignCostingMethod: async (assignmentData) => {
