@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { createPortal } from 'react-dom';
-import { transactionEntryAPI, tradeSummaryAPI, accountAPI, portfolioSettlementMappingAPI } from '../../services/api';
+import { transactionEntryAPI, tradeSummaryAPI, accountAPI, portfolioSettlementMappingAPI, parsedTradeTransactionAPI } from '../../services/api';
 import './Styles/UpdateBuyTransactionsModal.css';
 
 // Helper function to extract sequence from deal number
@@ -72,6 +72,21 @@ const UpdateBuyTransactionsModal = ({
   const [globalBranchName, setGlobalBranchName] = useState('');
   const [globalPaymentMethod, setGlobalPaymentMethod] = useState('');
   const [accounts, setAccounts] = useState([]);
+
+  const logSaveStatus = async ({ parsedTradeTransactionId, status, reason, dealNumber }) => {
+    if (!parsedTradeTransactionId) return;
+    try {
+      await parsedTradeTransactionAPI.createSaveLog({
+        parsed_trade_transaction_id: parsedTradeTransactionId,
+        target_table: 'transaction_entries',
+        deal_number: dealNumber || null,
+        status,
+        reason
+      });
+    } catch (err) {
+      console.error('Error logging parsed trade save status:', err);
+    }
+  };
 
   const calculateFeesFallback = (grossValue) => {
     let brokerage, stl;
@@ -399,10 +414,13 @@ const UpdateBuyTransactionsModal = ({
           newErrors[`${i}-companyName`] = rowErrors.companyName;
           newErrors[`${i}-quantity`] = rowErrors.quantity;
           newErrors[`${i}-price`] = rowErrors.price;
+          const reasonDetails = Object.values(rowErrors).filter(Boolean).join(', ') || 'Validation error';
           skippedTransactions.push({
             index: i,
             companyName: form.companyName,
-            reason: 'Validation error'
+            reason: reasonDetails,
+            parsedTradeTransactionId: form.originalTransaction?.id,
+            dealNumber: form.dealNumber
           });
         } else {
           validTransactions.push({ index: i, form });
@@ -410,6 +428,19 @@ const UpdateBuyTransactionsModal = ({
       }
 
       setErrors(newErrors);
+
+      if (skippedTransactions.length > 0) {
+        await Promise.all(
+          skippedTransactions.map(item =>
+            logSaveStatus({
+              parsedTradeTransactionId: item.parsedTradeTransactionId,
+              status: 'skipped',
+              reason: item.reason,
+              dealNumber: item.dealNumber
+            })
+          )
+        );
+      }
 
       // If no valid transactions, show detailed error and return
       if (validTransactions.length === 0) {
@@ -438,6 +469,7 @@ const UpdateBuyTransactionsModal = ({
       // Save only valid transactions
       const savePromises = validTransactions.map(({ form }) => {
         const transactionData = {
+            parsed_trade_transaction_id: form.originalTransaction?.id,
           company_name: form.companyName,
           symbol: form.symbol,
           portfolio: form.portfolio,
@@ -470,7 +502,15 @@ const UpdateBuyTransactionsModal = ({
           cost_of_funds: form.costOfFunds
         };
         
-        return transactionEntryAPI.saveBuyTransaction(transactionData);
+        return transactionEntryAPI.saveBuyTransaction(transactionData).catch(async (error) => {
+          await logSaveStatus({
+            parsedTradeTransactionId: form.originalTransaction?.id,
+            status: 'failed',
+            reason: error.message || 'API error',
+            dealNumber: form.dealNumber
+          });
+          throw error;
+        });
       });
 
       await Promise.all(savePromises);
@@ -497,7 +537,10 @@ const UpdateBuyTransactionsModal = ({
       }, 3000);
     } catch (error) {
       console.error('Error saving transactions:', error);
-      setErrorMessage('Error saving transactions. Please try again.');
+      const message = error?.message?.includes('409')
+        ? 'Duplicate entries detected. These transactions were already saved.'
+        : 'Error saving transactions. Please try again.';
+      setErrorMessage(message);
       setSuccessMessage('');
     } finally {
       setIsSubmitting(false);

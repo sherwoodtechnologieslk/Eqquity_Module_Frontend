@@ -521,6 +521,39 @@ export const parsedTradeTransactionAPI = {
       console.error('Error deleting parsed transactions:', error);
       throw error;
     }
+  },
+
+  // Get parsed trade transactions not updated to portfolio
+  getUnupdatedParsedTransactions: async () => {
+    try {
+      return await makeAuthenticatedRequest(`${API_BASE_URL}/parsed-trade-transactions/unupdated`);
+    } catch (error) {
+      console.error('Error fetching unupdated parsed transactions:', error);
+      throw error;
+    }
+  },
+
+  // Create a parsed trade transaction save log
+  createSaveLog: async (data) => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/parsed-trade-transactions/save-log`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...getAuthHeaders()
+        },
+        body: JSON.stringify(data)
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      return await response.json();
+    } catch (error) {
+      console.error('Error creating parsed trade save log:', error);
+      throw error;
+    }
   }
 };
 
