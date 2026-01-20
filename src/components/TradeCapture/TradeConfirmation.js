@@ -14,6 +14,10 @@ const TradeConfirmation = () => {
   const [showUpdateSellModal, setShowUpdateSellModal] = useState(false);
   const [equities, setEquities] = useState([]);
   const [portfolios, setPortfolios] = useState([]);
+  const [unupdatedByDate, setUnupdatedByDate] = useState({});
+  const [unupdatedTransactions, setUnupdatedTransactions] = useState([]);
+  const [unupdatedLoading, setUnupdatedLoading] = useState(false);
+  const [unupdatedError, setUnupdatedError] = useState('');
 
   const fetchTransactions = useCallback(async () => {
     try {
@@ -56,6 +60,35 @@ const TradeConfirmation = () => {
   useEffect(() => {
     fetchTransactions();
   }, [fetchTransactions]);
+
+  const fetchUnupdatedTransactions = useCallback(async () => {
+    try {
+      setUnupdatedLoading(true);
+      setUnupdatedError('');
+      const data = await parsedTradeTransactionAPI.getUnupdatedParsedTransactions();
+      setUnupdatedTransactions(data || []);
+      const grouped = (data || []).reduce((acc, transaction) => {
+        const date = transaction.trade_date || 'Unknown';
+        if (!acc[date]) {
+          acc[date] = [];
+        }
+        acc[date].push(transaction);
+        return acc;
+      }, {});
+      setUnupdatedByDate(grouped);
+    } catch (err) {
+      console.error('Error fetching unupdated transactions:', err);
+      setUnupdatedError('Failed to fetch unupdated transactions. Please try again.');
+    } finally {
+      setUnupdatedLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (activeTab === 'to-be-updated' || activeTab === 'update-portfolio') {
+      fetchUnupdatedTransactions();
+    }
+  }, [activeTab, fetchUnupdatedTransactions, showUpdateBuyModal, showUpdateSellModal]);
 
   const groupTransactions = (data) => {
     const sales = {};
@@ -260,7 +293,7 @@ const TradeConfirmation = () => {
 
   const renderPurchases = () => {
     const hasPurchases = Object.keys(groupedData.purchases).length > 0;
-    
+
     return (
       <>
         {!hasPurchases ? (
@@ -294,6 +327,83 @@ const TradeConfirmation = () => {
     );
   };
 
+  const renderToBeUpdated = () => {
+    if (unupdatedLoading) {
+      return (
+        <div className="tc-loading">
+          <div className="tc-spinner"></div>
+          <p>Loading pending updates...</p>
+        </div>
+      );
+    }
+
+    if (unupdatedError) {
+      return (
+        <div className="tc-error">
+          <h3>Error Loading Pending Updates</h3>
+          <p>{unupdatedError}</p>
+          <button onClick={fetchUnupdatedTransactions} className="tc-retry-btn">Retry</button>
+        </div>
+      );
+    }
+
+    const dates = Object.keys(unupdatedByDate).sort((a, b) => {
+      if (a === 'Unknown') return 1;
+      if (b === 'Unknown') return -1;
+      return new Date(b) - new Date(a);
+    });
+
+    if (dates.length === 0) {
+      return (
+        <div className="tc-no-data">
+          <p>No pending transactions to update.</p>
+        </div>
+      );
+    }
+
+    return (
+      <div className="tc-unupdated-list">
+        {dates.map(date => (
+          <div key={date} className="tc-unupdated-group">
+            <div className="tc-unupdated-header">
+              <h3>Trade Date: {date}</h3>
+            </div>
+            <div className="tc-table-container">
+              <table className="tc-unupdated-table">
+                <thead>
+                  <tr className="tc-table-header-row">
+                    <th>Buy/Sell</th>
+                    <th>Company</th>
+                    <th>Quantity</th>
+                    <th>Price</th>
+                    <th>Execution ID</th>
+                    <th>Settlement Date</th>
+                    <th>Reason</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {unupdatedByDate[date].map((transaction) => (
+                    <tr key={transaction.id}>
+                      <td>{(transaction.buy_sell || '').toUpperCase() || 'N/A'}</td>
+                      <td>{transaction.company_id || 'N/A'}</td>
+                      <td>{formatCurrency(transaction.quantity)}</td>
+                      <td>{formatCurrency(transaction.price)}</td>
+                      <td>{transaction.execution_id || 'N/A'}</td>
+                      <td>{transaction.settlement_date || 'N/A'}</td>
+                      <td className="tc-unupdated-reason">
+                        {transaction.not_updated_reason || 'Not saved yet'}
+                          </td>
+                        </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        ))}
+      </div>
+    );
+  };
+
   const fetchEquitiesAndPortfolios = async () => {
     try {
       const [equitiesData, portfoliosData] = await Promise.all([
@@ -310,16 +420,25 @@ const TradeConfirmation = () => {
   const handleUpdateBuyTransactions = () => {
     setShowUpdateBuyModal(true);
     fetchEquitiesAndPortfolios();
+    fetchUnupdatedTransactions();
   };
 
   const handleUpdateSellTransactions = () => {
     setShowUpdateSellModal(true);
     fetchEquitiesAndPortfolios();
+    fetchUnupdatedTransactions();
   };
 
   const renderUpdatePortfolio = () => {
-    const purchaseTransactions = Object.values(groupedData.purchases).flat();
-    const sellTransactions = Object.values(groupedData.sales).flat();
+    const unupdatedForLatest = (unupdatedTransactions || []).filter(t =>
+      latestTradeDate ? t.trade_date === latestTradeDate : true
+    );
+    const purchaseTransactions = unupdatedForLatest.length > 0
+      ? unupdatedForLatest.filter(t => (t.buy_sell || '').toUpperCase() === 'B')
+      : Object.values(groupedData.purchases).flat();
+    const sellTransactions = unupdatedForLatest.length > 0
+      ? unupdatedForLatest.filter(t => (t.buy_sell || '').toUpperCase() === 'S')
+      : Object.values(groupedData.sales).flat();
 
     const formatNumber = (value) => {
       if (!value || value === 0) return '0.00';
@@ -415,13 +534,13 @@ const TradeConfirmation = () => {
                 <strong>
                   {sellCompanies.length > 0 ? sellCompanies.join(', ') : 'N/A'}
                 </strong>
-              </div>
+                 </div>
               <button onClick={handleUpdateSellTransactions} className="tc-update-btn tc-update-sell-btn">
                 Update Sell Transactions
               </button>
-            </div>
-          </div>
-        </div>
+                 </div>
+               </div>
+             </div>
         {showUpdateBuyModal && (
           <UpdateBuyTransactionsModal
             isOpen={showUpdateBuyModal}
@@ -657,6 +776,12 @@ const TradeConfirmation = () => {
             Trade Report
           </button>
           <button
+            className={`tc-tab ${activeTab === 'to-be-updated' ? 'tc-tab-active' : ''}`}
+            onClick={() => setActiveTab('to-be-updated')}
+          >
+            To Be Updated
+          </button>
+          <button
             className={`tc-tab ${activeTab === 'update-portfolio' ? 'tc-tab-active' : ''}`}
             onClick={() => setActiveTab('update-portfolio')}
           >
@@ -669,6 +794,7 @@ const TradeConfirmation = () => {
         {activeTab === 'purchases' && renderPurchases()}
         {activeTab === 'sales' && renderSales()}
         {activeTab === 'trade-report' && renderTradeReport()}
+        {activeTab === 'to-be-updated' && renderToBeUpdated()}
         {activeTab === 'update-portfolio' && renderUpdatePortfolio()}
       </div>
     </div>

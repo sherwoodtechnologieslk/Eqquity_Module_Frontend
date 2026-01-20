@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { createPortal } from 'react-dom';
-import { transactionEntryAPI, tradeSummaryAPI, accountAPI, portfolioSettlementMappingAPI, portfolioCostingMethodAPI } from '../../services/api';
+import { transactionEntryAPI, tradeSummaryAPI, accountAPI, portfolioSettlementMappingAPI, portfolioCostingMethodAPI, parsedTradeTransactionAPI } from '../../services/api';
 import './Styles/UpdateSellTransactionsModal.css';
 
 // Helper: extract numeric sequence from SELL deal number
@@ -78,6 +78,21 @@ const UpdateSellTransactionsModal = ({
   const [accounts, setAccounts] = useState([]);
 
   const [valuationMethod, setValuationMethod] = useState(''); // WAP / FIFO from portfolio
+
+  const logSaveStatus = async ({ parsedTradeTransactionId, status, reason, dealNumber }) => {
+    if (!parsedTradeTransactionId) return;
+    try {
+      await parsedTradeTransactionAPI.createSaveLog({
+        parsed_trade_transaction_id: parsedTradeTransactionId,
+        target_table: 'sell_transaction_entries',
+        deal_number: dealNumber || null,
+        status,
+        reason
+      });
+    } catch (err) {
+      console.error('Error logging parsed trade save status:', err);
+    }
+  };
 
   // Clear messages on open
   useEffect(() => {
@@ -422,10 +437,14 @@ const UpdateSellTransactionsModal = ({
 
         if (Object.keys(rowErrors).length > 0) {
           newErrors[i] = rowErrors;
+          const reasonDetails = Object.values(rowErrors).filter(Boolean).join(', ') ||
+            (hasInsufficientHoldings ? 'Insufficient holdings' : 'Validation error');
           skippedTransactions.push({
             index: i,
             companyName: form.companyName,
-            reason: hasInsufficientHoldings ? 'Insufficient holdings' : 'Validation error'
+            reason: reasonDetails,
+            parsedTradeTransactionId: form.raw?.id,
+            dealNumber: form.dealNumber
           });
         } else {
           validTransactions.push({ index: i, form });
@@ -433,6 +452,19 @@ const UpdateSellTransactionsModal = ({
       }
 
       setErrors(newErrors);
+
+      if (skippedTransactions.length > 0) {
+        await Promise.all(
+          skippedTransactions.map(item =>
+            logSaveStatus({
+              parsedTradeTransactionId: item.parsedTradeTransactionId,
+              status: 'skipped',
+              reason: item.reason,
+              dealNumber: item.dealNumber
+            })
+          )
+        );
+      }
 
       // If no valid transactions, show detailed error and return
       if (validTransactions.length === 0) {
@@ -499,6 +531,7 @@ const UpdateSellTransactionsModal = ({
 
       const savePromises = enhancedForms.map(form => {
         const transactionData = {
+            parsed_trade_transaction_id: form.raw?.id,
           company_name: form.companyName,
           symbol: form.symbol,
           portfolio_name: form.portfolio,
@@ -530,7 +563,15 @@ const UpdateSellTransactionsModal = ({
           payment_method: form.paymentMethod || globalPaymentMethod || ''
         };
 
-        return transactionEntryAPI.saveSellTransaction(transactionData);
+        return transactionEntryAPI.saveSellTransaction(transactionData).catch(async (error) => {
+          await logSaveStatus({
+            parsedTradeTransactionId: form.raw?.id,
+            status: 'failed',
+            reason: error.message || 'API error',
+            dealNumber: form.dealNumber
+          });
+          throw error;
+        });
       });
 
       await Promise.all(savePromises);
@@ -556,7 +597,10 @@ const UpdateSellTransactionsModal = ({
       }, 3000);
     } catch (error) {
       console.error('Error saving sell transactions from modal:', error);
-      setErrorMessage('Error saving sell transactions. Please try again.');
+      const message = error?.message?.includes('409')
+        ? 'Duplicate entries detected. These transactions were already saved.'
+        : 'Error saving sell transactions. Please try again.';
+      setErrorMessage(message);
       setSuccessMessage('');
     } finally {
       setIsSubmitting(false);
