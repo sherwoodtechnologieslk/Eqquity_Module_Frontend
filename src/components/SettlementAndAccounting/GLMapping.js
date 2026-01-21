@@ -408,6 +408,3 @@ export default GLMapping;
 
 
 
-
-
-
