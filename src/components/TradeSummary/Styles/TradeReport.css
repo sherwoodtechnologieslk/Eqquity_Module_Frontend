@@ -141,6 +141,20 @@
   flex-wrap: wrap;
 }
 
+.tr-portfolio-update-tabs {
+  justify-content: center;
+  margin: 1.5rem 0 2rem;
+}
+
+.tr-portfolio-update-primary-tabs {
+  gap: 0;
+  width: 100%;
+  max-width: 520px;
+  margin: 0 auto 2rem;
+  background: #e5e7eb;
+  border: 1px solid #d1d5db;
+}
+
 .tr-view-tabs button {
   background: #f8fafc;
   border: 1px solid #dbeafe;
@@ -166,6 +180,38 @@
   border-color: #2563eb;
   color: white;
   box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+}
+
+.tr-portfolio-update-primary-tabs .tr-portfolio-update-btn {
+  flex: 1;
+  padding: 0.9rem 1.5rem;
+  border-radius: 0;
+  font-size: 0.9rem;
+  letter-spacing: 0.03em;
+  background: #e5e7eb !important;
+  border: none !important;
+  color: #374151 !important;
+  box-shadow: none !important;
+  min-width: 0;
+  position: relative;
+}
+
+.tr-portfolio-update-primary-tabs .tr-portfolio-update-btn:hover {
+  background: #d1d5db !important;
+  border-color: transparent !important;
+  color: #1f2937 !important;
+  transform: none;
+}
+
+.tr-portfolio-update-primary-tabs .tr-portfolio-update-btn.tr-active {
+  background: #9ca3af !important;
+  border-color: transparent !important;
+  color: #111827 !important;
+  box-shadow: inset 0 -3px 0 #6b7280 !important;
+}
+
+.tr-portfolio-update-btn + .tr-portfolio-update-btn {
+  border-left: 1px solid #d1d5db;
 }
 
 .tr-refresh-btn {
