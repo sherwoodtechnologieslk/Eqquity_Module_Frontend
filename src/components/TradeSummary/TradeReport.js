@@ -50,6 +50,9 @@ const TradeReport = () => {
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   
+  const [portfolioUpdateSection, setPortfolioUpdateSection] = useState('upload');
+  const [portfolioUpdateTab, setPortfolioUpdateTab] = useState('purchases');
+
   // CSV Import state for Monthly Updates
   const [csvFile, setCsvFile] = useState(null);
   const [csvData, setCsvData] = useState([]);
@@ -60,6 +63,42 @@ const TradeReport = () => {
   const [csvPreviewData, setCsvPreviewData] = useState([]);
   const [isSavingCSV, setIsSavingCSV] = useState(false);
   const [saveMessage, setSaveMessage] = useState('');
+  const [monthlyPortfolioUpdates, setMonthlyPortfolioUpdates] = useState([]);
+  const [monthlyPortfolioLoading, setMonthlyPortfolioLoading] = useState(false);
+  const [monthlyPortfolioError, setMonthlyPortfolioError] = useState('');
+
+  const formatTradeMonth = (value) => {
+    if (!value) return '';
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) return '';
+    return date.toLocaleString('en-US', { month: 'long', year: 'numeric' });
+  };
+
+  const monthlyPortfolioColumns = [
+    { key: 'trade_month', label: 'Trade Month', render: (row) => formatTradeMonth(row.trade_date) },
+    { key: 'client_ac_no', label: 'Client A/C No' },
+    { key: 'client_name', label: 'Client Name' },
+    { key: 'contract_number', label: 'Contract Number' },
+    { key: 'trade_date', label: 'Trade Date' },
+    { key: 'buy_sell_type', label: 'Buy/Sell Type' },
+    { key: 'stock_code', label: 'Stock Code' },
+    { key: 'no_of_shares', label: 'No of Shares' },
+    { key: 'price', label: 'Price' },
+    { key: 'value', label: 'Value' },
+    { key: 'trans_cost', label: 'Trans. Cost' },
+    { key: 'settlement_amount', label: 'Settlement Amount' },
+    { key: 'settlement_date', label: 'Settlement Date' },
+    { key: 'order_no', label: 'Order No' },
+    { key: 'trader_id', label: 'Trader ID' },
+    { key: 'broker_fees', label: 'Broker Fees' },
+    { key: 'sec_fees', label: 'SEC Fees' },
+    { key: 'exchange_fees', label: 'Exchange Fees' },
+    { key: 'cds_fees', label: 'CDS Fees' },
+    { key: 'gov_fees', label: 'GOV Fees' },
+    { key: 'clearing_fees', label: 'Clearing Fees' },
+    { key: 'order_source', label: 'Order Source' },
+    { key: 'mobile_number', label: 'Mobile Number' }
+  ];
 
   const formatCurrency = (amount) => {
     return new Intl.NumberFormat('en-US', {
@@ -1528,32 +1567,178 @@ const TradeReport = () => {
     return ''; // Return empty if no transaction type column found
   };
 
-  const renderPortfolioUpdate = () => (
-    <div className="tr-portfolio-update-section">
+  useEffect(() => {
+    if (mainTab !== 'portfolio-update') {
+      return;
+    }
+
+    if (monthlyPortfolioUpdates.length > 0 || monthlyPortfolioLoading) {
+      return;
+    }
+
+    const fetchMonthlyPortfolioUpdates = async () => {
+      setMonthlyPortfolioLoading(true);
+      setMonthlyPortfolioError('');
+      try {
+        const data = await monthlyPortfolioUpdateAPI.getAllMonthlyPortfolioUpdates();
+        setMonthlyPortfolioUpdates(Array.isArray(data) ? data : []);
+      } catch (error) {
+        setMonthlyPortfolioError(error.message || 'Failed to load monthly portfolio updates.');
+      } finally {
+        setMonthlyPortfolioLoading(false);
+      }
+    };
+
+    fetchMonthlyPortfolioUpdates();
+  }, [mainTab, monthlyPortfolioUpdates.length, monthlyPortfolioLoading]);
+
+  const renderPortfolioUpdate = () => {
+    const filteredMonthlyUpdates = monthlyPortfolioUpdates.filter((row) => {
+      const type = String(row.buy_sell_type || '').trim().toUpperCase();
+      if (portfolioUpdateTab === 'purchases') {
+        return type === 'B' || type === 'BUY' || type === 'PURCHASE' || type === 'P';
+      }
+      return type === 'S' || type === 'SELL' || type === 'SALE';
+    });
+
+    return (
+      <div className="tr-portfolio-update-section">
       <div className="tr-csv-import-container">
         <div className="tr-csv-import-header">
-          <h3>CSV Import - Monthly Portfolio Updates</h3>
+          <h3>Portfolio Update - Monthly Updates</h3>
           <p className="tr-csv-description">
-            Upload a CSV file containing transaction data. The system will automatically extract buy (B) and sell (S) transactions along with all other data columns.
+            Upload a CSV file or review existing monthly updates before updating transactions.
           </p>
         </div>
 
-        {/* CSV Upload Section */}
-        <div className="tr-csv-upload-section">
-          <div 
-            className={`tr-csv-drop-zone ${csvDragActive ? 'tr-csv-drag-active' : ''}`}
-            onDragEnter={handleCSVDrag}
-            onDragLeave={handleCSVDrag}
-            onDragOver={handleCSVDrag}
-            onDrop={handleCSVDrop}
+        <div className="tr-view-tabs tr-portfolio-update-tabs tr-portfolio-update-primary-tabs">
+          <button
+            className={`tr-portfolio-update-btn ${portfolioUpdateSection === 'upload' ? 'tr-active' : ''}`}
+            onClick={() => setPortfolioUpdateSection('upload')}
           >
-            <div className="tr-csv-upload-icon">
-              <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M21 15V19C21 19.5304 20.7893 20.0391 20.4142 20.4142C20.0391 20.7893 19.5304 21 19 21H5C4.46957 21 3.96086 20.7893 3.58579 20.4142C3.21071 20.0391 3 19.5304 3 19V15" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                <path d="M7 10L12 15L17 10" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                <path d="M12 15V3" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-              </svg>
+            Upload CSV
+          </button>
+          <button
+            className={`tr-portfolio-update-btn ${portfolioUpdateSection === 'updates' ? 'tr-active' : ''}`}
+            onClick={() => setPortfolioUpdateSection('updates')}
+          >
+            Update Transactions
+          </button>
+        </div>
+
+        {portfolioUpdateSection === 'updates' && (
+          <>
+            <div className="tr-view-tabs tr-portfolio-update-tabs">
+              <button
+                className={portfolioUpdateTab === 'purchases' ? 'tr-active' : ''}
+                onClick={() => setPortfolioUpdateTab('purchases')}
+              >
+                Update Purchases
+              </button>
+              <button
+                className={portfolioUpdateTab === 'sales' ? 'tr-active' : ''}
+                onClick={() => setPortfolioUpdateTab('sales')}
+              >
+                Update Sales Transactions
+              </button>
             </div>
+
+            <div className="tr-csv-summary">
+              <div className="tr-csv-summary-stats">
+                <div className="tr-csv-stat-item">
+                  <span className="tr-csv-stat-label">
+                    {portfolioUpdateTab === 'purchases' ? 'Purchases' : 'Sales'} from Monthly Updates
+                  </span>
+                  <span className="tr-csv-stat-value">
+                    {monthlyPortfolioLoading ? 'Loading...' : filteredMonthlyUpdates.length}
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            {monthlyPortfolioError && (
+              <div className="tr-csv-error">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <circle cx="12" cy="12" r="10"/>
+                  <line x1="12" y1="8" x2="12" y2="12"/>
+                  <line x1="12" y1="16" x2="12.01" y2="16"/>
+                </svg>
+                <span>{monthlyPortfolioError}</span>
+              </div>
+            )}
+
+            {!monthlyPortfolioLoading && !monthlyPortfolioError && (
+              <div className="tr-csv-preview-section">
+                <div className="tr-csv-preview-header">
+                  <h4>
+                    {portfolioUpdateTab === 'purchases' ? 'Buy' : 'Sell'} Transactions
+                  </h4>
+                </div>
+                {filteredMonthlyUpdates.length === 0 ? (
+                  <div className="tr-csv-empty-state">
+                    <div className="tr-csv-empty-icon">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                        <polyline points="14 2 14 8 20 8"/>
+                        <line x1="16" y1="13" x2="8" y2="13"/>
+                        <line x1="16" y1="17" x2="8" y2="17"/>
+                        <polyline points="10 9 9 9 8 9"/>
+                      </svg>
+                    </div>
+                    <h4>No transactions found</h4>
+                    <p>
+                      {portfolioUpdateTab === 'purchases' ? 'Buy' : 'Sell'} transactions are not available yet.
+                    </p>
+                  </div>
+                ) : (
+                  <div className="tr-csv-table-container">
+                    <table className="tr-csv-preview-table">
+                      <thead>
+                        <tr>
+                          <th>#</th>
+                          {monthlyPortfolioColumns.map((column) => (
+                            <th key={column.key}>{column.label}</th>
+                          ))}
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {filteredMonthlyUpdates.map((row, rowIndex) => (
+                          <tr key={row.id || rowIndex}>
+                            <td className="tr-row-number">{rowIndex + 1}</td>
+                            {monthlyPortfolioColumns.map((column) => (
+                              <td key={column.key}>
+                                {column.render ? column.render(row) : (row[column.key] ?? '')}
+                              </td>
+                            ))}
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+              </div>
+            )}
+          </>
+        )}
+
+        {portfolioUpdateSection === 'upload' && (
+          <>
+            {/* CSV Upload Section */}
+            <div className="tr-csv-upload-section">
+              <div 
+                className={`tr-csv-drop-zone ${csvDragActive ? 'tr-csv-drag-active' : ''}`}
+                onDragEnter={handleCSVDrag}
+                onDragLeave={handleCSVDrag}
+                onDragOver={handleCSVDrag}
+                onDrop={handleCSVDrop}
+              >
+                <div className="tr-csv-upload-icon">
+                  <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M21 15V19C21 19.5304 20.7893 20.0391 20.4142 20.4142C20.0391 20.7893 19.5304 21 19 21H5C4.46957 21 3.96086 20.7893 3.58579 20.4142C3.21071 20.0391 3 19.5304 3 19V15" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                    <path d="M7 10L12 15L17 10" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                    <path d="M12 15V3" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
+                </div>
             <div className="tr-csv-upload-text">
               <h4>Drag & Drop CSV file here</h4>
               <p>or</p>
@@ -1731,9 +1916,12 @@ const TradeReport = () => {
             <p>Upload a CSV file to start importing transaction data.</p>
           </div>
         )}
+          </>
+        )}
       </div>
     </div>
-  );
+    );
+  };
 
   return (
     <div className="tr-equity-module-main-container">
