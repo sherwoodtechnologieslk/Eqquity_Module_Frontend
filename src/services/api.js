@@ -1532,6 +1532,14 @@ export const chartOfAccountsAPI = {
     return await response.json();
   },
   
+  getSystemAccounts: async () => {
+    const response = await fetch(`${API_BASE_URL}/chart-of-accounts/system-accounts`, {
+      headers: getAuthHeaders()
+    });
+    if (!response.ok) throw new Error('Failed to fetch system accounts');
+    return await response.json();
+  },
+  
   update: async (id, accountData) => {
     const response = await makeAuthenticatedRequest(`${API_BASE_URL}/chart-of-accounts/${id}`, {
       method: 'PUT',
