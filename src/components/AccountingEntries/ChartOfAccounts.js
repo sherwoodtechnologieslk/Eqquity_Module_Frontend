@@ -5,14 +5,16 @@ import './Styles/ChartOfAccounts.css';
 
 const ChartOfAccounts = () => {
   const [accounts, setAccounts] = useState([]);
+  const [systemAccountsFromCSV, setSystemAccountsFromCSV] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [loadingSystemAccounts, setLoadingSystemAccounts] = useState(false);
   const [error, setError] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
   const [editingAccount, setEditingAccount] = useState(null);
   const [editFormData, setEditFormData] = useState({});
   const [editErrors, setEditErrors] = useState({});
   const [isSaving, setIsSaving] = useState(false);
-  const [activeTab, setActiveTab] = useState('user'); // 'user' or 'system'
+  const [activeTab, setActiveTab] = useState('user'); // 'user', 'trading', or 'system'
 
   // System-generated accounts (matching frontend labels)
   const systemAccounts = [
@@ -94,12 +96,33 @@ const ChartOfAccounts = () => {
     loadAccounts();
   }, []);
 
+  useEffect(() => {
+    if (activeTab === 'system') {
+      loadSystemAccounts();
+    }
+  }, [activeTab]);
+
   const loadAccounts = () => {
     setLoading(true);
     chartOfAccountsAPI.getAll()
       .then(setAccounts)
       .catch(() => setError('Failed to load chart of accounts'))
       .finally(() => setLoading(false));
+  };
+
+  const loadSystemAccounts = () => {
+    setLoadingSystemAccounts(true);
+    chartOfAccountsAPI.getSystemAccounts()
+      .then((data) => {
+        console.log('System accounts loaded:', data.length);
+        setSystemAccountsFromCSV(data);
+      })
+      .catch((err) => {
+        console.error('Failed to load system accounts:', err);
+        setSystemAccountsFromCSV([]);
+        setError('Failed to load system accounts: ' + (err.message || 'Unknown error'));
+      })
+      .finally(() => setLoadingSystemAccounts(false));
   };
 
   const handleEdit = (account) => {
@@ -185,12 +208,16 @@ const ChartOfAccounts = () => {
     }
   };
 
-  // Separate user accounts from system accounts
+  // Separate user accounts, trading accounts, and system accounts
   const userAccounts = accounts.filter(acc => acc.created_by_user);
   const systemAccountsInDB = accounts.filter(acc => !acc.created_by_user);
 
   // Determine which accounts to display based on active tab
-  const displayAccounts = activeTab === 'user' ? userAccounts : systemAccounts;
+  const displayAccounts = activeTab === 'user' 
+    ? userAccounts 
+    : activeTab === 'trading' 
+    ? systemAccounts 
+    : systemAccountsFromCSV;
   
   // Filter accounts based on search term
   const filteredAccounts = displayAccounts.filter(acc => {
@@ -225,7 +252,15 @@ const ChartOfAccounts = () => {
       <div className="coa-data-card">
         <div className="coa-card-header">
           <h2 className="coa-card-title">
-            Account Records ({activeTab === 'user' ? userAccounts.length : systemAccounts.length} {activeTab === 'user' ? 'user' : 'system'} accounts)
+            Account Records ({
+              activeTab === 'user' ? userAccounts.length : 
+              activeTab === 'trading' ? systemAccounts.length : 
+              systemAccountsFromCSV.length
+            } {
+              activeTab === 'user' ? 'user' : 
+              activeTab === 'trading' ? 'trading' : 
+              'system'
+            } accounts)
           </h2>
           <button 
             onClick={loadAccounts}
@@ -265,6 +300,26 @@ const ChartOfAccounts = () => {
           </button>
           <button
             onClick={() => {
+              setActiveTab('trading');
+              setSearchTerm(''); // Clear search when switching tabs
+            }}
+            style={{
+              padding: '0.75rem 1.5rem',
+              fontSize: '0.875rem',
+              fontWeight: '600',
+              color: activeTab === 'trading' ? '#3b82f6' : '#6b7280',
+              backgroundColor: 'transparent',
+              border: 'none',
+              borderBottom: activeTab === 'trading' ? '2px solid #3b82f6' : '2px solid transparent',
+              cursor: 'pointer',
+              marginBottom: '-2px',
+              transition: 'all 0.2s'
+            }}
+          >
+            Trading Accounts ({systemAccounts.length})
+          </button>
+          <button
+            onClick={() => {
               setActiveTab('system');
               setSearchTerm(''); // Clear search when switching tabs
             }}
@@ -281,7 +336,7 @@ const ChartOfAccounts = () => {
               transition: 'all 0.2s'
             }}
           >
-            System Accounts ({systemAccounts.length})
+            System Accounts ({systemAccountsFromCSV.length})
           </button>
         </div>
 
@@ -298,17 +353,34 @@ const ChartOfAccounts = () => {
           </div>
           {searchTerm && (
             <div className="coa-search-results">
-              Showing {filteredAccounts.length} of {displayAccounts.length} {activeTab === 'user' ? 'user' : 'system'} accounts
+              Showing {filteredAccounts.length} of {displayAccounts.length} {
+                activeTab === 'user' ? 'user' : 
+                activeTab === 'trading' ? 'trading' : 
+                'system'
+              } accounts
             </div>
           )}
         </div>
 
         {/* Stats Section */}
         {displayAccounts.length > 0 && (
-          <div className="coa-stats">
+          <div className="coa-stats" style={{
+            display: 'flex',
+            gap: '2rem',
+            marginBottom: '0',
+            padding: '1rem 2rem',
+            background: '#f8fafc',
+            borderBottom: 'none',
+            alignItems: 'center',
+            flexWrap: 'wrap'
+          }}>
             <div className="coa-stat">
               <div className="coa-stat-value">{displayAccounts.length}</div>
-              <div className="coa-stat-label">Total {activeTab === 'user' ? 'User' : 'System'} Accounts</div>
+              <div className="coa-stat-label">Total {
+                activeTab === 'user' ? 'User' : 
+                activeTab === 'trading' ? 'Trading' : 
+                'System'
+              } Accounts</div>
             </div>
             <div className="coa-stat">
               <div className="coa-stat-value">{activeCount}</div>
@@ -318,6 +390,41 @@ const ChartOfAccounts = () => {
               <div className="coa-stat-value">{inactiveCount}</div>
               <div className="coa-stat-label">Inactive</div>
             </div>
+            
+            {/* Use System Chart of Accounts Button - Only for System Accounts tab */}
+            {activeTab === 'system' && !loadingSystemAccounts && systemAccountsFromCSV.length > 0 && (
+              <button
+                onClick={() => {
+                  // TODO: Implement functionality to use system chart of accounts
+                  alert('Use System Chart of Accounts functionality will be implemented here');
+                }}
+                style={{
+                  padding: '0.875rem 2rem',
+                  fontSize: '1rem',
+                  fontWeight: '600',
+                  color: '#3b82f6',
+                  backgroundColor: 'transparent',
+                  border: '2px solid #3b82f6',
+                  borderRadius: '8px',
+                  cursor: 'pointer',
+                  transition: 'all 0.2s ease',
+                  whiteSpace: 'nowrap',
+                  marginLeft: '0'
+                }}
+                onMouseEnter={(e) => {
+                  e.target.style.backgroundColor = '#eff6ff';
+                  e.target.style.borderColor = '#2563eb';
+                  e.target.style.color = '#2563eb';
+                }}
+                onMouseLeave={(e) => {
+                  e.target.style.backgroundColor = 'transparent';
+                  e.target.style.borderColor = '#3b82f6';
+                  e.target.style.color = '#3b82f6';
+                }}
+              >
+                Use System Chart of Accounts
+              </button>
+            )}
           </div>
         )}
 
@@ -335,30 +442,50 @@ const ChartOfAccounts = () => {
             <div className="coa-no-data">No user-created accounts found in the database.</div>
           )}
 
-          {!loading && !error && activeTab === 'system' && systemAccounts.length === 0 && (
+          {!loading && !error && activeTab === 'trading' && systemAccounts.length === 0 && (
+            <div className="coa-no-data">No trading accounts available.</div>
+          )}
+
+          {!loading && !error && activeTab === 'system' && !loadingSystemAccounts && systemAccountsFromCSV.length === 0 && (
             <div className="coa-no-data">No system accounts available.</div>
+          )}
+
+          {activeTab === 'system' && loadingSystemAccounts && (
+            <div className="coa-loading">Loading system accounts from CSV...</div>
           )}
 
           {!loading && !error && searchTerm && filteredAccounts.length === 0 && (
             <div className="coa-no-data">No accounts match your search criteria.</div>
           )}
           
-          {!loading && !error && filteredAccounts.length > 0 && (
+          {!loading && !error && !loadingSystemAccounts && filteredAccounts.length > 0 && (
             <table className="coa-data-table">
               <thead>
                 <tr>
-                  <th>Account Code</th>
-                  <th>Description</th>
-                  <th>Account Type</th>
-                  <th>Account Category</th>
-                  <th>Active Status</th>
-                  {activeTab === 'user' ? (
+                  {activeTab === 'system' ? (
                     <>
-                      <th>Created Date</th>
-                      <th>Actions</th>
+                      <th>Account Code</th>
+                      <th>Account Name</th>
+                      <th>Transaction Type</th>
+                      <th>Main Category and Sub Category</th>
+                      <th>Active Status</th>
                     </>
                   ) : (
-                    <th>Notes</th>
+                    <>
+                      <th>Account Code</th>
+                      <th>Description</th>
+                      <th>Account Type</th>
+                      <th>Account Category</th>
+                      <th>Active Status</th>
+                      {activeTab === 'user' ? (
+                        <>
+                          <th>Created Date</th>
+                          <th>Actions</th>
+                        </>
+                      ) : (
+                        <th>Notes</th>
+                      )}
+                    </>
                   )}
                 </tr>
               </thead>
@@ -366,40 +493,59 @@ const ChartOfAccounts = () => {
                 {filteredAccounts.map((acc, index) => (
                   <tr key={acc.id || `system-${index}`}>
                     <td className="coa-account-code">{acc.account_code}</td>
-                    <td className="coa-description">{acc.description}</td>
-                    <td>{acc.account_type || '-'}</td>
-                    <td>{acc.account_category || '-'}</td>
-                    <td>
-                      <span className={`coa-active-status ${acc.active_status?.toLowerCase()}`}>
-                        {acc.active_status || 'Yes'}
-                      </span>
-                    </td>
-                    {activeTab === 'user' ? (
+                    {activeTab === 'system' ? (
                       <>
-                        <td>{acc.created_at ? new Date(acc.created_at).toLocaleDateString() : '-'}</td>
+                        <td className="coa-description">{acc.account_name || acc.description || '-'}</td>
+                        <td>{acc.transaction_type || '-'}</td>
                         <td>
-                          <button
-                            onClick={() => handleEdit(acc)}
-                            className="coa-edit-btn"
-                            title="Edit Account"
-                          >
-                            <svg className="coa-edit-icon" fill="currentColor" viewBox="0 0 20 20">
-                              <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z"/>
-                            </svg>
-                            Edit
-                          </button>
+                          {acc.main_category && acc.sub_category 
+                            ? `${acc.main_category} - ${acc.sub_category}`
+                            : acc.main_category || acc.sub_category || '-'}
+                        </td>
+                        <td>
+                          <span className={`coa-active-status ${acc.active_status?.toLowerCase()}`}>
+                            {acc.active_status || 'Yes'}
+                          </span>
                         </td>
                       </>
                     ) : (
-                      <td>
-                        <span style={{
-                          fontSize: '0.75rem',
-                          color: '#6b7280',
-                          fontStyle: 'italic'
-                        }}>
-                          System Generated
-                        </span>
-                      </td>
+                      <>
+                        <td className="coa-description">{acc.description}</td>
+                        <td>{acc.account_type || '-'}</td>
+                        <td>{acc.account_category || '-'}</td>
+                        <td>
+                          <span className={`coa-active-status ${acc.active_status?.toLowerCase()}`}>
+                            {acc.active_status || 'Yes'}
+                          </span>
+                        </td>
+                        {activeTab === 'user' ? (
+                          <>
+                            <td>{acc.created_at ? new Date(acc.created_at).toLocaleDateString() : '-'}</td>
+                            <td>
+                              <button
+                                onClick={() => handleEdit(acc)}
+                                className="coa-edit-btn"
+                                title="Edit Account"
+                              >
+                                <svg className="coa-edit-icon" fill="currentColor" viewBox="0 0 20 20">
+                                  <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z"/>
+                                </svg>
+                                Edit
+                              </button>
+                            </td>
+                          </>
+                        ) : (
+                          <td>
+                            <span style={{
+                              fontSize: '0.75rem',
+                              color: '#6b7280',
+                              fontStyle: 'italic'
+                            }}>
+                              Trading Account
+                            </span>
+                          </td>
+                        )}
+                      </>
                     )}
                   </tr>
                 ))}

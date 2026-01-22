@@ -5,7 +5,7 @@ import { accountAPI, chartOfAccountsAPI, glAccountMappingAPI, glAccountAPI, acco
 
 const NewGLAccount = () => {
   // Tab state
-  const [activeTab, setActiveTab] = useState('newGLAccount'); // 'newGLAccount', 'accountCategory', 'glMapping', or 'journalEntry'
+  const [activeTab, setActiveTab] = useState('newGLAccount'); // 'newGLAccount', 'accountCategory', 'glMapping', or 'accountCodeStructure'
   
   const [formData, setFormData] = useState({
     accountCode: '',
@@ -1465,20 +1465,20 @@ const NewGLAccount = () => {
           GL Mapping
         </button>
         <button
-          onClick={() => setActiveTab('journalEntry')}
+          onClick={() => setActiveTab('accountCodeStructure')}
           style={{
             padding: '0.75rem 1.5rem',
             fontSize: '1rem',
-            fontWeight: activeTab === 'journalEntry' ? '600' : '400',
-            color: activeTab === 'journalEntry' ? '#3b82f6' : '#6b7280',
+            fontWeight: activeTab === 'accountCodeStructure' ? '600' : '400',
+            color: activeTab === 'accountCodeStructure' ? '#3b82f6' : '#6b7280',
             background: 'transparent',
             border: 'none',
-            borderBottom: activeTab === 'journalEntry' ? '3px solid #3b82f6' : '3px solid transparent',
+            borderBottom: activeTab === 'accountCodeStructure' ? '3px solid #3b82f6' : '3px solid transparent',
             cursor: 'pointer',
             transition: 'all 0.2s ease'
           }}
         >
-          General Ledger - Journal Entry
+          Account Code Structure
         </button>
       </div>
 
@@ -2851,22 +2851,337 @@ const NewGLAccount = () => {
           </div>
         )}
       </div>
-      ) : (
-      /* General Ledger - Journal Entry Tab */
+      ) : activeTab === 'accountCodeStructure' ? (
+      /* Account Code Structure Tab */
       <div className="new-gl-form-card">
         <div className="new-gl-form-header">
-          <h2 className="new-gl-form-title">General Ledger - Journal Entry</h2>
-          <p className="new-gl-form-subtitle">Create manual journal entries for GL adjustments</p>
+          <h2 className="new-gl-form-title">Account Code Structure</h2>
+          <p className="new-gl-form-subtitle">Understanding the GL account code format</p>
         </div>
         <div style={{ 
-          padding: '3rem', 
-          textAlign: 'center',
-          color: '#6b7280'
+          padding: '2rem',
+          maxWidth: '900px',
+          margin: '0 auto'
         }}>
-          <p>Journal Entry functionality coming soon</p>
+          <div style={{
+            backgroundColor: '#f8fafc',
+            border: '1px solid #e5e7eb',
+            borderRadius: '8px',
+            padding: '2rem',
+            marginBottom: '2rem'
+          }}>
+            <h3 style={{
+              fontSize: '1.25rem',
+              fontWeight: '600',
+              color: '#1f2937',
+              marginBottom: '1rem'
+            }}>
+              Account Code Format
+            </h3>
+            <div style={{
+              fontFamily: 'monospace',
+              fontSize: '1.5rem',
+              fontWeight: '700',
+              color: '#2563eb',
+              textAlign: 'center',
+              padding: '1.5rem',
+              backgroundColor: '#fff',
+              border: '2px solid #3b82f6',
+              borderRadius: '8px',
+              marginBottom: '1.5rem'
+            }}>
+              XXX-XXX-XXX-XXX-XX
+            </div>
+            <p style={{
+              color: '#6b7280',
+              fontSize: '0.875rem',
+              textAlign: 'center',
+              marginBottom: '2rem'
+            }}>
+              The account code consists of 5 segments separated by hyphens
+            </p>
+          </div>
+
+          <div style={{
+            display: 'grid',
+            gap: '1.5rem'
+          }}>
+            <div style={{
+              backgroundColor: '#fff',
+              border: '1px solid #e5e7eb',
+              borderRadius: '8px',
+              padding: '1.5rem'
+            }}>
+              <h4 style={{
+                fontSize: '1rem',
+                fontWeight: '600',
+                color: '#1f2937',
+                marginBottom: '0.75rem',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.5rem'
+              }}>
+                <span style={{
+                  display: 'inline-block',
+                  width: '24px',
+                  height: '24px',
+                  backgroundColor: '#3b82f6',
+                  color: '#fff',
+                  borderRadius: '50%',
+                  textAlign: 'center',
+                  lineHeight: '24px',
+                  fontSize: '0.875rem',
+                  fontWeight: '700'
+                }}>1</span>
+                Part 1: Category + Subcategory (3 digits)
+              </h4>
+              <p style={{
+                color: '#6b7280',
+                fontSize: '0.875rem',
+                marginBottom: '0.5rem'
+              }}>
+                Combines Main Category (1 digit) and Sub Category (2 digits)
+              </p>
+              <div style={{
+                fontFamily: 'monospace',
+                fontSize: '0.875rem',
+                color: '#2563eb',
+                backgroundColor: '#eff6ff',
+                padding: '0.5rem',
+                borderRadius: '4px'
+              }}>
+                Example: 111 (1 = ASSETS, 11 = Non-Current Assets)
+              </div>
+            </div>
+
+            <div style={{
+              backgroundColor: '#fff',
+              border: '1px solid #e5e7eb',
+              borderRadius: '8px',
+              padding: '1.5rem'
+            }}>
+              <h4 style={{
+                fontSize: '1rem',
+                fontWeight: '600',
+                color: '#1f2937',
+                marginBottom: '0.75rem',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.5rem'
+              }}>
+                <span style={{
+                  display: 'inline-block',
+                  width: '24px',
+                  height: '24px',
+                  backgroundColor: '#3b82f6',
+                  color: '#fff',
+                  borderRadius: '50%',
+                  textAlign: 'center',
+                  lineHeight: '24px',
+                  fontSize: '0.875rem',
+                  fontWeight: '700'
+                }}>2</span>
+                Part 2: Branch Code (3 digits)
+              </h4>
+              <p style={{
+                color: '#6b7280',
+                fontSize: '0.875rem',
+                marginBottom: '0.5rem'
+              }}>
+                Identifies the branch or location code
+              </p>
+              <div style={{
+                fontFamily: 'monospace',
+                fontSize: '0.875rem',
+                color: '#2563eb',
+                backgroundColor: '#eff6ff',
+                padding: '0.5rem',
+                borderRadius: '4px'
+              }}>
+                Example: 101 (Default branch code)
+              </div>
+            </div>
+
+            <div style={{
+              backgroundColor: '#fff',
+              border: '1px solid #e5e7eb',
+              borderRadius: '8px',
+              padding: '1.5rem'
+            }}>
+              <h4 style={{
+                fontSize: '1rem',
+                fontWeight: '600',
+                color: '#1f2937',
+                marginBottom: '0.75rem',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.5rem'
+              }}>
+                <span style={{
+                  display: 'inline-block',
+                  width: '24px',
+                  height: '24px',
+                  backgroundColor: '#3b82f6',
+                  color: '#fff',
+                  borderRadius: '50%',
+                  textAlign: 'center',
+                  lineHeight: '24px',
+                  fontSize: '0.875rem',
+                  fontWeight: '700'
+                }}>3</span>
+                Part 3: Transaction Type (3 digits)
+              </h4>
+              <p style={{
+                color: '#6b7280',
+                fontSize: '0.875rem',
+                marginBottom: '0.5rem'
+              }}>
+                Identifies the specific transaction type or category
+              </p>
+              <div style={{
+                fontFamily: 'monospace',
+                fontSize: '0.875rem',
+                color: '#2563eb',
+                backgroundColor: '#eff6ff',
+                padding: '0.5rem',
+                borderRadius: '4px'
+              }}>
+                Example: 110 (Property, Plant & Equipment)
+              </div>
+            </div>
+
+            <div style={{
+              backgroundColor: '#fff',
+              border: '1px solid #e5e7eb',
+              borderRadius: '8px',
+              padding: '1.5rem'
+            }}>
+              <h4 style={{
+                fontSize: '1rem',
+                fontWeight: '600',
+                color: '#1f2937',
+                marginBottom: '0.75rem',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.5rem'
+              }}>
+                <span style={{
+                  display: 'inline-block',
+                  width: '24px',
+                  height: '24px',
+                  backgroundColor: '#3b82f6',
+                  color: '#fff',
+                  borderRadius: '50%',
+                  textAlign: 'center',
+                  lineHeight: '24px',
+                  fontSize: '0.875rem',
+                  fontWeight: '700'
+                }}>4</span>
+                Part 4: Account Name (3 digits)
+              </h4>
+              <p style={{
+                color: '#6b7280',
+                fontSize: '0.875rem',
+                marginBottom: '0.5rem'
+              }}>
+                Unique identifier for the specific account
+              </p>
+              <div style={{
+                fontFamily: 'monospace',
+                fontSize: '0.875rem',
+                color: '#2563eb',
+                backgroundColor: '#eff6ff',
+                padding: '0.5rem',
+                borderRadius: '4px'
+              }}>
+                Example: 025 (Fixed assets - computer equipment)
+              </div>
+            </div>
+
+            <div style={{
+              backgroundColor: '#fff',
+              border: '1px solid #e5e7eb',
+              borderRadius: '8px',
+              padding: '1.5rem'
+            }}>
+              <h4 style={{
+                fontSize: '1rem',
+                fontWeight: '600',
+                color: '#1f2937',
+                marginBottom: '0.75rem',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.5rem'
+              }}>
+                <span style={{
+                  display: 'inline-block',
+                  width: '24px',
+                  height: '24px',
+                  backgroundColor: '#3b82f6',
+                  color: '#fff',
+                  borderRadius: '50%',
+                  textAlign: 'center',
+                  lineHeight: '24px',
+                  fontSize: '0.875rem',
+                  fontWeight: '700'
+                }}>5</span>
+                Part 5: Ending (2 digits)
+              </h4>
+              <p style={{
+                color: '#6b7280',
+                fontSize: '0.875rem',
+                marginBottom: '0.5rem'
+              }}>
+                Standard ending value for account codes
+              </p>
+              <div style={{
+                fontFamily: 'monospace',
+                fontSize: '0.875rem',
+                color: '#2563eb',
+                backgroundColor: '#eff6ff',
+                padding: '0.5rem',
+                borderRadius: '4px'
+              }}>
+                Example: 44 (Default ending)
+              </div>
+            </div>
+          </div>
+
+          <div style={{
+            marginTop: '2rem',
+            padding: '1.5rem',
+            backgroundColor: '#fef3c7',
+            border: '1px solid #fbbf24',
+            borderRadius: '8px'
+          }}>
+            <h4 style={{
+              fontSize: '1rem',
+              fontWeight: '600',
+              color: '#92400e',
+              marginBottom: '0.75rem'
+            }}>
+              Complete Example
+            </h4>
+            <div style={{
+              fontFamily: 'monospace',
+              fontSize: '1.125rem',
+              fontWeight: '700',
+              color: '#92400e',
+              marginBottom: '0.5rem'
+            }}>
+              111-101-110-025-44
+            </div>
+            <p style={{
+              color: '#78350f',
+              fontSize: '0.875rem',
+              margin: 0
+            }}>
+              ASSETS (1) + Non-Current Assets (11) = 111 | Branch: 101 | Transaction: Property, Plant & Equipment (110) | Account: Fixed assets - computer equipment (025) | Ending: 44
+            </p>
+          </div>
         </div>
       </div>
-      )}
+      ) : null}
 
       {/* Footer */}
       <div className="new-gl-footer-section">
