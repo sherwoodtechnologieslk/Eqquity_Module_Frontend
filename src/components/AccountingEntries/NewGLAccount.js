@@ -1143,11 +1143,12 @@ const NewGLAccount = () => {
       try {
         setLoadingCategories(true);
         
-        // Load categories, transaction types, and custom account types in parallel
-        const [categories, transactionTypes, customTypes] = await Promise.all([
+        // Load categories, transaction types, custom account types, and chart of accounts in parallel
+        const [categories, transactionTypes, customTypes, chartOfAccounts] = await Promise.all([
           accountCategoryAPI.getAll().catch(() => []),
           accountCategoryAPI.getAllTransactionTypes().catch(() => []),
-          customAccountTypeAPI.getAll().catch(() => [])
+          customAccountTypeAPI.getAll().catch(() => []),
+          chartOfAccountsAPI.getAll().catch(() => [])
         ]);
         
         // Load custom account types
@@ -1251,10 +1252,137 @@ const NewGLAccount = () => {
           });
         });
         
-        setAccountCategories(mergedCategories);
+        // Extract categories and transaction types from system chart of accounts (accounts with account_category field)
+        const systemCategories = {};
+        const systemCategoryNumbers = {};
+        const systemTransactionTypes = {};
+        
+        if (chartOfAccounts && Array.isArray(chartOfAccounts)) {
+          chartOfAccounts.forEach(account => {
+            // Only process accounts that have account_category and account_type
+            if (account.account_category && account.account_type) {
+              // Normalize account_type to lowercase to match dropdown values
+              const normalizedType = (account.account_type || '').toLowerCase();
+              
+              // Initialize if not exists
+              if (!systemCategories[normalizedType]) {
+                systemCategories[normalizedType] = [];
+              }
+              
+              // Add category if it doesn't exist
+              if (!systemCategories[normalizedType].includes(account.account_category)) {
+                systemCategories[normalizedType].push(account.account_category);
+              }
+              
+              // Extract category number from account code if available
+              // Account code format: XXX-XXX-XXX-XXX-XX (e.g., 101-101-001-001-44)
+              // First part (XXX) = account type (1 digit) + category number (2 digits)
+              // Category number is the last 2 digits of the first part
+              if (account.account_code) {
+                const codeParts = account.account_code.split('-');
+                if (codeParts.length >= 1 && codeParts[0]) {
+                  const firstPart = codeParts[0]; // XXX (e.g., "101" = account type "1" + category "01")
+                  // Category number is the last 2 digits of the first part
+                  const categoryNumber = firstPart.length >= 3 ? firstPart.slice(-2) : null;
+                  
+                  if (categoryNumber && !systemCategoryNumbers[normalizedType]) {
+                    systemCategoryNumbers[normalizedType] = {};
+                  }
+                  if (categoryNumber && !systemCategoryNumbers[normalizedType][account.account_category]) {
+                    systemCategoryNumbers[normalizedType][account.account_category] = categoryNumber;
+                  }
+                }
+              }
+              
+              // Extract transaction type from account if available
+              if (account.transaction_type) {
+                // Initialize transaction types structure
+                if (!systemTransactionTypes[normalizedType]) {
+                  systemTransactionTypes[normalizedType] = {};
+                }
+                if (!systemTransactionTypes[normalizedType][account.account_category]) {
+                  systemTransactionTypes[normalizedType][account.account_category] = [];
+                }
+                
+                // Extract transaction type code from account code (third part)
+                let transactionTypeCode = null;
+                if (account.account_code) {
+                  const codeParts = account.account_code.split('-');
+                  if (codeParts.length >= 3 && codeParts[2]) {
+                    transactionTypeCode = codeParts[2]; // Third part (XXX) is transaction type code
+                  }
+                }
+                
+                // Check if this transaction type already exists for this category
+                const existingType = systemTransactionTypes[normalizedType][account.account_category].find(
+                  t => t.name === account.transaction_type
+                );
+                
+                if (!existingType) {
+                  systemTransactionTypes[normalizedType][account.account_category].push({
+                    name: account.transaction_type,
+                    code: transactionTypeCode || '',
+                    id: null // System transaction types don't have database IDs
+                  });
+                }
+              }
+            }
+          });
+        }
+        
+        // Merge system categories with existing categories
+        const finalMergedCategories = { ...mergedCategories };
+        Object.keys(systemCategories).forEach(accountType => {
+          if (!finalMergedCategories[accountType]) {
+            finalMergedCategories[accountType] = [];
+          }
+          systemCategories[accountType].forEach(catName => {
+            if (!finalMergedCategories[accountType].includes(catName)) {
+              finalMergedCategories[accountType].push(catName);
+            }
+          });
+        });
+        
+        // Merge system category numbers with existing category numbers
+        const finalMergedCategoryNumbers = { ...mergedCategoryNumbers };
+        Object.keys(systemCategoryNumbers).forEach(accountType => {
+          if (!finalMergedCategoryNumbers[accountType]) {
+            finalMergedCategoryNumbers[accountType] = {};
+          }
+          Object.keys(systemCategoryNumbers[accountType]).forEach(catName => {
+            // Only set if not already exists (don't override user-defined numbers)
+            if (!finalMergedCategoryNumbers[accountType][catName]) {
+              finalMergedCategoryNumbers[accountType][catName] = systemCategoryNumbers[accountType][catName];
+            }
+          });
+        });
+        
+        // Merge system transaction types with existing transaction types
+        const finalMergedTransactionTypes = { ...transactionTypesGrouped };
+        Object.keys(systemTransactionTypes).forEach(accountType => {
+          if (!finalMergedTransactionTypes[accountType]) {
+            finalMergedTransactionTypes[accountType] = {};
+          }
+          Object.keys(systemTransactionTypes[accountType]).forEach(categoryName => {
+            if (!finalMergedTransactionTypes[accountType][categoryName]) {
+              finalMergedTransactionTypes[accountType][categoryName] = [];
+            }
+            // Add system transaction types that don't already exist
+            systemTransactionTypes[accountType][categoryName].forEach(systemType => {
+              const exists = finalMergedTransactionTypes[accountType][categoryName].some(
+                existingType => existingType.name === systemType.name
+              );
+              if (!exists) {
+                finalMergedTransactionTypes[accountType][categoryName].push(systemType);
+              }
+            });
+          });
+        });
+        
+        setAccountCategories(finalMergedCategories);
         setCategoryIds(ids);
-        setCategoryNumbers(mergedCategoryNumbers);
-        setAccountNames(transactionTypesGrouped);
+        setCategoryNumbers(finalMergedCategoryNumbers);
+        setAccountNames(finalMergedTransactionTypes);
       } catch (error) {
         console.error('Error loading data:', error);
         // Initialize with default categories if database is empty or error

@@ -8,7 +8,9 @@ const ChartOfAccounts = () => {
   const [systemAccountsFromCSV, setSystemAccountsFromCSV] = useState([]);
   const [loading, setLoading] = useState(true);
   const [loadingSystemAccounts, setLoadingSystemAccounts] = useState(false);
+  const [importingSystemAccounts, setImportingSystemAccounts] = useState(false);
   const [error, setError] = useState('');
+  const [successMessage, setSuccessMessage] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
   const [editingAccount, setEditingAccount] = useState(null);
   const [editFormData, setEditFormData] = useState({});
@@ -123,6 +125,39 @@ const ChartOfAccounts = () => {
         setError('Failed to load system accounts: ' + (err.message || 'Unknown error'));
       })
       .finally(() => setLoadingSystemAccounts(false));
+  };
+
+  const handleImportSystemAccounts = async () => {
+    if (systemAccountsFromCSV.length === 0) {
+      alert('No system accounts to import');
+      return;
+    }
+
+    if (!window.confirm(`Are you sure you want to import ${systemAccountsFromCSV.length} system accounts to your chart of accounts?`)) {
+      return;
+    }
+
+    setImportingSystemAccounts(true);
+    setError('');
+    setSuccessMessage('');
+
+    try {
+      const result = await chartOfAccountsAPI.importSystemAccounts();
+      setSuccessMessage(`Successfully imported ${result.imported} system accounts!`);
+      
+      // Reload accounts to show the newly imported ones
+      await loadAccounts();
+      
+      // Clear success message after 5 seconds
+      setTimeout(() => {
+        setSuccessMessage('');
+      }, 5000);
+    } catch (err) {
+      console.error('Failed to import system accounts:', err);
+      setError('Failed to import system accounts: ' + (err.message || 'Unknown error'));
+    } finally {
+      setImportingSystemAccounts(false);
+    }
   };
 
   const handleEdit = (account) => {
@@ -247,6 +282,26 @@ const ChartOfAccounts = () => {
           <p className="coa-subtitle">View and manage your complete chart of accounts</p>
         </div>
       </div>
+
+      {/* Success Message */}
+      {successMessage && (
+        <div style={{
+          padding: '1rem 1.5rem',
+          marginBottom: '1.5rem',
+          backgroundColor: '#dcfce7',
+          border: '1px solid #86efac',
+          borderRadius: '8px',
+          color: '#166534',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '0.75rem'
+        }}>
+          <svg style={{ width: '20px', height: '20px' }} fill="currentColor" viewBox="0 0 20 20">
+            <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd"/>
+          </svg>
+          <span style={{ fontWeight: '600' }}>{successMessage}</span>
+        </div>
+      )}
 
       {/* Data Display Card */}
       <div className="coa-data-card">
@@ -394,35 +449,38 @@ const ChartOfAccounts = () => {
             {/* Use System Chart of Accounts Button - Only for System Accounts tab */}
             {activeTab === 'system' && !loadingSystemAccounts && systemAccountsFromCSV.length > 0 && (
               <button
-                onClick={() => {
-                  // TODO: Implement functionality to use system chart of accounts
-                  alert('Use System Chart of Accounts functionality will be implemented here');
-                }}
+                onClick={handleImportSystemAccounts}
+                disabled={importingSystemAccounts}
                 style={{
                   padding: '0.875rem 2rem',
                   fontSize: '1rem',
                   fontWeight: '600',
-                  color: '#3b82f6',
+                  color: importingSystemAccounts ? '#9ca3af' : '#3b82f6',
                   backgroundColor: 'transparent',
-                  border: '2px solid #3b82f6',
+                  border: `2px solid ${importingSystemAccounts ? '#9ca3af' : '#3b82f6'}`,
                   borderRadius: '8px',
-                  cursor: 'pointer',
+                  cursor: importingSystemAccounts ? 'not-allowed' : 'pointer',
                   transition: 'all 0.2s ease',
                   whiteSpace: 'nowrap',
-                  marginLeft: '0'
+                  marginLeft: '0',
+                  opacity: importingSystemAccounts ? 0.6 : 1
                 }}
                 onMouseEnter={(e) => {
-                  e.target.style.backgroundColor = '#eff6ff';
-                  e.target.style.borderColor = '#2563eb';
-                  e.target.style.color = '#2563eb';
+                  if (!importingSystemAccounts) {
+                    e.target.style.backgroundColor = '#eff6ff';
+                    e.target.style.borderColor = '#2563eb';
+                    e.target.style.color = '#2563eb';
+                  }
                 }}
                 onMouseLeave={(e) => {
-                  e.target.style.backgroundColor = 'transparent';
-                  e.target.style.borderColor = '#3b82f6';
-                  e.target.style.color = '#3b82f6';
+                  if (!importingSystemAccounts) {
+                    e.target.style.backgroundColor = 'transparent';
+                    e.target.style.borderColor = '#3b82f6';
+                    e.target.style.color = '#3b82f6';
+                  }
                 }}
               >
-                Use System Chart of Accounts
+                {importingSystemAccounts ? 'Importing...' : 'Use System Chart of Accounts'}
               </button>
             )}
           </div>
@@ -472,18 +530,18 @@ const ChartOfAccounts = () => {
                     </>
                   ) : (
                     <>
-                      <th>Account Code</th>
-                      <th>Description</th>
-                      <th>Account Type</th>
-                      <th>Account Category</th>
-                      <th>Active Status</th>
-                      {activeTab === 'user' ? (
-                        <>
-                          <th>Created Date</th>
-                          <th>Actions</th>
-                        </>
-                      ) : (
-                        <th>Notes</th>
+                  <th>Account Code</th>
+                  <th>Description</th>
+                  <th>Account Type</th>
+                  <th>Account Category</th>
+                  <th>Active Status</th>
+                  {activeTab === 'user' ? (
+                    <>
+                      <th>Created Date</th>
+                      <th>Actions</th>
+                    </>
+                  ) : (
+                    <th>Notes</th>
                       )}
                     </>
                   )}
@@ -510,40 +568,40 @@ const ChartOfAccounts = () => {
                       </>
                     ) : (
                       <>
-                        <td className="coa-description">{acc.description}</td>
-                        <td>{acc.account_type || '-'}</td>
-                        <td>{acc.account_category || '-'}</td>
+                    <td className="coa-description">{acc.description}</td>
+                    <td>{acc.account_type || '-'}</td>
+                    <td>{acc.account_category || '-'}</td>
+                    <td>
+                      <span className={`coa-active-status ${acc.active_status?.toLowerCase()}`}>
+                        {acc.active_status || 'Yes'}
+                      </span>
+                    </td>
+                    {activeTab === 'user' ? (
+                      <>
+                        <td>{acc.created_at ? new Date(acc.created_at).toLocaleDateString() : '-'}</td>
                         <td>
-                          <span className={`coa-active-status ${acc.active_status?.toLowerCase()}`}>
-                            {acc.active_status || 'Yes'}
-                          </span>
+                          <button
+                            onClick={() => handleEdit(acc)}
+                            className="coa-edit-btn"
+                            title="Edit Account"
+                          >
+                            <svg className="coa-edit-icon" fill="currentColor" viewBox="0 0 20 20">
+                              <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z"/>
+                            </svg>
+                            Edit
+                          </button>
                         </td>
-                        {activeTab === 'user' ? (
-                          <>
-                            <td>{acc.created_at ? new Date(acc.created_at).toLocaleDateString() : '-'}</td>
-                            <td>
-                              <button
-                                onClick={() => handleEdit(acc)}
-                                className="coa-edit-btn"
-                                title="Edit Account"
-                              >
-                                <svg className="coa-edit-icon" fill="currentColor" viewBox="0 0 20 20">
-                                  <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z"/>
-                                </svg>
-                                Edit
-                              </button>
-                            </td>
-                          </>
-                        ) : (
-                          <td>
-                            <span style={{
-                              fontSize: '0.75rem',
-                              color: '#6b7280',
-                              fontStyle: 'italic'
-                            }}>
+                      </>
+                    ) : (
+                      <td>
+                        <span style={{
+                          fontSize: '0.75rem',
+                          color: '#6b7280',
+                          fontStyle: 'italic'
+                        }}>
                               Trading Account
-                            </span>
-                          </td>
+                        </span>
+                      </td>
                         )}
                       </>
                     )}

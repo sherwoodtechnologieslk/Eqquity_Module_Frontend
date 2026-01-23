@@ -99,10 +99,12 @@ const HolidayCalendar = ({ mode = 'calendar' }) => {
     setError(null);
     try {
       const data = await holidayService.getAllHolidays();
-      setHolidays(data);
+      setHolidays(data || []);
+      // If data is empty array, that's fine - not an error
     } catch (err) {
       setError('Failed to load holidays. Please try again.');
       console.error('Error loading holidays:', err);
+      setHolidays([]); // Set empty array on error too
     } finally {
       setLoading(false);
     }
@@ -1004,12 +1006,12 @@ const HolidayCalendar = ({ mode = 'calendar' }) => {
           </div>
         )}
 
-        {!loading && holidays.length === 0 && (
+        {!loading && !error && holidays.length === 0 && (
           <div className="hc-alert hc-alert-info">
             <svg fill="currentColor" viewBox="0 0 20 20">
               <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
             </svg>
-            No holidays found. Go to "Add Holiday" to create your first holiday!
+            No holidays saved. Go to "Add Holiday" to create your first holiday!
           </div>
         )}
 
