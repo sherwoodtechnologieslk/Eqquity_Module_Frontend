@@ -1539,6 +1539,13 @@ export const chartOfAccountsAPI = {
     if (!response.ok) throw new Error('Failed to fetch system accounts');
     return await response.json();
   },
+
+  importSystemAccounts: async () => {
+    const response = await makeAuthenticatedRequest(`${API_BASE_URL}/chart-of-accounts/system-accounts/import`, {
+      method: 'POST'
+    });
+    return response;
+  },
   
   update: async (id, accountData) => {
     const response = await makeAuthenticatedRequest(`${API_BASE_URL}/chart-of-accounts/${id}`, {
