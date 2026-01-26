@@ -70,19 +70,123 @@ const PortfolioDropdown = () => {
       const positionsData = await transactionEntryAPI.getPortfolioPositions(portfolioId);
       console.log('Positions data from backend:', positionsData);
       
+      // Fetch all buy transactions for this portfolio to calculate Net Quantity and Cost Value
+      let buyTransactions = [];
+      try {
+        // Get all buy transactions and filter by portfolio
+        const allBuyTransactions = await transactionEntryAPI.getAllBuyTransactions();
+        buyTransactions = allBuyTransactions.filter(tx => 
+          tx.portfolio && tx.portfolio.toLowerCase().trim() === portfolioName.toLowerCase().trim()
+        );
+        console.log('Buy transactions for portfolio:', buyTransactions);
+      } catch (buyTxError) {
+        console.error('Error fetching buy transactions:', buyTxError);
+        // Continue with existing calculation if buy transactions fetch fails
+      }
+      
+      // Fetch all sell transactions for this portfolio to reduce from buy shares
+      let sellTransactions = [];
+      try {
+        // Get all sell transactions and filter by portfolio
+        const allSellTransactions = await transactionEntryAPI.getAllSellTransactions();
+        sellTransactions = allSellTransactions.filter(tx => 
+          tx.portfolio_name && tx.portfolio_name.toLowerCase().trim() === portfolioName.toLowerCase().trim()
+        );
+        console.log('Sell transactions for portfolio:', sellTransactions);
+      } catch (sellTxError) {
+        console.error('Error fetching sell transactions:', sellTxError);
+        // Continue with existing calculation if sell transactions fetch fails
+      }
+      
       // Transform the backend data to match the frontend format
       const holdings = positionsData.map(position => {
-        const netQuantity = parseFloat(position.quantity) || 0;
-        const costPrice = parseFloat(position.costPrice) || 0; // This is the WAP from backend
-        const costValue = parseFloat(position.costValue) || 0;
+        const companyName = position.companyName || position.symbol || 'Unknown';
+        const companyId = position.equityId || position.id || null;
         
-        // Use charges from backend (already calculated correctly)
-        const charges = parseFloat(position.charges) || 0;
+        // Find all buy transactions for this company
+        const companyBuyTransactions = buyTransactions.filter(tx => {
+          const txCompanyName = (tx.company_name || tx.companyName || '').toLowerCase().trim();
+          const txSymbol = (tx.symbol || '').toLowerCase().trim();
+          const positionCompanyName = companyName.toLowerCase().trim();
+          const positionSymbol = (position.symbol || '').toLowerCase().trim();
+          
+          return txCompanyName === positionCompanyName || 
+                 txSymbol === positionSymbol ||
+                 (companyId && (tx.equity_id === companyId || tx.equityId === companyId));
+        });
+        
+        console.log(`Buy transactions for ${companyName}:`, companyBuyTransactions);
+        
+        // Find all sell transactions for this company
+        const companySellTransactions = sellTransactions.filter(tx => {
+          const txCompanyName = (tx.company_name || tx.companyName || '').toLowerCase().trim();
+          const txSymbol = (tx.symbol || '').toLowerCase().trim();
+          const positionCompanyName = companyName.toLowerCase().trim();
+          const positionSymbol = (position.symbol || '').toLowerCase().trim();
+          
+          return txCompanyName === positionCompanyName || 
+                 txSymbol === positionSymbol ||
+                 (companyId && (tx.equity_id === companyId || tx.equityId === companyId));
+        });
+        
+        console.log(`Sell transactions for ${companyName}:`, companySellTransactions);
+        
+        // Calculate total buy quantity and gross value
+        const totalBuyQuantity = companyBuyTransactions.reduce((sum, tx) => {
+          const qty = parseFloat(tx.quantity) || 0;
+          return sum + qty;
+        }, 0);
+        
+        const totalBuyGrossValue = companyBuyTransactions.reduce((sum, tx) => {
+          const grossValue = parseFloat(tx.gross_value) || 0;
+          return sum + grossValue;
+        }, 0);
+        
+        // Calculate total sell quantity
+        const totalSellQuantity = companySellTransactions.reduce((sum, tx) => {
+          const qty = parseFloat(tx.quantity) || 0;
+          return sum + qty;
+        }, 0);
+        
+        // Calculate Net Quantity: Buy Quantity - Sell Quantity (remaining shares)
+        const calculatedNetQuantity = Math.max(0, totalBuyQuantity - totalSellQuantity);
+        
+        // Calculate WAP (Weighted Average Price) from buy transactions
+        const wap = totalBuyQuantity > 0 ? totalBuyGrossValue / totalBuyQuantity : 0;
+        
+        // Calculate Cost Value using WAP: Remaining Quantity * WAP
+        const calculatedCostValue = calculatedNetQuantity * wap;
+        
+        // Calculate Charges: sum of all individual charge fields from buy transactions (only for remaining shares proportion)
+        // Proportion charges based on remaining quantity
+        const totalBuyCharges = companyBuyTransactions.reduce((sum, tx) => {
+          const brokerage = parseFloat(tx.brokerage) || 0;
+          const cdsFees = parseFloat(tx.cds_fees) || 0;
+          const cseFees = parseFloat(tx.cse_fees) || 0;
+          const clearingFees = parseFloat(tx.clearing_fees) || 0;
+          const sec = parseFloat(tx.sec) || 0;
+          const stl = parseFloat(tx.stl) || 0;
+          return sum + brokerage + cdsFees + cseFees + clearingFees + sec + stl;
+        }, 0);
+        
+        // Proportion charges based on remaining quantity (WAP approach)
+        const calculatedCharges = totalBuyQuantity > 0 ? (totalBuyCharges * (calculatedNetQuantity / totalBuyQuantity)) : 0;
+        
+        // Use calculated values if buy transactions exist, otherwise use backend values
+        const netQuantity = calculatedNetQuantity > 0 ? calculatedNetQuantity : (parseFloat(position.quantity) || 0);
+        const costValue = calculatedCostValue > 0 ? calculatedCostValue : (parseFloat(position.costValue) || 0);
+        
+        const costPrice = wap > 0 ? wap : (parseFloat(position.costPrice) || 0); // Use calculated WAP
+        
+        // Use calculated charges from buy transactions, otherwise fallback to backend charges
+        const charges = calculatedCharges > 0 ? calculatedCharges : (parseFloat(position.charges) || 0);
+        // Calculate Net Value: Cost Value + Charges (for remaining shares)
         const netValue = costValue + charges;
         const costPerShare = netQuantity > 0 ? netValue / netQuantity : 0;
         
         return {
-          companyName: position.companyName || position.symbol || 'Unknown',
+          companyName: companyName,
+          companyId: companyId,
           netQuantity: netQuantity,
           avgBuyPrice: costPrice, // This is the WAP from backend
           costValue: costValue,
@@ -94,7 +198,7 @@ const PortfolioDropdown = () => {
       .filter(holding => holding.netQuantity > 0) // Only show companies with positive holdings
       .sort((a, b) => a.companyName.localeCompare(b.companyName));
 
-      console.log('Final holdings:', holdings); // Debug log
+      console.log('Final holdings with calculated values:', holdings); // Debug log
       setPortfolioHoldings(holdings);
     } catch (error) {
       console.error('Error loading portfolio holdings:', error);
