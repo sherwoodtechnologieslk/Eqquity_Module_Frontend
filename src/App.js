@@ -59,6 +59,7 @@ import HolidayCalendar from './components/HolidayCalendar/HolidayCalendar';
 import CashFlowMapping from './components/SettlementAndAccounting/CashFlowMapping';
 import SettlementInstructions from './components/SettlementAndAccounting/SettlementInstructions';
 import GLMapping from './components/SettlementAndAccounting/GLMapping';
+import ViewPortfolio from './components/ViewPortfolio/ViewPortfolio';
 
 
 function App() {
@@ -201,6 +202,8 @@ function App() {
     
     'Deal Slip': <DealSlipScreen />,
     'Portfolio': <PortfolioDropdown />,
+    'View Portfolio': <ViewPortfolio />,
+    'View Transactions': <TransactionView onTabChange={handleTabChange} />,
     'Trade Confirmation': <TradeConfirmation />,
     'Equity Cost': <div style={{ padding: '2rem' }}><h3>Equity Cost Module</h3><p>Coming Soon...</p></div>,
     'Mark To Market': <MarkToMarketValuation />,
@@ -242,18 +245,18 @@ function App() {
   // Handle sidebar selection
   const handleSidebarSelect = (index, subTopics) => {
     // Financial Reporting is at index 5 - show premium modal instead
-    // CSE Announcements is at index 12 - show premium modal instead
-    // Corporate Actions is at index 13 - show premium modal instead
-    // Security Identity is at index 14 - show premium modal instead
-    // Voluntary Corporate Actions is at index 15 - show premium modal instead
-    // Mandatory Corporate Actions is at index 16 - show premium modal instead
-    // IPO is at index 17 - show premium modal instead
-    // Portfolio Monitoring is at index 18 - show premium modal instead
-    // Risk and Limit Management is at index 19 - show premium modal instead
-    // Reporting and Compliance is at index 20 - show premium modal instead
-    // Integration and Automation is at index 21 - show premium modal instead
-    // Portfolio Transfers is at index 22 - show premium modal instead
-    if (index === 5 || index === 12 || index === 13 || index === 14 || index === 15 || index === 16 || index === 17 || index === 18 || index === 19 || index === 20 || index === 21 || index === 22) {
+    // CSE Announcements is at index 13 - show premium modal instead
+    // Corporate Actions is at index 14 - show premium modal instead
+    // Security Identity is at index 15 - show premium modal instead
+    // Voluntary Corporate Actions is at index 16 - show premium modal instead
+    // Mandatory Corporate Actions is at index 17 - show premium modal instead
+    // IPO is at index 18 - show premium modal instead
+    // Portfolio Monitoring is at index 19 - show premium modal instead
+    // Risk and Limit Management is at index 20 - show premium modal instead
+    // Reporting and Compliance is at index 21 - show premium modal instead
+    // Integration and Automation is at index 22 - show premium modal instead
+    // Portfolio Transfers is at index 23 - show premium modal instead
+    if (index === 5 || index === 13 || index === 14 || index === 15 || index === 16 || index === 17 || index === 18 || index === 19 || index === 20 || index === 21 || index === 22 || index === 23) {
       setIsPremiumModalOpen(true);
       return;
     }
