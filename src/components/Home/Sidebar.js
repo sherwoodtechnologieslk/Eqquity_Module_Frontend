@@ -4,7 +4,7 @@
 import React, { useState, useEffect } from 'react';
 import './Styles/Sidebar.css';
 
-const menuItems = [
+export const menuItems = [
   {
     icon: (
       <svg fill="currentColor" viewBox="0 0 20 20">

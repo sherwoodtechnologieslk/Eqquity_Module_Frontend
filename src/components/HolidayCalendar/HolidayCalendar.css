@@ -566,7 +566,7 @@
   max-width: 900px;
   margin: 0 auto;
   background: white;
-  border-radius: 1.5rem;
+  border-radius: 0;
   box-shadow: 0 20px 60px rgba(15, 23, 42, 0.12);
   padding: 2rem;
   border: 1px solid #e5e7eb;
@@ -600,7 +600,7 @@
 .hc-settings-section {
   background: #f8fafc;
   border: 1px solid #e5e7eb;
-  border-radius: 1rem;
+  border-radius: 0;
   padding: 1.5rem;
   transition: all 0.2s ease;
 }
@@ -654,7 +654,7 @@
   padding: 0.875rem 1rem;
   background: white;
   border: 1px solid #e5e7eb;
-  border-radius: 0.75rem;
+  border-radius: 0;
   cursor: pointer;
   transition: all 0.2s ease;
 }
@@ -684,7 +684,7 @@
   padding: 1rem;
   background: white;
   border: 1px solid #e5e7eb;
-  border-radius: 0.75rem;
+  border-radius: 0;
   transition: all 0.2s ease;
 }
 
@@ -724,6 +724,14 @@
   opacity: 0;
   width: 0;
   height: 0;
+}
+
+.hc-settings-container .hc-toggle-slider {
+  border-radius: 0;
+}
+
+.hc-settings-container .hc-toggle-slider:before {
+  border-radius: 0;
 }
 
 .hc-toggle-slider {
@@ -772,7 +780,7 @@
 }
 
 .hc-settings-grid .hc-toggle-slider {
-  border-radius: 1.25rem;
+  border-radius: 0;
 }
 
 .hc-settings-grid .hc-toggle-slider:before {
@@ -812,7 +820,7 @@
 .hc-settings-select {
   padding: 0.75rem 1rem;
   border: 1px solid #e5e7eb;
-  border-radius: 0.75rem;
+  border-radius: 0;
   font-size: 0.95rem;
   color: #0f172a;
   background: white;
@@ -844,6 +852,10 @@
   margin-top: 1rem;
   padding-top: 1.5rem;
   border-top: 1px solid #e5e7eb;
+}
+
+.hc-settings-actions .hc-btn {
+  border-radius: 0;
 }
 
 /* Responsive Settings Styles */
@@ -887,7 +899,7 @@
 @media (max-width: 480px) {
   .hc-settings-container {
     padding: 1rem;
-    border-radius: 1rem;
+    border-radius: 0;
   }
 
   .hc-settings-header {

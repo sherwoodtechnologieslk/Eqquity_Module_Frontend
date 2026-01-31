@@ -43,26 +43,7 @@ const TrialBalance = () => {
     }
   }, [filters]);
 
-  useEffect(() => {
-    fetchTrialBalance();
-    fetchPortfolios();
-  }, [fetchTrialBalance]);
-
-  // Auto-fetch MTM data when portfolios are loaded
-  useEffect(() => {
-    if (portfolios.length > 0) {
-      console.log('🚀 Portfolios loaded, fetching MTM data...');
-      fetchMTMData();
-    }
-  }, [portfolios]);
-
-  // Force re-render when MTM data changes
-  useEffect(() => {
-    console.log('🔄 MTM data changed:', mtmData);
-    // This will trigger a re-render of the trial balance table
-  }, [mtmData]);
-
-  const fetchPortfolios = async () => {
+  const fetchPortfolios = useCallback(async () => {
     try {
       // Fetch portfolios for filter dropdown (from general ledger)
       const token = localStorage.getItem('token');
@@ -74,17 +55,23 @@ const TrialBalance = () => {
       });
       if (response.ok) {
         const data = await response.json();
-        setAvailablePortfolios(data);
+        setAvailablePortfolios(Array.isArray(data) ? data : []);
       }
       
       // Fetch active portfolios with proper IDs for MTM calculations
       const activePortfolios = await portfolioAPI.getActivePortfolios();
-      setPortfolios(activePortfolios || []); // Set portfolios for MTM calculations
+      setPortfolios(Array.isArray(activePortfolios) ? activePortfolios : []);
     } catch (err) {
       console.error('Error fetching portfolios:', err);
+      setAvailablePortfolios([]);
+      setPortfolios([]);
     }
-  };
+  }, []);
 
+  useEffect(() => {
+    fetchTrialBalance();
+    fetchPortfolios();
+  }, [fetchTrialBalance, fetchPortfolios]);
 
   const handleFilterChange = (field, value) => {
     setFilters(prev => ({
@@ -119,7 +106,7 @@ const TrialBalance = () => {
   };
 
   // Function to fetch MTM data and calculate unrealized capital gains (same logic as Mark-to-Market Valuation screen)
-  const fetchMTMData = async () => {
+  const fetchMTMData = useCallback(async () => {
     console.log('🚀 Starting MTM data fetch...');
     console.log('📊 Portfolios available:', portfolios.length);
     
@@ -140,12 +127,13 @@ const TrialBalance = () => {
         console.log(`📈 Fetching MTM data for portfolio: ${portfolio.portfolioName || portfolio.portfolio} (ID: ${portfolioId})`);
         
         try {
-          const mtmData = await transactionEntryAPI.getPortfolioPositions(portfolioId);
-          console.log(`📊 MTM data for ${portfolio.portfolioName || portfolio.portfolio}:`, mtmData);
+          const mtmResponse = await transactionEntryAPI.getPortfolioPositions(portfolioId);
+          const positions = Array.isArray(mtmResponse) ? mtmResponse : [];
+          console.log(`📊 MTM data for ${portfolio.portfolioName || portfolio.portfolio}:`, positions);
           
           // Calculate portfolio totals (same logic as Mark-to-Market Valuation screen)
-          const totalCost = mtmData.reduce((sum, item) => sum + (item.costValue || 0), 0);
-          const totalGrossSales = mtmData.reduce((sum, item) => sum + (item.grossSales || 0), 0);
+          const totalCost = positions.reduce((sum, item) => sum + (item.costValue || 0), 0);
+          const totalGrossSales = positions.reduce((sum, item) => sum + (item.grossSales || 0), 0);
           
           // Calculate unrealized capital gain (same as Mark-to-Market Valuation: totalGrossSales - totalCost)
           const portfolioUnrealizedCapitalGain = totalGrossSales - totalCost;
@@ -175,7 +163,15 @@ const TrialBalance = () => {
     } finally {
       setMtmLoading(false);
     }
-  };
+  }, [portfolios]);
+
+  // Auto-fetch MTM data when portfolios are loaded
+  useEffect(() => {
+    if (portfolios.length > 0) {
+      console.log('🚀 Portfolios loaded, fetching MTM data...');
+      fetchMTMData();
+    }
+  }, [portfolios, fetchMTMData]);
 
   const formatCurrency = (amount) => {
     return new Intl.NumberFormat('en-US', {
@@ -195,7 +191,7 @@ const TrialBalance = () => {
   };
 
   // Add hardcoded MTM accounts to trial balance data (only if they don't already exist)
-  const addMTMAccounts = (data) => {
+  const addMTMAccounts = useCallback((data) => {
     if (!data || !data.accountsByType) return data;
 
     console.log('🔍 Adding MTM accounts with data:', mtmData);
@@ -304,13 +300,13 @@ const TrialBalance = () => {
     
     console.log('🔍 Final updatedData:', updatedData);
     return updatedData;
-  };
+  }, [mtmData, mtmLoading, portfolios.length]);
 
   // Compute enhanced trial balance data with MTM accounts
   const enhancedTrialBalanceData = useMemo(() => {
     if (!trialBalanceData) return null;
     return addMTMAccounts(trialBalanceData);
-  }, [trialBalanceData, mtmData]);
+  }, [trialBalanceData, addMTMAccounts]);
 
   const renderAccountRow = (account, index) => (
     <tr key={account.account_code} className="tb-account-row">
