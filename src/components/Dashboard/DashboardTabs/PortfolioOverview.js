@@ -610,7 +610,7 @@ const PortfolioOverview = ({ onTabChange }) => {
 
       {/* Portfolio Summary Cards */}
       <div className="summary-cards">
-        <div className="summary-card secondary">
+        <div className="summary-card secondary po-portfolio-selection">
           <div className="card-content">
             <div className="card-header">
           <div className="card-icon">
@@ -625,7 +625,7 @@ const PortfolioOverview = ({ onTabChange }) => {
                 value={selectedPortfolio} 
                 onChange={(e) => setSelectedPortfolio(e.target.value)}
                 disabled={portfoliosLoading}
-                className="portfolio-dropdown"
+                className="portfolio-dropdown po-portfolio-selection-dropdown"
               >
                 <option value="all">All Portfolios</option>
                 {portfolios.map((portfolio) => (
@@ -641,7 +641,7 @@ const PortfolioOverview = ({ onTabChange }) => {
           </div>
         </div>
 
-        <div className="summary-card primary">
+        <div className="summary-card primary po-total-portfolio-value">
           <div className="card-content">
             <div className="card-header">
           <div className="card-icon">
@@ -663,7 +663,7 @@ const PortfolioOverview = ({ onTabChange }) => {
           </div>
         </div>
 
-        <div className="summary-card success">
+        <div className="summary-card success po-total-pnl">
           <div className="card-content">
             <div className="card-header">
           <div className="card-icon">
@@ -685,7 +685,7 @@ const PortfolioOverview = ({ onTabChange }) => {
           </div>
         </div>
 
-        <div className="summary-card info">
+        <div className="summary-card info po-active-positions">
           <div className="card-content">
             <div className="card-header">
           <div className="card-icon">
@@ -700,7 +700,7 @@ const PortfolioOverview = ({ onTabChange }) => {
           </div>
         </div>
 
-        <div className="summary-card warning">
+        <div className="summary-card warning po-cash-balance">
           <div className="card-content">
             <div className="card-header">
           <div className="card-icon">
