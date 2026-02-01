@@ -498,6 +498,21 @@ const BuyTransactionEntry = () => {
     
     // Normalize date values to YYYY-MM-DD format to avoid timezone issues
     let normalizedValue = value;
+    
+    // Broker Name: allow only letters and spaces
+    if (name === 'brokerName') {
+      normalizedValue = value.replace(/[^a-zA-Z\s]/g, '');
+    }
+    
+    // Bought Price: no negative numbers
+    if (name === 'price' && (value.startsWith('-') || (value !== '' && parseFloat(value) < 0))) {
+      return;
+    }
+    
+    // Quantity Purchased: no negative numbers
+    if (name === 'quantity' && (value.startsWith('-') || (value !== '' && parseFloat(value) < 0))) {
+      return;
+    }
     if ((name === 'tradeDate' || name === 'settlementDate') && value) {
       normalizedValue = normalizeDate(value) || value;
     }
@@ -1064,6 +1079,7 @@ const BuyTransactionEntry = () => {
                   <input
                     name="quantity"
                     type="number"
+                    min="0"
                     placeholder="Enter quantity"
                     value={form.quantity}
                     onChange={handleChange}
@@ -1076,6 +1092,7 @@ const BuyTransactionEntry = () => {
                     name="price"
                     type="number"
                     step="0.01"
+                    min="0"
                     placeholder="Enter price per share"
                     value={form.price}
                     onChange={handleChange}

@@ -793,6 +793,21 @@ const SellTransactionEntry = ({ setFifoParams, setActiveTab }) => {
       normalizedValue = normalizeDate(value) || value;
     }
     
+    // Broker Name: allow only letters and spaces
+    if (name === 'brokerName') {
+      normalizedValue = value.replace(/[^a-zA-Z\s]/g, '');
+    }
+    
+    // Quantity: no negative numbers
+    if (name === 'quantity' && (value.startsWith('-') || (value !== '' && parseFloat(value) < 0))) {
+      return;
+    }
+    
+    // Selling Price: no negative numbers
+    if (name === 'soldPrice' && (value.startsWith('-') || (value !== '' && parseFloat(value) < 0))) {
+      return;
+    }
+    
     // Check for holiday dates BEFORE updating form - prevent selection
     if (name === 'tradeDate' && normalizedValue) {
       const holiday = isHoliday(normalizedValue);
@@ -1471,6 +1486,7 @@ const SellTransactionEntry = ({ setFifoParams, setActiveTab }) => {
                     type="number"
                     id="quantity"
                     name="quantity"
+                    min="0"
                     value={form.quantity}
                     onChange={handleChange}
                     className={getFieldClassName('quantity')}

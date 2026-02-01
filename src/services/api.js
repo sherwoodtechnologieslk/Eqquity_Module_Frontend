@@ -2408,3 +2408,20 @@ export const monthlyPortfolioUpdateAPI = {
     }
   }
 };
+
+// API service for dashboard (market summary uses real CSE data from trade_summaries)
+export const dashboardAPI = {
+  getMarketSummary: async () => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/dashboard/market-summary`, {
+        headers: getAuthHeaders()
+      });
+      if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+      const json = await response.json();
+      return json.success ? json.data : json;
+    } catch (error) {
+      console.error('Error fetching market summary:', error);
+      throw error;
+    }
+  }
+};
