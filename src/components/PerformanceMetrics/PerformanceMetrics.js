@@ -1,7 +1,12 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import './PerformanceMetrics.css';
+import { portfolioAPI, transactionEntryAPI } from '../../services/api';
+import { realizedPnLService } from '../../services/realizedPnLService';
 
 const PerformanceMetrics = () => {
+  const [portfolios, setPortfolios] = useState([]);
+  const [selectedPortfolio, setSelectedPortfolio] = useState('all');
+  const [portfoliosLoading, setPortfoliosLoading] = useState(true);
   const [performanceData, setPerformanceData] = useState({
     portfolioSummary: {
       totalValue: 0,
@@ -41,56 +46,189 @@ const PerformanceMetrics = () => {
   const [activeTab, setActiveTab] = useState('overview');
   const [timeRange, setTimeRange] = useState('1Y');
 
-  useEffect(() => {
-    loadPerformanceData();
-  }, [timeRange]);
-
-  const loadPerformanceData = async () => {
+  const loadPortfolios = useCallback(async () => {
     try {
-      // TODO: Replace with actual API calls
-      // For now, using empty data
+      setPortfoliosLoading(true);
+      const data = await portfolioAPI.getActivePortfolios();
+      setPortfolios(Array.isArray(data) ? data : []);
+    } catch (err) {
+      console.error('Error loading portfolios:', err);
+      setPortfolios([]);
+    } finally {
+      setPortfoliosLoading(false);
+    }
+  }, []);
+
+  useEffect(() => { loadPortfolios(); }, [loadPortfolios]);
+
+  const loadPerformanceData = useCallback(async () => {
+    try {
+      setIsLoading(true);
       const emptyData = {
-        portfolioSummary: {
-          totalValue: 0,
-          totalReturn: 0,
-          totalReturnPercent: 0,
-          dailyReturn: 0,
-          monthlyReturn: 0,
-          yearlyReturn: 0
-        },
-        riskMetrics: {
-          volatility: 0,
-          sharpeRatio: 0,
-          beta: 0,
-          maxDrawdown: 0,
-          var95: 0,
-          trackingError: 0
-        },
-        benchmarkComparison: {
-          benchmark: 'NIFTY 50',
-          benchmarkReturn: 0,
-          excessReturn: 0,
-          informationRatio: 0,
-          correlation: 0
-        },
+        portfolioSummary: { totalValue: 0, totalReturn: 0, totalReturnPercent: 0, dailyReturn: 0, monthlyReturn: 0, yearlyReturn: 0 },
+        riskMetrics: { volatility: 0, sharpeRatio: 0, beta: 0, maxDrawdown: 0, var95: 0, trackingError: 0 },
+        benchmarkComparison: { benchmark: 'CSE Market', benchmarkReturn: 0, excessReturn: 0, informationRatio: 0, correlation: 0 },
         sectorAllocation: [],
         topHoldings: [],
         performanceHistory: [],
-        attribution: {
-          assetAllocation: 0,
-          stockSelection: 0,
-          interaction: 0,
-          total: 0
-        }
+        attribution: { assetAllocation: 0, stockSelection: 0, interaction: 0, total: 0 }
       };
 
-      setPerformanceData(emptyData);
-      setIsLoading(false);
+      const pfId = selectedPortfolio === 'all' && portfolios?.length ? (portfolios[0]?.portfolioId || portfolios[0]?.id) : selectedPortfolio;
+      const timeMap = { '1M': '1M', '3M': '3M', '6M': '6M', '1Y': '1Y', '3Y': '3M', '5Y': '6M' };
+      const range = timeMap[timeRange] || '3M';
+
+      const [overviewRes, valueHistoryRes, mtmData, realizedData] = await Promise.all([
+        portfolioAPI.getPortfolioOverview(selectedPortfolio),
+        portfolioAPI.getPortfolioValueHistory(selectedPortfolio, range),
+        pfId ? transactionEntryAPI.getPortfolioPositions(pfId).catch(() => []) : Promise.resolve([]),
+        pfId ? realizedPnLService.getCompleteData(pfId, '1Y').catch(() => null) : Promise.resolve(null)
+      ]);
+
+      const overview = overviewRes?.success ? overviewRes.data : overviewRes;
+      const summary = overview?.summary || {};
+      const holdings = overview?.holdings || [];
+      const valueHistory = (valueHistoryRes?.data || valueHistoryRes || [])
+        .map(d => ({ date: d.date, value: parseFloat(d.value) || 0 }))
+        .sort((a, b) => new Date(a.date) - new Date(b.date));
+
+      const totalValue = parseFloat(summary.totalValue) || 0;
+      const totalCost = parseFloat(summary.totalCost) || 0;
+      const totalPnL = parseFloat(summary.totalPnL) || 0;
+      const totalReturnPercent = totalCost > 0 ? (totalPnL / totalCost) * 100 : 0;
+
+      let realizedPnL = 0;
+      if (realizedData?.realizedPnL != null) realizedPnL = parseFloat(realizedData.realizedPnL) || 0;
+
+      let unrealizedPnL = totalPnL;
+      if (Array.isArray(mtmData) && mtmData.length > 0) {
+        const totalCostMtm = mtmData.reduce((s, i) => s + (i.costValue || 0), 0);
+        const totalGross = mtmData.reduce((s, i) => s + (i.grossSales || 0), 0);
+        const totalCharges = mtmData.reduce((s, i) => s + (i.charges || 0), 0);
+        const totalProj = mtmData.reduce((s, i) => s + (i.projectedSalesWithCOF || 0), 0);
+        unrealizedPnL = totalProj - (totalCostMtm + totalCharges);
+      }
+
+      const totalReturn = realizedPnL + unrealizedPnL;
+      const dailyReturn = valueHistory.length >= 2
+        ? valueHistory[valueHistory.length - 1].value - valueHistory[valueHistory.length - 2].value : 0;
+      const monthlyReturn = valueHistory.length >= 30
+        ? (valueHistory[valueHistory.length - 1]?.value || 0) - (valueHistory[Math.max(0, valueHistory.length - 30)]?.value || 0) : totalReturn * 0.08;
+      const yearlyReturn = totalReturn;
+
+      const returns = [];
+      for (let i = 1; i < valueHistory.length; i++) {
+        const prev = valueHistory[i - 1].value;
+        if (prev > 0) returns.push(((valueHistory[i].value - prev) / prev) * 100);
+      }
+      const avgReturn = returns.length ? returns.reduce((a, b) => a + b, 0) / returns.length : 0;
+      const variance = returns.length ? returns.reduce((s, r) => s + Math.pow(r - avgReturn, 2), 0) / returns.length : 0;
+      const volatility = Math.sqrt(variance) * Math.sqrt(252);
+      let maxDrawdown = 0;
+      let peak = 0;
+      valueHistory.forEach(({ value }) => {
+        if (value > peak) peak = value;
+        if (peak > 0) {
+          const dd = ((value - peak) / peak) * 100;
+          if (dd < maxDrawdown) maxDrawdown = dd;
+        }
+      });
+
+      const costFromHolding = (h) => {
+        const mv = parseFloat(h.marketValue) || 0;
+        const pnl = parseFloat(h.pnl) || 0;
+        if (mv && pnl !== undefined) return mv - pnl;
+        const qty = parseFloat(h.quantity) || 0;
+        const avg = parseFloat(h.avgPrice) || parseFloat(h.avg_price) || 0;
+        return qty * avg || parseFloat(h.total_cost) || 0;
+      };
+
+      const sectorMap = {};
+      holdings.forEach(h => {
+        const sector = h.sector || 'Unknown';
+        if (!sectorMap[sector]) sectorMap[sector] = { value: 0, cost: 0 };
+        sectorMap[sector].value += parseFloat(h.marketValue) || 0;
+        sectorMap[sector].cost += costFromHolding(h);
+      });
+      const sectorAllocation = Object.entries(sectorMap).map(([sector, data]) => {
+        const ret = data.cost > 0 ? ((data.value - data.cost) / data.cost) * 100 : 0;
+        const alloc = totalValue > 0 ? (data.value / totalValue) * 100 : 0;
+        return { sector, allocation: alloc, return: ret, benchmark: 0 };
+      }).sort((a, b) => b.allocation - a.allocation);
+
+      const topHoldings = [...holdings]
+        .sort((a, b) => (parseFloat(b.marketValue) || 0) - (parseFloat(a.marketValue) || 0))
+        .slice(0, 10)
+        .map(h => {
+          const mv = parseFloat(h.marketValue) || 0;
+          const cost = costFromHolding(h);
+          const alloc = totalValue > 0 ? (mv / totalValue) * 100 : 0;
+          const ret = cost > 0 ? ((mv - cost) / cost) * 100 : 0;
+          const contrib = totalValue > 0 ? ((mv - cost) / totalValue) * 100 : 0;
+          return { symbol: h.symbol || h.companyName, allocation: alloc, return: ret, contribution: contrib };
+        });
+
+      const periods = [
+        { label: '1W', idx: Math.max(0, valueHistory.length - 7) },
+        { label: '1M', idx: Math.max(0, valueHistory.length - 30) },
+        { label: '3M', idx: Math.max(0, valueHistory.length - 90) },
+        { label: '6M', idx: Math.max(0, valueHistory.length - 180) },
+        { label: '1Y', idx: 0 }
+      ];
+      const performanceHistory = periods.map(({ label, idx }) => {
+        const startVal = valueHistory[idx]?.value || totalValue;
+        const endVal = valueHistory[valueHistory.length - 1]?.value || totalValue;
+        const portRet = startVal > 0 ? ((endVal - startVal) / startVal) * 100 : 0;
+        return { period: label, portfolio: portRet, benchmark: 0, excess: portRet };
+      });
+
+      setPerformanceData({
+        portfolioSummary: {
+          totalValue,
+          totalReturn,
+          totalReturnPercent,
+          dailyReturn,
+          monthlyReturn,
+          yearlyReturn
+        },
+        riskMetrics: {
+          volatility: volatility || 0,
+          sharpeRatio: volatility > 0 ? (avgReturn / (Math.sqrt(variance) || 1)) * Math.sqrt(252) : 0,
+          beta: 1,
+          maxDrawdown: maxDrawdown || 0,
+          var95: -volatility * 1.65,
+          trackingError: 0
+        },
+        benchmarkComparison: { ...emptyData.benchmarkComparison },
+        sectorAllocation,
+        topHoldings,
+        performanceHistory,
+        attribution: {
+          assetAllocation: 0,
+          stockSelection: totalReturnPercent,
+          interaction: 0,
+          total: totalReturnPercent
+        }
+      });
     } catch (error) {
       console.error('Error loading performance data:', error);
+      setPerformanceData({
+        portfolioSummary: { totalValue: 0, totalReturn: 0, totalReturnPercent: 0, dailyReturn: 0, monthlyReturn: 0, yearlyReturn: 0 },
+        riskMetrics: { volatility: 0, sharpeRatio: 0, beta: 0, maxDrawdown: 0, var95: 0, trackingError: 0 },
+        benchmarkComparison: { benchmark: 'CSE Market', benchmarkReturn: 0, excessReturn: 0, informationRatio: 0, correlation: 0 },
+        sectorAllocation: [],
+        topHoldings: [],
+        performanceHistory: [],
+        attribution: { assetAllocation: 0, stockSelection: 0, interaction: 0, total: 0 }
+      });
+    } finally {
       setIsLoading(false);
     }
-  };
+  }, [selectedPortfolio, timeRange, portfolios]);
+
+  useEffect(() => {
+    loadPerformanceData();
+  }, [loadPerformanceData]);
 
   const formatCurrency = (num) => {
     return new Intl.NumberFormat('en-IN', {
@@ -136,16 +274,33 @@ const PerformanceMetrics = () => {
     <div className="performance-metrics">
       <div className="performance-header">
         <h1>Performance Metrics</h1>
-        <div className="time-range-selector">
-          <label>Time Range:</label>
-          <select value={timeRange} onChange={(e) => setTimeRange(e.target.value)}>
-            <option value="1M">1 Month</option>
-            <option value="3M">3 Months</option>
-            <option value="6M">6 Months</option>
-            <option value="1Y">1 Year</option>
-            <option value="3Y">3 Years</option>
-            <option value="5Y">5 Years</option>
-          </select>
+        <div className="performance-header-controls">
+          <div className="time-range-selector">
+            <label>Portfolio:</label>
+            <select
+              value={selectedPortfolio}
+              onChange={(e) => setSelectedPortfolio(e.target.value)}
+              disabled={portfoliosLoading}
+            >
+              <option value="all">All Portfolios</option>
+              {(portfolios || []).map((p) => (
+                <option key={p.portfolioId || p.id} value={p.portfolioId || p.id}>
+                  {p.portfolioName || p.portfolio || p.name || 'Portfolio'}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div className="time-range-selector">
+            <label>Time Range:</label>
+            <select value={timeRange} onChange={(e) => setTimeRange(e.target.value)}>
+              <option value="1M">1 Month</option>
+              <option value="3M">3 Months</option>
+              <option value="6M">6 Months</option>
+              <option value="1Y">1 Year</option>
+              <option value="3Y">3 Years</option>
+              <option value="5Y">5 Years</option>
+            </select>
+          </div>
         </div>
       </div>
 
@@ -169,7 +324,9 @@ const PerformanceMetrics = () => {
           <div className="card-value">{formatCurrency(performanceData.portfolioSummary.dailyReturn)}</div>
           <div className="card-change">
             <span className={`return-value ${getReturnColor(performanceData.portfolioSummary.dailyReturn)}`}>
-              {formatPercentage((performanceData.portfolioSummary.dailyReturn / performanceData.portfolioSummary.totalValue) * 100)}
+              {formatPercentage(performanceData.portfolioSummary.totalValue
+                ? (performanceData.portfolioSummary.dailyReturn / performanceData.portfolioSummary.totalValue) * 100
+                : 0)}
             </span>
           </div>
         </div>
@@ -179,7 +336,9 @@ const PerformanceMetrics = () => {
           <div className="card-value">{formatCurrency(performanceData.portfolioSummary.monthlyReturn)}</div>
           <div className="card-change">
             <span className={`return-value ${getReturnColor(performanceData.portfolioSummary.monthlyReturn)}`}>
-              {formatPercentage((performanceData.portfolioSummary.monthlyReturn / performanceData.portfolioSummary.totalValue) * 100)}
+              {formatPercentage(performanceData.portfolioSummary.totalValue
+                ? (performanceData.portfolioSummary.monthlyReturn / performanceData.portfolioSummary.totalValue) * 100
+                : 0)}
             </span>
           </div>
         </div>
@@ -259,7 +418,9 @@ const PerformanceMetrics = () => {
                   </tr>
                 </thead>
                 <tbody>
-                  {performanceData.performanceHistory.map((period, index) => (
+                  {(performanceData.performanceHistory || []).length === 0 ? (
+                    <tr><td colSpan="4" style={{ color: '#64748b', textAlign: 'center', padding: '1.5rem' }}>No performance history. Upload trade data and ensure portfolio has value history.</td></tr>
+                  ) : (performanceData.performanceHistory || []).map((period, index) => (
                     <tr key={index}>
                       <td>{period.period}</td>
                       <td className={getReturnColor(period.portfolio)}>
@@ -512,21 +673,6 @@ const PerformanceMetrics = () => {
         )}
       </div>
 
-      {/* Export and Actions */}
-      <div className="actions-section">
-        <button className="action-btn">
-          Generate Performance Report
-        </button>
-        <button className="action-btn">
-          Export to Excel
-        </button>
-        <button className="action-btn">
-          Email Report
-        </button>
-        <button className="action-btn">
-          Refresh Data
-        </button>
-      </div>
     </div>
   );
 };

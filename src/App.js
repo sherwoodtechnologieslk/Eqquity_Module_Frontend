@@ -60,7 +60,8 @@ import CashFlowMapping from './components/SettlementAndAccounting/CashFlowMappin
 import SettlementInstructions from './components/SettlementAndAccounting/SettlementInstructions';
 import GLMapping from './components/SettlementAndAccounting/GLMapping';
 import ViewPortfolio from './components/ViewPortfolio/ViewPortfolio';
-
+import ViewTransactions from './components/ViewTransactions/ViewTransactions';
+import PortfolioVsSectors from './components/ViewTransactions/PortfolioVsSectors';
 
 function App() {
   const [activeTab, setActiveTab] = useState('Dashboard');
@@ -120,7 +121,8 @@ function App() {
     'Deal Slip': <DealSlipScreen />,
     'Portfolio': <PortfolioDropdown />,
     'View Portfolio': <ViewPortfolio />,
-    'View Transactions': <TransactionView onTabChange={handleTabChange} />,
+    'View Transactions': <ViewTransactions />,
+    'Sector Allocation & Performance': <PortfolioVsSectors />,
     'Trade Confirmation': <TradeConfirmation />,
     'Equity Cost': <div style={{ padding: '2rem' }}><h3>Equity Cost Module</h3><p>Coming Soon...</p></div>,
     'Mark To Market': <MarkToMarketValuation />,
