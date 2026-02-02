@@ -23,29 +23,7 @@ const RecentActivity = () => {
       
       const allActivities = [];
 
-      // 1. Fetch activities from dashboard endpoint (existing trades)
-      try {
-        const token = localStorage.getItem('token');
-        const response = await fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:8080/api'}/dashboard/recent-activities`, {
-          method: 'GET',
-          headers: {
-            'Content-Type': 'application/json',
-            ...(token && { 'Authorization': `Bearer ${token}` })
-          }
-        });
-
-        if (response.ok) {
-          const result = await response.json();
-          if (result.success && result.data && Array.isArray(result.data)) {
-            console.log(`📊 Found ${result.data.length} activities from dashboard`);
-            allActivities.push(...result.data);
-          }
-        }
-      } catch (error) {
-        console.error('❌ Error fetching dashboard activities:', error);
-      }
-
-      // 2. Fetch buy transactions
+      // 1. Fetch buy transactions (full details: netValue, contractNumber, settlementDate)
       try {
         const buyTransactions = await transactionEntryAPI.getAllBuyTransactions();
         console.log(`📊 Found ${buyTransactions?.length || 0} buy transactions`);
@@ -74,7 +52,7 @@ const RecentActivity = () => {
         console.error('❌ Error fetching buy transactions:', error);
       }
 
-      // 3. Fetch sell transactions
+      // 2. Fetch sell transactions
       try {
         const sellTransactions = await transactionEntryAPI.getAllSellTransactions();
         console.log(`📊 Found ${sellTransactions?.length || 0} sell transactions`);
@@ -109,7 +87,7 @@ const RecentActivity = () => {
         console.error('❌ Error fetching sell transactions:', error);
       }
 
-      // 4. Fetch other transactions
+      // 3. Fetch other transactions
       try {
         const otherTransactions = await otherTransactionAPI.getAllTransactions();
         console.log(`📊 Found ${otherTransactions?.length || 0} other transactions`);

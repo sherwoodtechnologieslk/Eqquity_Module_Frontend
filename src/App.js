@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import './App.css';
 import Navbar from './components/Home/Navbar';
-import Sidebar from './components/Home/Sidebar';
+import Sidebar, { menuItems as sidebarMenuItems } from './components/Home/Sidebar';
 import AuthContainer from './components/Auth/AuthContainer';
 import UserProfileModal from './components/Auth/UserProfileModal';
 import { authService } from './services/authService';
@@ -60,7 +60,8 @@ import CashFlowMapping from './components/SettlementAndAccounting/CashFlowMappin
 import SettlementInstructions from './components/SettlementAndAccounting/SettlementInstructions';
 import GLMapping from './components/SettlementAndAccounting/GLMapping';
 import ViewPortfolio from './components/ViewPortfolio/ViewPortfolio';
-
+import ViewTransactions from './components/ViewTransactions/ViewTransactions';
+import PortfolioVsSectors from './components/ViewTransactions/PortfolioVsSectors';
 
 function App() {
   const [activeTab, setActiveTab] = useState('Dashboard');
@@ -73,98 +74,15 @@ function App() {
   const [isLoading, setIsLoading] = useState(true);
   
 
-  // Handle tab selection from Navbar
+  // Handle tab selection from Navbar - use Sidebar's menuItems as single source of truth for indices
   const handleTabChange = (tabName) => {
     setActiveTab(tabName);
-    
-    // Update sidebar to reflect the current tab
-    // Find which sidebar section contains this tab
-    const sidebarSections = [
-      {
-        index: 0,
-        name: "Dashboard",
-        subTopics: ["Dashboard", "Portfolio Overview", "Market Summary", "Recent Activity", "Performance Metrics"]
-      },
-      {
-        index: 1,
-        name: "Master Data Management", 
-        subTopics: ["Equity Master", "Account Master", "Valuation Method", "Portfolio Master", "Strategy Master"]
-      },
-      {
-        index: 2,
-        name: "Holiday Calendar",
-        subTopics: ["Holiday Calendar", "Holiday List", "Add Holiday", "Holiday Settings"]
-      },
-      {
-        index: 3,
-        name: "Accounting Entries",
-        subTopics: ["Journal Entries", "General Ledger", "Trial Balance", "P&L", "Portfolio MTM"]
-      },
-      {
-        index: 4,
-        name: "GSec Entries",
-        subTopics: ["Balance Sheet", "GSec General Ledger", "GSec Chart of Accounts"]
-      },
-      {
-        index: 5,
-        name: "Financial Reporting",
-        subTopics: ["Statement of Financial Position", "Statement of Comprehensive Income", "Cash Flow", "Financial Reports Export"]
-      },
-      {
-        index: 6,
-        name: "Account Management",
-        subTopics: ["Chart Of Accounts", "New GL Account", "Account Reconciliation", "Other Transactions"]
-      },
-      {
-        index: 7,
-        name: "Opening Balance Management",
-        subTopics: ["Opening Balance Entry", "Opening Balance List", "Account Balance Setup", "Double Entries"]
-      },
-      {
-        index: 8,
-        name: "Trade Capture",
-      subTopics: ["Buy", "Sell", "Transactions", "Portfolio", "Deal Slip", "Cost of Funds", "Equity GL Mapping"]
-      },
-      {
-        index: 9,
-        name: "Batch Transaction Import",
-        subTopics: ["Bulk Buy Entry", "Bulk Sell Entry", "Import History", "Trade Confirmation", "Trade Report"]
-      },
-      {
-        index: 10,
-        name: "Settlement and Accounting",
-        subTopics: ["Settlement Instructions", "Cash Flow Mapping", "GL Mapping"]
-      },
-      {
-        index: 11,
-        name: "Valuation and MTM",
-        subTopics: ["Mark-to-Market Valuation", "Realized Gain/Loss Tracking", "Trade Summary Data", "Market Price Feed"]
-      },
-      {
-        index: 12,
-        name: "CSE Announcements",
-        subTopics: ["Corporate Notices", "Market Announcements", "Trading Updates", "Regulatory Updates", "News & Events"]
-      },
-      {
-        index: 13,
-        name: "Corporate Actions",
-        subTopics: ["Dividend", "Rights Issue", "Stock Split"]
-      },
-      {
-        index: 17,
-        name: "IPO",
-        subTopics: ["IPO Entry", "IPO Allocation", "Refund Processing", "Allocation Summary"]
-      }
-    ];
-    
-    // Find the section that contains this tab
-    const section = sidebarSections.find(section => 
-      section.subTopics.includes(tabName)
+    const sectionIndex = sidebarMenuItems.findIndex(
+      (item) => item.subTopics && item.subTopics.includes(tabName)
     );
-    
-    if (section) {
-      setActiveSidebarItem(section.index);
-      setVisibleTabs(section.subTopics);
+    if (sectionIndex >= 0) {
+      setActiveSidebarItem(sectionIndex);
+      setVisibleTabs(sidebarMenuItems[sectionIndex].subTopics || []);
     }
   };
 
@@ -203,7 +121,8 @@ function App() {
     'Deal Slip': <DealSlipScreen />,
     'Portfolio': <PortfolioDropdown />,
     'View Portfolio': <ViewPortfolio />,
-    'View Transactions': <TransactionView onTabChange={handleTabChange} />,
+    'View Transactions': <ViewTransactions />,
+    'Sector Allocation & Performance': <PortfolioVsSectors />,
     'Trade Confirmation': <TradeConfirmation />,
     'Equity Cost': <div style={{ padding: '2rem' }}><h3>Equity Cost Module</h3><p>Coming Soon...</p></div>,
     'Mark To Market': <MarkToMarketValuation />,

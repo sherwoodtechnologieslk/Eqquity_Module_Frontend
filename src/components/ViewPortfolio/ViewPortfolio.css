@@ -19,7 +19,11 @@
   justify-content: space-between;
   gap: 2rem;
   padding-bottom: 1.5rem;
-  border-bottom: 1px solid rgba(15, 23, 42, 0.08);
+  border-bottom: 1px solid #cbd5e1;
+}
+
+.vp-header > div:first-child {
+  text-align: left;
 }
 
 .vp-title {
@@ -28,6 +32,7 @@
   color: #0f172a;
   margin: 0 0 0.5rem 0;
   letter-spacing: -0.02em;
+  text-align: left;
 }
 
 .vp-subtitle {
@@ -35,50 +40,62 @@
   font-size: 0.95rem;
   color: #64748b;
   font-weight: 400;
+  text-align: left;
 }
 
 .vp-header-actions {
   display: flex;
-  gap: 1rem;
+  gap: 0.75rem;
   flex-wrap: wrap;
 }
 
 .vp-button {
-  border-radius: 12px;
-  padding: 0.75rem 1.5rem;
-  font-size: 0.8rem;
-  font-weight: 700;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
+  border-radius: 0;
+  padding: 0.7rem 1.4rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  text-transform: none;
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  gap: 0.5rem;
   border: none;
   cursor: pointer;
-  transition: all 0.25s ease;
-}
-
-.vp-button.primary {
-  background: linear-gradient(135deg, #3b82f6, #1d4ed8);
-  color: #fff;
-  box-shadow: 0 6px 20px rgba(59, 130, 246, 0.35);
-}
-
-.vp-button.primary:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 10px 30px rgba(59, 130, 246, 0.45);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  min-width: 175px;
 }
 
 .vp-button.ghost {
-  background: #ffffff;
+  background: linear-gradient(135deg, #f8fafc, #f1f5f9);
+  color: #475569;
   border: 1px solid #e2e8f0;
-  color: #334155;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.04);
 }
 
 .vp-button.ghost:hover {
-  background: #f8fafc;
-  border-color: #cbd5e1;
+  background: linear-gradient(135deg, #eff6ff, #dbeafe);
+  color: #1e40af;
+  border-color: #93c5fd;
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.15);
   transform: translateY(-1px);
+}
+
+.vp-button.primary {
+  background: linear-gradient(135deg, #0ea5e9, #0284c7);
+  color: #fff;
+  box-shadow: 0 4px 14px rgba(14, 165, 233, 0.4);
+}
+
+.vp-button.primary:hover {
+  background: linear-gradient(135deg, #38bdf8, #0ea5e9);
+  box-shadow: 0 6px 24px rgba(14, 165, 233, 0.5);
+  transform: translateY(-2px);
+}
+
+.vp-button svg {
+  flex-shrink: 0;
+  opacity: 0.9;
 }
 
 /* ========== GRID LAYOUT ========== */
@@ -91,7 +108,7 @@
 /* ========== CARDS ========== */
 .vp-card {
   background: #ffffff;
-  border-radius: 20px;
+  border-radius: 0;
   padding: 1.75rem 2rem;
   border: 1px solid rgba(15, 23, 42, 0.06);
   box-shadow: 
@@ -121,7 +138,7 @@
   width: 4px;
   height: 1.1rem;
   background: linear-gradient(180deg, #3b82f6, #1d4ed8);
-  border-radius: 4px;
+  border-radius: 0;
 }
 
 /* ========== KEY PORTFOLIO METRICS ========== */
@@ -152,7 +169,7 @@
   min-width: 280px;
   position: relative;
   padding: 2rem 2.25rem;
-  border-radius: 20px;
+  border-radius: 0;
   overflow: hidden;
   background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #334155 100%);
   border: 1px solid rgba(59, 130, 246, 0.2);
@@ -218,7 +235,7 @@
   flex-direction: column;
   gap: 0.35rem;
   padding: 1.25rem 1.5rem;
-  border-radius: 16px;
+  border-radius: 0;
   background: #ffffff;
   border: 1px solid #e2e8f0;
   box-shadow: 0 4px 16px rgba(15, 23, 42, 0.04);
@@ -235,7 +252,7 @@
   width: 4px;
   height: 100%;
   background: linear-gradient(180deg, #cbd5e1, #94a3b8);
-  border-radius: 4px 0 0 4px;
+  border-radius: 0;
   opacity: 0.8;
 }
 
@@ -293,40 +310,47 @@
   color: #64748b;
   background: #f1f5f9;
   padding: 0.35rem 0.75rem;
-  border-radius: 20px;
+  border-radius: 0;
   border: 1px solid #e2e8f0;
 }
 
-.vp-table-wrapper {
-  border-radius: 14px;
+.vp-card-holdings .vp-table-wrapper {
+  border-radius: 0;
   overflow: hidden;
-  border: 1px solid #e2e8f0;
 }
 
-.vp-table {
+.vp-card-holdings .vp-table {
   width: 100%;
   border-collapse: collapse;
   font-size: 0.85rem;
 }
 
-.vp-table thead {
-  background: linear-gradient(90deg, #0f172a, #1e293b);
+.vp-card-holdings .vp-table thead {
+  background: #e2e8f0;
 }
 
-.vp-table th {
+.vp-card-holdings .vp-table thead th {
   padding: 1rem 1.25rem;
-  font-weight: 600;
+  font-weight: 700;
   text-align: left;
-  color: #e2e8f0;
-  font-size: 0.75rem;
+  color: #0f172a;
+  font-size: 0.85rem;
   text-transform: uppercase;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.05em;
+  background: #e2e8f0;
 }
 
-.vp-table td {
+.vp-card-holdings .vp-table thead th:first-child {
+  border-top-left-radius: 0;
+}
+
+.vp-card-holdings .vp-table thead th:last-child {
+  border-top-right-radius: 0;
+}
+
+.vp-card-holdings .vp-table td {
   padding: 1rem 1.25rem;
   color: #334155;
-  border-bottom: 1px solid #f1f5f9;
   font-size: 0.85rem;
 }
 
@@ -376,7 +400,7 @@
   align-items: center;
   padding: 0.85rem 1rem;
   background: #f8fafc;
-  border-radius: 10px;
+  border-radius: 0;
   border: 1px solid #e2e8f0;
   transition: all 0.25s ease;
 }
@@ -399,13 +423,13 @@
 .vp-allocation-dot {
   width: 12px;
   height: 12px;
-  border-radius: 4px;
+  border-radius: 0;
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
 }
 
 .vp-allocation-bar-outer {
   background: linear-gradient(90deg, #e2e8f0, #f1f5f9);
-  border-radius: 8px;
+  border-radius: 0;
   overflow: hidden;
   height: 16px;
   box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.06);
@@ -413,7 +437,7 @@
 
 .vp-allocation-bar-inner {
   height: 100%;
-  border-radius: 8px;
+  border-radius: 0;
   transition: width 0.5s cubic-bezier(0.34, 1.56, 0.64, 1), filter 0.3s ease, box-shadow 0.3s ease;
   position: relative;
   overflow: hidden;
@@ -435,7 +459,7 @@
     rgba(255, 255, 255, 0.18) 50%,
     transparent 100%
   );
-  border-radius: 8px;
+  border-radius: 0;
   pointer-events: none;
 }
 
@@ -457,7 +481,7 @@
   background-size: 220% 100%;
   background-position: 160% 0;
   animation: vp-allocation-shimmer 2s ease-in-out infinite;
-  border-radius: 8px;
+  border-radius: 0;
   pointer-events: none;
 }
 
@@ -526,7 +550,7 @@
 
 .vp-insight-tile {
   padding: 1.5rem;
-  border-radius: 16px;
+  border-radius: 0;
   background: linear-gradient(145deg, #ffffff, #f8fafc);
   border: 1px solid #e2e8f0;
   box-shadow: 0 4px 15px rgba(15, 23, 42, 0.04);
@@ -628,7 +652,7 @@
 
   .vp-card {
     padding: 1.25rem 1rem;
-    border-radius: 16px;
+    border-radius: 0;
   }
 
   .vp-allocation-row {
@@ -683,12 +707,12 @@
 
 .vp-table-wrapper::-webkit-scrollbar-track {
   background: #f1f5f9;
-  border-radius: 4px;
+  border-radius: 0;
 }
 
 .vp-table-wrapper::-webkit-scrollbar-thumb {
   background: #cbd5e1;
-  border-radius: 4px;
+  border-radius: 0;
 }
 
 .vp-table-wrapper::-webkit-scrollbar-thumb:hover {

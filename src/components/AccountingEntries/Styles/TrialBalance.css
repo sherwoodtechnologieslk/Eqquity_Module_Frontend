@@ -31,7 +31,7 @@
   width: 5.5rem;
   height: 5.5rem;
   background: linear-gradient(135deg, #60a5fa, #2563eb);
-  border-radius: 0.18rem;
+  border-radius: 0;
   margin: 0;
   box-shadow: 0 8px 32px 0 rgba(59, 130, 246, 0.09), 0 2px 8px 0 rgba(59, 130, 246, 0.04);
   flex-shrink: 0;
@@ -94,14 +94,14 @@
   color: #64748b;
   background: rgba(148, 163, 184, 0.1);
   padding: 0.5rem 1rem;
-  border-radius: 0.5rem;
+  border-radius: 0;
   border: 1px solid rgba(148, 163, 184, 0.2);
 }
 
 /* Filters Section */
 .tb-filters-section {
   background: white;
-  border-radius: 1rem;
+  border-radius: 0;
   padding: 2rem;
   margin-bottom: 2rem;
   box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
@@ -139,7 +139,7 @@
 .tb-filter-select {
   padding: 0.75rem 1rem;
   border: 2px solid #e5e7eb;
-  border-radius: 0.5rem;
+  border-radius: 0;
   font-size: 0.875rem;
   transition: all 0.2s ease;
   background: white;
@@ -157,7 +157,7 @@
   color: white;
   border: none;
   padding: 0.75rem 1.5rem;
-  border-radius: 0.5rem;
+  border-radius: 0;
   font-size: 0.875rem;
   font-weight: 600;
   cursor: pointer;
@@ -177,7 +177,7 @@
   color: white;
   border: none;
   padding: 0.75rem 1.5rem;
-  border-radius: 0.5rem;
+  border-radius: 0;
   font-size: 0.875rem;
   font-weight: 600;
   cursor: pointer;
@@ -203,7 +203,7 @@
 /* Balance Status */
 .tb-balance-status {
   background: white;
-  border-radius: 1rem;
+  border-radius: 0;
   padding: 1rem 2rem;
   margin-bottom: 2rem;
   box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
@@ -243,7 +243,7 @@
 /* Main Content */
 .tb-main-content {
   background: white;
-  border-radius: 1rem;
+  border-radius: 0;
   box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
   border: 1px solid #e2e8f0;
   overflow: hidden;
@@ -368,7 +368,7 @@
   color: white;
   border: none;
   padding: 0.5rem 1rem;
-  border-radius: 0.375rem;
+  border-radius: 0;
   font-size: 0.75rem;
   font-weight: 600;
   cursor: pointer;
@@ -466,7 +466,7 @@
 .tb-summary-card {
   background: #f8fafc;
   border: 1px solid #e2e8f0;
-  border-radius: 0.75rem;
+  border-radius: 0;
   padding: 1.5rem;
   transition: all 0.2s ease;
 }
@@ -531,7 +531,7 @@
   height: 3rem;
   border: 4px solid #e5e7eb;
   border-top: 4px solid #3b82f6;
-  border-radius: 50%;
+  border-radius: 0;
   animation: spin 1s linear infinite;
   margin-bottom: 1rem;
 }
@@ -555,7 +555,7 @@
   padding: 4rem 2rem;
   text-align: center;
   background: white;
-  border-radius: 1rem;
+  border-radius: 0;
   box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
   border: 1px solid #e2e8f0;
 }
@@ -578,7 +578,7 @@
   color: white;
   border: none;
   padding: 0.875rem 1.75rem;
-  border-radius: 0.5rem;
+  border-radius: 0;
   font-size: 0.875rem;
   font-weight: 600;
   cursor: pointer;

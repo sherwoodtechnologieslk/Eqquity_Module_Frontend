@@ -1,79 +1,55 @@
 import React, { useState, useEffect } from 'react';
 import './MarketSummary.css';
+import { dashboardAPI } from '../../services/api';
+
+const defaultMarketData = {
+  marketOverview: {
+    totalTradedValue: { value: 0, change: 0, changePercent: 0 },
+    stocksTraded: { value: 0, change: 0 },
+    averageChange: { value: 0, change: 0 },
+    marketStatus: { value: 'CSE Market', change: 0 }
+  },
+  sectorPerformance: [],
+  topMovers: { gainers: [], losers: [], mostActive: [] },
+  marketStatistics: {
+    advanceDecline: { advances: 0, declines: 0, unchanged: 0 },
+    volume: { totalVolume: 0, averageVolume: 0 },
+    volatility: { current: 0, change: 0 }
+  },
+  economicIndicators: {
+    gold: { price: 0, change: 0 },
+    crudeOil: { price: 0, change: 0 },
+    usdInr: { rate: 0, change: 0 },
+    bondYield: { rate: 0, change: 0 }
+  },
+  marketNews: [],
+  lastUpdate: null,
+  latestTradeDate: null
+};
 
 const MarketSummary = () => {
-  const [marketData, setMarketData] = useState({
-    marketOverview: {
-      nifty: { value: 0, change: 0, changePercent: 0 },
-      sensex: { value: 0, change: 0, changePercent: 0 },
-      bankNifty: { value: 0, change: 0, changePercent: 0 },
-      vix: { value: 0, change: 0 }
-    },
-    sectorPerformance: [],
-    topMovers: {
-      gainers: [],
-      losers: [],
-      mostActive: []
-    },
-    marketStatistics: {
-      advanceDecline: { advances: 0, declines: 0, unchanged: 0 },
-      volume: { totalVolume: 0, averageVolume: 0 },
-      volatility: { current: 0, change: 0 }
-    },
-    economicIndicators: {
-      gold: { price: 0, change: 0 },
-      crudeOil: { price: 0, change: 0 },
-      usdInr: { rate: 0, change: 0 },
-      bondYield: { rate: 0, change: 0 }
-    },
-    marketNews: []
-  });
-
+  const [marketData, setMarketData] = useState(defaultMarketData);
   const [isLoading, setIsLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('overview');
 
   useEffect(() => {
     loadMarketData();
-    // Refresh data every 5 minutes
-    const interval = setInterval(loadMarketData, 300000);
+    const interval = setInterval(loadMarketData, 300000); // Refresh every 5 minutes
     return () => clearInterval(interval);
   }, []);
 
   const loadMarketData = async () => {
     try {
-      // TODO: Replace with actual API calls
-      // For now, using empty data
-      const emptyData = {
-        marketOverview: {
-          nifty: { value: 0, change: 0, changePercent: 0 },
-          sensex: { value: 0, change: 0, changePercent: 0 },
-          bankNifty: { value: 0, change: 0, changePercent: 0 },
-          vix: { value: 0, change: 0 }
-        },
-        sectorPerformance: [],
-        topMovers: {
-          gainers: [],
-          losers: [],
-          mostActive: []
-        },
-        marketStatistics: {
-          advanceDecline: { advances: 0, declines: 0, unchanged: 0 },
-          volume: { totalVolume: 0, averageVolume: 0 },
-          volatility: { current: 0, change: 0 }
-        },
-        economicIndicators: {
-          gold: { price: 0, change: 0 },
-          crudeOil: { price: 0, change: 0 },
-          usdInr: { rate: 0, change: 0 },
-          bondYield: { rate: 0, change: 0 }
-        },
-        marketNews: []
-      };
-
-      setMarketData(emptyData);
-      setIsLoading(false);
+      setIsLoading(true);
+      const data = await dashboardAPI.getMarketSummary();
+      setMarketData({
+        ...defaultMarketData,
+        ...data
+      });
     } catch (error) {
       console.error('Error loading market data:', error);
+      setMarketData(defaultMarketData);
+    } finally {
       setIsLoading(false);
     }
   };
@@ -107,56 +83,59 @@ const MarketSummary = () => {
     );
   }
 
+  const ov = marketData.marketOverview || {};
+  const tv = ov.totalTradedValue || {};
+  const st = ov.stocksTraded || {};
+  const ac = ov.averageChange || {};
+  const ms = ov.marketStatus || {};
+
   return (
     <div className="market-summary">
       <div className="market-summary-header">
         <h1>Market Summary</h1>
         <div className="last-updated">
-          Last updated: {new Date().toLocaleTimeString()}
+          {marketData.latestTradeDate
+            ? `Latest data: ${new Date(marketData.latestTradeDate).toLocaleDateString()} • `
+            : ''}
+          Last updated: {marketData.lastUpdate
+            ? new Date(marketData.lastUpdate).toLocaleTimeString()
+            : new Date().toLocaleTimeString()}
         </div>
       </div>
 
-      {/* Market Overview Cards */}
+      {/* Market Overview Cards - CSE real data from trade_summaries */}
       <div className="market-overview-section">
         <h2>Market Overview</h2>
         <div className="market-cards">
           <div className="market-card">
-            <div className="card-header">NIFTY 50</div>
-            <div className="card-value">{marketData.marketOverview.nifty.value.toLocaleString()}</div>
-            <div className={`card-change ${getChangeColor(marketData.marketOverview.nifty.change)}`}>
-              {marketData.marketOverview.nifty.change > 0 ? '+' : ''}
-              {marketData.marketOverview.nifty.change.toFixed(2)} 
-              ({marketData.marketOverview.nifty.changePercent.toFixed(2)}%)
+            <div className="card-header">Total Traded Value (Rs.)</div>
+            <div className="card-value">{formatCurrency(tv.value || 0)}</div>
+            <div className={`card-change ${getChangeColor(tv.change || 0)}`}>
+              {(tv.change || 0) > 0 ? '+' : ''}{formatCurrency(tv.change || 0)}
+              {tv.changePercent != null ? ` (${(tv.changePercent || 0) > 0 ? '+' : ''}${(tv.changePercent || 0).toFixed(2)}%)` : ''}
             </div>
           </div>
 
           <div className="market-card">
-            <div className="card-header">SENSEX</div>
-            <div className="card-value">{marketData.marketOverview.sensex.value.toLocaleString()}</div>
-            <div className={`card-change ${getChangeColor(marketData.marketOverview.sensex.change)}`}>
-              {marketData.marketOverview.sensex.change > 0 ? '+' : ''}
-              {marketData.marketOverview.sensex.change.toFixed(2)} 
-              ({marketData.marketOverview.sensex.changePercent.toFixed(2)}%)
+            <div className="card-header">Stocks Traded</div>
+            <div className="card-value">{(st.value || 0).toLocaleString()}</div>
+            <div className={`card-change ${getChangeColor(st.change || 0)}`}>
+              {(st.change || 0) > 0 ? '+' : ''}{(st.change || 0)}
             </div>
           </div>
 
           <div className="market-card">
-            <div className="card-header">BANK NIFTY</div>
-            <div className="card-value">{marketData.marketOverview.bankNifty.value.toLocaleString()}</div>
-            <div className={`card-change ${getChangeColor(marketData.marketOverview.bankNifty.change)}`}>
-              {marketData.marketOverview.bankNifty.change > 0 ? '+' : ''}
-              {marketData.marketOverview.bankNifty.change.toFixed(2)} 
-              ({marketData.marketOverview.bankNifty.changePercent.toFixed(2)}%)
+            <div className="card-header">Avg Change %</div>
+            <div className="card-value">{(ac.value || 0).toFixed(2)}%</div>
+            <div className={`card-change ${getChangeColor(ac.value || 0)}`}>
+              {(ac.value || 0) > 0 ? '+' : ''}{(ac.value || 0).toFixed(2)}%
             </div>
           </div>
 
           <div className="market-card">
-            <div className="card-header">VIX</div>
-            <div className="card-value">{marketData.marketOverview.vix.value.toFixed(2)}</div>
-            <div className={`card-change ${getChangeColor(marketData.marketOverview.vix.change)}`}>
-              {marketData.marketOverview.vix.change > 0 ? '+' : ''}
-              {marketData.marketOverview.vix.change.toFixed(2)}
-            </div>
+            <div className="card-header">Market</div>
+            <div className="card-value">{(ms.value || 'CSE').toString()}</div>
+            <div className="card-change neutral">Colombo Stock Exchange</div>
           </div>
         </div>
       </div>
@@ -200,41 +179,60 @@ const MarketSummary = () => {
         {activeTab === 'overview' && (
           <div className="overview-content">
             <div className="economic-indicators">
-              <h3>Economic Indicators</h3>
+              <h3>CSE Market Overview</h3>
+              <p style={{ color: '#64748b', fontSize: '0.875rem', marginBottom: '1rem' }}>
+                Real-time data from uploaded trade summaries (latest trade date)
+              </p>
               <div className="indicators-grid">
                 <div className="indicator-item">
-                  <span className="indicator-label">Gold (/10g)</span>
-                  <span className="indicator-value">{formatCurrency(marketData.economicIndicators.gold.price)}</span>
-                  <span className={`indicator-change ${getChangeColor(marketData.economicIndicators.gold.change)}`}>
-                    {marketData.economicIndicators.gold.change > 0 ? '+' : ''}
-                    {formatCurrency(marketData.economicIndicators.gold.change)}
+                  <span className="indicator-label">Advances</span>
+                  <span className="indicator-value positive">{marketData.marketStatistics?.advanceDecline?.advances ?? 0}</span>
+                  <span className="indicator-change neutral">Stocks that gained</span>
+                </div>
+                <div className="indicator-item">
+                  <span className="indicator-label">Declines</span>
+                  <span className="indicator-value negative">{marketData.marketStatistics?.advanceDecline?.declines ?? 0}</span>
+                  <span className="indicator-change neutral">Stocks that fell</span>
+                </div>
+                <div className="indicator-item">
+                  <span className="indicator-label">Unchanged</span>
+                  <span className="indicator-value neutral">{marketData.marketStatistics?.advanceDecline?.unchanged ?? 0}</span>
+                  <span className="indicator-change neutral">No change</span>
+                </div>
+                <div className="indicator-item">
+                  <span className="indicator-label">Total Volume</span>
+                  <span className="indicator-value">{formatNumber(marketData.marketStatistics?.volume?.totalVolume ?? 0)}</span>
+                  <span className="indicator-change neutral">Shares traded</span>
+                </div>
+                <div className="indicator-item">
+                  <span className="indicator-label">Total Traded Value</span>
+                  <span className="indicator-value">{formatCurrency(marketData.marketOverview?.totalTradedValue?.value ?? 0)}</span>
+                  <span className={`indicator-change ${getChangeColor(marketData.marketOverview?.totalTradedValue?.change ?? 0)}`}>
+                    {(marketData.marketOverview?.totalTradedValue?.change ?? 0) > 0 ? '+' : ''}
+                    {formatCurrency(marketData.marketOverview?.totalTradedValue?.change ?? 0)} vs prev
                   </span>
                 </div>
                 <div className="indicator-item">
-                  <span className="indicator-label">Crude Oil ($/bbl)</span>
-                  <span className="indicator-value">${marketData.economicIndicators.crudeOil.price.toFixed(2)}</span>
-                  <span className={`indicator-change ${getChangeColor(marketData.economicIndicators.crudeOil.change)}`}>
-                    {marketData.economicIndicators.crudeOil.change > 0 ? '+' : ''}
-                    ${marketData.economicIndicators.crudeOil.change.toFixed(2)}
+                  <span className="indicator-label">Avg Change %</span>
+                  <span className={`indicator-value ${getChangeColor(marketData.marketOverview?.averageChange?.value ?? 0)}`}>
+                    {(marketData.marketOverview?.averageChange?.value ?? 0) > 0 ? '+' : ''}
+                    {(marketData.marketOverview?.averageChange?.value ?? 0).toFixed(2)}%
                   </span>
-                </div>
-                <div className="indicator-item">
-                  <span className="indicator-label">USD/INR</span>
-                  <span className="indicator-value">{marketData.economicIndicators.usdInr.rate.toFixed(2)}</span>
-                  <span className={`indicator-change ${getChangeColor(marketData.economicIndicators.usdInr.change)}`}>
-                    {marketData.economicIndicators.usdInr.change > 0 ? '+' : ''}
-                    {marketData.economicIndicators.usdInr.change.toFixed(2)}
-                  </span>
-                </div>
-                <div className="indicator-item">
-                  <span className="indicator-label">10Y Bond Yield</span>
-                  <span className="indicator-value">{marketData.economicIndicators.bondYield.rate.toFixed(2)}%</span>
-                  <span className={`indicator-change ${getChangeColor(marketData.economicIndicators.bondYield.change)}`}>
-                    {marketData.economicIndicators.bondYield.change > 0 ? '+' : ''}
-                    {marketData.economicIndicators.bondYield.change.toFixed(2)}%
-                  </span>
+                  <span className="indicator-change neutral">Market breadth</span>
                 </div>
               </div>
+              {((marketData.topMovers?.gainers) || []).length > 0 && (
+                <div style={{ marginTop: '1.5rem' }}>
+                  <h4 style={{ fontSize: '0.95rem', marginBottom: '0.5rem', color: '#1e293b' }}>Top 3 Gainers (Preview)</h4>
+                  <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
+                    {(marketData.topMovers?.gainers || []).slice(0, 3).map((s, i) => (
+                      <span key={i} style={{ background: '#f0fdf4', padding: '0.35rem 0.75rem', color: '#059669', fontWeight: 600, fontSize: '0.875rem' }}>
+                        {s.symbol} +{(s.changePercent ?? 0).toFixed(2)}%
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         )}
@@ -243,7 +241,9 @@ const MarketSummary = () => {
           <div className="sectors-content">
             <h3>Sector Performance</h3>
             <div className="sectors-grid">
-              {marketData.sectorPerformance.map((sector, index) => (
+              {(marketData.sectorPerformance || []).length === 0 ? (
+                <p style={{ color: '#64748b', gridColumn: '1 / -1' }}>No sector data available. Ensure equities have sector assigned and trade data is uploaded.</p>
+              ) : marketData.sectorPerformance.map((sector, index) => (
                 <div key={index} className="sector-card">
                   <div className="sector-header">
                     <span className="sector-name">{sector.name}</span>
@@ -253,10 +253,10 @@ const MarketSummary = () => {
                   </div>
                   <div className="sector-details">
                     <div className="sector-volume">
-                      Volume: {formatNumber(sector.volume)}
+                      Volume: {formatNumber(sector.volume || 0)}
                     </div>
                     <div className="sector-stocks">
-                      Top: {sector.topStocks.join(', ')}
+                      Top: {(sector.topStocks || []).length ? (sector.topStocks || []).join(', ') : '—'}
                     </div>
                   </div>
                 </div>
@@ -281,13 +281,15 @@ const MarketSummary = () => {
                     </tr>
                   </thead>
                   <tbody>
-                    {marketData.topMovers.gainers.map((stock, index) => (
+                    {((marketData.topMovers?.gainers) || []).length === 0 ? (
+                      <tr><td colSpan="5" style={{ color: '#64748b', textAlign: 'center', padding: '1.5rem' }}>No gainers data. Upload trade summaries for the latest date.</td></tr>
+                    ) : (marketData.topMovers?.gainers || []).map((stock, index) => (
                       <tr key={index}>
                         <td className="symbol">{stock.symbol}</td>
-                        <td>{formatCurrency(stock.price)}</td>
-                        <td className="positive">+{formatCurrency(stock.change)}</td>
-                        <td className="positive">+{stock.changePercent.toFixed(2)}%</td>
-                        <td>{formatNumber(stock.volume)}</td>
+                        <td>{formatCurrency(stock.price ?? 0)}</td>
+                        <td className="positive">+{formatCurrency(stock.change ?? 0)}</td>
+                        <td className="positive">+{(stock.changePercent ?? 0).toFixed(2)}%</td>
+                        <td>{formatNumber(stock.volume ?? 0)}</td>
                       </tr>
                     ))}
                   </tbody>
@@ -309,13 +311,15 @@ const MarketSummary = () => {
                     </tr>
                   </thead>
                   <tbody>
-                    {marketData.topMovers.losers.map((stock, index) => (
+                    {((marketData.topMovers?.losers) || []).length === 0 ? (
+                      <tr><td colSpan="5" style={{ color: '#64748b', textAlign: 'center', padding: '1.5rem' }}>No losers data. Upload trade summaries for the latest date.</td></tr>
+                    ) : (marketData.topMovers?.losers || []).map((stock, index) => (
                       <tr key={index}>
                         <td className="symbol">{stock.symbol}</td>
-                        <td>{formatCurrency(stock.price)}</td>
-                        <td className="negative">{formatCurrency(stock.change)}</td>
-                        <td className="negative">{stock.changePercent.toFixed(2)}%</td>
-                        <td>{formatNumber(stock.volume)}</td>
+                        <td>{formatCurrency(stock.price ?? 0)}</td>
+                        <td className="negative">{formatCurrency(stock.change ?? 0)}</td>
+                        <td className="negative">{(stock.changePercent ?? 0).toFixed(2)}%</td>
+                        <td>{formatNumber(stock.volume ?? 0)}</td>
                       </tr>
                     ))}
                   </tbody>
@@ -337,15 +341,17 @@ const MarketSummary = () => {
                     </tr>
                   </thead>
                   <tbody>
-                    {marketData.topMovers.mostActive.map((stock, index) => (
+                    {((marketData.topMovers?.mostActive) || []).length === 0 ? (
+                      <tr><td colSpan="5" style={{ color: '#64748b', textAlign: 'center', padding: '1.5rem' }}>No most active data. Upload trade summaries for the latest date.</td></tr>
+                    ) : (marketData.topMovers?.mostActive || []).map((stock, index) => (
                       <tr key={index}>
                         <td className="symbol">{stock.symbol}</td>
-                        <td>{formatCurrency(stock.price)}</td>
-                        <td className={getChangeColor(stock.change)}>
-                          {stock.change > 0 ? '+' : ''}{formatCurrency(stock.change)}
+                        <td>{formatCurrency(stock.price ?? 0)}</td>
+                        <td className={getChangeColor(stock.change ?? 0)}>
+                          {(stock.change ?? 0) > 0 ? '+' : ''}{formatCurrency(stock.change ?? 0)}
                         </td>
-                        <td>{formatNumber(stock.volume)}</td>
-                        <td>{formatNumber(stock.value)}</td>
+                        <td>{formatNumber(stock.volume ?? 0)}</td>
+                        <td>{formatNumber(stock.value ?? 0)}</td>
                       </tr>
                     ))}
                   </tbody>
@@ -364,15 +370,15 @@ const MarketSummary = () => {
                 <div className="stat-values">
                   <div className="stat-item">
                     <span className="stat-label">Advances</span>
-                    <span className="stat-value positive">{marketData.marketStatistics.advanceDecline.advances}</span>
+                    <span className="stat-value positive">{marketData.marketStatistics?.advanceDecline?.advances ?? 0}</span>
                   </div>
                   <div className="stat-item">
                     <span className="stat-label">Declines</span>
-                    <span className="stat-value negative">{marketData.marketStatistics.advanceDecline.declines}</span>
+                    <span className="stat-value negative">{marketData.marketStatistics?.advanceDecline?.declines ?? 0}</span>
                   </div>
                   <div className="stat-item">
                     <span className="stat-label">Unchanged</span>
-                    <span className="stat-value neutral">{marketData.marketStatistics.advanceDecline.unchanged}</span>
+                    <span className="stat-value neutral">{marketData.marketStatistics?.advanceDecline?.unchanged ?? 0}</span>
                   </div>
                 </div>
               </div>
@@ -382,11 +388,11 @@ const MarketSummary = () => {
                 <div className="stat-values">
                   <div className="stat-item">
                     <span className="stat-label">Total Volume</span>
-                    <span className="stat-value">{formatNumber(marketData.marketStatistics.volume.totalVolume)}</span>
+                    <span className="stat-value">{formatNumber(marketData.marketStatistics?.volume?.totalVolume ?? 0)}</span>
                   </div>
                   <div className="stat-item">
                     <span className="stat-label">Average Volume</span>
-                    <span className="stat-value">{formatNumber(marketData.marketStatistics.volume.averageVolume)}</span>
+                    <span className="stat-value">{formatNumber(marketData.marketStatistics?.volume?.averageVolume ?? 0)}</span>
                   </div>
                 </div>
               </div>
@@ -396,13 +402,13 @@ const MarketSummary = () => {
                 <div className="stat-values">
                   <div className="stat-item">
                     <span className="stat-label">Current</span>
-                    <span className="stat-value">{marketData.marketStatistics.volatility.current.toFixed(2)}</span>
+                    <span className="stat-value">{(marketData.marketStatistics?.volatility?.current ?? 0).toFixed(2)}</span>
                   </div>
                   <div className="stat-item">
                     <span className="stat-label">Change</span>
-                    <span className={`stat-value ${getChangeColor(marketData.marketStatistics.volatility.change)}`}>
-                      {marketData.marketStatistics.volatility.change > 0 ? '+' : ''}
-                      {marketData.marketStatistics.volatility.change.toFixed(2)}
+                    <span className={`stat-value ${getChangeColor(marketData.marketStatistics?.volatility?.change ?? 0)}`}>
+                      {(marketData.marketStatistics?.volatility?.change ?? 0) > 0 ? '+' : ''}
+                      {(marketData.marketStatistics?.volatility?.change ?? 0).toFixed(2)}
                     </span>
                   </div>
                 </div>
@@ -415,7 +421,9 @@ const MarketSummary = () => {
           <div className="news-content">
             <h3>Market News & Events</h3>
             <div className="news-list">
-              {marketData.marketNews.map((news) => (
+              {((marketData.marketNews) || []).length === 0 ? (
+                <p style={{ color: '#64748b' }}>No market news available.</p>
+              ) : (marketData.marketNews || []).map((news) => (
                 <div key={news.id} className="news-item">
                   <div className="news-header">
                     <span className="news-title">{news.title}</span>
@@ -436,5 +444,6 @@ const MarketSummary = () => {
     </div>
   );
 };
+
 
 export default MarketSummary;
