@@ -5,6 +5,16 @@ import './Styles/SellTransactionListView.css';
 const SellTransactionListView = ({ onBack, setFifoParams, setActiveTab }) => {
   const [transactions, setTransactions] = useState([]);
   const [loading, setLoading] = useState(true);
+  const formatDate = (value) => {
+    if (!value) {
+      return '-';
+    }
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) {
+      return '-';
+    }
+    return date.toLocaleDateString();
+  };
 
   const fetchTransactions = async () => {
     setLoading(true);
@@ -107,15 +117,15 @@ const SellTransactionListView = ({ onBack, setFifoParams, setActiveTab }) => {
                   <td className="STLTV-table-cell">{tx.buy_contract || '-'}</td>
                   <td className="STLTV-table-cell">{parseFloat(tx.money_generation_cost || 0).toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 4})}</td>
                   <td className="STLTV-table-cell">{tx.broker_name}</td>
-                  <td className="STLTV-table-cell">{tx.trade_date}</td>
-                  <td className="STLTV-table-cell">{tx.settlement_date}</td>
+                  <td className="STLTV-table-cell">{formatDate(tx.trade_date)}</td>
+                  <td className="STLTV-table-cell">{formatDate(tx.settlement_date)}</td>
                   <td className="STLTV-table-cell">{tx.settlement_account}</td>
                   <td className="STLTV-table-cell">{tx.account_name || '-'}</td>
                   <td className="STLTV-table-cell">{tx.account_number || '-'}</td>
                   <td className="STLTV-table-cell">{tx.bank_name || '-'}</td>
                   <td className="STLTV-table-cell">{tx.branch_name || '-'}</td>
                   <td className="STLTV-table-cell">{parseFloat(tx.profit_loss || 0).toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 4})}</td>
-                  <td className="STLTV-table-cell">{new Date(tx.created_at).toLocaleDateString()}</td>
+                  <td className="STLTV-table-cell">{formatDate(tx.created_at)}</td>
                 </tr>
               ))}
             </tbody>
