@@ -179,8 +179,10 @@ const Dashboard = ({ onTabChange }) => {
             const realizedPortfolioId = portfolios[0].portfolioId || portfolioId;
             console.log('🔍 DASHBOARD DEBUG - Fetching realized P&L data for portfolio:', realizedPortfolioId);
             console.log('🔍 DASHBOARD DEBUG - Using portfolioId field:', portfolios[0].portfolioId);
+            console.log('🔍 DASHBOARD DEBUG - Portfolio object:', portfolios[0]);
+            
             const realizedData = await realizedPnLService.getCompleteData(realizedPortfolioId, '1Y');
-            console.log('🔍 DASHBOARD DEBUG - Realized P&L data:', realizedData);
+            console.log('🔍 DASHBOARD DEBUG - Realized P&L data received:', realizedData);
             
             if (realizedData && realizedData.portfolioSummary) {
               const summary = realizedData.portfolioSummary;
@@ -205,11 +207,21 @@ const Dashboard = ({ onTabChange }) => {
               pnlMetrics.totalRealizedCapitalGain = netRealizedCapitalGain;
               pnlMetrics.realizedPnL = realizedPnL;
             } else {
-              console.log('🔍 DASHBOARD DEBUG - No realized P&L data available');
+              console.warn('⚠️ DASHBOARD DEBUG - No realized P&L data available or invalid response structure');
+              console.warn('⚠️ Response structure:', {
+                hasData: !!realizedData,
+                hasPortfolioSummary: !!(realizedData && realizedData.portfolioSummary),
+                dataKeys: realizedData ? Object.keys(realizedData) : []
+              });
             }
           } catch (realizedError) {
             console.error('❌ DASHBOARD DEBUG - Error fetching realized P&L data:', realizedError);
-            // Keep existing P&L metrics if realized fetch fails
+            console.error('❌ Error details:', {
+              message: realizedError.message,
+              stack: realizedError.stack,
+              name: realizedError.name
+            });
+            // Keep existing P&L metrics if realized fetch fails (will remain 0)
           }
           
           // Fetch MTM data for unrealized values - using EXACT same calculations as MarkToMarketValuation

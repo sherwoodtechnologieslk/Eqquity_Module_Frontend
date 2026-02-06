@@ -245,7 +245,7 @@ const RecentActivity = () => {
             {activity.contractNumber && activity.contractNumber !== 'N/A' && (
               <div className="trade-meta">
                 Contract: {activity.contractNumber} | 
-                Settlement: {activity.settlementDate !== 'N/A' ? activity.settlementDate : 'N/A'}
+                Settlement: {formatSettlementDate(activity.settlementDate)}
               </div>
             )}
           </div>
@@ -347,6 +347,43 @@ const RecentActivity = () => {
         month: 'short',
         day: 'numeric'
       });
+    }
+  };
+
+  const formatSettlementDate = (dateString) => {
+    if (!dateString || dateString === 'N/A') {
+      return 'N/A';
+    }
+    
+    try {
+      // Handle ISO date strings like "2026-02-08T18:30:00.000Z" or "2026-02-08"
+      const date = new Date(dateString);
+      
+      // Check if date is valid
+      if (isNaN(date.getTime())) {
+        return dateString; // Return original if invalid
+      }
+      
+      // Format as readable date: "Feb 8, 2026" or "2026-02-08"
+      return date.toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric'
+      });
+    } catch (error) {
+      // If parsing fails, try to extract just the date part (YYYY-MM-DD)
+      const dateMatch = dateString.match(/^(\d{4}-\d{2}-\d{2})/);
+      if (dateMatch) {
+        const date = new Date(dateMatch[1]);
+        if (!isNaN(date.getTime())) {
+          return date.toLocaleDateString('en-US', {
+            year: 'numeric',
+            month: 'short',
+            day: 'numeric'
+          });
+        }
+      }
+      return dateString; // Return original if all parsing fails
     }
   };
 
