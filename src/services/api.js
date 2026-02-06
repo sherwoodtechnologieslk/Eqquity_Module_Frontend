@@ -2413,14 +2413,38 @@ export const monthlyPortfolioUpdateAPI = {
 export const dashboardAPI = {
   getMarketSummary: async () => {
     try {
+      console.log('🔍 Fetching market summary from:', `${API_BASE_URL}/dashboard/market-summary`);
       const response = await fetch(`${API_BASE_URL}/dashboard/market-summary`, {
         headers: getAuthHeaders()
       });
-      if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+      
+      console.log('🔍 Market summary response status:', response.status, response.statusText);
+      
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('❌ Market summary API error:', {
+          status: response.status,
+          statusText: response.statusText,
+          body: errorText
+        });
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      
       const json = await response.json();
-      return json.success ? json.data : json;
+      console.log('🔍 Market summary API response:', json);
+      
+      // Handle both wrapped { success: true, data: {...} } and direct data responses
+      const data = json.success !== undefined ? (json.data || json) : json;
+      
+      console.log('✅ Market summary data extracted:', data);
+      return data;
     } catch (error) {
-      console.error('Error fetching market summary:', error);
+      console.error('❌ Error fetching market summary:', error);
+      console.error('❌ Error details:', {
+        message: error.message,
+        stack: error.stack,
+        name: error.name
+      });
       throw error;
     }
   }
