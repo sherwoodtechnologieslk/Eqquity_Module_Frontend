@@ -117,6 +117,9 @@ function App() {
     'Dividend': <DividendEntry/>,
     'Rights Issue':<RightsIssueEntry/>,
     'Stock Split': <ScripDividendEntry/>,
+    'Dividends': <DividendEntry/>, // Mandatory Corporate Actions
+    'Splits & Bonus': <ScripDividendEntry/>, // Mandatory Corporate Actions
+    'Rights Issues': <RightsIssueEntry/>, // Mandatory Corporate Actions
     
     'Deal Slip': <DealSlipScreen />,
     'Portfolio': <PortfolioDropdown />,
@@ -168,14 +171,14 @@ function App() {
     // Corporate Actions is at index 14 - show premium modal instead
     // Security Identity is at index 15 - show premium modal instead
     // Voluntary Corporate Actions is at index 16 - show premium modal instead
-    // Mandatory Corporate Actions is at index 17 - show premium modal instead
+    // Mandatory Corporate Actions is at index 17 - REMOVED FROM PREMIUM
     // IPO is at index 18 - show premium modal instead
     // Portfolio Monitoring is at index 19 - show premium modal instead
     // Risk and Limit Management is at index 20 - show premium modal instead
     // Reporting and Compliance is at index 21 - show premium modal instead
     // Integration and Automation is at index 22 - show premium modal instead
     // Portfolio Transfers is at index 23 - show premium modal instead
-    if (index === 5 || index === 13 || index === 14 || index === 15 || index === 16 || index === 17 || index === 18 || index === 19 || index === 20 || index === 21 || index === 22 || index === 23) {
+    if (index === 5 || index === 13 || index === 14 || index === 15 || index === 16 || index === 18 || index === 19 || index === 20 || index === 21 || index === 22 || index === 23) {
       setIsPremiumModalOpen(true);
       return;
     }
