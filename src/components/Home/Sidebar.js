@@ -268,6 +268,7 @@ export const menuItems = [
     subTopics: [
       
       "Dividends",
+      "Pending Dividends",
       "Splits & Bonus",
       "Rights Issues"
     ]
