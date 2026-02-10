@@ -236,43 +236,57 @@ const UpdateSellTransactionsModal = ({
     });
   };
 
+  const handleGlobalPortfolioChange = (selectedPortfolioId) => {
+    const selected = portfolios.find(p =>
+      String(p.portfolioId || p.portfolio_id || p.id || '') === String(selectedPortfolioId || '')
+    );
+    const portfolioName =
+      selected?.portfolioName ||
+      selected?.portfolio ||
+      selected?.portfolio_name ||
+      selected?.name ||
+      '';
+    const portfolioId =
+      selected?.portfolioId ||
+      selected?.portfolio_id ||
+      selected?.id ||
+      '';
+
+    setGlobalPortfolio(portfolioName);
+    setGlobalPortfolioId(portfolioId);
+
+    // Fetch costing method for this portfolio
+    if (portfolioId) {
+      portfolioCostingMethodAPI.getAllAssignedCostingMethods()
+        .then(data => {
+          const assigned = (data || []).find(a => String(a.portfolioId) === String(portfolioId));
+          if (assigned && assigned.costing_method) {
+            setValuationMethod(String(assigned.costing_method).toUpperCase());
+          } else {
+            setValuationMethod('');
+          }
+        })
+        .catch(err => {
+          console.error('Error fetching costing methods for sell modal:', err);
+          setValuationMethod('');
+        });
+    } else {
+      setValuationMethod('');
+    }
+
+    // Apply portfolio to all forms
+    setTransactionForms(prev =>
+      prev.map(form => ({
+        ...form,
+        portfolio: portfolioName,
+        portfolioId
+      }))
+    );
+  };
+
   const handleGlobalFieldChange = (field, value) => {
     if (field === 'portfolio') {
-      setGlobalPortfolio(value || '');
-
-      const selected = portfolios.find(
-        p => p.portfolioName === value || p.name === value
-      );
-      const portfolioId = selected ? (selected.portfolioId || selected.id || '') : '';
-      setGlobalPortfolioId(portfolioId);
-
-      // Fetch costing method for this portfolio
-      if (portfolioId) {
-        portfolioCostingMethodAPI.getAllAssignedCostingMethods()
-          .then(data => {
-            const assigned = (data || []).find(a => a.portfolioId === portfolioId);
-            if (assigned && assigned.costing_method) {
-              setValuationMethod(String(assigned.costing_method).toUpperCase());
-            } else {
-              setValuationMethod('');
-            }
-          })
-          .catch(err => {
-            console.error('Error fetching costing methods for sell modal:', err);
-            setValuationMethod('');
-          });
-      } else {
-        setValuationMethod('');
-      }
-
-      // Apply portfolio to all forms
-      setTransactionForms(prev =>
-        prev.map(form => ({
-          ...form,
-          portfolio: value || '',
-          portfolioId
-        }))
-      );
+      handleGlobalPortfolioChange(value);
       return;
     }
 
@@ -530,12 +544,20 @@ const UpdateSellTransactionsModal = ({
       }
 
       const savePromises = enhancedForms.map(form => {
+        const resolvedPortfolio = form.portfolio || globalPortfolio || '';
+        const resolvedPortfolioId = form.portfolioId || globalPortfolioId || '';
+        console.log('🧾 [SELL SAVE UI] Portfolio payload:', {
+          portfolio: resolvedPortfolio,
+          portfolioId: resolvedPortfolioId
+        });
         const transactionData = {
             parsed_trade_transaction_id: form.raw?.id,
           company_name: form.companyName,
           symbol: form.symbol,
-          portfolio_name: form.portfolio,
-          portfolioId: form.portfolioId,
+          portfolio_name: resolvedPortfolio,
+          portfolio: resolvedPortfolio,
+          portfolioId: resolvedPortfolioId,
+          portfolio_id: resolvedPortfolioId,
           valuation_method: valuationMethod || '',
           deal_number: form.dealNumber,
           contract_number: form.contractNumber,
@@ -635,19 +657,32 @@ const UpdateSellTransactionsModal = ({
               <div className="ustm-form-group">
                 <label>Portfolio *</label>
                 <select
-                  value={globalPortfolio}
+                  value={globalPortfolioId}
                   onChange={(e) => {
-                    handleGlobalFieldChange('portfolio', e.target.value);
-                    fetchPortfolioSettlementMapping(e.target.value);
+                    handleGlobalPortfolioChange(e.target.value);
+                    const selected = portfolios.find(p =>
+                      String(p.portfolioId || p.portfolio_id || p.id || '') === String(e.target.value || '')
+                    );
+                    const portfolioName =
+                      selected?.portfolioName ||
+                      selected?.portfolio ||
+                      selected?.portfolio_name ||
+                      selected?.name ||
+                      '';
+                    fetchPortfolioSettlementMapping(portfolioName);
                   }}
                   className={`ustm-input ${errors.globalPortfolio ? 'ustm-input-error' : ''}`}
                 >
                   <option value="">Select Portfolio</option>
-                  {portfolios.map(p => (
-                    <option key={p.id || p.portfolioId} value={p.portfolioName || p.name}>
-                      {p.portfolioName || p.name}
-                    </option>
-                  ))}
+                  {portfolios.map(p => {
+                    const optionValue = p.portfolioId || p.portfolio_id || p.id;
+                    const optionLabel = p.portfolioName || p.portfolio || p.portfolio_name || p.name;
+                    return (
+                      <option key={optionValue} value={optionValue}>
+                        {optionLabel}
+                      </option>
+                    );
+                  })}
                 </select>
                 {errors.globalPortfolio && (
                   <span className="ustm-error-text">{errors.globalPortfolio}</span>
@@ -657,6 +692,15 @@ const UpdateSellTransactionsModal = ({
                     Costing Method: {valuationMethod}
                   </small>
                 )}
+              </div>
+              <div className="ustm-form-group">
+                <label>Portfolio ID</label>
+                <input
+                  type="text"
+                  value={globalPortfolioId}
+                  readOnly
+                  className="ustm-input ustm-readonly"
+                />
               </div>
 
               <div className="ustm-form-group">
