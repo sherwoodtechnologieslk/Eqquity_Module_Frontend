@@ -1,0 +1,284 @@
+/* Dynamic Header - Below Navbar */
+.dynamic-header {
+  position: fixed;
+  top: 110px; /* Below navbar (100px) with reduced spacing (10px) */
+  left: 320px; /* Start where sidebar ends */
+  right: 0;
+  height: 50px;
+  background: rgba(147, 197, 253, 0.15);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  border-bottom: 1px solid rgba(96, 165, 250, 0.2);
+  z-index: 1999; /* Just below navbar (2000) */
+  box-shadow: 0 2px 8px rgba(96, 165, 250, 0.1);
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  transition: left 0.3s ease; /* Match navbar transition */
+}
+
+.dynamic-header-content {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  height: 100%;
+  padding: 0 1rem;
+  gap: 1.5rem;
+}
+
+.dynamic-header-label {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: #1e40af;
+  font-weight: 600;
+  font-size: 0.9rem;
+  white-space: nowrap;
+  padding: 0 1rem;
+  background: rgba(147, 197, 253, 0.2);
+  border-radius: 8px;
+  height: 70%;
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(96, 165, 250, 0.3);
+}
+
+.trending-icon {
+  font-size: 1.2rem;
+  animation: pulse 2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.1);
+  }
+}
+
+.date-badge {
+  background: rgba(147, 197, 253, 0.25);
+  padding: 0.2rem 0.6rem;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  border: 1px solid rgba(96, 165, 250, 0.3);
+  color: #1e40af;
+}
+
+.dynamic-header-ticker {
+  flex: 1;
+  overflow: hidden;
+  position: relative;
+  height: 100%;
+  display: flex;
+  align-items: center;
+}
+
+.ticker-content {
+  display: flex;
+  align-items: center;
+  gap: 2rem;
+  animation: scroll 60s linear infinite;
+  white-space: nowrap;
+}
+
+@keyframes scroll {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+.ticker-item {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.5rem 1rem;
+  background: rgba(147, 197, 253, 0.15);
+  border-radius: 8px;
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(96, 165, 250, 0.25);
+  transition: all 0.3s ease;
+  white-space: nowrap;
+  min-width: fit-content;
+}
+
+.ticker-item:hover {
+  background: rgba(147, 197, 253, 0.25);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(96, 165, 250, 0.2);
+  border-color: rgba(96, 165, 250, 0.4);
+}
+
+.stock-symbol {
+  font-weight: 700;
+  font-size: 0.95rem;
+  color: #1e293b;
+  min-width: 60px;
+}
+
+.stock-name {
+  font-size: 0.85rem;
+  color: #475569;
+  min-width: 120px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.stock-price {
+  font-weight: 600;
+  font-size: 0.9rem;
+  color: #1e293b;
+  min-width: 80px;
+}
+
+.stock-change {
+  font-weight: 700;
+  font-size: 0.95rem;
+  padding: 0.2rem 0.6rem;
+  border-radius: 6px;
+  background: rgba(16, 185, 129, 0.15);
+  min-width: 70px;
+  text-align: center;
+}
+
+.stock-change.positive {
+  color: #059669;
+  background: rgba(16, 185, 129, 0.2);
+  border: 1px solid rgba(16, 185, 129, 0.3);
+}
+
+.stock-change-rs {
+  font-weight: 600;
+  font-size: 0.85rem;
+  color: #475569;
+  min-width: 90px;
+}
+
+.dynamic-header-loading {
+  color: #475569;
+  font-size: 0.9rem;
+  padding: 0 1rem;
+  animation: pulse-text 1.5s ease-in-out infinite;
+}
+
+@keyframes pulse-text {
+  0%, 100% {
+    opacity: 0.7;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+/* Responsive adjustments - Match navbar breakpoints */
+@media (max-width: 1200px) {
+  .dynamic-header {
+    left: 280px; /* Match navbar left position */
+  }
+  
+  .ticker-item {
+    gap: 0.75rem;
+    padding: 0.4rem 0.8rem;
+  }
+  
+  .stock-name {
+    min-width: 100px;
+    font-size: 0.8rem;
+  }
+}
+
+@media (max-width: 900px) {
+  .dynamic-header {
+    left: 260px; /* Match navbar left position */
+    height: 45px;
+  }
+  
+  .dynamic-header-label {
+    font-size: 0.8rem;
+    padding: 0 0.8rem;
+  }
+  
+  .ticker-item {
+    gap: 0.5rem;
+    padding: 0.3rem 0.6rem;
+  }
+  
+  .stock-symbol {
+    font-size: 0.85rem;
+    min-width: 50px;
+  }
+  
+  .stock-name {
+    min-width: 80px;
+    font-size: 0.75rem;
+  }
+  
+  .stock-price {
+    font-size: 0.8rem;
+    min-width: 70px;
+  }
+  
+  .stock-change {
+    font-size: 0.85rem;
+    min-width: 60px;
+  }
+  
+  .stock-change-rs {
+    font-size: 0.75rem;
+    min-width: 70px;
+  }
+}
+
+@media (max-width: 768px) {
+  .dynamic-header {
+    left: 0; /* Match navbar left position on mobile */
+    top: 110px;
+    height: 40px;
+  }
+  
+  .dynamic-header-content {
+    padding: 0 0.5rem;
+    gap: 0.75rem;
+  }
+  
+  .dynamic-header-label {
+    font-size: 0.75rem;
+    padding: 0 0.6rem;
+  }
+  
+  .ticker-content {
+    gap: 1rem;
+  }
+  
+  .ticker-item {
+    gap: 0.4rem;
+    padding: 0.25rem 0.5rem;
+  }
+  
+  .stock-symbol {
+    font-size: 0.8rem;
+    min-width: 45px;
+  }
+  
+  .stock-name {
+    display: none; /* Hide company name on mobile */
+  }
+  
+  .stock-price {
+    font-size: 0.75rem;
+    min-width: 60px;
+  }
+  
+  .stock-change {
+    font-size: 0.8rem;
+    min-width: 55px;
+  }
+  
+  .stock-change-rs {
+    display: none; /* Hide change in Rs on mobile */
+  }
+}

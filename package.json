@@ -11,10 +11,14 @@
     "pdfjs-dist": "^5.4.54",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
+    "react-globe.gl": "^2.37.0",
     "react-scripts": "5.0.1",
+    "three": "^0.182.0",
     "web-vitals": "^2.1.4"
   },
   "scripts": {
+    "copy-pdf-worker": "node copy-pdf-worker.js",
+    "postinstall": "node copy-pdf-worker.js",
     "start": "cross-env REACT_APP_API_URL=http://localhost:8080/api react-scripts start",
     "build": "cross-env CI=false REACT_APP_API_URL=/api react-scripts build",
     "test": "react-scripts test",
