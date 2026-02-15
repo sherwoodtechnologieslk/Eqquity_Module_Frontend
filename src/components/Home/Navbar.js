@@ -28,6 +28,24 @@ const Navbar = ({ activeTab, onTabChange, visibleTabs = [], user, onLogout, onOp
         </svg>
       )
     },
+    'Funds Centers': {
+      className: 'nav-funds-centers',
+      description: 'Manage funds centers',
+      icon: (
+        <svg className="tab-icon" fill="currentColor" viewBox="0 0 20 20">
+          <path fillRule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm2 6a1 1 0 011-1h6a1 1 0 110 2H7a1 1 0 01-1-1zm1 3a1 1 0 100 2h6a1 1 0 100-2H7z" clipRule="evenodd"/>
+        </svg>
+      )
+    },
+    'View Map': {
+      className: 'nav-view-map',
+      description: 'View funds centers on map',
+      icon: (
+        <svg className="tab-icon" fill="currentColor" viewBox="0 0 20 20">
+          <path fillRule="evenodd" d="M12 1.586l-4 4v12.828l4-4V1.586zM3.707 3.293A1 1 0 002 4v10a1 1 0 00.293.707L6 18.414V5.586L3.707 3.293zM17.707 5.293L14 1.586v12.828l2.293 2.293A1 1 0 0018 17V7a1 1 0 00-.293-.707z" clipRule="evenodd"/>
+        </svg>
+      )
+    },
     'Buy': {
       className: 'nav-buy',
       description: 'Purchase securities',

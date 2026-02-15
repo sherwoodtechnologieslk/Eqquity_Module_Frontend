@@ -27,7 +27,7 @@
   width: 5.5rem;
   height: 5.5rem;
   background: linear-gradient(135deg, #60a5fa, #2563eb);
-  border-radius: 0.18rem;
+  border-radius: 0;
   margin: 0;
   box-shadow: 0 8px 32px 0 rgba(59, 130, 246, 0.09), 0 2px 8px 0 rgba(59, 130, 246, 0.04);
   flex-shrink: 0;
@@ -69,7 +69,7 @@
   margin-bottom: 2rem;
   padding: 1.5rem 2rem;
   background: white;
-  border-radius: 12px;
+  border-radius: 0;
   box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
   border: 1px solid #e2e8f0;
 }
@@ -89,7 +89,7 @@
 .mtm-portfolio-select {
   padding: 0.75rem 1rem;
   border: 2px solid #e5e7eb;
-  border-radius: 8px;
+  border-radius: 0;
   font-size: 1rem;
   background: white;
   color: #374151;
@@ -115,7 +115,7 @@
   gap: 0.5rem;
   padding: 0.75rem 1.5rem;
   border: none;
-  border-radius: 8px;
+  border-radius: 0;
   font-size: 1rem;
   font-weight: 600;
   cursor: pointer;
@@ -184,7 +184,7 @@
 .mtm-summary-card {
   background: white;
   padding: 1.5rem;
-  border-radius: 12px;
+  border-radius: 0;
   box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
   border: 1px solid #e2e8f0;
   display: flex;
@@ -253,7 +253,7 @@
 /* Performance Analysis Section */
 .mtm-performance-section {
   background: white;
-  border-radius: 12px;
+  border-radius: 0;
   box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
   border: 1px solid #e2e8f0;
   overflow: hidden;
@@ -429,7 +429,7 @@
 .mtm-chart-period {
   padding: 0.5rem 1rem;
   border: 2px solid #e5e7eb;
-  border-radius: 8px;
+  border-radius: 0;
   font-size: 0.875rem;
   background: white;
   color: #374151;
@@ -454,7 +454,7 @@
 /* Line Chart */
 .mtm-line-chart {
   background: white;
-  border-radius: 8px;
+  border-radius: 0;
   border: 1px solid #e2e8f0;
   overflow: hidden;
   margin-bottom: 1.5rem;
@@ -491,7 +491,7 @@
 .mtm-legend-color {
   width: 12px;
   height: 12px;
-  border-radius: 2px;
+  border-radius: 0;
 }
 
 .mtm-chart-stats {
@@ -568,7 +568,7 @@
   color: #6b7280;
   background: #f1f5f9;
   padding: 0.25rem 0.75rem;
-  border-radius: 12px;
+  border-radius: 0;
 }
 
 .mtm-overview-metrics {
@@ -580,7 +580,7 @@
 .mtm-metric-card {
   background: white;
   border: 1px solid #e2e8f0;
-  border-radius: 12px;
+  border-radius: 0;
   padding: 1.5rem;
   text-align: center;
   transition: all 0.2s ease;
@@ -671,7 +671,7 @@
 .mtm-small-card {
   background: white;
   border: 1px solid #e2e8f0;
-  border-radius: 12px;
+  border-radius: 0;
   padding: 1.25rem;
   text-align: center;
   transition: all 0.2s ease;
@@ -749,7 +749,7 @@
 .mtm-analysis-company-select {
   padding: 0.75rem 1rem;
   border: 1px solid #d1d5db;
-  border-radius: 8px;
+  border-radius: 0;
   background: white;
   color: #374151;
   font-size: 1rem;
@@ -775,7 +775,7 @@
   align-items: center;
   min-height: 400px;
   background: white;
-  border-radius: 12px;
+  border-radius: 0;
   border: 1px solid #e2e8f0;
   padding: 2rem;
 }
@@ -788,7 +788,7 @@
 }
 
 .price-chart-svg {
-  border-radius: 8px;
+  border-radius: 0;
 }
 
 .price-chart-placeholder {
@@ -817,7 +817,7 @@
 .legend-color {
   width: 16px;
   height: 3px;
-  border-radius: 2px;
+  border-radius: 0;
 }
 
 .price-line-color {
@@ -857,7 +857,7 @@
 .mtm-stat-item {
   background: white;
   border: 1px solid #e2e8f0;
-  border-radius: 12px;
+  border-radius: 0;
   padding: 1.25rem;
   text-align: center;
   transition: all 0.2s ease;
@@ -889,7 +889,7 @@
 /* Table Section */
 .mtm-table-section {
   background: white;
-  border-radius: 12px;
+  border-radius: 0;
   box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
   border: 1px solid #e2e8f0;
   overflow: hidden;
@@ -1233,7 +1233,7 @@
     justify-content: space-between;
     padding: 0.5rem;
     background: #f8fafc;
-    border-radius: 6px;
+    border-radius: 0;
   }
 }
 
@@ -1252,7 +1252,7 @@
 
 .mtm-performance-card {
   background: white;
-  border-radius: 20px;
+  border-radius: 0;
   padding: 2rem;
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
   border: 1px solid #e2e8f0;
@@ -1291,7 +1291,7 @@
 .mtm-card-icon {
   width: 3rem;
   height: 3rem;
-  border-radius: 12px;
+  border-radius: 0;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1344,7 +1344,7 @@
   font-size: 0.875rem;
   font-weight: 700;
   padding: 0.5rem 1rem;
-  border-radius: 25px;
+  border-radius: 0;
   display: inline-block;
   backdrop-filter: blur(10px);
   border: 1px solid rgba(255, 255, 255, 0.2);
@@ -1373,7 +1373,7 @@
 
 .mtm-stat-card {
   background: #ffffff;
-  border-radius: 16px;
+  border-radius: 0;
   padding: 1.5rem;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
   border: 1px solid #e5e7eb;
