@@ -632,7 +632,7 @@ const MarkToMarketValuation = () => {
                     backgroundColor: '#007bff', 
                     color: 'white', 
                     border: 'none', 
-                    borderRadius: '3px', 
+                    borderRadius: '0', 
                     cursor: 'pointer' 
                   }}
                 >

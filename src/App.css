@@ -53,8 +53,8 @@ body {
   max-width: 1100px;
   margin: 0 auto;
   width: 100%;
-  margin-top: 160px; /* Account for fixed navbar (100px) + spacing (10px) + dynamic header (50px) - no gap */
-  padding-top: 0.75rem; /* Minimal top padding to bring content closer */
+  margin-top: 148px; /* Account for fixed navbar (100px) + spacing (10px) + dynamic header (38px) - minimal gap */
+  padding-top: 0.25rem; /* Minimal top padding to bring content closer */
 }
 
 /* Example container for forms/cards */
@@ -193,8 +193,8 @@ textarea {
   }
   
   .dashboard-content {
-    margin-top: 160px; /* Minimal space for stacked navbar + dynamic header on mobile */
-    padding-top: 0.75rem; /* Minimal top padding */
+    margin-top: 148px; /* Minimal space for stacked navbar + dynamic header on mobile */
+    padding-top: 0.25rem; /* Minimal top padding */
   }
 }
 

@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { tradeSummaryAPI, transactionEntryAPI } from '../../services/api';
 import { realizedPnLService } from '../../services/realizedPnLService';
 import { authService } from '../../services/authService';
+import RiskReturnScatterPlot from './RiskReturnScatterPlot';
 import './Dashboard.css';
 
 const Dashboard = ({ onTabChange }) => {
@@ -783,6 +784,11 @@ const Dashboard = ({ onTabChange }) => {
             )}
               </div>
           </div>
+        </div>
+
+        {/* Risk-Return Scatter Plot */}
+        <div className="content-card">
+          <RiskReturnScatterPlot />
         </div>
 
         {/* Top Performers */}
