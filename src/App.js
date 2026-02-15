@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import './App.css';
 import Navbar from './components/Home/Navbar';
+import DynamicHeader from './components/Home/DynamicHeader';
 import Sidebar, { menuItems as sidebarMenuItems } from './components/Home/Sidebar';
 import AuthContainer from './components/Auth/AuthContainer';
 import UserProfileModal from './components/Auth/UserProfileModal';
@@ -57,6 +58,8 @@ import StatementOfComprehensiveIncome from './components/FinancialReporting/Stat
 import CashFlow from './components/FinancialReporting/CashFlow';
 import PremiumModal from './components/PremiumModal/premiumModal';
 import HolidayCalendar from './components/HolidayCalendar/HolidayCalendar';
+import FundsCenters from './components/FundsCenters/FundsCenters';
+import ViewMap from './components/FundsCenters/ViewMap';
 import CashFlowMapping from './components/SettlementAndAccounting/CashFlowMapping';
 import SettlementInstructions from './components/SettlementAndAccounting/SettlementInstructions';
 import GLMapping from './components/SettlementAndAccounting/GLMapping';
@@ -103,6 +106,8 @@ function App() {
     'Holiday List': <HolidayCalendar mode="list" />,
     'Add Holiday': <HolidayCalendar mode="create" />,
     'Holiday Settings': <HolidayCalendar mode="settings" />,
+    'Funds Centers': <FundsCenters />,
+    'View Map': <ViewMap />,
 
     'Buy': <BuyTransactionEntry />,
     'Sell': <SellTransactionEntry setActiveTab={setActiveTab} />,
@@ -168,18 +173,15 @@ function App() {
 
   // Handle sidebar selection
   const handleSidebarSelect = (index, subTopics) => {
-    // Financial Reporting is at index 5 - show premium modal instead
-    // CSE Announcements is at index 13 - show premium modal instead
-    // Corporate Actions is at index 14 - show premium modal instead
-    // Security Identity is at index 15 - show premium modal instead
-    // Voluntary Corporate Actions is at index 16 - show premium modal instead
-    // IPO is at index 18 - show premium modal instead
-    // Portfolio Monitoring is at index 19 - show premium modal instead
-    // Risk and Limit Management is at index 20 - show premium modal instead
-    // Reporting and Compliance is at index 21 - show premium modal instead
-    // Integration and Automation is at index 22 - show premium modal instead
-    // Portfolio Transfers is at index 23 - show premium modal instead
-    if (index === 5 || index === 13 || index === 14 || index === 15 || index === 16 || index === 18 || index === 19 || index === 20 || index === 21 || index === 22 || index === 23) {
+    // Allowed items: Dashboard (0), View Portfolio (1), Master Data Management (2), 
+    // Holiday Calendar (3), Funds Centers (4), Accounting Entries (5),
+    // Settlement and Accounting (8), Account Management (9), Opening Balance Management (10),
+    // Trade Capture (11), Batch Transaction Import (12), Valuation and MTM (13),
+    // Mandatory Corporate Actions (18)
+    // All other items should show premium modal
+    const allowedIndices = [0, 1, 2, 3, 4, 5, 8, 9, 10, 11, 12, 13, 18];
+    
+    if (!allowedIndices.includes(index)) {
       setIsPremiumModalOpen(true);
       return;
     }
@@ -288,6 +290,7 @@ function App() {
           onLogout={handleLogout}
           onOpenProfile={() => setIsProfileModalOpen(true)}
         />
+        <DynamicHeader />
         <div className="dashboard-content">
           {tabToComponent[activeTab] || (
             <div style={{ padding: '2rem', textAlign: 'center', color: '#ef4444' }}>
