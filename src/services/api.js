@@ -6,19 +6,44 @@ const getAuthHeaders = () => {
     return token ? { 'Authorization': `Bearer ${token}` } : {};
 };
 
+// Helper to clear auth and redirect to login (mirrors authService 401 handling)
+const clearAuthAndRedirectToLogin = () => {
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+    window.location.href = '/login';
+};
+
 // Helper function to make authenticated requests
 const makeAuthenticatedRequest = async (url, options = {}) => {
+    const token = localStorage.getItem('token');
+    if (!token) {
+        clearAuthAndRedirectToLogin();
+        throw new Error('No token, authorization denied');
+    }
+
     const headers = {
         'Content-Type': 'application/json',
         ...getAuthHeaders(),
         ...options.headers
     };
-    
+
     const response = await fetch(url, {
         ...options,
         headers
     });
-    
+
+    if (response.status === 401) {
+        clearAuthAndRedirectToLogin();
+        let errorMessage = 'Session expired or invalid. Please log in again.';
+        try {
+            const errorData = await response.json();
+            errorMessage = errorData.message || errorData.error || errorMessage;
+        } catch (e) {
+            // use default
+        }
+        throw new Error(errorMessage);
+    }
+
     if (!response.ok) {
         // Try to parse error response
         let errorMessage = `HTTP error! status: ${response.status}`;
@@ -30,7 +55,7 @@ const makeAuthenticatedRequest = async (url, options = {}) => {
         }
         throw new Error(errorMessage);
     }
-    
+
     return await response.json();
 };
 

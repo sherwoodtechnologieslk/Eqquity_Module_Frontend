@@ -69,6 +69,7 @@ const ViewMap = () => {
     const coordinates = {
       'Colombo': { lat: 6.9271, lng: 79.8612, city: 'Colombo' },
       'New York': { lat: 40.7589, lng: -73.9851, city: 'New York' },
+      'Chicago': { lat: 41.8781, lng: -87.6298, city: 'Chicago' },
       'London': { lat: 51.5155, lng: -0.0906, city: 'London' },
       'Tokyo': { lat: 35.6812, lng: 139.7671, city: 'Tokyo' },
       'Singapore': { lat: 1.2897, lng: 103.8501, city: 'Singapore' },
@@ -94,29 +95,18 @@ const ViewMap = () => {
     };
   };
 
-  // Prepare points data for the globe
+  // Prepare points data for the globe (dots for each fund center)
   const pointsData = fundsCenters.map((center) => {
     const coords = getCenterCoordinates(center.name);
+    const isSelected = selectedCenter?.id === center.id;
     return {
       ...center,
       lat: coords.lat,
       lng: coords.lng,
-      size: selectedCenter?.id === center.id ? 50.0 : 40.0, // Much larger absolute sizes
-      color: '#ffffff',
-      glowColor: selectedCenter?.id === center.id ? '#ffffff' : '#ffffff',
-      glowSize: selectedCenter?.id === center.id ? 1.2 : 0.8,
+      color: isSelected ? '#eab308' : '#14b8a6',
+      radius: isSelected ? 0.6 : 0.45,
     };
   });
-
-  // Debug: Log points data to verify markers are being created
-  useEffect(() => {
-    if (pointsData.length > 0 && !loading) {
-      console.log('🔵 ViewMap: Points data prepared:', pointsData.length, 'markers');
-      console.log('🔵 ViewMap: Sample marker:', pointsData[0]);
-      console.log('🔵 ViewMap: All markers:', pointsData.map(p => ({ name: p.name, size: p.size, lat: p.lat, lng: p.lng })));
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [pointsData.length, loading]);
 
   if (loading) {
     return (
@@ -159,6 +149,14 @@ const ViewMap = () => {
             atmosphereAltitude={0.15}
             enablePointerInteraction={true}
             animateIn={true}
+            pointsData={pointsData}
+            pointLat="lat"
+            pointLng="lng"
+            pointColor={(d) => d.color}
+            pointRadius={(d) => d.radius}
+            pointAltitude={0.01}
+            pointResolution={12}
+            onPointClick={(point) => setSelectedCenter(point)}
           />
         </div>
       </div>
@@ -176,16 +174,6 @@ const ViewMap = () => {
             </button>
           </div>
           <div className="vm-info-content">
-            <div className="vm-info-row">
-              <span className="vm-info-label">ID:</span>
-              <span className="vm-info-value">{selectedCenter.id}</span>
-            </div>
-            <div className="vm-info-row">
-              <span className="vm-info-label">Type:</span>
-              <span className={`vm-type-badge ${selectedCenter.isCustom ? 'vm-custom' : 'vm-default'}`}>
-                {selectedCenter.isCustom ? 'Custom' : 'Default'}
-              </span>
-            </div>
             {selectedCenter.flag && selectedCenter.flag !== '0' && selectedCenter.flag !== 0 && (
               <div className="vm-info-row">
                 <span className="vm-info-label">Flag:</span>

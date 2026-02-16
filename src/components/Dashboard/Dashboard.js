@@ -5,6 +5,61 @@ import { authService } from '../../services/authService';
 import RiskReturnScatterPlot from './RiskReturnScatterPlot';
 import './Dashboard.css';
 
+// Mock heatmap data - frontend only, no API/realtime
+const MOCK_HEATMAP_ROWS = ['Banking', 'Insurance', 'Diversified', 'Manufacturing', 'Telecom'];
+const MOCK_HEATMAP_COLS = ['W1', 'W2', 'W3', 'W4'];
+const MOCK_HEATMAP_DATA = [
+  [72, 28, 88, 35],
+  [38, 91, 42, 77],
+  [65, 52, 43, 89],
+  [32, 67, 73, 58],
+  [48, 84, 26, 71],
+];
+
+function getHeatmapColor(value) {
+  const p = Math.max(0, Math.min(100, value)) / 100;
+  // Yellow (low, wide band) -> orange -> red (high)
+  const yellowBand = 0.45;
+  const q = p <= yellowBand ? p / yellowBand * 0.35 : 0.35 + (p - yellowBand) / (1 - yellowBand) * 0.65;
+  const r = Math.round(255 + (183 - 255) * q);
+  const g = Math.round(245 + (28 - 245) * q);
+  const b = Math.round(180 + (28 - 180) * q);
+  return `rgb(${r},${g},${b})`;
+}
+
+function MockHeatmap() {
+  return (
+    <div className="mock-heatmap">
+      <div className="mock-heatmap-grid">
+        <div className="mock-heatmap-corner" />
+        {MOCK_HEATMAP_COLS.map((col, j) => (
+          <div key={col} className="mock-heatmap-col-label">{col}</div>
+        ))}
+        {MOCK_HEATMAP_ROWS.map((row, i) => (
+          <React.Fragment key={row}>
+            <div className="mock-heatmap-row-label">{row}</div>
+            {MOCK_HEATMAP_DATA[i].map((val, j) => (
+              <div
+                key={`${i}-${j}`}
+                className={`mock-heatmap-cell ${val >= 70 ? 'mock-heatmap-cell-dark' : ''}`}
+                style={{ backgroundColor: getHeatmapColor(val) }}
+                title={`${row} · ${MOCK_HEATMAP_COLS[j]}: ${val}`}
+              >
+                {val}
+              </div>
+            ))}
+          </React.Fragment>
+        ))}
+      </div>
+      <div className="mock-heatmap-legend">
+        <span>Low</span>
+        <div className="mock-heatmap-legend-bar" />
+        <span>High</span>
+      </div>
+    </div>
+  );
+}
+
 const Dashboard = ({ onTabChange }) => {
   const [dashboardData, setDashboardData] = useState({
     activePortfolios: 0,
@@ -542,6 +597,16 @@ const Dashboard = ({ onTabChange }) => {
                 <p className={`status-value ${getMarketStatus(currentTime).isLive ? 'open' : 'closed'}`}>
                   {getMarketStatus(currentTime).status}
                 </p>
+                <div className="market-hours">
+                  <div className="market-hours-box">
+                    <span className="market-hours-label">Opening</span>
+                    <span className="market-hours-value">9:30 AM</span>
+                  </div>
+                  <div className="market-hours-box">
+                    <span className="market-hours-label">Closing</span>
+                    <span className="market-hours-value">2:30 PM</span>
+                  </div>
+                </div>
                 {userRegion && (
                   <div className="user-region" style={{ marginTop: '0.5rem', marginBottom: '0.5rem' }}>
                     <span style={{ fontSize: '0.875rem', color: '#64748b', fontWeight: 500 }}>{userRegion}</span>
@@ -554,6 +619,17 @@ const Dashboard = ({ onTabChange }) => {
           </div>
         </div>
       </div>
+
+        {/* Mock Heatmap - frontend only, no realtime data */}
+        <div className="content-card heatmap-card">
+          <div className="card-header">
+            <div className="header-left">
+              <h3>Sector Activity (Mock)</h3>
+              <span className="card-subtitle">not live data</span>
+            </div>
+          </div>
+          <MockHeatmap />
+        </div>
 
         {/* Recent Transactions */}
           <div className="content-card">
