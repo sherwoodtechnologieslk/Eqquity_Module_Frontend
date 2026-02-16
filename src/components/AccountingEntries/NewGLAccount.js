@@ -357,10 +357,20 @@ const NewGLAccount = () => {
     } catch (error) {
       console.error('Error creating GL account:', error);
       setIsSubmitting(false);
-      
+
+      // Auth errors: user will be redirected to login by api.js; show friendly message
+      const isAuthError = error.message?.includes('No token') ||
+        error.message?.includes('authorization denied') ||
+        error.message?.includes('Session expired') ||
+        error.message?.includes('Please log in');
+      if (isAuthError) {
+        setErrors({ accountCode: 'Your session has expired. Redirecting to login…' });
+        return;
+      }
+
       // Parse error message from response
       let errorMessage = 'Failed to create GL account. Please try again.';
-      
+
       // Try to extract the actual error message from the backend
       if (error.message) {
         // Check if it's a specific error code
@@ -380,10 +390,10 @@ const NewGLAccount = () => {
           errorMessage = error.message;
         }
       }
-      
+
       // Set error for accountCode field
       setErrors({ accountCode: errorMessage });
-      
+
       // Also show alert for visibility
       alert(errorMessage);
     }

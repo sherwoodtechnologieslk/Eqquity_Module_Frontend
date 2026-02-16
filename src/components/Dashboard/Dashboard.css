@@ -615,7 +615,7 @@
   border: 1px solid rgba(255, 255, 255, 0.2);
   backdrop-filter: blur(10px);
   position: relative;
-  overflow: hidden;
+  overflow: visible;
 }
 
 .status-card::before {
@@ -655,6 +655,12 @@
   color: #3b82f6;
 }
 
+.status-info {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+}
+
 .status-info h3 {
   color: #1e293b;
   font-size: 1.25rem;
@@ -675,6 +681,43 @@
 
 .status-value.closed {
   color: #dc2626;
+}
+
+.market-hours {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+  margin-bottom: 0.25rem;
+  position: relative;
+  z-index: 1;
+}
+
+.market-hours-box {
+  flex: 1;
+  min-width: 0;
+  background: #e2e8f0;
+  border: 1px solid #94a3b8;
+  border-radius: 4px;
+  padding: 0.35rem 0.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.06);
+}
+
+.market-hours-label {
+  font-size: 0.6rem;
+  font-weight: 600;
+  color: #475569;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+
+.market-hours-value {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #0f172a;
+  line-height: 1.2;
 }
 
 .status-subtitle {
@@ -763,6 +806,80 @@
   bottom: 0;
   background: linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, transparent 50%);
   pointer-events: none;
+}
+
+/* Mock Heatmap */
+.heatmap-card .card-header {
+  margin-bottom: 1rem;
+}
+
+.mock-heatmap {
+  position: relative;
+  z-index: 1;
+}
+
+.mock-heatmap-grid {
+  display: grid;
+  grid-template-columns: auto repeat(4, 1fr);
+  grid-template-rows: auto repeat(5, 1fr);
+  gap: 2px;
+  align-items: center;
+  justify-items: stretch;
+  max-width: 100%;
+  font-size: 0.75rem;
+}
+
+.mock-heatmap-corner {
+  grid-column: 1;
+  grid-row: 1;
+  min-width: 4rem;
+}
+
+.mock-heatmap-col-label,
+.mock-heatmap-row-label {
+  color: #64748b;
+  font-weight: 600;
+  padding: 0.25rem 0.35rem;
+  text-align: center;
+}
+
+.mock-heatmap-row-label {
+  text-align: left;
+  min-width: 4rem;
+}
+
+.mock-heatmap-cell {
+  aspect-ratio: 1;
+  min-height: 2rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  color: #1e293b;
+  font-weight: 600;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.06);
+}
+
+.mock-heatmap-cell.mock-heatmap-cell-dark {
+  color: #fff;
+}
+
+.mock-heatmap-legend {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+  font-size: 0.7rem;
+  color: #64748b;
+  font-weight: 500;
+}
+
+.mock-heatmap-legend-bar {
+  flex: 1;
+  max-width: 80px;
+  height: 8px;
+  border-radius: 4px;
+  background: linear-gradient(to right, rgb(255, 235, 180), rgb(255, 152, 0), rgb(183, 28, 28));
 }
 
 .card-header {
