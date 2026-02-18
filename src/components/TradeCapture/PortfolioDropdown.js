@@ -321,8 +321,8 @@ const PortfolioDropdown = () => {
                   ? 'No active portfolios found'
                   : 'Choose your portfolio'}
             </option>
-            {portfolios.map(portfolio => (
-              <option key={portfolio.id} value={portfolio.portfolioName}>
+            {portfolios.map((portfolio, index) => (
+              <option key={`portfolio-${portfolio.id}-${index}`} value={portfolio.portfolioName}>
                 {portfolio.portfolioName}
               </option>
             ))}

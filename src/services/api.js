@@ -1179,7 +1179,13 @@ export const costOfFundsAPI = {
   // Get all cost of funds definitions
   getAllCostOfFunds: async () => {
     try {
-      const response = await fetch(`${API_BASE_URL}/cost-of-funds`);
+      const response = await fetch(`${API_BASE_URL}/cost-of-funds`, {
+        headers: getHeaders(),
+        credentials: 'include',
+      });
+      if (response.status === 401) {
+        throw new Error('Unauthorized. You may not have access to cost of funds.');
+      }
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
@@ -1193,7 +1199,13 @@ export const costOfFundsAPI = {
   // Get cost of funds by ID
   getCostOfFundsById: async (id) => {
     try {
-      const response = await fetch(`${API_BASE_URL}/cost-of-funds/${id}`);
+      const response = await fetch(`${API_BASE_URL}/cost-of-funds/${id}`, {
+        headers: getHeaders(),
+        credentials: 'include',
+      });
+      if (response.status === 401) {
+        throw new Error('Unauthorized. You may not have access to cost of funds.');
+      }
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
@@ -1211,7 +1223,13 @@ export const costOfFundsAPI = {
         ? `${API_BASE_URL}/cost-of-funds/active/${date}`
         : `${API_BASE_URL}/cost-of-funds/active`;
       
-      const response = await fetch(endpoint);
+      const response = await fetch(endpoint, {
+        headers: getHeaders(),
+        credentials: 'include',
+      });
+      if (response.status === 401) {
+        throw new Error('Unauthorized. You may not have access to cost of funds.');
+      }
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
@@ -1227,14 +1245,15 @@ export const costOfFundsAPI = {
     try {
       const response = await fetch(`${API_BASE_URL}/cost-of-funds`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: getHeaders(),
+        credentials: 'include',
         body: JSON.stringify(costOfFundsData),
       });
-      
+      if (response.status === 401) {
+        throw new Error('Unauthorized. You may not have access to cost of funds.');
+      }
       if (!response.ok) {
-        const errorData = await response.json();
+        const errorData = await response.json().catch(() => ({}));
         throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
       }
       
@@ -1250,14 +1269,15 @@ export const costOfFundsAPI = {
     try {
       const response = await fetch(`${API_BASE_URL}/cost-of-funds/${id}`, {
         method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: getHeaders(),
+        credentials: 'include',
         body: JSON.stringify(costOfFundsData),
       });
-      
+      if (response.status === 401) {
+        throw new Error('Unauthorized. You may not have access to cost of funds.');
+      }
       if (!response.ok) {
-        const errorData = await response.json();
+        const errorData = await response.json().catch(() => ({}));
         throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
       }
       
@@ -1273,14 +1293,19 @@ export const costOfFundsAPI = {
     try {
       const response = await fetch(`${API_BASE_URL}/cost-of-funds/${id}`, {
         method: 'DELETE',
+        headers: getAuthHeaders(),
+        credentials: 'include',
       });
-      
+      if (response.status === 401) {
+        throw new Error('Unauthorized. You may not have access to cost of funds.');
+      }
       if (!response.ok) {
-        const errorData = await response.json();
+        const errorData = await response.json().catch(() => ({}));
         throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
       }
       
-      return await response.json();
+      const text = await response.text();
+      return text ? JSON.parse(text) : {};
     } catch (error) {
       console.error('Error deleting cost of funds definition:', error);
       throw error;
