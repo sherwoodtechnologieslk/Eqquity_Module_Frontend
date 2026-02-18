@@ -79,7 +79,13 @@ const CostOfFundsDefinition = () => {
       
     } catch (error) {
       console.error('Error saving cost of funds definition:', error);
-      setErrors({ general: error.message || 'Failed to save. Please try again.' });
+      const msg = error.message || '';
+      const isUnauthorized = msg.includes('Unauthorized') || msg.includes('401');
+      setErrors({
+        general: isUnauthorized
+          ? 'The server returned 401 Unauthorized. The app sends your login token with the request — if you are logged in and still see this, the backend is rejecting the cost-of-funds API for your user or role. Fix: ensure the backend allows your role to access /api/cost-of-funds (and /api/cost-of-funds/active), or try logging out and back in to refresh your token.'
+          : (msg || 'Failed to save. Please try again.')
+      });
     } finally {
       setIsSaving(false);
     }
@@ -95,7 +101,13 @@ const CostOfFundsDefinition = () => {
       setSavedDefinitions(definitions);
     } catch (error) {
       console.error('Error fetching saved definitions:', error);
-      setErrors({ general: 'Failed to load saved definitions. Please try again.' });
+      const msg = error.message || '';
+      const isUnauthorized = msg.includes('Unauthorized') || msg.includes('401');
+      setErrors({
+        general: isUnauthorized
+          ? 'You don’t have permission to view cost of funds. The server returned Unauthorized (401). Ask your administrator to grant access to the cost-of-funds API.'
+          : 'Failed to load saved definitions. Please try again.'
+      });
     } finally {
       setIsLoadingDefinitions(false);
     }
@@ -344,8 +356,8 @@ const CostOfFundsDefinition = () => {
                       </tr>
                     </thead>
                     <tbody>
-                      {savedDefinitions.map((definition) => (
-                        <tr key={definition.id}>
+                      {savedDefinitions.map((definition, index) => (
+                        <tr key={`cof-def-${definition.id}-${definition.effective_date}-${index}`}>
                           <td>{new Date(definition.effective_date).toLocaleDateString()}</td>
                           <td>{parseFloat(definition.cost_of_funds).toFixed(2)}%</td>
                           <td>{parseFloat(definition.tax_rate).toFixed(2)}%</td>

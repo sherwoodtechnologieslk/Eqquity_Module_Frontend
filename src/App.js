@@ -66,6 +66,7 @@ import GLMapping from './components/SettlementAndAccounting/GLMapping';
 import ViewPortfolio from './components/ViewPortfolio/ViewPortfolio';
 import ViewTransactions from './components/ViewTransactions/ViewTransactions';
 import PortfolioVsSectors from './components/ViewTransactions/PortfolioVsSectors';
+import TradeCore from './components/TradeCore/TradeCore';
 
 function App() {
   const [activeTab, setActiveTab] = useState('Dashboard');
@@ -119,6 +120,7 @@ function App() {
     'Mark-to-Market Valuation': <MarkToMarketValuation />,
     'Realized Gain/Loss Tracking': <RealizedPnL />,
     'Trade Summary Data': <TradeSummaryData />,
+    'Risk Management Chart': <div style={{ padding: '2rem' }}><h3>Risk Management Chart</h3><p>Coming Soon...</p></div>,
 
     'Dividend': <DividendEntry/>,
     'Dividends': <DividendEntry/>, // Alias for Mandatory Corporate Actions
@@ -159,6 +161,7 @@ function App() {
     'Equity GL Mapping': <EquityGLMapping />,
     'Market Announcements': <MarketAnnouncements />,
     'Corporate Notices': <CorporateNotices />,
+    'TradeCore': <TradeCore />,
     'Statement of Financial Position': <FinancialPosition />,
     'Statement of Comprehensive Income': <StatementOfComprehensiveIncome />,
     'Cash Flow': <CashFlow />,
@@ -177,9 +180,9 @@ function App() {
     // Holiday Calendar (3), Funds Centers (4), Accounting Entries (5),
     // Settlement and Accounting (8), Account Management (9), Opening Balance Management (10),
     // Trade Capture (11), Batch Transaction Import (12), Valuation and MTM (13),
-    // Mandatory Corporate Actions (18)
+    // Predictive Valuation Model (PVM) (14), CSE Announcements (15), TradeCore (16), Mandatory Corporate Actions (19)
     // All other items should show premium modal
-    const allowedIndices = [0, 1, 2, 3, 4, 5, 8, 9, 10, 11, 12, 13, 18];
+    const allowedIndices = [0, 1, 2, 3, 4, 5, 8, 9, 10, 11, 12, 13, 14, 15, 16, 18, 19];
     
     if (!allowedIndices.includes(index)) {
       setIsPremiumModalOpen(true);

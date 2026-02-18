@@ -636,8 +636,8 @@ const UpdateBuyTransactionsModal = ({
                   className="ubtm-input"
                 >
                   <option value="">Select Bank Account (optional)</option>
-                  {accounts.map(account => (
-                    <option key={account.id} value={account.id}>
+                  {accounts.map((account, index) => (
+                    <option key={`account-${account.id}-${index}`} value={account.id}>
                       {account.account_name ? `${account.account_name} - ` : ''}{account.account_number} ({account.bank_name})
                     </option>
                   ))}
