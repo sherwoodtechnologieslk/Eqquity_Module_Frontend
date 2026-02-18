@@ -1347,8 +1347,8 @@ const SellTransactionEntry = ({ setFifoParams, setActiveTab }) => {
             ? 'No active portfolios found'
             : 'Select Portfolio'}
       </option>
-      {portfolios.map(p => (
-        <option key={p.id} value={p.portfolioName}>{p.portfolioName}</option>
+      {portfolios.map((p, index) => (
+        <option key={`portfolio-${p.id}-${index}`} value={p.portfolioName}>{p.portfolioName}</option>
       ))}
     </select>
     {errors.portfolioName && <span className="sell-error-text">{errors.portfolioName}</span>}
