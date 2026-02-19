@@ -67,6 +67,7 @@ import ViewPortfolio from './components/ViewPortfolio/ViewPortfolio';
 import ViewTransactions from './components/ViewTransactions/ViewTransactions';
 import PortfolioVsSectors from './components/ViewTransactions/PortfolioVsSectors';
 import TradeCore from './components/TradeCore/TradeCore';
+import RiskManagementChart from './components/PredictiveValuationModel/RiskManagementChart';
 
 function App() {
   const [activeTab, setActiveTab] = useState('Dashboard');
@@ -120,7 +121,7 @@ function App() {
     'Mark-to-Market Valuation': <MarkToMarketValuation />,
     'Realized Gain/Loss Tracking': <RealizedPnL />,
     'Trade Summary Data': <TradeSummaryData />,
-    'Risk Management Chart': <div style={{ padding: '2rem' }}><h3>Risk Management Chart</h3><p>Coming Soon...</p></div>,
+    'Risk Management Chart': <RiskManagementChart />,
 
     'Dividend': <DividendEntry/>,
     'Dividends': <DividendEntry/>, // Alias for Mandatory Corporate Actions
