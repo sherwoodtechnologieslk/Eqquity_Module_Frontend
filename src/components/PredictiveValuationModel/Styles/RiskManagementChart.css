@@ -1,0 +1,159 @@
+.risk-management-chart-container {
+  padding: 2rem;
+  min-height: 100vh;
+}
+
+.rmc-header {
+  margin-bottom: 2rem;
+}
+
+.rmc-header h2 {
+  color: #1e293b;
+  font-size: 1.75rem;
+  font-weight: 600;
+  margin: 0 0 0.5rem 0;
+}
+
+.rmc-subtitle {
+  color: #64748b;
+  font-size: 0.95rem;
+  margin: 0;
+}
+
+.rmc-content {
+  background: white;
+  border-radius: 8px;
+  padding: 2rem;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.10);
+}
+
+.rmc-controls {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+  padding-bottom: 2rem;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.control-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.control-group label {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #475569;
+}
+
+.control-group input {
+  padding: 0.625rem;
+  font-size: 0.875rem;
+  border: 1px solid #cfd8dc;
+  border-radius: 4px;
+  background: #f8fafc;
+  transition: border 0.15s, background 0.15s;
+  width: 100%;
+}
+
+.control-group input:focus {
+  border: 1.5px solid #2563eb;
+  background: #f1f5fe;
+  outline: none;
+}
+
+.rmc-statistics {
+  margin-bottom: 2rem;
+  padding: 1.5rem;
+  background: #f8fafc;
+  border-radius: 6px;
+  border: 1px solid #e2e8f0;
+}
+
+.rmc-statistics table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.rmc-statistics tr {
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.rmc-statistics tr:last-child {
+  border-bottom: none;
+}
+
+.rmc-statistics td {
+  padding: 0.75rem 0;
+}
+
+.stat-label {
+  font-weight: 500;
+  color: #64748b;
+  font-size: 0.875rem;
+  width: 40%;
+}
+
+.stat-value {
+  font-weight: 600;
+  font-size: 0.95rem;
+  text-align: right;
+}
+
+.stat-value.profit {
+  color: #10b981;
+}
+
+.stat-value.loss {
+  color: #ef4444;
+}
+
+.stat-value.neutral {
+  color: #2563eb;
+}
+
+.rmc-chart-wrapper {
+  margin-top: 2rem;
+  overflow-x: auto;
+  padding: 1rem;
+  background: #ffffff;
+  border-radius: 6px;
+  border: 1px solid #e2e8f0;
+}
+
+.rmc-chart {
+  display: block;
+  margin: 0 auto;
+}
+
+/* Responsive Design */
+@media (max-width: 1200px) {
+  .rmc-chart-wrapper {
+    overflow-x: auto;
+  }
+  
+  .rmc-chart {
+    min-width: 900px;
+  }
+}
+
+@media (max-width: 768px) {
+  .risk-management-chart-container {
+    padding: 1rem;
+  }
+
+  .rmc-content {
+    padding: 1.5rem;
+  }
+
+  .rmc-controls {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+
+  .rmc-header h2 {
+    font-size: 1.5rem;
+  }
+}
