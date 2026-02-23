@@ -68,6 +68,9 @@ import ViewTransactions from './components/ViewTransactions/ViewTransactions';
 import PortfolioVsSectors from './components/ViewTransactions/PortfolioVsSectors';
 import TradeCore from './components/TradeCore/TradeCore';
 import RiskManagementChart from './components/PredictiveValuationModel/RiskManagementChart';
+import SharePricePrediction from './components/PredictiveValuationModel/SharePricePrediction';
+import PredictionIndicators from './components/PredictiveValuationModel/PredictionIndicators';
+import BlockAnalysisDashboard from './components/PredictiveValuationModel/BlockAnalysisDashboard';
 
 function App() {
   const [activeTab, setActiveTab] = useState('Dashboard');
@@ -122,6 +125,9 @@ function App() {
     'Realized Gain/Loss Tracking': <RealizedPnL />,
     'Trade Summary Data': <TradeSummaryData />,
     'Risk Management Chart': <RiskManagementChart />,
+    'Share Price Prediction': <SharePricePrediction />,
+    'Prediction Indicators': <PredictionIndicators />,
+    'Block Analysis Dashboard': <BlockAnalysisDashboard />,
 
     'Dividend': <DividendEntry/>,
     'Dividends': <DividendEntry/>, // Alias for Mandatory Corporate Actions

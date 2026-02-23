@@ -218,7 +218,10 @@ export const menuItems = [
     ),
     name: "Predictive Valuation Model (PVM)",
     subTopics: [
-      "Risk Management Chart"
+      "Risk Management Chart",
+      "Share Price Prediction",
+      "Prediction Indicators",
+      "Block Analysis Dashboard"
     ]
   },
   {
