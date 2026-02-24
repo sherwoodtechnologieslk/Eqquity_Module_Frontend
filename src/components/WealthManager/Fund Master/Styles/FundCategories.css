@@ -1,0 +1,372 @@
+.fc-container {
+  padding: 0;
+  max-width: 100%;
+}
+
+.fc-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+  padding-bottom: 1.5rem;
+  border-bottom: 2px solid #e2e8f0;
+}
+
+.fc-header h2 {
+  font-size: 1.875rem;
+  font-weight: 700;
+  color: #1e293b;
+  margin: 0;
+}
+
+.fc-header-actions {
+  display: flex;
+  gap: 1rem;
+}
+
+.fc-btn {
+  padding: 0.625rem 1.25rem;
+  border: none;
+  border-radius: 0 !important;
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.fc-btn-primary {
+  background: #14b8a6;
+  color: white;
+}
+
+.fc-btn-primary:hover {
+  background: #0d9488;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(20, 184, 166, 0.3);
+}
+
+.fc-btn-secondary {
+  background: white;
+  color: #475569;
+  border: 1px solid #cbd5e1;
+}
+
+.fc-btn-secondary:hover {
+  background: #f8fafc;
+  border-color: #94a3b8;
+}
+
+.fc-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.fc-message {
+  padding: 1rem 1.5rem;
+  border-radius: 0 !important;
+  margin-bottom: 1.5rem;
+  font-weight: 500;
+}
+
+.fc-message.fc-success {
+  background: #d1fae5;
+  color: #065f46;
+  border: 1px solid #10b981;
+}
+
+.fc-message.fc-error {
+  background: #fee2e2;
+  color: #991b1b;
+  border: 1px solid #ef4444;
+}
+
+.fc-form-container {
+  background: white;
+  border-radius: 0 !important;
+  padding: 2rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  border: 1px solid #e2e8f0;
+}
+
+.fc-form {
+  width: 100%;
+}
+
+.fc-form-section {
+  margin-bottom: 2.5rem;
+}
+
+.fc-form-section:last-of-type {
+  margin-bottom: 0;
+}
+
+.fc-section-title {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #1e293b;
+  margin: 0 0 1.5rem 0;
+  padding-bottom: 0.75rem;
+  border-bottom: 2px solid #e2e8f0;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.fc-section-title::before {
+  content: '';
+  width: 4px;
+  height: 1.5rem;
+  background: linear-gradient(180deg, #14b8a6 0%, #0d9488 100%);
+  border-radius: 0 !important;
+}
+
+.fc-form-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1.5rem;
+}
+
+.fc-field-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.fc-field-label {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #475569;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.fc-required {
+  color: #ef4444;
+}
+
+.fc-form-input,
+.fc-form-select,
+.fc-form-textarea {
+  padding: 0.75rem 1rem;
+  border: 1px solid #cbd5e1;
+  border-radius: 0 !important;
+  font-size: 0.875rem;
+  color: #1e293b;
+  background: white;
+  transition: all 0.2s ease;
+  font-family: inherit;
+}
+
+.fc-form-input:focus,
+.fc-form-select:focus,
+.fc-form-textarea:focus {
+  outline: none;
+  border-color: #14b8a6;
+  box-shadow: 0 0 0 3px rgba(20, 184, 166, 0.1);
+}
+
+.fc-form-input:hover,
+.fc-form-select:hover,
+.fc-form-textarea:hover {
+  border-color: #94a3b8;
+}
+
+.fc-form-textarea {
+  resize: vertical;
+  min-height: 100px;
+}
+
+.fc-form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 1rem;
+  margin-top: 2rem;
+  padding-top: 2rem;
+  border-top: 1px solid #e2e8f0;
+}
+
+/* Table Styles */
+.fc-table-container {
+  background: white;
+  border-radius: 0 !important;
+  padding: 1.5rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  border: 1px solid #e2e8f0;
+  overflow-x: auto;
+}
+
+.fc-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.fc-table thead {
+  background: #f8fafc;
+}
+
+.fc-table th {
+  padding: 1rem;
+  text-align: left;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #475569;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  border-bottom: 2px solid #e2e8f0;
+}
+
+.fc-table td {
+  padding: 1rem;
+  font-size: 0.875rem;
+  color: #1e293b;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.fc-table tbody tr:hover {
+  background: #f8fafc;
+}
+
+.fc-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.fc-description-cell {
+  max-width: 300px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.fc-risk-badge {
+  display: inline-block;
+  padding: 0.25rem 0.75rem;
+  border-radius: 0 !important;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.fc-risk-very-low {
+  background: #d1fae5;
+  color: #065f46;
+}
+
+.fc-risk-low {
+  background: #dbeafe;
+  color: #0f766e;
+}
+
+.fc-risk-medium {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.fc-risk-high {
+  background: #fed7aa;
+  color: #9a3412;
+}
+
+.fc-risk-very-high {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+.fc-status-badge {
+  display: inline-block;
+  padding: 0.25rem 0.75rem;
+  border-radius: 0 !important;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.fc-status-active {
+  background: #d1fae5;
+  color: #065f46;
+}
+
+.fc-status-inactive {
+  background: #e2e8f0;
+  color: #475569;
+}
+
+.fc-status-suspended {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.fc-action-btn {
+  padding: 0.375rem 0.75rem;
+  border: none;
+  border-radius: 0 !important;
+  font-size: 0.75rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  margin-right: 0.5rem;
+}
+
+.fc-action-btn.fc-edit {
+  background: #dbeafe;
+  color: #0f766e;
+}
+
+.fc-action-btn.fc-edit:hover {
+  background: #bfdbfe;
+}
+
+.fc-action-btn.fc-delete {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+.fc-action-btn.fc-delete:hover {
+  background: #fecaca;
+}
+
+/* Responsive Design */
+@media (max-width: 1200px) {
+  .fc-form-grid {
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  }
+}
+
+@media (max-width: 768px) {
+  .fc-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+
+  .fc-form-container {
+    padding: 1.5rem;
+  }
+
+  .fc-form-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .fc-form-actions {
+    flex-direction: column-reverse;
+  }
+
+  .fc-btn {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .fc-table-container {
+    padding: 1rem;
+  }
+
+  .fc-table {
+    font-size: 0.8125rem;
+  }
+
+  .fc-table th,
+  .fc-table td {
+    padding: 0.75rem 0.5rem;
+  }
+}

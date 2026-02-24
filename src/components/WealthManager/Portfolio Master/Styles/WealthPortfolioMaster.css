@@ -1,0 +1,385 @@
+.wpm-container {
+  padding: 0;
+  max-width: 100%;
+}
+
+.wpm-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+  padding-bottom: 1.5rem;
+  border-bottom: 2px solid #e2e8f0;
+}
+
+.wpm-header h2 {
+  font-size: 1.875rem;
+  font-weight: 700;
+  color: #1e293b;
+  margin: 0;
+}
+
+.wpm-header-actions {
+  display: flex;
+  gap: 1rem;
+}
+
+.wpm-btn {
+  padding: 0.625rem 1.25rem;
+  border: none;
+  border-radius: 0;
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.wpm-btn-primary {
+  background: #14b8a6;
+  color: white;
+}
+
+.wpm-btn-primary:hover {
+  background: #0d9488;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(20, 184, 166, 0.3);
+}
+
+.wpm-btn-secondary {
+  background: white;
+  color: #475569;
+  border: 1px solid #cbd5e1;
+}
+
+.wpm-btn-secondary:hover {
+  background: #f8fafc;
+  border-color: #94a3b8;
+}
+
+.wpm-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.wpm-message {
+  padding: 1rem 1.5rem;
+  border-radius: 0;
+  margin-bottom: 1.5rem;
+  font-weight: 500;
+}
+
+.wpm-message.wpm-success {
+  background: #d1fae5;
+  color: #065f46;
+  border: 1px solid #10b981;
+}
+
+.wpm-message.wpm-error {
+  background: #fee2e2;
+  color: #991b1b;
+  border: 1px solid #ef4444;
+}
+
+.wpm-form-container {
+  background: white;
+  border-radius: 0;
+  padding: 2rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  border: 1px solid #e2e8f0;
+}
+
+.wpm-form {
+  width: 100%;
+}
+
+.wpm-form-section {
+  margin-bottom: 2.5rem;
+}
+
+.wpm-form-section:last-of-type {
+  margin-bottom: 0;
+}
+
+.wpm-section-title {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #1e293b;
+  margin: 0 0 1.5rem 0;
+  padding-bottom: 0.75rem;
+  border-bottom: 2px solid #e2e8f0;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.wpm-section-title::before {
+  content: '';
+  width: 4px;
+  height: 1.5rem;
+  background: linear-gradient(180deg, #14b8a6 0%, #0d9488 100%);
+  border-radius: 0;
+}
+
+.wpm-form-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1.5rem;
+}
+
+.wpm-field-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.wpm-field-label {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #475569;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.wpm-required {
+  color: #ef4444;
+}
+
+.wpm-form-input,
+.wpm-form-select,
+.wpm-form-textarea {
+  padding: 0.75rem 1rem;
+  border: 1px solid #cbd5e1;
+  border-radius: 0;
+  font-size: 0.875rem;
+  color: #1e293b;
+  background: white;
+  transition: all 0.2s ease;
+  font-family: inherit;
+}
+
+.wpm-form-input:focus,
+.wpm-form-select:focus,
+.wpm-form-textarea:focus {
+  outline: none;
+  border-color: #14b8a6;
+  box-shadow: 0 0 0 3px rgba(20, 184, 166, 0.1);
+}
+
+.wpm-form-input:hover,
+.wpm-form-select:hover,
+.wpm-form-textarea:hover {
+  border-color: #94a3b8;
+}
+
+.wpm-form-textarea {
+  resize: vertical;
+  min-height: 100px;
+}
+
+.wpm-form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 1rem;
+  margin-top: 2rem;
+  padding-top: 2rem;
+  border-top: 1px solid #e2e8f0;
+}
+
+/* Table Styles */
+.wpm-table-container {
+  background: white;
+  border-radius: 0;
+  padding: 1.5rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  border: 1px solid #e2e8f0;
+  overflow-x: auto;
+}
+
+.wpm-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.wpm-table thead {
+  background: #f8fafc;
+}
+
+.wpm-table th {
+  padding: 1rem;
+  text-align: left;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #475569;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  border-bottom: 2px solid #e2e8f0;
+}
+
+.wpm-table td {
+  padding: 1rem;
+  font-size: 0.875rem;
+  color: #1e293b;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.wpm-table tbody tr:hover {
+  background: #f8fafc;
+}
+
+.wpm-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.wpm-badge {
+  display: inline-block;
+  padding: 0.25rem 0.75rem;
+  border-radius: 0;
+  font-size: 0.75rem;
+  font-weight: 600;
+  background: #e0e7ff;
+  color: #3730a3;
+}
+
+.wpm-risk-badge {
+  display: inline-block;
+  padding: 0.25rem 0.75rem;
+  border-radius: 0;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.wpm-risk-very-conservative {
+  background: #dbeafe;
+  color: #0f766e;
+}
+
+.wpm-risk-conservative {
+  background: #d1fae5;
+  color: #065f46;
+}
+
+.wpm-risk-moderate {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.wpm-risk-balanced {
+  background: #fde68a;
+  color: #78350f;
+}
+
+.wpm-risk-aggressive {
+  background: #fed7aa;
+  color: #9a3412;
+}
+
+.wpm-risk-very-aggressive {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+.wpm-status-badge {
+  display: inline-block;
+  padding: 0.25rem 0.75rem;
+  border-radius: 0;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.wpm-status-active {
+  background: #d1fae5;
+  color: #065f46;
+}
+
+.wpm-status-inactive {
+  background: #e2e8f0;
+  color: #475569;
+}
+
+.wpm-status-closed {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+.wpm-status-suspended {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.wpm-action-btn {
+  padding: 0.375rem 0.75rem;
+  border: none;
+  border-radius: 0;
+  font-size: 0.75rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  margin-right: 0.5rem;
+}
+
+.wpm-action-btn.wpm-edit {
+  background: #dbeafe;
+  color: #0f766e;
+}
+
+.wpm-action-btn.wpm-edit:hover {
+  background: #bfdbfe;
+}
+
+.wpm-action-btn.wpm-delete {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+.wpm-action-btn.wpm-delete:hover {
+  background: #fecaca;
+}
+
+/* Responsive Design */
+@media (max-width: 1200px) {
+  .wpm-form-grid {
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  }
+}
+
+@media (max-width: 768px) {
+  .wpm-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+
+  .wpm-form-container {
+    padding: 1.5rem;
+  }
+
+  .wpm-form-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .wpm-form-actions {
+    flex-direction: column-reverse;
+  }
+
+  .wpm-btn {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .wpm-table-container {
+    padding: 1rem;
+  }
+
+  .wpm-table {
+    font-size: 0.8125rem;
+  }
+
+  .wpm-table th,
+  .wpm-table td {
+    padding: 0.75rem 0.5rem;
+  }
+}

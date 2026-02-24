@@ -709,37 +709,28 @@ const BlockAnalysisDashboard = () => {
             {/* Market Narrative */}
             {narrative && (
               <div className="bad-section">
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
+                <div className="narrative-header">
                   <h3>Market Narrative</h3>
                   <button
                     onClick={enhanceNarrativeWithAI}
                     disabled={aiEnhancing}
-                    style={{
-                      padding: '8px 16px',
-                      backgroundColor: aiEnhanced ? '#10b981' : '#3b82f6',
-                      color: 'white',
-                      border: 'none',
-                      borderRadius: '6px',
-                      cursor: aiEnhancing ? 'not-allowed' : 'pointer',
-                      fontSize: '14px',
-                      fontWeight: '500',
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '8px'
-                    }}
+                    className={`ai-enhance-btn ${aiEnhanced ? 'enhanced' : ''}`}
                     title={aiEnhanced ? 'Narrative enhanced with AI' : 'Enhance with AI insights'}
                   >
                     {aiEnhancing ? (
                       <>
-                        <span>🤖 Enhancing...</span>
+                        <span>🤖</span>
+                        <span>Enhancing...</span>
                       </>
                     ) : aiEnhanced ? (
                       <>
-                        <span>✨ AI Enhanced</span>
+                        <span>✨</span>
+                        <span>AI Enhanced</span>
                       </>
                     ) : (
                       <>
-                        <span>🤖 Enhance with AI</span>
+                        <span>🤖</span>
+                        <span>Enhance with AI</span>
                       </>
                     )}
                   </button>
@@ -747,15 +738,9 @@ const BlockAnalysisDashboard = () => {
                 <div className="narrative-box">
                   <p>{narrative}</p>
                   {aiEnhanced && (
-                    <div style={{ 
-                      marginTop: '10px', 
-                      padding: '8px', 
-                      backgroundColor: '#ecfdf5', 
-                      borderRadius: '4px',
-                      fontSize: '12px',
-                      color: '#065f46'
-                    }}>
-                      ✨ This narrative has been enhanced with AI-powered insights
+                    <div className="ai-enhanced-badge">
+                      <span>✨</span>
+                      <span>This narrative has been enhanced with AI-powered insights</span>
                     </div>
                   )}
                   <div className="narrative-disclaimer">

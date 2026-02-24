@@ -2,11 +2,17 @@ import React, { useState, useEffect } from 'react';
 import './App.css';
 import Navbar from './components/Home/Navbar';
 import DynamicHeader from './components/Home/DynamicHeader';
-import Sidebar, { menuItems as sidebarMenuItems } from './components/Home/Sidebar';
+import Sidebar, { equityManagerMenuItems as sidebarMenuItems } from './components/Home/Sidebar';
 import AuthContainer from './components/Auth/AuthContainer';
 import UserProfileModal from './components/Auth/UserProfileModal';
 import { authService } from './services/authService';
 import Dashboard from './components/Dashboard';
+import WealthManagerDashboard from './components/WealthManager/WM Dashboard/WealthManagerDashboard';
+import WMPortfolioOverview from './components/WealthManager/WM Dashboard/WMPortfolioOverview';
+import FundMaster from './components/WealthManager/Fund Master/FundMaster';
+import FundCategories from './components/WealthManager/Fund Master/FundCategories';
+import FundPerfMetrics from './components/WealthManager/Fund Master/FundPerfMetrics';
+import WealthPortfolioMaster from './components/WealthManager/Portfolio Master/WealthPortfolioMaster';
 import PortfolioOverview from './components/Dashboard/DashboardTabs/PortfolioOverview';
 import EquityMasterEntry from './components/MasterDataManagement/EquityMasterEntry';
 import BuyTransactionEntry from './components/TradeCapture/BuyTransactionEntry';
@@ -76,6 +82,7 @@ function App() {
   const [activeTab, setActiveTab] = useState('Dashboard');
   const [activeSidebarItem, setActiveSidebarItem] = useState(0);
   const [visibleTabs, setVisibleTabs] = useState(['Dashboard', 'Portfolio Overview', 'Market Summary', 'Recent Activity', 'Performance Metrics']);
+  const [selectedManager, setSelectedManager] = useState('equity'); // 'equity' or 'wealth'
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [user, setUser] = useState(null);
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
@@ -95,17 +102,40 @@ function App() {
     }
   };
 
+  // Handle manager type change from Sidebar
+  const handleManagerChange = (managerType) => {
+    setSelectedManager(managerType);
+    // Reset to first tab when switching managers
+    setActiveSidebarItem(0);
+    if (managerType === 'wealth') {
+      setVisibleTabs(['Dashboard', 'Portfolio Overview', 'Fund Performance', 'Client Summary', 'AUM Overview']);
+      setActiveTab('Dashboard');
+    } else {
+      setVisibleTabs(['Dashboard', 'Portfolio Overview', 'Market Summary', 'Recent Activity', 'Performance Metrics']);
+      setActiveTab('Dashboard');
+    }
+  };
+
   // Tab component mappings
   const tabToComponent = {
-    'Dashboard': <Dashboard onTabChange={handleTabChange} />,
-    'Portfolio Overview': <PortfolioOverview onTabChange={handleTabChange} />,
+    'Dashboard': selectedManager === 'wealth' 
+      ? <WealthManagerDashboard /> 
+      : <Dashboard onTabChange={handleTabChange} />,
+    'Portfolio Overview': selectedManager === 'wealth'
+      ? <WMPortfolioOverview />
+      : <PortfolioOverview onTabChange={handleTabChange} />,
     'Market Summary': <MarketSummary />,
     'Recent Activity': <RecentActivity />,
     'Performance Metrics': <PerformanceMetrics />,
     'Equity Master': <EquityMasterEntry />,
     'Strategy Master':  <StrategyMaster/>,
     'Account Master': <AccountMaster/>,
-    'Portfolio Master': <PortfolioMaster/>,
+    'Portfolio Master': selectedManager === 'wealth' 
+      ? <WealthPortfolioMaster /> 
+      : <PortfolioMaster/>,
+    'Fund Master': <FundMaster/>,
+    'Fund Categories': <FundCategories/>,
+    'Fund Performance Metrics': <FundPerfMetrics/>,
     'Valuation Method': <CostingMethodSelection/>,
     'Holiday Calendar': <HolidayCalendar mode="calendar" />,
     'Holiday List': <HolidayCalendar mode="list" />,
@@ -290,6 +320,7 @@ function App() {
         onSelect={handleSidebarSelect}
         activeIndex={activeSidebarItem}
         onLogout={handleLogout}
+        onManagerChange={handleManagerChange}
       />
       <div className="dashboard-main">
         <Navbar
@@ -300,7 +331,7 @@ function App() {
           onLogout={handleLogout}
           onOpenProfile={() => setIsProfileModalOpen(true)}
         />
-        <DynamicHeader />
+        {selectedManager === 'equity' && <DynamicHeader />}
         <div className="dashboard-content">
           {tabToComponent[activeTab] || (
             <div style={{ padding: '2rem', textAlign: 'center', color: '#ef4444' }}>

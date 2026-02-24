@@ -530,12 +530,25 @@ const UpdateSellTransactionsModal = ({
       }
 
       const savePromises = enhancedForms.map(form => {
+        // Ensure portfolioId is set - try form first, then global, then lookup from portfolio name
+        let finalPortfolioId = form.portfolioId || globalPortfolioId || '';
+        const portfolioName = form.portfolio || globalPortfolio || '';
+        
+        if (!finalPortfolioId && portfolioName) {
+          const selectedPortfolio = portfolios.find(
+            p => (p.portfolioName || p.name) === portfolioName
+          );
+          if (selectedPortfolio) {
+            finalPortfolioId = selectedPortfolio.portfolioId || selectedPortfolio.id || '';
+          }
+        }
+
         const transactionData = {
             parsed_trade_transaction_id: form.raw?.id,
           company_name: form.companyName,
           symbol: form.symbol,
-          portfolio_name: form.portfolio,
-          portfolioId: form.portfolioId,
+          portfolio_name: portfolioName,
+          portfolioId: finalPortfolioId,
           valuation_method: valuationMethod || '',
           deal_number: form.dealNumber,
           contract_number: form.contractNumber,
@@ -657,6 +670,17 @@ const UpdateSellTransactionsModal = ({
                     Costing Method: {valuationMethod}
                   </small>
                 )}
+              </div>
+
+              <div className="ustm-form-group">
+                <label>Portfolio ID</label>
+                <input
+                  type="text"
+                  value={globalPortfolioId}
+                  readOnly
+                  className="ustm-input ustm-readonly"
+                  placeholder="Auto-filled from portfolio"
+                />
               </div>
 
               <div className="ustm-form-group">

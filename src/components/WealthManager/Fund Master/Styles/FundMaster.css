@@ -1,0 +1,380 @@
+.fm-container {
+  padding: 0;
+  max-width: 100%;
+}
+
+.fm-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+  padding-bottom: 1.5rem;
+  border-bottom: 2px solid #e2e8f0;
+}
+
+.fm-header h2 {
+  font-size: 1.875rem;
+  font-weight: 700;
+  color: #1e293b;
+  margin: 0;
+}
+
+.fm-header-actions {
+  display: flex;
+  gap: 1rem;
+}
+
+.fm-btn {
+  padding: 0.625rem 1.25rem;
+  border: none;
+  border-radius: 0;
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.fm-btn-primary {
+  background: #14b8a6;
+  color: white;
+}
+
+.fm-btn-primary:hover {
+  background: #0d9488;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(20, 184, 166, 0.3);
+}
+
+.fm-btn-secondary {
+  background: white;
+  color: #475569;
+  border: 1px solid #cbd5e1;
+}
+
+.fm-btn-secondary:hover {
+  background: #f8fafc;
+  border-color: #94a3b8;
+}
+
+.fm-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.fm-message {
+  padding: 1rem 1.5rem;
+  border-radius: 0;
+  margin-bottom: 1.5rem;
+  font-weight: 500;
+}
+
+.fm-message.fm-success {
+  background: #d1fae5;
+  color: #065f46;
+  border: 1px solid #10b981;
+}
+
+.fm-message.fm-error {
+  background: #fee2e2;
+  color: #991b1b;
+  border: 1px solid #ef4444;
+}
+
+.fm-form-container {
+  background: white;
+  border-radius: 0;
+  padding: 2rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  border: 1px solid #e2e8f0;
+}
+
+.fm-form {
+  width: 100%;
+}
+
+.fm-form-section {
+  margin-bottom: 2.5rem;
+}
+
+.fm-form-section:last-of-type {
+  margin-bottom: 0;
+}
+
+.fm-section-title {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #1e293b;
+  margin: 0 0 1.5rem 0;
+  padding-bottom: 0.75rem;
+  border-bottom: 2px solid #e2e8f0;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.fm-section-title::before {
+  content: '';
+  width: 4px;
+  height: 1.5rem;
+  background: linear-gradient(180deg, #14b8a6 0%, #0d9488 100%);
+  border-radius: 0;
+}
+
+.fm-form-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1.5rem;
+}
+
+.fm-field-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.fm-field-label {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #475569;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.fm-required {
+  color: #ef4444;
+}
+
+.fm-form-input,
+.fm-form-select,
+.fm-form-textarea {
+  padding: 0.75rem 1rem;
+  border: 1px solid #cbd5e1;
+  border-radius: 0;
+  font-size: 0.875rem;
+  color: #1e293b;
+  background: white;
+  transition: all 0.2s ease;
+  font-family: inherit;
+}
+
+.fm-form-input:focus,
+.fm-form-select:focus,
+.fm-form-textarea:focus {
+  outline: none;
+  border-color: #14b8a6;
+  box-shadow: 0 0 0 3px rgba(20, 184, 166, 0.1);
+}
+
+.fm-form-input:hover,
+.fm-form-select:hover,
+.fm-form-textarea:hover {
+  border-color: #94a3b8;
+}
+
+.fm-form-textarea {
+  resize: vertical;
+  min-height: 100px;
+}
+
+.fm-form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 1rem;
+  margin-top: 2rem;
+  padding-top: 2rem;
+  border-top: 1px solid #e2e8f0;
+}
+
+/* Table Styles */
+.fm-table-container {
+  background: white;
+  border-radius: 0;
+  padding: 1.5rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  border: 1px solid #e2e8f0;
+  overflow-x: auto;
+}
+
+.fm-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.fm-table thead {
+  background: #f8fafc;
+}
+
+.fm-table th {
+  padding: 1rem;
+  text-align: left;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #475569;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  border-bottom: 2px solid #e2e8f0;
+}
+
+.fm-table td {
+  padding: 1rem;
+  font-size: 0.875rem;
+  color: #1e293b;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.fm-table tbody tr:hover {
+  background: #f8fafc;
+}
+
+.fm-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.fm-badge {
+  display: inline-block;
+  padding: 0.25rem 0.75rem;
+  border-radius: 0;
+  font-size: 0.75rem;
+  font-weight: 600;
+  background: #e0e7ff;
+  color: #3730a3;
+}
+
+.fm-risk-badge {
+  display: inline-block;
+  padding: 0.25rem 0.75rem;
+  border-radius: 0;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.fm-risk-very-low {
+  background: #d1fae5;
+  color: #065f46;
+}
+
+.fm-risk-low {
+  background: #dbeafe;
+  color: #0f766e;
+}
+
+.fm-risk-medium {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.fm-risk-high {
+  background: #fed7aa;
+  color: #9a3412;
+}
+
+.fm-risk-very-high {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+.fm-status-badge {
+  display: inline-block;
+  padding: 0.25rem 0.75rem;
+  border-radius: 0;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.fm-status-active {
+  background: #d1fae5;
+  color: #065f46;
+}
+
+.fm-status-inactive {
+  background: #e2e8f0;
+  color: #475569;
+}
+
+.fm-status-suspended {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.fm-status-closed {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+.fm-action-btn {
+  padding: 0.375rem 0.75rem;
+  border: none;
+  border-radius: 0;
+  font-size: 0.75rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  margin-right: 0.5rem;
+}
+
+.fm-action-btn.fm-edit {
+  background: #dbeafe;
+  color: #0f766e;
+}
+
+.fm-action-btn.fm-edit:hover {
+  background: #bfdbfe;
+}
+
+.fm-action-btn.fm-delete {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+.fm-action-btn.fm-delete:hover {
+  background: #fecaca;
+}
+
+/* Responsive Design */
+@media (max-width: 1200px) {
+  .fm-form-grid {
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  }
+}
+
+@media (max-width: 768px) {
+  .fm-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+
+  .fm-form-container {
+    padding: 1.5rem;
+  }
+
+  .fm-form-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .fm-form-actions {
+    flex-direction: column-reverse;
+  }
+
+  .fm-btn {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .fm-table-container {
+    padding: 1rem;
+  }
+
+  .fm-table {
+    font-size: 0.8125rem;
+  }
+
+  .fm-table th,
+  .fm-table td {
+    padding: 0.75rem 0.5rem;
+  }
+}

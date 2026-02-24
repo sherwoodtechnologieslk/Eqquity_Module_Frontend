@@ -31,18 +31,19 @@ html, body {
   bottom: 0;
   background: 
     radial-gradient(circle at 10% 20%, rgba(59, 130, 246, 0.1) 0%, transparent 50%),
-    radial-gradient(circle at 90% 80%, rgba(147, 51, 234, 0.08) 0%, transparent 50%);
+    radial-gradient(circle at 90% 80%, rgba(37, 99, 235, 0.08) 0%, transparent 50%);
   pointer-events: none;
 }
 
 /* Brand Section */
 .sidebar-brand {
   position: relative;
-  z-index: 1;
+  z-index: 10;
   padding: 2rem 1.5rem 1.5rem 1.5rem;
   border-bottom: 1px solid rgba(255, 255, 255, 0.1);
   background: rgba(255, 255, 255, 0.02);
   backdrop-filter: blur(10px);
+  overflow: visible;
 }
 
 .navbar-brand {
@@ -112,6 +113,211 @@ html, body {
   font-weight: 700;
   color: white;
   line-height: 1;
+  letter-spacing: -0.01em;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+/* Manager Dropdown Container */
+.manager-dropdown-container {
+  position: relative;
+  width: 100%;
+  z-index: 100;
+  overflow: visible;
+}
+
+/* App Name Switcher */
+.app-name-switcher {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+  background: linear-gradient(135deg, rgba(59, 130, 246, 0.1) 0%, rgba(37, 99, 235, 0.08) 100%);
+  border: 1.5px solid rgba(59, 130, 246, 0.2);
+  padding: 0.625rem 1rem;
+  border-radius: 0.5rem;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  width: 100%;
+  text-align: left;
+  position: relative;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.app-name-switcher:hover {
+  background: linear-gradient(135deg, rgba(59, 130, 246, 0.15) 0%, rgba(37, 99, 235, 0.12) 100%);
+  border-color: rgba(59, 130, 246, 0.35);
+  box-shadow: 0 4px 8px rgba(59, 130, 246, 0.15);
+  transform: translateY(-1px);
+}
+
+.app-name-switcher:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 4px rgba(59, 130, 246, 0.1);
+}
+
+.app-name-switcher:focus {
+  outline: 2px solid rgba(59, 130, 246, 0.5);
+  outline-offset: 2px;
+}
+
+.app-name-switcher .app-name {
+  margin: 0;
+  flex: 1;
+}
+
+.switch-icon {
+  width: 1.125rem;
+  height: 1.125rem;
+  color: rgba(59, 130, 246, 0.8);
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  flex-shrink: 0;
+}
+
+.switch-icon.open {
+  transform: rotate(180deg);
+  color: #3b82f6;
+}
+
+.app-name-switcher:hover .switch-icon {
+  color: #3b82f6;
+}
+
+/* Dropdown Menu */
+.manager-dropdown-menu {
+  position: fixed;
+  background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+  border-radius: 0.75rem;
+  box-shadow: 
+    0 10px 25px -5px rgba(0, 0, 0, 0.4),
+    0 8px 10px -6px rgba(0, 0, 0, 0.3),
+    0 0 0 1px rgba(59, 130, 246, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  padding: 0.5rem;
+  z-index: 10000;
+  animation: dropdownFadeIn 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  overflow: hidden;
+  border: 1.5px solid rgba(59, 130, 246, 0.2);
+  min-width: 220px;
+  backdrop-filter: blur(10px);
+}
+
+@keyframes dropdownFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-8px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.dropdown-item {
+  display: flex;
+  align-items: center;
+  gap: 0.875rem;
+  width: 100%;
+  padding: 0.75rem 1rem;
+  background: transparent;
+  border: none;
+  border-radius: 0.5rem;
+  color: rgba(255, 255, 255, 0.85);
+  font-size: 0.9375rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  text-align: left;
+  position: relative;
+  margin: 0.125rem 0;
+  border: 1px solid transparent;
+}
+
+.dropdown-item::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 3px;
+  height: 0;
+  background: linear-gradient(180deg, #3b82f6 0%, #1d4ed8 100%);
+  border-radius: 0 2px 2px 0;
+  transition: height 0.2s ease;
+}
+
+.dropdown-item:hover {
+  color: white;
+  background: linear-gradient(90deg, rgba(59, 130, 246, 0.12) 0%, rgba(59, 130, 246, 0.08) 100%);
+  border-color: rgba(59, 130, 246, 0.2);
+  transform: translateX(2px);
+}
+
+.dropdown-item:hover::before {
+  height: 60%;
+}
+
+.dropdown-item.active {
+  background: linear-gradient(90deg, rgba(59, 130, 246, 0.2) 0%, rgba(59, 130, 246, 0.15) 100%);
+  color: white;
+  font-weight: 600;
+  border-color: rgba(59, 130, 246, 0.3);
+  box-shadow: 0 2px 8px rgba(59, 130, 246, 0.15);
+}
+
+.dropdown-item.active::before {
+  height: 70%;
+}
+
+.dropdown-icon {
+  width: 1.25rem;
+  height: 1.25rem;
+  color: rgba(255, 255, 255, 0.5);
+  flex-shrink: 0;
+  transition: all 0.2s ease;
+  position: relative;
+  z-index: 1;
+  padding: 0.125rem;
+  background: rgba(59, 130, 246, 0.1);
+  border-radius: 0.25rem;
+}
+
+.dropdown-item:hover .dropdown-icon {
+  color: #3b82f6;
+  background: rgba(59, 130, 246, 0.2);
+  transform: scale(1.05);
+}
+
+.dropdown-item.active .dropdown-icon {
+  color: white;
+  background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+  box-shadow: 0 2px 4px rgba(59, 130, 246, 0.3);
+}
+
+.dropdown-item span {
+  flex: 1;
+  position: relative;
+  z-index: 1;
+}
+
+.check-icon {
+  width: 1.125rem;
+  height: 1.125rem;
+  color: #3b82f6;
+  flex-shrink: 0;
+  position: relative;
+  z-index: 1;
+  animation: checkFadeIn 0.2s ease;
+  filter: drop-shadow(0 1px 2px rgba(59, 130, 246, 0.3));
+}
+
+@keyframes checkFadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.5);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
 }
 
 /* Content Section */
@@ -123,6 +329,15 @@ html, body {
   overflow-x: hidden;
   position: relative;
   z-index: 1;
+}
+
+/* Ensure brand text container allows overflow */
+.brand-text-container {
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+  overflow: visible;
+  position: relative;
 }
 
 
@@ -302,6 +517,18 @@ html, body {
   transform: scale(0);
   transition: all 0.3s ease;
   flex-shrink: 0;
+}
+
+/* Empty State */
+.sidebar-empty-state {
+  padding: 2rem 1.25rem;
+  text-align: center;
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.empty-state-text {
+  font-size: 0.875rem;
+  font-style: italic;
 }
 
 /* Footer */

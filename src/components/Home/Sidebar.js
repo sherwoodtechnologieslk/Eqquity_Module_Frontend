@@ -1,10 +1,11 @@
 
 // Sidebar.js
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import './Styles/Sidebar.css';
 
-export const menuItems = [
+// Equity Manager menu items
+export const equityManagerMenuItems = [
   {
     icon: (
       <svg fill="currentColor" viewBox="0 0 20 20">
@@ -395,19 +396,249 @@ export const menuItems = [
   
 ];
 
-const Sidebar = ({ onSelect, activeIndex = 0, onLogout }) => {
+// Wealth Manager menu items (Unit Trust focused)
+export const wealthManagerMenuItems = [
+  {
+    icon: (
+      <svg fill="currentColor" viewBox="0 0 20 20">
+        <path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z"/>
+      </svg>
+    ),
+    name: "Dashboard",
+    subTopics: [
+      "Dashboard",
+      "Portfolio Overview",
+      "Fund Performance",
+      "Client Summary",
+      "AUM Overview"
+    ]
+  },
+  {
+    icon: (
+      <svg fill="currentColor" viewBox="0 0 20 20">
+        <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM4.332 8.027a6.012 6.012 0 011.912-2.706C6.512 5.73 6.974 6 7.5 6A1.5 1.5 0 019 7.5V8a2 2 0 004 0 2 2 0 011.523-1.943A5.977 5.977 0 0116 10c0 .34-.028.675-.083 1H15a2 2 0 00-2 2v2.197A5.973 5.973 0 0110 16v-2a2 2 0 00-2-2 2 2 0 01-2-2 2 2 0 00-1.668-1.973z" clipRule="evenodd"/>
+      </svg>
+    ),
+    name: "Client Management",
+    subTopics: [
+      "Client Accounts",
+      "Client Portfolio",
+      "Client Statements",
+      "Client Onboarding",
+      "KYC Management"
+    ]
+  },
+  {
+    icon: (
+      <svg fill="currentColor" viewBox="0 0 20 20">
+        <path d="M4 4a2 2 0 00-2 2v1h16V6a2 2 0 00-2-2H4z"/>
+        <path fillRule="evenodd" d="M18 9H2v5a2 2 0 002 2h12a2 2 0 002-2V9zM4 13a1 1 0 011-1h1a1 1 0 110 2H5a1 1 0 01-1-1zm5-1a1 1 0 100 2h1a1 1 0 100-2H9z" clipRule="evenodd"/>
+      </svg>
+    ),
+    name: "Unit Trust Operations",
+    subTopics: [
+      "Purchase/Subscription",
+      "Redemption",
+      "Switch/Transfer",
+      "Dividend Distribution",
+      "Systematic Investment Plan (SIP)",
+      "Systematic Withdrawal Plan (SWP)"
+    ]
+  },
+  {
+    icon: (
+      <svg fill="currentColor" viewBox="0 0 20 20">
+        <path fillRule="evenodd" d="M3 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" clipRule="evenodd"/>
+      </svg>
+    ),
+    name: "Fund Master",
+    subTopics: [
+      "Fund Master",
+      "Fund Categories",
+      "Fund Pricing",
+      "NAV Management",
+      "Fund Performance Metrics"
+    ]
+  },
+  {
+    icon: (
+      <svg fill="currentColor" viewBox="0 0 20 20">
+        <path d="M4 4a2 2 0 00-2 2v1h16V6a2 2 0 00-2-2H4z"/>
+        <path fillRule="evenodd" d="M18 9H2v5a2 2 0 002 2h12a2 2 0 002-2V9zM4 13a1 1 0 011-1h1a1 1 0 110 2H5a1 1 0 01-1-1zm5-1a1 1 0 100 2h1a1 1 0 100-2H9z" clipRule="evenodd"/>
+      </svg>
+    ),
+    name: "Portfolio Master",
+    subTopics: [
+      "Portfolio Master",
+      "Client Portfolios",
+      "Portfolio Allocation",
+      "Portfolio Performance",
+      "Portfolio Reports"
+    ]
+  },
+  {
+    icon: (
+      <svg fill="currentColor" viewBox="0 0 20 20">
+        <path d="M2 11a1 1 0 011-1h2a1 1 0 011 1v5a1 1 0 01-1 1H3a1 1 0 01-1-1v-5zM8 7a1 1 0 011-1h2a1 1 0 011 1v9a1 1 0 01-1 1H9a1 1 0 01-1-1V7zM14 4a1 1 0 011-1h2a1 1 0 011 1v12a1 1 0 01-1 1h-2a1 1 0 01-1-1V4z"/>
+      </svg>
+    ),
+    name: "Transactions",
+    subTopics: [
+      "Transaction History",
+      "Pending Transactions",
+      "Transaction Approval",
+      "Transaction Reports",
+      "Bulk Transactions"
+    ]
+  },
+  {
+    icon: (
+      <svg fill="currentColor" viewBox="0 0 20 20">
+        <path fillRule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clipRule="evenodd"/>
+      </svg>
+    ),
+    name: "Valuation & NAV",
+    subTopics: [
+      "NAV Calculation",
+      "Valuation Reports",
+      "Asset Valuation",
+      "NAV History",
+      "Price Feed Management"
+    ]
+  },
+  {
+    icon: (
+      <svg fill="currentColor" viewBox="0 0 20 20">
+        <path fillRule="evenodd" d="M4 4a2 2 0 00-2 2v4a2 2 0 002 2V6h10a2 2 0 00-2-2H4z"/>
+        <path fillRule="evenodd" d="M6 4a2 2 0 012-2h8a2 2 0 012 2v10a2 2 0 01-2 2H8a2 2 0 01-2-2V4zm2 0h8v10H8V4z" clipRule="evenodd"/>
+      </svg>
+    ),
+    name: "Reporting",
+    subTopics: [
+      "Client Reports",
+      "Fund Reports",
+      "Performance Reports",
+      "Regulatory Reports",
+      "Tax Reports",
+      "Statement Generation"
+    ]
+  },
+  {
+    icon: (
+      <svg fill="currentColor" viewBox="0 0 20 20">
+        <path fillRule="evenodd" d="M4 4a2 2 0 00-2 2v8a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2H4zm2 2v8h8V6H6z" clipRule="evenodd"/>
+        <path d="M8 8a1 1 0 011-1h2a1 1 0 110 2H9a1 1 0 01-1-1zm0 2a1 1 0 011-1h2a1 1 0 110 2H9a1 1 0 01-1-1zm1 1a1 1 0 100 2h2a1 1 0 100-2H9z"/>
+      </svg>
+    ),
+    name: "Accounting Entries",
+    subTopics: [
+      "Journal Entries",
+      "General Ledger",
+      "Trial Balance",
+      "P&L Statement",
+      "Fund Accounting"
+    ]
+  },
+  {
+    icon: (
+      <svg fill="currentColor" viewBox="0 0 20 20">
+        <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd"/>
+      </svg>
+    ),
+    name: "Risk & Compliance",
+    subTopics: [
+      "Risk Management",
+      "Compliance Monitoring",
+      "Audit Trail",
+      "Regulatory Compliance",
+      "Risk Reports"
+    ]
+  },
+  {
+    icon: (
+      <svg fill="currentColor" viewBox="0 0 20 20">
+        <path fillRule="evenodd" d="M11.49 3.17c-.38-1.56-2.6-1.56-2.98 0a1.532 1.532 0 01-2.286.948c-1.372-.836-2.942.734-2.106 2.106.54.886.061 2.042-.947 2.287-1.561.379-1.561 2.6 0 2.978a1.532 1.532 0 01.947 2.287c-.836 1.372.734 2.942 2.106 2.106a1.532 1.532 0 012.287.947c.379 1.561 2.6 1.561 2.978 0a1.533 1.533 0 012.287-.947c1.372.836 2.942-.734 2.106-2.106a1.533 1.533 0 01.947-2.287c1.561-.379 1.561-2.6 0-2.978a1.532 1.532 0 01-.947-2.287c.836-1.372-.734-2.942-2.106-2.106a1.532 1.532 0 01-2.287-.947zM10 13a3 3 0 100-6 3 3 0 000 6z" clipRule="evenodd"/>
+      </svg>
+    ),
+    name: "Settings & Configuration",
+    subTopics: [
+      "System Settings",
+      "Fee Structure",
+      "Commission Setup",
+      "Holiday Calendar",
+      "User Management"
+    ]
+  }
+];
+
+const Sidebar = ({ onSelect, activeIndex = 0, onLogout, onManagerChange }) => {
   const [active, setActive] = useState(activeIndex);
+  const [selectedManager, setSelectedManager] = useState('equity'); // 'equity' or 'wealth'
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [dropdownPosition, setDropdownPosition] = useState({ top: 0, left: 0, width: 0 });
+  const dropdownButtonRef = useRef(null);
 
   // Sync internal state with prop changes
   useEffect(() => {
     setActive(activeIndex);
   }, [activeIndex]);
 
+  // Get current menu items based on selected manager
+  const currentMenuItems = selectedManager === 'equity' ? equityManagerMenuItems : wealthManagerMenuItems;
+
   // When a sidebar item is clicked, provide both its index and its subTopics to parent
   const handleClick = (i) => {
     setActive(i);
-    if (onSelect) onSelect(i, menuItems[i].subTopics); // Pass index and subTopics
+    if (onSelect && currentMenuItems[i]) {
+      onSelect(i, currentMenuItems[i].subTopics); // Pass index and subTopics
+    }
   };
+
+  // Handle manager type switch
+  const handleManagerSwitch = (managerType) => {
+    setSelectedManager(managerType);
+    setIsDropdownOpen(false); // Close dropdown after selection
+    setActive(0); // Reset active item when switching managers
+    // Get the new menu items for the selected manager type
+    const newMenuItems = managerType === 'equity' ? equityManagerMenuItems : wealthManagerMenuItems;
+    // Notify parent about the manager change
+    if (onManagerChange) {
+      onManagerChange(managerType);
+    }
+    // Notify parent about the switch if needed
+    if (onSelect && newMenuItems.length > 0) {
+      onSelect(0, newMenuItems[0]?.subTopics || []);
+    } else if (onSelect) {
+      // If no menu items, pass empty array
+      onSelect(0, []);
+    }
+  };
+
+  // Calculate dropdown position when opening
+  useEffect(() => {
+    if (isDropdownOpen && dropdownButtonRef.current) {
+      const rect = dropdownButtonRef.current.getBoundingClientRect();
+      setDropdownPosition({
+        top: rect.bottom + 8,
+        left: rect.left,
+        width: rect.width
+      });
+    }
+  }, [isDropdownOpen]);
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (isDropdownOpen && !event.target.closest('.manager-dropdown-container') && !event.target.closest('.manager-dropdown-menu')) {
+        setIsDropdownOpen(false);
+      }
+    };
+
+    if (isDropdownOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+      return () => document.removeEventListener('mousedown', handleClickOutside);
+    }
+  }, [isDropdownOpen]);
 
   return (
     <aside className="sidebar">
@@ -421,8 +652,71 @@ const Sidebar = ({ onSelect, activeIndex = 0, onLogout }) => {
             </svg>
           </div>
           <div className="brand-text-container">
-           
-            <span className="app-name">Equity Manager</span>
+            <div className="manager-dropdown-container">
+              <button 
+                ref={dropdownButtonRef}
+                className="app-name-switcher"
+                onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                type="button"
+                aria-expanded={isDropdownOpen}
+                aria-haspopup="true"
+              >
+                <span className="app-name">
+                  {selectedManager === 'equity' ? 'Equity Manager' : 'Wealth Manager'}
+                </span>
+                <svg 
+                  className={`switch-icon ${isDropdownOpen ? 'open' : ''}`} 
+                  fill="currentColor" 
+                  viewBox="0 0 20 20"
+                >
+                  <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd"/>
+                </svg>
+              </button>
+              
+              {isDropdownOpen && (
+                <div 
+                  className="manager-dropdown-menu"
+                  style={{
+                    position: 'fixed',
+                    top: `${dropdownPosition.top}px`,
+                    left: `${dropdownPosition.left}px`,
+                    width: `${dropdownPosition.width}px`
+                  }}
+                >
+                  <button
+                    className={`dropdown-item ${selectedManager === 'equity' ? 'active' : ''}`}
+                    onClick={() => handleManagerSwitch('equity')}
+                    type="button"
+                  >
+                    <svg className="dropdown-icon" fill="currentColor" viewBox="0 0 20 20">
+                      <path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z"/>
+                    </svg>
+                    <span>Equity Manager</span>
+                    {selectedManager === 'equity' && (
+                      <svg className="check-icon" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd"/>
+                      </svg>
+                    )}
+                  </button>
+                  <button
+                    className={`dropdown-item ${selectedManager === 'wealth' ? 'active' : ''}`}
+                    onClick={() => handleManagerSwitch('wealth')}
+                    type="button"
+                  >
+                    <svg className="dropdown-icon" fill="currentColor" viewBox="0 0 20 20">
+                      <path d="M4 4a2 2 0 00-2 2v4a2 2 0 002 2V6h10a2 2 0 00-2-2H4z"/>
+                      <path fillRule="evenodd" d="M14 4a2 2 0 012 2v8a2 2 0 01-2 2H8a2 2 0 01-2-2V6a2 2 0 012-2h6zm-1 3a1 1 0 00-1 1v4a1 1 0 001 1h1a1 1 0 001-1V8a1 1 0 00-1-1h-1z" clipRule="evenodd"/>
+                    </svg>
+                    <span>Wealth Manager</span>
+                    {selectedManager === 'wealth' && (
+                      <svg className="check-icon" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd"/>
+                      </svg>
+                    )}
+                  </button>
+                </div>
+              )}
+            </div>
           </div>
         </div>
       </div>
@@ -432,21 +726,27 @@ const Sidebar = ({ onSelect, activeIndex = 0, onLogout }) => {
         <div className="menu-section">
           <h3 className="menu-title">Navigation</h3>
           <ul className="sidebar-menu">
-            {menuItems.map((item, i) => (
-              <li
-                key={item.name}
-                className={`sidebar-item${active === i ? ' active' : ''}`}
-                onClick={() => handleClick(i)}
-                tabIndex={0}
-                role="button"
-                aria-pressed={active === i}
-                // title={item.name} // Remove this line to disable native tooltip
-              >
-                <span className="item-icon" style={{fontSize:"1.2rem"}}>{item.icon}</span>
-                <span className="item-text">{item.name}</span>
-                <div className="item-indicator"></div>
+            {currentMenuItems.length > 0 ? (
+              currentMenuItems.map((item, i) => (
+                <li
+                  key={item.name}
+                  className={`sidebar-item${active === i ? ' active' : ''}`}
+                  onClick={() => handleClick(i)}
+                  tabIndex={0}
+                  role="button"
+                  aria-pressed={active === i}
+                  // title={item.name} // Remove this line to disable native tooltip
+                >
+                  <span className="item-icon" style={{fontSize:"1.2rem"}}>{item.icon}</span>
+                  <span className="item-text">{item.name}</span>
+                  <div className="item-indicator"></div>
+                </li>
+              ))
+            ) : (
+              <li className="sidebar-empty-state">
+                <span className="empty-state-text">Menu items coming soon...</span>
               </li>
-            ))}
+            )}
           </ul>
         </div>
       </div>
