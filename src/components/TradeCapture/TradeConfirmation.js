@@ -430,15 +430,32 @@ const TradeConfirmation = () => {
   };
 
   const renderUpdatePortfolio = () => {
-    const unupdatedForLatest = (unupdatedTransactions || []).filter(t =>
-      latestTradeDate ? t.trade_date === latestTradeDate : true
+    if (unupdatedLoading) {
+      return (
+        <div className="tc-loading">
+          <div className="tc-spinner"></div>
+          <p>Loading transactions...</p>
+        </div>
+      );
+    }
+
+    if (unupdatedError) {
+      return (
+        <div className="tc-error">
+          <h3>Error Loading Transactions</h3>
+          <p>{unupdatedError}</p>
+          <button onClick={fetchUnupdatedTransactions} className="tc-retry-btn">Retry</button>
+        </div>
+      );
+    }
+
+    // Only use unupdated transactions from database (checked against parsed_trade_transaction_save_logs)
+    const purchaseTransactions = (unupdatedTransactions || []).filter(t => 
+      (t.buy_sell || '').toUpperCase() === 'B'
     );
-    const purchaseTransactions = unupdatedForLatest.length > 0
-      ? unupdatedForLatest.filter(t => (t.buy_sell || '').toUpperCase() === 'B')
-      : Object.values(groupedData.purchases).flat();
-    const sellTransactions = unupdatedForLatest.length > 0
-      ? unupdatedForLatest.filter(t => (t.buy_sell || '').toUpperCase() === 'S')
-      : Object.values(groupedData.sales).flat();
+    const sellTransactions = (unupdatedTransactions || []).filter(t => 
+      (t.buy_sell || '').toUpperCase() === 'S'
+    );
 
     const formatNumber = (value) => {
       if (!value || value === 0) return '0.00';
@@ -457,18 +474,31 @@ const TradeConfirmation = () => {
         return sum + calculateTransactionValue(t);
       }, 0);
 
+      // Get unique companies from transactions
+      const companies = [...new Set(transactions.map(t => t.company_id).filter(Boolean))];
+
       return {
         count: transactions.length,
         totalQuantity,
-        totalValue
+        totalValue,
+        companies
       };
     };
 
     const purchaseSummary = getSummary(purchaseTransactions);
     const sellSummary = getSummary(sellTransactions);
 
-    const purchaseCompanies = Object.keys(groupedData.purchases);
-    const sellCompanies = Object.keys(groupedData.sales);
+    const purchaseCompanies = purchaseSummary.companies;
+    const sellCompanies = sellSummary.companies;
+
+    // Show message if no unupdated transactions
+    if (purchaseTransactions.length === 0 && sellTransactions.length === 0) {
+      return (
+        <div className="tc-no-data">
+          <p>No pending transactions to update. All transactions have been saved to the portfolio.</p>
+        </div>
+      );
+    }
 
     return (
       <div className="tc-update-portfolio">

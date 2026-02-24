@@ -544,20 +544,25 @@ const UpdateSellTransactionsModal = ({
       }
 
       const savePromises = enhancedForms.map(form => {
-        const resolvedPortfolio = form.portfolio || globalPortfolio || '';
-        const resolvedPortfolioId = form.portfolioId || globalPortfolioId || '';
-        console.log('🧾 [SELL SAVE UI] Portfolio payload:', {
-          portfolio: resolvedPortfolio,
-          portfolioId: resolvedPortfolioId
-        });
+        // Ensure portfolioId is set - try form first, then global, then lookup from portfolio name
+        let finalPortfolioId = form.portfolioId || globalPortfolioId || '';
+        const portfolioName = form.portfolio || globalPortfolio || '';
+        
+        if (!finalPortfolioId && portfolioName) {
+          const selectedPortfolio = portfolios.find(
+            p => (p.portfolioName || p.name) === portfolioName
+          );
+          if (selectedPortfolio) {
+            finalPortfolioId = selectedPortfolio.portfolioId || selectedPortfolio.id || '';
+          }
+        }
+
         const transactionData = {
             parsed_trade_transaction_id: form.raw?.id,
           company_name: form.companyName,
           symbol: form.symbol,
-          portfolio_name: resolvedPortfolio,
-          portfolio: resolvedPortfolio,
-          portfolioId: resolvedPortfolioId,
-          portfolio_id: resolvedPortfolioId,
+          portfolio_name: portfolioName,
+          portfolioId: finalPortfolioId,
           valuation_method: valuationMethod || '',
           deal_number: form.dealNumber,
           contract_number: form.contractNumber,
@@ -693,6 +698,7 @@ const UpdateSellTransactionsModal = ({
                   </small>
                 )}
               </div>
+
               <div className="ustm-form-group">
                 <label>Portfolio ID</label>
                 <input
@@ -700,6 +706,7 @@ const UpdateSellTransactionsModal = ({
                   value={globalPortfolioId}
                   readOnly
                   className="ustm-input ustm-readonly"
+                  placeholder="Auto-filled from portfolio"
                 />
               </div>
 

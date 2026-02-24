@@ -2499,3 +2499,86 @@ export const dashboardAPI = {
     }
   }
 };
+
+// API service for AI-powered analysis
+export const aiAnalysisAPI = {
+  // Enhance market narrative with AI
+  enhanceMarketNarrative: async (technicalData, currentNarrative = '') => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/ai-analysis/narrative/enhance`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...getAuthHeaders()
+        },
+        body: JSON.stringify({
+          technicalData,
+          currentNarrative
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
+      return data.enhancedNarrative || data.originalNarrative || currentNarrative;
+    } catch (error) {
+      console.error('Error enhancing narrative with AI:', error);
+      throw error;
+    }
+  },
+
+  // Answer questions about portfolio or market
+  answerQuestion: async (question, portfolioId = null) => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/ai-analysis/question/answer`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...getAuthHeaders()
+        },
+        body: JSON.stringify({
+          question,
+          portfolioId
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
+      return data.answer;
+    } catch (error) {
+      console.error('Error getting AI answer:', error);
+      throw error;
+    }
+  },
+
+  // Analyze financial news from URL
+  analyzeFinancialNews: async (url, stockSymbol = null) => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/ai-analysis/news/analyze`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...getAuthHeaders()
+        },
+        body: JSON.stringify({
+          url,
+          stockSymbol
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      return await response.json();
+    } catch (error) {
+      console.error('Error analyzing financial news:', error);
+      throw error;
+    }
+  }
+};
