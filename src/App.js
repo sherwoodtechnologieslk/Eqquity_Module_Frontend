@@ -127,6 +127,20 @@ function App() {
     }
   };
 
+  // Handle manager type change from Sidebar
+  const handleManagerChange = (managerType) => {
+    setSelectedManager(managerType);
+    // Reset to first tab when switching managers
+    setActiveSidebarItem(0);
+    if (managerType === 'wealth') {
+      setVisibleTabs(['Dashboard', 'Portfolio Overview', 'Fund Performance', 'Client Summary', 'AUM Overview']);
+      setActiveTab('Dashboard');
+    } else {
+      setVisibleTabs(['Dashboard', 'Portfolio Overview', 'Market Summary', 'Recent Activity', 'Performance Metrics']);
+      setActiveTab('Dashboard');
+    }
+  };
+
   // Tab component mappings
   const tabToComponent = {
     'Dashboard': selectedManager === 'wealth' 
