@@ -1,0 +1,116 @@
+.cp-root {
+  display: flex;
+  min-height: 100vh;
+  background: #f5f7fa;
+}
+
+.cp-main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  margin-left: 260px;
+  transition: margin-left 0.3s ease;
+}
+
+.cp-content {
+  flex: 1;
+  padding: 2rem;
+  overflow-y: auto;
+}
+
+.cp-not-found {
+  text-align: center;
+  padding: 4rem 2rem;
+  color: #ef4444;
+}
+
+.cp-not-found h3 {
+  font-size: 1.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.cp-not-found p {
+  color: #6b7280;
+}
+
+/* Intro / Signup screen */
+.cp-intro-root {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: radial-gradient(circle at top left, #0f766e 0%, #0e7490 30%, #0b1120 100%);
+  padding: 2rem;
+}
+
+.cp-intro-card {
+  max-width: 520px;
+  width: 100%;
+  background: rgba(15, 23, 42, 0.96);
+  border: 1px solid rgba(148, 163, 184, 0.4);
+  box-shadow: 0 24px 60px rgba(15, 23, 42, 0.7);
+  padding: 2.5rem 2.75rem;
+  border-radius: 0;
+  color: #e5e7eb;
+}
+
+.cp-intro-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.35rem 0.75rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #a5f3fc;
+  border-radius: 0;
+  border: 1px solid rgba(34, 211, 238, 0.4);
+  background: linear-gradient(135deg, rgba(15, 118, 110, 0.4), rgba(8, 145, 178, 0.2));
+  margin-bottom: 1.25rem;
+}
+
+.cp-intro-title {
+  font-size: 2rem;
+  font-weight: 700;
+  margin: 0 0 0.75rem;
+  background: linear-gradient(135deg, #e0f2fe 0%, #a5f3fc 40%, #22d3ee 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.cp-intro-subtitle {
+  font-size: 0.95rem;
+  color: #9ca3af;
+  line-height: 1.6;
+  margin: 0 0 1.75rem;
+}
+
+.cp-intro-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.9rem 2.5rem;
+  font-size: 0.95rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #0f172a;
+  background: linear-gradient(135deg, #a5f3fc 0%, #22c55e 45%, #22d3ee 100%);
+  border: none;
+  border-radius: 0;
+  cursor: pointer;
+  box-shadow: 0 18px 40px rgba(34, 211, 238, 0.45);
+  transition: transform 0.15s ease, box-shadow 0.15s ease, filter 0.15s ease;
+}
+
+.cp-intro-button:hover {
+  filter: brightness(1.05);
+  transform: translateY(-1px);
+  box-shadow: 0 22px 50px rgba(34, 211, 238, 0.6);
+}
+
+.cp-intro-button:active {
+  transform: translateY(0);
+  box-shadow: 0 14px 32px rgba(34, 211, 238, 0.4);
+}

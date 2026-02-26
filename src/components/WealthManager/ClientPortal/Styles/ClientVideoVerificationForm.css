@@ -1,0 +1,138 @@
+.cp-video-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.5rem;
+}
+
+.cp-video-header-main h1 {
+  margin-bottom: 0.35rem;
+}
+
+.cp-video-header-main p {
+  margin: 0;
+  font-size: 0.95rem;
+}
+
+.cp-video-demo-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.6rem 1.1rem;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.5);
+  background: rgba(15, 23, 42, 0.12);
+  color: #ffffff;
+  font-size: 0.85rem;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.cp-video-demo-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.cp-video-form {
+  padding: 2rem;
+}
+
+.cp-video-layout {
+  display: flex;
+  flex-direction: column;
+  gap: 1.75rem;
+}
+
+.cp-video-steps {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.cp-video-step {
+  display: grid;
+  grid-template-columns: 220px 1fr;
+  gap: 1.5rem;
+  padding: 1.25rem 1.5rem;
+  border: 1px solid #e5e7eb;
+  background: #ffffff;
+}
+
+.cp-video-step-media {
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  border-radius: 0;
+  background-color: #e5e7eb;
+}
+
+/* Placeholder gradient blocks for now */
+.cp-video-step-media-1 {
+  background-image: linear-gradient(135deg, #0ea5e9, #22c1c3);
+}
+
+.cp-video-step-media-2 {
+  background-image: linear-gradient(135deg, #f97316, #fb7185);
+}
+
+.cp-video-step-media-3 {
+  background-image: linear-gradient(135deg, #6366f1, #22d3ee);
+}
+
+.cp-video-step-media-4 {
+  background-image: linear-gradient(135deg, #0f766e, #22c55e);
+}
+
+.cp-video-step-content h3 {
+  margin: 0 0 0.4rem 0;
+  font-size: 0.98rem;
+  font-weight: 600;
+  color: #111827;
+}
+
+.cp-video-step-content p {
+  margin: 0;
+  font-size: 0.87rem;
+  color: #4b5563;
+  line-height: 1.5;
+}
+
+.cp-video-link {
+  margin-top: 0.6rem;
+  padding: 0;
+  border: none;
+  background: none;
+  color: #2563eb;
+  font-size: 0.85rem;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.cp-video-actions {
+  justify-content: space-between;
+}
+
+.cp-video-primary-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.cp-video-start-btn {
+  padding: 0.75rem 1.5rem;
+  border-radius: 0;
+  border: none;
+  background: #2563eb;
+  color: #ffffff;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+@media (max-width: 900px) {
+  .cp-video-step {
+    grid-template-columns: 1fr;
+  }
+}
+

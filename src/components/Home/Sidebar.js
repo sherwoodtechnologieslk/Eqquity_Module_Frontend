@@ -571,9 +571,9 @@ export const wealthManagerMenuItems = [
   }
 ];
 
-const Sidebar = ({ onSelect, activeIndex = 0, onLogout, onManagerChange }) => {
+const Sidebar = ({ onSelect, activeIndex = 0, onLogout, onManagerChange, selectedManager: selectedManagerProp = 'equity', isClientView = false, onClientViewToggle }) => {
   const [active, setActive] = useState(activeIndex);
-  const [selectedManager, setSelectedManager] = useState('equity'); // 'equity' or 'wealth'
+  const [selectedManager, setSelectedManager] = useState(selectedManagerProp); // 'equity' or 'wealth'
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [dropdownPosition, setDropdownPosition] = useState({ top: 0, left: 0, width: 0 });
   const dropdownButtonRef = useRef(null);
@@ -582,6 +582,11 @@ const Sidebar = ({ onSelect, activeIndex = 0, onLogout, onManagerChange }) => {
   useEffect(() => {
     setActive(activeIndex);
   }, [activeIndex]);
+
+  // Keep selected manager in sync with parent (App)
+  useEffect(() => {
+    setSelectedManager(selectedManagerProp);
+  }, [selectedManagerProp]);
 
   // Get current menu items based on selected manager
   const currentMenuItems = selectedManager === 'equity' ? equityManagerMenuItems : wealthManagerMenuItems;
@@ -716,6 +721,46 @@ const Sidebar = ({ onSelect, activeIndex = 0, onLogout, onManagerChange }) => {
                   </button>
                 </div>
               )}
+              {/* Temporary Client/Admin Toggle for Wealth Manager */}
+              {selectedManager === 'wealth' && onClientViewToggle && (
+                <div className="client-view-toggle" style={{ marginTop: '1rem', padding: '0.75rem', background: 'rgba(255, 255, 255, 0.1)', borderRadius: '0' }}>
+                  <button
+                    onClick={() => onClientViewToggle(!isClientView)}
+                    style={{
+                      width: '100%',
+                      padding: '0.5rem',
+                      background: isClientView ? 'rgba(255, 255, 255, 0.2)' : 'transparent',
+                      border: '1px solid rgba(255, 255, 255, 0.3)',
+                      borderRadius: '0',
+                      color: 'white',
+                      fontSize: '0.875rem',
+                      cursor: 'pointer',
+                      transition: 'all 0.2s ease',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: '0.5rem'
+                    }}
+                    title={isClientView ? 'Switch to Admin View' : 'Switch to Client View'}
+                  >
+                    {isClientView ? (
+                      <>
+                        <svg fill="currentColor" viewBox="0 0 20 20" width="16" height="16">
+                          <path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd"/>
+                        </svg>
+                        <span>Admin View</span>
+                      </>
+                    ) : (
+                      <>
+                        <svg fill="currentColor" viewBox="0 0 20 20" width="16" height="16">
+                          <path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z"/>
+                        </svg>
+                        <span>Client Portal</span>
+                      </>
+                    )}
+                  </button>
+                </div>
+              )}
             </div>
           </div>
         </div>
@@ -728,19 +773,19 @@ const Sidebar = ({ onSelect, activeIndex = 0, onLogout, onManagerChange }) => {
           <ul className="sidebar-menu">
             {currentMenuItems.length > 0 ? (
               currentMenuItems.map((item, i) => (
-                <li
-                  key={item.name}
-                  className={`sidebar-item${active === i ? ' active' : ''}`}
-                  onClick={() => handleClick(i)}
-                  tabIndex={0}
-                  role="button"
-                  aria-pressed={active === i}
-                  // title={item.name} // Remove this line to disable native tooltip
-                >
-                  <span className="item-icon" style={{fontSize:"1.2rem"}}>{item.icon}</span>
-                  <span className="item-text">{item.name}</span>
-                  <div className="item-indicator"></div>
-                </li>
+              <li
+                key={item.name}
+                className={`sidebar-item${active === i ? ' active' : ''}`}
+                onClick={() => handleClick(i)}
+                tabIndex={0}
+                role="button"
+                aria-pressed={active === i}
+                // title={item.name} // Remove this line to disable native tooltip
+              >
+                <span className="item-icon" style={{fontSize:"1.2rem"}}>{item.icon}</span>
+                <span className="item-text">{item.name}</span>
+                <div className="item-indicator"></div>
+              </li>
               ))
             ) : (
               <li className="sidebar-empty-state">

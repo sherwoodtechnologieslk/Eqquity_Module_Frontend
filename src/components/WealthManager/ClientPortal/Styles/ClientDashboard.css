@@ -1,0 +1,337 @@
+.cp-dashboard {
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.cp-dashboard-header {
+  margin-bottom: 2rem;
+}
+
+.cp-dashboard-header h1 {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #1f2937;
+  margin-bottom: 0.5rem;
+  background: linear-gradient(135deg, #0f766e 0%, #14b8a6 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.cp-dashboard-header p {
+  color: #6b7280;
+  font-size: 1rem;
+}
+
+.cp-summary-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.cp-summary-card {
+  background: white;
+  padding: 1.5rem;
+  border-radius: 0;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  border: 1px solid #e5e7eb;
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+  transition: all 0.2s ease;
+}
+
+.cp-summary-card:hover {
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  transform: translateY(-2px);
+}
+
+.cp-card-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.cp-card-primary .cp-card-icon {
+  background: linear-gradient(135deg, #0f766e 0%, #14b8a6 100%);
+  color: white;
+}
+
+.cp-card-secondary .cp-card-icon {
+  background: linear-gradient(135deg, #0891b2 0%, #06b6d4 100%);
+  color: white;
+}
+
+.cp-card-tertiary .cp-card-icon {
+  background: linear-gradient(135deg, #0e7490 0%, #155e75 100%);
+  color: white;
+}
+
+.cp-card-content {
+  flex: 1;
+}
+
+.cp-card-label {
+  font-size: 0.875rem;
+  color: #6b7280;
+  margin-bottom: 0.5rem;
+}
+
+.cp-card-value {
+  font-size: 1.875rem;
+  font-weight: 700;
+  color: #1f2937;
+  margin-bottom: 0.25rem;
+}
+
+.cp-card-change {
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+.cp-card-change.positive {
+  color: #10b981;
+}
+
+.cp-card-change.negative {
+  color: #ef4444;
+}
+
+.cp-card-subtext {
+  font-size: 0.75rem;
+  color: #6b7280;
+  margin-top: 0.25rem;
+}
+
+.cp-dashboard-grid {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 2rem;
+  margin-bottom: 2rem;
+}
+
+.cp-section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1rem;
+}
+
+.cp-section-header h3 {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #1f2937;
+}
+
+.cp-view-all-btn {
+  background: transparent;
+  border: none;
+  color: #0f766e;
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 0.25rem 0.5rem;
+  border-radius: 0;
+  transition: color 0.2s ease;
+}
+
+.cp-view-all-btn:hover {
+  color: #14b8a6;
+}
+
+.cp-holdings-section,
+.cp-performance-section {
+  background: white;
+  padding: 1.5rem;
+  border-radius: 0;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  border: 1px solid #e5e7eb;
+}
+
+.cp-holdings-table {
+  overflow-x: auto;
+}
+
+.cp-holdings-table table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.cp-holdings-table thead {
+  background: #f9fafb;
+  border-bottom: 2px solid #e5e7eb;
+}
+
+.cp-holdings-table th {
+  padding: 0.75rem;
+  text-align: left;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #374151;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.cp-holdings-table td {
+  padding: 1rem 0.75rem;
+  border-bottom: 1px solid #e5e7eb;
+  font-size: 0.875rem;
+  color: #1f2937;
+}
+
+.cp-holdings-table tbody tr:hover {
+  background: #f9fafb;
+}
+
+.cp-fund-name {
+  font-weight: 600;
+  color: #0f766e;
+}
+
+.cp-return.positive {
+  color: #10b981;
+  font-weight: 600;
+}
+
+.cp-return.negative {
+  color: #ef4444;
+  font-weight: 600;
+}
+
+.cp-performance-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1rem;
+}
+
+.cp-performance-card {
+  background: #f9fafb;
+  padding: 1rem;
+  border-radius: 0;
+  border: 1px solid #e5e7eb;
+  text-align: center;
+}
+
+.cp-performance-period {
+  font-size: 0.75rem;
+  color: #6b7280;
+  margin-bottom: 0.5rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.cp-performance-return {
+  font-size: 1.25rem;
+  font-weight: 700;
+}
+
+.cp-performance-return.positive {
+  color: #10b981;
+}
+
+.cp-performance-return.negative {
+  color: #ef4444;
+}
+
+.cp-transactions-section {
+  background: white;
+  padding: 1.5rem;
+  border-radius: 0;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  border: 1px solid #e5e7eb;
+}
+
+.cp-transactions-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.cp-transaction-item {
+  display: grid;
+  grid-template-columns: 120px 1fr 100px 100px 120px 100px;
+  gap: 1rem;
+  padding: 1rem;
+  background: #f9fafb;
+  border-radius: 0;
+  border: 1px solid #e5e7eb;
+  align-items: center;
+}
+
+.cp-transaction-date {
+  font-size: 0.875rem;
+  color: #6b7280;
+}
+
+.cp-transaction-fund {
+  font-weight: 600;
+  color: #1f2937;
+}
+
+.cp-transaction-type {
+  font-size: 0.875rem;
+  padding: 0.25rem 0.5rem;
+  border-radius: 0;
+  text-align: center;
+  font-weight: 600;
+}
+
+.cp-transaction-type.purchase {
+  background: #d1fae5;
+  color: #065f46;
+}
+
+.cp-transaction-type.redemption {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+.cp-transaction-units {
+  font-size: 0.875rem;
+  color: #6b7280;
+}
+
+.cp-transaction-amount {
+  font-weight: 600;
+  color: #1f2937;
+}
+
+.cp-transaction-status {
+  font-size: 0.875rem;
+  padding: 0.25rem 0.5rem;
+  border-radius: 0;
+  text-align: center;
+  font-weight: 600;
+}
+
+.cp-transaction-status.completed {
+  background: #d1fae5;
+  color: #065f46;
+}
+
+.cp-transaction-status.pending {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+@media (max-width: 1200px) {
+  .cp-dashboard-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 768px) {
+  .cp-summary-cards {
+    grid-template-columns: 1fr;
+  }
+
+  .cp-transaction-item {
+    grid-template-columns: 1fr;
+    gap: 0.5rem;
+  }
+}

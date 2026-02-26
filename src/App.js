@@ -2,13 +2,17 @@ import React, { useState, useEffect } from 'react';
 import './App.css';
 import Navbar from './components/Home/Navbar';
 import DynamicHeader from './components/Home/DynamicHeader';
-import Sidebar, { equityManagerMenuItems as sidebarMenuItems } from './components/Home/Sidebar';
+import Sidebar, { equityManagerMenuItems, wealthManagerMenuItems } from './components/Home/Sidebar';
 import AuthContainer from './components/Auth/AuthContainer';
 import UserProfileModal from './components/Auth/UserProfileModal';
 import { authService } from './services/authService';
 import Dashboard from './components/Dashboard';
 import WealthManagerDashboard from './components/WealthManager/WM Dashboard/WealthManagerDashboard';
 import WMPortfolioOverview from './components/WealthManager/WM Dashboard/WMPortfolioOverview';
+import FundPerformance from './components/WealthManager/WM Dashboard/FundPerformance';
+import ClientSummary from './components/WealthManager/WM Dashboard/ClientSummary';
+import AUMOverview from './components/WealthManager/WM Dashboard/AUMOverview';
+import ClientPortal from './components/WealthManager/ClientPortal/ClientPortal';
 import FundMaster from './components/WealthManager/Fund Master/FundMaster';
 import FundCategories from './components/WealthManager/Fund Master/FundCategories';
 import FundPerfMetrics from './components/WealthManager/Fund Master/FundPerfMetrics';
@@ -83,6 +87,7 @@ function App() {
   const [activeSidebarItem, setActiveSidebarItem] = useState(0);
   const [visibleTabs, setVisibleTabs] = useState(['Dashboard', 'Portfolio Overview', 'Market Summary', 'Recent Activity', 'Performance Metrics']);
   const [selectedManager, setSelectedManager] = useState('equity'); // 'equity' or 'wealth'
+  const [isClientView, setIsClientView] = useState(false); // Temporary toggle for client/admin view in wealth manager
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [user, setUser] = useState(null);
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
@@ -93,12 +98,18 @@ function App() {
   // Handle tab selection from Navbar - use Sidebar's menuItems as single source of truth for indices
   const handleTabChange = (tabName) => {
     setActiveTab(tabName);
-    const sectionIndex = sidebarMenuItems.findIndex(
+
+    // Use the correct menu set based on selected manager
+    const currentMenuItems =
+      selectedManager === 'wealth' ? wealthManagerMenuItems : equityManagerMenuItems;
+
+    const sectionIndex = currentMenuItems.findIndex(
       (item) => item.subTopics && item.subTopics.includes(tabName)
     );
+
     if (sectionIndex >= 0) {
       setActiveSidebarItem(sectionIndex);
-      setVisibleTabs(sidebarMenuItems[sectionIndex].subTopics || []);
+      setVisibleTabs(currentMenuItems[sectionIndex].subTopics || []);
     }
   };
 
@@ -124,6 +135,9 @@ function App() {
     'Portfolio Overview': selectedManager === 'wealth'
       ? <WMPortfolioOverview />
       : <PortfolioOverview onTabChange={handleTabChange} />,
+    'Fund Performance': <FundPerformance />,
+    'Client Summary': <ClientSummary />,
+    'AUM Overview': <AUMOverview />,
     'Market Summary': <MarketSummary />,
     'Recent Activity': <RecentActivity />,
     'Performance Metrics': <PerformanceMetrics />,
@@ -314,6 +328,12 @@ function App() {
     return <AuthContainer onAuthSuccess={handleAuthSuccess} />;
   }
 
+  // Show Client Portal if in wealth manager mode and client view is enabled
+  // TODO: Replace isClientView with user.role === 'client' check when backend is ready
+  if (selectedManager === 'wealth' && isClientView) {
+    return <ClientPortal user={user} onLogout={handleLogout} />;
+  }
+
   return (
     <div className="dashboard-root">
       <Sidebar
@@ -321,6 +341,9 @@ function App() {
         activeIndex={activeSidebarItem}
         onLogout={handleLogout}
         onManagerChange={handleManagerChange}
+        selectedManager={selectedManager}
+        isClientView={isClientView}
+        onClientViewToggle={setIsClientView}
       />
       <div className="dashboard-main">
         <Navbar
