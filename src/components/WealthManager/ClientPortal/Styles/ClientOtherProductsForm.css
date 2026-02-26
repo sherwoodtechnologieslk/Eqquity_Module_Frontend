@@ -1,0 +1,301 @@
+@import './ClientBankForm.css';
+
+.cp-fund-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 1rem;
+  margin-top: 0.75rem;
+}
+
+.cp-fund-card {
+  border: 1px solid #e5e7eb;
+  background: #f9fafb;
+  padding: 0.9rem 1rem;
+  text-align: left;
+  cursor: pointer;
+  border-radius: 0;
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: #111827;
+  transition: all 0.15s ease;
+}
+
+.cp-fund-card:hover {
+  border-color: #0f766e;
+  background: #ecfdf5;
+}
+
+.cp-fund-card-selected {
+  border-color: #0f766e;
+  background: #ecfdf5;
+  box-shadow: inset 0 0 0 1px rgba(16, 185, 129, 0.5);
+}
+
+.cp-fund-name {
+  white-space: normal;
+}
+
+.cp-default-funds-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 0.75rem;
+  margin-top: 0.75rem;
+}
+
+.cp-default-fund-card {
+  border: 1px dashed #d1d5db;
+  background: #f9fafb;
+  padding: 0.75rem 1rem;
+  font-size: 0.85rem;
+  color: #374151;
+  border-radius: 0;
+}
+
+.cp-equity-section {
+  border-top: 1px solid #e5e7eb;
+  padding-top: 1.5rem;
+}
+
+.cp-equity-question {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #111827;
+  text-transform: none;
+  letter-spacing: 0;
+}
+
+.cp-see-more-btn {
+  margin-top: 0.75rem;
+  align-self: flex-start;
+  background: transparent;
+  border: none;
+  color: #0f766e;
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.cp-equity-details {
+  margin-top: 1.5rem;
+  padding: 1.25rem 1.25rem 1.5rem;
+  border-radius: 0;
+  border: 1px solid #e5e7eb;
+  background: #f9fafb;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.cp-equity-tcs {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.cp-checkbox-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  font-size: 0.85rem;
+  color: #374151;
+  text-transform: none;
+  font-weight: 400;
+}
+
+.cp-checkbox-row input {
+  width: 18px;
+  height: 18px;
+  margin-top: 0.15rem;
+  accent-color: #0f766e;
+}
+
+.cp-account-options {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.cp-account-option {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  padding: 0.9rem 1rem;
+  border: 1px solid #e5e7eb;
+  background: white;
+  border-radius: 0;
+  cursor: pointer;
+  text-align: left;
+  transition: all 0.15s ease;
+}
+
+.cp-account-option.selected {
+  border-color: #0f766e;
+  box-shadow: 0 0 0 1px rgba(16, 185, 129, 0.5);
+  background: #ecfdf5;
+}
+
+.cp-account-radio-indicator {
+  width: 16px;
+  height: 16px;
+  border-radius: 999px;
+  border: 2px solid #d1d5db;
+  margin-top: 0.2rem;
+}
+
+.cp-account-option.selected .cp-account-radio-indicator {
+  border-color: #0f766e;
+  box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.4);
+  background: radial-gradient(circle, #0f766e 0, #0f766e 50%, transparent 55%);
+}
+
+.cp-account-content {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.cp-account-title {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #111827;
+}
+
+.cp-account-text {
+  font-size: 0.85rem;
+  color: #374151;
+}
+
+.cp-account-note {
+  font-size: 0.8rem;
+  color: #6b7280;
+}
+
+.cp-terms-section {
+  border-top: 1px solid #e5e7eb;
+  padding-top: 1.5rem;
+}
+
+.cp-main-terms-row {
+  align-items: center;
+}
+
+.cp-terms-panel {
+  margin-top: 1rem;
+  padding: 1.25rem 1.25rem 1.5rem;
+  border-radius: 0;
+  border: 1px solid #e5e7eb;
+  background: #f9fafb;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.cp-terms-title {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #111827;
+  margin: 0;
+}
+
+.cp-terms-subtitle {
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: #374151;
+  margin: 0;
+}
+
+.cp-terms-text {
+  font-size: 0.85rem;
+  color: #374151;
+  line-height: 1.6;
+  margin: 0;
+}
+
+.cp-accordion {
+  margin-top: 0.75rem;
+}
+
+.cp-accordion-header {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.5rem 0.75rem;
+  border-radius: 0;
+  border: 1px solid #e5e7eb;
+  background: #f3f4f6;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #111827;
+  cursor: pointer;
+}
+
+.cp-accordion-icon {
+  font-size: 1rem;
+}
+
+.cp-accordion-body {
+  border: 1px solid #e5e7eb;
+  border-top: none;
+  padding: 0.75rem 0.75rem 0.9rem;
+  background: white;
+}
+
+.cp-signature-section {
+  border-top: 1px solid #e5e7eb;
+  padding-top: 1.5rem;
+}
+
+.cp-signature-label {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #111827;
+  text-transform: none;
+  letter-spacing: 0;
+}
+
+.cp-signature-instruction {
+  font-size: 0.85rem;
+  color: #6b7280;
+  margin: 0.25rem 0 0;
+}
+
+.cp-signature-box {
+  margin-top: 0.75rem;
+  border: 1px dashed #9ca3af;
+  background: #f9fafb;
+  padding: 0.5rem;
+}
+
+.cp-signature-canvas {
+  width: 100%;
+  height: 160px;
+  background: white;
+  display: block;
+}
+
+.cp-signature-clear {
+  margin-top: 0.5rem;
+  align-self: flex-start;
+  padding: 0.35rem 0.9rem;
+  border-radius: 0;
+  border: 1px solid #d1d5db;
+  background: #f9fafb;
+  font-size: 0.8rem;
+  color: #374151;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.cp-signature-clear:hover {
+  background: #e5e7eb;
+}
+
+@media (max-width: 768px) {
+  .cp-account-options {
+    gap: 0.75rem;
+  }
+}
+
