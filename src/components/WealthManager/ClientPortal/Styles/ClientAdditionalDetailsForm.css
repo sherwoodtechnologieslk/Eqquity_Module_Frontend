@@ -1,0 +1,331 @@
+/* Reuse layout and styling from other cp- forms */
+.cp-signup-form-container {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #f0fdfa 0%, #e6fffa 100%);
+  padding: 2rem;
+}
+
+.cp-signup-form-wrapper {
+  background: white;
+  width: 100%;
+  max-width: 1200px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  border: 1px solid #e5e7eb;
+  border-radius: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.cp-signup-form-header {
+  padding: 2rem 2rem 1.5rem;
+  border-bottom: 2px solid #e5e7eb;
+  background: linear-gradient(135deg, #0f766e 0%, #14b8a6 100%);
+}
+
+.cp-signup-form-header h1 {
+  font-size: 2rem;
+  font-weight: 700;
+  color: white;
+  margin-bottom: 0.5rem;
+}
+
+.cp-signup-form-header p {
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 1rem;
+}
+
+.cp-signup-form-content {
+  display: grid;
+  grid-template-columns: 380px 1fr;
+  gap: 0;
+  min-height: calc(100vh - 200px);
+}
+
+.cp-pro-tips-section {
+  background: linear-gradient(180deg, #0f766e 0%, #14b8a6 100%);
+  padding: 2.5rem 2rem;
+  color: white;
+  display: flex;
+  flex-direction: column;
+  border-right: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.cp-tips-header {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 2rem;
+  padding-bottom: 1.5rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.cp-tips-icon {
+  width: 40px;
+  height: 40px;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+}
+
+.cp-tips-header h2 {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: white;
+  margin: 0;
+}
+
+.cp-tips-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.cp-tip-item {
+  display: flex;
+  gap: 1rem;
+  align-items: flex-start;
+}
+
+.cp-tip-number {
+  flex-shrink: 0;
+  width: 36px;
+  height: 36px;
+  background: rgba(255, 255, 255, 0.2);
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-radius: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: white;
+}
+
+.cp-tip-text {
+  flex: 1;
+}
+
+.cp-tip-text h3 {
+  font-size: 1rem;
+  font-weight: 600;
+  color: white;
+  margin: 0 0 0.5rem 0;
+}
+
+.cp-tip-text p {
+  font-size: 0.875rem;
+  color: rgba(255, 255, 255, 0.9);
+  line-height: 1.6;
+  margin: 0;
+}
+
+.cp-tips-footer {
+  margin-top: 2rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.cp-tips-badge {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1rem;
+  background: rgba(255, 255, 255, 0.15);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 0;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: white;
+}
+
+.cp-tips-badge svg {
+  width: 16px;
+  height: 16px;
+}
+
+.cp-signup-form {
+  padding: 2rem;
+  background: white;
+  overflow-y: auto;
+}
+
+.cp-form-section {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.cp-form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.cp-form-group label {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #374151;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.cp-form-input {
+  padding: 0.75rem 1rem;
+  border: 1px solid #d1d5db;
+  border-radius: 0;
+  font-size: 0.875rem;
+  background: white;
+  color: #1f2937;
+  transition: all 0.2s ease;
+}
+
+.cp-form-input:focus {
+  outline: none;
+  border-color: #0f766e;
+  box-shadow: 0 0 0 3px rgba(15, 118, 110, 0.1);
+}
+
+.cp-textarea {
+  resize: vertical;
+  min-height: 80px;
+}
+
+.cp-radio-label {
+  display: block;
+  margin-bottom: 0.75rem;
+}
+
+.cp-radio-group {
+  display: flex;
+  gap: 2rem;
+}
+
+.cp-radio-option {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  cursor: pointer;
+  font-weight: 400;
+  text-transform: none;
+}
+
+.cp-radio-option input {
+  width: 18px;
+  height: 18px;
+  cursor: pointer;
+  accent-color: #0f766e;
+}
+
+.cp-form-actions {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 2rem;
+  padding-top: 2rem;
+  border-top: 1px solid #e5e7eb;
+}
+
+.cp-previous-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.875rem 2rem;
+  background: white;
+  border: 1px solid #0f766e;
+  color: #0f766e;
+  border-radius: 0;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.cp-previous-btn:hover {
+  background: #0f766e;
+  color: white;
+}
+
+.cp-previous-btn svg {
+  width: 20px;
+  height: 20px;
+}
+
+.cp-next-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.875rem 2rem;
+  background: linear-gradient(135deg, #0f766e 0%, #14b8a6 100%);
+  color: white;
+  border: none;
+  border-radius: 0;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.cp-next-btn:hover {
+  opacity: 0.9;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 6px rgba(15, 118, 110, 0.3);
+}
+
+.cp-next-btn:active {
+  transform: translateY(0);
+}
+
+.cp-next-btn svg {
+  width: 20px;
+  height: 20px;
+}
+
+@media (max-width: 1024px) {
+  .cp-signup-form-content {
+    grid-template-columns: 1fr;
+  }
+
+  .cp-pro-tips-section {
+    border-right: none;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  }
+}
+
+@media (max-width: 768px) {
+  .cp-signup-form-container {
+    padding: 1rem;
+  }
+
+  .cp-signup-form-wrapper {
+    max-width: 100%;
+  }
+
+  .cp-signup-form-header {
+    padding: 1.5rem 1.5rem 1rem;
+  }
+
+  .cp-signup-form-header h1 {
+    font-size: 1.5rem;
+  }
+
+  .cp-pro-tips-section {
+    padding: 1.5rem;
+  }
+
+  .cp-signup-form {
+    padding: 1.5rem;
+  }
+
+  .cp-radio-group {
+    flex-direction: column;
+    gap: 1rem;
+  }
+}
+

@@ -1,0 +1,256 @@
+.cp-transactions {
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.cp-transactions-header {
+  margin-bottom: 2rem;
+}
+
+.cp-transactions-header h1 {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #1f2937;
+  margin-bottom: 0.5rem;
+  background: linear-gradient(135deg, #0f766e 0%, #14b8a6 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.cp-transactions-header p {
+  color: #6b7280;
+  font-size: 1rem;
+}
+
+.cp-transactions-filters {
+  display: flex;
+  gap: 1rem;
+  align-items: flex-end;
+  margin-bottom: 2rem;
+  flex-wrap: wrap;
+}
+
+.cp-search-box {
+  flex: 1;
+  min-width: 300px;
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.cp-search-box svg {
+  position: absolute;
+  left: 1rem;
+  color: #6b7280;
+  width: 20px;
+  height: 20px;
+}
+
+.cp-search-input {
+  width: 100%;
+  padding: 0.625rem 1rem 0.625rem 3rem;
+  border: 1px solid #d1d5db;
+  border-radius: 0;
+  font-size: 0.875rem;
+  background: white;
+  color: #1f2937;
+}
+
+.cp-search-input:focus {
+  outline: none;
+  border-color: #0f766e;
+  box-shadow: 0 0 0 3px rgba(15, 118, 110, 0.1);
+}
+
+.cp-filter-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.cp-filter-group label {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #374151;
+}
+
+.cp-filter-select {
+  padding: 0.625rem 1rem;
+  border: 1px solid #d1d5db;
+  border-radius: 0;
+  font-size: 0.875rem;
+  background: white;
+  color: #1f2937;
+  cursor: pointer;
+  min-width: 150px;
+}
+
+.cp-filter-select:focus {
+  outline: none;
+  border-color: #0f766e;
+  box-shadow: 0 0 0 3px rgba(15, 118, 110, 0.1);
+}
+
+.cp-export-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.625rem 1.5rem;
+  background: white;
+  border: 1px solid #0f766e;
+  color: #0f766e;
+  border-radius: 0;
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.cp-export-btn:hover {
+  background: #0f766e;
+  color: white;
+}
+
+.cp-export-btn svg {
+  width: 16px;
+  height: 16px;
+}
+
+.cp-transactions-table-container {
+  background: white;
+  border-radius: 0;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  border: 1px solid #e5e7eb;
+  overflow-x: auto;
+  margin-bottom: 2rem;
+}
+
+.cp-transactions-table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 1000px;
+}
+
+.cp-transactions-table thead {
+  background: #f9fafb;
+  border-bottom: 2px solid #e5e7eb;
+}
+
+.cp-transactions-table th {
+  padding: 1rem;
+  text-align: left;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #374151;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.cp-transactions-table td {
+  padding: 1rem;
+  border-bottom: 1px solid #e5e7eb;
+  font-size: 0.875rem;
+  color: #1f2937;
+}
+
+.cp-transactions-table tbody tr:hover {
+  background: #f9fafb;
+}
+
+.cp-txn-id {
+  font-family: monospace;
+  color: #6b7280;
+  font-size: 0.8125rem;
+}
+
+.cp-fund-name {
+  font-weight: 600;
+  color: #0f766e;
+}
+
+.cp-txn-type-badge {
+  display: inline-block;
+  padding: 0.25rem 0.5rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  border-radius: 0;
+  text-transform: uppercase;
+}
+
+.cp-txn-type-badge.purchase {
+  background: #d1fae5;
+  color: #065f46;
+}
+
+.cp-txn-type-badge.redemption {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+.cp-txn-type-badge.switch {
+  background: #dbeafe;
+  color: #1e40af;
+}
+
+.cp-txn-type-badge.dividend {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.cp-amount {
+  font-weight: 600;
+  color: #1f2937;
+}
+
+.cp-status-badge {
+  display: inline-block;
+  padding: 0.25rem 0.5rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  border-radius: 0;
+  text-transform: uppercase;
+}
+
+.cp-status-badge.completed {
+  background: #d1fae5;
+  color: #065f46;
+}
+
+.cp-status-badge.pending {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.cp-no-results {
+  text-align: center;
+  padding: 3rem;
+  color: #6b7280;
+}
+
+.cp-transactions-summary {
+  display: flex;
+  gap: 2rem;
+  padding: 1.5rem;
+  background: white;
+  border-radius: 0;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  border: 1px solid #e5e7eb;
+}
+
+.cp-summary-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.cp-summary-label {
+  font-size: 0.875rem;
+  color: #6b7280;
+}
+
+.cp-summary-value {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #0f766e;
+}
