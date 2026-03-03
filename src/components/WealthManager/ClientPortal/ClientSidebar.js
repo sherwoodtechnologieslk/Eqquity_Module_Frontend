@@ -31,7 +31,15 @@ const ClientSidebar = ({ menuItems, onSelect, activeIndex, onLogout, user }) => 
           {menuItems.map((item, index) => (
             <div key={index} className="cp-nav-section">
               <button
-                className={`cp-nav-item ${activeIndex === index ? 'active' : ''}`}
+                className={`cp-nav-item ${
+                  item.name === 'Create'
+                    ? 'cp-nav-item-create'
+                    : item.name === 'Redeem'
+                    ? 'cp-nav-item-redeem'
+                    : item.name === 'Transfer'
+                    ? 'cp-nav-item-transfer'
+                    : ''
+                } ${activeIndex === index ? 'active' : ''}`}
                 onClick={() => onSelect(index, item.subTopics)}
               >
                 <span className="cp-nav-icon">{item.icon}</span>

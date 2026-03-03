@@ -1,0 +1,700 @@
+/* Container */
+.wmca-container {
+  min-height: 100vh;
+  padding: 0 0 2rem 0;
+  box-sizing: border-box;
+}
+
+/* Header */
+.wmca-header-card {
+  background: white;
+  border-radius: 0;
+  border: 1px solid #e5e7eb;
+  box-shadow: 0 8px 20px rgba(15, 23, 42, 0.08);
+  padding: 1.75rem 1.75rem 1.25rem 1.75rem;
+  margin: 0 auto 1.5rem auto;
+  max-width: 1320px;
+  position: relative;
+}
+
+.wmca-header-accent::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  height: 4px;
+  width: 100%;
+  background: linear-gradient(90deg, #0f766e 0%, #14b8a6 25%, #3b82f6 55%, #8b5cf6 80%, #f59e0b 100%);
+}
+
+.wmca-header-main {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1.5rem;
+  margin-bottom: 1.25rem;
+}
+
+.wmca-header-left {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.wmca-header-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: #0f766e;
+}
+
+.wmca-header-title {
+  font-size: 1.75rem;
+  font-weight: 800;
+  color: #0f172a;
+  margin: 0;
+  letter-spacing: -0.02em;
+}
+
+.wmca-header-subtitle {
+  font-size: 0.9rem;
+  color: #6b7280;
+  margin: 0.25rem 0 0 0;
+}
+
+.wmca-header-actions {
+  display: flex;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  padding-top: 0.25rem;
+}
+
+/* Filters */
+.wmca-filters-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  align-items: center;
+}
+
+.wmca-search-wrapper {
+  flex: 1;
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.wmca-search-icon {
+  position: absolute;
+  left: 0.75rem;
+  color: #0f766e;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+}
+
+.wmca-search-input {
+  width: 100%;
+  padding: 0.65rem 5.25rem 0.65rem 2.4rem;
+  border-radius: 0;
+  border: 1px solid #d1d5db;
+  font-size: 0.9rem;
+}
+
+.wmca-search-input:focus {
+  outline: none;
+  border-color: #0f766e;
+  box-shadow: 0 0 0 2px rgba(15, 118, 110, 0.15);
+}
+
+.wmca-clear-btn {
+  position: absolute;
+  right: 0.5rem;
+  height: 32px;
+  padding: 0 0.75rem;
+  border-radius: 0;
+  border: 1px solid #e5e7eb;
+  background: #f9fafb;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #0f172a;
+  cursor: pointer;
+}
+
+.wmca-clear-btn:hover {
+  background: #f3f4f6;
+}
+
+.wmca-filter-group {
+  display: flex;
+  gap: 0.75rem;
+  align-items: flex-end;
+}
+
+.wmca-filter {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.wmca-filter label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #6b7280;
+}
+
+.wmca-filter select {
+  min-width: 140px;
+  padding: 0.45rem 0.75rem;
+  border-radius: 0;
+  border: 1px solid #d1d5db;
+  font-size: 0.85rem;
+  background: white;
+}
+
+.wmca-filter select:focus {
+  outline: none;
+  border-color: #0f766e;
+  box-shadow: 0 0 0 2px rgba(15, 118, 110, 0.15);
+}
+
+/* Buttons */
+.wmca-btn {
+  border-radius: 0;
+  border: 1px solid transparent;
+  padding: 0.55rem 0.9rem;
+  font-size: 0.85rem;
+  font-weight: 700;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.wmca-btn-primary {
+  background: linear-gradient(135deg, #0f766e 0%, #14b8a6 100%);
+  color: white;
+  border-color: #0f766e;
+}
+
+.wmca-btn-primary:hover {
+  filter: brightness(0.98);
+}
+
+.wmca-btn-secondary {
+  background: white;
+  color: #0f766e;
+  border-color: #0f766e;
+}
+
+.wmca-btn-secondary:hover {
+  background: rgba(15, 118, 110, 0.06);
+}
+
+.wmca-btn-ghost {
+  background: #f9fafb;
+  color: #0f172a;
+  border-color: #e5e7eb;
+}
+
+.wmca-btn-ghost:hover {
+  background: #f3f4f6;
+}
+
+/* Metrics grid */
+.wmca-metrics-grid {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 0.9rem;
+  margin-bottom: 1.1rem;
+}
+
+.wmca-metric {
+  position: relative;
+  border-radius: 0;
+  border: 1px solid #e5e7eb;
+  background: #ffffff;
+  padding: 0.85rem 0.95rem;
+  box-shadow: 0 8px 20px rgba(15, 23, 42, 0.05);
+  overflow: hidden;
+}
+
+.wmca-metric::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(15, 118, 110, 0.10) 0%, rgba(20, 184, 166, 0.02) 55%, rgba(255, 255, 255, 0) 100%);
+  pointer-events: none;
+}
+
+.wmca-metric-label {
+  position: relative;
+  font-size: 0.7rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: #6b7280;
+}
+
+.wmca-metric-value {
+  position: relative;
+  margin-top: 0.35rem;
+  font-size: 1.1rem;
+  font-weight: 800;
+  color: #0f172a;
+}
+
+.wmca-metric-sub {
+  position: relative;
+  margin-top: 0.15rem;
+  font-size: 0.78rem;
+  color: #6b7280;
+}
+
+.wmca-metric-teal {
+  border-left: 4px solid #0f766e;
+}
+
+.wmca-metric-blue {
+  border-left: 4px solid #3b82f6;
+}
+
+.wmca-metric-purple {
+  border-left: 4px solid #8b5cf6;
+}
+
+.wmca-metric-amber {
+  border-left: 4px solid #f59e0b;
+}
+
+.wmca-metric-red {
+  border-left: 4px solid #ef4444;
+}
+
+.wmca-metric-slate {
+  border-left: 4px solid #0f172a;
+}
+
+/* Layout */
+.wmca-main-grid {
+  max-width: 1320px;
+  margin: 0 auto 2.5rem auto;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 420px;
+  gap: 1rem;
+  align-items: start;
+}
+
+.wmca-side-column {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+/* Cards */
+.wmca-card {
+  background: white;
+  border-radius: 0;
+  border: 1px solid #e5e7eb;
+  box-shadow: 0 8px 20px rgba(15, 23, 42, 0.06);
+  padding: 1.5rem 1.5rem 1.25rem 1.5rem;
+}
+
+.wmca-card-header h2 {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #0f172a;
+  margin: 0 0 0.25rem 0;
+}
+
+.wmca-card-header p {
+  font-size: 0.85rem;
+  color: #6b7280;
+  margin: 0;
+}
+
+.wmca-card-header-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.wmca-header-hint {
+  font-size: 0.78rem;
+  color: #0f766e;
+  background: rgba(15, 118, 110, 0.06);
+  border: 1px solid rgba(15, 118, 110, 0.18);
+  padding: 0.45rem 0.65rem;
+  border-radius: 0;
+  white-space: nowrap;
+}
+
+/* Table */
+.wmca-table-wrapper {
+  margin-top: 1rem;
+  overflow-x: auto;
+}
+
+.wmca-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.85rem;
+}
+
+.wmca-table thead {
+  background: #f3f4f6;
+  position: sticky;
+  top: 0;
+  z-index: 1;
+}
+
+.wmca-table th,
+.wmca-table td {
+  padding: 0.5rem 0.75rem;
+  border-bottom: 1px solid #e5e7eb;
+  white-space: nowrap;
+}
+
+.wmca-table th {
+  text-align: left;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #6b7280;
+}
+
+.wmca-table tbody tr:hover {
+  background: rgba(15, 118, 110, 0.04);
+}
+
+.wmca-table tbody tr {
+  cursor: pointer;
+}
+
+.wmca-table tbody tr:nth-child(even) {
+  background: #fcfcfd;
+}
+
+.wmca-row-selected {
+  background: rgba(59, 130, 246, 0.08) !important;
+  outline: 2px solid rgba(59, 130, 246, 0.25);
+  outline-offset: -2px;
+}
+
+.wmca-num {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.wmca-mono {
+  font-variant-numeric: tabular-nums;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono',
+    'Courier New', monospace;
+}
+
+.wmca-client-cell {
+  display: flex;
+  flex-direction: column;
+}
+
+.wmca-client-name {
+  font-weight: 600;
+  color: #111827;
+}
+
+.wmca-client-sub {
+  font-size: 0.75rem;
+  color: #6b7280;
+  display: flex;
+  gap: 0.35rem;
+  flex-wrap: wrap;
+}
+
+/* Pills / tags */
+.wmca-pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.15rem 0.5rem;
+  border-radius: 9999px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  border: 1px solid #e5e7eb;
+  background: #ffffff;
+  color: #0f172a;
+}
+
+.wmca-pill-segment {
+  border-color: rgba(15, 118, 110, 0.25);
+  background: rgba(15, 118, 110, 0.06);
+  color: #0f766e;
+}
+
+.wmca-pill-risk {
+  border-color: rgba(59, 130, 246, 0.25);
+  background: rgba(59, 130, 246, 0.06);
+  color: #1d4ed8;
+}
+
+.wmca-pill-kyc {
+  border-color: rgba(245, 158, 11, 0.25);
+  background: rgba(245, 158, 11, 0.08);
+  color: #92400e;
+}
+
+.wmca-kyc-verified {
+  border-color: rgba(16, 185, 129, 0.28);
+  background: rgba(16, 185, 129, 0.10);
+  color: #065f46;
+}
+
+.wmca-kyc-pending {
+  border-color: rgba(245, 158, 11, 0.28);
+  background: rgba(245, 158, 11, 0.10);
+  color: #92400e;
+}
+
+.wmca-kyc-expired {
+  border-color: rgba(239, 68, 68, 0.28);
+  background: rgba(239, 68, 68, 0.10);
+  color: #991b1b;
+}
+
+/* Status pills */
+.wmca-status-pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.2rem 0.6rem;
+  border-radius: 9999px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.wmca-status-active {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.wmca-status-inactive {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+.wmca-status-pending-kyc {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+/* Detail panel */
+.wmca-empty-state {
+  margin-top: 1rem;
+  padding: 0.9rem 1rem;
+  background: #f9fafb;
+  border: 1px dashed #d1d5db;
+  color: #6b7280;
+  border-radius: 0;
+  font-size: 0.85rem;
+}
+
+.wmca-detail-hero {
+  margin-top: 1rem;
+  border: 1px solid #e5e7eb;
+  background: linear-gradient(135deg, rgba(15, 118, 110, 0.08) 0%, rgba(59, 130, 246, 0.05) 55%, rgba(139, 92, 246, 0.03) 100%);
+  padding: 1rem;
+  border-radius: 0;
+}
+
+.wmca-detail-title {
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: #0f172a;
+}
+
+.wmca-detail-sub {
+  margin-top: 0.25rem;
+  font-size: 0.82rem;
+  color: #6b7280;
+}
+
+.wmca-detail-badges {
+  margin-top: 0.6rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.wmca-detail-grid {
+  margin-top: 1rem;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.75rem;
+}
+
+.wmca-detail-item {
+  padding: 0.75rem 0.85rem;
+  border: 1px solid #e5e7eb;
+  background: #ffffff;
+  border-radius: 0;
+}
+
+.wmca-detail-label {
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  font-weight: 800;
+  color: #6b7280;
+}
+
+.wmca-detail-value {
+  margin-top: 0.25rem;
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.wmca-pos {
+  color: #059669;
+}
+
+.wmca-neg {
+  color: #dc2626;
+}
+
+.wmca-products {
+  margin-top: 1rem;
+  padding-top: 0.9rem;
+  border-top: 1px solid #e5e7eb;
+}
+
+.wmca-products-title {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  font-weight: 800;
+  color: #0f766e;
+}
+
+.wmca-products-tags {
+  margin-top: 0.55rem;
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.wmca-tag {
+  padding: 0.25rem 0.55rem;
+  border-radius: 0;
+  border: 1px solid rgba(15, 118, 110, 0.25);
+  background: rgba(15, 118, 110, 0.06);
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: #0f766e;
+}
+
+.wmca-detail-actions {
+  margin-top: 1rem;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0.6rem;
+}
+
+.wmca-checklist {
+  margin: 0.9rem 0 0 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  color: #0f172a;
+  font-size: 0.9rem;
+}
+
+.wmca-checklist li {
+  display: flex;
+  gap: 0.6rem;
+  align-items: flex-start;
+  color: #111827;
+}
+
+.wmca-check-bullet {
+  width: 10px;
+  height: 10px;
+  border-radius: 0;
+  margin-top: 0.35rem;
+  flex: 0 0 auto;
+}
+
+.wmca-check-teal {
+  background: #0f766e;
+}
+
+.wmca-check-blue {
+  background: #3b82f6;
+}
+
+.wmca-check-amber {
+  background: #f59e0b;
+}
+
+.wmca-check-purple {
+  background: #8b5cf6;
+}
+
+/* Responsive */
+@media (max-width: 1024px) {
+  .wmca-header-main {
+    flex-direction: column;
+  }
+
+  .wmca-filters-row {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .wmca-filter-group {
+    justify-content: flex-start;
+  }
+
+  .wmca-metrics-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .wmca-main-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+@media (max-width: 768px) {
+  .wmca-header-card {
+    padding: 1.25rem 1rem 1rem 1rem;
+  }
+
+  .wmca-card {
+    padding: 1.25rem 1rem 1rem 1rem;
+  }
+
+  .wmca-metrics-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .wmca-card-header-row {
+    flex-direction: column;
+  }
+
+  .wmca-header-hint {
+    white-space: normal;
+  }
+}
+

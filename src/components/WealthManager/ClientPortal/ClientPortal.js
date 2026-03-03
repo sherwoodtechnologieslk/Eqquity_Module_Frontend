@@ -3,6 +3,9 @@ import ClientSidebar from './ClientSidebar';
 import ClientNavbar from './ClientNavbar';
 import ClientDashboard from './ClientDashboard';
 import MyPortfolio from './MyPortfolio';
+import Create from './Create';
+import Redeem from './Redeem';
+import Transfer from './Transfer';
 import Statements from './Statements';
 import ClientTransactions from './ClientTransactions';
 import FundInformation from './FundInformation';
@@ -53,6 +56,33 @@ const ClientPortal = ({ user, onLogout }) => {
       ),
       name: "My Portfolio",
       subTopics: ["My Portfolio"]
+    },
+    {
+      icon: (
+        <svg fill="currentColor" viewBox="0 0 20 20">
+          <path fillRule="evenodd" d="M10 2a1 1 0 011 1v6h6a1 1 0 110 2h-6v6a1 1 0 11-2 0v-6H3a1 1 0 110-2h6V3a1 1 0 011-1z" clipRule="evenodd"/>
+        </svg>
+      ),
+      name: "Create",
+      subTopics: ["Create"]
+    },
+    {
+      icon: (
+        <svg fill="currentColor" viewBox="0 0 20 20">
+          <path fillRule="evenodd" d="M5 4a3 3 0 00-3 3v6a3 3 0 003 3h10a3 3 0 003-3V7a3 3 0 00-3-3H5zm4 4a1 1 0 011-1h5a1 1 0 110 2h-5a1 1 0 01-1-1zm-3 3a1 1 0 100 2h8a1 1 0 100-2H6z" clipRule="evenodd"/>
+        </svg>
+      ),
+      name: "Redeem",
+      subTopics: ["Redeem"]
+    },
+    {
+      icon: (
+        <svg fill="currentColor" viewBox="0 0 20 20">
+          <path fillRule="evenodd" d="M5 4a3 3 0 00-3 3v1a1 1 0 102 0V7a1 1 0 011-1h10a1 1 0 011 1v1a1 1 0 102 0V7a3 3 0 00-3-3H5zm0 7a1 1 0 00-1 1v1a1 1 0 01-1 1 1 1 0 100 2 3 3 0 003-3v-1a1 1 0 00-1-1zm5-1a1 1 0 011-1h3a1 1 0 110 2h-3a1 1 0 01-1-1zm-4 0a1 1 0 100 2h1a1 1 0 100-2H6z" clipRule="evenodd"/>
+        </svg>
+      ),
+      name: "Transfer",
+      subTopics: ["Transfer"]
     },
     {
       icon: (
@@ -115,6 +145,9 @@ const ClientPortal = ({ user, onLogout }) => {
   const tabToComponent = {
     'Dashboard': <ClientDashboard />,
     'My Portfolio': <MyPortfolio />,
+    'Create': <Create />,
+    'Redeem': <Redeem />,
+    'Transfer': <Transfer />,
     'Statements': <Statements />,
     'Transactions': <ClientTransactions />,
     'Fund Information': <FundInformation />,

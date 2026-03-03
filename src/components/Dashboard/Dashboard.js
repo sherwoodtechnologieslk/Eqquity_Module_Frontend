@@ -16,6 +16,82 @@ const MOCK_HEATMAP_DATA = [
   [48, 84, 26, 71],
 ];
 
+// Mock portfolio health / insights data for right column (frontend only)
+const MOCK_PORTFOLIO_HEALTH = {
+  score: 82,
+  status: 'Healthy',
+  diversification: 'Good',
+  maxDrawdown: '-6.3%',
+  concentration: 'Moderate (top position 14.2%)'
+};
+
+const MOCK_DASHBOARD_ALERTS = [
+  {
+    type: 'risk',
+    severity: 'high',
+    title: 'High single-name exposure',
+    message: 'SIRA.N is at 14.2% of portfolio value'
+  },
+  {
+    type: 'rebalance',
+    severity: 'medium',
+    title: 'Rebalance suggestion',
+    message: 'Trim Manufacturing by 5% and add to Consumer Goods'
+  },
+  {
+    type: 'event',
+    severity: 'low',
+    title: 'Dividend ex-date tomorrow',
+    message: 'AGAL.N – LKR 1.25 per share'
+  }
+];
+
+const MOCK_LIQUIDITY = {
+  cashAvailable: 1250000,
+  cashPct: 8.4,
+  t2Inflows: 430000,
+  t2Outflows: 275000,
+  liquidWithin3d: 18250000
+};
+
+const MOCK_BENCHMARK = {
+  name: 'CSE All-Share Index',
+  portfolioYTD: 12.4,
+  benchmarkYTD: 9.1,
+  alpha: 3.3,
+  beta: 0.92
+};
+
+const MOCK_EVENTS = [
+  { date: '2026-03-01', type: 'Dividend', symbol: 'AGAL.N', note: 'Dividend payment date' },
+  { date: '2026-03-05', type: 'AGM', symbol: 'TJL.N', note: 'Annual General Meeting – Colombo' },
+  { date: '2026-03-10', type: 'Rights Issue', symbol: 'AEL.N', note: 'Rights subscription closes' }
+];
+
+const MOCK_WATCHLIST = [
+  {
+    symbol: 'JKH.N',
+    name: 'JOHN KEELLS HOLDINGS PLC',
+    lastPrice: 195.5,
+    changePct: 1.8,
+    status: 'Watch for entry'
+  },
+  {
+    symbol: 'COMB.N',
+    name: 'COMMERCIAL BANK PLC',
+    lastPrice: 92.3,
+    changePct: -0.6,
+    status: 'Oversold zone'
+  },
+  {
+    symbol: 'DIAL.N',
+    name: 'DIALOG AXIATA PLC',
+    lastPrice: 14.2,
+    changePct: 0.0,
+    status: 'Sideways'
+  }
+];
+
 function getHeatmapColor(value) {
   const p = Math.max(0, Math.min(100, value)) / 100;
   // Yellow (low, wide band) -> orange -> red (high)
@@ -578,25 +654,7 @@ const Dashboard = ({ onTabChange }) => {
   }
 
   return (
-    <div className="dashboard">
-      {/* Dashboard Header */}
-      <div className="dashboard-header">
-        <div className="header-icon">
-          <svg viewBox="0 0 24 24" fill="currentColor">
-            <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
-          </svg>
-        </div>
-        <div className="header-text">
-          <h1>Equity Module Dashboard</h1>
-          <p>Professional Portfolio Management Dashboard</p>
-        </div>
-        <div className="header-dots">
-          <div className="dot"></div>
-          <div className="dot"></div>
-          <div className="dot"></div>
-        </div>
-      </div>
-
+    <div className="equity-dashboard">
       {/* Main Dashboard Grid */}
       <div className="main-grid">
         {/* Left Column */}
@@ -643,57 +701,83 @@ const Dashboard = ({ onTabChange }) => {
           <MockHeatmap />
         </div>
 
-        {/* Recent Transactions */}
-          <div className="content-card">
+        {/* Top Performers */}
+        <div className="content-card">
           <div className="card-header">
-              <div className="header-left">
-            <h3>Recent Transactions</h3>
-                <span className="card-subtitle">Latest trading activity</span>
-              </div>
+            <div className="header-left">
+              <h3>Top Performers</h3>
+              <span className="card-subtitle">Most traded stocks</span>
+            </div>
           </div>
-            <div className="transactions-container">
+          <div className="performers-container">
+            {dashboardData.topPerformers.map((performer, index) => (
+              <div key={index} className="performer-card">
+                <div className="performer-rank">
+                  <span>{index + 1}</span>
+                </div>
+                <div className="performer-info">
+                  <div className="performer-symbol">{performer.symbol || 'N/A'}</div>
+                  <div className="performer-name">{performer.name || 'Unknown'}</div>
+                </div>
+                <div className="performer-stats">
+                  <div className="performer-trades">{performer.transactionCount || 0} trades</div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Recent Transactions */}
+        <div className="content-card">
+          <div className="card-header">
+            <div className="header-left">
+              <h3>Recent Transactions</h3>
+              <span className="card-subtitle">Latest trading activity</span>
+            </div>
+          </div>
+          <div className="transactions-container">
             {dashboardData.recentTransactions && dashboardData.recentTransactions.length > 0 ? (
               dashboardData.recentTransactions.map(transaction => (
-                  <div key={transaction.id} className="transaction-card">
-                    <div className="transaction-header">
-                      <div className={`transaction-badge ${(transaction.type || 'BUY').toLowerCase()}`}>
-                    {transaction.type || 'BUY'}
-                  </div>
-                  <div className="transaction-date">
-                    {transaction.date ? new Date(transaction.date).toLocaleDateString('en-US', {
-                      month: 'short',
-                      day: 'numeric'
-                    }) : 'N/A'}
-                      </div>
+                <div key={transaction.id} className="transaction-card">
+                  <div className="transaction-header">
+                    <div className={`transaction-badge ${(transaction.type || 'BUY').toLowerCase()}`}>
+                      {transaction.type || 'BUY'}
                     </div>
-                    <div className="transaction-body">
-                      <div className="transaction-symbol">{transaction.symbol || 'N/A'}</div>
-                      <div className="transaction-details">
-                        <span className="transaction-quantity">{transaction.quantity || 0} shares</span>
-                        <span className="transaction-price">
-                          {transaction.type === 'SELL' 
-                            ? (transaction.sold_price || transaction.price || 0)
-                            : (transaction.price || 0)
-                          }
-                        </span>
-                      </div>
+                    <div className="transaction-date">
+                      {transaction.date ? new Date(transaction.date).toLocaleDateString('en-US', {
+                        month: 'short',
+                        day: 'numeric'
+                      }) : 'N/A'}
+                    </div>
+                  </div>
+                  <div className="transaction-body">
+                    <div className="transaction-symbol">{transaction.symbol || 'N/A'}</div>
+                    <div className="transaction-details">
+                      <span className="transaction-quantity">{transaction.quantity || 0} shares</span>
+                      <span className="transaction-price">
+                        {transaction.type === 'SELL' 
+                          ? (transaction.sold_price || transaction.price || 0)
+                          : (transaction.price || 0)
+                        }
+                      </span>
+                    </div>
                   </div>
                 </div>
               ))
             ) : (
-                <div className="empty-state">
-                  <div className="empty-icon">
-                    <svg viewBox="0 0 24 24" fill="currentColor">
-                      <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-5 14H7v-2h7v2zm3-4H7v-2h10v2zm0-4H7V7h10v2z"/>
-                    </svg>
-                  </div>
-                  <p>No recent transactions</p>
-                  <span>Start trading to see activity here</span>
+              <div className="empty-state">
+                <div className="empty-icon">
+                  <svg viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-5 14H7v-2h7v2zm3-4H7v-2h10v2zm0-4H7V7h10v2z"/>
+                  </svg>
                 </div>
-              )}
-            </div>
+                <p>No recent transactions</p>
+                <span>Start trading to see activity here</span>
+              </div>
+            )}
           </div>
         </div>
+      </div>
 
         {/* Right Column */}
         <div className="right-column">
@@ -756,6 +840,106 @@ const Dashboard = ({ onTabChange }) => {
                   minimumFractionDigits: 0,
                   maximumFractionDigits: 0
                 }).format(dashboardData.pnlMetrics.unrealizedPnL)}</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Portfolio Health, Alerts & Liquidity (Mock Data) */}
+          <div className="content-card health-card">
+            <div className="card-header">
+              <div className="header-left">
+                <h3>Portfolio Health & Risk (Mock)</h3>
+                <span className="card-subtitle">High-level view using sample data</span>
+              </div>
+            </div>
+            <div className="insights-grid">
+              <div className="insight-column">
+                <div className="insight-section-title">Overall health</div>
+                <div className="insight-value large">
+                  {MOCK_PORTFOLIO_HEALTH.score}/100
+                </div>
+                <div className="insight-pill">
+                  {MOCK_PORTFOLIO_HEALTH.status}
+                </div>
+                <div className="insight-row">
+                  <span className="insight-label">Diversification</span>
+                  <span className="insight-value">
+                    {MOCK_PORTFOLIO_HEALTH.diversification}
+                  </span>
+                </div>
+                <div className="insight-row">
+                  <span className="insight-label">Max drawdown</span>
+                  <span className="insight-value">
+                    {MOCK_PORTFOLIO_HEALTH.maxDrawdown}
+                  </span>
+                </div>
+                <div className="insight-row">
+                  <span className="insight-label">Concentration</span>
+                  <span className="insight-value">
+                    {MOCK_PORTFOLIO_HEALTH.concentration}
+                  </span>
+                </div>
+              </div>
+
+              <div className="insight-column">
+                <div className="insight-section-title">Alerts & tasks</div>
+                <ul className="insight-list">
+                  {MOCK_DASHBOARD_ALERTS.map((alert, index) => (
+                    <li
+                      key={index}
+                      className={`insight-alert insight-alert-${alert.severity}`}
+                    >
+                      <span className="insight-alert-title">{alert.title}</span>
+                      <span className="insight-alert-text">{alert.message}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+
+              <div className="insight-column">
+                <div className="insight-section-title">Cash & liquidity</div>
+                <div className="insight-row">
+                  <span className="insight-label">Available cash</span>
+                  <span className="insight-value">
+                    LKR{' '}
+                    {new Intl.NumberFormat('en-US', {
+                      maximumFractionDigits: 0
+                    }).format(MOCK_LIQUIDITY.cashAvailable)}
+                  </span>
+                </div>
+                <div className="insight-row">
+                  <span className="insight-label">Cash as % of portfolio</span>
+                  <span className="insight-value">
+                    {MOCK_LIQUIDITY.cashPct}%
+                  </span>
+                </div>
+                <div className="insight-row">
+                  <span className="insight-label">T+2 inflows</span>
+                  <span className="insight-value">
+                    LKR{' '}
+                    {new Intl.NumberFormat('en-US', {
+                      maximumFractionDigits: 0
+                    }).format(MOCK_LIQUIDITY.t2Inflows)}
+                  </span>
+                </div>
+                <div className="insight-row">
+                  <span className="insight-label">T+2 outflows</span>
+                  <span className="insight-value">
+                    LKR{' '}
+                    {new Intl.NumberFormat('en-US', {
+                      maximumFractionDigits: 0
+                    }).format(MOCK_LIQUIDITY.t2Outflows)}
+                  </span>
+                </div>
+                <div className="insight-row">
+                  <span className="insight-label">Liquid ≤ 3 days</span>
+                  <span className="insight-value">
+                    LKR{' '}
+                    {new Intl.NumberFormat('en-US', {
+                      maximumFractionDigits: 0
+                    }).format(MOCK_LIQUIDITY.liquidWithin3d)}
+                  </span>
+                </div>
               </div>
             </div>
           </div>
@@ -874,35 +1058,116 @@ const Dashboard = ({ onTabChange }) => {
           </div>
         </div>
 
+          {/* Benchmark, Events & Watchlist (Mock Data) */}
+          <div className="content-card">
+            <div className="card-header">
+              <div className="header-left">
+                <h3>Insights & Upcoming (Mock)</h3>
+                <span className="card-subtitle">
+                  Sample view for benchmark, events and watchlist
+                </span>
+              </div>
+            </div>
+            <div className="insights-grid insights-grid-compact">
+              <div className="insight-column">
+                <div className="insight-section-title">
+                  Performance vs {MOCK_BENCHMARK.name}
+                </div>
+                <div className="insight-row">
+                  <span className="insight-label">Portfolio YTD</span>
+                  <span className="insight-value">
+                    {MOCK_BENCHMARK.portfolioYTD}%
+                  </span>
+                </div>
+                <div className="insight-row">
+                  <span className="insight-label">Benchmark YTD</span>
+                  <span className="insight-value">
+                    {MOCK_BENCHMARK.benchmarkYTD}%
+                  </span>
+                </div>
+                <div className="insight-row">
+                  <span className="insight-label">Alpha</span>
+                  <span className="insight-value">
+                    {MOCK_BENCHMARK.alpha}%
+                  </span>
+                </div>
+                <div className="insight-row">
+                  <span className="insight-label">Beta</span>
+                  <span className="insight-value">
+                    {MOCK_BENCHMARK.beta}
+                  </span>
+                </div>
+              </div>
+
+              <div className="insight-column">
+                <div className="insight-section-title">Upcoming events</div>
+                <ul className="insight-list">
+                  {MOCK_EVENTS.map((event, index) => (
+                    <li key={index} className="insight-event">
+                      <div className="insight-row">
+                        <span className="insight-label">
+                          {new Date(event.date).toLocaleDateString('en-US', {
+                            month: 'short',
+                            day: 'numeric'
+                          })}
+                        </span>
+                        <span className="insight-value">
+                          {event.type}
+                        </span>
+                      </div>
+                      <div className="insight-row">
+                        <span className="insight-label">{event.symbol}</span>
+                        <span className="insight-value">
+                          {event.note}
+                        </span>
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+
+              <div className="insight-column">
+                <div className="insight-section-title">Focus watchlist</div>
+                <ul className="insight-list">
+                  {MOCK_WATCHLIST.map((item, index) => (
+                    <li key={index} className="insight-watch">
+                      <div className="insight-row">
+                        <span className="insight-label">{item.symbol}</span>
+                        <span className="insight-value">
+                          LKR {item.lastPrice.toFixed(2)}
+                        </span>
+                      </div>
+                      <div className="insight-row">
+                        <span className="insight-label">{item.name}</span>
+                        <span
+                          className="insight-value"
+                          style={{
+                            color:
+                              item.changePct > 0
+                                ? '#16a34a'
+                                : item.changePct < 0
+                                ? '#dc2626'
+                                : '#6b7280'
+                          }}
+                        >
+                          {item.changePct > 0 ? '+' : ''}
+                          {item.changePct}%
+                        </span>
+                      </div>
+                      <div className="insight-row">
+                        <span className="insight-label">Status</span>
+                        <span className="insight-value">{item.status}</span>
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </div>
+          </div>
+
         {/* Risk-Return Scatter Plot */}
         <div className="content-card">
           <RiskReturnScatterPlot />
-        </div>
-
-        {/* Top Performers */}
-        <div className="content-card">
-          <div className="card-header">
-            <div className="header-left">
-              <h3>Top Performers</h3>
-              <span className="card-subtitle">Most traded stocks</span>
-            </div>
-          </div>
-          <div className="performers-container">
-            {dashboardData.topPerformers.map((performer, index) => (
-              <div key={index} className="performer-card">
-                <div className="performer-rank">
-                  <span>{index + 1}</span>
-                </div>
-                <div className="performer-info">
-                  <div className="performer-symbol">{performer.symbol || 'N/A'}</div>
-                  <div className="performer-name">{performer.name || 'Unknown'}</div>
-          </div>
-                <div className="performer-stats">
-                  <div className="performer-trades">{performer.transactionCount || 0} trades</div>
-                </div>
-              </div>
-            ))}
-          </div>
         </div>
 
         {/* Quick Actions */}

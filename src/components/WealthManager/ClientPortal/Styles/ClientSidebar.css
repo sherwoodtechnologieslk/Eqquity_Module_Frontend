@@ -112,6 +112,46 @@
   padding-left: calc(1rem - 3px);
 }
 
+/* Strong, distinct green styles for Create, Redeem, Transfer */
+.cp-nav-item-create {
+  background: #047857; /* emerald-700 */
+  color: #ecfdf5;
+  border-left: 3px solid #a7f3d0;
+  padding-left: calc(1rem - 3px);
+}
+
+.cp-nav-item-create:hover,
+.cp-nav-item-create.active {
+  background: #059669; /* emerald-500 */
+  color: #ecfdf5;
+}
+
+.cp-nav-item-redeem {
+  background: #15803d; /* green-700 */
+  color: #ecfdf5;
+  border-left: 3px solid #bbf7d0;
+  padding-left: calc(1rem - 3px);
+}
+
+.cp-nav-item-redeem:hover,
+.cp-nav-item-redeem.active {
+  background: #16a34a; /* green-600 */
+  color: #ecfdf5;
+}
+
+.cp-nav-item-transfer {
+  background: #0f766e; /* teal-700 */
+  color: #ecfdf5;
+  border-left: 3px solid #99f6e4;
+  padding-left: calc(1rem - 3px);
+}
+
+.cp-nav-item-transfer:hover,
+.cp-nav-item-transfer.active {
+  background: #14b8a6; /* teal-500 */
+  color: #ecfdf5;
+}
+
 .cp-nav-icon {
   width: 20px;
   height: 20px;
