@@ -12,6 +12,8 @@ import WMPortfolioOverview from './components/WealthManager/WM Dashboard/WMPortf
 import FundPerformance from './components/WealthManager/WM Dashboard/FundPerformance';
 import ClientSummary from './components/WealthManager/WM Dashboard/ClientSummary';
 import AUMOverview from './components/WealthManager/WM Dashboard/AUMOverview';
+import ClientPortfolio from './components/WealthManager/ClientManagement/ClientPortfolio';
+import ClientAccounts from './components/WealthManager/ClientManagement/ClientAccounts';
 import ClientPortal from './components/WealthManager/ClientPortal/ClientPortal';
 import FundMaster from './components/WealthManager/Fund Master/FundMaster';
 import FundCategories from './components/WealthManager/Fund Master/FundCategories';
@@ -152,6 +154,8 @@ function App() {
     'Fund Performance': <FundPerformance />,
     'Client Summary': <ClientSummary />,
     'AUM Overview': <AUMOverview />,
+    'Client Accounts': <ClientAccounts />,
+    'Client Portfolio': <ClientPortfolio />,
     'Market Summary': <MarketSummary />,
     'Recent Activity': <RecentActivity />,
     'Performance Metrics': <PerformanceMetrics />,
@@ -247,7 +251,7 @@ function App() {
     // Trade Capture (11), Batch Transaction Import (12), Valuation and MTM (13),
     // Predictive Valuation Model (PVM) (14), CSE Announcements (15), TradeCore (16), Mandatory Corporate Actions (19)
     // All other items should show premium modal
-    const allowedIndices = [0, 1, 2, 3, 4, 5, 8, 9, 10, 11, 12, 13, 14, 15, 16, 18, 19];
+    const allowedIndices = [0, 1, 2, 3, 4, 5, 8, 9, 10,   11, 12, 13, 14, 15, 16, 18, 19];
     
     if (!allowedIndices.includes(index)) {
       setIsPremiumModalOpen(true);

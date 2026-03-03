@@ -18,7 +18,7 @@ const ClientSummary = () => {
         portfolios: 3,
         aum: 12500000,
         ytdReturn: 8.4,
-        rm: 'Nuwan Silva',
+        rm: 'Client 1',
       },
       {
         id: 2,
@@ -30,7 +30,7 @@ const ClientSummary = () => {
         portfolios: 5,
         aum: 78500000,
         ytdReturn: 7.2,
-        rm: 'Ishara Fernando',
+        rm: 'Client 2',
       },
       {
         id: 3,
@@ -42,7 +42,7 @@ const ClientSummary = () => {
         portfolios: 2,
         aum: 42000000,
         ytdReturn: 5.1,
-        rm: 'Anura Jayasinghe',
+        rm: 'Client 3',
       },
       {
         id: 4,
@@ -54,7 +54,7 @@ const ClientSummary = () => {
         portfolios: 4,
         aum: 26500000,
         ytdReturn: 12.3,
-        rm: 'Nuwan Silva',
+        rm: 'Client 1',
       },
       {
         id: 5,
@@ -66,7 +66,7 @@ const ClientSummary = () => {
         portfolios: 3,
         aum: 51000000,
         ytdReturn: 6.8,
-        rm: 'Ishara Fernando',
+        rm: 'Client 2',
       },
       {
         id: 6,
@@ -78,7 +78,7 @@ const ClientSummary = () => {
         portfolios: 2,
         aum: 8800000,
         ytdReturn: 9.1,
-        rm: 'Anura Jayasinghe',
+        rm: 'Client 3',
       },
     ],
     [],

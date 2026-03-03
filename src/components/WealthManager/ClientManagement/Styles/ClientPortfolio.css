@@ -1,0 +1,434 @@
+/* Container */
+.wmcp-container {
+  min-height: 100vh;
+  padding: 0 0 2rem 0;
+  
+  box-sizing: border-box;
+}
+
+/* Header card */
+.wmcp-header-card {
+  background: white;
+  border-radius: 0;
+  border: 1px solid #e5e7eb;
+  box-shadow: 0 8px 20px rgba(15, 23, 42, 0.08);
+  padding: 1.75rem 1.75rem 1.25rem 1.75rem;
+  margin: 0 auto 1.5rem auto;
+  max-width: 1320px;
+}
+
+.wmcp-list-card {
+  margin-bottom: 1.5rem;
+}
+
+.wmcp-header-main {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1.5rem;
+  margin-bottom: 1.25rem;
+}
+
+.wmcp-header-left {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.wmcp-header-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: #0f766e;
+}
+
+.wmcp-header-title {
+  font-size: 1.75rem;
+  font-weight: 800;
+  color: #0f172a;
+  margin: 0;
+  letter-spacing: -0.02em;
+}
+
+.wmcp-header-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-top: 0.25rem;
+  font-size: 0.85rem;
+  color: #6b7280;
+}
+
+.wmcp-header-meta span::before {
+  content: '•';
+  margin: 0 0.35rem 0 0;
+  color: #d1d5db;
+}
+
+.wmcp-header-meta span:first-child::before {
+  content: '';
+  margin: 0;
+}
+
+.wmcp-header-right {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  justify-content: flex-end;
+}
+
+.wmcp-chip {
+  padding: 0.5rem 0.9rem;
+  border-radius: 0;
+  border: 1px solid #0f766e;
+  background: rgba(15, 118, 110, 0.05);
+  display: flex;
+  flex-direction: column;
+  min-width: 180px;
+}
+
+.wmcp-chip-label {
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: #0f766e;
+  font-weight: 600;
+}
+
+.wmcp-chip-value {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #0f172a;
+}
+
+.wmcp-chip-rm {
+  border-color: #0369a1;
+  background: rgba(3, 105, 161, 0.04);
+}
+
+.wmcp-chip-rm .wmcp-chip-label {
+  color: #0369a1;
+}
+
+/* Header summary metrics */
+.wmcp-header-summary {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+.wmcp-summary-item {
+  padding: 0.75rem 1rem;
+  background: #f9fafb;
+  border-radius: 0;
+  border: 1px solid #e5e7eb;
+}
+
+.wmcp-summary-label {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: #6b7280;
+  margin-bottom: 0.25rem;
+}
+
+.wmcp-summary-value {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.wmcp-return-positive {
+  color: #059669;
+}
+
+.wmcp-return-negative {
+  color: #dc2626;
+}
+
+.wmcp-return-neutral {
+  color: #6b7280;
+}
+
+/* Toolbar */
+.wmcp-toolbar {
+  max-width: 1320px;
+  margin: 0 auto 1rem auto;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.wmcp-toggle-group {
+  display: inline-flex;
+  border-radius: 0;
+  border: 1px solid #0f766e;
+  overflow: hidden;
+}
+
+.wmcp-toggle-btn {
+  padding: 0.5rem 1.25rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  background: white;
+  color: #0f766e;
+  border: none;
+  cursor: pointer;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+
+.wmcp-toggle-btn + .wmcp-toggle-btn {
+  border-left: 1px solid #0f766e;
+}
+
+.wmcp-toggle-btn.active {
+  background: linear-gradient(135deg, #0f766e 0%, #14b8a6 100%);
+  color: white;
+}
+
+/* Main grid */
+.wmcp-main-grid {
+  max-width: 1320px;
+  margin: 0 auto 2.5rem auto;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 1rem;
+}
+
+.wmcp-card {
+  background: white;
+  border-radius: 0;
+  border: 1px solid #e5e7eb;
+  box-shadow: 0 8px 20px rgba(15, 23, 42, 0.06);
+  padding: 1.5rem 1.5rem 1.25rem 1.5rem;
+}
+
+.wmcp-side-column {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.wmcp-card-header h2 {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #0f172a;
+  margin: 0 0 0.25rem 0;
+}
+
+.wmcp-card-header p {
+  font-size: 0.85rem;
+  color: #6b7280;
+  margin: 0;
+}
+
+/* Table */
+.wmcp-table-wrapper {
+  margin-top: 1rem;
+  overflow-x: auto;
+}
+
+.wmcp-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.85rem;
+}
+
+.wmcp-table thead {
+  background: #f3f4f6;
+}
+
+.wmcp-table th,
+.wmcp-table td {
+  padding: 0.5rem 0.75rem;
+  border-bottom: 1px solid #e5e7eb;
+  white-space: nowrap;
+}
+
+.wmcp-table th {
+  text-align: left;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #6b7280;
+}
+
+.wmcp-table tbody tr:hover {
+  background: #f9fafb;
+}
+
+.wmcp-client-table tbody tr.wmcp-row-selected {
+  background: #ecfeff;
+}
+
+.wmcp-num {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.wmcp-instrument-cell {
+  display: flex;
+  flex-direction: column;
+}
+
+.wmcp-instrument-name {
+  font-weight: 600;
+  color: #111827;
+}
+
+.wmcp-instrument-code {
+  font-size: 0.75rem;
+  color: #6b7280;
+}
+
+.wmcp-client-cell {
+  display: flex;
+  flex-direction: column;
+}
+
+.wmcp-client-name {
+  font-weight: 600;
+  color: #0f172a;
+}
+
+.wmcp-client-sub {
+  font-size: 0.75rem;
+  color: #6b7280;
+}
+
+/* Allocation */
+.wmcp-allocation-list {
+  margin-top: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.wmcp-allocation-row {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: 0.75rem;
+  align-items: center;
+}
+
+.wmcp-allocation-pill {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #0f766e;
+  padding: 0.25rem 0.6rem;
+  border-radius: 0;
+  border: 1px solid rgba(15, 118, 110, 0.25);
+  background: rgba(16, 185, 129, 0.06);
+}
+
+.wmcp-allocation-bar-wrapper {
+  width: 100%;
+}
+
+.wmcp-allocation-bar-bg {
+  height: 6px;
+  background: #e5e7eb;
+  border-radius: 0;
+  overflow: hidden;
+}
+
+.wmcp-allocation-bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #0f766e 0%, #14b8a6 50%, #06b6d4 100%);
+}
+
+.wmcp-allocation-values {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.wmcp-allocation-pct {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #0f172a;
+  display: block;
+}
+
+.wmcp-allocation-amount {
+  font-size: 0.75rem;
+  color: #6b7280;
+}
+
+/* Notes */
+.wmcp-note-card {
+  background: #0f172a;
+  color: white;
+  border-color: #0f172a;
+}
+
+.wmcp-note-card .wmcp-card-header h2 {
+  color: white;
+}
+
+.wmcp-note-card .wmcp-card-header p {
+  color: rgba(249, 250, 251, 0.8);
+}
+
+.wmcp-notes-list {
+  margin: 0.75rem 0 0 1rem;
+  padding: 0;
+  font-size: 0.85rem;
+  color: rgba(249, 250, 251, 0.9);
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.wmcp-notes-list li {
+  list-style: disc;
+}
+
+/* Responsive */
+@media (max-width: 1024px) {
+  .wmcp-container {
+    padding: 1.5rem;
+  }
+
+  .wmcp-header-main {
+    flex-direction: column;
+  }
+
+  .wmcp-header-right {
+    justify-content: flex-start;
+  }
+
+  .wmcp-main-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 768px) {
+  .wmcp-container {
+    padding: 1rem;
+  }
+
+  .wmcp-header-card {
+    padding: 1.25rem 1rem 1rem 1rem;
+  }
+
+  .wmcp-header-summary {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.75rem;
+  }
+
+  .wmcp-main-grid {
+    padding-bottom: 1rem;
+  }
+
+  .wmcp-card {
+    padding: 1.25rem 1rem 1rem 1rem;
+  }
+
+  .wmcp-table th,
+  .wmcp-table td {
+    padding: 0.4rem 0.5rem;
+  }
+}
+

@@ -11,7 +11,7 @@ const optionalFunds = [
 
 const defaultFunds = [
   'Income Fund',
-  'CAL Fixed Income Opportunities Fund',
+  'Fixed Income Opportunities Fund',
   'Gilt Fund',
   'High Yield Fund',
   'Investment Grade Fund',
@@ -128,7 +128,7 @@ const ClientOtherProductsForm = ({ onNext, onPrevious, initialData = {} }) => {
       <div className="cp-signup-form-wrapper">
         <div className="cp-signup-form-header">
           <h1>Other Investment Products / T&amp;C Agreement</h1>
-          <p>Select additional unit trust products and review CAL Equity options</p>
+          <p>Select additional unit trust products and review Equity options</p>
         </div>
 
         <div className="cp-signup-form-content">
@@ -172,7 +172,7 @@ const ClientOtherProductsForm = ({ onNext, onPrevious, initialData = {} }) => {
                 <div className="cp-tip-text">
                   <h3>Equity Trading</h3>
                   <p>
-                    CAL Equity / Stock Brokering gives you access to the stock
+                    Equity / Stock Brokering gives you access to the stock
                     market. Review the terms carefully before enabling.
                   </p>
                 </div>
@@ -233,11 +233,11 @@ const ClientOtherProductsForm = ({ onNext, onPrevious, initialData = {} }) => {
               </div>
             </div>
 
-            {/* CAL Equity section */}
+            {/* Equity section */}
             <div className="cp-form-section cp-equity-section">
               <div className="cp-form-group">
                 <label className="cp-equity-question">
-                  Would you like to enable the CAL Equity/Stock Brokering product as
+                  Would you like to enable the Equity/Stock Brokering product as
                   well?
                 </label>
                 <button
@@ -289,7 +289,7 @@ const ClientOtherProductsForm = ({ onNext, onPrevious, initialData = {} }) => {
                         checked={equityState.agreeTerms}
                         onChange={handleEquityChange}
                       />
-                      <span>I agree to the CAL Equity Terms and Conditions</span>
+                      <span>I agree to the Equity Terms and Conditions</span>
                     </label>
                     <label className="cp-checkbox-row">
                       <input
@@ -474,19 +474,18 @@ const ClientOtherProductsForm = ({ onNext, onPrevious, initialData = {} }) => {
                     Key Investor Information Document and Trust Deed of the respective
                     funds/CAS Client Agreement/ Portfolio Management Agreement. Applicant
                     is required to read and understand the Key Investor Information
-                    Document (KIID) governing the respective Capital Alliance Investments
-                    Ltd (CALI) Unit Trust Fund/s the Applicant is investing in.
+                    Document (KIID) governing the respective Unit Trust Fund/s the Applicant is investing in.
                   </p>
 
                   <p className="cp-terms-text">
-                    Applicant shall forward to CALI a Redemption request for any part or
+                    Applicant shall forward to the Company a Redemption request for any part or
                     all of the Unit Trust funds subject to the terms of the KIID. If
                     Applicant has not already provided instructions prior to sending an
                     instruction for remittance of income payment, the Applicant may
                     nominate a bank account to which funds may be remitted along with the
                     instructions. The applicant shall submit a bank statement (within
                     three months) of a bank account which is maintained under the
-                    Applicant’s name and Applicant shall notify CALI in writing of any
+                    Applicant’s name and Applicant shall notify the Company in writing of any
                     changes.
                   </p>
 

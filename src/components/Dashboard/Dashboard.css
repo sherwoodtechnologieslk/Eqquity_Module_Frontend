@@ -1,8 +1,8 @@
-/* Modern Dashboard Styles */
-.dashboard {
+/* Modern Dashboard Styles - Equity Dashboard only */
+.equity-dashboard {
   min-height: 100vh;
   padding: 0;
-  overflow-x: hidden;
+  overflow-x: auto;
 }
 
 /* Dashboard Header */
@@ -576,14 +576,16 @@
 }
 
 
+
 /* Main Grid Layout */
 .main-grid {
   display: grid;
   grid-template-columns: 1fr 1.6fr;
   gap: 0.75rem;
-  max-width: 1400px;
-  margin: 0 auto;
-  padding: 0 2rem 3rem 2rem;
+  width: 100%;
+  max-width: none;
+  margin: 1.25rem 0 0 0;
+  padding: 0 1.25rem 3rem 1.25rem;
 }
 
 .left-column,
@@ -797,6 +799,190 @@
   bottom: 0;
   background: linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, transparent 50%);
   pointer-events: none;
+}
+
+/* Portfolio Health Card - Highlighted styling */
+.health-card {
+  background: radial-gradient(circle at top left, rgba(59, 130, 246, 0.18), transparent 55%),
+              radial-gradient(circle at top right, rgba(56, 189, 248, 0.12), transparent 55%),
+              #ffffff;
+  border: 1px solid rgba(59, 130, 246, 0.25);
+  box-shadow:
+    0 18px 40px rgba(15, 23, 42, 0.18),
+    0 0 0 1px rgba(148, 163, 184, 0.35);
+  overflow: hidden;
+}
+
+.health-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(59, 130, 246, 0.12), transparent 45%);
+  pointer-events: none;
+  mix-blend-mode: screen;
+}
+
+.health-card .card-header {
+  margin-bottom: 1.25rem;
+}
+
+.health-card .header-left h3 {
+  color: #0f172a;
+}
+
+.health-card .card-subtitle {
+  color: #1d4ed8;
+  font-weight: 500;
+}
+
+.health-card .insights-grid {
+  gap: 1.5rem;
+}
+
+.health-card .insight-section-title {
+  text-transform: uppercase;
+  font-size: 0.7rem;
+  letter-spacing: 0.08em;
+  color: #6b7280;
+}
+
+.health-card .insight-value.large {
+  font-size: 1.8rem;
+}
+
+.health-card .insight-pill {
+  background: linear-gradient(135deg, #22c55e, #16a34a);
+  color: #ecfdf5;
+  box-shadow: 0 8px 18px rgba(22, 163, 74, 0.45);
+}
+
+.health-card .insight-row {
+  padding: 0.15rem 0;
+}
+
+/* Dashboard Insights (mock data) */
+.insights-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1.25rem;
+}
+
+.insights-grid.insights-grid-compact {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.insight-column {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.insight-section-title {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #1e293b;
+  margin-bottom: 0.25rem;
+}
+
+.insight-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.8rem;
+  color: #4b5563;
+}
+
+.insight-label {
+  color: #6b7280;
+  font-weight: 500;
+}
+
+.insight-value {
+  color: #111827;
+  font-weight: 600;
+}
+
+.insight-value.large {
+  font-size: 1.4rem;
+  font-weight: 800;
+}
+
+.insight-pill {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.25rem 0.5rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  background: #ecfdf5;
+  color: #047857;
+  margin-bottom: 0.25rem;
+}
+
+.insight-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.insight-alert {
+  padding: 0.5rem 0.75rem;
+  border-radius: 0.5rem;
+  background: #f9fafb;
+  border: 1px solid #e5e7eb;
+}
+
+.insight-alert-title {
+  display: block;
+  font-size: 0.8rem;
+  font-weight: 600;
+  margin-bottom: 0.15rem;
+  color: #111827;
+}
+
+.insight-alert-text {
+  font-size: 0.78rem;
+  color: #6b7280;
+}
+
+.insight-alert-high {
+  border-color: #fecaca;
+  background: #fef2f2;
+}
+
+.insight-alert-medium {
+  border-color: #fee2b3;
+  background: #fffbeb;
+}
+
+.insight-alert-low {
+  border-color: #bfdbfe;
+  background: #eff6ff;
+}
+
+.insight-event,
+.insight-watch {
+  padding: 0.5rem 0.75rem;
+  border-radius: 0.5rem;
+  border: 1px solid #e5e7eb;
+  background: #f9fafb;
+}
+
+@media (max-width: 1024px) {
+  .insights-grid,
+  .insights-grid.insights-grid-compact {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 768px) {
+  .insights-grid,
+  .insights-grid.insights-grid-compact {
+    grid-template-columns: minmax(0, 1fr);
+  }
 }
 
 /* Mock Heatmap */
@@ -1536,11 +1722,11 @@
 }
 
 @media (max-width: 768px) {
-  .dashboard {
+  .equity-dashboard {
     padding: 0;
   }
   
-  .dashboard-header {
+  .equity-dashboard-header {
     padding: 1rem 1.5rem;
     margin: 1rem auto;
     flex-direction: column;
@@ -1655,7 +1841,7 @@
 }
 
 @media (max-width: 480px) {
-  .dashboard-header {
+  .equity-dashboard-header {
     padding: 0.75rem 1rem;
     margin: 0.5rem auto;
   }

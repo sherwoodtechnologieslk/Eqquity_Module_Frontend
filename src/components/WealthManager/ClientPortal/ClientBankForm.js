@@ -299,8 +299,8 @@ const ClientBankForm = ({ onNext, onPrevious, initialData = {} }) => {
             <div className="cp-form-section">
               <div className="cp-form-group">
                 <label className="cp-radio-label">
-                  Allow transfer of funds for settlement between CAL Investments &amp;
-                  CAL Securities (Equity Account) - if applicable
+                  Allow transfer of funds for settlement between Investments &amp;
+                  Securities (Equity Account) - if applicable
                 </label>
                 <div className="cp-radio-group">
                   <label className="cp-radio-option">
