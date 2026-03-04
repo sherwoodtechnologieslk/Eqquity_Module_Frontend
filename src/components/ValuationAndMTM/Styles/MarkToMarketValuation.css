@@ -24,8 +24,8 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 5.5rem;
-  height: 5.5rem;
+  width: 3.25rem;
+  height: 3.25rem;
   background: linear-gradient(135deg, #60a5fa, #2563eb);
   border-radius: 0;
   margin: 0;
@@ -34,8 +34,8 @@
 }
 
 .mtm-header-icon svg {
-  width: 2.8rem;
-  height: 2.8rem;
+  width: 1.5rem;
+  height: 1.5rem;
   color: #fff;
 }
 
@@ -46,7 +46,7 @@
 }
 
 .mtm-main-title {
-  font-size: 2.5rem;
+  font-size: 2rem;
   font-weight: 800;
   margin: 0;
   letter-spacing: -0.02em;
@@ -55,7 +55,7 @@
 }
 
 .mtm-subtitle {
-  font-size: 1.25rem;
+  font-size: 1rem;
   color: #6b7280;
   margin: 0;
   font-weight: 400;
@@ -1143,7 +1143,7 @@
   }
   
   .mtm-main-title {
-    font-size: 2rem;
+    font-size: 1.6rem;
   }
   
   .mtm-controls-section {
@@ -1544,16 +1544,16 @@
 
 @media (max-width: 480px) {
   .mtm-header-icon {
-    width: 4rem;
-    height: 4rem;
+    width: 2.75rem;
+    height: 2.75rem;
   }
   
   .mtm-main-title {
-    font-size: 1.5rem;
+    font-size: 1.4rem;
   }
   
   .mtm-subtitle {
-    font-size: 1rem;
+    font-size: 0.9rem;
   }
   
   .mtm-performance-row {

@@ -772,20 +772,25 @@ const TradeConfirmation = () => {
 
   return (
     <div className="tc-container">
-      <div className="tc-header">
-        <div className="tc-header-top">
-          <div className="tc-header-left">
-            <h1 className="tc-main-title">Trade Confirmation</h1>
-            {latestTradeDate && (
-              <p className="tc-report-date">
-                Trade Report for {formatTradeDate(latestTradeDate)}
-              </p>
-            )}
-          </div>
-          <div className="tc-filters">
-            <button onClick={fetchTransactions} className="tc-refresh-btn">Refresh</button>
-          </div>
+      <div className="tc-header-section">
+        <div className="tc-header-icon-wrap">
+          <svg className="tc-header-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
         </div>
+        <div className="tc-header-text-group">
+          <h1 className="tc-main-title">Trade Confirmation</h1>
+          <p className="tc-subtitle">
+            {latestTradeDate
+              ? `Trade report for ${formatTradeDate(latestTradeDate)}`
+              : 'Review and manage parsed trade confirmations'}
+          </p>
+        </div>
+        <div className="tc-header-actions">
+          <button onClick={fetchTransactions} className="tc-refresh-btn">Refresh</button>
+        </div>
+      </div>
+      <div className="tc-tabs-card">
         <div className="tc-tabs">
           <button
             className={`tc-tab ${activeTab === 'purchases' ? 'tc-tab-active' : ''}`}

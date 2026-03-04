@@ -25,8 +25,8 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 5.5rem;
-  height: 5.5rem;
+  width: 3.25rem;
+  height: 3.25rem;
   background: linear-gradient(135deg, #60a5fa, #2563eb);
   border-radius: 0.18rem; /* LESS ROUND */
   margin: 0;
@@ -35,8 +35,8 @@
 }
 
 .rights-icon {
-  width: 2.8rem;
-  height: 2.8rem;
+  width: 1.5rem;
+  height: 1.5rem;
   color: #fff;
 }
 
@@ -48,7 +48,7 @@
 }
 
 .rights-main-title {
-  font-size: 2.5rem;
+  font-size: 1.9rem;
   font-weight: 800;
   color: #1f2937;
   margin: 0 0 0.5rem 0;
@@ -58,7 +58,7 @@
 
 .rights-subtitle {
   color: #475569;
-  font-size: 1.4rem;
+  font-size: 1.05rem;
   font-weight: 400;
   margin: 0;
   margin-bottom: 0.1rem;
