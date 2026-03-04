@@ -18,18 +18,18 @@
   display: flex;
   align-items: center;
   gap: 2rem;
-  margin-bottom: 2.5rem;
+  margin-bottom: 1.5rem;
   text-align: left;
-  padding-top: 2rem;
-  padding-bottom: 2rem;
+  padding-top: 1.5rem;
+  padding-bottom: 1.5rem;
 }
 
 .ih-header-icon {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 5.5rem;
-  height: 5.5rem;
+  width: 4rem;
+  height: 4rem;
   background: linear-gradient(135deg, #60a5fa, #2563eb);
   border-radius: 0.18rem;
   margin: 0;
@@ -38,8 +38,8 @@
 }
 
 .ih-icon {
-  width: 2.8rem;
-  height: 2.8rem;
+  width: 2rem;
+  height: 2rem;
   color: #fff;
 }
 
@@ -51,7 +51,7 @@
 }
 
 .ih-main-title {
-  font-size: 2.5rem;
+  font-size: 2rem;
   font-weight: 800;
   color: #1e293b;
   margin: 0;
@@ -59,7 +59,7 @@
 }
 
 .ih-subtitle {
-  font-size: 1.125rem;
+  font-size: 1.1rem;
   color: #64748b;
   margin: 0;
   font-weight: 500;

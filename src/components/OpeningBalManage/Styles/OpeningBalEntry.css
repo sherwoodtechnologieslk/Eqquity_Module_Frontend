@@ -46,8 +46,8 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 5.5rem;
-  height: 5.5rem;
+  width: 4rem;
+  height: 4rem;
   background: linear-gradient(135deg, #3b82f6, #2563eb);
   border-radius: 0.18rem;
   margin: 0;
@@ -56,8 +56,8 @@
 }
 
 .opening-bal-icon {
-  width: 2.8rem;
-  height: 2.8rem;
+  width: 2rem;
+  height: 2rem;
   color: #fff;
 }
 
@@ -66,10 +66,11 @@
   flex-direction: column;
   align-items: flex-start;
   gap: 0.25rem;
+  margin-left: 0.75rem;
 }
 
 .opening-bal-main-title {
-  font-size: 2.5rem;
+  font-size: 2rem;
   font-weight: 800;
   color: #1f2937;
   margin: 0 0 0.5rem 0;
@@ -79,7 +80,7 @@
 
 .opening-bal-subtitle {
   color: #475569;
-  font-size: 1.4rem;
+  font-size: 1.1rem;
   font-weight: 400;
   margin: 0;
   margin-bottom: 0.1rem;

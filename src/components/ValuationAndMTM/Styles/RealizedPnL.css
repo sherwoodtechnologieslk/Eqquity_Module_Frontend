@@ -76,127 +76,71 @@
   box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
 }
 
-/* Realized P&L Summary Cards - Unique Design */
+/* Realized P&L Summary Cards - Clean card design with left accent */
 .realized-pnl-summary-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-  gap: 24px;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 14px;
   margin-bottom: 32px;
 }
 
 .realized-pnl-summary-card {
-  background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
-  border-radius: 16px;
-  padding: 32px 24px;
-  box-shadow: 
-    0 4px 20px rgba(0, 0, 0, 0.08),
-    0 1px 3px rgba(0, 0, 0, 0.1);
-  border: 1px solid rgba(59, 130, 246, 0.1);
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  background: #fff;
+  border-radius: 0;
+  padding: 16px 14px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+  border: 1px solid #e2e8f0;
+  border-left: 4px solid #3b82f6;
+  transition: box-shadow 0.2s ease, border-color 0.2s ease;
   position: relative;
-  overflow: hidden;
   display: flex;
   flex-direction: column;
-  align-items: center;
-  text-align: center;
-}
-
-.realized-pnl-summary-card::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 4px;
-  background: linear-gradient(90deg, #3b82f6, #2563eb, #1d4ed8);
-  border-radius: 16px 16px 0 0;
+  align-items: flex-start;
+  text-align: left;
 }
 
 .realized-pnl-summary-card:hover {
-  transform: translateY(-4px);
-  box-shadow: 
-    0 12px 40px rgba(0, 0, 0, 0.15),
-    0 4px 12px rgba(59, 130, 246, 0.2);
-  border-color: rgba(59, 130, 246, 0.3);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  border-left-color: #2563eb;
 }
 
 .realized-pnl-card-title {
-  font-size: 13px;
-  font-weight: 700;
+  font-size: 11px;
+  font-weight: 600;
   color: #64748b;
-  margin-bottom: 20px;
+  margin-bottom: 8px;
   text-transform: uppercase;
-  letter-spacing: 1px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-}
-
-.realized-pnl-card-title::before {
-  content: '';
-  width: 8px;
-  height: 8px;
-  background: linear-gradient(135deg, #3b82f6, #2563eb);
-  border-radius: 50%;
-  flex-shrink: 0;
+  letter-spacing: 0.05em;
+  line-height: 1.3;
 }
 
 .realized-pnl-card-amount {
-  font-size: 32px;
-  font-weight: 800;
-  margin-bottom: 16px;
-  font-family: 'SF Pro Display', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-size: 22px;
+  font-weight: 700;
+  margin-bottom: 6px;
   letter-spacing: -0.02em;
-  line-height: 1;
-  text-align: center;
+  line-height: 1.2;
+  color: #1e293b;
 }
 
 .realized-pnl-card-amount.positive {
-  color: #1e293b;
-  background: linear-gradient(135deg, #1e293b, #334155);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+  color: #059669;
 }
 
 .realized-pnl-card-amount.negative {
-  color: #1e293b;
-  background: linear-gradient(135deg, #1e293b, #334155);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+  color: #dc2626;
 }
 
 .realized-pnl-card-amount.neutral {
   color: #1e293b;
-  background: linear-gradient(135deg, #1e293b, #334155);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
 }
 
 .realized-pnl-card-description {
-  font-size: 14px;
-  color: #64748b;
+  font-size: 12px;
+  color: #94a3b8;
   margin: 0;
-  font-weight: 500;
+  font-weight: 400;
   line-height: 1.4;
-  text-align: center;
-  position: relative;
-  padding-top: 8px;
-}
-
-.realized-pnl-card-description::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 24px;
-  height: 2px;
-  background: linear-gradient(90deg, #3b82f6, #2563eb);
-  border-radius: 1px;
 }
 
 /* Realized P&L Navigation Tabs */
