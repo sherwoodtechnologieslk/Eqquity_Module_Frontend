@@ -399,15 +399,3 @@ const MarketSummary = () => {
 };
 
 export default MarketSummary;
-
-
-
-
-
-
-<<<<<<< HEAD
-=======
-
-
-
->>>>>>> trade_sum
