@@ -695,7 +695,6 @@ const Dashboard = ({ onTabChange }) => {
           <div className="card-header">
             <div className="header-left">
               <h3>Sector Activity (Mock)</h3>
-              <span className="card-subtitle">not live data</span>
             </div>
           </div>
           <MockHeatmap />
