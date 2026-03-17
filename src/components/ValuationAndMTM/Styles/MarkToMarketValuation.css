@@ -1253,7 +1253,7 @@
 .mtm-performance-card {
   background: white;
   border-radius: 0;
-  padding: 2rem;
+  padding: 1.5rem;
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
   border: 1px solid #e2e8f0;
   transition: all 0.3s ease;
@@ -1289,8 +1289,8 @@
 }
 
 .mtm-card-icon {
-  width: 3rem;
-  height: 3rem;
+  width: 2.5rem;
+  height: 2.5rem;
   border-radius: 0;
   display: flex;
   align-items: center;
@@ -1320,7 +1320,7 @@
 }
 
 .mtm-card-value {
-  font-size: 2.25rem;
+  font-size: 1.8rem;
   font-weight: 900;
   margin-bottom: 0.75rem;
   line-height: 1.1;

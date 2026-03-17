@@ -2273,6 +2273,113 @@ export const financialPositionAPI = {
   }
 };
 
+// API service for GSec entries (sell transaction report)
+export const gsecEntriesAPI = {
+  // Get sell transaction report for GSec entries
+  getSellTransactionReport: async (filters = {}) => {
+    try {
+      const queryParams = new URLSearchParams();
+
+      // Map UI filters to GSEC general-ledger API contract
+      if (filters.startDate) queryParams.append('startDate', filters.startDate);
+      if (filters.endDate) queryParams.append('endDate', filters.endDate);
+
+      // Pagination: API uses limit/offset; UI uses page/pageSize
+      if (filters.pageSize) {
+        queryParams.append('limit', filters.pageSize);
+      }
+      if (filters.page && filters.pageSize) {
+        const offset = (Number(filters.page) - 1) * Number(filters.pageSize);
+        queryParams.append('offset', String(offset));
+      }
+
+      const url = queryParams.toString()
+        ? `${API_BASE_URL}/gsec/reports/sell-transaction?${queryParams.toString()}`
+        : `${API_BASE_URL}/gsec/reports/sell-transaction`;
+
+      // Use authenticated request so it works like the rest of the app, and
+      // benefits from existing 401 handling and token forwarding.
+      return await makeAuthenticatedRequest(url, { method: 'GET' });
+    } catch (error) {
+      console.error('Error fetching GSec sell transaction report:', error);
+      throw error;
+    }
+  },
+
+  // Save current GSec entries into backend gsec_entries table
+  saveEntriesToDatabase: async (entries) => {
+    try {
+      return await makeAuthenticatedRequest(`${API_BASE_URL}/gsec-entries/import`, {
+        method: 'POST',
+        body: JSON.stringify({ entries })
+      });
+    } catch (error) {
+      console.error('Error saving GSec entries to database:', error);
+      const message = error.message || 'Failed to save GSec entries to database';
+      throw new Error(message);
+    }
+  },
+
+  // Get saved GSec ledger entries (optional filter by deal_number)
+  getSavedLedgerEntries: async (dealNumber = null) => {
+    try {
+      let url = `${API_BASE_URL}/gsec-entries`;
+      if (dealNumber) {
+        url += `?deal_number=${encodeURIComponent(dealNumber)}`;
+      }
+
+      return await makeAuthenticatedRequest(url, { method: 'GET' });
+    } catch (error) {
+      console.error('Error fetching saved GSec ledger entries:', error);
+      const message = error.message || 'Failed to fetch saved GSec ledger entries';
+      throw new Error(message);
+    }
+  },
+
+  // Get Balance Sheet-style summary for GSec entries
+  getBalanceSheet: async ({ startDate, endDate } = {}) => {
+    try {
+      const params = new URLSearchParams();
+      if (startDate) params.append('startDate', startDate);
+      if (endDate) params.append('endDate', endDate);
+
+      const url = params.toString()
+        ? `${API_BASE_URL}/gsec-entries/balance-sheet?${params.toString()}`
+        : `${API_BASE_URL}/gsec-entries/balance-sheet`;
+
+      return await makeAuthenticatedRequest(url, { method: 'GET' });
+    } catch (error) {
+      console.error('Error fetching GSec balance sheet data:', error);
+      const message = error.message || 'Failed to fetch GSec balance sheet data';
+      throw new Error(message);
+    }
+  },
+
+  // Get detailed GSec entries for a specific account (Balance Sheet "View Details")
+  getBalanceSheetAccountDetails: async (accountCode, { startDate, endDate } = {}) => {
+    try {
+      if (!accountCode) {
+        throw new Error('Account code is required');
+      }
+
+      const params = new URLSearchParams();
+      if (startDate) params.append('startDate', startDate);
+      if (endDate) params.append('endDate', endDate);
+
+      const baseUrl = `${API_BASE_URL}/gsec-entries/balance-sheet/account/${encodeURIComponent(
+        accountCode
+      )}`;
+      const url = params.toString() ? `${baseUrl}?${params.toString()}` : baseUrl;
+
+      return await makeAuthenticatedRequest(url, { method: 'GET' });
+    } catch (error) {
+      console.error('Error fetching GSec account details:', error);
+      const message = error.message || 'Failed to fetch GSec account details';
+      throw new Error(message);
+    }
+  }
+};
+
 // API service for Opening Balance operations
 export const openingBalanceAPI = {
   // Create a new opening balance entry

@@ -61,6 +61,8 @@ const NewGLAccount = () => {
     { value: 'liability', label: 'Liability' },
     { value: 'equity', label: 'Equity' },
     { value: 'revenue', label: 'Revenue' },
+    { value: 'other income', label: 'Other Income' },
+    { value: 'provisions', label: 'Provisions' },
     { value: 'expense', label: 'Expense' }
   ];
   
@@ -2099,6 +2101,34 @@ const NewGLAccount = () => {
                       3XX-XXX-XXX-XXX-XX
                     </span>
                   )}
+                  {accountType.value === 'other income' && (
+                    <span style={{
+                      fontSize: '0.875rem',
+                      fontWeight: '600',
+                      color: '#fff',
+                      backgroundColor: '#3b82f6',
+                      padding: '0.25rem 0.75rem',
+                      borderRadius: '0.375rem',
+                      fontFamily: 'monospace',
+                      letterSpacing: '0.05em'
+                    }}>
+                      4XX-XXX-XXX-XXX-XX
+                    </span>
+                  )}
+                  {accountType.value === 'provisions' && (
+                    <span style={{
+                      fontSize: '0.875rem',
+                      fontWeight: '600',
+                      color: '#fff',
+                      backgroundColor: '#3b82f6',
+                      padding: '0.25rem 0.75rem',
+                      borderRadius: '0.375rem',
+                      fontFamily: 'monospace',
+                      letterSpacing: '0.05em'
+                    }}>
+                      5XX-XXX-XXX-XXX-XX
+                    </span>
+                  )}
                   {accountType.value === 'expense' && (
                     <span style={{
                       fontSize: '0.875rem',
@@ -2210,6 +2240,8 @@ const NewGLAccount = () => {
                     else if (typeKey === 'liability') typePrefix = '2';
                     else if (typeKey === 'equity') typePrefix = '8';
                     else if (typeKey === 'revenue') typePrefix = '3';
+                    else if (typeKey === 'other income') typePrefix = '4';
+                    else if (typeKey === 'provisions') typePrefix = '5';
                     else if (typeKey === 'expense') typePrefix = '6';
                     else {
                       const customType = accountTypes.find(t => t.value === typeKey);

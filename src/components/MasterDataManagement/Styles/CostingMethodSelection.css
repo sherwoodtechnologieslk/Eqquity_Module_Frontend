@@ -12,7 +12,7 @@
   width: 100%;
   display: flex;
   flex-direction: column;
-  align-items: center;
+  align-items: stretch;
 }
 
 /* HEADER SECTION: left aligned, full width */
@@ -20,7 +20,7 @@
   display: flex;
   align-items: flex-start;
   gap: 2rem;
-  margin-bottom: 2rem;
+  margin-bottom: 0.75rem;
   padding: 0.75rem 0 2rem 0;
   background: transparent;
   width: 100%;
@@ -32,8 +32,8 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 4rem;
-  height: 4rem;
+  width: 3.1rem;
+  height: 3.1rem;
   background: linear-gradient(135deg, #60a5fa, #2563eb);
   border-radius: 0.18rem;
   margin: 0;
@@ -41,8 +41,8 @@
   flex-shrink: 0;
 }
 .cost-method-icon {
-  width: 2rem;
-  height: 2rem;
+  width: 1.55rem;
+  height: 1.55rem;
   color: #fff;
 }
 
@@ -55,7 +55,7 @@
 }
 
 .cost-method-main-title {
-  font-size: 2rem;
+  font-size: 1.5rem;
   font-weight: 800;
   color: #1f2937;
   margin: 0 0 0.5rem 0;
@@ -64,7 +64,7 @@
 }
 .cost-method-subtitle {
   color: #475569;
-  font-size: 1.1rem;
+  font-size: 0.95rem;
   font-weight: 400;
   margin: 0;
   margin-bottom: 0.1rem;
@@ -77,14 +77,13 @@
   color: white;
   padding: 1.5rem 2rem;
   border-radius: 0.2rem;
-  margin-bottom: 2rem;
+  margin-bottom: 1.5rem;
   box-shadow: 0 4px 16px 0 rgba(59, 130, 246, 0.15);
-  width: 600px;
-  max-width: 100%;
+  width: 100%;
 }
 
 .cost-method-stripe-title {
-  font-size: 1.25rem;
+  font-size: 1rem;
   font-weight: 600;
   margin: 0;
   color: white;
@@ -92,6 +91,22 @@
 }
 
 /* --- FORM CARD --- */
+.cost-method-main-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
+  gap: 1.5rem;
+  align-items: flex-start;
+  width: 100%;
+}
+
+.cost-method-left-column {
+  max-width: 620px;
+}
+
+.cost-method-right-column {
+  min-width: 0;
+}
+
 .cost-method-form-card {
   background: #fff;
   border-radius: 0.18rem;
@@ -99,8 +114,7 @@
   border: 1px solid #dbeafe;
   padding: 2rem 2rem 1.5rem 2rem;
   margin-bottom: 2.5rem;
-  width: 600px;
-  max-width: 100%;
+  width: 100%;
 }
 .cost-method-form-content {
   display: flex;
@@ -118,15 +132,15 @@
   gap: 0.7rem;
 }
 .cost-method-field-label {
-  font-size: 1rem;
+  font-size: 0.875rem;
   font-weight: 600;
   color: #374151;
 }
 .cost-method-form-select {
-  padding: 0.72rem 0.9rem;
+  padding: 0.6rem 0.75rem;
   border: 1px solid #dbeafe;
   border-radius: 0.14rem;
-  font-size: 1rem;
+  font-size: 0.9rem;
   background-color: #f4faff;
   transition: all 0.2s;
   box-shadow:
@@ -149,14 +163,15 @@
 .cost-method-radio-label {
   display: flex;
   align-items: flex-start;
-  gap: 0.65rem;
-  padding: 0.5rem 1rem;
+  gap: 0.5rem;
+  padding: 0.4rem 0.85rem;
   background: #f4faff;
   border-radius: 0.15rem;
   border: 1px solid #dbeafe;
   transition: box-shadow 0.16s, border-color 0.16s, background 0.16s;
   cursor: pointer;
   font-weight: 500;
+  font-size: 0.9rem;
 }
 .cost-method-radio-label.selected, .cost-method-radio-label:hover {
   border-color: #2563eb;
@@ -165,17 +180,17 @@
 }
 .cost-method-radio {
   accent-color: #2563eb;
-  width: 1.15rem;
-  height: 1.15rem;
+  width: 0.95rem;
+  height: 0.95rem;
 }
 
 /* Radio descriptions under each radio */
 .cost-method-radio-desc {
   display: block;
-  font-size: 0.95rem;
+  font-size: 0.8rem;
   color: #64748b;
-  margin-top: 0.18rem;
-  margin-left: 1.4rem; /* indent for description */
+  margin-top: 0.15rem;
+  margin-left: 1.2rem; /* indent for description */
   font-weight: 400;
   line-height: 1.35;
 }
@@ -183,37 +198,37 @@
 .cost-method-warning-box {
   display: flex;
   align-items: flex-start;
-  gap: 0.6rem;
+  gap: 0.5rem;
   background: linear-gradient(135deg, #fef9c3, #fef3c7);
   border: 1px solid #fde68a;
   color: #92400e;
-  font-size: 1rem;
-  padding: 0.85rem 1.1rem;
+  font-size: 0.875rem;
+  padding: 0.65rem 0.9rem;
   border-radius: 0.14rem;
   margin-bottom: 1.2rem;
   margin-top: 0.7rem;
 }
 .cost-method-warning-icon {
   font-weight: 900;
-  font-size: 1.22rem;
+  font-size: 0.95rem;
   background: #fde68a;
   color: #eab308;
   border-radius: 50%;
-  width: 1.75rem;
-  height: 1.75rem;
+  width: 1.35rem;
+  height: 1.35rem;
   display: flex;
   align-items: center;
   justify-content: center;
   margin-right: 0.2rem;
-  margin-top: 0.06rem;
+  margin-top: 0.04rem;
 }
 
 .cost-method-message {
   margin-bottom: 1.2rem;
-  padding: 0.85rem 1.2rem;
+  padding: 0.65rem 1rem;
   border-radius: 0.13rem;
   font-weight: 500;
-  font-size: 1rem;
+  font-size: 0.875rem;
 }
 .cost-method-success {
   background: linear-gradient(135deg, #dcfce7, #bbf7d0);
@@ -231,10 +246,10 @@
   margin-top: 0.3rem;
 }
 .cost-method-btn {
-  padding: 0.7rem 2.2rem;
+  padding: 0.55rem 1.75rem;
   border: none;
   border-radius: 0.15rem;
-  font-size: 1rem;
+  font-size: 0.875rem;
   font-weight: 600;
   background: linear-gradient(90deg, #3b82f6 0%, #2563eb 100%);
   color: white;
@@ -267,7 +282,7 @@
   text-align: center;
   margin-top: 2rem;
   color: #6b7280;
-  font-size: 0.88rem;
+  font-size: 0.75rem;
 }
 .cost-method-footer-section p {
   margin: 0;
@@ -289,7 +304,7 @@
     margin-bottom: 0.5rem;
   }
   .cost-method-main-title {
-    font-size: 1.5rem;
+    font-size: 1.2rem;
   }
   .cost-method-form-card {
     width: 100%;
@@ -299,31 +314,31 @@
     width: 100%;
   }
   .cost-method-stripe-title {
-    font-size: 1.1rem;
+    font-size: 0.95rem;
   }
 }
 
 @media (max-width: 480px) {
   .cost-method-header-icon {
-    width: 3rem;
-    height: 3rem;
+    width: 2.25rem;
+    height: 2.25rem;
   }
   .cost-method-icon {
-    width: 1.5rem;
-    height: 1.5rem;
+    width: 1.1rem;
+    height: 1.1rem;
   }
   .cost-method-main-title {
-    font-size: 1.25rem;
+    font-size: 1.1rem;
   }
   .cost-method-subtitle {
-    font-size: 0.875rem;
+    font-size: 0.8rem;
   }
   .cost-method-blue-stripe {
     padding: 1rem;
     width: 100%;
   }
   .cost-method-stripe-title {
-    font-size: 1rem;
+    font-size: 0.9rem;
   }
 }
 
@@ -345,14 +360,14 @@
 }
 
 .cost-method-assigned-title {
-  font-size: 1.25rem;
+  font-size: 1.05rem;
   font-weight: 700;
   color: #1f2937;
   margin: 0 0 0.5rem 0;
 }
 
 .cost-method-assigned-subtitle {
-  font-size: 0.875rem;
+  font-size: 0.8rem;
   color: #6b7280;
   margin: 0;
 }
@@ -372,10 +387,10 @@
 }
 
 .cost-method-empty-icon {
-  width: 4rem;
-  height: 4rem;
+  width: 2.75rem;
+  height: 2.75rem;
   color: #d1d5db;
-  margin-bottom: 1rem;
+  margin-bottom: 0.75rem;
 }
 
 .cost-method-empty-icon svg {
@@ -384,7 +399,7 @@
 }
 
 .cost-method-empty-text {
-  font-size: 1rem;
+  font-size: 0.875rem;
   color: #6b7280;
   margin: 0;
 }
@@ -423,7 +438,7 @@
 }
 
 .cost-method-assigned-portfolio-name {
-  font-size: 1.125rem;
+  font-size: 0.95rem;
   font-weight: 600;
   color: #1f2937;
   margin: 0 0 0.25rem 0;
@@ -431,7 +446,7 @@
 }
 
 .cost-method-assigned-portfolio-id {
-  font-size: 0.875rem;
+  font-size: 0.8rem;
   color: #6b7280;
   margin: 0;
   font-family: 'Courier New', monospace;
@@ -440,9 +455,9 @@
 .cost-method-assigned-method-badge {
   background: linear-gradient(135deg, #3b82f6, #2563eb);
   color: white;
-  padding: 0.5rem 1rem;
+  padding: 0.35rem 0.75rem;
   border-radius: 20px;
-  font-size: 0.75rem;
+  font-size: 0.65rem;
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.05em;
@@ -469,22 +484,22 @@
 }
 
 .cost-method-assigned-detail-label {
-  font-size: 0.875rem;
+  font-size: 0.8rem;
   font-weight: 500;
   color: #6b7280;
 }
 
 .cost-method-assigned-detail-value {
-  font-size: 0.875rem;
+  font-size: 0.8rem;
   font-weight: 600;
   color: #1f2937;
   text-align: right;
 }
 
 .cost-method-assigned-status {
-  padding: 0.25rem 0.75rem;
+  padding: 0.2rem 0.6rem;
   border-radius: 12px;
-  font-size: 0.75rem;
+  font-size: 0.7rem;
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.05em;
@@ -571,20 +586,20 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 3rem;
-  height: 3rem;
+  width: 2.25rem;
+  height: 2.25rem;
   background: linear-gradient(135deg, #f59e0b, #d97706);
   border-radius: 12px;
   color: white;
 }
 
 .upgrade-popup-icon svg {
-  width: 1.5rem;
-  height: 1.5rem;
+  width: 1.15rem;
+  height: 1.15rem;
 }
 
 .upgrade-popup-title {
-  font-size: 1.5rem;
+  font-size: 1.2rem;
   font-weight: 700;
   color: #1f2937;
   margin: 0;
@@ -595,16 +610,16 @@
 }
 
 .upgrade-popup-message {
-  font-size: 1.1rem;
+  font-size: 0.95rem;
   color: #374151;
-  margin: 0 0 1rem 0;
+  margin: 0 0 0.85rem 0;
   line-height: 1.6;
 }
 
 .upgrade-popup-description {
-  font-size: 0.95rem;
+  font-size: 0.85rem;
   color: #6b7280;
-  margin: 0 0 1.5rem 0;
+  margin: 0 0 1.2rem 0;
   line-height: 1.5;
 }
 
@@ -618,14 +633,14 @@
 .upgrade-popup-feature {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
-  font-size: 0.9rem;
+  gap: 0.6rem;
+  font-size: 0.8rem;
   color: #374151;
 }
 
 .upgrade-popup-feature svg {
-  width: 1rem;
-  height: 1rem;
+  width: 0.85rem;
+  height: 0.85rem;
   color: #10b981;
   flex-shrink: 0;
 }
@@ -638,14 +653,14 @@
 }
 
 .upgrade-popup-btn {
-  padding: 0.75rem 1.5rem;
+  padding: 0.55rem 1.2rem;
   border-radius: 8px;
   font-weight: 600;
-  font-size: 0.9rem;
+  font-size: 0.8rem;
   border: none;
   cursor: pointer;
   transition: all 0.2s ease;
-  min-width: 120px;
+  min-width: 100px;
 }
 
 .upgrade-popup-btn-primary {

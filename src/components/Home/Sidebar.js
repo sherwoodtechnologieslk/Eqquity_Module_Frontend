@@ -82,7 +82,7 @@ export const equityManagerMenuItems = [
         <path d="M8 8a1 1 0 011-1h2a1 1 0 110 2H9a1 1 0 01-1-1zm0 2a1 1 0 011-1h2a1 1 0 110 2H9a1 1 0 01-1-1zm1 1a1 1 0 100 2h2a1 1 0 100-2H9z"/>
       </svg>
     ),
-    name: "Accounting Entries",
+    name: "Equity Entries",
     subTopics: [
       "Journal Entries",
       "General Ledger",
@@ -100,9 +100,22 @@ export const equityManagerMenuItems = [
     ),
     name: "GSec Entries",
     subTopics: [
+      "GSEC ENTRIES",
       "Balance Sheet",
       "GSec General Ledger",
       "GSec Chart of Accounts"
+    ]
+  },
+  {
+    icon: (
+      <svg fill="currentColor" viewBox="0 0 20 20">
+        <path fillRule="evenodd" d="M3 3a1 1 0 000 2v10a2 2 0 002 2h10a2 2 0 002-2V5a1 1 0 100-2H3zm4.5 4a.5.5 0 00-.5.5v7a.5.5 0 001 0v-7a.5.5 0 00-.5-.5zM10 7.5a.5.5 0 011 0v7a.5.5 0 01-1 0v-7zm3 .5a.5.5 0 10-1 0v7a.5.5 0 001 0v-7z" clipRule="evenodd"/>
+      </svg>
+    ),
+    name: "Accounting Entries",
+    subTopics: [
+      "Combined General Ledger",
+      "Combined Trial Balance"
     ]
   },
   {
@@ -118,6 +131,15 @@ export const equityManagerMenuItems = [
       "Cash Flow",
       "Financial Reports Export"
     ]
+  },
+  {
+    icon: (
+      <svg fill="currentColor" viewBox="0 0 20 20">
+        <path fillRule="evenodd" d="M3 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" clipRule="evenodd"/>
+      </svg>
+    ),
+    name: "Financial Reporting Notes",
+    subTopics: ["Financial Reporting Notes"]
   },
   {
     icon: (
@@ -475,6 +497,19 @@ export const wealthManagerMenuItems = [
       "Portfolio Performance",
       "Portfolio Reports"
     ]
+  },
+  {
+    icon: (
+      <svg fill="currentColor" viewBox="0 0 20 20">
+        <path
+          fillRule="evenodd"
+          d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z"
+          clipRule="evenodd"
+        />
+      </svg>
+    ),
+    name: "Expense Master",
+    subTopics: ["Expense Master", "Define Expenses"]
   },
   {
     icon: (

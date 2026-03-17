@@ -364,9 +364,9 @@ const ProfitLoss = () => {
               </div>
             </div>
 
-            {/* Realized Capital Gains Section */}
+            {/* Other Income Section */}
             <div className="profit-loss-section">
-              <h3 className="profit-loss-section-title">Realized Capital Gains</h3>
+              <h3 className="profit-loss-section-title">Other Income</h3>
               <div className="profit-loss-table-container">
                 <table className="profit-loss-data-table">
                   <thead>
@@ -378,20 +378,54 @@ const ProfitLoss = () => {
                     </tr>
                   </thead>
                   <tbody>
-                    {profitLossData?.capitalGainsByCategory && Object.keys(profitLossData.capitalGainsByCategory).length > 0 ? (
-                      Object.keys(profitLossData.capitalGainsByCategory).map(category => (
+                    {profitLossData?.otherIncomeByCategory && Object.keys(profitLossData.otherIncomeByCategory).length > 0 ? (
+                      Object.keys(profitLossData.otherIncomeByCategory).map(category => (
                         <React.Fragment key={category}>
-                          {renderCategorySection(category, profitLossData.capitalGainsByCategory[category], false)}
-                          {profitLossData.capitalGainsCategorySubtotals && profitLossData.capitalGainsCategorySubtotals[category] && 
-                            renderCategorySubtotal(category, profitLossData.capitalGainsCategorySubtotals[category])
+                          {renderCategorySection(category, profitLossData.otherIncomeByCategory[category], false)}
+                          {profitLossData.otherIncomeCategorySubtotals && profitLossData.otherIncomeCategorySubtotals[category] && 
+                            renderCategorySubtotal(category, profitLossData.otherIncomeCategorySubtotals[category])
                           }
                         </React.Fragment>
                       ))
                     ) : (
-                      profitLossData?.realizedCapitalGainAccounts?.map((account, index) => renderAccountRow(account, index))
+                      profitLossData?.otherIncomeAccounts?.map((account, index) => renderAccountRow(account, index))
                     )}
-                    {profitLossData?.realizedCapitalGainsSubtotal && 
-                      renderTypeSubtotal('Total Realized Capital Gains', profitLossData.realizedCapitalGainsSubtotal)
+                    {profitLossData?.otherIncomeSubtotal && 
+                      renderTypeSubtotal('Total Other Income', profitLossData.otherIncomeSubtotal)
+                    }
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            {/* Provisions Section */}
+            <div className="profit-loss-section">
+              <h3 className="profit-loss-section-title">Provisions</h3>
+              <div className="profit-loss-table-container">
+                <table className="profit-loss-data-table">
+                  <thead>
+                    <tr className="profit-loss-table-header">
+                      <th className="profit-loss-th-account-code">Account Code</th>
+                      <th className="profit-loss-th-account-name">Account Name</th>
+                      <th className="profit-loss-th-type">Type</th>
+                      <th className="profit-loss-th-balance">Amount</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {profitLossData?.provisionsByCategory && Object.keys(profitLossData.provisionsByCategory).length > 0 ? (
+                      Object.keys(profitLossData.provisionsByCategory).map(category => (
+                        <React.Fragment key={category}>
+                          {renderCategorySection(category, profitLossData.provisionsByCategory[category], true)}
+                          {profitLossData.provisionsCategorySubtotals && profitLossData.provisionsCategorySubtotals[category] && 
+                            renderCategorySubtotal(category, profitLossData.provisionsCategorySubtotals[category])
+                          }
+                        </React.Fragment>
+                      ))
+                    ) : (
+                      profitLossData?.provisionsAccounts?.map((account, index) => renderAccountRow(account, index))
+                    )}
+                    {profitLossData?.provisionsSubtotal && 
+                      renderTypeSubtotal('Total Provisions', profitLossData.provisionsSubtotal)
                     }
                   </tbody>
                 </table>
@@ -476,9 +510,15 @@ const ProfitLoss = () => {
                     </span>
                   </div>
                   <div className="profit-loss-net-item">
-                    <span className="profit-loss-net-label">Realized Capital Gains:</span>
-                    <span className={`profit-loss-net-value ${getBalanceColor(profitLossData?.totals.realized_capital_gains || 0)}`}>
-                      {formatCurrency(profitLossData?.totals.realized_capital_gains || 0)}
+                    <span className="profit-loss-net-label">Other Income:</span>
+                    <span className={`profit-loss-net-value ${getBalanceColor(profitLossData?.totals.total_other_income || 0)}`}>
+                      {formatCurrency(profitLossData?.totals.total_other_income || 0)}
+                    </span>
+                  </div>
+                  <div className="profit-loss-net-item">
+                    <span className="profit-loss-net-label">Provisions:</span>
+                    <span className={`profit-loss-net-value ${getBalanceColor((profitLossData?.totals.total_provisions || 0) * -1)}`}>
+                      {formatCurrency(profitLossData?.totals.total_provisions || 0)}
                     </span>
                   </div>
                   <div className="profit-loss-net-item">

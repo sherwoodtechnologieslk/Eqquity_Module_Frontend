@@ -201,7 +201,7 @@ const TrialBalance = () => {
     // Create MTM accounts with real-time data (using new format: XXX-XXX-XXX-XX)
     const mtmAccounts = [
       {
-        account_code: '100-001-001-02',
+        account_code: '100-101-001-001-44',
         account_name: 'Asset Fair Value Adjustment',
         account_type: 'Asset',
         total_debit: mtmData.fairValueAdjustment > 0 ? mtmData.fairValueAdjustment : 0,
@@ -210,7 +210,7 @@ const TrialBalance = () => {
         balance_type: mtmData.fairValueAdjustment > 0 ? 'DR' : mtmData.fairValueAdjustment < 0 ? 'CR' : 'ZERO'
       },
       {
-        account_code: '401-017-001-01',
+        account_code: '417-101-001-001-44',
         account_name: 'Other Revenue Unrealized Capital Gain/Loss',
         account_type: 'Other',
         total_debit: mtmData.totalUnrealizedCapitalGain < 0 ? Math.abs(mtmData.totalUnrealizedCapitalGain) : 0,
