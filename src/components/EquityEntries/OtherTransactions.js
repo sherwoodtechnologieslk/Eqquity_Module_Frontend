@@ -69,8 +69,11 @@ const OtherTransactions = () => {
   const [definedTransactionTypesLoading, setDefinedTransactionTypesLoading] = useState(false);
   
   // Account categories grouped by account_type (for Category dropdown)
+  // Keys here are the "main categories" you want to expose in Non-Trading Transactions.
   const [accountCategories, setAccountCategories] = useState({
-    income: [],
+    revenue: [],
+    otherIncome: [],
+    provisions: [],
     expense: [],
     asset: [],
     liability: [],
@@ -78,7 +81,9 @@ const OtherTransactions = () => {
   });
   // Full category objects grouped by account_type (for Sub Category dropdown)
   const [categoriesByType, setCategoriesByType] = useState({
-    income: [],
+    revenue: [],
+    otherIncome: [],
+    provisions: [],
     expense: [],
     asset: [],
     liability: [],
@@ -103,8 +108,8 @@ const OtherTransactions = () => {
   const [activeTab, setActiveTab] = useState('create'); // 'create', 'defineTransaction', 'view', 'generalLedger', 'reverseTransaction'
   const [activeCategory, setActiveCategory] = useState('all'); // 'all', 'income', 'expense', 'asset', 'liability'
   
-  // Form type state for Create Voucher tab (voucher, assetDepreciation, assetDerecognition, or liabilitySettlement)
-  const [activeFormType, setActiveFormType] = useState('voucher'); // 'voucher', 'assetDepreciation', 'assetDerecognition', or 'liabilitySettlement'
+  // Form type state for Create Voucher tab (voucher, assetDepreciation, assetDerecognition, liabilitySettlement, glToGl)
+  const [activeFormType, setActiveFormType] = useState('voucher'); // 'voucher', 'assetDepreciation', 'assetDerecognition', 'liabilitySettlement', 'glToGl'
   
   // Asset Depreciation form state
   const [assetDepreciationForm, setAssetDepreciationForm] = useState({
@@ -167,6 +172,20 @@ const OtherTransactions = () => {
     paymentBankName: '',
     paymentBranchName: '',
     paymentMethod: ''
+  });
+
+  // GL to GL form state
+  const [glToGlForm, setGlToGlForm] = useState({
+    voucherNumber: generateVoucherNumber(),
+    debitAccountCode: '',
+    debitAccountName: '',
+    creditAccountCode: '',
+    creditAccountName: '',
+    amount: '',
+    date: new Date().toISOString().split('T')[0],
+    description: '',
+    reference: '',
+    notes: ''
   });
   
   // Transaction types for Liability Settlement form
@@ -418,10 +437,11 @@ const OtherTransactions = () => {
         
         setAccountsWithMapping(mappedAccountIds);
         
-        // Group categories by account_type (income, expense, asset, liability, equity)
-        // This structure: { income: ['Category1', 'Category2'], expense: [...], etc. }
+        // Group categories by account_type (revenue, otherIncome, provisions, expense, asset, liability, equity)
         const grouped = {
-          income: [],
+          revenue: [],
+          otherIncome: [],
+          provisions: [],
           expense: [],
           asset: [],
           liability: [],
@@ -430,7 +450,9 @@ const OtherTransactions = () => {
         
         // Also store full category objects for sub-category dropdown
         const categoriesByType = {
-          income: [],
+          revenue: [],
+          otherIncome: [],
+          provisions: [],
           expense: [],
           asset: [],
           liability: [],
@@ -440,9 +462,15 @@ const OtherTransactions = () => {
         // Process top-level categories from database
         categoriesData.forEach(cat => {
           const accountType = cat.account_type?.toLowerCase();
-          if (accountType === 'revenue' || accountType === 'income') {
-            grouped.income.push(cat.category_name);
-            categoriesByType.income.push(cat);
+          if (accountType === 'revenue') {
+            grouped.revenue.push(cat.category_name);
+            categoriesByType.revenue.push(cat);
+          } else if (accountType === 'other income') {
+            grouped.otherIncome.push(cat.category_name);
+            categoriesByType.otherIncome.push(cat);
+          } else if (accountType === 'provisions') {
+            grouped.provisions.push(cat.category_name);
+            categoriesByType.provisions.push(cat);
           } else if (accountType === 'expense') {
             grouped.expense.push(cat.category_name);
             categoriesByType.expense.push(cat);
@@ -460,7 +488,9 @@ const OtherTransactions = () => {
         
         // Extract sub-categories from transaction types (like in NewGLAccount.js)
         const subCategoriesFromTransactionTypes = {
-          income: [],
+          revenue: [],
+          otherIncome: [],
+          provisions: [],
           expense: [],
           asset: [],
           liability: [],
@@ -471,8 +501,12 @@ const OtherTransactions = () => {
           const accountType = tt.account_type?.toLowerCase();
           let mappedType = '';
           
-          if (accountType === 'revenue' || accountType === 'income') {
-            mappedType = 'income';
+          if (accountType === 'revenue') {
+            mappedType = 'revenue';
+          } else if (accountType === 'other income') {
+            mappedType = 'otherIncome';
+          } else if (accountType === 'provisions') {
+            mappedType = 'provisions';
           } else if (accountType === 'expense') {
             mappedType = 'expense';
           } else if (accountType === 'asset') {
@@ -512,7 +546,9 @@ const OtherTransactions = () => {
         });
         
         // Remove duplicates and sort
-        grouped.income = [...new Set(grouped.income)].sort();
+        grouped.revenue = [...new Set(grouped.revenue)].sort();
+        grouped.otherIncome = [...new Set(grouped.otherIncome)].sort();
+        grouped.provisions = [...new Set(grouped.provisions)].sort();
         grouped.expense = [...new Set(grouped.expense)].sort();
         grouped.asset = [...new Set(grouped.asset)].sort();
         grouped.liability = [...new Set(grouped.liability)].sort();
@@ -530,8 +566,8 @@ const OtherTransactions = () => {
       } catch (error) {
         console.error('Error fetching data:', error);
         setAccounts([]);
-        setAccountCategories({ income: [], expense: [], asset: [], liability: [], equity: [] });
-        setCategoriesByType({ income: [], expense: [], asset: [], liability: [], equity: [] });
+        setAccountCategories({ revenue: [], otherIncome: [], provisions: [], expense: [], asset: [], liability: [], equity: [] });
+        setCategoriesByType({ revenue: [], otherIncome: [], provisions: [], expense: [], asset: [], liability: [], equity: [] });
       } finally {
         setAccountsLoading(false);
         setCategoriesLoading(false);
@@ -557,9 +593,11 @@ const OtherTransactions = () => {
             accountCategoryAPI.getAllTransactionTypes().catch(() => [])
           ]);
           
-          // Group categories by account_type (income, expense, asset, liability, equity)
+          // Group categories by account_type (revenue, otherIncome, provisions, expense, asset, liability, equity)
           const grouped = {
-            income: [],
+            revenue: [],
+            otherIncome: [],
+            provisions: [],
             expense: [],
             asset: [],
             liability: [],
@@ -567,7 +605,9 @@ const OtherTransactions = () => {
           };
           
           const categoriesByType = {
-            income: [],
+            revenue: [],
+            otherIncome: [],
+            provisions: [],
             expense: [],
             asset: [],
             liability: [],
@@ -577,9 +617,15 @@ const OtherTransactions = () => {
           // Process top-level categories from database
           categoriesData.forEach(cat => {
             const accountType = cat.account_type?.toLowerCase();
-            if (accountType === 'revenue' || accountType === 'income') {
-              grouped.income.push(cat.category_name);
-              categoriesByType.income.push(cat);
+            if (accountType === 'revenue') {
+              grouped.revenue.push(cat.category_name);
+              categoriesByType.revenue.push(cat);
+            } else if (accountType === 'other income') {
+              grouped.otherIncome.push(cat.category_name);
+              categoriesByType.otherIncome.push(cat);
+            } else if (accountType === 'provisions') {
+              grouped.provisions.push(cat.category_name);
+              categoriesByType.provisions.push(cat);
             } else if (accountType === 'expense') {
               grouped.expense.push(cat.category_name);
               categoriesByType.expense.push(cat);
@@ -597,7 +643,9 @@ const OtherTransactions = () => {
           
           // Extract sub-categories from transaction types
           const subCategoriesFromTransactionTypes = {
-            income: [],
+            revenue: [],
+            otherIncome: [],
+            provisions: [],
             expense: [],
             asset: [],
             liability: [],
@@ -608,8 +656,12 @@ const OtherTransactions = () => {
             const accountType = tt.account_type?.toLowerCase();
             let mappedType = '';
             
-            if (accountType === 'revenue' || accountType === 'income') {
-              mappedType = 'income';
+            if (accountType === 'revenue') {
+              mappedType = 'revenue';
+            } else if (accountType === 'other income') {
+              mappedType = 'otherIncome';
+            } else if (accountType === 'provisions') {
+              mappedType = 'provisions';
             } else if (accountType === 'expense') {
               mappedType = 'expense';
             } else if (accountType === 'asset') {
@@ -649,7 +701,9 @@ const OtherTransactions = () => {
           });
           
           // Remove duplicates and sort
-          grouped.income = [...new Set(grouped.income)].sort();
+          grouped.revenue = [...new Set(grouped.revenue)].sort();
+          grouped.otherIncome = [...new Set(grouped.otherIncome)].sort();
+          grouped.provisions = [...new Set(grouped.provisions)].sort();
           grouped.expense = [...new Set(grouped.expense)].sort();
           grouped.asset = [...new Set(grouped.asset)].sort();
           grouped.liability = [...new Set(grouped.liability)].sort();
@@ -685,6 +739,21 @@ const OtherTransactions = () => {
     } else if (activeTab === 'create' && activeFormType === 'liabilitySettlement') {
       // Ensure vouchers are available for the liability settlement voucher dropdown
       fetchVouchers();
+    } else if (activeTab === 'create' && activeFormType === 'glToGl') {
+      // Fetch Chart of Accounts for GL to GL postings
+      const loadCoA = async () => {
+        try {
+          setChartAccountsLoading(true);
+          const coa = await chartOfAccountsAPI.getAll();
+          setChartAccounts(Array.isArray(coa) ? coa : []);
+        } catch (e) {
+          console.error('Error fetching chart of accounts:', e);
+          setChartAccounts([]);
+        } finally {
+          setChartAccountsLoading(false);
+        }
+      };
+      loadCoA();
     }
   }, [activeTab, activeFormType]);
 
@@ -977,10 +1046,14 @@ const OtherTransactions = () => {
   const getBaseCategory = (category) => {
     if (!category) return null;
     const catLower = category.toLowerCase();
+    if (catLower === 'revenue') return 'revenue';
+    if (catLower === 'other income' || catLower === 'otherincome') return 'otherIncome';
+    if (catLower === 'provisions') return 'provisions';
     if (catLower === 'income') return 'income';
     if (catLower === 'expense') return 'expense';
     if (catLower === 'asset' || catLower.includes('asset')) return 'asset';
     if (catLower === 'liability' || catLower.includes('liability')) return 'liability';
+    if (catLower === 'equity') return 'equity';
     return null;
   };
 
@@ -990,10 +1063,14 @@ const OtherTransactions = () => {
     console.log('🔄 Regrouping transaction types. Total items:', definedTransactionTypes.length);
     
     const groups = {
+      revenue: [],
+      otherIncome: [],
+      provisions: [],
       income: [],
       expense: [],
       asset: [],
-      liability: []
+      liability: [],
+      equity: []
     };
     
     // First, let's see what we're working with
@@ -1012,7 +1089,22 @@ const OtherTransactions = () => {
       
       console.log(`🔍 Processing: "${originalCategory}" -> normalized: "${cat}"`);
       
-      // Match income
+      // Match revenue / other income / provisions / legacy income
+      if (cat === 'revenue') {
+        groups.revenue.push(t);
+        console.log(`  ✅ Added to revenue`);
+        return;
+      }
+      if (cat === 'other income' || cat === 'otherincome') {
+        groups.otherIncome.push(t);
+        console.log(`  ✅ Added to otherIncome`);
+        return;
+      }
+      if (cat === 'provisions') {
+        groups.provisions.push(t);
+        console.log(`  ✅ Added to provisions`);
+        return;
+      }
       if (cat === 'income') {
         groups.income.push(t);
         console.log(`  ✅ Added to income`);
@@ -1439,6 +1531,104 @@ const OtherTransactions = () => {
       paymentMethod: ''
     });
     setSubmitMessage('');
+  };
+
+  const handleGlToGlChange = (e) => {
+    const { name, value } = e.target;
+    // When user selects a GL account code, auto-fill the corresponding account name from COA
+    if (name === 'debitAccountCode') {
+      const code = String(value || '').trim();
+      const coa = chartAccounts.find(a => a.account_code === code);
+      setGlToGlForm(prev => ({
+        ...prev,
+        debitAccountCode: value,
+        debitAccountName: coa?.description || prev.debitAccountName
+      }));
+      return;
+    }
+    if (name === 'creditAccountCode') {
+      const code = String(value || '').trim();
+      const coa = chartAccounts.find(a => a.account_code === code);
+      setGlToGlForm(prev => ({
+        ...prev,
+        creditAccountCode: value,
+        creditAccountName: coa?.description || prev.creditAccountName
+      }));
+      return;
+    }
+
+    setGlToGlForm(prev => ({ ...prev, [name]: value }));
+  };
+
+  const handleGlToGlReset = () => {
+    setGlToGlForm({
+      voucherNumber: generateVoucherNumber(),
+      debitAccountCode: '',
+      debitAccountName: '',
+      creditAccountCode: '',
+      creditAccountName: '',
+      amount: '',
+      date: new Date().toISOString().split('T')[0],
+      description: '',
+      reference: '',
+      notes: ''
+    });
+    setSubmitMessage('');
+  };
+
+  const handleGlToGlSubmit = async (e) => {
+    e.preventDefault();
+
+    if (!glToGlForm.debitAccountCode?.trim()) {
+      setSubmitMessage('Error: Debit GL Account Code is required');
+      return;
+    }
+    if (!glToGlForm.creditAccountCode?.trim()) {
+      setSubmitMessage('Error: Credit GL Account Code is required');
+      return;
+    }
+    if (!glToGlForm.amount || isNaN(parseFloat(glToGlForm.amount)) || parseFloat(glToGlForm.amount) <= 0) {
+      setSubmitMessage('Error: Amount must be a positive number');
+      return;
+    }
+
+    setIsSubmitting(true);
+    setSubmitMessage('');
+
+    try {
+      const user = authService.getStoredUser();
+      const userEmail = user?.email || '';
+
+      const debitCode = glToGlForm.debitAccountCode.trim();
+      const creditCode = glToGlForm.creditAccountCode.trim();
+      const debitCoa = chartAccounts.find(a => a.account_code === debitCode);
+      const creditCoa = chartAccounts.find(a => a.account_code === creditCode);
+
+      const payload = {
+        voucherNumber: glToGlForm.voucherNumber,
+        accountType: 'gl_to_gl',
+        transactionType: 'GL_TO_GL',
+        description: glToGlForm.description,
+        amount: glToGlForm.amount,
+        date: glToGlForm.date,
+        reference: glToGlForm.reference,
+        notes: glToGlForm.notes,
+        debitGlAccountCode: debitCode,
+        debitCoaDescription: glToGlForm.debitAccountName?.trim() || debitCoa?.description || null,
+        creditGlAccountCode: creditCode,
+        creditCoaDescription: glToGlForm.creditAccountName?.trim() || creditCoa?.description || null,
+        userEmail
+      };
+
+      await otherTransactionAPI.createTransaction(payload);
+      setSubmitMessage('GL to GL transaction posted successfully!');
+      handleGlToGlReset();
+    } catch (error) {
+      console.error('Error posting GL to GL transaction:', error);
+      setSubmitMessage(`Error posting GL to GL transaction: ${error.message}`);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   // Handler for Asset Depreciation form changes
@@ -2294,6 +2484,30 @@ const isVoucherSettled = (voucher) => {
               </svg>
               Liability Settlement
             </button>
+            <button
+              type="button"
+              onClick={() => setActiveFormType('glToGl')}
+              style={{
+                padding: '0.75rem 1.5rem',
+                border: 'none',
+                background: activeFormType === 'glToGl' ? 'linear-gradient(135deg, #3b82f6, #2563eb)' : 'transparent',
+                color: activeFormType === 'glToGl' ? 'white' : '#6b7280',
+                fontWeight: activeFormType === 'glToGl' ? '600' : '500',
+                cursor: 'pointer',
+                fontSize: '0.9375rem',
+                borderRadius: '0.5rem 0.5rem 0 0',
+                borderBottom: activeFormType === 'glToGl' ? '3px solid #3b82f6' : '3px solid transparent',
+                transition: 'all 0.2s ease',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.5rem'
+              }}
+            >
+              <svg width="18" height="18" fill="currentColor" viewBox="0 0 20 20">
+                <path fillRule="evenodd" d="M10 2a1 1 0 011 1v1h3a2 2 0 012 2v1a1 1 0 11-2 0V6H6v8h8v-1a1 1 0 112 0v1a2 2 0 01-2 2h-3v1a1 1 0 11-2 0v-1H7a2 2 0 01-2-2V6a2 2 0 012-2h3V3a1 1 0 011-1zm-2.707 6.293a1 1 0 010 1.414L6.414 10l.879.879a1 1 0 11-1.414 1.414l-1.586-1.586a1 1 0 010-1.414l1.586-1.586a1 1 0 011.414 0zm5.414 0a1 1 0 011.414 0l1.586 1.586a1 1 0 010 1.414l-1.586 1.586a1 1 0 11-1.414-1.414L13.586 10l-.879-.879a1 1 0 010-1.414z" clipRule="evenodd"/>
+              </svg>
+              GL to GL
+            </button>
           </div>
 
           <div className="other-trans-form-content">
@@ -2359,7 +2573,9 @@ const isVoucherSettled = (voucher) => {
                     disabled={categoriesLoading}
                   >
                     <option value="">Select Main Category</option>
-                    <option value="income">Income</option>
+                    <option value="revenue">Revenue</option>
+                    <option value="otherIncome">Other Income</option>
+                    <option value="provisions">Provisions</option>
                     <option value="expense">Expense</option>
                     <option value="asset">Asset</option>
                     <option value="liability">Liability</option>
@@ -2863,6 +3079,211 @@ const isVoucherSettled = (voucher) => {
                   disabled={isSubmitting}
                 >
                   {isSubmitting ? 'Saving...' : 'Save Voucher'}
+                </button>
+              </div>
+            </form>
+            ) : activeFormType === 'glToGl' ? (
+            /* GL to GL Form */
+            <form onSubmit={handleGlToGlSubmit}>
+              <div className="other-trans-form-grid">
+                {/* Voucher Number */}
+                <div className="other-trans-field-group" style={{ gridColumn: '1 / -1' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
+                    <label className="other-trans-field-label" style={{ marginBottom: 0 }}>Voucher Number</label>
+                    <button
+                      type="button"
+                      onClick={() => setGlToGlForm(prev => ({ ...prev, voucherNumber: generateVoucherNumber() }))}
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '0.5rem',
+                        padding: '0.5rem 1rem',
+                        background: 'linear-gradient(90deg, #3b82f6 0%, #2563eb 100%)',
+                        color: 'white',
+                        border: 'none',
+                        borderRadius: '0.15rem',
+                        cursor: 'pointer',
+                        fontSize: '0.875rem',
+                        fontWeight: '500',
+                        transition: 'all 0.2s ease'
+                      }}
+                    >
+                      <svg width="16" height="16" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01.61-1.276z" clipRule="evenodd"/>
+                      </svg>
+                      Regenerate
+                    </button>
+                  </div>
+                  <input
+                    name="voucherNumber"
+                    value={glToGlForm.voucherNumber}
+                    onChange={handleGlToGlChange}
+                    className="other-trans-form-input"
+                  />
+                  <small style={{ color: '#6b7280', fontSize: '0.75rem' }}>
+                    Auto-generated voucher number
+                  </small>
+                </div>
+
+                {/* Date */}
+                <div className="other-trans-field-group">
+                  <label className="other-trans-field-label">Date *</label>
+                  <input
+                    type="date"
+                    name="date"
+                    value={glToGlForm.date}
+                    onChange={handleGlToGlChange}
+                    className="other-trans-form-input"
+                    required
+                  />
+                </div>
+
+                {/* Amount */}
+                <div className="other-trans-field-group">
+                  <label className="other-trans-field-label">Amount *</label>
+                  <input
+                    type="number"
+                    name="amount"
+                    value={glToGlForm.amount}
+                    onChange={handleGlToGlChange}
+                    className="other-trans-form-input"
+                    step="0.01"
+                    min="0"
+                    required
+                  />
+                </div>
+
+                {/* Debit GL */}
+                <div className="other-trans-field-group">
+                  <label className="other-trans-field-label">Debit GL Account Code *</label>
+                  <input
+                    name="debitAccountCode"
+                    value={glToGlForm.debitAccountCode}
+                    onChange={handleGlToGlChange}
+                    className="other-trans-form-input"
+                    list="glToGlDebitAccounts"
+                    placeholder={chartAccountsLoading ? 'Loading chart of accounts...' : 'Start typing account code'}
+                    required
+                  />
+                  <datalist id="glToGlDebitAccounts">
+                    {chartAccounts.map((a) => (
+                      <option key={`dr-${a.account_code}`} value={a.account_code}>
+                        {a.description}
+                      </option>
+                    ))}
+                  </datalist>
+                  <small style={{ color: '#6b7280', fontSize: '0.75rem' }}>
+                    Pick from Chart of Accounts (code)
+                  </small>
+                </div>
+
+                {/* Credit GL */}
+                <div className="other-trans-field-group">
+                  <label className="other-trans-field-label">Credit GL Account Code *</label>
+                  <input
+                    name="creditAccountCode"
+                    value={glToGlForm.creditAccountCode}
+                    onChange={handleGlToGlChange}
+                    className="other-trans-form-input"
+                    list="glToGlCreditAccounts"
+                    placeholder={chartAccountsLoading ? 'Loading chart of accounts...' : 'Start typing account code'}
+                    required
+                  />
+                  <datalist id="glToGlCreditAccounts">
+                    {chartAccounts.map((a) => (
+                      <option key={`cr-${a.account_code}`} value={a.account_code}>
+                        {a.description}
+                      </option>
+                    ))}
+                  </datalist>
+                  <small style={{ color: '#6b7280', fontSize: '0.75rem' }}>
+                    Pick from Chart of Accounts (code)
+                  </small>
+                </div>
+
+                {/* Optional names */}
+                <div className="other-trans-field-group">
+                  <label className="other-trans-field-label">Debit Account Name (optional)</label>
+                  <input
+                    name="debitAccountName"
+                    value={glToGlForm.debitAccountName}
+                    onChange={handleGlToGlChange}
+                    className="other-trans-form-input"
+                    placeholder="If blank, COA description will be used"
+                  />
+                </div>
+                <div className="other-trans-field-group">
+                  <label className="other-trans-field-label">Credit Account Name (optional)</label>
+                  <input
+                    name="creditAccountName"
+                    value={glToGlForm.creditAccountName}
+                    onChange={handleGlToGlChange}
+                    className="other-trans-form-input"
+                    placeholder="If blank, COA description will be used"
+                  />
+                </div>
+
+                {/* Description */}
+                <div className="other-trans-field-group" style={{ gridColumn: '1 / -1' }}>
+                  <label className="other-trans-field-label">Description</label>
+                  <input
+                    name="description"
+                    value={glToGlForm.description}
+                    onChange={handleGlToGlChange}
+                    className="other-trans-form-input"
+                    placeholder="Narration for the journal"
+                  />
+                </div>
+
+                {/* Reference */}
+                <div className="other-trans-field-group">
+                  <label className="other-trans-field-label">Reference</label>
+                  <input
+                    name="reference"
+                    value={glToGlForm.reference}
+                    onChange={handleGlToGlChange}
+                    className="other-trans-form-input"
+                    placeholder="Optional reference"
+                  />
+                </div>
+
+                {/* Notes */}
+                <div className="other-trans-field-group" style={{ gridColumn: '1 / -1' }}>
+                  <label className="other-trans-field-label">Notes</label>
+                  <textarea
+                    name="notes"
+                    value={glToGlForm.notes}
+                    onChange={handleGlToGlChange}
+                    rows="3"
+                    className="other-trans-form-textarea"
+                    placeholder="Optional notes"
+                  />
+                </div>
+              </div>
+
+              {/* Success/Error Message */}
+              {submitMessage && (
+                <div className={`other-trans-message ${submitMessage.includes('Error') ? 'other-trans-error' : 'other-trans-success'}`}>
+                  {submitMessage}
+                </div>
+              )}
+
+              {/* Buttons */}
+              <div className="other-trans-button-section">
+                <button
+                  type="button"
+                  onClick={handleGlToGlReset}
+                  className="other-trans-btn other-trans-btn-secondary"
+                  disabled={isSubmitting}
+                >
+                  Reset Form
+                </button>
+                <button
+                  type="submit"
+                  className="other-trans-btn other-trans-btn-primary"
+                  disabled={isSubmitting}
+                >
+                  {isSubmitting ? 'Posting...' : 'Post GL to GL'}
                 </button>
               </div>
             </form>
@@ -4246,7 +4667,9 @@ const isVoucherSettled = (voucher) => {
                       disabled={categoriesLoading}
                     >
                       <option value="">Select Main Category</option>
-                      <option value="income">Income</option>
+                      <option value="revenue">Revenue</option>
+                      <option value="otherIncome">Other Income</option>
+                      <option value="provisions">Provisions</option>
                       <option value="expense">Expense</option>
                       <option value="asset">Asset</option>
                       <option value="liability">Liability</option>
@@ -4639,10 +5062,14 @@ const isVoucherSettled = (voucher) => {
                     style={{ width: 'auto', minWidth: '200px' }}
                   >
                     <option value="">Select Category to View</option>
-                    <option value="income">Income</option>
+                    <option value="revenue">Revenue</option>
+                    <option value="otherIncome">Other Income</option>
+                    <option value="provisions">Provisions</option>
+                    <option value="income">Income (Legacy)</option>
                     <option value="expense">Expense</option>
                     <option value="asset">Asset</option>
                     <option value="liability">Liability</option>
+                    <option value="equity">Equity</option>
                   </select>
                 </div>
 
@@ -5256,7 +5683,9 @@ const isVoucherSettled = (voucher) => {
                       disabled={categoriesLoading}
                     >
                       <option value="">Select Main Category</option>
-                      <option value="income">Income</option>
+                      <option value="revenue">Revenue</option>
+                      <option value="otherIncome">Other Income</option>
+                      <option value="provisions">Provisions</option>
                       <option value="expense">Expense</option>
                       <option value="asset">Asset</option>
                       <option value="liability">Liability</option>

@@ -21,6 +21,7 @@ const ClientDocumentUploadForm = ({ onNext, onPrevious, initialData = {} }) => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
+
     if (onNext) {
       onNext({
         nicFront,

@@ -11,7 +11,12 @@ const mockFunds = [
 
 const paymentMethods = ['Bank Transfer', 'Direct Debit (JustPay)', 'Cash Deposit', 'Standing Order'];
 
-const Create = () => {
+const Create = ({ fundingStatus, onFundingComplete }) => {
+  const isFundingComplete = fundingStatus?.isComplete;
+  const confirmedAmount = fundingStatus?.amount || 0;
+  const [fundingFile, setFundingFile] = useState(null);
+  const [fundingAmountInput, setFundingAmountInput] = useState('');
+  const [fundingError, setFundingError] = useState('');
   const [selectedFundId, setSelectedFundId] = useState(mockFunds[0].id);
   const [entryMode, setEntryMode] = useState('amount'); // 'amount' or 'units'
   const [amount, setAmount] = useState('');
@@ -39,8 +44,31 @@ const Create = () => {
       ? (parseFloat(units) || 0) * selectedFund.nav
       : 0;
 
+  const handleFundingConfirm = () => {
+    const parsedAmount = parseFloat(fundingAmountInput);
+
+    if (!fundingFile) {
+      setFundingError('Please upload your bank statement for the transfer.');
+      return;
+    }
+
+    if (!parsedAmount || parsedAmount <= 0) {
+      setFundingError('Please enter a valid transferred amount.');
+      return;
+    }
+
+    setFundingError('');
+
+    if (typeof onFundingComplete === 'function') {
+      onFundingComplete({
+        amount: parsedAmount
+      });
+    }
+  };
+
   const handleSubmit = (e) => {
     e.preventDefault();
+    if (!isFundingComplete) return;
     if (!selectedFund || calculatedAmount <= 0 || numericUnits <= 0) return;
 
     const newInstruction = {
@@ -64,12 +92,99 @@ const Create = () => {
     setReference('');
   };
 
+  if (!isFundingComplete) {
+    return (
+      <div className="cp-portfolio">
+        <div className="cp-portfolio-header">
+          <h1>Create Units</h1>
+          <p>Create a new subscription into one of your unit trust funds.</p>
+        </div>
+
+        <div className="cp-create-funding-gate">
+          <h3>Complete your bank funding first</h3>
+          <p>
+            Before you can place a create instruction, please complete these steps:
+          </p>
+          <ol>
+            <li>Make a bank transfer from your own bank account.</li>
+            <li>
+              Upload the bank statement for that transfer using the form below.
+            </li>
+            <li>Confirm the exact amount transferred.</li>
+          </ol>
+          <div className="cp-create-funding-form">
+            <div className="cp-create-row">
+              <div className="cp-create-field cp-create-field-full">
+                <label htmlFor="fundingStatement">Upload Bank Statement</label>
+                <input
+                  id="fundingStatement"
+                  type="file"
+                  accept="image/*,application/pdf"
+                  onChange={(e) => {
+                    const file =
+                      e.target.files && e.target.files[0] ? e.target.files[0] : null;
+                    setFundingFile(file);
+                  }}
+                />
+              </div>
+            </div>
+            <div className="cp-create-row" style={{ marginTop: '1.25rem' }}>
+              <div className="cp-create-field">
+                <label htmlFor="fundingAmountInput">
+                  Confirm Amount Transferred (LKR)
+                </label>
+                <input
+                  id="fundingAmountInput"
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  value={fundingAmountInput}
+                  onChange={(e) => setFundingAmountInput(e.target.value)}
+                  placeholder="0.00"
+                />
+              </div>
+            </div>
+            {fundingError && (
+              <div className="cp-create-error">
+                {fundingError}
+              </div>
+            )}
+            <div className="cp-create-actions">
+              <button
+                type="button"
+                className="cp-create-submit"
+                onClick={handleFundingConfirm}
+              >
+                Confirm Funding
+              </button>
+              <span className="cp-create-hint">
+                After confirming your transfer here, the Create form will be unlocked.
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="cp-portfolio">
       <div className="cp-portfolio-header">
         <h1>Create Units</h1>
         <p>Create a new subscription into one of your unit trust funds.</p>
       </div>
+
+      {isFundingComplete && confirmedAmount > 0 && (
+        <div className="cp-create-funding-status">
+          <span>Confirmed funding amount (LKR)</span>
+          <strong>
+            {confirmedAmount.toLocaleString(undefined, {
+              minimumFractionDigits: 2,
+              maximumFractionDigits: 2
+            })}
+          </strong>
+        </div>
+      )}
 
       <div className="cp-create-grid">
         {/* Left: Create form */}

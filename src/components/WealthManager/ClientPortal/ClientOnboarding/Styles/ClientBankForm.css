@@ -1,27 +1,40 @@
 .cp-signup-form-container {
-  min-height: 100vh;
+  width: 100%;
+  min-height: 100%;
   display: flex;
-  align-items: center;
-  justify-content: center;
-  background: linear-gradient(135deg, #f0fdfa 0%, #e6fffa 100%);
-  padding: 2rem;
+  align-items: flex-start;
+  justify-content: stretch;
+  background: #f1f5f9;
 }
 
 .cp-signup-form-wrapper {
   background: white;
   width: 100%;
-  max-width: 1200px;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-  border: 1px solid #e5e7eb;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08), 0 8px 32px rgba(0, 0, 0, 0.06);
+  border: 1px solid #e2e8f0;
   border-radius: 0;
   display: flex;
   flex-direction: column;
+  min-height: calc(100vh - 65px);
 }
 
 .cp-signup-form-header {
-  padding: 2rem 2rem 1.5rem;
-  border-bottom: 2px solid #e5e7eb;
+  padding: 1.3rem 2rem 1.1rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.12);
   background: linear-gradient(135deg, #0f766e 0%, #14b8a6 100%);
+  position: relative;
+  overflow: hidden;
+}
+
+.cp-signup-form-header::before {
+  content: '';
+  position: absolute;
+  top: -40px;
+  right: -40px;
+  width: 180px;
+  height: 180px;
+  background: radial-gradient(circle, rgba(20, 184, 166, 0.18) 0%, transparent 70%);
+  pointer-events: none;
 }
 
 .cp-header-top {
@@ -45,27 +58,29 @@
 }
 
 .cp-signup-form-header h1 {
-  font-size: 2rem;
+  font-size: 1.5rem;
   font-weight: 700;
-  color: white;
-  margin-bottom: 0.5rem;
+  color: #ffffff;
+  margin-bottom: 0.4rem;
+  position: relative;
 }
 
 .cp-signup-form-header p {
-  color: rgba(255, 255, 255, 0.9);
-  font-size: 1rem;
+  color: rgba(255, 255, 255, 0.85);
+  font-size: 0.9rem;
+  position: relative;
 }
 
 .cp-signup-form-content {
   display: grid;
-  grid-template-columns: 380px 1fr;
+  grid-template-columns: 320px 1fr;
   gap: 0;
-  min-height: calc(100vh - 200px);
+  flex: 1;
 }
 
 .cp-pro-tips-section {
-  background: linear-gradient(180deg, #0f766e 0%, #14b8a6 100%);
-  padding: 2.5rem 2rem;
+  background: linear-gradient(180deg, #0f766e 0%, #0d6b63 60%, #0a5c55 100%);
+  padding: 2.25rem 1.75rem;
   color: white;
   display: flex;
   flex-direction: column;

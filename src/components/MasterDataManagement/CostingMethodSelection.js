@@ -150,14 +150,17 @@ const CostingMethodSelection = () => {
           </div>
         </div>
 
-        {/* Blue stripe section */}
-        <div className="cost-method-blue-stripe">
-          <h2 className="cost-method-stripe-title">Portfolio Costing Method Configuration</h2>
-        </div>
+        <div className="cost-method-main-layout">
+          {/* Left: Configuration stripe + form */}
+          <div className="cost-method-left-column">
+            {/* Blue stripe section */}
+            <div className="cost-method-blue-stripe">
+              <h2 className="cost-method-stripe-title">Portfolio Costing Method Configuration</h2>
+            </div>
 
-        <div className="cost-method-form-card">
-          <form onSubmit={handleSubmit} className="cost-method-form-content">
-            <div className="cost-method-form-grid">
+            <div className="cost-method-form-card">
+              <form onSubmit={handleSubmit} className="cost-method-form-content">
+                <div className="cost-method-form-grid">
 
               {/* Portfolio Id Selection */}
               <div className="cost-method-field-group">
@@ -263,8 +266,10 @@ const CostingMethodSelection = () => {
             </div>
           </form>
         </div>
+      </div>
 
-        {/* Assigned Methods View Section */}
+      {/* Right: Assigned Methods View Section */}
+      <div className="cost-method-right-column">
         <div className="cost-method-assigned-section">
           <div className="cost-method-assigned-header">
             <h3 className="cost-method-assigned-title">Assigned Portfolio Methods</h3>
@@ -326,6 +331,8 @@ const CostingMethodSelection = () => {
             )}
           </div>
         </div>
+      </div>
+    </div>
 
         {/* --- FOOTER INFO --- */}
         <div className="cost-method-footer-section">

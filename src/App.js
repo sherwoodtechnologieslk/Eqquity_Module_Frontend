@@ -19,6 +19,8 @@ import FundMaster from './components/WealthManager/Fund Master/FundMaster';
 import FundCategories from './components/WealthManager/Fund Master/FundCategories';
 import FundPerfMetrics from './components/WealthManager/Fund Master/FundPerfMetrics';
 import WealthPortfolioMaster from './components/WealthManager/Portfolio Master/WealthPortfolioMaster';
+import ExpenseMaster from './components/WealthManager/Expense Master/ExpenseMaster';
+import DefineExpenses from './components/WealthManager/Expense Master/DefineExpenses';
 import PortfolioOverview from './components/Dashboard/DashboardTabs/PortfolioOverview';
 import EquityMasterEntry from './components/MasterDataManagement/EquityMasterEntry';
 import BuyTransactionEntry from './components/TradeCapture/BuyTransactionEntry';
@@ -42,20 +44,20 @@ import IPOAllocation from './components/IPOEntry/IPOAllocation';
 import CostingMethodSelection from './components/MasterDataManagement/CostingMethodSelection';
 import PortfolioDropdown from './components/TradeCapture/PortfolioDropdown';
 import CostOfFundsDefinition from './components/TradeCapture/CostOfFundsDefinition';
-import ChartOfAccounts from './components/AccountingEntries/ChartOfAccounts';
-import GeneralLedger from './components/AccountingEntries/GeneralLedger';
-import JournalEntries from './components/AccountingEntries/JournalEntries';
-import TrialBalance from './components/AccountingEntries/TrialBalance';
-import ProfitLoss from './components/AccountingEntries/ProfitLoss';
-import AccountReconciliation from './components/AccountingEntries/AccountReconciliation';
-import NewGLAccount from './components/AccountingEntries/NewGLAccount';
+import ChartOfAccounts from './components/EquityEntries/ChartOfAccounts';
+import GeneralLedger from './components/EquityEntries/GeneralLedger';
+import JournalEntries from './components/EquityEntries/JournalEntries';
+import TrialBalance from './components/EquityEntries/TrialBalance';
+import ProfitLoss from './components/EquityEntries/ProfitLoss';
+import AccountReconciliation from './components/EquityEntries/AccountReconciliation';
+import NewGLAccount from './components/EquityEntries/NewGLAccount';
 import EquityGLMapping from './components/TradeCapture/EquityGLMapping';
-import PortfolioMTM from './components/AccountingEntries/PortfolioMTM';
-import OtherTransactions from './components/AccountingEntries/OtherTransactions';
+import PortfolioMTM from './components/EquityEntries/PortfolioMTM';
+import OtherTransactions from './components/EquityEntries/OtherTransactions';
 import OpeningBalEntry from './components/OpeningBalManage/OpeningBalEntry';
 import OpeningBalList from './components/OpeningBalManage/OpeningBalList';
 import AccountBalanceSetup from './components/OpeningBalManage/AccountBalanceSetup';
-import DoubleEntries from './components/AccountingEntries/DoubleEntries';
+import DoubleEntries from './components/EquityEntries/DoubleEntries';
 import MarkToMarketValuation from './components/ValuationAndMTM/MarkToMarketValuation';
 import RealizedPnL from './components/ValuationAndMTM/RealizedPnL';
 import TradeSummaryData from './components/ValuationAndMTM/TradeSummaryData';
@@ -68,7 +70,13 @@ import CorporateNotices from './components/CSEAnnouncements/CorporateNotices';
 import FinancialPosition from './components/FinancialReporting/FinancialPosition';
 import StatementOfComprehensiveIncome from './components/FinancialReporting/StatementOfComprehensiveIncome';
 import CashFlow from './components/FinancialReporting/CashFlow';
+import FinancialReportingNotes from './components/FinancialReporting/FinancialReportingNotes';
 import PremiumModal from './components/PremiumModal/premiumModal';
+import GsecEntries from './components/GsecEntries/GsecEntries';
+import GsecGeneralLedger from './components/GsecEntries/GsecGeneralLedger';
+import GsecBalanceSheet from './components/GsecEntries/GsecBalanceSheet';
+import CombinedGL from './components/AccountingEntries/CombinedGL';
+import CombinedTrialBalance from './components/AccountingEntries/CombinedTrialBalance';
 import HolidayCalendar from './components/HolidayCalendar/HolidayCalendar';
 import FundsCenters from './components/FundsCenters/FundsCenters';
 import ViewMap from './components/FundsCenters/ViewMap';
@@ -96,9 +104,22 @@ function App() {
   const [isPremiumModalOpen, setIsPremiumModalOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   
+  const premiumGatedTabs = new Set([
+    'Statement of Financial Position',
+    'Statement of Comprehensive Income',
+    'Cash Flow',
+    'Financial Reports Export'
+  ]);
+  const premiumGatedSidebarItems = new Set(['Financial Reporting', 'Portfolio Transfers']);
+
 
   // Handle tab selection from Navbar - use Sidebar's menuItems as single source of truth for indices
   const handleTabChange = (tabName) => {
+    if (premiumGatedTabs.has(tabName)) {
+      setIsPremiumModalOpen(true);
+      return;
+    }
+
     setActiveTab(tabName);
 
     // Use the correct menu set based on selected manager
@@ -151,6 +172,8 @@ function App() {
     'Portfolio Master': selectedManager === 'wealth' 
       ? <WealthPortfolioMaster /> 
       : <PortfolioMaster/>,
+    'Expense Master': <ExpenseMaster />,
+    'Define Expenses': <DefineExpenses />,
     'Fund Master': <FundMaster/>,
     'Fund Categories': <FundCategories/>,
     'Fund Performance Metrics': <FundPerfMetrics/>,
@@ -220,26 +243,26 @@ function App() {
     'Statement of Financial Position': <FinancialPosition />,
     'Statement of Comprehensive Income': <StatementOfComprehensiveIncome />,
     'Cash Flow': <CashFlow />,
+    'Financial Reporting Notes': <FinancialReportingNotes />,
     'Financial Reports Export': <div style={{ padding: '2rem' }}><h3>Financial Reports Export</h3><p>Coming Soon...</p></div>,
     'Settlement Instructions': <SettlementInstructions />,
     'Cash Flow Mapping': <CashFlowMapping />,
     'GL Mapping': <GLMapping />,
-    'Balance Sheet': <div style={{ padding: '2rem' }}><h3>GSec Balance Sheet</h3><p>Coming Soon...</p></div>,
-    'GSec General Ledger': <div style={{ padding: '2rem' }}><h3>GSec General Ledger</h3><p>Coming Soon...</p></div>,
+    'GSEC ENTRIES': <GsecEntries />,
+    'Balance Sheet': <GsecBalanceSheet />,
+    'GSec General Ledger': <GsecGeneralLedger />,
     'GSec Chart of Accounts': <div style={{ padding: '2rem' }}><h3>GSec Chart of Accounts</h3><p>Coming Soon...</p></div>,
+    'Combined General Ledger': <CombinedGL onTabChange={handleTabChange} />,
+    'Combined Trial Balance': <CombinedTrialBalance onTabChange={handleTabChange} />,
   };
 
   // Handle sidebar selection
   const handleSidebarSelect = (index, subTopics) => {
-    // Allowed items: Dashboard (0), View Portfolio (1), Master Data Management (2), 
-    // Holiday Calendar (3), Funds Centers (4), Accounting Entries (5),
-    // Settlement and Accounting (8), Account Management (9), Opening Balance Management (10),
-    // Trade Capture (11), Batch Transaction Import (12), Valuation and MTM (13),
-    // Predictive Valuation Model (PVM) (14), CSE Announcements (15), TradeCore (16), Mandatory Corporate Actions (19)
-    // All other items should show premium modal
-    const allowedIndices = [0, 1, 2, 3, 4, 5, 8, 9, 10,   11, 12, 13, 14, 15, 16, 18, 19];
-    
-    if (!allowedIndices.includes(index)) {
+    // Show premium modal for gated sections
+    const currentMenuItems =
+      selectedManager === 'wealth' ? wealthManagerMenuItems : equityManagerMenuItems;
+    const selectedItem = currentMenuItems[index];
+    if (selectedItem?.name && premiumGatedSidebarItems.has(selectedItem.name)) {
       setIsPremiumModalOpen(true);
       return;
     }

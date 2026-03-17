@@ -16,7 +16,7 @@
 }
 
 .fc-title {
-  font-size: 2rem;
+  font-size: 1.75rem;
   font-weight: 600;
   color: #1a1a1a;
   margin: 0;
@@ -31,7 +31,7 @@
   color: white;
   border: none;
   border-radius: 8px;
-  font-size: 1rem;
+  font-size: 0.95rem;
   font-weight: 500;
   cursor: pointer;
   transition: all 0.2s ease;
@@ -44,8 +44,8 @@
 }
 
 .fc-add-icon {
-  width: 20px;
-  height: 20px;
+  width: 18px;
+  height: 18px;
 }
 
 .fc-success-message {

@@ -19,7 +19,7 @@ const ClientSubmitForm = ({ onPrevious, onSubmit }) => {
               soon.
             </p>
 
-            <div className="cp-submit-illustration">
+            <div className="cp-submit-illustration">ClientSubmitForm
               <div className="cp-submit-documents">
                 <div className="cp-submit-doc cp-submit-doc-back" />
                 <div className="cp-submit-doc cp-submit-doc-front" />
