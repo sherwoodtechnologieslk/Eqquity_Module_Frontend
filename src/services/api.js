@@ -1983,7 +1983,8 @@ export const trialBalanceAPI = {
     try {
       const queryParams = new URLSearchParams({
         startDate: filters.startDate || new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString().split('T')[0],
-        endDate: filters.endDate || new Date().toISOString().split('T')[0]
+        endDate: filters.endDate || new Date().toISOString().split('T')[0],
+        _ts: Date.now().toString()
       });
       
       if (filters.portfolio) {
@@ -1991,11 +1992,23 @@ export const trialBalanceAPI = {
       }
       
       const response = await fetch(`${API_BASE_URL}/trial-balance?${queryParams}`, {
-        headers: getAuthHeaders()
+        headers: getAuthHeaders(),
+        cache: 'no-store'
       });
       
       if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+        let details = '';
+        try {
+          const errJson = await response.json();
+          details = errJson?.error || errJson?.message || errJson?.details || JSON.stringify(errJson);
+        } catch (e) {
+          try {
+            details = await response.text();
+          } catch (e2) {
+            // ignore
+          }
+        }
+        throw new Error(details ? `HTTP ${response.status}: ${details}` : `HTTP error! status: ${response.status}`);
       }
       
       return await response.json();
@@ -2010,7 +2023,8 @@ export const trialBalanceAPI = {
     try {
       const queryParams = new URLSearchParams({
         startDate: filters.startDate || new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString().split('T')[0],
-        endDate: filters.endDate || new Date().toISOString().split('T')[0]
+        endDate: filters.endDate || new Date().toISOString().split('T')[0],
+        _ts: Date.now().toString()
       });
       
       if (filters.portfolio) {
@@ -2018,11 +2032,23 @@ export const trialBalanceAPI = {
       }
       
       const response = await fetch(`${API_BASE_URL}/trial-balance/summary?${queryParams}`, {
-        headers: getAuthHeaders()
+        headers: getAuthHeaders(),
+        cache: 'no-store'
       });
       
       if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+        let details = '';
+        try {
+          const errJson = await response.json();
+          details = errJson?.error || errJson?.message || errJson?.details || JSON.stringify(errJson);
+        } catch (e) {
+          try {
+            details = await response.text();
+          } catch (e2) {
+            // ignore
+          }
+        }
+        throw new Error(details ? `HTTP ${response.status}: ${details}` : `HTTP error! status: ${response.status}`);
       }
       
       return await response.json();
@@ -2037,7 +2063,8 @@ export const trialBalanceAPI = {
     try {
       const queryParams = new URLSearchParams({
         startDate: filters.startDate || new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString().split('T')[0],
-        endDate: filters.endDate || new Date().toISOString().split('T')[0]
+        endDate: filters.endDate || new Date().toISOString().split('T')[0],
+        _ts: Date.now().toString()
       });
       
       if (filters.portfolio) {
@@ -2045,11 +2072,23 @@ export const trialBalanceAPI = {
       }
       
       const response = await fetch(`${API_BASE_URL}/trial-balance/account/${accountCode}?${queryParams}`, {
-        headers: getAuthHeaders()
+        headers: getAuthHeaders(),
+        cache: 'no-store'
       });
       
       if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+        let details = '';
+        try {
+          const errJson = await response.json();
+          details = errJson?.error || errJson?.message || errJson?.details || JSON.stringify(errJson);
+        } catch (e) {
+          try {
+            details = await response.text();
+          } catch (e2) {
+            // ignore
+          }
+        }
+        throw new Error(details ? `HTTP ${response.status}: ${details}` : `HTTP error! status: ${response.status}`);
       }
       
       return await response.json();
