@@ -451,7 +451,7 @@ const ClientPortal = ({ user, onLogout }) => {
       <div className="cp-simple-page">
         <h2 className="cp-simple-page-title">About</h2>
         <p className="cp-simple-page-text">
-          Welcome to the Wealth Manager client portal. Here you can explore our funds, track performance,
+          Welcome to Sherwood Wealth. Here you can explore our funds, track performance,
           and manage your investments in one place.
         </p>
       </div>
@@ -966,7 +966,7 @@ const ClientPortal = ({ user, onLogout }) => {
                 <span>{selectedFund.tag}</span>
               </div>
               <div className="cp-funds-right-cta">
-                <div className="cp-intro-badge">Wealth Manager</div>
+                <div className="cp-intro-badge">Sherwood Wealth</div>
                 {signupMode ? (
                   <>
                     <h2 className="cp-intro-title">Signup for this Product</h2>
@@ -1049,12 +1049,12 @@ const ClientPortal = ({ user, onLogout }) => {
       'Dashboard': {
         title: 'Home',
         text:
-          'Explore our available funds and learn how the Wealth Manager client portal helps you track performance, review statements, and manage investments securely.'
+          'Explore our available funds and learn how Sherwood Wealth helps you track performance, review statements, and manage investments securely.'
       },
       'About': {
         title: 'About',
         text:
-          'The Wealth Manager client portal gives clients a secure way to explore funds, view performance, and manage unit trust investments with clear insights and convenient access.'
+          'Sherwood Wealth gives clients a secure way to explore funds, view performance, and manage unit trust investments with clear insights and convenient access.'
       },
       'My Portfolio': {
         title: 'Investment Planner',

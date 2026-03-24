@@ -896,7 +896,14 @@ const BuyTransactionEntry = () => {
       
       const result = await transactionEntryAPI.saveBuyTransaction(submitForm);
       console.log('Save transaction result:', result);
-      alert('Buy Transaction submitted successfully!');
+      if (result && result.warning) {
+        // Transaction saved but GL entries failed — show the real error
+        alert(
+          `Buy Transaction saved (ID: ${result.transactionId}), but accounting (GL) entries could NOT be created.\n\nReason: ${result.accountingError || result.warning}\n\nPlease check the backend console and contact support.`
+        );
+      } else {
+        alert('Buy Transaction submitted successfully!');
+      }
       handleReset();
       // Generate new deal number for next transaction
       const newDealNumber = await generateDealNumber();

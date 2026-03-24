@@ -386,8 +386,8 @@ const RiskReturnScatterPlot = () => {
       </div>
 
       <div className="scatter-plot-controls">
-        <div className="control-group">
-          <label>Time Range:</label>
+        <div className="control-group" role="group" aria-label="Time range">
+          <span className="control-group-label">Range</span>
           <div className="time-range-buttons">
             {['30D', '60D', '90D', '1Y'].map((range) => (
               <button
@@ -400,8 +400,8 @@ const RiskReturnScatterPlot = () => {
             ))}
           </div>
         </div>
-        <div className="control-group">
-          <label>Color By:</label>
+        <div className="control-group" role="group" aria-label="Color by">
+          <span className="control-group-label">Color</span>
           <div className="color-mode-buttons">
             <button
               className={`color-btn ${colorMode === 'sector' ? 'active' : ''}`}

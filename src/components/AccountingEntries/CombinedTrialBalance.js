@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { trialBalanceAPI, gsecEntriesAPI } from '../../services/api';
 import './Styles/CombinedTrialBalance.css';
 
@@ -7,6 +7,7 @@ const CombinedTrialBalance = ({ onTabChange }) => {
   const [gsecBS, setGsecBS] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const hasLoadedOnceRef = useRef(false);
 
   const [filters, setFilters] = useState({
     startDate: '',
@@ -15,9 +16,12 @@ const CombinedTrialBalance = ({ onTabChange }) => {
   const [sourceFilter, setSourceFilter] = useState('all'); // all | equity | gsec
   const [searchTerm, setSearchTerm] = useState('');
 
-  const fetchData = async () => {
+  const fetchData = async (options = {}) => {
+    const { showLoader = true } = options;
     try {
-      setLoading(true);
+      if (showLoader || !hasLoadedOnceRef.current) {
+        setLoading(true);
+      }
       setError('');
 
       const [tbRes, gsecRes] = await Promise.all([
@@ -34,6 +38,7 @@ const CombinedTrialBalance = ({ onTabChange }) => {
 
       setEquityTB(tbRes.data);
       setGsecBS(gsecRes.data);
+      hasLoadedOnceRef.current = true;
     } catch (err) {
       console.error('Error fetching combined trial balance:', err);
       setError(err.message || 'Failed to fetch combined trial balance');
@@ -43,9 +48,29 @@ const CombinedTrialBalance = ({ onTabChange }) => {
   };
 
   useEffect(() => {
-    fetchData();
+    fetchData({ showLoader: true });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // Keep screen fresh when transactions update elsewhere (tab often stays mounted).
+  useEffect(() => {
+    const refreshIfVisible = () => {
+      if (!document.hidden) {
+        fetchData({ showLoader: false });
+      }
+    };
+
+    window.addEventListener('focus', refreshIfVisible);
+    document.addEventListener('visibilitychange', refreshIfVisible);
+    const intervalId = window.setInterval(refreshIfVisible, 30000);
+
+    return () => {
+      window.removeEventListener('focus', refreshIfVisible);
+      document.removeEventListener('visibilitychange', refreshIfVisible);
+      window.clearInterval(intervalId);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [filters]);
 
   const handleDateChange = (field, value) => {
     setFilters((prev) => ({
@@ -55,7 +80,7 @@ const CombinedTrialBalance = ({ onTabChange }) => {
   };
 
   const handleApply = () => {
-    fetchData();
+    fetchData({ showLoader: true });
   };
 
   const clearFilters = () => {

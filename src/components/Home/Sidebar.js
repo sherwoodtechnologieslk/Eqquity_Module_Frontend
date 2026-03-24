@@ -3,6 +3,7 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import './Styles/Sidebar.css';
+import SherwoodManagerMark from './SherwoodManagerMark';
 
 // Equity Manager menu items
 export const equityManagerMenuItems = [
@@ -129,7 +130,7 @@ export const equityManagerMenuItems = [
       "Statement of Financial Position",
       "Statement of Comprehensive Income",
       "Cash Flow",
-      "Financial Reports Export"
+      "Financial Reporting Notes"
     ]
   },
   {
@@ -138,8 +139,8 @@ export const equityManagerMenuItems = [
         <path fillRule="evenodd" d="M3 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" clipRule="evenodd"/>
       </svg>
     ),
-    name: "Financial Reporting Notes",
-    subTopics: ["Financial Reporting Notes"]
+    name: "Financial Reports Export",
+    subTopics: ["Financial Reports Export"]
   },
   {
     icon: (
@@ -152,7 +153,8 @@ export const equityManagerMenuItems = [
     subTopics: [
       "Settlement Instructions",
       "Cash Flow Mapping",
-      "GL Mapping"
+      "GL Mapping",
+      "Deal Slip"
     ]
   },
   {
@@ -196,7 +198,7 @@ export const equityManagerMenuItems = [
       "Sell",
       "Transactions",
       "Portfolio",
-      "Deal Slip",
+      "Avg Cost Calculator",
       "Cost of Funds",
       "Equity GL Mapping"
     ]
@@ -701,9 +703,7 @@ const Sidebar = ({ onSelect, activeIndex = 0, onLogout, onManagerChange, selecte
                 aria-expanded={isDropdownOpen}
                 aria-haspopup="true"
               >
-                <span className="app-name">
-                  {selectedManager === 'equity' ? 'Equity Manager' : 'Wealth Manager'}
-                </span>
+                <SherwoodManagerMark tier={selectedManager === 'equity' ? 'equity' : 'wealth'} />
                 <svg 
                   className={`switch-icon ${isDropdownOpen ? 'open' : ''}`} 
                   fill="currentColor" 
@@ -731,7 +731,9 @@ const Sidebar = ({ onSelect, activeIndex = 0, onLogout, onManagerChange, selecte
                     <svg className="dropdown-icon" fill="currentColor" viewBox="0 0 20 20">
                       <path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z"/>
                     </svg>
-                    <span>Equity Manager</span>
+                    <span className="dropdown-item-brand">
+                      <SherwoodManagerMark tier="equity" compact />
+                    </span>
                     {selectedManager === 'equity' && (
                       <svg className="check-icon" fill="currentColor" viewBox="0 0 20 20">
                         <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd"/>
@@ -747,7 +749,9 @@ const Sidebar = ({ onSelect, activeIndex = 0, onLogout, onManagerChange, selecte
                       <path d="M4 4a2 2 0 00-2 2v4a2 2 0 002 2V6h10a2 2 0 00-2-2H4z"/>
                       <path fillRule="evenodd" d="M14 4a2 2 0 012 2v8a2 2 0 01-2 2H8a2 2 0 01-2-2V6a2 2 0 012-2h6zm-1 3a1 1 0 00-1 1v4a1 1 0 001 1h1a1 1 0 001-1V8a1 1 0 00-1-1h-1z" clipRule="evenodd"/>
                     </svg>
-                    <span>Wealth Manager</span>
+                    <span className="dropdown-item-brand">
+                      <SherwoodManagerMark tier="wealth" compact />
+                    </span>
                     {selectedManager === 'wealth' && (
                       <svg className="check-icon" fill="currentColor" viewBox="0 0 20 20">
                         <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd"/>
