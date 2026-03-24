@@ -29,8 +29,10 @@
 
 .rmc-controls {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 1.5rem;
+  grid-template-columns: repeat(auto-fill, minmax(8.5rem, 10rem));
+  gap: 1rem 1.25rem;
+  justify-content: start;
+  justify-items: start;
   margin-bottom: 2rem;
   padding-bottom: 2rem;
   border-bottom: 1px solid #e2e8f0;
@@ -40,6 +42,8 @@
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
+  max-width: 10rem;
+  min-width: 0;
 }
 
 .control-group label {
@@ -49,13 +53,15 @@
 }
 
 .control-group input {
-  padding: 0.625rem;
+  padding: 0.5rem 0.625rem;
   font-size: 0.875rem;
   border: 1px solid #cfd8dc;
   border-radius: 4px;
   background: #f8fafc;
   transition: border 0.15s, background 0.15s;
   width: 100%;
+  max-width: 10rem;
+  box-sizing: border-box;
 }
 
 .control-group input:focus {

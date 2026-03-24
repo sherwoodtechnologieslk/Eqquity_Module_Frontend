@@ -3,7 +3,7 @@
 /* Page Layout */
 .tb-main-container {
   min-height: 100vh;
-  padding: 1.25rem 1rem;
+  padding: 0.75rem 0.75rem;
   box-sizing: border-box;
   background-color: #f8fafc;
 }
@@ -18,10 +18,10 @@
   display: flex;
   align-items: center;
   gap: 2rem;
-  margin-bottom: 1rem;
+  margin-bottom: 0.75rem;
   text-align: left;
-  padding-top: 0.75rem;
-  padding-bottom: 1rem;
+  padding-top: 0.25rem;
+  padding-bottom: 0.65rem;
 }
 
 .tb-header-icon {
@@ -86,7 +86,7 @@
   display: flex;
   flex-direction: column;
   align-items: flex-end;
-  gap: 0.5rem;
+  gap: 0.35rem;
 }
 
 .tb-generated-info {
@@ -102,8 +102,8 @@
 .tb-filters-section {
   background: white;
   border-radius: 0;
-  padding: 2rem;
-  margin-bottom: 2rem;
+  padding: 1.25rem;
+  margin-bottom: 1.25rem;
   box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
   border: 1px solid #e2e8f0;
 }
@@ -111,7 +111,7 @@
 .tb-filters-row {
   display: flex;
   align-items: end;
-  gap: 1.5rem;
+  gap: 1rem;
   flex-wrap: wrap;
 }
 
@@ -204,8 +204,8 @@
 .tb-balance-status {
   background: white;
   border-radius: 0;
-  padding: 1rem 2rem;
-  margin-bottom: 2rem;
+  padding: 0.85rem 1.25rem;
+  margin-bottom: 1.25rem;
   box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
   border: 1px solid #e2e8f0;
   text-align: center;

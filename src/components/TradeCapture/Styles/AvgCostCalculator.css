@@ -1,0 +1,351 @@
+.acc-calc-container {
+  min-height: 100vh;
+  padding: 2rem 1rem;
+  box-sizing: border-box;
+}
+
+.acc-calc-content {
+  max-width: 720px;
+  margin: 0 auto;
+}
+
+.acc-calc-header {
+  display: flex;
+  align-items: center;
+  gap: 2rem;
+  margin-bottom: 1.5rem;
+  text-align: left;
+  padding-top: 1.5rem;
+  padding-bottom: 1.5rem;
+}
+
+.acc-calc-header-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 3.25rem;
+  height: 3.25rem;
+  background: linear-gradient(135deg, #60a5fa, #2563eb);
+  border-radius: 0.18rem;
+  flex-shrink: 0;
+  box-shadow: 0 8px 32px 0 rgba(59, 130, 246, 0.09), 0 2px 8px 0 rgba(59, 130, 246, 0.04);
+}
+
+.acc-calc-header-icon svg {
+  width: 1.5rem;
+  height: 1.5rem;
+  color: #fff;
+}
+
+.acc-calc-title {
+  font-size: 1.75rem;
+  font-weight: 800;
+  color: #1f2937;
+  margin: 0 0 0.35rem 0;
+  letter-spacing: -0.01em;
+  line-height: 1.1;
+}
+
+.acc-calc-subtitle {
+  color: #475569;
+  font-size: 1rem;
+  margin: 0;
+}
+
+.acc-calc-card {
+  background: #fff;
+  border-radius: 0.18rem;
+  padding: 1.75rem 2rem;
+  margin-bottom: 1.25rem;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.12);
+  border: 1px solid #dbeafe;
+}
+
+.acc-calc-card h2 {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #1e293b;
+  margin: 0 0 1rem 0;
+}
+
+.acc-calc-rows {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.acc-calc-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr auto;
+  gap: 0.75rem;
+  align-items: end;
+}
+
+@media (max-width: 600px) {
+  .acc-calc-row {
+    grid-template-columns: 1fr;
+  }
+}
+
+.acc-calc-field label {
+  display: block;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: #475569;
+  margin-bottom: 0.35rem;
+}
+
+.acc-calc-field input {
+  width: 100%;
+  padding: 0.65rem 0.75rem;
+  border: 1px solid #e2e8f0;
+  border-radius: 0.18rem;
+  font-size: 0.9375rem;
+  box-sizing: border-box;
+  background: #f8fafc;
+}
+
+.acc-calc-field input:focus {
+  outline: none;
+  border-color: #3b82f6;
+  background: #fff;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.12);
+}
+
+.acc-calc-remove {
+  padding: 0.5rem 0.75rem;
+  border: 1px solid #fecaca;
+  background: #fef2f2;
+  color: #b91c1c;
+  border-radius: 0.18rem;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  cursor: pointer;
+  height: fit-content;
+}
+
+.acc-calc-remove:hover:not(:disabled) {
+  background: #fee2e2;
+}
+
+.acc-calc-remove:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.acc-calc-add {
+  margin-top: 1rem;
+  padding: 0.6rem 1rem;
+  border: 1px solid #bfdbfe;
+  background: #eff6ff;
+  color: #1d4ed8;
+  border-radius: 0.18rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.acc-calc-add:hover {
+  background: #dbeafe;
+}
+
+.acc-calc-summary {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 1rem;
+}
+
+.acc-calc-stat {
+  padding: 1rem;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 0.18rem;
+}
+
+.acc-calc-stat-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: #64748b;
+  margin-bottom: 0.35rem;
+}
+
+.acc-calc-stat-value {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #0f172a;
+  font-variant-numeric: tabular-nums;
+}
+
+.acc-calc-stat-value.highlight {
+  color: #2563eb;
+  font-size: 1.5rem;
+}
+
+.acc-calc-help {
+  font-size: 0.8125rem;
+  color: #64748b;
+  margin: 0;
+  line-height: 1.5;
+}
+
+.acc-calc-content-wide {
+  max-width: 1040px;
+}
+
+.acc-calc-mb {
+  margin-bottom: 1rem !important;
+}
+
+.acc-calc-mt {
+  margin-top: 0.75rem !important;
+}
+
+.acc-calc-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.acc-calc-field-inline {
+  flex: 1;
+  min-width: 200px;
+}
+
+.acc-calc-label-text {
+  display: block;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: #475569;
+  margin-bottom: 0.35rem;
+}
+
+.acc-calc-select {
+  width: 100%;
+  max-width: 360px;
+  padding: 0.65rem 0.75rem;
+  border: 1px solid #e2e8f0;
+  border-radius: 0.18rem;
+  font-size: 0.9375rem;
+  background: #f8fafc;
+  box-sizing: border-box;
+}
+
+.acc-calc-btn-secondary {
+  padding: 0.65rem 1rem;
+  border: 1px solid #cbd5e1;
+  background: #f1f5f9;
+  color: #334155;
+  border-radius: 0.18rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.acc-calc-btn-secondary:hover:not(:disabled) {
+  background: #e2e8f0;
+}
+
+.acc-calc-btn-secondary:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.acc-calc-table-wrap {
+  overflow-x: auto;
+  border: 1px solid #e2e8f0;
+  border-radius: 0.18rem;
+}
+
+.acc-calc-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.875rem;
+}
+
+.acc-calc-table th {
+  text-align: left;
+  padding: 0.75rem 1rem;
+  background: #f8fafc;
+  color: #475569;
+  font-weight: 600;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  border-bottom: 1px solid #e2e8f0;
+  white-space: nowrap;
+}
+
+.acc-calc-table td {
+  padding: 0.65rem 1rem;
+  border-bottom: 1px solid #f1f5f9;
+  color: #1e293b;
+}
+
+.acc-calc-table tbody tr:hover {
+  background: #fafafa;
+}
+
+.acc-calc-num {
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+
+.acc-calc-use-btns {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+}
+
+.acc-calc-btn-tiny {
+  padding: 0.35rem 0.55rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  border: 1px solid #bfdbfe;
+  background: #eff6ff;
+  color: #1d4ed8;
+  border-radius: 0.18rem;
+  cursor: pointer;
+}
+
+.acc-calc-btn-tiny:hover {
+  background: #dbeafe;
+}
+
+.acc-calc-planner-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+}
+
+.acc-calc-two-col {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 1.25rem;
+}
+
+.acc-calc-result-box {
+  min-height: 3rem;
+  margin-top: 1rem;
+  padding: 0.75rem 1rem;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 0.18rem;
+}
+
+.acc-calc-result-main {
+  margin: 0;
+  font-size: 0.9375rem;
+  color: #0f172a;
+  line-height: 1.5;
+}
+
+.acc-calc-error {
+  margin: 0;
+  font-size: 0.875rem;
+  color: #b91c1c;
+  line-height: 1.45;
+}

@@ -95,7 +95,7 @@ export default function PreOnboardingHome({ onGetStarted, onViewFunds }) {
       <section className="poh-hero">
         <div className="poh-hero-inner">
           <div className="poh-hero-text">
-            <span className="poh-hero-eyebrow">Wealth Management · Client Portal</span>
+            <span className="poh-hero-eyebrow">Sherwood Wealth · Client Portal</span>
             <h1 className="poh-hero-heading">
               Grow your wealth<br />with confidence.
             </h1>

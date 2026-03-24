@@ -52,6 +52,7 @@ import ProfitLoss from './components/EquityEntries/ProfitLoss';
 import AccountReconciliation from './components/EquityEntries/AccountReconciliation';
 import NewGLAccount from './components/EquityEntries/NewGLAccount';
 import EquityGLMapping from './components/TradeCapture/EquityGLMapping';
+import AvgCostCalculator from './components/TradeCapture/AvgCostCalculator';
 import PortfolioMTM from './components/EquityEntries/PortfolioMTM';
 import OtherTransactions from './components/EquityEntries/OtherTransactions';
 import OpeningBalEntry from './components/OpeningBalManage/OpeningBalEntry';
@@ -104,13 +105,9 @@ function App() {
   const [isPremiumModalOpen, setIsPremiumModalOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   
-  const premiumGatedTabs = new Set([
-    'Statement of Financial Position',
-    'Statement of Comprehensive Income',
-    'Cash Flow',
-    'Financial Reports Export'
-  ]);
-  const premiumGatedSidebarItems = new Set(['Financial Reporting', 'Portfolio Transfers']);
+  // Premium gating (keep only the truly premium sections here)
+  const premiumGatedTabs = new Set([]);
+  const premiumGatedSidebarItems = new Set(['Portfolio Transfers']);
 
 
   // Handle tab selection from Navbar - use Sidebar's menuItems as single source of truth for indices
@@ -237,10 +234,11 @@ function App() {
     'Account Balance Setup': <AccountBalanceSetup />,
     'Trade Report': <TradeReport />,
     'Equity GL Mapping': <EquityGLMapping />,
+    'Avg Cost Calculator': <AvgCostCalculator />,
     'Market Announcements': <MarketAnnouncements />,
     'Corporate Notices': <CorporateNotices />,
     'TradeCore': <TradeCore />,
-    'Statement of Financial Position': <FinancialPosition />,
+    'Statement of Financial Position': <FinancialPosition onTabChange={handleTabChange} />,
     'Statement of Comprehensive Income': <StatementOfComprehensiveIncome />,
     'Cash Flow': <CashFlow />,
     'Financial Reporting Notes': <FinancialReportingNotes />,

@@ -25,21 +25,14 @@
   border-right: 1px solid rgba(255, 255, 255, 0.35);
 }
 
-.cp-navbar.cp-navbar-gateway .cp-logo-wealth-text {
-  background: none;
-  -webkit-text-fill-color: #ffffff;
+.cp-navbar.cp-navbar-gateway .cp-sw-line1 {
   color: #ffffff;
-  filter: drop-shadow(0 0 10px rgba(255, 255, 255, 0.22));
+  text-shadow: 0 0 14px rgba(255, 255, 255, 0.2);
 }
 
-.cp-navbar.cp-navbar-gateway .cp-logo-plus-text {
-  color: #ffffff;
-  filter: drop-shadow(0 0 8px rgba(255, 255, 255, 0.18));
-}
-
-.cp-navbar.cp-navbar-gateway .cp-logo-plus-glow {
-  border-color: rgba(255, 255, 255, 0.35);
-  background: radial-gradient(circle, rgba(255, 255, 255, 0.14) 0%, transparent 70%);
+.cp-navbar.cp-navbar-gateway .cp-sw-line2 {
+  color: rgba(255, 255, 255, 0.92);
+  text-shadow: 0 0 10px rgba(255, 255, 255, 0.15);
 }
 
 .cp-navbar.cp-navbar-gateway .cp-logo-tagline {
@@ -70,57 +63,45 @@
   display: flex;
   flex-direction: column;
   justify-content: center;
-  gap: 4px;
-  padding-right: 1.5rem;
+  align-items: center;
+  gap: 6px;
+  padding-right: 1.75rem;
   margin-left: 2rem;
   border-right: 1px solid rgba(15, 118, 110, 0.5);
 }
 
-.cp-logo-wealth-wordmark {
+/* Sherwood Wealth wordmark (aligned with app sidebar branding) */
+.cp-sw-wordmark {
   display: flex;
-  align-items: baseline;
-  gap: 4px;
-}
-
-.cp-logo-wealth-text {
-  font-family: 'Cinzel', serif;
-  font-size: 1.4rem;
-  font-weight: 700;
-  letter-spacing: 0.18em;
-  background: linear-gradient(135deg, #0f766e 0%, #14b8a6 45%, #5eead4 75%, #14b8a6 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-  line-height: 1;
-  filter: drop-shadow(0 0 12px rgba(20, 184, 166, 0.35));
-}
-
-.cp-logo-plus-wrap {
-  position: relative;
-  display: inline-flex;
   align-items: center;
   justify-content: center;
-  margin-top: 2px;
+  font-family: 'Montserrat', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
 }
 
-.cp-logo-plus-text {
-  font-family: 'Cinzel', serif;
-  font-size: 1rem;
-  font-weight: 400;
-  color: #14b8a6;
+.cp-sw-inner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
   line-height: 1;
-  position: relative;
-  z-index: 1;
-  filter: drop-shadow(0 0 8px rgba(20, 184, 166, 0.6));
 }
 
-.cp-logo-plus-glow {
-  position: absolute;
-  width: 22px;
-  height: 22px;
-  border-radius: 999px;
-  border: 1px solid rgba(20, 184, 166, 0.4);
-  background: radial-gradient(circle, rgba(20, 184, 166, 0.22) 0%, transparent 70%);
+.cp-sw-line1 {
+  font-weight: 700;
+  font-size: 1.35rem;
+  letter-spacing: 0.12em;
+  color: #f8fafc;
+  text-transform: uppercase;
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.35);
+}
+
+.cp-sw-line2 {
+  font-weight: 600;
+  font-size: 0.875rem;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: #5eead4;
+  filter: drop-shadow(0 0 10px rgba(20, 184, 166, 0.4));
 }
 
 .cp-logo-tagline-row {
@@ -144,8 +125,8 @@
 }
 
 .cp-logo-diamond {
-  width: 4px;
-  height: 4px;
+  width: 5px;
+  height: 5px;
   background: #14b8a6;
   transform: rotate(45deg);
   opacity: 0.75;
@@ -153,11 +134,12 @@
 
 .cp-logo-tagline {
   font-family: 'Cormorant Garamond', serif;
-  font-size: 0.55rem;
+  font-size: 0.72rem;
   font-weight: 300;
   letter-spacing: 0.32em;
   text-transform: uppercase;
-  color: rgba(20, 184, 166, 0.65);
+  color: rgba(20, 184, 166, 0.78);
+  text-align: center;
 }
 
 .cp-navbar-links {

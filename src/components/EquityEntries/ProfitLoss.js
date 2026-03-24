@@ -269,7 +269,7 @@ const ProfitLoss = () => {
         </div>
       </div>
 
-      {/* P&L Summary Cards */}
+      {/* P&L Summary Cards (Operating) */}
       <div className="profit-loss-summary-cards">
         <div className="profit-loss-summary-card">
           <div className="profit-loss-card-header">Total Revenue</div>
@@ -278,11 +278,19 @@ const ProfitLoss = () => {
         </div>
 
         <div className="profit-loss-summary-card">
-          <div className="profit-loss-card-header">Realized Capital Gains</div>
-          <div className={`profit-loss-card-value ${getBalanceColor(profitLossData?.totals.realized_capital_gains || 0)}`}>
-            {formatCurrency(profitLossData?.totals.realized_capital_gains || 0)}
+          <div className="profit-loss-card-header">Total Other Income</div>
+          <div className={`profit-loss-card-value ${getBalanceColor(profitLossData?.totals.total_other_income || 0)}`}>
+            {formatCurrency(profitLossData?.totals.total_other_income || 0)}
           </div>
-          <div className="profit-loss-card-subtitle">Gains/losses from selling shares</div>
+          <div className="profit-loss-card-subtitle">Non-core income and gains</div>
+        </div>
+
+        <div className="profit-loss-summary-card">
+          <div className="profit-loss-card-header">Total Provisions</div>
+          <div className={`profit-loss-card-value ${getBalanceColor((profitLossData?.totals.total_provisions || 0) * -1)}`}>
+            {formatCurrency(profitLossData?.totals.total_provisions || 0)}
+          </div>
+          <div className="profit-loss-card-subtitle">Provision expenses recognized</div>
         </div>
 
         <div className="profit-loss-summary-card">
@@ -299,9 +307,13 @@ const ProfitLoss = () => {
           <div className="profit-loss-card-subtitle">Revenue minus expenses (Income/Profit)</div>
         </div>
 
-        <div className="profit-loss-summary-card">
-          <div className="profit-loss-card-header">
-            <span>Unrealized Capital Gain</span>
+      </div>
+
+      {/* P&L Summary Cards (Unrealized + Net) */}
+      <div className="profit-loss-mtm-cards">
+        <div className="profit-loss-summary-card profit-loss-summary-card-mtm">
+          <div className="profit-loss-card-header profit-loss-card-header-stack">
+            <div className="profit-loss-card-header-title">Unrealized Capital Gain</div>
             <button 
               className="profit-loss-get-data-button"
               onClick={fetchMTMData}
@@ -317,7 +329,7 @@ const ProfitLoss = () => {
           <div className="profit-loss-card-subtitle">Unrealized gains/losses</div>
         </div>
 
-        <div className="profit-loss-summary-card">
+        <div className="profit-loss-summary-card profit-loss-summary-card-net">
           <div className="profit-loss-card-header">Net Profit/Loss</div>
           <div className={`profit-loss-card-value ${getBalanceColor(profitLossData?.totals.net_profit || 0)}`}>
             {formatCurrency(profitLossData?.totals.net_profit || 0)}

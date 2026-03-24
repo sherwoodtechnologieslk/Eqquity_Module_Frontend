@@ -117,6 +117,82 @@ html, body {
   text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
 }
 
+/* Sherwood stacked wordmark (Montserrat) — EQUITY/WEALTH centered under SHERWOOD */
+.sherwood-mark {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  flex: 1;
+  min-width: 0;
+  font-family: 'Montserrat', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+}
+
+.sherwood-mark__inner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  line-height: 1;
+  width: fit-content;
+  max-width: 100%;
+}
+
+.sherwood-mark__line1 {
+  font-weight: 700;
+  font-size: 0.8125rem;
+  letter-spacing: 0.14em;
+  color: #f8fafc;
+  text-transform: uppercase;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.25);
+}
+
+.sherwood-mark__line2 {
+  font-weight: 600;
+  font-size: 0.5625rem;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+}
+
+/* Second line: blues aligned with sidebar accents */
+.sherwood-mark--equity .sherwood-mark__line2 {
+  color: #93c5fd;
+}
+
+.sherwood-mark--wealth .sherwood-mark__line2 {
+  color: #7dd3fc;
+}
+
+/* Switcher row — slightly larger */
+.app-name-switcher .sherwood-mark .sherwood-mark__line1 {
+  font-size: 0.9375rem;
+  letter-spacing: 0.12em;
+}
+
+.app-name-switcher .sherwood-mark .sherwood-mark__line2 {
+  font-size: 0.625rem;
+  letter-spacing: 0.28em;
+}
+
+.sherwood-mark--compact .sherwood-mark__line1 {
+  font-size: 0.6875rem;
+  letter-spacing: 0.11em;
+}
+
+.sherwood-mark--compact .sherwood-mark__line2 {
+  font-size: 0.5rem;
+  letter-spacing: 0.22em;
+}
+
+.dropdown-item-brand {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  position: relative;
+  z-index: 1;
+}
+
 /* Manager Dropdown Container */
 .manager-dropdown-container {
   position: relative;
@@ -159,7 +235,8 @@ html, body {
   outline-offset: 2px;
 }
 
-.app-name-switcher .app-name {
+.app-name-switcher .app-name,
+.app-name-switcher .sherwood-mark {
   margin: 0;
   flex: 1;
 }

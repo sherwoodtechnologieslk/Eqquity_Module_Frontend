@@ -506,11 +506,9 @@ const PerformanceMetrics = () => {
 
             <div className="risk-chart-placeholder">
               <h3>Risk-Return Scatter Plot</h3>
-                              <div className="chart-placeholder">
-                  Risk-Return Chart Placeholder
-                  <br />
-                  <small>Show portfolio vs benchmark risk-return positioning</small>
-                </div>
+              <div className="chart-placeholder">
+                View the interactive chart on the <strong>Dashboard</strong> tab (left column).
+              </div>
             </div>
           </div>
         )}

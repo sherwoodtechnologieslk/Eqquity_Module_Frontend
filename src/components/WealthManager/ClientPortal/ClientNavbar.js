@@ -50,21 +50,18 @@ const ClientNavbar = ({ activeTab, onTabChange, user, onLogout, onBackToHome, va
     <header className={`cp-navbar ${variant === 'gateway' ? 'cp-navbar-gateway' : ''}`}>
       <div className="cp-navbar-inner">
         <div className="cp-navbar-logo-mark">
-          <div className="cp-logo-wealth-wordmark">
-            <span className="cp-logo-wealth-text">WEALTH</span>
-            <span className="cp-logo-plus-wrap">
-              <span className="cp-logo-plus-glow" />
-              <span className="cp-logo-plus-text">+</span>
-            </span>
+          <div className="cp-sw-wordmark" aria-label="Sherwood Wealth">
+            <div className="cp-sw-inner">
+              <span className="cp-sw-line1">SHERWOOD</span>
+              <span className="cp-sw-line2">WEALTH</span>
+            </div>
           </div>
           <div className="cp-logo-tagline-row">
             <span className="cp-logo-rule cp-logo-rule-left" />
             <span className="cp-logo-diamond" />
             <span className="cp-logo-rule cp-logo-rule-right" />
           </div>
-          <div className="cp-logo-tagline">
-            Wealth Management · Refined
-          </div>
+          <div className="cp-logo-tagline">Refined</div>
         </div>
 
         {!onBackToHome && !hideTabs && (

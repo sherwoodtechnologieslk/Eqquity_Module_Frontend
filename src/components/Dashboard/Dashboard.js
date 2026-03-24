@@ -5,17 +5,6 @@ import { authService } from '../../services/authService';
 import RiskReturnScatterPlot from './RiskReturnScatterPlot';
 import './Dashboard.css';
 
-// Mock heatmap data - frontend only, no API/realtime
-const MOCK_HEATMAP_ROWS = ['Banking', 'Insurance', 'Diversified', 'Manufacturing', 'Telecom'];
-const MOCK_HEATMAP_COLS = ['W1', 'W2', 'W3', 'W4'];
-const MOCK_HEATMAP_DATA = [
-  [72, 28, 88, 35],
-  [38, 91, 42, 77],
-  [65, 52, 43, 89],
-  [32, 67, 73, 58],
-  [48, 84, 26, 71],
-];
-
 // Mock portfolio health / insights data for right column (frontend only)
 const MOCK_PORTFOLIO_HEALTH = {
   score: 82,
@@ -91,50 +80,6 @@ const MOCK_WATCHLIST = [
     status: 'Sideways'
   }
 ];
-
-function getHeatmapColor(value) {
-  const p = Math.max(0, Math.min(100, value)) / 100;
-  // Yellow (low, wide band) -> orange -> red (high)
-  const yellowBand = 0.45;
-  const q = p <= yellowBand ? p / yellowBand * 0.35 : 0.35 + (p - yellowBand) / (1 - yellowBand) * 0.65;
-  const r = Math.round(255 + (183 - 255) * q);
-  const g = Math.round(245 + (28 - 245) * q);
-  const b = Math.round(180 + (28 - 180) * q);
-  return `rgb(${r},${g},${b})`;
-}
-
-function MockHeatmap() {
-  return (
-    <div className="mock-heatmap">
-      <div className="mock-heatmap-grid">
-        <div className="mock-heatmap-corner" />
-        {MOCK_HEATMAP_COLS.map((col, j) => (
-          <div key={col} className="mock-heatmap-col-label">{col}</div>
-        ))}
-        {MOCK_HEATMAP_ROWS.map((row, i) => (
-          <React.Fragment key={row}>
-            <div className="mock-heatmap-row-label">{row}</div>
-            {MOCK_HEATMAP_DATA[i].map((val, j) => (
-              <div
-                key={`${i}-${j}`}
-                className={`mock-heatmap-cell ${val >= 70 ? 'mock-heatmap-cell-dark' : ''}`}
-                style={{ backgroundColor: getHeatmapColor(val) }}
-                title={`${row} · ${MOCK_HEATMAP_COLS[j]}: ${val}`}
-              >
-                {val}
-              </div>
-            ))}
-          </React.Fragment>
-        ))}
-      </div>
-      <div className="mock-heatmap-legend">
-        <span>Low</span>
-        <div className="mock-heatmap-legend-bar" />
-        <span>High</span>
-      </div>
-    </div>
-  );
-}
 
 const Dashboard = ({ onTabChange }) => {
   const [dashboardData, setDashboardData] = useState({
@@ -690,14 +635,9 @@ const Dashboard = ({ onTabChange }) => {
         </div>
       </div>
 
-        {/* Mock Heatmap - frontend only, no realtime data */}
+        {/* Risk-return scatter (was Sector Activity mock) */}
         <div className="content-card heatmap-card">
-          <div className="card-header">
-            <div className="header-left">
-              <h3>Sector Activity (Mock)</h3>
-            </div>
-          </div>
-          <MockHeatmap />
+          <RiskReturnScatterPlot />
         </div>
 
         {/* Top Performers */}
@@ -736,33 +676,65 @@ const Dashboard = ({ onTabChange }) => {
           </div>
           <div className="transactions-container">
             {dashboardData.recentTransactions && dashboardData.recentTransactions.length > 0 ? (
-              dashboardData.recentTransactions.map(transaction => (
-                <div key={transaction.id} className="transaction-card">
-                  <div className="transaction-header">
-                    <div className={`transaction-badge ${(transaction.type || 'BUY').toLowerCase()}`}>
-                      {transaction.type || 'BUY'}
+              <>
+                {dashboardData.recentTransactions.slice(0, 7).map(transaction => (
+                  <div
+                    key={transaction.id}
+                    className={`transaction-card ${
+                      (transaction.type || 'BUY') === 'SELL' ? 'sell' : 'buy'
+                    }`}
+                  >
+                    <div className="transaction-left">
+                      <div
+                        className={`transaction-badge ${
+                          (transaction.type || 'BUY').toLowerCase() === 'sell'
+                            ? 'sell'
+                            : 'buy'
+                        }`}
+                      >
+                        {transaction.type || 'BUY'}
+                      </div>
+                      <div className="transaction-date">
+                        {transaction.date
+                          ? new Date(transaction.date).toLocaleDateString('en-US', {
+                              month: 'short',
+                              day: 'numeric'
+                            })
+                          : 'N/A'}
+                      </div>
                     </div>
-                    <div className="transaction-date">
-                      {transaction.date ? new Date(transaction.date).toLocaleDateString('en-US', {
-                        month: 'short',
-                        day: 'numeric'
-                      }) : 'N/A'}
+                    <div className="transaction-center">
+                      <div className="transaction-symbol">{transaction.symbol || 'N/A'}</div>
+                      {transaction.company && transaction.company !== 'N/A' && (
+                        <div className="transaction-company">{transaction.company}</div>
+                      )}
+                    </div>
+                    <div className="transaction-right">
+                      <div className="transaction-quantity">
+                        {Number(transaction.quantity || 0).toLocaleString('en-US', {
+                          minimumFractionDigits: 2,
+                          maximumFractionDigits: 2
+                        })}{' '}
+                        shares
+                      </div>
+                      <div
+                        className={`transaction-price ${
+                          (transaction.type || 'BUY') === 'SELL' ? 'sell' : 'buy'
+                        }`}
+                      >
+                        {Number(
+                          transaction.type === 'SELL'
+                            ? transaction.sold_price || transaction.price || 0
+                            : transaction.price || 0
+                        ).toLocaleString('en-US', {
+                          minimumFractionDigits: 2,
+                          maximumFractionDigits: 4
+                        })}
+                      </div>
                     </div>
                   </div>
-                  <div className="transaction-body">
-                    <div className="transaction-symbol">{transaction.symbol || 'N/A'}</div>
-                    <div className="transaction-details">
-                      <span className="transaction-quantity">{transaction.quantity || 0} shares</span>
-                      <span className="transaction-price">
-                        {transaction.type === 'SELL' 
-                          ? (transaction.sold_price || transaction.price || 0)
-                          : (transaction.price || 0)
-                        }
-                      </span>
-                    </div>
-                  </div>
-                </div>
-              ))
+                ))}
+              </>
             ) : (
               <div className="empty-state">
                 <div className="empty-icon">
@@ -1163,11 +1135,6 @@ const Dashboard = ({ onTabChange }) => {
               </div>
             </div>
           </div>
-
-        {/* Risk-Return Scatter Plot */}
-        <div className="content-card">
-          <RiskReturnScatterPlot />
-        </div>
 
         {/* Quick Actions */}
         <div className="content-card">

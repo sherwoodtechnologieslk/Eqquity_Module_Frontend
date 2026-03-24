@@ -20,8 +20,8 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 4rem;
-  height: 4rem;
+  width: 3rem;
+  height: 3rem;
   background: linear-gradient(135deg, #60a5fa, #2563eb);
   border-radius: 0.18rem; /* LESS ROUND */
   margin: 0;
@@ -30,8 +30,8 @@
 }
 
 .coa-icon {
-  width: 2rem;
-  height: 2rem;
+  width: 1.5rem;
+  height: 1.5rem;
   color: #fff;
 }
 
@@ -43,7 +43,7 @@
 }
 
 .coa-main-title {
-  font-size: 2rem;
+  font-size: 1.625rem;
   font-weight: 800;
   color: #1f2937;
   margin: 0 0 0.5rem 0;
@@ -53,7 +53,7 @@
 
 .coa-subtitle {
   color: #475569;
-  font-size: 1.1rem;
+  font-size: 0.9375rem;
   font-weight: 400;
   margin: 0;
   margin-bottom: 0.1rem;
@@ -433,15 +433,15 @@
     padding-bottom: 1.2rem;
   }
   .coa-main-title {
-    font-size: 2.2rem;
+    font-size: 1.75rem;
   }
   .coa-header-icon {
-    width: 4rem;
-    height: 4rem;
+    width: 3rem;
+    height: 3rem;
   }
   .coa-icon {
-    width: 2rem;
-    height: 2rem;
+    width: 1.5rem;
+    height: 1.5rem;
   }
 }
 
@@ -463,11 +463,11 @@
   }
   
   .coa-main-title {
-    font-size: 1.5rem;
+    font-size: 1.375rem;
   }
   
   .coa-subtitle {
-    font-size: 1rem;
+    font-size: 0.9rem;
   }
   
   .coa-card-header {
@@ -506,21 +506,21 @@
 
 @media (max-width: 480px) {
   .coa-header-icon {
-    width: 3rem;
-    height: 3rem;
+    width: 2.5rem;
+    height: 2.5rem;
   }
   
   .coa-icon {
-    width: 1.5rem;
-    height: 1.5rem;
+    width: 1.25rem;
+    height: 1.25rem;
   }
   
   .coa-main-title {
-    font-size: 1.25rem;
+    font-size: 1.125rem;
   }
   
   .coa-subtitle {
-    font-size: 0.875rem;
+    font-size: 0.8125rem;
   }
   
   .coa-data-table th,

@@ -3,9 +3,9 @@
   background: linear-gradient(135deg, #1e40af 0%, #2563eb 50%, #3b82f6 100%);
   padding: 0;
   box-shadow: 
-    0 8px 32px rgba(37, 99, 235, 0.4),
-    0 4px 16px rgba(0, 0, 0, 0.15),
-    inset 0 1px 0 rgba(255, 255, 255, 0.2);
+    0 10px 28px rgba(37, 99, 235, 0.22),
+    0 4px 14px rgba(0, 0, 0, 0.12),
+    inset 0 1px 0 rgba(255, 255, 255, 0.18);
   position: fixed;
   top: 0;
   left: 320px;
@@ -14,7 +14,7 @@
   z-index: 2000;
   overflow: hidden;
   transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-  backdrop-filter: blur(20px);
+  backdrop-filter: blur(14px);
   border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 }
 
@@ -26,11 +26,11 @@
   right: 0;
   bottom: 0;
   background: 
-    radial-gradient(circle at 15% 30%, rgba(255, 255, 255, 0.15) 0%, transparent 60%),
-    radial-gradient(circle at 85% 70%, rgba(59, 130, 246, 0.2) 0%, transparent 50%),
-    radial-gradient(circle at 50% 50%, rgba(255, 255, 255, 0.05) 0%, transparent 70%);
+    radial-gradient(circle at 15% 30%, rgba(255, 255, 255, 0.08) 0%, transparent 60%),
+    radial-gradient(circle at 85% 70%, rgba(59, 130, 246, 0.14) 0%, transparent 50%),
+    radial-gradient(circle at 50% 50%, rgba(255, 255, 255, 0.03) 0%, transparent 70%);
   pointer-events: none;
-  animation: shimmer 8s ease-in-out infinite;
+  animation: none;
 }
 
 .main-navbar::after {
@@ -44,7 +44,7 @@
     transparent 0%, 
     rgba(255, 255, 255, 0.1) 50%, 
     transparent 100%);
-  animation: sweep 6s ease-in-out infinite;
+  display: none;
   pointer-events: none;
 }
 
@@ -374,49 +374,6 @@
 }
 
 .action-button:hover .action-icon {
-  transform: scale(1.1);
-  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
-}
-
-/* Smaller Print and Notifications Icons - Unique Classes */
-.navbar-print-button,
-.navbar-notifications-button {
-  width: 2.8rem;
-  height: 2.8rem;
-  background: rgba(255, 255, 255, 0.15);
-  border: 1px solid rgba(255, 255, 255, 0.25);
-  border-radius: 1rem;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-  position: relative;
-  overflow: hidden;
-}
-
-.navbar-print-button:hover,
-.navbar-notifications-button:hover {
-  background: rgba(255, 255, 255, 0.25);
-  transform: translateY(-2px) scale(1.05);
-  box-shadow: 
-    0 8px 20px rgba(0, 0, 0, 0.15),
-    0 4px 12px rgba(37, 99, 235, 0.25),
-    inset 0 1px 0 rgba(255, 255, 255, 0.4);
-  border-color: rgba(255, 255, 255, 0.4);
-}
-
-.navbar-print-icon,
-.navbar-notifications-icon {
-  width: 1.4rem;
-  height: 1.4rem;
-  color: white;
-  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.2));
-  transition: all 0.3s ease;
-}
-
-.navbar-print-button:hover .navbar-print-icon,
-.navbar-notifications-button:hover .navbar-notifications-icon {
   transform: scale(1.1);
   filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
 }

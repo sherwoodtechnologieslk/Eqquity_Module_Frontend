@@ -28,7 +28,7 @@
   border-bottom: 2px solid #e5e7eb;
   background: white;
   padding: 0 1rem;
-  border-radius: 0.5rem 0.5rem 0 0;
+  border-radius: 0;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
 }
 
@@ -68,7 +68,7 @@
 
 .cfm-summary-card {
   background: white;
-  border-radius: 12px;
+  border-radius: 0;
   padding: 1.5rem;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
   display: flex;
@@ -85,7 +85,7 @@
 .cfm-card-icon {
   width: 48px;
   height: 48px;
-  border-radius: 10px;
+  border-radius: 0;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -148,7 +148,7 @@
 /* Filters */
 .cfm-filters {
   background: white;
-  border-radius: 12px;
+  border-radius: 0;
   padding: 1.5rem;
   margin-bottom: 2rem;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
@@ -181,7 +181,7 @@
 .cfm-select {
   padding: 0.625rem 0.875rem;
   border: 1px solid #e2e8f0;
-  border-radius: 8px;
+  border-radius: 0;
   font-size: 0.875rem;
   transition: border-color 0.2s, box-shadow 0.2s;
   background: white;
@@ -211,7 +211,7 @@
 .cfm-btn {
   padding: 0.625rem 1.25rem;
   border: none;
-  border-radius: 8px;
+  border-radius: 0;
   font-size: 0.875rem;
   font-weight: 600;
   cursor: pointer;
@@ -252,7 +252,7 @@
   background: #3b82f6;
   color: white;
   border: none;
-  border-radius: 8px;
+  border-radius: 0;
   font-weight: 600;
   cursor: pointer;
   margin-top: 1rem;
@@ -265,7 +265,7 @@
 /* Table */
 .cfm-table-container {
   background: white;
-  border-radius: 12px;
+  border-radius: 0;
   overflow: hidden;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
   overflow-x: auto;
@@ -322,7 +322,7 @@
 .cfm-type-badge {
   display: inline-block;
   padding: 0.25rem 0.75rem;
-  border-radius: 6px;
+  border-radius: 0;
   font-size: 0.75rem;
   font-weight: 600;
   text-transform: uppercase;
@@ -399,7 +399,7 @@
   height: 48px;
   border: 4px solid #e2e8f0;
   border-top-color: #3b82f6;
-  border-radius: 50%;
+  border-radius: 0;
   animation: spin 1s linear infinite;
   margin-bottom: 1rem;
 }

@@ -928,7 +928,7 @@ const OtherTransactions = () => {
       // Prepare data for backend: send base category (income, expense, asset, liability) as category
       // The backend validation expects base categories or specific hardcoded categories
       const submitData = {
-        category: transactionTypeForm.category, // Send base category (income, expense, asset, liability)
+        category: normalizeCategoryForApi(transactionTypeForm.category),
         sub_category: transactionTypeForm.sub_category, // Store the sub-category name separately
         transaction_type_name: transactionTypeForm.transaction_type_name,
         gl_account_code: transactionTypeForm.gl_account_code,
@@ -1057,6 +1057,14 @@ const OtherTransactions = () => {
     return null;
   };
 
+  // Convert UI category keys to backend/account_categories values.
+  const normalizeCategoryForApi = (category) => {
+    if (!category) return '';
+    const cat = String(category).toLowerCase().trim();
+    if (cat === 'otherincome' || cat === 'other income') return 'other income';
+    return cat;
+  };
+
   // Group transaction types by base category (for backward compatibility)
   // Use useMemo to ensure it recalculates when definedTransactionTypes changes
   const groupedTransactionTypes = useMemo(() => {
@@ -1159,7 +1167,7 @@ const OtherTransactions = () => {
         try {
           // Fetch transaction types by sub category (category_name) and account type
           // Map form.category (income, expense, asset, liability) to account_type
-          const accountType = form.category.toLowerCase();
+          const accountType = normalizeCategoryForApi(form.category);
           const data = await accountCategoryAPI.getTransactionTypesByCategoryName(form.subCategory, accountType);
           setTransactionTypes(data.map(t => t.transaction_type_name));
         } catch (error) {
@@ -1183,9 +1191,10 @@ const OtherTransactions = () => {
           // Fetch all defined transaction types for the current user
           const allDefinedTypes = await otherTransactionTypeAPI.getAll();
           // Filter by transaction_type_name and category, and only show active ones
+          const selectedCategory = normalizeCategoryForApi(form.category);
           const filtered = (allDefinedTypes || []).filter(type => 
             type.transaction_type_name === form.transactionType &&
-            type.category?.toLowerCase() === form.category.toLowerCase() &&
+            normalizeCategoryForApi(type.category) === selectedCategory &&
             type.is_active !== false
           );
           setDefinedTransactionTypesForVoucher(filtered);
@@ -1216,7 +1225,7 @@ const OtherTransactions = () => {
         try {
           // Fetch transaction types by sub category (category_name) and account type
           // Map transactionTypeForm.category (income, expense, asset, liability) to account_type
-          const accountType = transactionTypeForm.category.toLowerCase();
+          const accountType = normalizeCategoryForApi(transactionTypeForm.category);
           const data = await accountCategoryAPI.getTransactionTypesByCategoryName(transactionTypeForm.sub_category, accountType);
           // Store full objects to access transaction_type_code for filtering
           setTransactionTypesForDefine(data || []);
@@ -1239,7 +1248,7 @@ const OtherTransactions = () => {
         try {
           // Fetch transaction types by sub category (category_name) and account type
           // Map reverseForm.category (income, expense, asset, liability) to account_type
-          const accountType = reverseForm.category.toLowerCase();
+          const accountType = normalizeCategoryForApi(reverseForm.category);
           const data = await accountCategoryAPI.getTransactionTypesByCategoryName(reverseForm.subCategory, accountType);
           setTransactionTypesForReverse(data.map(t => t.transaction_type_name));
         } catch (error) {
@@ -1292,7 +1301,7 @@ const OtherTransactions = () => {
       const fetchTransactionTypesForLiabilitySettlement = async () => {
         try {
           // Fetch transaction types by sub category (category_name) and account type
-          const accountType = liabilitySettlementForm.category.toLowerCase();
+          const accountType = normalizeCategoryForApi(liabilitySettlementForm.category);
           const data = await accountCategoryAPI.getTransactionTypesByCategoryName(liabilitySettlementForm.subCategory, accountType);
           setTransactionTypesForLiabilitySettlement(data.map(t => t.transaction_type_name));
         } catch (error) {
@@ -1463,7 +1472,7 @@ const OtherTransactions = () => {
 
       // Prepare transaction data
       // Map main category to accountType for backend compatibility
-      const accountType = form.category.toLowerCase(); // category is now the main category (income, expense, asset, liability)
+      const accountType = normalizeCategoryForApi(form.category);
       
       const transactionData = {
         voucherNumber: form.voucherNumber,
@@ -4801,7 +4810,7 @@ const isVoucherSettled = (voucher) => {
                       }}>
                         {(() => {
                           // Filter by Category (account_type), Sub Category (account_category), and Transaction Type Name (transaction_type)
-                          const selectedCategory = transactionTypeForm.category?.toLowerCase();
+                          const selectedCategory = normalizeCategoryForApi(transactionTypeForm.category);
                           const selectedSubCategory = transactionTypeForm.sub_category;
                           const selectedTransactionTypeName = transactionTypeForm.transaction_type_name;
 
@@ -4816,6 +4825,10 @@ const isVoucherSettled = (voucher) => {
                                 if (selectedCategory === 'income') {
                                   // Income can be 'income' or 'revenue'
                                   if (accType !== 'income' && accType !== 'revenue') {
+                                    return false;
+                                  }
+                                } else if (selectedCategory === 'other income') {
+                                  if (accType !== 'other income') {
                                     return false;
                                   }
                                 } else if (accType !== expectedAccountType) {
@@ -4875,7 +4888,7 @@ const isVoucherSettled = (voucher) => {
                         })()}
                         {(() => {
                           // Filter by Category (account_type), Sub Category (account_category), and Transaction Type Name (transaction_type)
-                          const selectedCategory = transactionTypeForm.category?.toLowerCase();
+                          const selectedCategory = normalizeCategoryForApi(transactionTypeForm.category);
                           const selectedSubCategory = transactionTypeForm.sub_category;
                           const selectedTransactionTypeName = transactionTypeForm.transaction_type_name;
 
@@ -4888,6 +4901,10 @@ const isVoucherSettled = (voucher) => {
                               if (selectedCategory === 'income') {
                                 // Income can be 'income' or 'revenue'
                                 if (accType !== 'income' && accType !== 'revenue') {
+                                  return false;
+                                }
+                              } else if (selectedCategory === 'other income') {
+                                if (accType !== 'other income') {
                                   return false;
                                 }
                               } else if (accType !== expectedAccountType) {

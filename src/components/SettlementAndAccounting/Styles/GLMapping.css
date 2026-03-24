@@ -28,7 +28,7 @@
   margin-bottom: 2rem;
   background: white;
   padding: 0 1rem;
-  border-radius: 12px 12px 0 0;
+  border-radius: 0;
 }
 
 .glm-tab {
@@ -57,7 +57,7 @@
   background: #e2e8f0;
   color: #4a5568;
   padding: 0.125rem 0.5rem;
-  border-radius: 12px;
+  border-radius: 0;
   font-size: 0.75rem;
   font-weight: 700;
   margin-left: 0.25rem;
@@ -82,7 +82,7 @@
 /* Content */
 .glm-content {
   background: white;
-  border-radius: 12px;
+  border-radius: 0;
   padding: 2rem;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
   min-height: 500px;
@@ -130,7 +130,7 @@
   background: #e2e8f0;
   color: #4a5568;
   border: none;
-  border-radius: 8px;
+  border-radius: 0;
   font-size: 0.875rem;
   font-weight: 600;
   cursor: pointer;
@@ -170,7 +170,7 @@
   width: 100%;
   padding: 0.875rem 1rem 0.875rem 3rem;
   border: 1px solid #e2e8f0;
-  border-radius: 8px;
+  border-radius: 0;
   font-size: 0.875rem;
   transition: border-color 0.2s, box-shadow 0.2s;
 }
@@ -192,7 +192,7 @@
 .glm-stat-card {
   background: #f7fafc;
   border: 1px solid #e2e8f0;
-  border-radius: 8px;
+  border-radius: 0;
   padding: 1rem 1.5rem;
   text-align: center;
 }
@@ -216,7 +216,7 @@
 .glm-table-container {
   overflow-x: auto;
   border: 1px solid #e2e8f0;
-  border-radius: 8px;
+  border-radius: 0;
 }
 
 .glm-table {
@@ -260,7 +260,7 @@
   padding: 0.25rem 0.75rem;
   background: #e0e7ff;
   color: #3730a3;
-  border-radius: 6px;
+  border-radius: 0;
   font-family: 'Courier New', monospace;
   font-size: 0.8125rem;
   font-weight: 600;
@@ -271,7 +271,7 @@
   padding: 0.25rem 0.75rem;
   background: #f3f4f6;
   color: #374151;
-  border-radius: 6px;
+  border-radius: 0;
   font-family: 'Courier New', monospace;
   font-size: 0.8125rem;
   font-weight: 600;
@@ -282,7 +282,7 @@
   background: #fee2e2;
   color: #dc2626;
   border: none;
-  border-radius: 6px;
+  border-radius: 0;
   cursor: pointer;
   display: inline-flex;
   align-items: center;
@@ -323,7 +323,7 @@
   height: 48px;
   border: 4px solid #e2e8f0;
   border-top-color: #3b82f6;
-  border-radius: 50%;
+  border-radius: 0;
   animation: spin 1s linear infinite;
   margin-bottom: 1rem;
 }
@@ -345,7 +345,7 @@
   background: #3b82f6;
   color: white;
   border: none;
-  border-radius: 8px;
+  border-radius: 0;
   font-weight: 600;
   cursor: pointer;
 }
