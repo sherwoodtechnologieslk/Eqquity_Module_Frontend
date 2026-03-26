@@ -2309,6 +2309,32 @@ export const financialPositionAPI = {
       console.error('Error fetching financial position summary:', error);
       throw error;
     }
+  },
+
+  // Get portfolio export table (counter/share/WACC/MV analytics)
+  getPortfolioExportTable: async (filters = {}) => {
+    try {
+      const queryParams = new URLSearchParams({
+        asOfDate: filters.asOfDate || new Date().toISOString().split('T')[0]
+      });
+
+      if (filters.portfolioId) {
+        queryParams.append('portfolioId', filters.portfolioId);
+      }
+
+      const response = await fetch(`${API_BASE_URL}/financial-position/portfolio-export-table?${queryParams}`, {
+        headers: getAuthHeaders()
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      return await response.json();
+    } catch (error) {
+      console.error('Error fetching portfolio export table:', error);
+      throw error;
+    }
   }
 };
 

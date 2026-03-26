@@ -75,6 +75,8 @@ const Navbar = ({ activeTab, onTabChange, visibleTabs = [], user, onLogout, onOp
     description: allTabDefinitions[name]?.description || ''
   }));
 
+  const displayTabName = (name) => name;
+
   // Scroll and mouse handlers (unchanged)
   useEffect(() => {
     const handleScroll = () => {
@@ -182,7 +184,7 @@ const Navbar = ({ activeTab, onTabChange, visibleTabs = [], user, onLogout, onOp
                 style={{ position: 'relative', overflow: 'hidden', zIndex: 1 }}
               >
                 {tab.icon}
-                <span className="tab-text">{tab.name}</span>
+                <span className="tab-text">{displayTabName(tab.name)}</span>
                 {activeTab === tab.name && <div className="active-indicator"></div>}
               </button>
             </li>

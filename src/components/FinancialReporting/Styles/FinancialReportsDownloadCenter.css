@@ -1,0 +1,142 @@
+.frdc-wrap {
+  padding: 24px;
+  background: #f8fafc;
+  color: #0f172a;
+}
+
+.frdc-header h2 {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 900;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.frdc-header p {
+  margin: 6px 0 0;
+  color: #64748b;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.frdc-filters {
+  margin-top: 14px;
+  display: grid;
+  grid-template-columns: 1.6fr 1fr;
+  gap: 12px;
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  padding: 14px;
+  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.06);
+}
+
+.frdc-filters label {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 900;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: #475569;
+}
+
+.frdc-filters select,
+.frdc-filters input {
+  border: 1px solid #cbd5e1;
+  padding: 10px 10px;
+  font-size: 14px;
+  font-weight: 700;
+  color: #0f172a;
+  background: #fff;
+}
+
+.frdc-filters select:focus,
+.frdc-filters input:focus {
+  outline: none;
+  border-color: #111827;
+  box-shadow: 0 0 0 3px rgba(15, 23, 42, 0.14);
+}
+
+.frdc-error {
+  margin-top: 12px;
+  color: #b91c1c;
+  background: #fee2e2;
+  border: 1px solid #fecaca;
+  padding: 10px 12px;
+}
+
+.frdc-grid {
+  margin-top: 16px;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 12px;
+}
+
+.frdc-card {
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.06);
+  padding: 16px;
+}
+
+.frdc-card-title {
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  font-size: 12px;
+}
+
+.frdc-card-sub {
+  margin-top: 6px;
+  color: #64748b;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.frdc-actions {
+  margin-top: 12px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.frdc-actions button {
+  border: 1px solid #111827;
+  background: #fff;
+  color: #0b0f19;
+  padding: 10px 12px;
+  font-size: 12px;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  cursor: pointer;
+  transition: transform 0.15s ease, background 0.15s ease, box-shadow 0.15s ease;
+}
+
+.frdc-actions button:hover:not(:disabled) {
+  background: rgba(15, 23, 42, 0.06);
+  transform: translateY(-1px);
+  box-shadow: 0 10px 22px rgba(15, 23, 42, 0.10);
+}
+
+.frdc-actions button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+.frdc-card-disabled {
+  opacity: 0.75;
+}
+
+@media (max-width: 980px) {
+  .frdc-wrap {
+    padding: 16px;
+  }
+
+  .frdc-filters {
+    grid-template-columns: 1fr;
+  }
+}
+

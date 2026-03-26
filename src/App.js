@@ -72,6 +72,8 @@ import FinancialPosition from './components/FinancialReporting/FinancialPosition
 import StatementOfComprehensiveIncome from './components/FinancialReporting/StatementOfComprehensiveIncome';
 import CashFlow from './components/FinancialReporting/CashFlow';
 import FinancialReportingNotes from './components/FinancialReporting/FinancialReportingNotes';
+import FinancialReportsExport from './components/FinancialReporting/FinancialReportsExport';
+import FinancialReportsDownloadCenter from './components/FinancialReporting/FinancialReportsDownloadCenter';
 import PremiumModal from './components/PremiumModal/premiumModal';
 import GsecEntries from './components/GsecEntries/GsecEntries';
 import GsecGeneralLedger from './components/GsecEntries/GsecGeneralLedger';
@@ -242,7 +244,8 @@ function App() {
     'Statement of Comprehensive Income': <StatementOfComprehensiveIncome />,
     'Cash Flow': <CashFlow />,
     'Financial Reporting Notes': <FinancialReportingNotes />,
-    'Financial Reports Export': <div style={{ padding: '2rem' }}><h3>Financial Reports Export</h3><p>Coming Soon...</p></div>,
+    'Equity Portfolio Snapshot': <FinancialReportsExport />,
+    'Financial Reports Export': <FinancialReportsDownloadCenter />,
     'Settlement Instructions': <SettlementInstructions />,
     'Cash Flow Mapping': <CashFlowMapping />,
     'GL Mapping': <GLMapping />,
