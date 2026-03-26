@@ -31,7 +31,7 @@ const FinancialPosition = ({ onTabChange }) => {
     // Treat any row that contains "retained earnings" as part of the Retained Earnings line.
     const retainedMatches = equityAccounts.filter((acc) => normalizeName(acc.accountName).includes('retained earnings'));
 
-    // Remove matched rows from the main list; we will re-add a single consolidated line.
+    // Remove matched rows from the main list;
     const retainedMatchKeys = new Set(
       retainedMatches.map((acc, idx) => acc.accountCode || String(idx))
     );
@@ -210,6 +210,38 @@ const FinancialPosition = ({ onTabChange }) => {
     if (!balanceType || balanceType === 'ZERO') return 'neutral';
     return balanceType === normalBalanceType ? 'positive' : 'negative';
   };
+
+  // Defensive UI bucketing: keep "non-current" labeled lines out of Current Assets.
+  const isNonCurrentAssetLike = (account) => {
+    const text = `${account?.accountCategory || ''} ${account?.transactionTypeName || ''} ${account?.accountName || ''}`
+      .toLowerCase()
+      .trim();
+    return (
+      text.includes('non current') ||
+      text.includes('non-current') ||
+      text.includes('fixed asset') ||
+      text.includes('property, plant') ||
+      text.includes('ppe')
+    );
+  };
+
+  const displayedAssetBuckets = useMemo(() => {
+    const nonCurrentFromApi = financialPositionData?.assets?.nonCurrentAssets || [];
+    const currentFromApi = financialPositionData?.assets?.currentAssets || [];
+
+    const reclassifiedFromCurrent = currentFromApi.filter(isNonCurrentAssetLike);
+    const keptCurrent = currentFromApi.filter((acc) => !isNonCurrentAssetLike(acc));
+
+    const combinedNonCurrent = [...nonCurrentFromApi, ...reclassifiedFromCurrent];
+    const sumBalance = (rows) => rows.reduce((sum, acc) => sum + (Number(acc.balance) || 0), 0);
+
+    return {
+      nonCurrentAssets: combinedNonCurrent,
+      currentAssets: keptCurrent,
+      totalNonCurrentAssets: sumBalance(combinedNonCurrent),
+      totalCurrentAssets: sumBalance(keptCurrent)
+    };
+  }, [financialPositionData]);
 
   /** SOFP first column: chart_of_accounts.transaction_type when set, else GL account name */
   const getSofpRowLabel = (account) => {
@@ -406,7 +438,7 @@ const FinancialPosition = ({ onTabChange }) => {
                       </tr>
                     </thead>
                     <tbody>
-                      {(financialPositionData?.assets?.nonCurrentAssets || []).map((account, index) =>
+                      {(displayedAssetBuckets.nonCurrentAssets || []).map((account, index) =>
                         renderAccountRow(
                           {
                             ...account,
@@ -416,10 +448,10 @@ const FinancialPosition = ({ onTabChange }) => {
                           'DR'
                         )
                       )}
-                      {financialPositionData?.assets?.nonCurrentAssets?.length > 0 &&
+                      {displayedAssetBuckets.nonCurrentAssets.length > 0 &&
                         renderSubtotalRow(
                           'Total Non-current assets',
-                          financialPositionData?.totals?.totalNonCurrentAssets || 0
+                          displayedAssetBuckets.totalNonCurrentAssets || 0
                         )}
                     </tbody>
                   </table>
@@ -440,13 +472,13 @@ const FinancialPosition = ({ onTabChange }) => {
                       </tr>
                     </thead>
                     <tbody>
-                      {(financialPositionData?.assets?.currentAssets || []).map((account, index) =>
+                      {(displayedAssetBuckets.currentAssets || []).map((account, index) =>
                         renderAccountRow(account, index, 'DR')
                       )}
-                      {financialPositionData?.assets?.currentAssets?.length > 0 &&
+                      {displayedAssetBuckets.currentAssets.length > 0 &&
                         renderSubtotalRow(
                           'Total Current assets',
-                          financialPositionData?.totals?.totalCurrentAssets || 0
+                          displayedAssetBuckets.totalCurrentAssets || 0
                         )}
                     </tbody>
                   </table>

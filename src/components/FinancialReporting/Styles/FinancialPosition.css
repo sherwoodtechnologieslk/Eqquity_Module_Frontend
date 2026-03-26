@@ -200,7 +200,7 @@
 }
 
 .fp-card-value {
-  font-size: 28px;
+  font-size: 22px;
   font-weight: 700;
   margin-bottom: 12px;
   letter-spacing: -0.02em;
@@ -1011,7 +1011,7 @@
   }
   
   .fp-card-value {
-    font-size: 24px;
+    font-size: 18px;
   }
 
   .fp-column-title {
