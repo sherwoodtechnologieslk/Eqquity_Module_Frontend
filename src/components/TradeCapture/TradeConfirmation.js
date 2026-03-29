@@ -195,8 +195,11 @@ const TradeConfirmation = () => {
     return (
       <div key={companyId} className="tc-company-group">
         <div className="tc-company-header">
+          <span className={`tc-company-badge ${isSale ? 'tc-company-badge--sale' : 'tc-company-badge--purchase'}`}>
+            {isSale ? 'Sale' : 'Purchase'}
+          </span>
           <h3 className="tc-company-title">
-            {isSale ? 'Sale of' : 'Purchase of'} {companyId} ({companyId}.N0000 / LK{companyId.padStart(4, '0')}N00000)
+            {companyId} <span className="tc-company-symbol">({companyId}.N0000 / LK{companyId.padStart(4, '0')}N00000)</span>
           </h3>
         </div>
 
@@ -204,17 +207,17 @@ const TradeConfirmation = () => {
           <table className="tc-transaction-table">
              <thead>
                <tr className="tc-table-header-row">
-                 <th className="tc-col-trade-date">Trade Date</th>
-                 <th className="tc-col-amount">Amount</th>
-                 <th className="tc-col-qty">Qty</th>
-                 <th className="tc-col-brokerage">Brokerage</th>
-                 <th className="tc-col-price">Price</th>
-                 <th className="tc-col-clearing">Clearing Fees</th>
-                 <th className="tc-col-cse">CSE Fees</th>
-                 <th className="tc-col-gov-cess">Government Cess</th>
-                 <th className="tc-col-net">Net Amount</th>
-                 <th className="tc-col-exec-id">Execution ID</th>
-                 <th className="tc-col-settlement">Settlement Date</th>
+                 <th scope="col" className="tc-col-trade-date">Trade Date</th>
+                 <th scope="col" className="tc-col-amount">Amount</th>
+                 <th scope="col" className="tc-col-qty">Qty</th>
+                 <th scope="col" className="tc-col-brokerage">Brokerage</th>
+                 <th scope="col" className="tc-col-price">Price</th>
+                 <th scope="col" className="tc-col-clearing">Clearing Fees</th>
+                 <th scope="col" className="tc-col-cse">CSE Fees</th>
+                 <th scope="col" className="tc-col-gov-cess">Government Cess</th>
+                 <th scope="col" className="tc-col-net">Net Amount</th>
+                 <th scope="col" className="tc-col-exec-id">Execution ID</th>
+                 <th scope="col" className="tc-col-settlement">Settlement Date</th>
                </tr>
              </thead>
             <tbody>
@@ -773,21 +776,37 @@ const TradeConfirmation = () => {
   return (
     <div className="tc-container">
       <div className="tc-header-section">
-        <div className="tc-header-icon-wrap">
-          <svg className="tc-header-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-          </svg>
+        <div className="tc-header-left">
+          <div className="tc-header-icon-wrap" aria-hidden="true">
+            <svg className="tc-header-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+              <path d="M14 2v6h6" />
+              <path d="M16 13H8" />
+              <path d="M16 17H8" />
+              <path d="M10 9H8" />
+            </svg>
+          </div>
+          <div className="tc-header-text-group">
+            <h1 className="tc-main-title">Trade Confirmation</h1>
+            <p className="tc-subtitle">
+              {latestTradeDate
+                ? `Trade report for ${formatTradeDate(latestTradeDate)}`
+                : 'Review and manage parsed trade confirmations'}
+            </p>
+          </div>
         </div>
-        <div className="tc-header-text-group">
-          <h1 className="tc-main-title">Trade Confirmation</h1>
-          <p className="tc-subtitle">
-            {latestTradeDate
-              ? `Trade report for ${formatTradeDate(latestTradeDate)}`
-              : 'Review and manage parsed trade confirmations'}
-          </p>
-        </div>
-        <div className="tc-header-actions">
-          <button onClick={fetchTransactions} className="tc-refresh-btn">Refresh</button>
+        <div className="tc-header-right">
+          {latestTradeDate ? (
+            <div className="tc-header-meta-badge" title="Latest trade date in uploaded data">
+              <span className="tc-header-meta-label">Latest trade date</span>
+              <span className="tc-header-meta-value">{formatTradeDate(latestTradeDate)}</span>
+            </div>
+          ) : (
+            <span className="tc-header-meta-badge tc-header-meta-badge--empty">No trade sessions loaded</span>
+          )}
+          <button type="button" onClick={fetchTransactions} className="tc-refresh-btn">
+            Refresh
+          </button>
         </div>
       </div>
       <div className="tc-tabs-card">
