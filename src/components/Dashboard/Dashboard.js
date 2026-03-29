@@ -5,6 +5,16 @@ import { authService } from '../../services/authService';
 import RiskReturnScatterPlot from './RiskReturnScatterPlot';
 import './Dashboard.css';
 
+function formatLkrCompact(value) {
+  const n = Number(value) || 0;
+  const sign = n < 0 ? '-' : '';
+  const abs = Math.abs(n);
+  if (abs >= 1e9) return `${sign}LKR ${(abs / 1e9).toFixed(2)}B`;
+  if (abs >= 1e6) return `${sign}LKR ${(abs / 1e6).toFixed(2)}M`;
+  if (abs >= 1e5) return `${sign}LKR ${(abs / 1e3).toFixed(0)}K`;
+  return `${sign}LKR ${abs.toLocaleString('en-US', { maximumFractionDigits: 0 })}`;
+}
+
 // Mock portfolio health / insights data for right column (frontend only)
 const MOCK_PORTFOLIO_HEALTH = {
   score: 82,
@@ -101,6 +111,8 @@ const Dashboard = ({ onTabChange }) => {
   const [isLoading, setIsLoading] = useState(true);
   const [currentTime, setCurrentTime] = useState(new Date());
   const [userRegion, setUserRegion] = useState('');
+  const [portfoliosList, setPortfoliosList] = useState([]);
+  const [selectedPortfolioKey, setSelectedPortfolioKey] = useState(null);
 
   // Load user region from localStorage or API
   useEffect(() => {
@@ -229,6 +241,8 @@ const Dashboard = ({ onTabChange }) => {
       let sectorLegend = [];
       let totalCompanies = 0;
       let pnlMetrics = {
+        totalRealizedCapitalGain: 0,
+        realizedPnL: 0,
         totalUnrealizedCapitalGain: 0,
         unrealizedPnL: 0
       };
@@ -236,27 +250,41 @@ const Dashboard = ({ onTabChange }) => {
       if (portfoliosResponse.ok) {
         const portfolios = await portfoliosResponse.json();
         activePortfolios = portfolios.length;
-        
+        setPortfoliosList(portfolios);
+
         console.log('🔍 DASHBOARD DEBUG - Available portfolios:', portfolios);
-        
-        // Fetch P&L metrics for the first portfolio (or all portfolios combined)
+
+        const portfolioIds = portfolios.map((p) => String(p.id));
+        const effectiveKey =
+          portfolios.length === 0
+            ? null
+            : selectedPortfolioKey != null &&
+                portfolioIds.includes(String(selectedPortfolioKey))
+              ? String(selectedPortfolioKey)
+              : String(portfolios[0].id);
+
+        if (portfolios.length > 0 && effectiveKey !== String(selectedPortfolioKey)) {
+          setSelectedPortfolioKey(effectiveKey);
+        }
+        if (portfolios.length === 0) {
+          setSelectedPortfolioKey(null);
+        }
+
         if (portfolios.length > 0) {
-          // Get P&L data for the first portfolio - use same field as MTM screen
-          const portfolioId = portfolios[0].id;
-          console.log('🔍 DASHBOARD DEBUG - Using portfolio ID:', portfolioId, 'from portfolio:', portfolios[0]);
+          const selectedPortfolio =
+            portfolios.find((p) => String(p.id) === effectiveKey) || portfolios[0];
+          const portfolioId = selectedPortfolio.id;
+          console.log('🔍 DASHBOARD DEBUG - Using portfolio ID:', portfolioId, selectedPortfolio);
           console.log('🔍 DASHBOARD DEBUG - Portfolio structure:', {
-            id: portfolios[0].id,
-            portfolioId: portfolios[0].portfolioId,
-            portfolioName: portfolios[0].portfolioName
+            id: selectedPortfolio.id,
+            portfolioId: selectedPortfolio.portfolioId,
+            portfolioName: selectedPortfolio.portfolioName
           });
-          
-          // Fetch realized P&L data for the first portfolio
+
           try {
-            // Try using portfolioId field instead of id field for realized P&L service
-            const realizedPortfolioId = portfolios[0].portfolioId || portfolioId;
-            console.log('🔍 DASHBOARD DEBUG - Fetching realized P&L data for portfolio:', realizedPortfolioId);
-            console.log('🔍 DASHBOARD DEBUG - Using portfolioId field:', portfolios[0].portfolioId);
-            console.log('🔍 DASHBOARD DEBUG - Portfolio object:', portfolios[0]);
+            const realizedPortfolioId =
+              selectedPortfolio.portfolioId || portfolioId;
+            console.log('🔍 DASHBOARD DEBUG - Fetching realized P&L for:', realizedPortfolioId);
             
             const realizedData = await realizedPnLService.getCompleteData(realizedPortfolioId, '1Y');
             console.log('🔍 DASHBOARD DEBUG - Realized P&L data received:', realizedData);
@@ -364,6 +392,9 @@ const Dashboard = ({ onTabChange }) => {
               // Keep existing P&L metrics if MTM fetch fails
             }
         }
+      } else {
+        setPortfoliosList([]);
+        setSelectedPortfolioKey(null);
       }
 
       // Fetch real transactions from the database
@@ -562,6 +593,7 @@ const Dashboard = ({ onTabChange }) => {
       setIsLoading(false);
     } catch (error) {
       console.error('Error loading dashboard data:', error);
+      setPortfoliosList([]);
       // Set empty data on error
       setDashboardData({
         activePortfolios: 0,
@@ -582,7 +614,7 @@ const Dashboard = ({ onTabChange }) => {
       });
       setIsLoading(false);
     }
-  }, []);
+  }, [selectedPortfolioKey]);
 
   useEffect(() => {
     // TODO: Replace with actual API calls
@@ -598,8 +630,97 @@ const Dashboard = ({ onTabChange }) => {
     );
   }
 
+  const marketStatus = getMarketStatus(currentTime);
+  const selectedPortfolioMeta = portfoliosList.find(
+    (p) => String(p.id) === String(selectedPortfolioKey)
+  );
+  const selectedPortfolioName =
+    selectedPortfolioMeta?.portfolioName ||
+    selectedPortfolioMeta?.name ||
+    (portfoliosList.length ? 'Portfolio' : '');
+
   return (
     <div className="equity-dashboard">
+      <header className="dashboard-hero" aria-label="Portfolio snapshot">
+        <div className="dashboard-hero__intro">
+          <p className="dashboard-hero__eyebrow">Portfolio snapshot</p>
+          {portfoliosList.length > 1 ? (
+            <div className="dashboard-hero__portfolio-field">
+              <label htmlFor="dashboard-portfolio-select" className="dashboard-hero__meta-label">
+                Portfolio
+              </label>
+              <select
+                id="dashboard-portfolio-select"
+                className="dashboard-hero__portfolio-select"
+                value={selectedPortfolioKey != null ? String(selectedPortfolioKey) : ''}
+                onChange={(e) => setSelectedPortfolioKey(e.target.value)}
+              >
+                {portfoliosList.map((p) => (
+                  <option key={p.id} value={String(p.id)}>
+                    {p.portfolioName || p.name || `Portfolio ${p.id}`}
+                  </option>
+                ))}
+              </select>
+            </div>
+          ) : (
+            <p className="dashboard-hero__note">
+              {portfoliosList.length === 1
+                ? `${selectedPortfolioName} · P&L and chart use this portfolio`
+                : 'No active portfolios · add a portfolio to see P&L'}
+            </p>
+          )}
+          {portfoliosList.length > 1 && (
+            <p className="dashboard-hero__note dashboard-hero__note--tight">
+              P&amp;L and risk–return chart follow the selection above.
+            </p>
+          )}
+        </div>
+        <div className="dashboard-hero__primary">
+          <span className="dashboard-hero__primary-label">Unrealized P&amp;L</span>
+          <span
+            className={`dashboard-hero__primary-value ${
+              dashboardData.pnlMetrics.unrealizedPnL < 0 ? 'is-negative' : ''
+            }`}
+          >
+            LKR{' '}
+            {new Intl.NumberFormat('en-US', {
+              minimumFractionDigits: 0,
+              maximumFractionDigits: 0
+            }).format(dashboardData.pnlMetrics.unrealizedPnL)}
+          </span>
+        </div>
+        <div className="dashboard-hero__meta" role="list">
+          <div className="dashboard-hero__meta-item" role="listitem">
+            <span className="dashboard-hero__meta-label">Market</span>
+            <span
+              className={`dashboard-hero__pill ${
+                marketStatus.isLive ? 'is-open' : 'is-closed'
+              }`}
+            >
+              {marketStatus.status}
+            </span>
+          </div>
+          <div className="dashboard-hero__meta-item" role="listitem">
+            <span className="dashboard-hero__meta-label">Portfolios</span>
+            <span className="dashboard-hero__meta-value">
+              {dashboardData.activePortfolios}
+            </span>
+          </div>
+          <div className="dashboard-hero__meta-item" role="listitem">
+            <span className="dashboard-hero__meta-label">Realized P&amp;L</span>
+            <span className="dashboard-hero__meta-value">
+              {formatLkrCompact(dashboardData.pnlMetrics.realizedPnL)}
+            </span>
+          </div>
+          <div className="dashboard-hero__meta-item" role="listitem">
+            <span className="dashboard-hero__meta-label">Net realized cap.</span>
+            <span className="dashboard-hero__meta-value">
+              {formatLkrCompact(dashboardData.pnlMetrics.totalRealizedCapitalGain)}
+            </span>
+          </div>
+        </div>
+      </header>
+
       {/* Main Dashboard Grid */}
       <div className="main-grid">
         {/* Left Column */}
@@ -636,8 +757,8 @@ const Dashboard = ({ onTabChange }) => {
       </div>
 
         {/* Risk-return scatter (was Sector Activity mock) */}
-        <div className="content-card heatmap-card">
-          <RiskReturnScatterPlot />
+        <div className="content-card heatmap-card dashboard-chart-lead">
+          <RiskReturnScatterPlot syncedPortfolioId={selectedPortfolioKey} />
         </div>
 
         {/* Top Performers */}
@@ -823,7 +944,7 @@ const Dashboard = ({ onTabChange }) => {
                 <span className="card-subtitle">High-level view using sample data</span>
               </div>
             </div>
-            <div className="insights-grid">
+            <div className="insights-grid health-insights-grid">
               <div className="insight-column">
                 <div className="insight-section-title">Overall health</div>
                 <div className="insight-value large">
@@ -869,46 +990,29 @@ const Dashboard = ({ onTabChange }) => {
 
               <div className="insight-column">
                 <div className="insight-section-title">Cash & liquidity</div>
-                <div className="insight-row">
+                <div className="insight-row insight-row--dense">
                   <span className="insight-label">Available cash</span>
-                  <span className="insight-value">
-                    LKR{' '}
-                    {new Intl.NumberFormat('en-US', {
-                      maximumFractionDigits: 0
-                    }).format(MOCK_LIQUIDITY.cashAvailable)}
+                  <span className="insight-value insight-value--tabular">
+                    {formatLkrCompact(MOCK_LIQUIDITY.cashAvailable)} (
+                    {MOCK_LIQUIDITY.cashPct}%)
                   </span>
                 </div>
-                <div className="insight-row">
-                  <span className="insight-label">Cash as % of portfolio</span>
-                  <span className="insight-value">
-                    {MOCK_LIQUIDITY.cashPct}%
+                <div className="insight-row insight-row--dense">
+                  <span className="insight-label">T+2 net</span>
+                  <span className="insight-value insight-value--tabular">
+                    {formatLkrCompact(
+                      MOCK_LIQUIDITY.t2Inflows - MOCK_LIQUIDITY.t2Outflows
+                    )}{' '}
+                    <span className="insight-muted">
+                      (in {formatLkrCompact(MOCK_LIQUIDITY.t2Inflows)} / out{' '}
+                      {formatLkrCompact(MOCK_LIQUIDITY.t2Outflows)})
+                    </span>
                   </span>
                 </div>
-                <div className="insight-row">
-                  <span className="insight-label">T+2 inflows</span>
-                  <span className="insight-value">
-                    LKR{' '}
-                    {new Intl.NumberFormat('en-US', {
-                      maximumFractionDigits: 0
-                    }).format(MOCK_LIQUIDITY.t2Inflows)}
-                  </span>
-                </div>
-                <div className="insight-row">
-                  <span className="insight-label">T+2 outflows</span>
-                  <span className="insight-value">
-                    LKR{' '}
-                    {new Intl.NumberFormat('en-US', {
-                      maximumFractionDigits: 0
-                    }).format(MOCK_LIQUIDITY.t2Outflows)}
-                  </span>
-                </div>
-                <div className="insight-row">
+                <div className="insight-row insight-row--dense">
                   <span className="insight-label">Liquid ≤ 3 days</span>
-                  <span className="insight-value">
-                    LKR{' '}
-                    {new Intl.NumberFormat('en-US', {
-                      maximumFractionDigits: 0
-                    }).format(MOCK_LIQUIDITY.liquidWithin3d)}
+                  <span className="insight-value insight-value--tabular">
+                    {formatLkrCompact(MOCK_LIQUIDITY.liquidWithin3d)}
                   </span>
                 </div>
               </div>

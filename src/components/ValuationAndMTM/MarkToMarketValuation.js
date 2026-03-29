@@ -507,6 +507,15 @@ const MarkToMarketValuation = () => {
     }).format(amount);
   };
 
+  const formatCurrency4 = (amount) => {
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: 'LKR',
+      minimumFractionDigits: 4,
+      maximumFractionDigits: 4
+    }).format(amount);
+  };
+
   const formatPercentage = (percentage) => {
     return `${percentage >= 0 ? '+' : ''}${percentage.toFixed(2)}%`;
   };
@@ -1115,7 +1124,7 @@ const MarkToMarketValuation = () => {
                       <td className="mtm-company-name">{item.companyName}</td>
                       <td className="mtm-symbol">{item.symbol}</td>
                       <td className="mtm-quantity">{item.quantity.toLocaleString()}</td>
-                      <td className="mtm-cost-price">{formatCurrency(item.costPrice)}</td>
+                      <td className="mtm-cost-price">{formatCurrency4(item.costPrice)}</td>
                       <td className="mtm-market-price">{formatCurrency(item.marketPrice)}</td>
                       <td className="mtm-cost-value">{formatCurrency(item.costValue)}</td>
                       <td className="mtm-gross-sales">{formatCurrency(item.grossSales)}</td>

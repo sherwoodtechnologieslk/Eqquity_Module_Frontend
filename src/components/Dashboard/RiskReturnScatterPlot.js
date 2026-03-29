@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { transactionEntryAPI, tradeSummaryAPI, portfolioAPI, equityAPI } from '../../services/api';
 import './RiskReturnScatterPlot.css';
 
-const RiskReturnScatterPlot = () => {
+const RiskReturnScatterPlot = ({ syncedPortfolioId }) => {
   const [scatterData, setScatterData] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -36,7 +36,7 @@ const RiskReturnScatterPlot = () => {
     fetchEquities();
   }, []);
 
-  // Fetch active portfolios
+  // Fetch active portfolios (syncedPortfolioId on first paint comes from dashboard hero)
   useEffect(() => {
     const fetchPortfolios = async () => {
       try {
@@ -44,9 +44,17 @@ const RiskReturnScatterPlot = () => {
         console.log('🔍 RISK-RETURN - Loaded portfolios:', data);
         setPortfolios(data);
         if (data.length > 0) {
-          // Use id or portfolioId field
-          const portfolioId = data[0].id || data[0].portfolioId;
-          console.log('🔍 RISK-RETURN - Setting initial portfolio ID:', portfolioId);
+          const fromParent =
+            syncedPortfolioId != null && syncedPortfolioId !== ''
+              ? data.find(
+                  (p) =>
+                    String(p.id) === String(syncedPortfolioId) ||
+                    String(p.portfolioId) === String(syncedPortfolioId)
+                )
+              : null;
+          const pick = fromParent || data[0];
+          const portfolioId = pick.id || pick.portfolioId;
+          console.log('🔍 RISK-RETURN - Setting portfolio ID:', portfolioId);
           setSelectedPortfolio(portfolioId);
         }
       } catch (error) {
@@ -55,7 +63,22 @@ const RiskReturnScatterPlot = () => {
       }
     };
     fetchPortfolios();
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- only align to parent on initial mount
   }, []);
+
+  useEffect(() => {
+    if (syncedPortfolioId == null || syncedPortfolioId === '') return;
+    if (portfolios.length === 0) return;
+    const match = portfolios.find(
+      (p) =>
+        String(p.id) === String(syncedPortfolioId) ||
+        String(p.portfolioId) === String(syncedPortfolioId)
+    );
+    if (match) {
+      const pid = match.id || match.portfolioId;
+      setSelectedPortfolio((prev) => (prev === pid ? prev : pid));
+    }
+  }, [syncedPortfolioId, portfolios]);
 
   // Calculate date range based on time range selection
   const getDateRange = (timeRange) => {
@@ -319,12 +342,13 @@ const RiskReturnScatterPlot = () => {
   };
 
   const chartData = getChartData();
-  // Make chart responsive - use container width with max constraint
-  // Account for sidebar (320px) + padding (80px) + margins
-  const availableWidth = typeof window !== 'undefined' ? window.innerWidth - 500 : 600;
-  const containerWidth = Math.min(600, Math.max(400, availableWidth)); // Between 400-600px
+
+  // Responsive width — wider plot on desktop
+  const availableWidth =
+    typeof window !== 'undefined' ? window.innerWidth - 420 : 720;
+  const containerWidth = Math.min(760, Math.max(440, availableWidth));
   const chartWidth = containerWidth;
-  const chartHeight = 500;
+  const chartHeight = 560;
   const margin = { top: 20, right: 20, bottom: 60, left: 80 };
   const innerWidth = chartWidth - margin.left - margin.right;
   const innerHeight = chartHeight - margin.top - margin.bottom;
@@ -385,13 +409,18 @@ const RiskReturnScatterPlot = () => {
         </div>
       </div>
 
-      <div className="scatter-plot-controls">
-        <div className="control-group" role="group" aria-label="Time range">
-          <span className="control-group-label">Range</span>
+      <div
+        className="scatter-plot-controls scatter-plot-controls--inline"
+        role="toolbar"
+        aria-label="Chart range and color mode"
+      >
+        <div className="scatter-plot-controls__segment" role="group" aria-label="Time range">
+          <span className="control-group-label control-group-label--inline">Range</span>
           <div className="time-range-buttons">
             {['30D', '60D', '90D', '1Y'].map((range) => (
               <button
                 key={range}
+                type="button"
                 className={`time-btn ${selectedTimeRange === range ? 'active' : ''}`}
                 onClick={() => setSelectedTimeRange(range)}
               >
@@ -400,16 +429,19 @@ const RiskReturnScatterPlot = () => {
             ))}
           </div>
         </div>
-        <div className="control-group" role="group" aria-label="Color by">
-          <span className="control-group-label">Color</span>
+        <div className="scatter-plot-controls__divider" aria-hidden="true" />
+        <div className="scatter-plot-controls__segment" role="group" aria-label="Color by">
+          <span className="control-group-label control-group-label--inline">Color</span>
           <div className="color-mode-buttons">
             <button
+              type="button"
               className={`color-btn ${colorMode === 'sector' ? 'active' : ''}`}
               onClick={() => setColorMode('sector')}
             >
               Sector
             </button>
             <button
+              type="button"
               className={`color-btn ${colorMode === 'performance' ? 'active' : ''}`}
               onClick={() => setColorMode('performance')}
             >
@@ -470,6 +502,70 @@ const RiskReturnScatterPlot = () => {
             </defs>
 
             <g transform={`translate(${margin.left}, ${margin.top})`}>
+              {chartData.volatilityRange > 0 && chartData.returnRange > 0 && (
+                <g className="quadrant-zones" aria-hidden="true">
+                  {(() => {
+                    const midVol =
+                      (chartData.minVolatility + chartData.maxVolatility) / 2;
+                    const midRet =
+                      (chartData.minReturn + chartData.maxReturn) / 2;
+                    const sx = scaleX(midVol);
+                    const sy = scaleY(midRet);
+                    return (
+                      <>
+                        <rect
+                          x={0}
+                          y={0}
+                          width={sx}
+                          height={sy}
+                          fill="rgba(34, 197, 94, 0.07)"
+                        />
+                        <rect
+                          x={sx}
+                          y={0}
+                          width={innerWidth - sx}
+                          height={sy}
+                          fill="rgba(245, 158, 11, 0.08)"
+                        />
+                        <rect
+                          x={0}
+                          y={sy}
+                          width={sx}
+                          height={innerHeight - sy}
+                          fill="rgba(100, 116, 139, 0.07)"
+                        />
+                        <rect
+                          x={sx}
+                          y={sy}
+                          width={innerWidth - sx}
+                          height={innerHeight - sy}
+                          fill="rgba(239, 68, 68, 0.08)"
+                        />
+                        <line
+                          x1={sx}
+                          y1={0}
+                          x2={sx}
+                          y2={innerHeight}
+                          stroke="#94a3b8"
+                          strokeWidth="1"
+                          strokeDasharray="4 4"
+                          opacity="0.65"
+                        />
+                        <line
+                          x1={0}
+                          y1={sy}
+                          x2={innerWidth}
+                          y2={sy}
+                          stroke="#94a3b8"
+                          strokeWidth="1"
+                          strokeDasharray="4 4"
+                          opacity="0.65"
+                        />
+                      </>
+                    );
+                  })()}
+                </g>
+              )}
               {/* Grid lines */}
               <g className="grid-lines">
                 {[0, 0.25, 0.5, 0.75, 1].map((t) => (
@@ -527,26 +623,13 @@ const RiskReturnScatterPlot = () => {
                       fill={color}
                       stroke={isHovered ? '#1E40AF' : '#fff'}
                       strokeWidth={isHovered ? 2 : 1}
-                      opacity={isHovered ? 1 : 0.8}
+                      opacity={isHovered ? 1 : 0.85}
                       className="scatter-point"
                       filter={isHovered ? 'url(#glow)' : 'none'}
                       onMouseEnter={() => setHoveredPoint(point)}
                       onMouseLeave={() => setHoveredPoint(null)}
                       style={{ cursor: 'pointer' }}
                     />
-                    {isHovered && (
-                      <text
-                        x={x}
-                        y={y - size - 8}
-                        textAnchor="middle"
-                        className="point-label"
-                        fontSize="11"
-                        fontWeight="600"
-                        fill="#1E40AF"
-                      >
-                        {point.symbol}
-                      </text>
-                    )}
                   </g>
                 );
               })}
@@ -640,6 +723,25 @@ const RiskReturnScatterPlot = () => {
               </text>
             </g>
           </svg>
+          </div>
+
+          <div className="scatter-quadrant-legend" aria-label="Risk-return zones">
+            <span className="scatter-quadrant-legend__item">
+              <i className="scatter-quadrant-legend__swatch scatter-quadrant-legend__swatch--ideal" />
+              Lower vol · higher return
+            </span>
+            <span className="scatter-quadrant-legend__item">
+              <i className="scatter-quadrant-legend__swatch scatter-quadrant-legend__swatch--hot" />
+              Higher vol · higher return
+            </span>
+            <span className="scatter-quadrant-legend__item">
+              <i className="scatter-quadrant-legend__swatch scatter-quadrant-legend__swatch--dull" />
+              Lower vol · lower return
+            </span>
+            <span className="scatter-quadrant-legend__item">
+              <i className="scatter-quadrant-legend__swatch scatter-quadrant-legend__swatch--risk" />
+              Higher vol · lower return
+            </span>
           </div>
 
           {/* Tooltip */}
