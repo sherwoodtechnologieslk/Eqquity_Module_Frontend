@@ -399,12 +399,3 @@ const MarketSummary = () => {
 };
 
 export default MarketSummary;
-
-
-
-
-
-
-
-
-
