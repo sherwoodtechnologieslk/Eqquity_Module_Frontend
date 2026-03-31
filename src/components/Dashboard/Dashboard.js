@@ -112,7 +112,7 @@ const Dashboard = ({ onTabChange }) => {
   const [isLoading, setIsLoading] = useState(true);
   const [currentTime, setCurrentTime] = useState(new Date());
   const [userRegion, setUserRegion] = useState('');
-  const [, setPortfoliosList] = useState([]);
+  const [portfoliosList, setPortfoliosList] = useState([]);
   const [selectedPortfolioKey, setSelectedPortfolioKey] = useState(null);
 
   // Load user region from localStorage or API

@@ -257,7 +257,7 @@ function App() {
     'Settlement Instructions': <SettlementInstructions />,
     'Cash Flow Mapping': <CashFlowMapping />,
     'GL Mapping': <GLMapping />,
-    'Performance Report': <div style={{ padding: '2rem' }}><h3>Performance Report</h3><p>Tell me what you want here and I&apos;ll build it.</p></div>,
+    'Performance Report': <Dashboard onTabChange={handleTabChange} />,
     'GSEC ENTRIES': <GsecEntries />,
     'Balance Sheet': <GsecBalanceSheet />,
     'GSec General Ledger': <GsecGeneralLedger />,
