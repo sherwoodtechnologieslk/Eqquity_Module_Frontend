@@ -2096,6 +2096,46 @@ export const trialBalanceAPI = {
       console.error('Error fetching account details:', error);
       throw error;
     }
+  },
+
+  /** Combined Equity + GSec trial balance as Excel (.xlsx) blob */
+  exportCombinedTrialBalanceExcel: async (filters = {}) => {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      throw new Error('No token, authorization denied');
+    }
+
+    const params = new URLSearchParams();
+    if (filters.startDate) params.append('startDate', filters.startDate);
+    if (filters.endDate) params.append('endDate', filters.endDate);
+    if (filters.source && filters.source !== 'all') params.append('source', filters.source);
+    if (filters.search) params.append('search', filters.search);
+
+    const qs = params.toString();
+    const url = `${API_BASE_URL}/trial-balance/combined/export${qs ? `?${qs}` : ''}`;
+
+    const response = await fetch(url, {
+      method: 'GET',
+      headers: { Authorization: `Bearer ${token}` }
+    });
+
+    if (response.status === 401) {
+      clearAuthAndRedirectToLogin();
+      throw new Error('Session expired or invalid. Please log in again.');
+    }
+
+    if (!response.ok) {
+      let msg = `Failed to export (HTTP ${response.status})`;
+      try {
+        const errJson = await response.json();
+        msg = errJson?.error || errJson?.message || msg;
+      } catch (e) {
+        // ignore
+      }
+      throw new Error(msg);
+    }
+
+    return await response.blob();
   }
 };
 
@@ -2753,4 +2793,14 @@ export const aiAnalysisAPI = {
       throw error;
     }
   }
+};
+
+/** Grounded AI assistant (portfolio + market context from backend) */
+export const aiChatAPI = {
+  sendMessage: async (message, portfolioId = 'all') => {
+    return await makeAuthenticatedRequest(`${API_BASE_URL}/ai/chat`, {
+      method: 'POST',
+      body: JSON.stringify({ message, portfolioId }),
+    });
+  },
 };

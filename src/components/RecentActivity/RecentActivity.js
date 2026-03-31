@@ -7,6 +7,8 @@ const RecentActivity = () => {
   const [filteredActivities, setFilteredActivities] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [activeFilter, setActiveFilter] = useState('all');
+  const [startDate, setStartDate] = useState('');
+  const [endDate, setEndDate] = useState('');
 
   useEffect(() => {
     loadRecentActivities();
@@ -14,7 +16,7 @@ const RecentActivity = () => {
 
   useEffect(() => {
     filterActivities();
-  }, [activities, activeFilter]);
+  }, [activities, activeFilter, startDate, endDate]);
 
   const loadRecentActivities = async () => {
     try {
@@ -147,6 +149,25 @@ const RecentActivity = () => {
       } else {
         filtered = filtered.filter(activity => activity.type === activeFilter);
       }
+    }
+
+    // Filter by date range (using activity.timestamp, which is a Date)
+    if (startDate) {
+      const start = new Date(startDate);
+      start.setHours(0, 0, 0, 0);
+      filtered = filtered.filter(activity => {
+        const ts = activity.timestamp instanceof Date ? activity.timestamp : new Date(activity.timestamp);
+        return !isNaN(ts.getTime()) && ts >= start;
+      });
+    }
+
+    if (endDate) {
+      const end = new Date(endDate);
+      end.setHours(23, 59, 59, 999);
+      filtered = filtered.filter(activity => {
+        const ts = activity.timestamp instanceof Date ? activity.timestamp : new Date(activity.timestamp);
+        return !isNaN(ts.getTime()) && ts <= end;
+      });
     }
 
     console.log('🔍 Filtering - Active filter:', activeFilter);
@@ -468,7 +489,26 @@ const RecentActivity = () => {
             </button>
           </div>
         </div>
-
+        <div className="search-section">
+          <div className="date-filter">
+            <label htmlFor="recent-start-date">From date</label>
+            <input
+              id="recent-start-date"
+              type="date"
+              value={startDate}
+              onChange={(e) => setStartDate(e.target.value)}
+            />
+          </div>
+          <div className="date-filter">
+            <label htmlFor="recent-end-date">To date</label>
+            <input
+              id="recent-end-date"
+              type="date"
+              value={endDate}
+              onChange={(e) => setEndDate(e.target.value)}
+            />
+          </div>
+        </div>
       </div>
 
 

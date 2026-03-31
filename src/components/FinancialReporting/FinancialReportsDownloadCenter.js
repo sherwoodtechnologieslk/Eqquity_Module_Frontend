@@ -2,7 +2,7 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import './Styles/FinancialReportsDownloadCenter.css';
-import { financialPositionAPI, portfolioAPI, profitLossAPI } from '../../services/api';
+import { financialPositionAPI, portfolioAPI, profitLossAPI, trialBalanceAPI, gsecEntriesAPI } from '../../services/api';
 
 const fmt = (value, decimals = 2) => {
   const num = Number(value) || 0;
@@ -362,6 +362,119 @@ const FinancialReportsDownloadCenter = () => {
       downloadCsv(`SNAPSHOT_${baseName}`, headers, rows);
     });
 
+  const exportCombinedTrialBalanceExcel = () =>
+    run('ctb-xls', async () => {
+      const blob = await trialBalanceAPI.exportCombinedTrialBalanceExcel({
+        startDate: asOfYearStart(filters.asOfDate),
+        endDate: filters.asOfDate
+      });
+      const downloadUrl = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      const stamp = sanitizeFilePart(filters.asOfDate);
+      a.href = downloadUrl;
+      a.download = `combined-trial-balance-${stamp}.xlsx`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      window.URL.revokeObjectURL(downloadUrl);
+    });
+
+  const exportCombinedTrialBalancePdf = () =>
+    run('ctb-pdf', async () => {
+      const startDate = asOfYearStart(filters.asOfDate);
+      const endDate = filters.asOfDate;
+
+      const [tbRes, gsecRes] = await Promise.all([
+        trialBalanceAPI.getTrialBalance({ startDate, endDate }),
+        gsecEntriesAPI.getBalanceSheet({ startDate, endDate })
+      ]);
+
+      if (!tbRes?.success) {
+        throw new Error(tbRes?.error || 'Failed to fetch equity trial balance');
+      }
+      if (!gsecRes?.success) {
+        throw new Error(gsecRes?.error || 'Failed to fetch GSec balance sheet');
+      }
+
+      const equityAccounts = (tbRes.data?.accounts || []).map((a) => ({
+        source: 'Equity',
+        account_code: a.account_code,
+        account_name: a.account_name,
+        account_type: a.account_type,
+        total_debit: Number(a.total_debit) || 0,
+        total_credit: Number(a.total_credit) || 0,
+        net_balance: Number(a.net_balance) || 0,
+        balance_type: a.balance_type
+      }));
+
+      const gsecAccounts = (gsecRes.data?.accounts || []).map((g) => {
+        const net = (Number(g.total_debit) || 0) - (Number(g.total_credit) || 0);
+        return {
+          source: 'GSec',
+          account_code: g.account_code,
+          account_name: g.account_name,
+          account_type: g.account_category || 'GSec',
+          total_debit: Number(g.total_debit) || 0,
+          total_credit: Number(g.total_credit) || 0,
+          net_balance: net,
+          balance_type: net > 0 ? 'DR' : net < 0 ? 'CR' : 'ZERO'
+        };
+      });
+
+      const combinedAccounts = [...equityAccounts, ...gsecAccounts];
+
+      const totals = combinedAccounts.reduce(
+        (acc, a) => {
+          acc.debit += a.total_debit || 0;
+          acc.credit += a.total_credit || 0;
+          return acc;
+        },
+        { debit: 0, credit: 0 }
+      );
+
+      const head = [
+        'Source',
+        'Account Code',
+        'Account Name',
+        'Type / Category',
+        'Debit',
+        'Credit',
+        'Net',
+        'DR/CR'
+      ];
+
+      const body = combinedAccounts.map((acc) => [
+        acc.source,
+        acc.account_code,
+        acc.account_name,
+        acc.account_type,
+        fmt(acc.total_debit, 2),
+        fmt(acc.total_credit, 2),
+        fmt(acc.net_balance, 2),
+        acc.balance_type
+      ]);
+
+      const foot = [
+        'Totals',
+        '',
+        '',
+        '',
+        fmt(totals.debit, 2),
+        fmt(totals.credit, 2),
+        '',
+        Math.abs(totals.debit - totals.credit) < 0.01 ? 'BALANCED' : 'OUT OF BALANCE'
+      ];
+
+      pdfTable({
+        title: 'Combined Trial Balance',
+        subtitle: `Includes equity and GSec ledgers (trading and non-trading) · Period: ${startDate} to ${endDate}`,
+        head,
+        body,
+        foot,
+        filenameBase: `CTB_${baseName}`
+      });
+    });
+
   const disabledKey = Boolean(!filters.portfolioId);
 
   return (
@@ -433,6 +546,21 @@ const FinancialReportsDownloadCenter = () => {
             </button>
             <button type="button" disabled={disabledKey || busyKey !== ''} onClick={exportSnapshotExcel}>
               {busyKey === 'snap-xls' ? 'Preparing…' : 'Download Excel'}
+            </button>
+          </div>
+        </div>
+
+        <div className="frdc-card">
+          <div className="frdc-card-title">Combined Trial Balance</div>
+          <div className="frdc-card-sub">
+            A single trial balance that combines equity and GSec ledgers, covering both trading and non-trading transactions.
+          </div>
+          <div className="frdc-actions">
+            <button type="button" disabled={busyKey !== ''} onClick={exportCombinedTrialBalancePdf}>
+              {busyKey === 'ctb-pdf' ? 'Preparing…' : 'Download PDF'}
+            </button>
+            <button type="button" disabled={busyKey !== ''} onClick={exportCombinedTrialBalanceExcel}>
+              {busyKey === 'ctb-xls' ? 'Preparing…' : 'Download Excel'}
             </button>
           </div>
         </div>

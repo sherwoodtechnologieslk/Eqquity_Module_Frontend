@@ -100,6 +100,7 @@ const Dashboard = ({ onTabChange }) => {
     sectorData: [],
     sectorLegend: [],
     totalCompanies: 0,
+    sectorChartPortfolioName: null,
     pnlMetrics: {
       totalRealizedCapitalGain: 0,
       realizedPnL: 0,
@@ -111,7 +112,7 @@ const Dashboard = ({ onTabChange }) => {
   const [isLoading, setIsLoading] = useState(true);
   const [currentTime, setCurrentTime] = useState(new Date());
   const [userRegion, setUserRegion] = useState('');
-  const [portfoliosList, setPortfoliosList] = useState([]);
+  const [, setPortfoliosList] = useState([]);
   const [selectedPortfolioKey, setSelectedPortfolioKey] = useState(null);
 
   // Load user region from localStorage or API
@@ -240,6 +241,7 @@ const Dashboard = ({ onTabChange }) => {
       let sectorData = [];
       let sectorLegend = [];
       let totalCompanies = 0;
+      let sectorChartPortfolioName = null;
       let pnlMetrics = {
         totalRealizedCapitalGain: 0,
         realizedPnL: 0,
@@ -247,15 +249,17 @@ const Dashboard = ({ onTabChange }) => {
         unrealizedPnL: 0
       };
 
+      let portfolios = [];
+      let effectiveKey = null;
       if (portfoliosResponse.ok) {
-        const portfolios = await portfoliosResponse.json();
+        portfolios = await portfoliosResponse.json();
         activePortfolios = portfolios.length;
         setPortfoliosList(portfolios);
 
         console.log('🔍 DASHBOARD DEBUG - Available portfolios:', portfolios);
 
         const portfolioIds = portfolios.map((p) => String(p.id));
-        const effectiveKey =
+        effectiveKey =
           portfolios.length === 0
             ? null
             : selectedPortfolioKey != null &&
@@ -269,11 +273,42 @@ const Dashboard = ({ onTabChange }) => {
         if (portfolios.length === 0) {
           setSelectedPortfolioKey(null);
         }
+      } else {
+        setPortfoliosList([]);
+        setSelectedPortfolioKey(null);
+      }
 
-        if (portfolios.length > 0) {
+      const apiBase = process.env.REACT_APP_API_URL || 'http://localhost:8080/api';
+      // Run in parallel with P&L below (no dependency on portfolio id)
+      const txPromise = Promise.all([
+        tradeSummaryAPI.getBuyTransactions(),
+        transactionEntryAPI.getAllSellTransactions()
+      ]);
+      const holdingsPromise = fetch(`${apiBase}/portfolios/overview`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token && { Authorization: `Bearer ${token}` })
+        }
+      })
+        .then(async (holdingsResponse) => {
+          if (!holdingsResponse.ok) return null;
+          return holdingsResponse.json();
+        })
+        .catch((holdingsError) => {
+          console.error('Error fetching holdings data:', holdingsError);
+          return null;
+        });
+
+      if (portfoliosResponse.ok && portfolios.length > 0 && effectiveKey != null) {
           const selectedPortfolio =
             portfolios.find((p) => String(p.id) === effectiveKey) || portfolios[0];
+          const nameFromApi = selectedPortfolio.portfolioName
+            ? String(selectedPortfolio.portfolioName).trim()
+            : '';
+          sectorChartPortfolioName = nameFromApi || null;
           const portfolioId = selectedPortfolio.id;
+          const realizedPortfolioId = selectedPortfolio.portfolioId || portfolioId;
           console.log('🔍 DASHBOARD DEBUG - Using portfolio ID:', portfolioId, selectedPortfolio);
           console.log('🔍 DASHBOARD DEBUG - Portfolio structure:', {
             id: selectedPortfolio.id,
@@ -281,128 +316,92 @@ const Dashboard = ({ onTabChange }) => {
             portfolioName: selectedPortfolio.portfolioName
           });
 
-          try {
-            const realizedPortfolioId =
-              selectedPortfolio.portfolioId || portfolioId;
-            console.log('🔍 DASHBOARD DEBUG - Fetching realized P&L for:', realizedPortfolioId);
-            
-            const realizedData = await realizedPnLService.getCompleteData(realizedPortfolioId, '1Y');
-            console.log('🔍 DASHBOARD DEBUG - Realized P&L data received:', realizedData);
-            
-            if (realizedData && realizedData.portfolioSummary) {
-              const summary = realizedData.portfolioSummary;
-              
-              // Net Realized Capital Gain = netRealizedPnL (gains + losses, can be negative)
-              const netRealizedCapitalGain = summary.netRealizedPnL || 0;
-              
-              // Realized P&L = proper calculation with fees and cost of funds
-              const realizedPnL = realizedData.realizedPnL || 0;
-              
-              console.log('🔍 DASHBOARD DEBUG - Calculated realized values:', {
-                netRealizedCapitalGain,
-                realizedPnL,
-                totalRealizedGains: summary.totalRealizedGains,
-                totalRealizedLosses: summary.totalRealizedLosses,
-                netRealizedPnL: summary.netRealizedPnL,
-                properRealizedPnL: realizedData.realizedPnL,
-                source: 'RealizedPnL complete data service'
-              });
-              
-              // Update the realized values
-              pnlMetrics.totalRealizedCapitalGain = netRealizedCapitalGain;
-              pnlMetrics.realizedPnL = realizedPnL;
-            } else {
-              console.warn('⚠️ DASHBOARD DEBUG - No realized P&L data available or invalid response structure');
-              console.warn('⚠️ Response structure:', {
-                hasData: !!realizedData,
-                hasPortfolioSummary: !!(realizedData && realizedData.portfolioSummary),
-                dataKeys: realizedData ? Object.keys(realizedData) : []
-              });
-            }
-          } catch (realizedError) {
-            console.error('❌ DASHBOARD DEBUG - Error fetching realized P&L data:', realizedError);
-            console.error('❌ Error details:', {
-              message: realizedError.message,
-              stack: realizedError.stack,
-              name: realizedError.name
-            });
-            // Keep existing P&L metrics if realized fetch fails (will remain 0)
-          }
-          
-          // Fetch MTM data for unrealized values - using EXACT same calculations as MarkToMarketValuation
-          try {
-              const mtmData = await transactionEntryAPI.getPortfolioPositions(portfolioId);
-              console.log('🔍 DASHBOARD DEBUG - MTM data for unrealized calculations:', mtmData);
-              
-              if (mtmData && mtmData.length > 0) {
-                // Get ALL four values from both screens:
-                // 3. Total Unrealized Capital Gain - from MTM screen (totalGainLoss = totalGrossSales - totalCost)
-                // 4. Unrealized P&L - from MTM screen (totalProjectedSalesWithCOF - (totalCost + totalCharges))
-                
-                console.log('🔍 DASHBOARD DEBUG - MTM data sample (first 2 items):', mtmData.slice(0, 2));
-                
-                // Use EXACT same calculations as MarkToMarketValuation component (lines 476-486, 1157-1158)
-                const totalCost = mtmData.reduce((sum, item) => sum + (item.costValue || 0), 0);
-                const totalGrossSales = mtmData.reduce((sum, item) => sum + (item.grossSales || 0), 0);
-                const totalCharges = mtmData.reduce((sum, item) => sum + (item.charges || 0), 0);
-                const totalProjectedSalesWithCOF = mtmData.reduce((sum, item) => sum + (item.projectedSalesWithCOF || 0), 0);
-                
-                // Total Unrealized Capital Gain = totalGrossSales - totalCost (same as MTM screen line 486)
-                const totalUnrealizedCapitalGain = totalGrossSales - totalCost;
-                
-                // Unrealized P&L = totalProjectedSalesWithCOF - (totalCost + totalCharges) (same as MTM screen line 1158)
-                const unrealizedPnL = totalProjectedSalesWithCOF - (totalCost + totalCharges);
-                
-                console.log('🔍 DASHBOARD DEBUG - Step-by-step calculations:', {
-                  totalCost,
-                  totalGrossSales,
-                  totalCharges,
-                  totalProjectedSalesWithCOF,
-                  totalUnrealizedCapitalGain: `${totalGrossSales} - ${totalCost} = ${totalUnrealizedCapitalGain}`,
-                  unrealizedPnL: `${totalProjectedSalesWithCOF} - (${totalCost} + ${totalCharges}) = ${unrealizedPnL}`
-                });
-                
-                // Update only the unrealized values, keep existing realized values
-                pnlMetrics.totalUnrealizedCapitalGain = totalUnrealizedCapitalGain;
-                pnlMetrics.unrealizedPnL = unrealizedPnL;
-                
-                console.log('🔍 DASHBOARD DEBUG - Calculated unrealized values from MTM screen:', {
-                  totalUnrealizedCapitalGain,
-                  unrealizedPnL,
-                  totalCost,
-                  totalGrossSales,
-                  totalCharges,
-                  totalProjectedSalesWithCOF,
-                  source: 'MarkToMarketValuation screen',
-                  mtmScreenReference: 'Lines 476-486, 1157-1158',
-                  pnlMetricsAfterUnrealized: pnlMetrics
-                });
-                
-                console.log('🔍 DASHBOARD DEBUG - FINAL P&L METRICS:', {
-                  totalRealizedCapitalGain: pnlMetrics.totalRealizedCapitalGain,
-                  realizedPnL: pnlMetrics.realizedPnL,
-                  totalUnrealizedCapitalGain: pnlMetrics.totalUnrealizedCapitalGain,
-                  unrealizedPnL: pnlMetrics.unrealizedPnL
-                });
-              } else {
-                console.log('🔍 DASHBOARD DEBUG - No MTM data available for unrealized calculations');
-              }
-            } catch (mtmError) {
+          console.log('🔍 DASHBOARD DEBUG - Fetching realized P&L + MTM in parallel for:', realizedPortfolioId);
+
+          const [realizedData, mtmData] = await Promise.all([
+            realizedPnLService.getCompleteData(realizedPortfolioId, '1Y').catch((realizedError) => {
+              console.error('❌ DASHBOARD DEBUG - Error fetching realized P&L data:', realizedError);
+              return null;
+            }),
+            transactionEntryAPI.getPortfolioPositions(portfolioId).catch((mtmError) => {
               console.error('❌ DASHBOARD DEBUG - Error fetching MTM data for unrealized values:', mtmError);
-              // Keep existing P&L metrics if MTM fetch fails
-            }
-        }
-      } else {
-        setPortfoliosList([]);
-        setSelectedPortfolioKey(null);
+              return null;
+            })
+          ]);
+
+          console.log('🔍 DASHBOARD DEBUG - Realized P&L data received:', realizedData);
+          console.log('🔍 DASHBOARD DEBUG - MTM data for unrealized calculations:', mtmData);
+
+          if (realizedData && realizedData.portfolioSummary) {
+            const summary = realizedData.portfolioSummary;
+            const netRealizedCapitalGain = summary.netRealizedPnL || 0;
+            const realizedPnL = realizedData.realizedPnL || 0;
+            console.log('🔍 DASHBOARD DEBUG - Calculated realized values:', {
+              netRealizedCapitalGain,
+              realizedPnL,
+              totalRealizedGains: summary.totalRealizedGains,
+              totalRealizedLosses: summary.totalRealizedLosses,
+              netRealizedPnL: summary.netRealizedPnL,
+              properRealizedPnL: realizedData.realizedPnL,
+              source: 'RealizedPnL complete data service'
+            });
+            pnlMetrics.totalRealizedCapitalGain = netRealizedCapitalGain;
+            pnlMetrics.realizedPnL = realizedPnL;
+          } else {
+            console.warn('⚠️ DASHBOARD DEBUG - No realized P&L data available or invalid response structure');
+            console.warn('⚠️ Response structure:', {
+              hasData: !!realizedData,
+              hasPortfolioSummary: !!(realizedData && realizedData.portfolioSummary),
+              dataKeys: realizedData ? Object.keys(realizedData) : []
+            });
+          }
+
+          if (mtmData && mtmData.length > 0) {
+            console.log('🔍 DASHBOARD DEBUG - MTM data sample (first 2 items):', mtmData.slice(0, 2));
+            const totalCost = mtmData.reduce((sum, item) => sum + (item.costValue || 0), 0);
+            const totalGrossSales = mtmData.reduce((sum, item) => sum + (item.grossSales || 0), 0);
+            const totalCharges = mtmData.reduce((sum, item) => sum + (item.charges || 0), 0);
+            const totalProjectedSalesWithCOF = mtmData.reduce((sum, item) => sum + (item.projectedSalesWithCOF || 0), 0);
+            const totalUnrealizedCapitalGain = totalGrossSales - totalCost;
+            const unrealizedPnL = totalProjectedSalesWithCOF - (totalCost + totalCharges);
+            console.log('🔍 DASHBOARD DEBUG - Step-by-step calculations:', {
+              totalCost,
+              totalGrossSales,
+              totalCharges,
+              totalProjectedSalesWithCOF,
+              totalUnrealizedCapitalGain: `${totalGrossSales} - ${totalCost} = ${totalUnrealizedCapitalGain}`,
+              unrealizedPnL: `${totalProjectedSalesWithCOF} - (${totalCost} + ${totalCharges}) = ${unrealizedPnL}`
+            });
+            pnlMetrics.totalUnrealizedCapitalGain = totalUnrealizedCapitalGain;
+            pnlMetrics.unrealizedPnL = unrealizedPnL;
+            console.log('🔍 DASHBOARD DEBUG - Calculated unrealized values from MTM screen:', {
+              totalUnrealizedCapitalGain,
+              unrealizedPnL,
+              totalCost,
+              totalGrossSales,
+              totalCharges,
+              totalProjectedSalesWithCOF,
+              source: 'MarkToMarketValuation screen',
+              mtmScreenReference: 'Lines 476-486, 1157-1158',
+              pnlMetricsAfterUnrealized: pnlMetrics
+            });
+            console.log('🔍 DASHBOARD DEBUG - FINAL P&L METRICS:', {
+              totalRealizedCapitalGain: pnlMetrics.totalRealizedCapitalGain,
+              realizedPnL: pnlMetrics.realizedPnL,
+              totalUnrealizedCapitalGain: pnlMetrics.totalUnrealizedCapitalGain,
+              unrealizedPnL: pnlMetrics.unrealizedPnL
+            });
+          } else {
+            console.log('🔍 DASHBOARD DEBUG - No MTM data available for unrealized calculations');
+          }
       }
 
-      // Fetch real transactions from the database
+      // Await buys/sells + holdings (requests started above, in parallel with P&L when applicable)
       try {
-        console.log('Fetching real transactions from database...');
-        const [buyTransactions, sellTransactions] = await Promise.all([
-          tradeSummaryAPI.getBuyTransactions(),
-          transactionEntryAPI.getAllSellTransactions()
+        console.log('Fetching real transactions and holdings from database...');
+        const [[buyTransactions, sellTransactions], holdingsResult] = await Promise.all([
+          txPromise,
+          holdingsPromise
         ]);
 
         console.log('Buy transactions:', buyTransactions);
@@ -470,28 +469,12 @@ const Dashboard = ({ onTabChange }) => {
           { type: 'info', message: `${activePortfolios} active portfolios found` }
         ];
 
-        // Fetch holdings data from portfolio overview API (same as Portfolio Overview)
+        // Holdings from portfolio overview API (same as Portfolio Overview) — fetched in parallel above
         let holdingsData = [];
-        try {
-          const token = localStorage.getItem('token');
-          const holdingsResponse = await fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:8080/api'}/portfolios/overview`, {
-            method: 'GET',
-            headers: {
-              'Content-Type': 'application/json',
-              ...(token && { 'Authorization': `Bearer ${token}` })
-            }
-          });
-
-          if (holdingsResponse.ok) {
-            const holdingsResult = await holdingsResponse.json();
-            console.log('Holdings data response:', holdingsResult);
-            if (holdingsResult.success && holdingsResult.data.holdings) {
-              holdingsData = holdingsResult.data.holdings;
-              console.log('Fetched holdings data:', holdingsData);
-            }
-          }
-        } catch (holdingsError) {
-          console.error('Error fetching holdings data:', holdingsError);
+        if (holdingsResult && holdingsResult.success && holdingsResult.data && holdingsResult.data.holdings) {
+          holdingsData = holdingsResult.data.holdings;
+          console.log('Holdings data response:', holdingsResult);
+          console.log('Fetched holdings data:', holdingsData);
         }
 
         // Process holdings data using the same approach as Portfolio Overview
@@ -587,6 +570,7 @@ const Dashboard = ({ onTabChange }) => {
         sectorData: sectorData,
         sectorLegend: sectorLegend,
         totalCompanies: totalCompanies,
+        sectorChartPortfolioName,
         pnlMetrics: pnlMetrics
       });
       
@@ -605,6 +589,7 @@ const Dashboard = ({ onTabChange }) => {
         sectorData: [],
         sectorLegend: [],
         totalCompanies: 0,
+        sectorChartPortfolioName: null,
         pnlMetrics: {
           totalRealizedCapitalGain: 0,
           realizedPnL: 0,
@@ -631,130 +616,51 @@ const Dashboard = ({ onTabChange }) => {
   }
 
   const marketStatus = getMarketStatus(currentTime);
-  const selectedPortfolioMeta = portfoliosList.find(
-    (p) => String(p.id) === String(selectedPortfolioKey)
-  );
-  const selectedPortfolioName =
-    selectedPortfolioMeta?.portfolioName ||
-    selectedPortfolioMeta?.name ||
-    (portfoliosList.length ? 'Portfolio' : '');
+
+  const portfolioCount = dashboardData.activePortfolios ?? 0;
+  const sectorChartName = dashboardData.sectorChartPortfolioName;
+  let sectorDistributionSubtitle = 'Sector mix for your portfolio';
+  if (sectorChartName) {
+    sectorDistributionSubtitle =
+      portfolioCount > 1
+        ? `Sector mix for ${sectorChartName} — other portfolios not included`
+        : `Sector mix for ${sectorChartName}`;
+  } else if (portfolioCount > 1) {
+    sectorDistributionSubtitle = `One portfolio at a time (${portfolioCount} on your account) — not a combined view`;
+  }
 
   return (
     <div className="equity-dashboard">
-      <header className="dashboard-hero" aria-label="Portfolio snapshot">
-        <div className="dashboard-hero__intro">
-          <p className="dashboard-hero__eyebrow">Portfolio snapshot</p>
-          {portfoliosList.length > 1 ? (
-            <div className="dashboard-hero__portfolio-field">
-              <label htmlFor="dashboard-portfolio-select" className="dashboard-hero__meta-label">
-                Portfolio
-              </label>
-              <select
-                id="dashboard-portfolio-select"
-                className="dashboard-hero__portfolio-select"
-                value={selectedPortfolioKey != null ? String(selectedPortfolioKey) : ''}
-                onChange={(e) => setSelectedPortfolioKey(e.target.value)}
-              >
-                {portfoliosList.map((p) => (
-                  <option key={p.id} value={String(p.id)}>
-                    {p.portfolioName || p.name || `Portfolio ${p.id}`}
-                  </option>
-                ))}
-              </select>
-            </div>
-          ) : (
-            <p className="dashboard-hero__note">
-              {portfoliosList.length === 1
-                ? `${selectedPortfolioName} · P&L and chart use this portfolio`
-                : 'No active portfolios · add a portfolio to see P&L'}
-            </p>
-          )}
-          {portfoliosList.length > 1 && (
-            <p className="dashboard-hero__note dashboard-hero__note--tight">
-              P&amp;L and risk–return chart follow the selection above.
-            </p>
-          )}
-        </div>
-        <div className="dashboard-hero__primary">
-          <span className="dashboard-hero__primary-label">Unrealized P&amp;L</span>
-          <span
-            className={`dashboard-hero__primary-value ${
-              dashboardData.pnlMetrics.unrealizedPnL < 0 ? 'is-negative' : ''
-            }`}
-          >
-            LKR{' '}
-            {new Intl.NumberFormat('en-US', {
-              minimumFractionDigits: 0,
-              maximumFractionDigits: 0
-            }).format(dashboardData.pnlMetrics.unrealizedPnL)}
-          </span>
-        </div>
-        <div className="dashboard-hero__meta" role="list">
-          <div className="dashboard-hero__meta-item" role="listitem">
-            <span className="dashboard-hero__meta-label">Market</span>
-            <span
-              className={`dashboard-hero__pill ${
-                marketStatus.isLive ? 'is-open' : 'is-closed'
-              }`}
-            >
-              {marketStatus.status}
-            </span>
-          </div>
-          <div className="dashboard-hero__meta-item" role="listitem">
-            <span className="dashboard-hero__meta-label">Portfolios</span>
-            <span className="dashboard-hero__meta-value">
-              {dashboardData.activePortfolios}
-            </span>
-          </div>
-          <div className="dashboard-hero__meta-item" role="listitem">
-            <span className="dashboard-hero__meta-label">Realized P&amp;L</span>
-            <span className="dashboard-hero__meta-value">
-              {formatLkrCompact(dashboardData.pnlMetrics.realizedPnL)}
-            </span>
-          </div>
-          <div className="dashboard-hero__meta-item" role="listitem">
-            <span className="dashboard-hero__meta-label">Net realized cap.</span>
-            <span className="dashboard-hero__meta-value">
-              {formatLkrCompact(dashboardData.pnlMetrics.totalRealizedCapitalGain)}
-            </span>
-          </div>
-        </div>
-      </header>
-
       {/* Main Dashboard Grid */}
       <div className="main-grid">
         {/* Left Column */}
         <div className="left-column">
-          {/* Market Status Card */}
-          <div className="status-card">
-            <div className="status-header">
-              <div className="status-info">
-            <h3>Market Status</h3>
-                <p className={`status-value ${getMarketStatus(currentTime).isLive ? 'open' : 'closed'}`}>
-                  {getMarketStatus(currentTime).status}
-                </p>
-                <div className="market-hours">
-                  <div className="market-hours-box">
-                    <span className="market-hours-label">Opening</span>
-                    <span className="market-hours-value">9:30 AM</span>
-                  </div>
-                  <div className="market-hours-box">
-                    <span className="market-hours-label">Closing</span>
-                    <span className="market-hours-value">2:30 PM</span>
-                  </div>
-                </div>
-                {userRegion && (
-                  <div className="user-region" style={{ marginTop: '0.5rem', marginBottom: '0.5rem' }}>
-                    <span style={{ fontSize: '0.875rem', color: '#64748b', fontWeight: 500 }}>{userRegion}</span>
-                  </div>
-                )}
-                <div className="live-time">
-                  <span className="time-display">{formatTime(currentTime)}</span>
-                  <span className="date-display">{formatDate(currentTime)}</span>
-                </div>
+          {/* Market status — no card container; sits on dashboard background */}
+          <div className="market-status-bare">
+            <div className="market-status-bare__top">
+              <h3 className="market-status-bare__title">Market Status</h3>
+              <p
+                className={`market-status-bare__state ${marketStatus.isLive ? 'is-open' : 'is-closed'}`}
+              >
+                {marketStatus.status}
+              </p>
+            </div>
+            <div className="market-status-bare__hours">
+              <div className="market-status-bare__hour">
+                <span className="market-status-bare__label">Opening</span>
+                <span className="market-status-bare__value">9:30 AM</span>
+              </div>
+              <div className="market-status-bare__hour">
+                <span className="market-status-bare__label">Closing</span>
+                <span className="market-status-bare__value">2:30 PM</span>
+              </div>
+            </div>
+            {userRegion && <div className="market-status-bare__region">{userRegion}</div>}
+            <div className="market-status-bare__clock">
+              <span className="market-status-bare__time">{formatTime(currentTime)}</span>
+              <span className="market-status-bare__date">{formatDate(currentTime)}</span>
+            </div>
           </div>
-        </div>
-      </div>
 
         {/* Risk-return scatter (was Sector Activity mock) */}
         <div className="content-card heatmap-card dashboard-chart-lead">
@@ -876,11 +782,9 @@ const Dashboard = ({ onTabChange }) => {
           {/* P&L Metrics */}
           <div className="pnl-metrics-grid">
             <div className="pnl-metric-card">
-              <div className="metric-icon">
-                <svg viewBox="0 0 24 24" fill="currentColor">
-                  <path d="M7.41 15.41L12 10.83l4.59 4.58L18 14l-6-6-6 6z"/>
-                </svg>
-              </div>
+              <svg className="pnl-metric-svg" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
+                <path d="M7.41 15.41L12 10.83l4.59 4.58L18 14l-6-6-6 6z"/>
+              </svg>
               <div className="metric-content">
                 <span className="metric-title">Net Realized Capital Gain</span>
                 <span className="metric-value">LKR {new Intl.NumberFormat('en-US', {
@@ -891,11 +795,9 @@ const Dashboard = ({ onTabChange }) => {
             </div>
 
             <div className="pnl-metric-card primary">
-              <div className="metric-icon">
-                <svg viewBox="0 0 24 24" fill="currentColor">
-                  <path d="M16 6l2.29 2.29-4.88 4.88-4-4L2 16.59 3.41 18l6-6 4 4 6.3-6.29L22 12V6z"/>
-                </svg>
-              </div>
+              <svg className="pnl-metric-svg" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
+                <path d="M16 6l2.29 2.29-4.88 4.88-4-4L2 16.59 3.41 18l6-6 4 4 6.3-6.29L22 12V6z"/>
+              </svg>
               <div className="metric-content">
                 <span className="metric-title">Realized P&L</span>
                 <span className="metric-value">LKR {new Intl.NumberFormat('en-US', {
@@ -906,11 +808,9 @@ const Dashboard = ({ onTabChange }) => {
             </div>
 
             <div className="pnl-metric-card">
-              <div className="metric-icon">
-                <svg viewBox="0 0 24 24" fill="currentColor">
-                  <path d="M12,20A8,8 0 0,0 20,12A8,8 0 0,0 12,4A8,8 0 0,0 4,12A8,8 0 0,0 12,20M12,2A10,10 0 0,1 22,12A10,10 0 0,1 12,22C6.47,22 2,17.5 2,12A10,10 0 0,1 12,2M12.5,7V12.25L17,14.92L16.25,16.15L11,13V7H12.5Z"/>
-                </svg>
-              </div>
+              <svg className="pnl-metric-svg" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
+                <path d="M12,20A8,8 0 0,0 20,12A8,8 0 0,0 12,4A8,8 0 0,0 4,12A8,8 0 0,0 12,20M12,2A10,10 0 0,1 22,12A10,10 0 0,1 12,22C6.47,22 2,17.5 2,12A10,10 0 0,1 12,2M12.5,7V12.25L17,14.92L16.25,16.15L11,13V7H12.5Z"/>
+              </svg>
               <div className="metric-content">
                 <span className="metric-title">Total Unrealized Capital Gain</span>
                 <span className="metric-value">LKR {new Intl.NumberFormat('en-US', {
@@ -921,11 +821,9 @@ const Dashboard = ({ onTabChange }) => {
             </div>
 
             <div className="pnl-metric-card primary">
-              <div className="metric-icon">
-                <svg viewBox="0 0 24 24" fill="currentColor">
-                  <path d="M22,21H2V3H4V19H6V17H10V19H12V16H16V19H18V17H22V21Z"/>
-                </svg>
-              </div>
+              <svg className="pnl-metric-svg" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
+                <path d="M22,21H2V3H4V19H6V17H10V19H12V16H16V19H18V17H22V21Z"/>
+              </svg>
               <div className="metric-content">
                 <span className="metric-title">Unrealized P&L</span>
                 <span className="metric-value">LKR {new Intl.NumberFormat('en-US', {
@@ -936,95 +834,12 @@ const Dashboard = ({ onTabChange }) => {
             </div>
           </div>
 
-          {/* Portfolio Health, Alerts & Liquidity (Mock Data) */}
-          <div className="content-card health-card">
-            <div className="card-header">
-              <div className="header-left">
-                <h3>Portfolio Health & Risk (Mock)</h3>
-                <span className="card-subtitle">High-level view using sample data</span>
-              </div>
-            </div>
-            <div className="insights-grid health-insights-grid">
-              <div className="insight-column">
-                <div className="insight-section-title">Overall health</div>
-                <div className="insight-value large">
-                  {MOCK_PORTFOLIO_HEALTH.score}/100
-                </div>
-                <div className="insight-pill">
-                  {MOCK_PORTFOLIO_HEALTH.status}
-                </div>
-                <div className="insight-row">
-                  <span className="insight-label">Diversification</span>
-                  <span className="insight-value">
-                    {MOCK_PORTFOLIO_HEALTH.diversification}
-                  </span>
-                </div>
-                <div className="insight-row">
-                  <span className="insight-label">Max drawdown</span>
-                  <span className="insight-value">
-                    {MOCK_PORTFOLIO_HEALTH.maxDrawdown}
-                  </span>
-                </div>
-                <div className="insight-row">
-                  <span className="insight-label">Concentration</span>
-                  <span className="insight-value">
-                    {MOCK_PORTFOLIO_HEALTH.concentration}
-                  </span>
-                </div>
-              </div>
-
-              <div className="insight-column">
-                <div className="insight-section-title">Alerts & tasks</div>
-                <ul className="insight-list">
-                  {MOCK_DASHBOARD_ALERTS.map((alert, index) => (
-                    <li
-                      key={index}
-                      className={`insight-alert insight-alert-${alert.severity}`}
-                    >
-                      <span className="insight-alert-title">{alert.title}</span>
-                      <span className="insight-alert-text">{alert.message}</span>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-
-              <div className="insight-column">
-                <div className="insight-section-title">Cash & liquidity</div>
-                <div className="insight-row insight-row--dense">
-                  <span className="insight-label">Available cash</span>
-                  <span className="insight-value insight-value--tabular">
-                    {formatLkrCompact(MOCK_LIQUIDITY.cashAvailable)} (
-                    {MOCK_LIQUIDITY.cashPct}%)
-                  </span>
-                </div>
-                <div className="insight-row insight-row--dense">
-                  <span className="insight-label">T+2 net</span>
-                  <span className="insight-value insight-value--tabular">
-                    {formatLkrCompact(
-                      MOCK_LIQUIDITY.t2Inflows - MOCK_LIQUIDITY.t2Outflows
-                    )}{' '}
-                    <span className="insight-muted">
-                      (in {formatLkrCompact(MOCK_LIQUIDITY.t2Inflows)} / out{' '}
-                      {formatLkrCompact(MOCK_LIQUIDITY.t2Outflows)})
-                    </span>
-                  </span>
-                </div>
-                <div className="insight-row insight-row--dense">
-                  <span className="insight-label">Liquid ≤ 3 days</span>
-                  <span className="insight-value insight-value--tabular">
-                    {formatLkrCompact(MOCK_LIQUIDITY.liquidWithin3d)}
-                  </span>
-                </div>
-              </div>
-            </div>
-          </div>
-
           {/* Sector Pie Chart */}
           <div className="content-card">
             <div className="card-header">
               <div className="header-left">
                 <h3>Sector Distribution</h3>
-                <span className="card-subtitle">Companies by sector</span>
+                <span className="card-subtitle">{sectorDistributionSubtitle}</span>
               </div>
             </div>
             <div className="chart-container">
@@ -1132,6 +947,94 @@ const Dashboard = ({ onTabChange }) => {
               </div>
           </div>
         </div>
+
+          {/* Portfolio Health, Alerts & Liquidity (Mock Data) */}
+          <div className="content-card health-card">
+            <div className="card-header">
+              <div className="header-left">
+                <h3>Portfolio Health & Risk</h3>
+                <span className="card-subtitle">High-level view using sample data</span>
+              </div>
+            </div>
+
+            <div className="health-layout">
+              <div className="health-top">
+                <div className="health-score">
+                  <div className="health-score__label">Overall health</div>
+                  <div className="health-score__value">
+                    {MOCK_PORTFOLIO_HEALTH.score}
+                    <span className="health-score__outof">/100</span>
+                  </div>
+                  <div className="health-score__status">
+                    <span className="health-status-pill">{MOCK_PORTFOLIO_HEALTH.status}</span>
+                  </div>
+                </div>
+
+                <div className="health-kpis" aria-label="Key risk indicators">
+                  <div className="health-kpi">
+                    <div className="health-kpi__label">Diversification</div>
+                    <div className="health-kpi__value">{MOCK_PORTFOLIO_HEALTH.diversification}</div>
+                  </div>
+                  <div className="health-kpi">
+                    <div className="health-kpi__label">Max drawdown</div>
+                    <div className="health-kpi__value health-kpi__value--negative">
+                      {MOCK_PORTFOLIO_HEALTH.maxDrawdown}
+                    </div>
+                  </div>
+                  <div className="health-kpi">
+                    <div className="health-kpi__label">Concentration</div>
+                    <div className="health-kpi__value">{MOCK_PORTFOLIO_HEALTH.concentration}</div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="health-bottom">
+                <div className="health-block">
+                  <div className="health-block__title">Alerts & tasks</div>
+                  <ul className="health-alerts">
+                    {MOCK_DASHBOARD_ALERTS.map((alert, index) => (
+                      <li
+                        key={index}
+                        className={`health-alert health-alert--${alert.severity}`}
+                      >
+                        <div className="health-alert__title">{alert.title}</div>
+                        <div className="health-alert__text">{alert.message}</div>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+
+                <div className="health-block">
+                  <div className="health-block__title">Cash & liquidity</div>
+                  <div className="health-liquidity">
+                    <div className="health-liquidity__row">
+                      <div className="health-liquidity__label">Available cash</div>
+                      <div className="health-liquidity__value">
+                        {formatLkrCompact(MOCK_LIQUIDITY.cashAvailable)}{' '}
+                        <span className="health-liquidity__muted">({MOCK_LIQUIDITY.cashPct}%)</span>
+                      </div>
+                    </div>
+                    <div className="health-liquidity__row">
+                      <div className="health-liquidity__label">T+2 net</div>
+                      <div className="health-liquidity__value">
+                        {formatLkrCompact(MOCK_LIQUIDITY.t2Inflows - MOCK_LIQUIDITY.t2Outflows)}
+                        <div className="health-liquidity__muted">
+                          in {formatLkrCompact(MOCK_LIQUIDITY.t2Inflows)} / out{' '}
+                          {formatLkrCompact(MOCK_LIQUIDITY.t2Outflows)}
+                        </div>
+                      </div>
+                    </div>
+                    <div className="health-liquidity__row">
+                      <div className="health-liquidity__label">Liquid ≤ 3 days</div>
+                      <div className="health-liquidity__value">
+                        {formatLkrCompact(MOCK_LIQUIDITY.liquidWithin3d)}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
 
           {/* Benchmark, Events & Watchlist (Mock Data) */}
           <div className="content-card">

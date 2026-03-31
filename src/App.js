@@ -94,6 +94,7 @@ import RiskManagementChart from './components/PredictiveValuationModel/RiskManag
 import SharePricePrediction from './components/PredictiveValuationModel/SharePricePrediction';
 import PredictionIndicators from './components/PredictiveValuationModel/PredictionIndicators';
 import BlockAnalysisDashboard from './components/PredictiveValuationModel/BlockAnalysisDashboard';
+import AIAssistantDock from './components/AIAssistant/AIAssistantDock';
 
 function App() {
   const [activeTab, setActiveTab] = useState('Dashboard');
@@ -105,7 +106,9 @@ function App() {
   const [user, setUser] = useState(null);
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
   const [isPremiumModalOpen, setIsPremiumModalOpen] = useState(false);
+  const [premiumModalVariant, setPremiumModalVariant] = useState('default');
   const [isLoading, setIsLoading] = useState(true);
+  const [aiAssistantOpen, setAiAssistantOpen] = useState(false);
   
   // Premium gating (keep only the truly premium sections here)
   const premiumGatedTabs = new Set([]);
@@ -115,6 +118,7 @@ function App() {
   // Handle tab selection from Navbar - use Sidebar's menuItems as single source of truth for indices
   const handleTabChange = (tabName) => {
     if (premiumGatedTabs.has(tabName)) {
+      setPremiumModalVariant('default');
       setIsPremiumModalOpen(true);
       return;
     }
@@ -137,6 +141,10 @@ function App() {
 
   // Handle manager type change from Sidebar
   const handleManagerChange = (managerType) => {
+    if (managerType === 'wealth' && selectedManager !== 'wealth') {
+      setPremiumModalVariant('wealth');
+      setIsPremiumModalOpen(true);
+    }
     setSelectedManager(managerType);
     // Reset to first tab when switching managers
     setActiveSidebarItem(0);
@@ -249,6 +257,7 @@ function App() {
     'Settlement Instructions': <SettlementInstructions />,
     'Cash Flow Mapping': <CashFlowMapping />,
     'GL Mapping': <GLMapping />,
+    'Performance Report': <div style={{ padding: '2rem' }}><h3>Performance Report</h3><p>Tell me what you want here and I&apos;ll build it.</p></div>,
     'GSEC ENTRIES': <GsecEntries />,
     'Balance Sheet': <GsecBalanceSheet />,
     'GSec General Ledger': <GsecGeneralLedger />,
@@ -264,6 +273,7 @@ function App() {
       selectedManager === 'wealth' ? wealthManagerMenuItems : equityManagerMenuItems;
     const selectedItem = currentMenuItems[index];
     if (selectedItem?.name && premiumGatedSidebarItems.has(selectedItem.name)) {
+      setPremiumModalVariant('default');
       setIsPremiumModalOpen(true);
       return;
     }
@@ -282,6 +292,7 @@ function App() {
   // Handle Contact Sales button click
   const handleContactSales = () => {
     setIsPremiumModalOpen(false);
+    setPremiumModalVariant('default');
     // Add your contact sales logic here
     // For example: window.open('mailto:sales@example.com', '_blank');
     // Or navigate to a contact page
@@ -403,10 +414,19 @@ function App() {
       {/* Premium Modal */}
       <PremiumModal
         isOpen={isPremiumModalOpen}
-        onClose={() => setIsPremiumModalOpen(false)}
+        onClose={() => {
+          setIsPremiumModalOpen(false);
+          setPremiumModalVariant('default');
+        }}
         onContactSales={handleContactSales}
+        variant={premiumModalVariant}
       />
 
+      <AIAssistantDock
+        open={aiAssistantOpen}
+        onOpen={() => setAiAssistantOpen(true)}
+        onClose={() => setAiAssistantOpen(false)}
+      />
     </div>
   );
 }
