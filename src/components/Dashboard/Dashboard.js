@@ -631,6 +631,86 @@ const Dashboard = ({ onTabChange }) => {
 
   return (
     <div className="equity-dashboard">
+      <header className="dashboard-hero" aria-label="Portfolio snapshot">
+        <div className="dashboard-hero__intro">
+          <p className="dashboard-hero__eyebrow">Portfolio snapshot</p>
+          {portfoliosList.length > 1 ? (
+            <div className="dashboard-hero__portfolio-field">
+              <label htmlFor="dashboard-portfolio-select" className="dashboard-hero__meta-label">
+                Portfolio
+              </label>
+              <select
+                id="dashboard-portfolio-select"
+                className="dashboard-hero__portfolio-select"
+                value={selectedPortfolioKey != null ? String(selectedPortfolioKey) : ''}
+                onChange={(e) => setSelectedPortfolioKey(e.target.value)}
+              >
+                {portfoliosList.map((p) => (
+                  <option key={p.id} value={String(p.id)}>
+                    {p.portfolioName || p.name || `Portfolio ${p.id}`}
+                  </option>
+                ))}
+              </select>
+            </div>
+          ) : (
+            <p className="dashboard-hero__note">
+              {portfoliosList.length === 1
+                ? `${selectedPortfolioName} · P&L and chart use this portfolio`
+                : 'No active portfolios · add a portfolio to see P&L'}
+            </p>
+          )}
+          {portfoliosList.length > 1 && (
+            <p className="dashboard-hero__note dashboard-hero__note--tight">
+              P&amp;L and risk–return chart follow the selection above.
+            </p>
+          )}
+        </div>
+        <div className="dashboard-hero__primary">
+          <span className="dashboard-hero__primary-label">Unrealized P&amp;L</span>
+          <span
+            className={`dashboard-hero__primary-value ${
+              dashboardData.pnlMetrics.unrealizedPnL < 0 ? 'is-negative' : ''
+            }`}
+          >
+            LKR{' '}
+            {new Intl.NumberFormat('en-US', {
+              minimumFractionDigits: 0,
+              maximumFractionDigits: 0
+            }).format(dashboardData.pnlMetrics.unrealizedPnL)}
+          </span>
+        </div>
+        <div className="dashboard-hero__meta" role="list">
+          <div className="dashboard-hero__meta-item" role="listitem">
+            <span className="dashboard-hero__meta-label">Market</span>
+            <span
+              className={`dashboard-hero__pill ${
+                marketStatus.isLive ? 'is-open' : 'is-closed'
+              }`}
+            >
+              {marketStatus.status}
+            </span>
+          </div>
+          <div className="dashboard-hero__meta-item" role="listitem">
+            <span className="dashboard-hero__meta-label">Portfolios</span>
+            <span className="dashboard-hero__meta-value">
+              {dashboardData.activePortfolios}
+            </span>
+          </div>
+          <div className="dashboard-hero__meta-item" role="listitem">
+            <span className="dashboard-hero__meta-label">Realized P&amp;L</span>
+            <span className="dashboard-hero__meta-value">
+              {formatLkrCompact(dashboardData.pnlMetrics.realizedPnL)}
+            </span>
+          </div>
+          <div className="dashboard-hero__meta-item" role="listitem">
+            <span className="dashboard-hero__meta-label">Net realized cap.</span>
+            <span className="dashboard-hero__meta-value">
+              {formatLkrCompact(dashboardData.pnlMetrics.totalRealizedCapitalGain)}
+            </span>
+          </div>
+        </div>
+      </header>
+
       {/* Main Dashboard Grid */}
       <div className="main-grid">
         {/* Left Column */}
