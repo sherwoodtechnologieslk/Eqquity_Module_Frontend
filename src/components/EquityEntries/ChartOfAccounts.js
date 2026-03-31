@@ -17,6 +17,7 @@ const ChartOfAccounts = () => {
   const [editErrors, setEditErrors] = useState({});
   const [isSaving, setIsSaving] = useState(false);
   const [activeTab, setActiveTab] = useState('user'); // 'user', 'trading', or 'system'
+  const [exportingSystemAccounts, setExportingSystemAccounts] = useState(false);
 
   // System-generated accounts (matching frontend labels)
   const systemAccounts = [
@@ -29,7 +30,7 @@ const ChartOfAccounts = () => {
       active_status: 'Yes'
     },
     {
-      account_code: '301-101-100-001-44',
+      account_code: '301-101-555-001-44',
       description: 'Capital Gains',
       account_type: 'Revenue',
       account_category: 'Other Income',
@@ -37,7 +38,7 @@ const ChartOfAccounts = () => {
       active_status: 'Yes'
     },
     {
-      account_code: '601-101-100-001-44',
+      account_code: '601-101-555-001-44',
       description: 'Capital Losses',
       account_type: 'Expense',
       account_category: 'Trading Expenses',
@@ -157,6 +158,62 @@ const ChartOfAccounts = () => {
       setError('Failed to import system accounts: ' + (err.message || 'Unknown error'));
     } finally {
       setImportingSystemAccounts(false);
+    }
+  };
+
+  const handleExportSystemAccounts = async () => {
+    setExportingSystemAccounts(true);
+    setError('');
+
+    try {
+      const token = localStorage.getItem('token');
+      if (!token) {
+        throw new Error('No token, authorization denied');
+      }
+
+      const baseUrl = process.env.REACT_APP_API_URL || 'http://localhost:8080/api';
+      const response = await fetch(`${baseUrl}/chart-of-accounts/system-accounts/export`, {
+        method: 'GET',
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      });
+
+      if (response.status === 401) {
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+        window.location.href = '/login';
+        return;
+      }
+
+      if (!response.ok) {
+        let msg = `Failed to export system accounts (HTTP ${response.status})`;
+        try {
+          const errJson = await response.json();
+          msg = errJson?.error || errJson?.message || msg;
+        } catch (e) {
+          // ignore
+        }
+        throw new Error(msg);
+      }
+
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+
+      const a = document.createElement('a');
+      const dateStamp = new Date().toISOString().slice(0, 10);
+      a.href = url;
+      a.download = `system-accounts-${dateStamp}.xlsx`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+
+      window.URL.revokeObjectURL(url);
+    } catch (err) {
+      console.error('Failed to export system accounts:', err);
+      setError('Failed to export system accounts: ' + (err.message || 'Unknown error'));
+    } finally {
+      setExportingSystemAccounts(false);
     }
   };
 
@@ -448,40 +505,76 @@ const ChartOfAccounts = () => {
             
             {/* Use System Chart of Accounts Button - Only for System Accounts tab */}
             {activeTab === 'system' && !loadingSystemAccounts && systemAccountsFromCSV.length > 0 && (
-              <button
-                onClick={handleImportSystemAccounts}
-                disabled={importingSystemAccounts}
-                style={{
-                  padding: '0.875rem 2rem',
-                  fontSize: '1rem',
-                  fontWeight: '600',
-                  color: importingSystemAccounts ? '#9ca3af' : '#3b82f6',
-                  backgroundColor: 'transparent',
-                  border: `2px solid ${importingSystemAccounts ? '#9ca3af' : '#3b82f6'}`,
-                  borderRadius: '8px',
-                  cursor: importingSystemAccounts ? 'not-allowed' : 'pointer',
-                  transition: 'all 0.2s ease',
-                  whiteSpace: 'nowrap',
-                  marginLeft: '0',
-                  opacity: importingSystemAccounts ? 0.6 : 1
-                }}
-                onMouseEnter={(e) => {
-                  if (!importingSystemAccounts) {
-                    e.target.style.backgroundColor = '#eff6ff';
-                    e.target.style.borderColor = '#2563eb';
-                    e.target.style.color = '#2563eb';
-                  }
-                }}
-                onMouseLeave={(e) => {
-                  if (!importingSystemAccounts) {
-                    e.target.style.backgroundColor = 'transparent';
-                    e.target.style.borderColor = '#3b82f6';
-                    e.target.style.color = '#3b82f6';
-                  }
-                }}
-              >
-                {importingSystemAccounts ? 'Importing...' : 'Use System Chart of Accounts'}
-              </button>
+              <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
+                <button
+                  onClick={handleImportSystemAccounts}
+                  disabled={importingSystemAccounts}
+                  style={{
+                    padding: '0.875rem 2rem',
+                    fontSize: '1rem',
+                    fontWeight: '600',
+                    color: importingSystemAccounts ? '#9ca3af' : '#3b82f6',
+                    backgroundColor: 'transparent',
+                    border: `2px solid ${importingSystemAccounts ? '#9ca3af' : '#3b82f6'}`,
+                    borderRadius: '8px',
+                    cursor: importingSystemAccounts ? 'not-allowed' : 'pointer',
+                    transition: 'all 0.2s ease',
+                    whiteSpace: 'nowrap',
+                    marginLeft: '0',
+                    opacity: importingSystemAccounts ? 0.6 : 1
+                  }}
+                  onMouseEnter={(e) => {
+                    if (!importingSystemAccounts) {
+                      e.target.style.backgroundColor = '#eff6ff';
+                      e.target.style.borderColor = '#2563eb';
+                      e.target.style.color = '#2563eb';
+                    }
+                  }}
+                  onMouseLeave={(e) => {
+                    if (!importingSystemAccounts) {
+                      e.target.style.backgroundColor = 'transparent';
+                      e.target.style.borderColor = '#3b82f6';
+                      e.target.style.color = '#3b82f6';
+                    }
+                  }}
+                >
+                  {importingSystemAccounts ? 'Importing...' : 'Use System Chart of Accounts'}
+                </button>
+
+                <button
+                  onClick={handleExportSystemAccounts}
+                  disabled={exportingSystemAccounts}
+                  style={{
+                    padding: '0.875rem 1.5rem',
+                    fontSize: '1rem',
+                    fontWeight: '600',
+                    color: exportingSystemAccounts ? '#9ca3af' : '#16a34a',
+                    backgroundColor: 'transparent',
+                    border: `2px solid ${exportingSystemAccounts ? '#9ca3af' : '#16a34a'}`,
+                    borderRadius: '8px',
+                    cursor: exportingSystemAccounts ? 'not-allowed' : 'pointer',
+                    transition: 'all 0.2s ease',
+                    whiteSpace: 'nowrap',
+                    opacity: exportingSystemAccounts ? 0.6 : 1
+                  }}
+                  onMouseEnter={(e) => {
+                    if (!exportingSystemAccounts) {
+                      e.target.style.backgroundColor = '#dcfce7';
+                      e.target.style.borderColor = '#15803d';
+                      e.target.style.color = '#15803d';
+                    }
+                  }}
+                  onMouseLeave={(e) => {
+                    if (!exportingSystemAccounts) {
+                      e.target.style.backgroundColor = 'transparent';
+                      e.target.style.borderColor = '#16a34a';
+                      e.target.style.color = '#16a34a';
+                    }
+                  }}
+                >
+                  {exportingSystemAccounts ? 'Exporting...' : 'Export to Excel'}
+                </button>
+              </div>
             )}
           </div>
         )}

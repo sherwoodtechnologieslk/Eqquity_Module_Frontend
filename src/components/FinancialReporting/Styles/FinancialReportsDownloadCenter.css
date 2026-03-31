@@ -101,6 +101,10 @@
   gap: 10px;
 }
 
+.frdc-actions-single {
+  grid-template-columns: 1fr;
+}
+
 .frdc-actions button {
   border: 1px solid #111827;
   background: #fff;

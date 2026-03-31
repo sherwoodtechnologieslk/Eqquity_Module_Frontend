@@ -141,6 +141,7 @@
   color: #475569;
 }
 
+.date-filter input,
 .date-filter select {
   padding: 12px 16px;
   border: 1px solid #e2e8f0;
@@ -151,6 +152,7 @@
   cursor: pointer;
 }
 
+.date-filter input:focus,
 .date-filter select:focus {
   outline: none;
   border-color: #3b82f6;
