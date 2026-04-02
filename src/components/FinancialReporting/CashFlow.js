@@ -98,85 +98,6 @@ const CashFlow = () => {
         </div>
       </div>
 
-      {/* Summary Cards */}
-      <div className="cf-summary-cards">
-        <div className="cf-summary-card operating">
-          <div className="cf-card-inner">
-            <div className="cf-card-header-wrapper">
-              <div className="cf-card-header">Operating Activities</div>
-              <div className="cf-card-icon">
-                <svg viewBox="0 0 24 24" fill="white">
-                  <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/>
-                </svg>
-              </div>
-            </div>
-            <div className="cf-card-value-wrapper">
-              <div className={`cf-card-value ${getAmountClass(summaryData.netCashFromOperating)}`}>
-                {formatCurrency(summaryData.netCashFromOperating)}
-              </div>
-              <div className="cf-card-subtitle">Cash from operations</div>
-            </div>
-          </div>
-        </div>
-        <div className="cf-summary-card investing">
-          <div className="cf-card-inner">
-            <div className="cf-card-header-wrapper">
-              <div className="cf-card-header">Investing Activities</div>
-              <div className="cf-card-icon">
-                <svg viewBox="0 0 24 24" fill="white">
-                  <path d="M12 2L2 7l10 5 10-5-10-5z"/>
-                  <path d="M2 17l10 5 10-5"/>
-                  <path d="M2 12l10 5 10-5"/>
-                </svg>
-              </div>
-            </div>
-            <div className="cf-card-value-wrapper">
-              <div className={`cf-card-value ${getAmountClass(summaryData.netCashUsedInInvesting)}`}>
-                {formatCurrency(summaryData.netCashUsedInInvesting)}
-              </div>
-              <div className="cf-card-subtitle">Net investment flow</div>
-            </div>
-          </div>
-        </div>
-        <div className="cf-summary-card financing">
-          <div className="cf-card-inner">
-            <div className="cf-card-header-wrapper">
-              <div className="cf-card-header">Financing Activities</div>
-              <div className="cf-card-icon">
-                <svg viewBox="0 0 24 24" fill="white">
-                  <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
-                </svg>
-              </div>
-            </div>
-            <div className="cf-card-value-wrapper">
-              <div className={`cf-card-value ${getAmountClass(summaryData.netCashFromFinancing)}`}>
-                {formatCurrency(summaryData.netCashFromFinancing)}
-              </div>
-              <div className="cf-card-subtitle">Capital transactions</div>
-            </div>
-          </div>
-        </div>
-        <div className="cf-summary-card net">
-          <div className="cf-card-inner">
-            <div className="cf-card-header-wrapper">
-              <div className="cf-card-header">Net Increase in Cash</div>
-              <div className="cf-card-icon">
-                <svg viewBox="0 0 24 24" fill="white">
-                  <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
-                  <circle cx="19" cy="19" r="2"/>
-                </svg>
-              </div>
-            </div>
-            <div className="cf-card-value-wrapper">
-              <div className={`cf-card-value ${getAmountClass(summaryData.netIncreaseInCash)}`}>
-                {formatCurrency(summaryData.netIncreaseInCash)}
-              </div>
-              <div className="cf-card-subtitle">Total cash movement</div>
-            </div>
-          </div>
-        </div>
-      </div>
-
       {/* Tabs Navigation */}
       <div className="cf-tabs-container">
         <button
@@ -209,135 +130,211 @@ const CashFlow = () => {
       <div className="cf-content">
         {activeTab === 'operating' && (
           <div className="cf-tab-content">
-            <h2 className="cf-section-title">Operating Activities</h2>
-            
-            <div className="cf-table-section">
-              <table className="cf-data-table">
-                <thead>
-                  <tr>
-                    <th className="cf-th-label">Description</th>
-                    <th className="cf-th-amount">Amount (LKR)</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr className="cf-section-header-row">
-                    <td colSpan="2"><strong>Cash flows from operating activities</strong></td>
-                  </tr>
-                  
-                  <tr>
-                    <td className="cf-label">Profit before tax</td>
-                    <td className={`cf-amount ${getAmountClass(operatingCashFlowData.profitBeforeTax)}`}>
-                      {formatNumber(operatingCashFlowData.profitBeforeTax)}
-                    </td>
-                  </tr>
-                  
-                  <tr className="cf-subsection-header">
-                    <td colSpan="2"><strong>Adjustments for:</strong></td>
-                  </tr>
-                  
-                  <tr>
-                    <td className="cf-label-indent">Depreciation</td>
-                    <td className={`cf-amount ${getAmountClass(operatingCashFlowData.adjustments.depreciation)}`}>
-                      {formatNumber(operatingCashFlowData.adjustments.depreciation)}
-                    </td>
-                  </tr>
-                  
-                  <tr>
-                    <td className="cf-label-indent">Amortization</td>
-                    <td className={`cf-amount ${getAmountClass(operatingCashFlowData.adjustments.amortization)}`}>
-                      {formatNumber(operatingCashFlowData.adjustments.amortization)}
-                    </td>
-                  </tr>
-                  
-                  <tr>
-                    <td className="cf-label-indent">Change in fair value of financial assets</td>
-                    <td className={`cf-amount ${getAmountClass(operatingCashFlowData.adjustments.changeInFairValue)}`}>
-                      {formatNumber(operatingCashFlowData.adjustments.changeInFairValue)}
-                    </td>
-                  </tr>
-                  
-                  <tr>
-                    <td className="cf-label-indent">Interest expense</td>
-                    <td className={`cf-amount ${getAmountClass(operatingCashFlowData.adjustments.interestExpense)}`}>
-                      {formatNumber(operatingCashFlowData.adjustments.interestExpense)}
-                    </td>
-                  </tr>
-                  
-                  <tr>
-                    <td className="cf-label-indent">Other non-cash items</td>
-                    <td className={`cf-amount ${getAmountClass(operatingCashFlowData.adjustments.otherNonCash)}`}>
-                      {formatNumber(operatingCashFlowData.adjustments.otherNonCash)}
-                    </td>
-                  </tr>
-                  
-                  <tr className="cf-total-row">
-                    <td className="cf-label"><strong>Cash from operations</strong></td>
-                    <td className={`cf-amount ${getAmountClass(operatingCashFlowData.cashFromOperations)}`}>
-                      <strong>{formatNumber(operatingCashFlowData.cashFromOperations)}</strong>
-                    </td>
-                  </tr>
-                  
-                  <tr className="cf-subsection-header">
-                    <td colSpan="2"><strong>Changes in working capital:</strong></td>
-                  </tr>
-                  
-                  <tr>
-                    <td className="cf-label-indent">Trade and other receivables</td>
-                    <td className={`cf-amount ${getAmountClass(operatingCashFlowData.workingCapitalChanges.tradeReceivables)}`}>
-                      {formatNumber(operatingCashFlowData.workingCapitalChanges.tradeReceivables)}
-                    </td>
-                  </tr>
-                  
-                  <tr>
-                    <td className="cf-label-indent">Trade and other payables</td>
-                    <td className={`cf-amount ${getAmountClass(operatingCashFlowData.workingCapitalChanges.tradePayables)}`}>
-                      {formatNumber(operatingCashFlowData.workingCapitalChanges.tradePayables)}
-                    </td>
-                  </tr>
-                  
-                  <tr>
-                    <td className="cf-label-indent">Inventories</td>
-                    <td className={`cf-amount ${getAmountClass(operatingCashFlowData.workingCapitalChanges.inventories)}`}>
-                      {formatNumber(operatingCashFlowData.workingCapitalChanges.inventories)}
-                    </td>
-                  </tr>
-                  
-                  <tr>
-                    <td className="cf-label-indent">Prepayments</td>
-                    <td className={`cf-amount ${getAmountClass(operatingCashFlowData.workingCapitalChanges.prepayments)}`}>
-                      {formatNumber(operatingCashFlowData.workingCapitalChanges.prepayments)}
-                    </td>
-                  </tr>
-                  
-                  <tr>
-                    <td className="cf-label-indent">Other current assets</td>
-                    <td className={`cf-amount ${getAmountClass(operatingCashFlowData.workingCapitalChanges.otherCurrentAssets)}`}>
-                      {formatNumber(operatingCashFlowData.workingCapitalChanges.otherCurrentAssets)}
-                    </td>
-                  </tr>
-                  
-                  <tr>
-                    <td className="cf-label">Interest paid</td>
-                    <td className={`cf-amount ${getAmountClass(operatingCashFlowData.interestPaid)}`}>
-                      {formatNumber(operatingCashFlowData.interestPaid)}
-                    </td>
-                  </tr>
-                  
-                  <tr>
-                    <td className="cf-label">Income tax paid</td>
-                    <td className={`cf-amount ${getAmountClass(operatingCashFlowData.incomeTaxPaid)}`}>
-                      {formatNumber(operatingCashFlowData.incomeTaxPaid)}
-                    </td>
-                  </tr>
-                  
-                  <tr className="cf-final-total-row">
-                    <td className="cf-label"><strong>Net cash from operating activities</strong></td>
-                    <td className={`cf-amount ${getAmountClass(operatingCashFlowData.netCashFromOperatingActivities)}`}>
-                      <strong>{formatNumber(operatingCashFlowData.netCashFromOperatingActivities)}</strong>
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
+            <div className="cf-op-page-header">
+              <div>
+                <h2 className="cf-section-title" style={{ marginBottom: '0.25rem' }}>Operating Activities</h2>
+                <p className="cf-op-subtitle">Cash flows generated from core business operations</p>
+              </div>
+              <div className={`cf-op-net-badge ${getAmountClass(operatingCashFlowData.netCashFromOperatingActivities)}`}>
+                <span className="cf-op-net-badge-label">Net Operating Cash</span>
+                <span className="cf-op-net-badge-value">
+                  LKR {formatNumber(operatingCashFlowData.netCashFromOperatingActivities)}
+                </span>
+              </div>
+            </div>
+
+            <div className="cf-op-layout">
+              {/* Left: Grouped Cards */}
+              <div className="cf-op-groups">
+
+                {/* Starting Point */}
+                <div className="cf-op-group cf-op-group--base">
+                  <div className="cf-op-group-header">
+                    <div className="cf-op-group-dot cf-op-group-dot--base"></div>
+                    <span className="cf-op-group-title">Starting Point</span>
+                  </div>
+                  <div className="cf-op-row cf-op-row--highlight">
+                    <span className="cf-op-row-label">Profit before tax</span>
+                    <span className={`cf-op-row-value ${getAmountClass(operatingCashFlowData.profitBeforeTax)}`}>
+                      LKR {formatNumber(operatingCashFlowData.profitBeforeTax)}
+                    </span>
+                  </div>
+                </div>
+
+                {/* Non-cash Adjustments */}
+                <div className="cf-op-group cf-op-group--adjustments">
+                  <div className="cf-op-group-header">
+                    <div className="cf-op-group-dot cf-op-group-dot--adjustments"></div>
+                    <span className="cf-op-group-title">Non-cash Adjustments</span>
+                  </div>
+                  <div className="cf-op-rows">
+                    {[
+                      { label: 'Depreciation', value: operatingCashFlowData.adjustments.depreciation },
+                      { label: 'Amortization', value: operatingCashFlowData.adjustments.amortization },
+                      { label: 'Change in fair value of financial assets', value: operatingCashFlowData.adjustments.changeInFairValue },
+                      { label: 'Interest expense', value: operatingCashFlowData.adjustments.interestExpense },
+                      { label: 'Other non-cash items', value: operatingCashFlowData.adjustments.otherNonCash },
+                    ].map((item, i) => (
+                      <div key={i} className="cf-op-row">
+                        <span className="cf-op-row-label">{item.label}</span>
+                        <span className={`cf-op-row-value ${getAmountClass(item.value)}`}>
+                          <span className="cf-op-sign">{item.value < 0 ? '−' : '+'}</span>
+                          {formatNumber(Math.abs(item.value))}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                  <div className="cf-op-subtotal">
+                    <span className="cf-op-subtotal-label">Cash from operations</span>
+                    <span className={`cf-op-subtotal-value ${getAmountClass(operatingCashFlowData.cashFromOperations)}`}>
+                      LKR {formatNumber(operatingCashFlowData.cashFromOperations)}
+                    </span>
+                  </div>
+                </div>
+
+                {/* Working Capital Changes */}
+                <div className="cf-op-group cf-op-group--working-capital">
+                  <div className="cf-op-group-header">
+                    <div className="cf-op-group-dot cf-op-group-dot--working-capital"></div>
+                    <span className="cf-op-group-title">Changes in Working Capital</span>
+                  </div>
+                  <div className="cf-op-rows">
+                    {[
+                      { label: 'Trade and other receivables', value: operatingCashFlowData.workingCapitalChanges.tradeReceivables },
+                      { label: 'Trade and other payables', value: operatingCashFlowData.workingCapitalChanges.tradePayables },
+                      { label: 'Inventories', value: operatingCashFlowData.workingCapitalChanges.inventories },
+                      { label: 'Prepayments', value: operatingCashFlowData.workingCapitalChanges.prepayments },
+                      { label: 'Other current assets', value: operatingCashFlowData.workingCapitalChanges.otherCurrentAssets },
+                    ].map((item, i) => (
+                      <div key={i} className="cf-op-row">
+                        <span className="cf-op-row-label">{item.label}</span>
+                        <span className={`cf-op-row-value ${getAmountClass(item.value)}`}>
+                          <span className="cf-op-sign">{item.value < 0 ? '−' : '+'}</span>
+                          {formatNumber(Math.abs(item.value))}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Tax & Interest */}
+                <div className="cf-op-group cf-op-group--tax">
+                  <div className="cf-op-group-header">
+                    <div className="cf-op-group-dot cf-op-group-dot--tax"></div>
+                    <span className="cf-op-group-title">Tax &amp; Interest Payments</span>
+                  </div>
+                  <div className="cf-op-rows">
+                    {[
+                      { label: 'Interest paid', value: operatingCashFlowData.interestPaid },
+                      { label: 'Income tax paid', value: operatingCashFlowData.incomeTaxPaid },
+                    ].map((item, i) => (
+                      <div key={i} className="cf-op-row">
+                        <span className="cf-op-row-label">{item.label}</span>
+                        <span className={`cf-op-row-value ${getAmountClass(item.value)}`}>
+                          <span className="cf-op-sign">{item.value < 0 ? '−' : '+'}</span>
+                          {formatNumber(Math.abs(item.value))}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Net Total */}
+                <div className="cf-op-net-total">
+                  <span className="cf-op-net-total-label">Net Cash from Operating Activities</span>
+                  <span className={`cf-op-net-total-value ${getAmountClass(operatingCashFlowData.netCashFromOperatingActivities)}`}>
+                    LKR {formatNumber(operatingCashFlowData.netCashFromOperatingActivities)}
+                  </span>
+                </div>
+
+              </div>
+
+              {/* Right: Flow Summary */}
+              <div className="cf-op-summary">
+                <div className="cf-op-summary-title">Cash Flow Breakdown</div>
+
+                <div className="cf-op-flow">
+                  <div className="cf-op-flow-step">
+                    <div className="cf-op-flow-dot cf-op-flow-dot--base"></div>
+                    <div className="cf-op-flow-body">
+                      <div className="cf-op-flow-label">Profit before tax</div>
+                      <div className={`cf-op-flow-value ${getAmountClass(operatingCashFlowData.profitBeforeTax)}`}>
+                        {formatNumber(operatingCashFlowData.profitBeforeTax)}
+                      </div>
+                    </div>
+                  </div>
+                  <div className="cf-op-flow-connector"></div>
+
+                  <div className="cf-op-flow-step">
+                    <div className="cf-op-flow-dot cf-op-flow-dot--adjustments"></div>
+                    <div className="cf-op-flow-body">
+                      <div className="cf-op-flow-label">After non-cash adjustments</div>
+                      <div className={`cf-op-flow-value ${getAmountClass(operatingCashFlowData.cashFromOperations)}`}>
+                        {formatNumber(operatingCashFlowData.cashFromOperations)}
+                      </div>
+                    </div>
+                  </div>
+                  <div className="cf-op-flow-connector"></div>
+
+                  <div className="cf-op-flow-step">
+                    <div className="cf-op-flow-dot cf-op-flow-dot--working-capital"></div>
+                    <div className="cf-op-flow-body">
+                      <div className="cf-op-flow-label">After working capital</div>
+                      <div className="cf-op-flow-value">
+                        {formatNumber(
+                          operatingCashFlowData.cashFromOperations +
+                          Object.values(operatingCashFlowData.workingCapitalChanges).reduce((a, b) => a + b, 0)
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                  <div className="cf-op-flow-connector"></div>
+
+                  <div className="cf-op-flow-step cf-op-flow-step--final">
+                    <div className="cf-op-flow-dot cf-op-flow-dot--final"></div>
+                    <div className="cf-op-flow-body">
+                      <div className="cf-op-flow-label">Net operating cash</div>
+                      <div className={`cf-op-flow-value cf-op-flow-value--final ${getAmountClass(operatingCashFlowData.netCashFromOperatingActivities)}`}>
+                        {formatNumber(operatingCashFlowData.netCashFromOperatingActivities)}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="cf-op-summary-breakdown">
+                  <div className="cf-op-summary-breakdown-title">Component Contributions</div>
+                  {[
+                    {
+                      label: 'Profit before tax',
+                      value: operatingCashFlowData.profitBeforeTax,
+                      color: '#3b82f6'
+                    },
+                    {
+                      label: 'Adjustments',
+                      value: Object.values(operatingCashFlowData.adjustments).reduce((a, b) => a + b, 0),
+                      color: '#8b5cf6'
+                    },
+                    {
+                      label: 'Working capital',
+                      value: Object.values(operatingCashFlowData.workingCapitalChanges).reduce((a, b) => a + b, 0),
+                      color: '#f59e0b'
+                    },
+                    {
+                      label: 'Tax & interest',
+                      value: operatingCashFlowData.interestPaid + operatingCashFlowData.incomeTaxPaid,
+                      color: '#ef4444'
+                    },
+                  ].map((item, i) => (
+                    <div key={i} className="cf-op-breakdown-row">
+                      <div className="cf-op-breakdown-dot" style={{ background: item.color }}></div>
+                      <div className="cf-op-breakdown-label">{item.label}</div>
+                      <div className={`cf-op-breakdown-value ${getAmountClass(item.value)}`}>
+                        {item.value >= 0 ? '+' : '−'}{formatNumber(Math.abs(item.value))}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
             </div>
           </div>
         )}

@@ -16,7 +16,8 @@
     "react-globe.gl": "^2.37.0",
     "react-scripts": "5.0.1",
     "three": "^0.182.0",
-    "web-vitals": "^2.1.4"
+    "web-vitals": "^2.1.4",
+    "xlsx": "^0.18.5"
   },
   "scripts": {
     "copy-pdf-worker": "node copy-pdf-worker.js",
