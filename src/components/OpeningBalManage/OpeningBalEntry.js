@@ -19,6 +19,7 @@ const OpeningBalEntry = () => {
   const [showSuccess, setShowSuccess] = useState(false);
   const [chartOfAccounts, setChartOfAccounts] = useState([]);
   const [loadingAccounts, setLoadingAccounts] = useState(false);
+  const [accountCodeSearch, setAccountCodeSearch] = useState('');
   
   // Account categories loaded from database (matching GL Account Specification pattern)
   const [accountCategories, setAccountCategories] = useState({});
@@ -122,6 +123,7 @@ const OpeningBalEntry = () => {
         accountCode: '',
         accountName: ''
       }));
+      setAccountCodeSearch('');
     } else if (name === 'accountCategory') {
       // Reset accountCode when accountCategory changes
       setFormData(prev => ({
@@ -130,6 +132,7 @@ const OpeningBalEntry = () => {
         accountCode: '',
         accountName: ''
       }));
+      setAccountCodeSearch('');
     } else if (name === 'accountCode') {
       // Find the selected account from filtered accounts
       setFormData(prev => {
@@ -228,6 +231,17 @@ const OpeningBalEntry = () => {
     return filtered;
   };
 
+  const getFilteredAccountsForDropdown = (currentFormData = formData) => {
+    const filtered = getFilteredAccounts(currentFormData);
+    const q = (accountCodeSearch || '').toLowerCase().trim();
+    if (!q) return filtered;
+    return filtered.filter((acc) => {
+      const code = (acc.account_code || '').toLowerCase();
+      const desc = (acc.description || '').toLowerCase();
+      return code.includes(q) || desc.includes(q);
+    });
+  };
+
   const handleBalanceTypeChange = (e) => {
     setFormData(prev => ({
       ...prev,
@@ -322,6 +336,7 @@ const OpeningBalEntry = () => {
           description: ''
         });
         setShowSuccess(false);
+      setAccountCodeSearch('');
       }, 3000);
 
     } catch (error) {
@@ -346,6 +361,7 @@ const OpeningBalEntry = () => {
       balanceType: 'Debit',
       description: ''
     });
+    setAccountCodeSearch('');
     setErrors({});
     setShowSuccess(false);
   };
@@ -480,6 +496,14 @@ const OpeningBalEntry = () => {
               <label htmlFor="accountCode" className="form-label">
                 Account Code <span className="required">*</span>
               </label>
+              <input
+                type="text"
+                className="form-input"
+                value={accountCodeSearch}
+                onChange={(e) => setAccountCodeSearch(e.target.value)}
+                placeholder="Search accounts by code or name..."
+                disabled={!formData.accountType || !formData.accountCategory || loadingAccounts}
+              />
               <div className="select-wrapper">
                 {loadingAccounts ? (
                   <div className="loading-container-inline">
@@ -496,7 +520,7 @@ const OpeningBalEntry = () => {
                     disabled={!formData.accountType || !formData.accountCategory}
                   >
                     <option value="">-- Select Account --</option>
-                    {getFilteredAccounts().map((account) => (
+                    {getFilteredAccountsForDropdown().map((account) => (
                       <option key={account.id || account.account_code} value={account.account_code}>
                         {account.account_code} - {account.description}
                       </option>

@@ -1,0 +1,304 @@
+/* ── Performance Report — Formal Financial Document Style ── */
+
+.fr-page {
+  min-height: 100vh;
+  padding: 2rem;
+  font-family: 'Times New Roman', Times, serif;
+  box-sizing: border-box;
+}
+
+/* White document sheet */
+.fr-doc {
+  background: #ffffff;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 3rem 3.5rem;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.15);
+  border-top: 6px solid #000000;
+}
+
+/* ── Letterhead ── */
+.fr-letterhead {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 1.25rem;
+}
+
+.fr-company {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: #000000;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+
+.fr-company-sub {
+  font-size: 0.8rem;
+  color: #475569;
+  margin-top: 0.2rem;
+  font-style: italic;
+}
+
+.fr-report-type {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #000000;
+  text-align: right;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+}
+
+.fr-report-meta {
+  font-size: 0.775rem;
+  color: #64748b;
+  text-align: right;
+  margin-top: 0.2rem;
+}
+
+/* ── Rules ── */
+.fr-rule-thick {
+  border: none;
+  border-top: 3px double #000000;
+  margin: 0;
+}
+
+.fr-rule {
+  border: none;
+  border-top: 1px solid #94a3b8;
+  margin: 0.4rem 0 1rem 0;
+}
+
+/* ── Period bar ── */
+.fr-period-bar {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  padding: 0.75rem 0;
+  margin-bottom: 0.5rem;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+}
+
+.fr-period-label {
+  font-size: 0.825rem;
+  font-weight: 600;
+  color: #334155;
+  margin-right: 0.5rem;
+  font-family: Arial, sans-serif;
+}
+
+.fr-period-btn {
+  padding: 0.3rem 0.875rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  font-family: Arial, sans-serif;
+  color: #475569;
+  background: #f8fafc;
+  border: 1px solid #cbd5e1;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+  letter-spacing: 0.3px;
+}
+
+.fr-period-btn:hover {
+  background: #e2e8f0;
+}
+
+.fr-period-btn--active {
+  background: #000000;
+  color: #ffffff;
+  border-color: #000000;
+}
+
+.fr-period-note {
+  font-size: 0.72rem;
+  color: #94a3b8;
+  font-style: italic;
+  margin-left: 0.75rem;
+  font-family: Arial, sans-serif;
+}
+
+/* ── Section heading ── */
+.fr-section-heading {
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: #000000;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 0.3rem;
+  font-family: Arial, sans-serif;
+}
+
+/* ── Common table base ── */
+.fr-summary-table,
+.fr-holdings-table,
+.fr-sector-table,
+.fr-risk-table,
+.fr-bench-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.8375rem;
+  margin-bottom: 0.5rem;
+}
+
+.fr-summary-table thead tr,
+.fr-holdings-table thead tr,
+.fr-sector-table thead tr,
+.fr-risk-table thead tr,
+.fr-bench-table thead tr {
+  background: #000000;
+  color: #fff;
+}
+
+.fr-summary-table th,
+.fr-holdings-table th,
+.fr-sector-table th,
+.fr-risk-table th,
+.fr-bench-table th {
+  padding: 0.5rem 0.75rem;
+  text-align: left;
+  font-size: 0.725rem;
+  font-weight: 600;
+  font-family: Arial, sans-serif;
+  letter-spacing: 0.3px;
+  line-height: 1.3;
+  white-space: nowrap;
+  vertical-align: bottom;
+}
+
+.fr-th-r {
+  text-align: right !important;
+}
+
+/* tbody rows */
+.fr-summary-table tbody tr,
+.fr-holdings-table tbody tr,
+.fr-sector-table tbody tr,
+.fr-risk-table tbody tr,
+.fr-bench-table tbody tr {
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.fr-summary-table tbody tr:nth-child(even),
+.fr-holdings-table tbody tr:nth-child(even),
+.fr-sector-table tbody tr:nth-child(even),
+.fr-risk-table tbody tr:nth-child(even),
+.fr-bench-table tbody tr:nth-child(even) {
+  background: #f8fafc;
+}
+
+.fr-summary-table td,
+.fr-holdings-table td,
+.fr-sector-table td,
+.fr-risk-table td,
+.fr-bench-table td {
+  padding: 0.5rem 0.75rem;
+  color: #1e293b;
+  vertical-align: middle;
+}
+
+/* tfoot total row */
+.fr-total-row {
+  border-top: 2px solid #000000 !important;
+  border-bottom: 2px solid #000000 !important;
+  background: #f1f5f9 !important;
+}
+
+.fr-total-row td {
+  font-size: 0.85rem;
+}
+
+/* ── Summary table specific ── */
+.fr-st-label {
+  width: 25%;
+  color: #475569;
+  font-size: 0.8rem;
+}
+
+.fr-st-value {
+  width: 25%;
+  font-weight: 700;
+  font-size: 0.925rem;
+  font-family: 'Courier New', monospace;
+  padding-left: 1rem !important;
+}
+
+/* ── Holdings table ── */
+.fr-td-symbol {
+  font-weight: 700;
+  color: #000000;
+  font-size: 0.8rem;
+  white-space: nowrap;
+}
+
+.fr-td-name {
+  color: #334155;
+  min-width: 180px;
+}
+
+.fr-td-sector {
+  color: #475569;
+  font-size: 0.775rem;
+  white-space: nowrap;
+}
+
+.fr-td-r {
+  text-align: right;
+  font-family: 'Courier New', monospace;
+  white-space: nowrap;
+}
+
+/* ── Risk table ── */
+.fr-td-interp {
+  font-size: 0.775rem;
+  color: #475569;
+  font-style: italic;
+}
+
+/* ── Highlighted current period row ── */
+.fr-row-active {
+  background: #eff6ff !important;
+  font-weight: 600;
+}
+
+/* ── Colour helpers ── */
+.fr-pos { color: #166534; }
+.fr-neg { color: #991b1b; }
+
+/* ── Footer ── */
+.fr-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-top: 0.75rem;
+  font-size: 0.7rem;
+  color: #94a3b8;
+  font-family: Arial, sans-serif;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+/* ── Responsive ── */
+@media (max-width: 900px) {
+  .fr-doc {
+    padding: 1.5rem;
+  }
+  .fr-letterhead {
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+  .fr-report-type,
+  .fr-report-meta {
+    text-align: left;
+  }
+}
+
+@media (max-width: 640px) {
+  .fr-page {
+    padding: 0.5rem;
+  }
+  .fr-doc {
+    padding: 1rem;
+  }
+}

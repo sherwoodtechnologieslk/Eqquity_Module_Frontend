@@ -71,6 +71,7 @@ import CorporateNotices from './components/CSEAnnouncements/CorporateNotices';
 import FinancialPosition from './components/FinancialReporting/FinancialPosition';
 import StatementOfComprehensiveIncome from './components/FinancialReporting/StatementOfComprehensiveIncome';
 import CashFlow from './components/FinancialReporting/CashFlow';
+import PerformanceReport from './components/FinancialReporting/PerformanceReport';
 import FinancialReportingNotes from './components/FinancialReporting/FinancialReportingNotes';
 import FinancialReportsExport from './components/FinancialReporting/FinancialReportsExport';
 import FinancialReportsDownloadCenter from './components/FinancialReporting/FinancialReportsDownloadCenter';
@@ -257,7 +258,7 @@ function App() {
     'Settlement Instructions': <SettlementInstructions />,
     'Cash Flow Mapping': <CashFlowMapping />,
     'GL Mapping': <GLMapping />,
-    'Performance Report': <Dashboard onTabChange={handleTabChange} />,
+    'Performance Report': <PerformanceReport />,
     'GSEC ENTRIES': <GsecEntries />,
     'Balance Sheet': <GsecBalanceSheet />,
     'GSec General Ledger': <GsecGeneralLedger />,

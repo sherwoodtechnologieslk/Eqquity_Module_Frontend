@@ -619,6 +619,10 @@ const Dashboard = ({ onTabChange }) => {
 
   const portfolioCount = dashboardData.activePortfolios ?? 0;
   const sectorChartName = dashboardData.sectorChartPortfolioName;
+  const selectedPortfolio = portfoliosList.find((p) => String(p.id) === String(selectedPortfolioKey)) || portfoliosList[0] || null;
+  const selectedPortfolioName = selectedPortfolio
+    ? selectedPortfolio.portfolioName || selectedPortfolio.name || `Portfolio ${selectedPortfolio.id}`
+    : '';
   let sectorDistributionSubtitle = 'Sector mix for your portfolio';
   if (sectorChartName) {
     sectorDistributionSubtitle =

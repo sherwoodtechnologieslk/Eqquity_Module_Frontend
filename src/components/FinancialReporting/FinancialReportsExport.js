@@ -3,6 +3,7 @@ import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import './Styles/FinancialReportsExport.css';
 import { financialPositionAPI, portfolioAPI } from '../../services/api';
+import ExportPdfExcelButtons from './ExportPdfExcelButtons';
 
 const fmt = (value, decimals = 2) => {
   const num = Number(value) || 0;
@@ -216,22 +217,11 @@ const FinancialReportsExport = () => {
           <button type="button" className="fre-refresh" onClick={loadTable} disabled={!filters.portfolioId || loading}>
             {loading ? 'Loading...' : 'Refresh'}
           </button>
-          <button
-            type="button"
-            className="fre-export-btn fre-export-excel"
-            disabled={exportDisabled}
-            onClick={() => tableData && downloadCsv(tableData)}
-          >
-            Export Excel
-          </button>
-          <button
-            type="button"
-            className="fre-export-btn fre-export-pdf"
-            disabled={exportDisabled}
-            onClick={() => tableData && downloadPdf(tableData)}
-          >
-            Export PDF
-          </button>
+          <ExportPdfExcelButtons
+            exportDisabled={exportDisabled}
+            onExportExcel={() => tableData && downloadCsv(tableData)}
+            onExportPdf={() => tableData && downloadPdf(tableData)}
+          />
         </div>
       </div>
 
