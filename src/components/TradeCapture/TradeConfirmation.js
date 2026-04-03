@@ -1,8 +1,21 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { parsedTradeTransactionAPI, equityAPI, portfolioAPI } from '../../services/api';
+import {
+  getLatestDayTradeReportState,
+  exportTradeReportToExcel as emitTradeReportExcel,
+  exportTradeReportToPdf as emitTradeReportPdf,
+  formatTradeDate,
+  formatCurrency,
+  calculateTransactionValue,
+  calculateFees,
+  getContractNo,
+  calculateNetAmount,
+  calculateReportTotals
+} from '../../utils/tradeReportExport';
 import UpdateBuyTransactionsModal from './UpdateBuyTransactionsModal';
 import UpdateSellTransactionsModal from './UpdateSellTransactionsModal';
 import './Styles/TradeConfirmation.css';
+import ExportPdfExcelButtons from '../FinancialReporting/ExportPdfExcelButtons';
 
 const TradeConfirmation = () => {
   const [activeTab, setActiveTab] = useState('purchases');
@@ -23,32 +36,10 @@ const TradeConfirmation = () => {
     try {
       setIsLoading(true);
       setError('');
-      
-      // Fetch all parsed transactions for the user
       const data = await parsedTradeTransactionAPI.getParsedTransactions();
-      
-      // Find the latest trade date
-      if (data && data.length > 0) {
-        // Get all unique trade dates and find the latest one
-        const tradeDates = data
-          .map(t => t.trade_date)
-          .filter(date => date) // Remove null/undefined dates
-          .sort((a, b) => {
-            // Sort dates in descending order (newest first)
-            return new Date(b) - new Date(a);
-          });
-        
-        const latestTradeDate = tradeDates[0];
-        
-        // Filter transactions to show only the latest trade date
-        const filteredData = data.filter(t => t.trade_date === latestTradeDate);
-        
-        setLatestTradeDate(latestTradeDate);
-        groupTransactions(filteredData);
-      } else {
-        setLatestTradeDate(null);
-        groupTransactions([]);
-      }
+      const { latestTradeDate: ld, groupedData: gd } = getLatestDayTradeReportState(data || []);
+      setLatestTradeDate(ld);
+      setGroupedData(gd);
     } catch (err) {
       console.error('Error fetching transactions:', err);
       setError('Failed to fetch transactions. Please try again.');
@@ -90,61 +81,7 @@ const TradeConfirmation = () => {
     }
   }, [activeTab, fetchUnupdatedTransactions, showUpdateBuyModal, showUpdateSellModal]);
 
-  const groupTransactions = (data) => {
-    const sales = {};
-    const purchases = {};
-
-    data.forEach(transaction => {
-      const companyId = transaction.company_id || 'UNKNOWN';
-      const buySell = (transaction.buy_sell || '').toUpperCase();
-      
-      if (buySell === 'S') {
-        if (!sales[companyId]) {
-          sales[companyId] = [];
-        }
-        sales[companyId].push(transaction);
-      } else if (buySell === 'B') {
-        if (!purchases[companyId]) {
-          purchases[companyId] = [];
-        }
-        purchases[companyId].push(transaction);
-      }
-    });
-
-    setGroupedData({ sales, purchases });
-  };
-
-  const formatTradeDate = (dateString) => {
-    if (!dateString) return '';
-    // Convert YYYY-MM-DD to YYYY/MM/DD
-    return dateString.split('-').join('/');
-  };
-
-  const formatCurrency = (amount) => {
-    if (!amount || amount === 0) return '0.00';
-    return parseFloat(amount).toLocaleString('en-US', {
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2
-    });
-  };
-
-  const calculateTransactionValue = (transaction) => {
-    const qty = parseFloat(transaction.quantity) || 0;
-    const price = parseFloat(transaction.price) || 0;
-    return qty * price;
-  };
-
-  const calculateFees = (transaction) => {
-    const brokerage = parseFloat(transaction.brokerage) || 0;
-    const cdsFees = parseFloat(transaction.cds_fees) || 0;
-    const cseFees = parseFloat(transaction.cse_fees) || 0;
-    const clearingFees = parseFloat(transaction.clearing_fees) || 0;
-    const secCess = parseFloat(transaction.sec_cess) || 0;
-    const govCess = parseFloat(transaction.government_cess) || 0;
-    const foreignBrokerage = parseFloat(transaction.foreign_brokerage) || 0;
-    
-    return brokerage + cdsFees + cseFees + clearingFees + secCess + govCess + foreignBrokerage;
-  };
+  const reportDate = latestTradeDate ? formatTradeDate(latestTradeDate) : 'N/A';
 
   const calculateGroupTotals = (groupTransactions) => {
     let totalAmount = 0;
@@ -195,8 +132,11 @@ const TradeConfirmation = () => {
     return (
       <div key={companyId} className="tc-company-group">
         <div className="tc-company-header">
+          <span className={`tc-company-badge ${isSale ? 'tc-company-badge--sale' : 'tc-company-badge--purchase'}`}>
+            {isSale ? 'Sale' : 'Purchase'}
+          </span>
           <h3 className="tc-company-title">
-            {isSale ? 'Sale of' : 'Purchase of'} {companyId} ({companyId}.N0000 / LK{companyId.padStart(4, '0')}N00000)
+            {companyId} <span className="tc-company-symbol">({companyId}.N0000 / LK{companyId.padStart(4, '0')}N00000)</span>
           </h3>
         </div>
 
@@ -204,17 +144,17 @@ const TradeConfirmation = () => {
           <table className="tc-transaction-table">
              <thead>
                <tr className="tc-table-header-row">
-                 <th className="tc-col-trade-date">Trade Date</th>
-                 <th className="tc-col-amount">Amount</th>
-                 <th className="tc-col-qty">Qty</th>
-                 <th className="tc-col-brokerage">Brokerage</th>
-                 <th className="tc-col-price">Price</th>
-                 <th className="tc-col-clearing">Clearing Fees</th>
-                 <th className="tc-col-cse">CSE Fees</th>
-                 <th className="tc-col-gov-cess">Government Cess</th>
-                 <th className="tc-col-net">Net Amount</th>
-                 <th className="tc-col-exec-id">Execution ID</th>
-                 <th className="tc-col-settlement">Settlement Date</th>
+                 <th scope="col" className="tc-col-trade-date">Trade Date</th>
+                 <th scope="col" className="tc-col-amount">Amount</th>
+                 <th scope="col" className="tc-col-qty">Qty</th>
+                 <th scope="col" className="tc-col-brokerage">Brokerage</th>
+                 <th scope="col" className="tc-col-price">Price</th>
+                 <th scope="col" className="tc-col-clearing">Clearing Fees</th>
+                 <th scope="col" className="tc-col-cse">CSE Fees</th>
+                 <th scope="col" className="tc-col-gov-cess">Government Cess</th>
+                 <th scope="col" className="tc-col-net">Net Amount</th>
+                 <th scope="col" className="tc-col-exec-id">Execution ID</th>
+                 <th scope="col" className="tc-col-settlement">Settlement Date</th>
                </tr>
              </thead>
             <tbody>
@@ -596,60 +536,6 @@ const TradeConfirmation = () => {
   };
 
   const renderTradeReport = () => {
-    const reportDate = latestTradeDate ? formatTradeDate(latestTradeDate) : 'N/A';
-
-    const getContractNo = (transaction) => {
-      const buySell = (transaction.buy_sell || '').toUpperCase();
-      if (buySell === 'B') {
-        return transaction.buying_contract_no || transaction.execution_id || 'N/A';
-      }
-      if (buySell === 'S') {
-        return transaction.selling_contract_no || transaction.execution_id || 'N/A';
-      }
-      return transaction.execution_id || 'N/A';
-    };
-
-    const calculateNetAmount = (transaction) => {
-      const value = calculateTransactionValue(transaction);
-      const fees = calculateFees(transaction);
-      const buySell = (transaction.buy_sell || '').toUpperCase();
-      if (buySell === 'B') {
-        return value + fees;
-      }
-      return value - fees;
-    };
-
-    const calculateReportTotals = (transactions) => {
-      return transactions.reduce(
-        (totals, t) => {
-          const value = calculateTransactionValue(t);
-          totals.gross += value;
-          totals.brokerage += parseFloat(t.brokerage) || 0;
-          totals.sec += parseFloat(t.sec_cess) || 0;
-          totals.exchange += parseFloat(t.cse_fees) || 0;
-          totals.cds += parseFloat(t.cds_fees) || 0;
-          totals.govCess += parseFloat(t.government_cess) || 0;
-          totals.clearing += parseFloat(t.clearing_fees) || 0;
-          totals.net += calculateNetAmount(t);
-          totals.foreignBrokerage += parseFloat(t.foreign_brokerage) || 0;
-          totals.quantity += parseFloat(t.quantity) || 0;
-          return totals;
-        },
-        {
-          gross: 0,
-          brokerage: 0,
-          sec: 0,
-          exchange: 0,
-          cds: 0,
-          govCess: 0,
-          clearing: 0,
-          net: 0,
-          foreignBrokerage: 0,
-          quantity: 0
-        }
-      );
-    };
-
     const renderReportSection = (companyId, transactions, type) => {
       const totals = calculateReportTotals(transactions);
       const isSale = type === 'sale';
@@ -773,21 +659,48 @@ const TradeConfirmation = () => {
   return (
     <div className="tc-container">
       <div className="tc-header-section">
-        <div className="tc-header-icon-wrap">
-          <svg className="tc-header-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-          </svg>
+        <div className="tc-header-left">
+          <div className="tc-header-icon-wrap" aria-hidden="true">
+            <svg className="tc-header-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+              <path d="M14 2v6h6" />
+              <path d="M16 13H8" />
+              <path d="M16 17H8" />
+              <path d="M10 9H8" />
+            </svg>
+          </div>
+          <div className="tc-header-text-group">
+            <h1 className="tc-main-title">Trade Confirmation</h1>
+            <p className="tc-subtitle">
+              {latestTradeDate
+                ? `Trade report for ${formatTradeDate(latestTradeDate)}`
+                : 'Review and manage parsed trade confirmations'}
+            </p>
+          </div>
         </div>
-        <div className="tc-header-text-group">
-          <h1 className="tc-main-title">Trade Confirmation</h1>
-          <p className="tc-subtitle">
-            {latestTradeDate
-              ? `Trade report for ${formatTradeDate(latestTradeDate)}`
-              : 'Review and manage parsed trade confirmations'}
-          </p>
-        </div>
-        <div className="tc-header-actions">
-          <button onClick={fetchTransactions} className="tc-refresh-btn">Refresh</button>
+        <div className="tc-header-right">
+          {latestTradeDate ? (
+            <div className="tc-header-meta-badge" title="Latest trade date in uploaded data">
+              <span className="tc-header-meta-label">Latest trade date</span>
+              <span className="tc-header-meta-value">{formatTradeDate(latestTradeDate)}</span>
+            </div>
+          ) : (
+            <span className="tc-header-meta-badge tc-header-meta-badge--empty">No trade sessions loaded</span>
+          )}
+          {activeTab === 'trade-report' ? (
+            <div className="tc-trade-report-export">
+              <ExportPdfExcelButtons
+                exportDisabled={!latestTradeDate}
+                onExportExcel={() =>
+                  emitTradeReportExcel({ groupedData, latestTradeDate })
+                }
+                onExportPdf={() => emitTradeReportPdf({ groupedData, latestTradeDate })}
+              />
+            </div>
+          ) : null}
+          <button type="button" onClick={fetchTransactions} className="tc-refresh-btn">
+            Refresh
+          </button>
         </div>
       </div>
       <div className="tc-tabs-card">

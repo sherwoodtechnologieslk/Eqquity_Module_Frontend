@@ -1,4 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
 import { trialBalanceAPI, gsecEntriesAPI } from '../../services/api';
 import './Styles/CombinedTrialBalance.css';
 
@@ -7,6 +9,7 @@ const CombinedTrialBalance = ({ onTabChange }) => {
   const [gsecBS, setGsecBS] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [exporting, setExporting] = useState(false);
   const hasLoadedOnceRef = useRef(false);
 
   const [filters, setFilters] = useState({
@@ -81,6 +84,128 @@ const CombinedTrialBalance = ({ onTabChange }) => {
 
   const handleApply = () => {
     fetchData({ showLoader: true });
+  };
+
+  const handleExportPdf = () => {
+    setExporting(true);
+    setError('');
+
+    try {
+      const doc = new jsPDF({ orientation: 'landscape', unit: 'pt', format: 'a4' });
+
+      doc.setFontSize(11);
+      doc.text('Combined Trial Balance', 40, 34);
+
+      const periodLabel = `Period: ${formatDate(
+        equityTB?.period?.startDate || gsecBS?.period?.startDate
+      )} - ${formatDate(equityTB?.period?.endDate || gsecBS?.period?.endDate)}`;
+
+      doc.setFontSize(9);
+      doc.setTextColor(71, 85, 105);
+      doc.text(periodLabel, 40, 50);
+      doc.setTextColor(15, 23, 42);
+
+      const head = [
+        'Source',
+        'Account Code',
+        'Account Name',
+        'Type / Category',
+        'Debit',
+        'Credit',
+        'Net',
+        'DR/CR'
+      ];
+
+      const body = filteredAccounts.map((acc) => [
+        acc.source,
+        acc.account_code,
+        acc.account_name,
+        acc.account_type,
+        acc.total_debit > 0 ? formatCurrency(acc.total_debit) : '-',
+        acc.total_credit > 0 ? formatCurrency(acc.total_credit) : '-',
+        formatCurrency(acc.net_balance),
+        acc.balance_type
+      ]);
+
+      const foot = [
+        'Totals',
+        '',
+        '',
+        '',
+        formatCurrency(totals.debit),
+        formatCurrency(totals.credit),
+        '',
+        isBalanced ? 'BALANCED' : 'OUT OF BALANCE'
+      ];
+
+      autoTable(doc, {
+        startY: 62,
+        theme: 'grid',
+        head: [head],
+        body,
+        foot: [foot],
+        showFoot: 'lastPage',
+        styles: {
+          fontSize: 7,
+          cellPadding: 3,
+          textColor: [15, 23, 42],
+          lineColor: [226, 232, 240],
+          lineWidth: 0.6
+        },
+        headStyles: {
+          fillColor: [15, 23, 42],
+          textColor: [255, 255, 255],
+          fontStyle: 'bold'
+        },
+        alternateRowStyles: {
+          fillColor: [248, 250, 252]
+        },
+        footStyles: {
+          fillColor: [241, 245, 249],
+          textColor: [15, 23, 42],
+          fontStyle: 'bold'
+        },
+        margin: { left: 40, right: 40 }
+      });
+
+      const dateStamp = new Date().toISOString().slice(0, 10);
+      doc.save(`combined-trial-balance-${dateStamp}.pdf`);
+    } catch (err) {
+      console.error('Failed to export combined trial balance PDF:', err);
+      setError('Failed to export combined trial balance PDF: ' + (err.message || 'Unknown error'));
+    } finally {
+      setExporting(false);
+    }
+  };
+
+  const handleExportExcel = async () => {
+    setExporting(true);
+    setError('');
+
+    try {
+      const blob = await trialBalanceAPI.exportCombinedTrialBalanceExcel({
+        startDate: filters.startDate || undefined,
+        endDate: filters.endDate || undefined,
+        source: sourceFilter,
+        search: searchTerm || undefined
+      });
+      const downloadUrl = window.URL.createObjectURL(blob);
+
+      const a = document.createElement('a');
+      const dateStamp = new Date().toISOString().slice(0, 10);
+      a.href = downloadUrl;
+      a.download = `combined-trial-balance-${dateStamp}.xlsx`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+
+      window.URL.revokeObjectURL(downloadUrl);
+    } catch (err) {
+      console.error('Failed to export combined trial balance:', err);
+      setError('Failed to export combined trial balance: ' + (err.message || 'Unknown error'));
+    } finally {
+      setExporting(false);
+    }
   };
 
   const clearFilters = () => {
@@ -212,7 +337,7 @@ const CombinedTrialBalance = ({ onTabChange }) => {
           <div className="ctb-header-text-group">
             <h1 className="ctb-main-title">Combined Trial Balance</h1>
             <p className="ctb-subtitle">
-              Unified trial balance across Equity and GSec ledgers.
+              Single trial balance view that combines equity and GSec ledgers, including both trading and non-trading transactions.
             </p>
           </div>
           <div className="ctb-header-meta">
@@ -300,6 +425,14 @@ const CombinedTrialBalance = ({ onTabChange }) => {
         <div className="ctb-table-card">
           <div className="ctb-card-header ctb-table-header">
             <h2 className="ctb-card-title">Combined Trial Balance</h2>
+            <div className="ctb-export-actions">
+              <button className="ctb-export-btn" onClick={handleExportPdf} disabled={exporting}>
+                {exporting ? 'Exporting…' : 'Export to PDF'}
+              </button>
+              <button className="ctb-export-btn" onClick={handleExportExcel} disabled={exporting}>
+                {exporting ? 'Exporting…' : 'Export to Excel'}
+              </button>
+            </div>
           </div>
           <div className="ctb-table-container">
             {filteredAccounts.length === 0 ? (

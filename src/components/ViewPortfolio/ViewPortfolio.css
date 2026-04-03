@@ -154,37 +154,39 @@
 }
 
 .vp-card-summary .vp-card-title {
-  margin-bottom: 1.5rem;
-  padding-left: 2rem;
+  margin-bottom: 0.85rem;
+  padding-left: 0;
+  font-size: 0.95rem;
 }
 
 .vp-metrics {
   display: flex;
-  gap: 1.5rem;
+  gap: 0.85rem;
   flex-wrap: wrap;
 }
 
 .vp-metrics-hero {
-  flex: 1 1 320px;
-  min-width: 280px;
+  flex: 1 1 220px;
+  min-width: 200px;
+  max-width: 100%;
   position: relative;
-  padding: 2rem 2.25rem;
+  padding: 1.1rem 1.2rem;
   border-radius: 0;
   overflow: hidden;
   background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #334155 100%);
   border: 1px solid rgba(59, 130, 246, 0.2);
   box-shadow:
-    0 20px 40px rgba(15, 23, 42, 0.25),
+    0 12px 24px rgba(15, 23, 42, 0.2),
     0 0 0 1px rgba(255, 255, 255, 0.05) inset;
   transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
 
 .vp-metrics-hero:hover {
-  transform: translateY(-4px);
+  transform: translateY(-2px);
   box-shadow:
-    0 28px 50px rgba(15, 23, 42, 0.3),
+    0 16px 32px rgba(15, 23, 42, 0.26),
     0 0 0 1px rgba(255, 255, 255, 0.06) inset,
-    0 0 60px rgba(59, 130, 246, 0.15);
+    0 0 40px rgba(59, 130, 246, 0.12);
 }
 
 .vp-metrics-hero-glow {
@@ -204,41 +206,41 @@
 
 .vp-metrics-hero-label {
   display: block;
-  font-size: 0.7rem;
+  font-size: 0.62rem;
   font-weight: 600;
   text-transform: uppercase;
-  letter-spacing: 0.12em;
+  letter-spacing: 0.1em;
   color: #94a3b8;
-  margin-bottom: 0.5rem;
+  margin-bottom: 0.35rem;
 }
 
 .vp-metrics-hero-value {
   display: block;
-  font-size: clamp(1.75rem, 4vw, 2.25rem);
+  font-size: clamp(1.1rem, 2.4vw, 1.35rem);
   font-weight: 800;
   color: #f8fafc;
   letter-spacing: -0.02em;
-  line-height: 1.2;
-  text-shadow: 0 2px 20px rgba(0, 0, 0, 0.2);
+  line-height: 1.25;
+  text-shadow: 0 1px 12px rgba(0, 0, 0, 0.18);
 }
 
 .vp-metrics-grid {
-  flex: 2 1 400px;
+  flex: 2 1 280px;
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 1rem;
+  gap: 0.55rem;
   align-content: start;
 }
 
 .vp-metric {
   display: flex;
   flex-direction: column;
-  gap: 0.35rem;
-  padding: 1.25rem 1.5rem;
+  gap: 0.2rem;
+  padding: 0.65rem 0.75rem;
   border-radius: 0;
   background: #ffffff;
   border: 1px solid #e2e8f0;
-  box-shadow: 0 4px 16px rgba(15, 23, 42, 0.04);
+  box-shadow: 0 2px 10px rgba(15, 23, 42, 0.04);
   transition: all 0.25s ease;
   position: relative;
   overflow: hidden;
@@ -258,8 +260,8 @@
 
 .vp-metric:hover {
   border-color: #cbd5e1;
-  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.08);
-  transform: translateY(-2px);
+  box-shadow: 0 4px 14px rgba(15, 23, 42, 0.07);
+  transform: translateY(-1px);
 }
 
 .vp-metric--muted::before {
@@ -271,17 +273,18 @@
 }
 
 .vp-metric-label {
-  font-size: 0.7rem;
+  font-size: 0.6rem;
   font-weight: 600;
   text-transform: uppercase;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.06em;
   color: #64748b;
 }
 
 .vp-metric-value {
-  font-size: 1.05rem;
+  font-size: 0.82rem;
   font-weight: 700;
   color: #0f172a;
+  line-height: 1.3;
 }
 
 .vp-metric--muted .vp-metric-value {
@@ -630,12 +633,12 @@
   }
 
   .vp-metrics-hero {
-    padding: 1.5rem 1.75rem;
+    padding: 0.95rem 1rem;
     min-width: 100%;
   }
 
   .vp-metrics-hero-value {
-    font-size: clamp(1.5rem, 5vw, 1.9rem);
+    font-size: clamp(1.05rem, 4vw, 1.25rem);
   }
 
   .vp-metrics-grid {
@@ -643,7 +646,7 @@
   }
 
   .vp-metric {
-    padding: 1rem 1.25rem;
+    padding: 0.6rem 0.75rem;
   }
 
   .vp-insights-grid {
@@ -664,15 +667,15 @@
 
 @media (max-width: 480px) {
   .vp-metrics-hero {
-    padding: 1.25rem 1.5rem;
+    padding: 0.85rem 0.95rem;
   }
 
   .vp-metrics-hero-value {
-    font-size: 1.5rem;
+    font-size: 1.05rem;
   }
 
   .vp-metric {
-    padding: 1rem;
+    padding: 0.55rem 0.65rem;
   }
 
   .vp-table {

@@ -861,7 +861,8 @@ const BuyTransactionEntry = () => {
       deal_number: form.dealNumber,
       description: form.description,
       quantity: parseFloat(form.quantity),
-      price: parseFloat(form.price),
+      // Keep as string so backend/DB can preserve entered decimal precision.
+      price: form.price,
       gross_value: parseFloat(form.grossValue) || 0,
       brokerage: parseFloat(form.brokerage) || 0,
       cds_fees: parseFloat(form.cdsFees) || 0,
@@ -1098,7 +1099,7 @@ const BuyTransactionEntry = () => {
                   <input
                     name="price"
                     type="number"
-                    step="0.01"
+                    step="any"
                     min="0"
                     placeholder="Enter price per share"
                     value={form.price}

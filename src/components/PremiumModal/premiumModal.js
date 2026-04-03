@@ -1,8 +1,33 @@
 import React from 'react';
 import './Styles/premiumModal.css';
 
-const PremiumModal = ({ isOpen, onClose, onContactSales }) => {
+const VARIANT_COPY = {
+  default: {
+    title: 'Premium Feature',
+    message: (
+      <>
+        This feature is available in our <strong>Premium Plan</strong> or coming soon.
+      </>
+    ),
+    submessage:
+      'Upgrade your account to access advanced features and unlock the full potential of our platform.',
+  },
+  wealth: {
+    title: 'Sherwood Wealth',
+    message: (
+      <>
+        Sherwood Wealth is available in our <strong>Premium Plan</strong> or coming soon.
+      </>
+    ),
+    submessage:
+      'Upgrade to access wealth management, client operations, fund tools, and the full Sherwood Wealth workspace.',
+  },
+};
+
+const PremiumModal = ({ isOpen, onClose, onContactSales, variant = 'default' }) => {
   if (!isOpen) return null;
+
+  const copy = VARIANT_COPY[variant] || VARIANT_COPY.default;
 
   const handleOverlayClick = (e) => {
     if (e.target === e.currentTarget) {
@@ -30,16 +55,12 @@ const PremiumModal = ({ isOpen, onClose, onContactSales }) => {
               />
             </svg>
           </div>
-          <h2 className="em-premium-modal-title">Premium Feature</h2>
+          <h2 className="em-premium-modal-title">{copy.title}</h2>
         </div>
         
         <div className="em-premium-modal-content">
-          <p className="em-premium-modal-message">
-            This feature is available in our <strong>Premium Plan</strong> or coming soon.
-          </p>
-          <p className="em-premium-modal-submessage">
-            Upgrade your account to access advanced features and unlock the full potential of our platform.
-          </p>
+          <p className="em-premium-modal-message">{copy.message}</p>
+          <p className="em-premium-modal-submessage">{copy.submessage}</p>
         </div>
 
         <div className="em-premium-modal-actions">

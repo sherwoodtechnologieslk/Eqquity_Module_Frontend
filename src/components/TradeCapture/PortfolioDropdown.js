@@ -25,6 +25,8 @@ const PortfolioDropdown = () => {
   // Empty array - ready for real API data
   // const mockPortfolioData = [];
 
+  const ALL_PORTFOLIOS_VALUE = '__ALL_PORTFOLIOS__';
+
   const loadPortfolios = async () => {
     try {
       setPortfoliosLoading(true);
@@ -44,10 +46,106 @@ const PortfolioDropdown = () => {
     }
   };
 
+  const buildHoldingsFromTransactions = (buyTransactions, sellTransactions) => {
+    const normalize = (v) => String(v || '').toLowerCase().trim();
+
+    const groupMap = new Map();
+
+    const getKey = (tx) => {
+      const symbol = normalize(tx.symbol);
+      const name = normalize(tx.company_name || tx.companyName || tx.company);
+      const equityId = tx.equity_id || tx.equityId || '';
+      return symbol || name || String(equityId) || 'unknown';
+    };
+
+    const getDisplayName = (tx, key) => {
+      const candidate = tx.company_name || tx.companyName || tx.company || tx.symbol || key;
+      return String(candidate || key).trim() || 'Unknown';
+    };
+
+    buyTransactions.forEach((tx) => {
+      const key = getKey(tx);
+      if (!groupMap.has(key)) {
+        groupMap.set(key, { key, displayName: getDisplayName(tx, key), buys: [], sells: [] });
+      }
+      groupMap.get(key).buys.push(tx);
+    });
+
+    sellTransactions.forEach((tx) => {
+      const key = getKey(tx);
+      if (!groupMap.has(key)) {
+        groupMap.set(key, { key, displayName: getDisplayName(tx, key), buys: [], sells: [] });
+      }
+      groupMap.get(key).sells.push(tx);
+    });
+
+    const holdings = Array.from(groupMap.values()).map((g) => {
+      const totalBuyQuantity = g.buys.reduce((sum, tx) => sum + (parseFloat(tx.quantity) || 0), 0);
+      const totalBuyGrossValue = g.buys.reduce((sum, tx) => sum + (parseFloat(tx.gross_value) || 0), 0);
+      const totalSellQuantity = g.sells.reduce((sum, tx) => sum + (parseFloat(tx.quantity) || 0), 0);
+
+      const calculatedNetQuantity = Math.max(0, totalBuyQuantity - totalSellQuantity);
+      const wap = totalBuyQuantity > 0 ? totalBuyGrossValue / totalBuyQuantity : 0;
+      const calculatedCostValue = calculatedNetQuantity * wap;
+
+      const totalBuyCharges = g.buys.reduce((sum, tx) => {
+        const brokerage = parseFloat(tx.brokerage) || 0;
+        const cdsFees = parseFloat(tx.cds_fees) || 0;
+        const cseFees = parseFloat(tx.cse_fees) || 0;
+        const clearingFees = parseFloat(tx.clearing_fees) || 0;
+        const sec = parseFloat(tx.sec) || 0;
+        const stl = parseFloat(tx.stl) || 0;
+        return sum + brokerage + cdsFees + cseFees + clearingFees + sec + stl;
+      }, 0);
+
+      const calculatedCharges = totalBuyQuantity > 0
+        ? (totalBuyCharges * (calculatedNetQuantity / totalBuyQuantity))
+        : 0;
+
+      const netValue = calculatedCostValue + calculatedCharges;
+      const costPerShare = calculatedNetQuantity > 0 ? netValue / calculatedNetQuantity : 0;
+
+      return {
+        companyName: g.displayName,
+        companyId: null,
+        netQuantity: calculatedNetQuantity,
+        avgBuyPrice: wap,
+        costValue: calculatedCostValue,
+        totalCharges: calculatedCharges,
+        netValue,
+        costPerShare
+      };
+    })
+    .filter((h) => (h.netQuantity || 0) > 0)
+    .sort((a, b) => a.companyName.localeCompare(b.companyName));
+
+    return holdings;
+  };
+
   const loadPortfolioHoldings = async (portfolioName) => {
     try {
       setHoldingsLoading(true);
       
+      if (portfolioName === ALL_PORTFOLIOS_VALUE) {
+        let buyTransactions = [];
+        let sellTransactions = [];
+
+        try {
+          buyTransactions = await transactionEntryAPI.getAllBuyTransactions();
+        } catch (buyTxError) {
+          console.error('Error fetching buy transactions:', buyTxError);
+        }
+
+        try {
+          sellTransactions = await transactionEntryAPI.getAllSellTransactions();
+        } catch (sellTxError) {
+          console.error('Error fetching sell transactions:', sellTxError);
+        }
+
+        setPortfolioHoldings(buildHoldingsFromTransactions(buyTransactions || [], sellTransactions || []));
+        return;
+      }
+
       // Find the portfolio ID for the selected portfolio name
       const selectedPortfolio = portfolios.find(p => p.portfolioName === portfolioName);
       if (!selectedPortfolio) {
@@ -239,6 +337,13 @@ const PortfolioDropdown = () => {
     setIsOpen(false);
     
     // Find the selected portfolio and its ID
+    if (value === ALL_PORTFOLIOS_VALUE) {
+      setSelectedPortfolioId('ALL');
+      setSelectedPortfolioCostingMethod('');
+      await loadPortfolioHoldings(value);
+      return;
+    }
+
     const selectedPortfolioObj = portfolios.find(p => p.portfolioName === value);
     const portfolioId = selectedPortfolioObj ? selectedPortfolioObj.portfolioId : '';
     setSelectedPortfolioId(portfolioId);
@@ -321,6 +426,7 @@ const PortfolioDropdown = () => {
                   ? 'No active portfolios found'
                   : 'Choose your portfolio'}
             </option>
+            <option value={ALL_PORTFOLIOS_VALUE}>All Portfolios</option>
             {portfolios.map((portfolio, index) => (
               <option key={`portfolio-${portfolio.id}-${index}`} value={portfolio.portfolioName}>
                 {portfolio.portfolioName}
@@ -366,10 +472,17 @@ const PortfolioDropdown = () => {
                 <h3 className="pf-costing-method-title">Portfolio Costing Method</h3>
                 <div className="pf-costing-method-details">
                   <span className="pf-portfolio-info">
-                    <strong>Portfolio:</strong> {selectedPortfolio} ({selectedPortfolioId})
+                    <strong>Portfolio:</strong>{' '}
+                    {selectedPortfolio === ALL_PORTFOLIOS_VALUE
+                      ? 'All Portfolios'
+                      : `${selectedPortfolio} (${selectedPortfolioId})`}
                   </span>
                   <div className="pf-costing-method-info">
-                    {selectedPortfolioCostingMethod ? (
+                    {selectedPortfolio === ALL_PORTFOLIOS_VALUE ? (
+                      <span className="pf-costing-method-value pf-method-not-assigned">
+                        Multiple portfolios selected — costing method varies by portfolio
+                      </span>
+                    ) : selectedPortfolioCostingMethod ? (
                       <>
                         <span className="pf-costing-method-label">Assigned Method:</span>
                         <span className="pf-costing-method-value pf-method-assigned">

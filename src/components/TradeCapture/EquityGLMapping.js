@@ -28,7 +28,7 @@ const EquityGLMapping = () => {
 
         // Prefer Asset accounts, but if none are tagged as Asset, fall back to all accounts
         const allAccounts = coaData || [];
-        const assetAccounts = allAccounts.filter(acc => acc.account_type === 'Asset');
+        const assetAccounts = allAccounts.filter(acc => acc.account_type?.toLowerCase() === 'asset');
         setAccounts(assetAccounts.length > 0 ? assetAccounts : allAccounts);
 
         setMappings(mappingData || []);
