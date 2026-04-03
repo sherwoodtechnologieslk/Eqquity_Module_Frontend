@@ -13,19 +13,115 @@ const fmt = (value, decimals = 2) => {
   }).format(num);
 };
 
-const TABLE_HEADERS = [
-  'Counter',
-  'No. of Shares',
-  'WACC',
-  'Total Cost',
-  'BEC Based on WACC',
-  'BEC Cost (after deducting dividends)',
-  'BEC Based on 31 March - MV',
-  'Mkt value / Per share',
-  'Total Mkt Value',
-  'Unrealised Gain/(Loss) Based on WACC & MV',
-  'Unrealised Gain/(Loss) Based on MV (31-Mar vs current)'
+/**
+ * Single source of truth for Equity Portfolio Snapshot table + CSV + PDF.
+ * Order here defines column order everywhere.
+ */
+const PORTFOLIO_EXPORT_COLUMNS = [
+  {
+    id: 'counter',
+    header: 'Counter',
+    getExportValue: (row) => row.counter ?? '',
+    getFooterValue: () => 'Total',
+    getCellClassName: () => '',
+    footerClassName: '',
+    getDisplayValue: (row) => row.counter ?? ''
+  },
+  {
+    id: 'numberOfShares',
+    header: 'No. of Shares',
+    getExportValue: (row) => fmt(row.numberOfShares, 0),
+    getFooterValue: (t) => fmt(t?.numberOfShares, 0),
+    getCellClassName: () => 'num',
+    footerClassName: 'num',
+    getDisplayValue: (row) => fmt(row.numberOfShares, 0)
+  },
+  {
+    id: 'wacc',
+    header: 'WACC',
+    getExportValue: (row) => fmt(row.wacc, 2),
+    getFooterValue: () => '-',
+    getCellClassName: () => 'num',
+    footerClassName: 'num',
+    getDisplayValue: (row) => fmt(row.wacc, 2)
+  },
+  {
+    id: 'totalCost',
+    header: 'Total Cost',
+    getExportValue: (row) => fmt(row.totalCost, 2),
+    getFooterValue: (t) => fmt(t?.totalCost, 2),
+    getCellClassName: () => 'num',
+    footerClassName: 'num',
+    getDisplayValue: (row) => fmt(row.totalCost, 2)
+  },
+  {
+    id: 'becBasedOnWacc',
+    header: 'BEC Based on WACC',
+    getExportValue: (row) => fmt(row.becBasedOnWacc, 2),
+    getFooterValue: (t) => fmt(t?.becBasedOnWacc, 2),
+    getCellClassName: () => 'num',
+    footerClassName: 'num',
+    getDisplayValue: (row) => fmt(row.becBasedOnWacc, 2)
+  },
+  {
+    id: 'becCostAfterDividends',
+    header: 'BEC Cost (after deducting dividends)',
+    getExportValue: (row) => fmt(row.becCostAfterDividends, 2),
+    getFooterValue: (t) => fmt(t?.becCostAfterDividends, 2),
+    getCellClassName: () => 'num',
+    footerClassName: 'num',
+    getDisplayValue: (row) => fmt(row.becCostAfterDividends, 2)
+  },
+  {
+    id: 'becBasedOnMarchMv',
+    header: 'BEC Based on 31 March - MV',
+    getExportValue: (row) => fmt(row.becBasedOnMarchMv, 2),
+    getFooterValue: (t) => fmt(t?.becBasedOnMarchMv, 2),
+    getCellClassName: () => 'num',
+    footerClassName: 'num',
+    getDisplayValue: (row) => fmt(row.becBasedOnMarchMv, 2)
+  },
+  {
+    id: 'marketValuePerShare',
+    header: 'Mkt value / Per share',
+    getExportValue: (row) => fmt(row.marketValuePerShare, 2),
+    getFooterValue: () => '-',
+    getCellClassName: () => 'num',
+    footerClassName: 'num',
+    getDisplayValue: (row) => fmt(row.marketValuePerShare, 2)
+  },
+  {
+    id: 'totalMarketValue',
+    header: 'Total Mkt Value',
+    getExportValue: (row) => fmt(row.totalMarketValue, 2),
+    getFooterValue: (t) => fmt(t?.totalMarketValue, 2),
+    getCellClassName: () => 'num',
+    footerClassName: 'num',
+    getDisplayValue: (row) => fmt(row.totalMarketValue, 2)
+  },
+  {
+    id: 'unrealizedGainLossCostBasis',
+    header: 'Unrealised Gain/(Loss) Based on WACC & MV',
+    getExportValue: (row) => fmt(row.unrealizedGainLossCostBasis, 2),
+    getFooterValue: (t) => fmt(t?.unrealizedGainLossCostBasis, 2),
+    getCellClassName: (row) =>
+      `num ${row.unrealizedGainLossCostBasis >= 0 ? 'pos' : 'neg'}`,
+    footerClassName: 'num',
+    getDisplayValue: (row) => fmt(row.unrealizedGainLossCostBasis, 2)
+  },
+  {
+    id: 'unrealizedGainLossMvToMv',
+    header: 'Unrealised Gain/(Loss) Based on MV (31-Mar vs current)',
+    getExportValue: (row) => fmt(row.unrealizedGainLossMvToMv, 2),
+    getFooterValue: (t) => fmt(t?.unrealizedGainLossMvToMv, 2),
+    getCellClassName: (row) =>
+      `num ${row.unrealizedGainLossMvToMv >= 0 ? 'pos' : 'neg'}`,
+    footerClassName: 'num',
+    getDisplayValue: (row) => fmt(row.unrealizedGainLossMvToMv, 2)
+  }
 ];
+
+const EXPORT_HEADERS = PORTFOLIO_EXPORT_COLUMNS.map((c) => c.header);
 
 function escapeCsvCell(value) {
   const s = value == null ? '' : String(value);
@@ -48,42 +144,18 @@ function sanitizeFilePart(name) {
 }
 
 function buildRowsFromTableData(tableData) {
-  const body = (tableData.rows || []).map((row) => [
-    row.counter ?? '',
-    fmt(row.numberOfShares, 0),
-    fmt(row.wacc, 2),
-    fmt(row.totalCost, 2),
-    fmt(row.becBasedOnWacc, 2),
-    fmt(row.becCostAfterDividends, 2),
-    fmt(row.becBasedOnMarchMv, 2),
-    fmt(row.marketValuePerShare, 2),
-    fmt(row.totalMarketValue, 2),
-    fmt(row.unrealizedGainLossCostBasis, 2),
-    fmt(row.unrealizedGainLossMvToMv, 2)
-  ]);
+  const body = (tableData.rows || []).map((row) =>
+    PORTFOLIO_EXPORT_COLUMNS.map((col) => col.getExportValue(row))
+  );
   const t = tableData.totals || {};
-  const foot = [
-    [
-      'Total',
-      fmt(t.numberOfShares, 0),
-      '-',
-      fmt(t.totalCost, 2),
-      fmt(t.becBasedOnWacc, 2),
-      fmt(t.becCostAfterDividends, 2),
-      fmt(t.becBasedOnMarchMv, 2),
-      '-',
-      fmt(t.totalMarketValue, 2),
-      fmt(t.unrealizedGainLossCostBasis, 2),
-      fmt(t.unrealizedGainLossMvToMv, 2)
-    ]
-  ];
+  const foot = [PORTFOLIO_EXPORT_COLUMNS.map((col) => col.getFooterValue(t))];
   return { body, foot };
 }
 
 function downloadCsv(tableData) {
   const { body, foot } = buildRowsFromTableData(tableData);
   const lines = [
-    TABLE_HEADERS.map(escapeCsvCell).join(','),
+    EXPORT_HEADERS.map(escapeCsvCell).join(','),
     ...body.map((row) => row.map(escapeCsvCell).join(',')),
     ...foot.map((row) => row.map(escapeCsvCell).join(','))
   ];
@@ -108,7 +180,7 @@ function downloadPdf(tableData) {
   doc.text(title, 40, 36);
   autoTable(doc, {
     startY: 48,
-    head: [TABLE_HEADERS],
+    head: [EXPORT_HEADERS],
     body,
     foot,
     theme: 'grid',
@@ -120,7 +192,7 @@ function downloadPdf(tableData) {
       lineWidth: 0.6
     },
     headStyles: {
-      fillColor: [15, 23, 42], // match .fre-table th background
+      fillColor: [15, 23, 42],
       textColor: [255, 255, 255],
       fontStyle: 'bold',
       halign: 'left'
@@ -129,7 +201,7 @@ function downloadPdf(tableData) {
       fillColor: [248, 250, 252]
     },
     footStyles: {
-      fillColor: [241, 245, 249], // match tfoot background
+      fillColor: [241, 245, 249],
       textColor: [15, 23, 42],
       fontStyle: 'bold'
     },
@@ -225,7 +297,7 @@ const FinancialReportsExport = () => {
         </div>
       </div>
 
-      <div className="fre-filters">
+      <div className="fre-panel fre-filters">
         <label>
           Portfolio
           <select
@@ -257,7 +329,7 @@ const FinancialReportsExport = () => {
       {error ? <div className="fre-error">{error}</div> : null}
 
       {tableData ? (
-        <div className="fre-table-card">
+        <div className="fre-panel fre-table-card">
           <div className="fre-meta">
             <span><strong>Portfolio:</strong> {tableData.portfolioName}</span>
             <span><strong>As of:</strong> {tableData.asOfDate}</span>
@@ -268,53 +340,29 @@ const FinancialReportsExport = () => {
             <table className="fre-table">
               <thead>
                 <tr>
-                  {TABLE_HEADERS.map((h) => (
-                    <th key={h}>
-                      {h === 'Unrealised Gain/(Loss) Based on WACC & MV' ? (
-                        <>
-                          Unrealised Gain/(Loss) Based on WACC {'&'} MV
-                        </>
-                      ) : (
-                        h
-                      )}
-                    </th>
+                  {PORTFOLIO_EXPORT_COLUMNS.map((col) => (
+                    <th key={col.id}>{col.header}</th>
                   ))}
                 </tr>
               </thead>
               <tbody>
                 {(tableData.rows || []).map((row) => (
                   <tr key={`${row.counter}-${row.companyName}`}>
-                    <td>{row.counter}</td>
-                    <td className="num">{fmt(row.numberOfShares, 0)}</td>
-                    <td className="num">{fmt(row.wacc, 2)}</td>
-                    <td className="num">{fmt(row.totalCost, 2)}</td>
-                    <td className="num">{fmt(row.becBasedOnWacc, 2)}</td>
-                    <td className="num">{fmt(row.becCostAfterDividends, 2)}</td>
-                    <td className="num">{fmt(row.becBasedOnMarchMv, 2)}</td>
-                    <td className="num">{fmt(row.marketValuePerShare, 2)}</td>
-                    <td className="num">{fmt(row.totalMarketValue, 2)}</td>
-                    <td className={`num ${row.unrealizedGainLossCostBasis >= 0 ? 'pos' : 'neg'}`}>
-                      {fmt(row.unrealizedGainLossCostBasis, 2)}
-                    </td>
-                    <td className={`num ${row.unrealizedGainLossMvToMv >= 0 ? 'pos' : 'neg'}`}>
-                      {fmt(row.unrealizedGainLossMvToMv, 2)}
-                    </td>
+                    {PORTFOLIO_EXPORT_COLUMNS.map((col) => (
+                      <td key={col.id} className={col.getCellClassName(row)}>
+                        {col.getDisplayValue(row)}
+                      </td>
+                    ))}
                   </tr>
                 ))}
               </tbody>
               <tfoot>
                 <tr>
-                  <td>Total</td>
-                  <td className="num">{fmt(tableData.totals?.numberOfShares, 0)}</td>
-                  <td className="num">-</td>
-                  <td className="num">{fmt(tableData.totals?.totalCost, 2)}</td>
-                  <td className="num">{fmt(tableData.totals?.becBasedOnWacc, 2)}</td>
-                  <td className="num">{fmt(tableData.totals?.becCostAfterDividends, 2)}</td>
-                  <td className="num">{fmt(tableData.totals?.becBasedOnMarchMv, 2)}</td>
-                  <td className="num">-</td>
-                  <td className="num">{fmt(tableData.totals?.totalMarketValue, 2)}</td>
-                  <td className="num">{fmt(tableData.totals?.unrealizedGainLossCostBasis, 2)}</td>
-                  <td className="num">{fmt(tableData.totals?.unrealizedGainLossMvToMv, 2)}</td>
+                  {PORTFOLIO_EXPORT_COLUMNS.map((col) => (
+                    <td key={col.id} className={col.footerClassName}>
+                      {col.getFooterValue(tableData.totals || {})}
+                    </td>
+                  ))}
                 </tr>
               </tfoot>
             </table>

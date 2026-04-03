@@ -15,6 +15,15 @@
   --fre-bw-border: #111827;
   --fre-bw-hover: rgba(15, 23, 42, 0.06);
   --fre-bw-hover-strong: rgba(15, 23, 42, 0.12);
+  --fre-brand-2: #2563eb;
+}
+
+/* Shared surface container for filters + table card */
+.fre-panel {
+  border: 1px solid var(--fre-border);
+  background: var(--fre-surface);
+  border-radius: 0;
+  box-shadow: var(--fre-shadow);
 }
 
 .fre-wrap {
@@ -54,6 +63,12 @@
   gap: 10px;
   align-items: center;
   flex-wrap: wrap;
+  width: var(--fre-header-actions-width, auto);
+}
+
+.fre-header-actions .fre-export-btn,
+.fre-header-actions .fre-refresh {
+  flex: var(--fre-header-actions-btn-flex, 0 1 auto);
 }
 
 .fre-export-btn {
@@ -114,11 +129,7 @@
   grid-template-columns: 1.6fr 1fr;
   gap: 12px;
   margin-bottom: 14px;
-  background: var(--fre-surface);
-  border: 1px solid var(--fre-border);
-  border-radius: 0;
   padding: 14px;
-  box-shadow: var(--fre-shadow);
 }
 
 .fre-filters label {
@@ -160,11 +171,7 @@
 }
 
 .fre-table-card {
-  border: 1px solid var(--fre-border);
-  background: var(--fre-surface);
-  border-radius: 0;
   overflow: hidden;
-  box-shadow: var(--fre-shadow);
 }
 
 .fre-meta {
@@ -239,20 +246,13 @@
 @media (max-width: 980px) {
   .fre-wrap {
     padding: 16px;
+    --fre-header-actions-width: 100%;
+    --fre-header-actions-btn-flex: 1 1 auto;
   }
 
   .fre-header {
     flex-direction: column;
     align-items: stretch;
-  }
-
-  .fre-header-actions {
-    width: 100%;
-  }
-
-  .fre-export-btn,
-  .fre-refresh {
-    flex: 1 1 auto;
   }
 
   .fre-filters {

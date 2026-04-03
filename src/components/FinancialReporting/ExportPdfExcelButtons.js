@@ -8,25 +8,25 @@ const ExportPdfExcelButtons = ({
   excelLabel = 'Export Excel',
   pdfLabel = 'Export PDF'
 }) => {
+  const actions = [
+    { id: 'excel', label: excelLabel, onClick: onExportExcel },
+    { id: 'pdf', label: pdfLabel, onClick: onExportPdf }
+  ];
+
   return (
-    <div className="fre-header-actions">
-      <button
-        type="button"
-        className="fre-export-btn fre-export-excel"
-        disabled={exportDisabled}
-        onClick={onExportExcel}
-      >
-        {excelLabel}
-      </button>
-      <button
-        type="button"
-        className="fre-export-btn fre-export-pdf"
-        disabled={exportDisabled}
-        onClick={onExportPdf}
-      >
-        {pdfLabel}
-      </button>
-    </div>
+    <>
+      {actions.map(({ id, label, onClick }) => (
+        <button
+          key={id}
+          type="button"
+          className={`fre-export-btn fre-export-${id}`}
+          disabled={exportDisabled}
+          onClick={onClick}
+        >
+          {label}
+        </button>
+      ))}
+    </>
   );
 };
 

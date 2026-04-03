@@ -84,7 +84,8 @@
   flex-shrink: 0;
 }
 
-.tc-trade-report-export .fre-header-actions {
+.tc-trade-report-export {
+  display: flex;
   gap: 10px;
   align-items: center;
   flex-wrap: nowrap;
@@ -97,7 +98,7 @@
 }
 
 @media (max-width: 768px) {
-  .tc-trade-report-export .fre-header-actions {
+  .tc-trade-report-export {
     width: 100%;
     flex-wrap: wrap;
   }
