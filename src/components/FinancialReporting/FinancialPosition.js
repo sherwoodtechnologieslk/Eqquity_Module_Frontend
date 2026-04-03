@@ -27,31 +27,20 @@ const FinancialPosition = ({ onTabChange }) => {
     const equityAccounts = financialPositionData?.equity || [];
 
     const normalizeName = (name) => String(name || '').trim().toLowerCase();
-
-    // Treat any row that contains "retained earnings" as part of the Retained Earnings line.
-    const retainedMatches = equityAccounts.filter((acc) => normalizeName(acc.accountName).includes('retained earnings'));
-
-    // Remove matched rows from the main list;
-    const retainedMatchKeys = new Set(
-      retainedMatches.map((acc, idx) => acc.accountCode || String(idx))
-    );
-
-    const rowsWithoutRetained = equityAccounts.filter((acc, idx) => {
-      const key = acc.accountCode || String(idx);
-      return !retainedMatchKeys.has(key);
-    });
+    const currentPlLabel = 'Current P&L';
 
     const derivedBalanceTypeFromBalance = (balance) => {
       if (Math.abs(balance) < 0.00001) return 'ZERO';
       return balance >= 0 ? 'CR' : 'DR';
     };
 
-    // If we have net profit from P&L, use it as the Retained earnings amount for this SOFP period.
+    // Always keep the Retained Earnings account(s) from the backend under Equity,
+    // and show the current period profit/loss as an additional line: Current P&L.
     if (typeof netProfit === 'number' && Number.isFinite(netProfit)) {
       return [
-        ...rowsWithoutRetained,
+        ...equityAccounts,
         {
-          accountName: 'Retained earnings',
+          accountName: currentPlLabel,
           balance: netProfit,
           balanceType: derivedBalanceTypeFromBalance(netProfit),
           accountCode: ''
@@ -59,34 +48,10 @@ const FinancialPosition = ({ onTabChange }) => {
       ];
     }
 
-    // Otherwise, fall back to the retained earnings balances coming from the backend.
-    if (retainedMatches.length === 0) {
-      return [
-        ...rowsWithoutRetained,
-        { accountName: 'Retained earnings', balance: 0, balanceType: 'ZERO', accountCode: '' }
-      ];
-    }
-
-    const totalRetainedBalance = retainedMatches.reduce((sum, acc) => sum + (Number(acc.balance) || 0), 0);
-    const derivedBalanceType = derivedBalanceTypeFromBalance(totalRetainedBalance);
-
-    return [
-      ...rowsWithoutRetained,
-      {
-        accountName: 'Retained earnings',
-        balance: totalRetainedBalance,
-        balanceType: derivedBalanceType,
-        accountCode: ''
-      }
-    ];
+    // If net profit isn't available, just show the backend equity accounts as-is
+    // (including retained earnings account balances).
+    return equityAccounts;
   }, [financialPositionData, netProfit]);
-
-  const retainedEarningsOriginalBalanceSum = useMemo(() => {
-    const equityAccounts = financialPositionData?.equity || [];
-    const normalizeName = (name) => String(name || '').trim().toLowerCase();
-    const retainedMatches = equityAccounts.filter((acc) => normalizeName(acc.accountName).includes('retained earnings'));
-    return retainedMatches.reduce((sum, acc) => sum + (Number(acc.balance) || 0), 0);
-  }, [financialPositionData]);
 
   const equityTotalsForDisplay = useMemo(() => {
     const baseTotalEquity = financialPositionData?.totals?.totalEquity || 0;
@@ -103,8 +68,8 @@ const FinancialPosition = ({ onTabChange }) => {
       };
     }
 
-    // Replace retained earnings contribution with P&L net profit (UI reconciliation).
-    const adjustedTotalEquity = baseTotalEquity - retainedEarningsOriginalBalanceSum + netProfit;
+    // Add Current P&L on top of backend equity (retained earnings stays under equity).
+    const adjustedTotalEquity = baseTotalEquity + netProfit;
     const adjustedTotalLiabilitiesAndEquity = baseTotalLiabilities + adjustedTotalEquity;
     const difference = Math.abs(baseTotalAssets - adjustedTotalLiabilitiesAndEquity);
     const isBalanced = difference < 0.01;
@@ -115,7 +80,7 @@ const FinancialPosition = ({ onTabChange }) => {
       isBalanced,
       difference
     };
-  }, [financialPositionData, netProfit, retainedEarningsOriginalBalanceSum]);
+  }, [financialPositionData, netProfit]);
 
   const fetchFinancialPosition = useCallback(async () => {
     try {
@@ -263,7 +228,7 @@ const FinancialPosition = ({ onTabChange }) => {
       <td className="fp-amount-cell">
         <div className="fp-balance-cell">
           <span className={`fp-account-balance ${getLineState(account.balanceType, normalBalanceType)}`}>
-            {formatCurrency(Math.abs(account.balance || 0))}
+            {formatCurrency(Number(account.balance) || 0)}
           </span>
           <span className={`fp-drcr-badge ${getLineState(account.balanceType, normalBalanceType)}`}>
             {account.balanceType || ''}
@@ -281,7 +246,7 @@ const FinancialPosition = ({ onTabChange }) => {
       <td className="fp-amount-cell">
         <div className="fp-balance-cell">
           <span className="fp-subtotal-balance positive">
-            <strong>{formatCurrency(Math.abs(amount || 0))}</strong>
+            <strong>{formatCurrency(Number(amount) || 0)}</strong>
           </span>
         </div>
       </td>
@@ -375,7 +340,7 @@ const FinancialPosition = ({ onTabChange }) => {
         <div className="fp-summary-card assets">
           <div className="fp-card-header">Total Assets</div>
           <div className="fp-card-value positive">
-            {formatCurrency(Math.abs(financialPositionData?.totals?.totalAssets || 0))}
+            {formatCurrency(Number(financialPositionData?.totals?.totalAssets) || 0)}
           </div>
           <div className="fp-card-subtitle">All assets combined</div>
         </div>
@@ -383,7 +348,7 @@ const FinancialPosition = ({ onTabChange }) => {
         <div className="fp-summary-card liabilities">
           <div className="fp-card-header">Total Liabilities</div>
           <div className="fp-card-value positive">
-            {formatCurrency(Math.abs(financialPositionData?.totals?.totalLiabilities || 0))}
+            {formatCurrency(Number(financialPositionData?.totals?.totalLiabilities) || 0)}
           </div>
           <div className="fp-card-subtitle">All liabilities combined</div>
         </div>
@@ -391,7 +356,7 @@ const FinancialPosition = ({ onTabChange }) => {
         <div className="fp-summary-card equity">
           <div className="fp-card-header">Total Equity</div>
           <div className="fp-card-value positive">
-            {formatCurrency(Math.abs(equityTotalsForDisplay?.totalEquity || 0))}
+            {formatCurrency(Number(equityTotalsForDisplay?.totalEquity) || 0)}
           </div>
           <div className="fp-card-subtitle">Shareholders' equity</div>
         </div>
@@ -488,7 +453,7 @@ const FinancialPosition = ({ onTabChange }) => {
               <div className="fp-total-strip">
                 <span className="fp-total-strip-label">Total Assets</span>
                 <span className="fp-total-strip-value positive">
-                  {formatCurrency(Math.abs(financialPositionData?.totals?.totalAssets || 0))}
+                  {formatCurrency(Number(financialPositionData?.totals?.totalAssets) || 0)}
                 </span>
               </div>
             </div>
@@ -581,7 +546,7 @@ const FinancialPosition = ({ onTabChange }) => {
               <div className="fp-total-strip">
                 <span className="fp-total-strip-label">Total Equity & Liabilities</span>
                 <span className="fp-total-strip-value positive">
-                  {formatCurrency(Math.abs(equityTotalsForDisplay?.totalLiabilitiesAndEquity || 0))}
+                  {formatCurrency(Number(equityTotalsForDisplay?.totalLiabilitiesAndEquity) || 0)}
                 </span>
               </div>
             </div>
@@ -629,7 +594,7 @@ const FinancialPosition = ({ onTabChange }) => {
                       <td>{selectedAccount.accountName?.trim() ? selectedAccount.accountName : '—'}</td>
                       <td className="fp-modal-table-amount">
                         <span className="fp-modal-table-amount-num">
-                          {formatCurrency(Math.abs(selectedAccount.balance || 0))}
+                          {formatCurrency(Number(selectedAccount.balance) || 0)}
                         </span>
                         {selectedAccount.balanceType && selectedAccount.balanceType !== 'ZERO' ? (
                           <span className="fp-modal-table-drcr">{selectedAccount.balanceType}</span>
