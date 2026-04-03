@@ -134,7 +134,7 @@ const buildSofpRows = (data) => {
       rows.push([
         section,
         String(a.transactionTypeName || a.accountCategory || a.accountName || ''),
-        fmt(Math.abs(a.balance || 0), 2),
+        fmt(Number(a.balance) || 0, 2),
         String(a.balanceType || normal || '')
       ]);
     });
