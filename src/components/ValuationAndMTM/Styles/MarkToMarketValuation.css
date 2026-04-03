@@ -902,6 +902,70 @@
   background: #f8fafc;
 }
 
+.mtm-table-header-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.mtm-table-header-text {
+  flex: 1;
+  min-width: min(100%, 220px);
+}
+
+.mtm-table-header-actions {
+  flex-shrink: 0;
+}
+
+/* Position Details export buttons — MTM only; matches table header / body chrome */
+.mtm-table-section .mtm-table-header-actions.fre-header-actions {
+  gap: 0.75rem;
+}
+
+.mtm-table-section .mtm-table-header-actions.fre-header-actions .fre-export-btn {
+  border-radius: 0;
+  font-size: 0.875rem;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  padding: 0.625rem 1.125rem;
+  transition: all 0.2s ease;
+}
+
+.mtm-table-section .mtm-table-header-actions.fre-header-actions .fre-export-excel,
+.mtm-table-section .mtm-table-header-actions.fre-header-actions .fre-export-pdf {
+  background: linear-gradient(135deg, #3b82f6, #2563eb);
+  color: #fff;
+  border: 1px solid transparent;
+  box-shadow: 0 2px 8px rgba(59, 130, 246, 0.25);
+}
+
+.mtm-table-section .mtm-table-header-actions.fre-header-actions .fre-export-excel:hover:not(:disabled),
+.mtm-table-section .mtm-table-header-actions.fre-header-actions .fre-export-pdf:hover:not(:disabled) {
+  background: linear-gradient(135deg, #2563eb, #1d4ed8);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 14px rgba(59, 130, 246, 0.35);
+}
+
+.mtm-table-section .mtm-table-header-actions.fre-header-actions .fre-export-btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+.mtm-table-section .mtm-table-header-actions.fre-header-actions .fre-export-btn:focus {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+}
+
+.mtm-table-section .mtm-table-header-actions.fre-header-actions .fre-export-excel:focus,
+.mtm-table-section .mtm-table-header-actions.fre-header-actions .fre-export-pdf:focus {
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.35), 0 2px 8px rgba(59, 130, 246, 0.25);
+}
+
 .mtm-table-header h2 {
   margin: 0 0 0.5rem 0;
   font-size: 1.5rem;

@@ -375,37 +375,31 @@ const OpeningBalEntry = () => {
 
   return (
     <div className="opening-bal-entry-container">
-      {/* Header Section */}
-      <div className="opening-bal-header-section">
-        <div className="opening-bal-header-icon">
-          <svg className="opening-bal-icon" fill="currentColor" viewBox="0 0 20 20">
-            <path fillRule="evenodd" d="M3 3a1 1 0 000 2v8a2 2 0 002 2h2.586l-1.293 1.293a1 1 0 101.414 1.414L10 15.414l2.293 2.293a1 1 0 001.414-1.414L12.414 15H15a2 2 0 002-2V5a1 1 0 100-2H3zm11.707 4.707a1 1 0 00-1.414-1.414L10 9.586 8.707 8.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd"/>
-          </svg>
-        </div>
-        <div className="opening-bal-header-text-group">
-          <h1 className="opening-bal-main-title">Opening Balance Entry</h1>
-          <p className="opening-bal-subtitle">Enter opening balances for your general ledger accounts</p>
-        </div>
-      </div>
-
-      {/* Success Message */}
-      {showSuccess && (
-        <div className="opening-bal-success-message">
-          <div className="success-icon">✓</div>
-          <div className="success-text">
-            <h3>Opening Balance Saved Successfully!</h3>
-            <p>Your opening balance has been recorded.</p>
+      <header className="opening-bal-page-header">
+        <div className="opening-bal-header-section">
+          <div className="opening-bal-header-icon" aria-hidden>
+            <svg className="opening-bal-icon" fill="currentColor" viewBox="0 0 20 20">
+              <path fillRule="evenodd" d="M4 4a2 2 0 00-2 2v8a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2H4zm2 2v8h8V6H6z" clipRule="evenodd"/>
+              <path d="M8 8a1 1 0 011-1h2a1 1 0 110 2H9a1 1 0 01-1-1zm0 2a1 1 0 011-1h2a1 1 0 110 2H9a1 1 0 01-1-1zm1 1a1 1 0 100 2h2a1 1 0 100-2H9z"/>
+            </svg>
           </div>
+          <div className="opening-bal-header-text-group">
+            <h1 className="opening-bal-main-title">Opening Balance Entry</h1>
+            <p className="opening-bal-subtitle">Record opening balances for general ledger accounts</p>
+          </div>
+        </div>
+      </header>
+
+      {showSuccess && (
+        <div className="opening-bal-success-message" role="status">
+          <svg className="opening-bal-success-icon" fill="currentColor" viewBox="0 0 20 20" aria-hidden>
+            <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd"/>
+          </svg>
+          <span className="opening-bal-success-text">Opening balance saved successfully.</span>
         </div>
       )}
 
-      {/* Form Card */}
       <div className="opening-bal-form-card">
-        <div className="opening-bal-form-header">
-          <h2 className="opening-bal-form-title">Opening Balance Information</h2>
-          <p className="opening-bal-form-subtitle">Fill in the details below to create an opening balance entry</p>
-        </div>
-
         <form className="opening-bal-form" onSubmit={handleSubmit}>
           {/* Account Selection Section */}
           <div className="form-section">

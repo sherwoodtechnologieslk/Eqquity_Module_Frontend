@@ -2,7 +2,26 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import './Styles/FinancialReportsDownloadCenter.css';
-import { financialPositionAPI, portfolioAPI, profitLossAPI, trialBalanceAPI, gsecEntriesAPI } from '../../services/api';
+import {
+  financialPositionAPI,
+  portfolioAPI,
+  profitLossAPI,
+  trialBalanceAPI,
+  gsecEntriesAPI,
+  parsedTradeTransactionAPI,
+  transactionEntryAPI
+} from '../../services/api';
+import {
+  getLatestDayTradeReportState,
+  exportTradeReportToExcel,
+  exportTradeReportToPdf
+} from '../../utils/tradeReportExport';
+import { buildHoldingsForPortfolioPositions } from '../../utils/portfolioHoldingsExport';
+import {
+  computeMtmPortfolioTotals,
+  exportMtmPositionDetailsToPdf,
+  exportMtmPositionDetailsToExcel
+} from '../../utils/mtmPositionDetailsExport';
 
 const fmt = (value, decimals = 2) => {
   const num = Number(value) || 0;
@@ -94,6 +113,96 @@ const pdfTable = ({ title, subtitle, head, body, foot, filenameBase }) => {
   doc.save(`${filenameBase}.pdf`);
 };
 
+const toFixedNumber = (value, decimals) => {
+  const n = Number(value) || 0;
+  return Number(n.toFixed(decimals));
+};
+
+const formatPortfolioQty = (value) => Number(value || 0).toLocaleString();
+const formatPortfolio2 = (value) =>
+  Number(value || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+const formatPortfolio4 = (value) =>
+  Number(value || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 4 });
+
+/* ── SOFP: one row model for PDF + CSV ── */
+const SOFP_HEADERS = ['Section', 'Transaction type', 'Amount', 'DR/CR'];
+
+const buildSofpRows = (data) => {
+  const rows = [];
+  const pushGroup = (section, list, normal) => {
+    (list || []).forEach((a) => {
+      rows.push([
+        section,
+        String(a.transactionTypeName || a.accountCategory || a.accountName || ''),
+        fmt(Math.abs(a.balance || 0), 2),
+        String(a.balanceType || normal || '')
+      ]);
+    });
+  };
+  pushGroup('Assets · Non-current', data.assets?.nonCurrentAssets, 'DR');
+  pushGroup('Assets · Current', data.assets?.currentAssets, 'DR');
+  pushGroup('Liabilities · Non-current', data.liabilities?.nonCurrentLiabilities, 'CR');
+  pushGroup('Liabilities · Current', data.liabilities?.currentLiabilities, 'CR');
+  pushGroup('Equity', data.equity, 'CR');
+  return rows;
+};
+
+/* ── SOCI ── */
+const SOCI_HEADERS = ['Line', 'Amount'];
+
+const buildSociRows = (data) =>
+  (data.statement || data.lines || []).map((l) => [
+    String(l.label || l.name || l.accountName || ''),
+    fmt(Number(l.amount) || 0, 2)
+  ]);
+
+/* ── Equity Portfolio Snapshot (this screen uses 4 dp for WACC / some MV fields) ── */
+const SNAPSHOT_HEADERS = [
+  'Counter',
+  'No. of Shares',
+  'WACC',
+  'Total Cost',
+  'BEC Based on WACC',
+  'BEC Cost (after deducting dividends)',
+  'BEC Based on 31 March - MV',
+  'Mkt value / Per share',
+  'Total Mkt Value',
+  'Unrealised Gain/(Loss) Based on WACC & MV',
+  'Unrealised Gain/(Loss) Based on MV (31-Mar vs current)'
+];
+
+const buildSnapshotBodyRows = (t) =>
+  (t.rows || []).map((r) => [
+    r.counter ?? '',
+    fmt(r.numberOfShares, 0),
+    fmt(r.wacc, 4),
+    fmt(r.totalCost, 2),
+    fmt(r.becBasedOnWacc, 4),
+    fmt(r.becCostAfterDividends, 2),
+    fmt(r.becBasedOnMarchMv, 2),
+    fmt(r.marketValuePerShare, 4),
+    fmt(r.totalMarketValue, 2),
+    fmt(r.unrealizedGainLossCostBasis, 2),
+    fmt(r.unrealizedGainLossMvToMv, 2)
+  ]);
+
+const buildSnapshotTotalsRow = (totals) => {
+  const t = totals || {};
+  return [
+    'Total',
+    fmt(t.numberOfShares, 0),
+    '-',
+    fmt(t.totalCost, 2),
+    fmt(t.becBasedOnWacc, 4),
+    fmt(t.becCostAfterDividends, 2),
+    fmt(t.becBasedOnMarchMv, 2),
+    '-',
+    fmt(t.totalMarketValue, 2),
+    fmt(t.unrealizedGainLossCostBasis, 2),
+    fmt(t.unrealizedGainLossMvToMv, 2)
+  ];
+};
+
 const FinancialReportsDownloadCenter = () => {
   const [portfolios, setPortfolios] = useState([]);
   const [filters, setFilters] = useState({
@@ -147,89 +256,62 @@ const FinancialReportsDownloadCenter = () => {
     }
   };
 
+  const fetchFinancialPositionOrThrow = useCallback(async () => {
+    const resp = await financialPositionAPI.getFinancialPosition({
+      asOfDate: filters.asOfDate,
+      portfolio: filters.portfolioId || undefined
+    });
+    if (!resp?.success) throw new Error(resp?.error || 'Failed to load Statement of Financial Position');
+    return resp.data || {};
+  }, [filters.asOfDate, filters.portfolioId]);
+
+  const fetchProfitLossOrThrow = useCallback(async () => {
+    const resp = await profitLossAPI.getProfitLoss({
+      startDate: asOfYearStart(filters.asOfDate),
+      endDate: filters.asOfDate,
+      portfolio: filters.portfolioId || undefined
+    });
+    if (!resp?.success) throw new Error(resp?.error || 'Failed to load Statement of Comprehensive Income');
+    return resp.data || {};
+  }, [filters.asOfDate, filters.portfolioId]);
+
+  const fetchPortfolioSnapshotOrThrow = useCallback(async () => {
+    const resp = await financialPositionAPI.getPortfolioExportTable({
+      asOfDate: filters.asOfDate,
+      portfolioId: filters.portfolioId || undefined
+    });
+    if (!resp?.success) throw new Error(resp?.error || 'Failed to load Equity Portfolio Snapshot');
+    return resp.data || {};
+  }, [filters.asOfDate, filters.portfolioId]);
+
   const exportSofpPdf = () =>
     run('sofp-pdf', async () => {
-      const resp = await financialPositionAPI.getFinancialPosition({
-        asOfDate: filters.asOfDate,
-        portfolio: filters.portfolioId || undefined
-      });
-      if (!resp?.success) throw new Error(resp?.error || 'Failed to load Statement of Financial Position');
-      const data = resp.data || {};
-
-      const head = ['Section', 'Transaction type', 'Amount', 'DR/CR'];
-      const rows = [];
-      const pushGroup = (section, list, normal) => {
-        (list || []).forEach((a) => {
-          rows.push([
-            section,
-            String(a.transactionTypeName || a.accountCategory || a.accountName || ''),
-            fmt(Math.abs(a.balance || 0), 2),
-            String(a.balanceType || normal || '')
-          ]);
-        });
-      };
-
-      pushGroup('Assets · Non-current', data.assets?.nonCurrentAssets, 'DR');
-      pushGroup('Assets · Current', data.assets?.currentAssets, 'DR');
-      pushGroup('Liabilities · Non-current', data.liabilities?.nonCurrentLiabilities, 'CR');
-      pushGroup('Liabilities · Current', data.liabilities?.currentLiabilities, 'CR');
-      pushGroup('Equity', data.equity, 'CR');
-
+      const data = await fetchFinancialPositionOrThrow();
+      const body = buildSofpRows(data);
       pdfTable({
         title: 'Statement of Financial Position',
         subtitle: `Portfolio: ${portfolioLabel}   |   As of: ${filters.asOfDate}`,
-        head,
-        body: rows,
+        head: SOFP_HEADERS,
+        body,
         filenameBase: `SOFP_${baseName}`
       });
     });
 
   const exportSofpExcel = () =>
     run('sofp-xls', async () => {
-      const resp = await financialPositionAPI.getFinancialPosition({
-        asOfDate: filters.asOfDate,
-        portfolio: filters.portfolioId || undefined
-      });
-      if (!resp?.success) throw new Error(resp?.error || 'Failed to load Statement of Financial Position');
-      const data = resp.data || {};
-      const headers = ['Section', 'Transaction type', 'Amount', 'DR/CR'];
-      const rows = [];
-      const pushGroup = (section, list, normal) => {
-        (list || []).forEach((a) => {
-          rows.push([
-            section,
-            String(a.transactionTypeName || a.accountCategory || a.accountName || ''),
-            fmt(Math.abs(a.balance || 0), 2),
-            String(a.balanceType || normal || '')
-          ]);
-        });
-      };
-      pushGroup('Assets · Non-current', data.assets?.nonCurrentAssets, 'DR');
-      pushGroup('Assets · Current', data.assets?.currentAssets, 'DR');
-      pushGroup('Liabilities · Non-current', data.liabilities?.nonCurrentLiabilities, 'CR');
-      pushGroup('Liabilities · Current', data.liabilities?.currentLiabilities, 'CR');
-      pushGroup('Equity', data.equity, 'CR');
-      downloadCsv(`SOFP_${baseName}`, headers, rows);
+      const data = await fetchFinancialPositionOrThrow();
+      const rows = buildSofpRows(data);
+      downloadCsv(`SOFP_${baseName}`, SOFP_HEADERS, rows);
     });
 
   const exportSociPdf = () =>
     run('soci-pdf', async () => {
-      const resp = await profitLossAPI.getProfitLoss({
-        startDate: asOfYearStart(filters.asOfDate),
-        endDate: filters.asOfDate,
-        portfolio: filters.portfolioId || undefined
-      });
-      if (!resp?.success) throw new Error(resp?.error || 'Failed to load Statement of Comprehensive Income');
-      const data = resp.data || {};
-      const head = ['Line', 'Amount'];
-      const body = (data.statement || data.lines || []).map((l) => [
-        String(l.label || l.name || l.accountName || ''),
-        fmt(Number(l.amount) || 0, 2)
-      ]);
+      const data = await fetchProfitLossOrThrow();
+      const body = buildSociRows(data);
       pdfTable({
         title: 'Statement of Comprehensive Income',
         subtitle: `Portfolio: ${portfolioLabel}   |   Period: ${asOfYearStart(filters.asOfDate)} to ${filters.asOfDate}`,
-        head,
+        head: SOCI_HEADERS,
         body,
         filenameBase: `SOCI_${baseName}`
       });
@@ -237,74 +319,20 @@ const FinancialReportsDownloadCenter = () => {
 
   const exportSociExcel = () =>
     run('soci-xls', async () => {
-      const resp = await profitLossAPI.getProfitLoss({
-        startDate: asOfYearStart(filters.asOfDate),
-        endDate: filters.asOfDate,
-        portfolio: filters.portfolioId || undefined
-      });
-      if (!resp?.success) throw new Error(resp?.error || 'Failed to load Statement of Comprehensive Income');
-      const data = resp.data || {};
-      const headers = ['Line', 'Amount'];
-      const rows = (data.statement || data.lines || []).map((l) => [
-        String(l.label || l.name || l.accountName || ''),
-        fmt(Number(l.amount) || 0, 2)
-      ]);
-      downloadCsv(`SOCI_${baseName}`, headers, rows);
+      const data = await fetchProfitLossOrThrow();
+      const rows = buildSociRows(data);
+      downloadCsv(`SOCI_${baseName}`, SOCI_HEADERS, rows);
     });
 
   const exportSnapshotPdf = () =>
     run('snap-pdf', async () => {
-      const resp = await financialPositionAPI.getPortfolioExportTable({
-        asOfDate: filters.asOfDate,
-        portfolioId: filters.portfolioId || undefined
-      });
-      if (!resp?.success) throw new Error(resp?.error || 'Failed to load Equity Portfolio Snapshot');
-      const t = resp.data || {};
-      const head = [
-        'Counter',
-        'No. of Shares',
-        'WACC',
-        'Total Cost',
-        'BEC Based on WACC',
-        'BEC Cost (after deducting dividends)',
-        'BEC Based on 31 March - MV',
-        'Mkt value / Per share',
-        'Total Mkt Value',
-        'Unrealised Gain/(Loss) Based on WACC & MV',
-        'Unrealised Gain/(Loss) Based on MV (31-Mar vs current)'
-      ];
-      const body = (t.rows || []).map((r) => [
-        r.counter ?? '',
-        fmt(r.numberOfShares, 0),
-        fmt(r.wacc, 4),
-        fmt(r.totalCost, 2),
-        fmt(r.becBasedOnWacc, 4),
-        fmt(r.becCostAfterDividends, 2),
-        fmt(r.becBasedOnMarchMv, 2),
-        fmt(r.marketValuePerShare, 4),
-        fmt(r.totalMarketValue, 2),
-        fmt(r.unrealizedGainLossCostBasis, 2),
-        fmt(r.unrealizedGainLossMvToMv, 2)
-      ]);
-      const totals = t.totals || {};
-      const foot = [
-        'Total',
-        fmt(totals.numberOfShares, 0),
-        '-',
-        fmt(totals.totalCost, 2),
-        fmt(totals.becBasedOnWacc, 4),
-        fmt(totals.becCostAfterDividends, 2),
-        fmt(totals.becBasedOnMarchMv, 2),
-        '-',
-        fmt(totals.totalMarketValue, 2),
-        fmt(totals.unrealizedGainLossCostBasis, 2),
-        fmt(totals.unrealizedGainLossMvToMv, 2)
-      ];
-
+      const t = await fetchPortfolioSnapshotOrThrow();
+      const body = buildSnapshotBodyRows(t);
+      const foot = buildSnapshotTotalsRow(t.totals);
       pdfTable({
         title: 'Equity Portfolio Snapshot',
         subtitle: `Portfolio: ${t.portfolioName || portfolioLabel}   |   As of: ${t.asOfDate || filters.asOfDate}`,
-        head,
+        head: SNAPSHOT_HEADERS,
         body,
         foot,
         filenameBase: `SNAPSHOT_${baseName}`
@@ -313,53 +341,217 @@ const FinancialReportsDownloadCenter = () => {
 
   const exportSnapshotExcel = () =>
     run('snap-xls', async () => {
-      const resp = await financialPositionAPI.getPortfolioExportTable({
-        asOfDate: filters.asOfDate,
-        portfolioId: filters.portfolioId || undefined
+      const t = await fetchPortfolioSnapshotOrThrow();
+      const rows = [...buildSnapshotBodyRows(t), buildSnapshotTotalsRow(t.totals)];
+      downloadCsv(`SNAPSHOT_${baseName}`, SNAPSHOT_HEADERS, rows);
+    });
+
+  const exportHoldingsPdf = () =>
+    run('holdings-pdf', async () => {
+      const selectedPortfolioObj = portfolios.find(
+        (p) => String(p.portfolioId || p.id || '') === String(filters.portfolioId || '')
+      );
+      const portfolioName = selectedPortfolioObj?.portfolioName || selectedPortfolioObj?.name || '';
+      const portfolioBackendId = selectedPortfolioObj?.id || selectedPortfolioObj?.portfolioId || '';
+
+      if (!portfolioName || !portfolioBackendId) {
+        throw new Error('Portfolio holdings: portfolio information is missing.');
+      }
+
+      const [positionsData, allBuyTransactions, allSellTransactions] = await Promise.all([
+        transactionEntryAPI.getPortfolioPositions(portfolioBackendId),
+        transactionEntryAPI.getAllBuyTransactions(),
+        transactionEntryAPI.getAllSellTransactions()
+      ]);
+
+      const holdings = buildHoldingsForPortfolioPositions({
+        positionsData,
+        allBuyTransactions,
+        allSellTransactions,
+        portfolioName
       });
-      if (!resp?.success) throw new Error(resp?.error || 'Failed to load Equity Portfolio Snapshot');
-      const t = resp.data || {};
-      const headers = [
-        'Counter',
-        'No. of Shares',
-        'WACC',
-        'Total Cost',
-        'BEC Based on WACC',
-        'BEC Cost (after deducting dividends)',
-        'BEC Based on 31 March - MV',
-        'Mkt value / Per share',
-        'Total Mkt Value',
-        'Unrealised Gain/(Loss) Based on WACC & MV',
-        'Unrealised Gain/(Loss) Based on MV (31-Mar vs current)'
+
+      const totalNetQty = holdings.reduce((sum, h) => sum + (Number(h.netQuantity) || 0), 0);
+      const totalCostValue = holdings.reduce((sum, h) => sum + (Number(h.costValue) || 0), 0);
+      const totalCharges = holdings.reduce((sum, h) => sum + (Number(h.totalCharges) || 0), 0);
+      const totalNetValue = holdings.reduce((sum, h) => sum + (Number(h.netValue) || 0), 0);
+
+      const avgBuyPriceTotal = totalNetQty > 0 ? totalCostValue / totalNetQty : 0;
+      const costPerShareTotal = totalNetQty > 0 ? totalNetValue / totalNetQty : 0;
+
+      const HEAD = [
+        'Company',
+        'Net Quantity',
+        'Average Buy Price',
+        'Cost Value',
+        'Charges',
+        'Net Value',
+        'Cost per Share'
       ];
-      const rows = (t.rows || []).map((r) => [
-        r.counter ?? '',
-        fmt(r.numberOfShares, 0),
-        fmt(r.wacc, 4),
-        fmt(r.totalCost, 2),
-        fmt(r.becBasedOnWacc, 4),
-        fmt(r.becCostAfterDividends, 2),
-        fmt(r.becBasedOnMarchMv, 2),
-        fmt(r.marketValuePerShare, 4),
-        fmt(r.totalMarketValue, 2),
-        fmt(r.unrealizedGainLossCostBasis, 2),
-        fmt(r.unrealizedGainLossMvToMv, 2)
+
+      const BODY = holdings.map((h) => [
+        h.companyName,
+        formatPortfolioQty(h.netQuantity),
+        formatPortfolio2(h.avgBuyPrice),
+        formatPortfolio4(h.costValue),
+        formatPortfolio2(h.totalCharges),
+        formatPortfolio4(h.netValue),
+        formatPortfolio4(h.costPerShare)
       ]);
-      const totals = t.totals || {};
+
+      const FOOT = [
+        'Portfolio Totals',
+        formatPortfolioQty(totalNetQty),
+        formatPortfolio4(avgBuyPriceTotal),
+        formatPortfolio4(totalCostValue),
+        formatPortfolio2(totalCharges),
+        formatPortfolio4(totalNetValue),
+        formatPortfolio4(costPerShareTotal)
+      ];
+
+      pdfTable({
+        title: 'Portfolio Holdings',
+        subtitle: `As at ${filters.asOfDate} · Portfolio: ${portfolioName}`,
+        head: HEAD,
+        body: BODY,
+        foot: FOOT,
+        filenameBase: `HOLDINGS_${baseName}`
+      });
+    });
+
+  const exportHoldingsExcel = () =>
+    run('holdings-xls', async () => {
+      const selectedPortfolioObj = portfolios.find(
+        (p) => String(p.portfolioId || p.id || '') === String(filters.portfolioId || '')
+      );
+      const portfolioName = selectedPortfolioObj?.portfolioName || selectedPortfolioObj?.name || '';
+      const portfolioBackendId = selectedPortfolioObj?.id || selectedPortfolioObj?.portfolioId || '';
+
+      if (!portfolioName || !portfolioBackendId) {
+        throw new Error('Portfolio holdings: portfolio information is missing.');
+      }
+
+      const [positionsData, allBuyTransactions, allSellTransactions] = await Promise.all([
+        transactionEntryAPI.getPortfolioPositions(portfolioBackendId),
+        transactionEntryAPI.getAllBuyTransactions(),
+        transactionEntryAPI.getAllSellTransactions()
+      ]);
+
+      const holdings = buildHoldingsForPortfolioPositions({
+        positionsData,
+        allBuyTransactions,
+        allSellTransactions,
+        portfolioName
+      });
+
+      const totalNetQty = holdings.reduce((sum, h) => sum + (Number(h.netQuantity) || 0), 0);
+      const totalCostValue = holdings.reduce((sum, h) => sum + (Number(h.costValue) || 0), 0);
+      const totalCharges = holdings.reduce((sum, h) => sum + (Number(h.totalCharges) || 0), 0);
+      const totalNetValue = holdings.reduce((sum, h) => sum + (Number(h.netValue) || 0), 0);
+
+      const avgBuyPriceTotal = totalNetQty > 0 ? totalCostValue / totalNetQty : 0;
+      const costPerShareTotal = totalNetQty > 0 ? totalNetValue / totalNetQty : 0;
+
+      const HEAD = [
+        'Company',
+        'Net Quantity',
+        'Average Buy Price',
+        'Cost Value',
+        'Charges',
+        'Net Value',
+        'Cost per Share'
+      ];
+
+      const rows = holdings.map((h) => [
+        h.companyName,
+        Math.round(Number(h.netQuantity) || 0),
+        toFixedNumber(h.avgBuyPrice, 2),
+        toFixedNumber(h.costValue, 4),
+        toFixedNumber(h.totalCharges, 2),
+        toFixedNumber(h.netValue, 4),
+        toFixedNumber(h.costPerShare, 4)
+      ]);
+
       rows.push([
-        'Total',
-        fmt(totals.numberOfShares, 0),
-        '-',
-        fmt(totals.totalCost, 2),
-        fmt(totals.becBasedOnWacc, 4),
-        fmt(totals.becCostAfterDividends, 2),
-        fmt(totals.becBasedOnMarchMv, 2),
-        '-',
-        fmt(totals.totalMarketValue, 2),
-        fmt(totals.unrealizedGainLossCostBasis, 2),
-        fmt(totals.unrealizedGainLossMvToMv, 2)
+        'Portfolio Totals',
+        Math.round(Number(totalNetQty) || 0),
+        toFixedNumber(avgBuyPriceTotal, 4),
+        toFixedNumber(totalCostValue, 4),
+        toFixedNumber(totalCharges, 2),
+        toFixedNumber(totalNetValue, 4),
+        toFixedNumber(costPerShareTotal, 4)
       ]);
-      downloadCsv(`SNAPSHOT_${baseName}`, headers, rows);
+
+      downloadCsv(`HOLDINGS_${baseName}`, HEAD, rows);
+    });
+
+  const resolvePortfolioForMtm = () => {
+    const selectedPortfolioObj = portfolios.find(
+      (p) => String(p.portfolioId || p.id || '') === String(filters.portfolioId || '')
+    );
+    const portfolioName = selectedPortfolioObj?.portfolioName || selectedPortfolioObj?.name || '';
+    const portfolioBackendId = selectedPortfolioObj?.id || selectedPortfolioObj?.portfolioId || '';
+    if (!portfolioBackendId) {
+      throw new Error('Mark-to-market: select a portfolio.');
+    }
+    return { portfolioName, portfolioBackendId };
+  };
+
+  const exportMtmPositionDetailsPdf = () =>
+    run('mtm-pdf', async () => {
+      const { portfolioName, portfolioBackendId } = resolvePortfolioForMtm();
+      const mtmData = await transactionEntryAPI.getPortfolioPositions(portfolioBackendId);
+      if (!Array.isArray(mtmData) || mtmData.length === 0) {
+        throw new Error(
+          'No mark-to-market position data for this portfolio. Record buy transactions and ensure positions exist.'
+        );
+      }
+      const totals = computeMtmPortfolioTotals(mtmData);
+      exportMtmPositionDetailsToPdf({
+        mtmData,
+        portfolioName,
+        totals,
+        lastUpdated: new Date(),
+        filenameBase: `MTM_${baseName}`
+      });
+    });
+
+  const exportMtmPositionDetailsExcel = () =>
+    run('mtm-xls', async () => {
+      const { portfolioName, portfolioBackendId } = resolvePortfolioForMtm();
+      const mtmData = await transactionEntryAPI.getPortfolioPositions(portfolioBackendId);
+      if (!Array.isArray(mtmData) || mtmData.length === 0) {
+        throw new Error(
+          'No mark-to-market position data for this portfolio. Record buy transactions and ensure positions exist.'
+        );
+      }
+      const totals = computeMtmPortfolioTotals(mtmData);
+      exportMtmPositionDetailsToExcel({
+        mtmData,
+        portfolioName,
+        totals,
+        filenameBase: `MTM_${baseName}`
+      });
+    });
+
+  const exportTradeReportPdf = () =>
+    run('trade-pdf', async () => {
+      const data = await parsedTradeTransactionAPI.getParsedTransactions();
+      const { groupedData, latestTradeDate } = getLatestDayTradeReportState(data || []);
+      if (!latestTradeDate) {
+        throw new Error('No parsed trade sessions found. Upload or parse trades in Trade Confirmation first.');
+      }
+      exportTradeReportToPdf({ groupedData, latestTradeDate, filenameBase: `TRADE_${baseName}` });
+    });
+
+  const exportTradeReportExcel = () =>
+    run('trade-xls', async () => {
+      const data = await parsedTradeTransactionAPI.getParsedTransactions();
+      const { groupedData, latestTradeDate } = getLatestDayTradeReportState(data || []);
+      if (!latestTradeDate) {
+        throw new Error('No parsed trade sessions found. Upload or parse trades in Trade Confirmation first.');
+      }
+      exportTradeReportToExcel({ groupedData, latestTradeDate, filenameBase: `TRADE_${baseName}` });
     });
 
   const exportCombinedTrialBalanceExcel = () =>
@@ -476,6 +668,87 @@ const FinancialReportsDownloadCenter = () => {
     });
 
   const disabledKey = Boolean(!filters.portfolioId);
+  const busy = busyKey !== '';
+
+  const reportCards = [
+    {
+      id: 'sofp',
+      title: 'Statement of Financial Position',
+      subtitle: `As at ${filters.asOfDate}`,
+      pdfKey: 'sofp-pdf',
+      excelKey: 'sofp-xls',
+      onPdf: exportSofpPdf,
+      onExcel: exportSofpExcel,
+      lockWithoutPortfolio: true
+    },
+    {
+      id: 'soci',
+      title: 'Statement of Comprehensive Income',
+      subtitle: `Period ${asOfYearStart(filters.asOfDate)} to ${filters.asOfDate}`,
+      pdfKey: 'soci-pdf',
+      excelKey: 'soci-xls',
+      onPdf: exportSociPdf,
+      onExcel: exportSociExcel,
+      lockWithoutPortfolio: true
+    },
+    {
+      id: 'snapshot',
+      title: 'Equity Portfolio Snapshot',
+      subtitle: `As at ${filters.asOfDate}`,
+      pdfKey: 'snap-pdf',
+      excelKey: 'snap-xls',
+      onPdf: exportSnapshotPdf,
+      onExcel: exportSnapshotExcel,
+      lockWithoutPortfolio: true
+    },
+    {
+      id: 'holdings',
+      title: 'Portfolio Holdings',
+      subtitle: `As at ${filters.asOfDate}`,
+      pdfKey: 'holdings-pdf',
+      excelKey: 'holdings-xls',
+      onPdf: exportHoldingsPdf,
+      onExcel: exportHoldingsExcel,
+      lockWithoutPortfolio: true
+    },
+    {
+      id: 'mtm',
+      title: 'Mark-to-Market — Position Details',
+      subtitle: `Live positions from transaction engine · As at ${filters.asOfDate} (reference date)`,
+      pdfKey: 'mtm-pdf',
+      excelKey: 'mtm-xls',
+      onPdf: exportMtmPositionDetailsPdf,
+      onExcel: exportMtmPositionDetailsExcel,
+      lockWithoutPortfolio: true
+    },
+    {
+      id: 'trade-report',
+      title: 'Trade Report',
+      subtitle:
+        'Latest parsed trade session (newest trade date in uploaded data — same as Trade Confirmation › Trade Report).',
+      pdfKey: 'trade-pdf',
+      excelKey: 'trade-xls',
+      onPdf: exportTradeReportPdf,
+      onExcel: exportTradeReportExcel,
+      lockWithoutPortfolio: false
+    },
+    {
+      id: 'ctb',
+      title: 'Combined Trial Balance',
+      subtitle:
+        'A single trial balance that combines equity and GSec ledgers, covering both trading and non-trading transactions.',
+      pdfKey: 'ctb-pdf',
+      excelKey: 'ctb-xls',
+      onPdf: exportCombinedTrialBalancePdf,
+      onExcel: exportCombinedTrialBalanceExcel,
+      lockWithoutPortfolio: false
+    }
+  ];
+
+  const placeholderCards = [
+    { id: 'cashflow', title: 'Cash Flow', subtitle: 'Coming soon' },
+    { id: 'notes', title: 'Financial Reporting Notes', subtitle: 'Coming soon' }
+  ];
 
   return (
     <div className="frdc-wrap">
@@ -511,89 +784,42 @@ const FinancialReportsDownloadCenter = () => {
       {error ? <div className="frdc-error">{error}</div> : null}
 
       <div className="frdc-grid">
-        <div className="frdc-card">
-          <div className="frdc-card-title">Statement of Financial Position</div>
-          <div className="frdc-card-sub">As at {filters.asOfDate}</div>
-          <div className="frdc-actions">
-            <button type="button" disabled={disabledKey || busyKey !== ''} onClick={exportSofpPdf}>
-              {busyKey === 'sofp-pdf' ? 'Preparing…' : 'Download PDF'}
-            </button>
-            <button type="button" disabled={disabledKey || busyKey !== ''} onClick={exportSofpExcel}>
-              {busyKey === 'sofp-xls' ? 'Preparing…' : 'Download Excel'}
-            </button>
-          </div>
-        </div>
+        {reportCards.map((card) => {
+          const lock = card.lockWithoutPortfolio && disabledKey;
+          const disabled = busy || lock;
+          return (
+            <div key={card.id} className="frdc-card">
+              <div className="frdc-card-title">{card.title}</div>
+              <div className="frdc-card-sub">{card.subtitle}</div>
+              <div className="frdc-actions">
+                <button type="button" disabled={disabled} onClick={card.onPdf}>
+                  {busyKey === card.pdfKey ? 'Preparing…' : 'Download PDF'}
+                </button>
+                <button type="button" disabled={disabled} onClick={card.onExcel}>
+                  {busyKey === card.excelKey ? 'Preparing…' : 'Download Excel'}
+                </button>
+              </div>
+            </div>
+          );
+        })}
 
-        <div className="frdc-card">
-          <div className="frdc-card-title">Statement of Comprehensive Income</div>
-          <div className="frdc-card-sub">Period {asOfYearStart(filters.asOfDate)} to {filters.asOfDate}</div>
-          <div className="frdc-actions">
-            <button type="button" disabled={disabledKey || busyKey !== ''} onClick={exportSociPdf}>
-              {busyKey === 'soci-pdf' ? 'Preparing…' : 'Download PDF'}
-            </button>
-            <button type="button" disabled={disabledKey || busyKey !== ''} onClick={exportSociExcel}>
-              {busyKey === 'soci-xls' ? 'Preparing…' : 'Download Excel'}
-            </button>
+        {placeholderCards.map((card) => (
+          <div key={card.id} className="frdc-card frdc-card-disabled" title="No export endpoint yet">
+            <div className="frdc-card-title">{card.title}</div>
+            <div className="frdc-card-sub">{card.subtitle}</div>
+            <div className="frdc-actions">
+              <button type="button" disabled>
+                Download PDF
+              </button>
+              <button type="button" disabled>
+                Download Excel
+              </button>
+            </div>
           </div>
-        </div>
-
-        <div className="frdc-card">
-          <div className="frdc-card-title">Equity Portfolio Snapshot</div>
-          <div className="frdc-card-sub">As at {filters.asOfDate}</div>
-          <div className="frdc-actions">
-            <button type="button" disabled={disabledKey || busyKey !== ''} onClick={exportSnapshotPdf}>
-              {busyKey === 'snap-pdf' ? 'Preparing…' : 'Download PDF'}
-            </button>
-            <button type="button" disabled={disabledKey || busyKey !== ''} onClick={exportSnapshotExcel}>
-              {busyKey === 'snap-xls' ? 'Preparing…' : 'Download Excel'}
-            </button>
-          </div>
-        </div>
-
-        <div className="frdc-card">
-          <div className="frdc-card-title">Combined Trial Balance</div>
-          <div className="frdc-card-sub">
-            A single trial balance that combines equity and GSec ledgers, covering both trading and non-trading transactions.
-          </div>
-          <div className="frdc-actions">
-            <button type="button" disabled={busyKey !== ''} onClick={exportCombinedTrialBalancePdf}>
-              {busyKey === 'ctb-pdf' ? 'Preparing…' : 'Download PDF'}
-            </button>
-            <button type="button" disabled={busyKey !== ''} onClick={exportCombinedTrialBalanceExcel}>
-              {busyKey === 'ctb-xls' ? 'Preparing…' : 'Download Excel'}
-            </button>
-          </div>
-        </div>
-
-        <div className="frdc-card frdc-card-disabled" title="No export endpoint yet">
-          <div className="frdc-card-title">Cash Flow</div>
-          <div className="frdc-card-sub">Coming soon</div>
-          <div className="frdc-actions">
-            <button type="button" disabled>
-              Download PDF
-            </button>
-            <button type="button" disabled>
-              Download Excel
-            </button>
-          </div>
-        </div>
-
-        <div className="frdc-card frdc-card-disabled" title="No export endpoint yet">
-          <div className="frdc-card-title">Financial Reporting Notes</div>
-          <div className="frdc-card-sub">Coming soon</div>
-          <div className="frdc-actions">
-            <button type="button" disabled>
-              Download PDF
-            </button>
-            <button type="button" disabled>
-              Download Excel
-            </button>
-          </div>
-        </div>
+        ))}
       </div>
     </div>
   );
 };
 
 export default FinancialReportsDownloadCenter;
-

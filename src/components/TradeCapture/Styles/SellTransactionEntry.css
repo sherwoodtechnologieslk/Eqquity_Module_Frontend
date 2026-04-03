@@ -1,8 +1,9 @@
 * { box-sizing: border-box; }
 
+/* Tighter top gap below global navbar + dynamic ticker */
 .sell-page {
   min-height: 100vh;
-  padding: 2rem 1rem;
+  padding: 0.5rem 1rem 2rem;
 }
 
 .sell-content-wrapper {
@@ -17,8 +18,8 @@
   gap: 2rem;
   margin-bottom: 1.5rem;
   text-align: left;
-  padding-top: 1.5rem;
-  padding-bottom: 1.5rem;
+  padding-top: 0.35rem;
+  padding-bottom: 1rem;
 }
 
 .sell-header-icon {
@@ -504,8 +505,8 @@ input.sell-disabled-field:disabled {
 @media (max-width: 1100px) {
   .sell-header-section {
     gap: 1.2rem;
-    padding-top: 1.2rem;
-    padding-bottom: 1.2rem;
+    padding-top: 0.35rem;
+    padding-bottom: 1rem;
   }
   .sell-main-title {
     font-size: 2.2rem;
@@ -521,13 +522,13 @@ input.sell-disabled-field:disabled {
 }
 
 @media (max-width: 768px) {
-  .sell-page { padding: 1rem; }
+  .sell-page { padding: 0.5rem 1rem 1rem; }
   .sell-header-section {
     flex-direction: column;
     align-items: flex-start;
     gap: 1rem;
-    padding-top: 1rem;
-    padding-bottom: 1rem;
+    padding-top: 0.25rem;
+    padding-bottom: 0.75rem;
   }
   .sell-header-icon { margin-bottom: 0.5rem; }
   .sell-main-title { font-size: 1.5rem; }
