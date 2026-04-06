@@ -1,0 +1,154 @@
+.charts-insights-page {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  min-height: calc(100vh - 200px);
+}
+
+.charts-insights-local-nav {
+  display: flex;
+  align-items: center;
+  padding: 0.65rem 1.25rem;
+  background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+  border: 1px solid rgba(148, 163, 184, 0.2);
+  border-bottom: none;
+  border-radius: 8px 8px 0 0;
+}
+
+.charts-insights-local-nav__title {
+  font-size: 1rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  color: #e2e8f0;
+}
+
+.charts-insights-widget-wrap {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 520px;
+  border: 1px solid rgba(148, 163, 184, 0.2);
+  border-radius: 0 0 8px 8px;
+  overflow: hidden;
+  background: #0f0f0f;
+}
+
+.charts-insights-widget-wrap--tradingview {
+  min-height: 640px;
+}
+
+.tradingview-widget-copyright {
+  flex-shrink: 0;
+  font-size: 11px;
+  padding: 8px 12px;
+  color: #94a3b8;
+  background: #0f0f0f;
+}
+
+.tradingview-widget-copyright .blue-text {
+  color: #2962ff;
+}
+
+.tradingview-widget-copyright a {
+  text-decoration: none;
+}
+
+.tradingview-widget-copyright a:hover .blue-text {
+  text-decoration: underline;
+}
+
+.tradingview-symbol-overview-iframe {
+  display: block;
+  width: 100%;
+  flex: 1;
+  min-height: 560px;
+  border: none;
+  background: #0f0f0f;
+}
+
+/* CSE ASPI — native SVG chart (no external embed scripts) */
+.cse-aspi-chart {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  padding: 1rem 1rem 0.75rem;
+  box-sizing: border-box;
+}
+
+.cse-aspi-chart__meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.cse-aspi-chart__stat {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.cse-aspi-chart__stat-label {
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #94a3b8;
+}
+
+.cse-aspi-chart__stat-value {
+  font-size: 1.15rem;
+  font-weight: 600;
+  color: #e2e8f0;
+  font-variant-numeric: tabular-nums;
+}
+
+.cse-aspi-chart__stat-value--up {
+  color: #22ab94;
+}
+
+.cse-aspi-chart__stat-value--down {
+  color: #f7525f;
+}
+
+.cse-aspi-chart__plot {
+  flex: 1;
+  min-height: 280px;
+  width: 100%;
+  position: relative;
+}
+
+.cse-aspi-chart__svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  min-height: 260px;
+}
+
+.cse-aspi-chart__grid {
+  stroke: rgba(148, 163, 184, 0.12);
+  stroke-width: 1;
+}
+
+.cse-aspi-chart__line {
+  stroke: #22ab94;
+  vector-effect: non-scaling-stroke;
+}
+
+.cse-aspi-chart__axis-y {
+  fill: #64748b;
+  font-size: 11px;
+}
+
+.cse-aspi-chart__axis-x {
+  fill: #64748b;
+  font-size: 11px;
+}
+
+.cse-aspi-chart__footnote {
+  margin: 0.65rem 0 0;
+  font-size: 0.75rem;
+  line-height: 1.45;
+  color: #64748b;
+  max-width: 52rem;
+}
