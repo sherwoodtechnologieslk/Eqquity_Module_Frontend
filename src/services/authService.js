@@ -136,6 +136,15 @@ export const authService = {
             newPassword
         });
         return response.data;
+    },
+
+    // Verify reset PIN (before allowing new password screen)
+    verifyResetPin: async (email, code) => {
+        const response = await authAPI.post('/auth/verify-reset-pin', {
+            email,
+            code
+        });
+        return response.data;
     }
 };
 
