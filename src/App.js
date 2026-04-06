@@ -96,6 +96,7 @@ import SharePricePrediction from './components/PredictiveValuationModel/SharePri
 import PredictionIndicators from './components/PredictiveValuationModel/PredictionIndicators';
 import BlockAnalysisDashboard from './components/PredictiveValuationModel/BlockAnalysisDashboard';
 import AIAssistantDock from './components/AIAssistant/AIAssistantDock';
+import CSEASPIPage from './components/ChartsAndInsights/CSEASPIPage';
 
 function App() {
   const [activeTab, setActiveTab] = useState('Dashboard');
@@ -203,6 +204,7 @@ function App() {
     'Mark-to-Market Valuation': <MarkToMarketValuation />,
     'Realized Gain/Loss Tracking': <RealizedPnL />,
     'Trade Summary Data': <TradeSummaryData />,
+    'CSE ASPI': <CSEASPIPage />,
     'Risk Management Chart': <RiskManagementChart />,
     'Share Price Prediction': <SharePricePrediction />,
     'Prediction Indicators': <PredictionIndicators />,

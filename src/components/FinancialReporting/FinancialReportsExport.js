@@ -64,22 +64,15 @@ const PORTFOLIO_EXPORT_COLUMNS = [
     getDisplayValue: (row) => fmt(row.becBasedOnWacc, 2)
   },
   {
-    id: 'becCostAfterDividends',
-    header: 'BEC Cost (after deducting dividends)',
-    getExportValue: (row) => fmt(row.becCostAfterDividends, 2),
-    getFooterValue: (t) => fmt(t?.becCostAfterDividends, 2),
-    getCellClassName: () => 'num',
-    footerClassName: 'num',
-    getDisplayValue: (row) => fmt(row.becCostAfterDividends, 2)
-  },
-  {
     id: 'becBasedOnMarchMv',
     header: 'BEC Based on 31 March - MV',
-    getExportValue: (row) => fmt(row.becBasedOnMarchMv, 2),
-    getFooterValue: (t) => fmt(t?.becBasedOnMarchMv, 2),
-    getCellClassName: () => 'num',
+    getExportValue: (row) =>
+      row.becBasedOnMarchMv != null ? fmt(row.becBasedOnMarchMv, 2) : (row.becBasedOnMarchMvNote || ''),
+    getFooterValue: (t) => (t?.becBasedOnMarchMv != null ? fmt(t.becBasedOnMarchMv, 2) : ''),
+    getCellClassName: (row) => (row?.becBasedOnMarchMvNote ? 'num fre-cell-note' : 'num'),
     footerClassName: 'num',
-    getDisplayValue: (row) => fmt(row.becBasedOnMarchMv, 2)
+    getDisplayValue: (row) =>
+      row.becBasedOnMarchMv != null ? fmt(row.becBasedOnMarchMv, 2) : (row.becBasedOnMarchMvNote || '')
   },
   {
     id: 'marketValuePerShare',

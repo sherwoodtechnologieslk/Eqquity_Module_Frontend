@@ -1,6 +1,15 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
 import './Styles/FinancialPosition.css';
 import { portfolioAPI, financialPositionAPI, profitLossAPI } from '../../services/api';
+import {
+  buildSofpExportRows,
+  SOFP_EXPORT_HEADERS,
+  computeDisplayedAssetBuckets,
+  computeEquityDisplayRows,
+  parseNetProfit
+} from '../../utils/sofpExport';
 
 const FinancialPosition = ({ onTabChange }) => {
   const [financialPositionData, setFinancialPositionData] = useState(null);
@@ -23,35 +32,10 @@ const FinancialPosition = ({ onTabChange }) => {
     return formatted.replace(',', '').replace(/\s+/g, '-');
   }, [financialPositionData, filters.asOfDate]);
 
-  const equityDisplayRows = useMemo(() => {
-    const equityAccounts = financialPositionData?.equity || [];
-
-    const normalizeName = (name) => String(name || '').trim().toLowerCase();
-    const currentPlLabel = 'Current P&L';
-
-    const derivedBalanceTypeFromBalance = (balance) => {
-      if (Math.abs(balance) < 0.00001) return 'ZERO';
-      return balance >= 0 ? 'CR' : 'DR';
-    };
-
-    // Always keep the Retained Earnings account(s) from the backend under Equity,
-    // and show the current period profit/loss as an additional line: Current P&L.
-    if (typeof netProfit === 'number' && Number.isFinite(netProfit)) {
-      return [
-        ...equityAccounts,
-        {
-          accountName: currentPlLabel,
-          balance: netProfit,
-          balanceType: derivedBalanceTypeFromBalance(netProfit),
-          accountCode: ''
-        }
-      ];
-    }
-
-    // If net profit isn't available, just show the backend equity accounts as-is
-    // (including retained earnings account balances).
-    return equityAccounts;
-  }, [financialPositionData, netProfit]);
+  const equityDisplayRows = useMemo(
+    () => computeEquityDisplayRows(financialPositionData, netProfit),
+    [financialPositionData, netProfit]
+  );
 
   const equityTotalsForDisplay = useMemo(() => {
     const baseTotalEquity = financialPositionData?.totals?.totalEquity || 0;
@@ -116,8 +100,8 @@ const FinancialPosition = ({ onTabChange }) => {
       }
 
       if (plResp?.success) {
-        const net = plResp.data?.totals?.net_profit;
-        setNetProfit(typeof net === 'number' ? net : null);
+        const net = parseNetProfit(plResp.data?.totals?.net_profit);
+        setNetProfit(net != null ? net : null);
       } else {
         setNetProfit(null);
       }
@@ -163,6 +147,83 @@ const FinancialPosition = ({ onTabChange }) => {
     }).format(amount || 0);
   };
 
+  const sanitizeFilePart = (name) =>
+    (String(name || 'export')
+      .replace(/[<>:"/\\|?*]/g, '-')
+      .replace(/\s+/g, ' ')
+      .trim()
+      .slice(0, 120) || 'export');
+
+  const downloadCsv = (filenameBase, headers, rows) => {
+    const escapeCell = (value) => {
+      const s = value == null ? '' : String(value);
+      if (/[",\r\n]/.test(s)) return `"${s.replace(/"/g, '""')}"`;
+      return s;
+    };
+    const lines = [headers.map(escapeCell).join(','), ...rows.map((r) => r.map(escapeCell).join(','))];
+    const csv = `\uFEFF${lines.join('\r\n')}`;
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${filenameBase}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const exportSofpPdf = () => {
+    const doc = new jsPDF({ orientation: 'landscape', unit: 'pt', format: 'a4' });
+    const portfolioLabel = financialPositionData?.portfolio || 'All Portfolios';
+    const asOfDate = financialPositionData?.asOfDate || filters.asOfDate;
+    const subtitle = `Portfolio: ${portfolioLabel}   |   As of: ${asOfDate}`;
+
+    doc.setFontSize(11);
+    doc.text('Statement of Financial Position', 40, 34);
+    doc.setFontSize(9);
+    doc.setTextColor(71, 85, 105);
+    doc.text(subtitle, 40, 50);
+    doc.setTextColor(15, 23, 42);
+
+    autoTable(doc, {
+      startY: 62,
+      theme: 'grid',
+      head: [SOFP_EXPORT_HEADERS],
+      body: buildSofpExportRows({ financialPositionData, netProfit }),
+      styles: {
+        fontSize: 7,
+        cellPadding: 3,
+        textColor: [15, 23, 42],
+        lineColor: [226, 232, 240],
+        lineWidth: 0.6
+      },
+      headStyles: {
+        fillColor: [15, 23, 42],
+        textColor: [255, 255, 255],
+        fontStyle: 'bold'
+      },
+      alternateRowStyles: {
+        fillColor: [248, 250, 252]
+      },
+      margin: { left: 40, right: 40 },
+      columnStyles: {
+        0: { cellWidth: 160 },
+        1: { cellWidth: 300 },
+        2: { cellWidth: 110, halign: 'right' },
+        3: { cellWidth: 60, halign: 'center' }
+      }
+    });
+
+    const base = `SOFP_${sanitizeFilePart(portfolioLabel)}_${sanitizeFilePart(asOfDate)}`;
+    doc.save(`${base}.pdf`);
+  };
+
+  const exportSofpExcel = () => {
+    const portfolioLabel = financialPositionData?.portfolio || 'All Portfolios';
+    const asOfDate = financialPositionData?.asOfDate || filters.asOfDate;
+    const base = `SOFP_${sanitizeFilePart(portfolioLabel)}_${sanitizeFilePart(asOfDate)}`;
+    downloadCsv(base, SOFP_EXPORT_HEADERS, buildSofpExportRows({ financialPositionData, netProfit }));
+  };
+
   const formatDate = (dateString) => {
     return new Date(dateString).toLocaleDateString('en-US', {
       year: 'numeric',
@@ -176,37 +237,10 @@ const FinancialPosition = ({ onTabChange }) => {
     return balanceType === normalBalanceType ? 'positive' : 'negative';
   };
 
-  // Defensive UI bucketing: keep "non-current" labeled lines out of Current Assets.
-  const isNonCurrentAssetLike = (account) => {
-    const text = `${account?.accountCategory || ''} ${account?.transactionTypeName || ''} ${account?.accountName || ''}`
-      .toLowerCase()
-      .trim();
-    return (
-      text.includes('non current') ||
-      text.includes('non-current') ||
-      text.includes('fixed asset') ||
-      text.includes('property, plant') ||
-      text.includes('ppe')
-    );
-  };
-
-  const displayedAssetBuckets = useMemo(() => {
-    const nonCurrentFromApi = financialPositionData?.assets?.nonCurrentAssets || [];
-    const currentFromApi = financialPositionData?.assets?.currentAssets || [];
-
-    const reclassifiedFromCurrent = currentFromApi.filter(isNonCurrentAssetLike);
-    const keptCurrent = currentFromApi.filter((acc) => !isNonCurrentAssetLike(acc));
-
-    const combinedNonCurrent = [...nonCurrentFromApi, ...reclassifiedFromCurrent];
-    const sumBalance = (rows) => rows.reduce((sum, acc) => sum + (Number(acc.balance) || 0), 0);
-
-    return {
-      nonCurrentAssets: combinedNonCurrent,
-      currentAssets: keptCurrent,
-      totalNonCurrentAssets: sumBalance(combinedNonCurrent),
-      totalCurrentAssets: sumBalance(keptCurrent)
-    };
-  }, [financialPositionData]);
+  const displayedAssetBuckets = useMemo(
+    () => computeDisplayedAssetBuckets(financialPositionData),
+    [financialPositionData]
+  );
 
   /** SOFP first column: chart_of_accounts.transaction_type when set, else GL account name */
   const getSofpRowLabel = (account) => {
@@ -294,8 +328,11 @@ const FinancialPosition = ({ onTabChange }) => {
           <div className="fp-generated-info">
             Generated: {new Date(financialPositionData?.generatedDate || Date.now()).toLocaleString()}
           </div>
-          <button className="fp-export-button" onClick={() => alert('Export functionality coming soon')}>
+          <button className="fp-export-button" onClick={exportSofpPdf}>
             Export PDF
+          </button>
+          <button className="fp-export-button" onClick={exportSofpExcel}>
+            Export to Excel
           </button>
         </div>
       </div>
