@@ -7,6 +7,22 @@
   box-sizing: border-box;
 }
 
+/* Controls above the document sheet (screen only — hidden when printing) */
+.fr-screen-toolbar {
+  max-width: 1200px;
+  margin: 0 auto 1.25rem;
+  box-sizing: border-box;
+}
+
+.fr-screen-toolbar-inner {
+  font-family: Arial, Helvetica, sans-serif;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 1rem 1.25rem;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.06);
+}
+
 /* White document sheet */
 .fr-doc {
   background: #ffffff;
@@ -15,6 +31,8 @@
   padding: 3rem 3.5rem;
   box-shadow: 0 2px 12px rgba(0,0,0,0.15);
   border-top: 6px solid #000000;
+  overflow-x: hidden; /* wide tables scroll inside .fr-table-scroll */
+  box-sizing: border-box;
 }
 
 /* ── Letterhead ── */
@@ -23,20 +41,60 @@
   justify-content: space-between;
   align-items: flex-start;
   margin-bottom: 1.25rem;
+  gap: 1rem;
 }
 
-.fr-company {
+/* Screen: editable line; print: hidden (static line below is shown instead) */
+.fr-letterhead-entity-print {
+  display: none;
   font-size: 1.05rem;
   font-weight: 700;
   color: #000000;
-  letter-spacing: 0.5px;
-  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  line-height: 1.3;
+  word-break: break-word;
 }
 
-.fr-company-sub {
-  font-size: 0.8rem;
-  color: #475569;
-  margin-top: 0.2rem;
+.fr-letterhead-left {
+  flex: 1;
+  min-width: 0;
+  max-width: 55%;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.25rem;
+}
+
+.fr-letterhead-entity-input {
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+  font-family: 'Times New Roman', Times, serif;
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: #000000;
+  letter-spacing: 0.02em;
+  line-height: 1.3;
+  padding: 0.15rem 0.25rem;
+  margin: 0;
+  border: 1px dashed transparent;
+  border-bottom-color: #cbd5e1;
+  background: transparent;
+  outline: none;
+}
+
+.fr-letterhead-entity-input:hover {
+  border-bottom-color: #94a3b8;
+}
+
+.fr-letterhead-entity-input:focus {
+  border-bottom-color: #0f172a;
+  border-style: solid;
+}
+
+.fr-letterhead-entity-input::placeholder {
+  color: #94a3b8;
+  font-weight: 600;
   font-style: italic;
 }
 
@@ -69,23 +127,94 @@
   margin: 0.4rem 0 1rem 0;
 }
 
-/* ── Period bar ── */
-.fr-period-bar {
+/* ── Portfolio + period on one row ── */
+.fr-report-controls {
+  margin-bottom: 0.35rem;
+  font-family: Arial, sans-serif;
+  border-bottom: 1px solid #e2e8f0;
+  padding-bottom: 0.5rem;
+}
+
+.fr-report-controls--toolbar {
+  margin-bottom: 0;
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+.fr-report-controls-row {
   display: flex;
-  align-items: center;
-  gap: 0;
-  padding: 0.75rem 0;
-  margin-bottom: 0.5rem;
   flex-wrap: wrap;
-  gap: 0.25rem;
+  align-items: center;
+  gap: 0.35rem 0.6rem;
+  padding: 0;
+}
+
+.fr-report-controls-row label {
+  font-size: 0.825rem;
+  font-weight: 600;
+  color: #334155;
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+
+.fr-report-portfolio-select {
+  min-width: 160px;
+  max-width: min(280px, 42vw);
+  padding: 0.35rem 0.6rem;
+  font-size: 0.8rem;
+  border: 1px solid #cbd5e1;
+  background: #fff;
+  color: #1e293b;
+  flex-shrink: 0;
+}
+
+.fr-report-controls-sep {
+  width: 1px;
+  height: 1.35rem;
+  background: #cbd5e1;
+  margin: 0 0.15rem;
+  flex-shrink: 0;
+  align-self: center;
+}
+
+.fr-report-controls-row .fr-period-label {
+  margin-right: 0.15rem;
+  flex-shrink: 0;
+}
+
+.fr-report-controls-row .fr-period-btn {
+  flex-shrink: 0;
+}
+
+.fr-report-controls-row .fr-report-pdf-btn {
+  margin-left: auto;
+}
+
+.fr-report-error {
+  background: #fef2f2;
+  color: #b91c1c;
+  padding: 0.5rem 0.75rem;
+  font-size: 0.8rem;
+  font-family: Arial, sans-serif;
+  margin: 0.5rem 0;
+  border: 1px solid #fecaca;
+}
+
+.fr-report-loading,
+.fr-report-empty {
+  font-size: 0.85rem;
+  color: #64748b;
+  font-family: Arial, sans-serif;
+  padding: 0.5rem 0;
 }
 
 .fr-period-label {
   font-size: 0.825rem;
   font-weight: 600;
   color: #334155;
-  margin-right: 0.5rem;
+  margin-right: 0.35rem;
   font-family: Arial, sans-serif;
+  white-space: nowrap;
 }
 
 .fr-period-btn {
@@ -109,14 +238,6 @@
   background: #000000;
   color: #ffffff;
   border-color: #000000;
-}
-
-.fr-period-note {
-  font-size: 0.72rem;
-  color: #94a3b8;
-  font-style: italic;
-  margin-left: 0.75rem;
-  font-family: Arial, sans-serif;
 }
 
 /* ── Section heading ── */
@@ -224,6 +345,61 @@
   padding-left: 1rem !important;
 }
 
+/* ── Scroll wrapper for wide tables (holdings) ── */
+.fr-table-scroll {
+  width: 100%;
+  max-width: 100%;
+  overflow-x: auto;
+  overflow-y: hidden;
+  margin-bottom: 0.75rem;
+  border: 1px solid #e2e8f0;
+  background: #fff;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin;
+  scrollbar-color: #94a3b8 #f1f5f9;
+}
+
+.fr-table-scroll::-webkit-scrollbar {
+  height: 10px;
+}
+
+.fr-table-scroll::-webkit-scrollbar-track {
+  background: #f1f5f9;
+}
+
+.fr-table-scroll::-webkit-scrollbar-thumb {
+  background: #94a3b8;
+  border-radius: 5px;
+}
+
+.fr-table-scroll .fr-holdings-table {
+  width: max-content;
+  min-width: min(100%, 72rem);
+  margin-bottom: 0;
+  table-layout: auto;
+}
+
+.fr-table-scroll .fr-holdings-table th,
+.fr-table-scroll .fr-holdings-table td {
+  padding: 0.4rem 0.45rem;
+  font-size: 0.72rem;
+}
+
+.fr-table-scroll .fr-holdings-table th {
+  font-size: 0.65rem;
+  line-height: 1.25;
+  vertical-align: bottom;
+}
+
+.fr-holdings-empty-row .fr-holdings-empty {
+  text-align: center !important;
+  color: #64748b !important;
+  font-style: italic;
+  padding: 1.5rem 1rem !important;
+  font-family: Arial, sans-serif !important;
+  white-space: normal !important;
+}
+
 /* ── Holdings table ── */
 .fr-td-symbol {
   font-weight: 700;
@@ -234,19 +410,21 @@
 
 .fr-td-name {
   color: #334155;
-  min-width: 180px;
-}
-
-.fr-td-sector {
-  color: #475569;
-  font-size: 0.775rem;
-  white-space: nowrap;
+  min-width: 7rem;
+  max-width: 11rem;
+  white-space: normal;
+  word-break: break-word;
+  hyphens: auto;
 }
 
 .fr-td-r {
   text-align: right;
   font-family: 'Courier New', monospace;
   white-space: nowrap;
+}
+
+.fr-holdings-table .fr-td-r {
+  font-variant-numeric: tabular-nums;
 }
 
 /* ── Risk table ── */
@@ -288,6 +466,9 @@
     flex-direction: column;
     gap: 0.75rem;
   }
+  .fr-letterhead-left {
+    max-width: 100%;
+  }
   .fr-report-type,
   .fr-report-meta {
     text-align: left;
@@ -301,4 +482,107 @@
   .fr-doc {
     padding: 1rem;
   }
+}
+
+.fr-report-pdf-btn {
+  padding: 0.45rem 1rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  font-family: Arial, sans-serif;
+  color: #fff;
+  background: #0f172a;
+  border: 1px solid #0f172a;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.fr-report-pdf-btn:hover {
+  background: #1e293b;
+  border-color: #1e293b;
+}
+
+.fr-report-pdf-btn:disabled {
+  opacity: 0.75;
+  cursor: not-allowed;
+}
+
+/* ── Print / Save as PDF ── */
+@media print {
+  @page {
+    margin: 12mm;
+  }
+
+  .fr-no-print {
+    display: none !important;
+  }
+
+  .sidebar,
+  .main-navbar,
+  .dynamic-header,
+  .ai-assistant-fab,
+  .ai-assistant-backdrop,
+  .ai-assistant-dock-panel {
+    display: none !important;
+  }
+
+  .dashboard-root {
+    display: block !important;
+  }
+
+  .dashboard-main {
+    margin: 0 !important;
+    padding: 0 !important;
+    width: 100% !important;
+    max-width: none !important;
+  }
+
+  .dashboard-content {
+    padding: 0 !important;
+    margin: 0 !important;
+    width: 100% !important;
+    overflow: visible !important;
+  }
+
+  .performance-report-page.fr-page {
+    padding: 0 !important;
+    min-height: 0 !important;
+    background: #fff !important;
+  }
+
+  .fr-letterhead {
+    justify-content: space-between !important;
+  }
+
+  .fr-letterhead-entity-input {
+    display: none !important;
+  }
+
+  .fr-letterhead-entity-print {
+    display: block !important;
+  }
+
+  .fr-doc {
+    box-shadow: none !important;
+    border-top: 4px solid #000 !important;
+    max-width: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    overflow: visible !important;
+  }
+
+  .fr-table-scroll {
+    overflow: visible !important;
+  }
+
+  .fr-table-scroll .fr-holdings-table {
+    min-width: 0 !important;
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+
+  body {
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+  }
+
 }

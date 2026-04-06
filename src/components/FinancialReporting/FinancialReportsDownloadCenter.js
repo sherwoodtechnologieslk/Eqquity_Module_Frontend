@@ -22,6 +22,7 @@ import {
   exportMtmPositionDetailsToPdf,
   exportMtmPositionDetailsToExcel
 } from '../../utils/mtmPositionDetailsExport';
+import { buildSofpExportRows, SOFP_EXPORT_HEADERS, loadSofpDataForExport } from '../../utils/sofpExport';
 
 const fmt = (value, decimals = 2) => {
   const num = Number(value) || 0;
@@ -69,7 +70,7 @@ const downloadCsv = (filenameBase, headers, rows) => {
   URL.revokeObjectURL(url);
 };
 
-const pdfTable = ({ title, subtitle, head, body, foot, filenameBase }) => {
+const pdfTable = ({ title, subtitle, head, body, foot, filenameBase, tableOptions }) => {
   const doc = new jsPDF({ orientation: 'landscape', unit: 'pt', format: 'a4' });
   doc.setFontSize(11);
   doc.text(title, 40, 34);
@@ -107,7 +108,8 @@ const pdfTable = ({ title, subtitle, head, body, foot, filenameBase }) => {
       textColor: [15, 23, 42],
       fontStyle: 'bold'
     },
-    margin: { left: 40, right: 40 }
+    margin: { left: 40, right: 40 },
+    ...(tableOptions || {})
   });
 
   doc.save(`${filenameBase}.pdf`);
@@ -123,29 +125,6 @@ const formatPortfolio2 = (value) =>
   Number(value || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 const formatPortfolio4 = (value) =>
   Number(value || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 4 });
-
-/* ── SOFP: one row model for PDF + CSV ── */
-const SOFP_HEADERS = ['Section', 'Transaction type', 'Amount', 'DR/CR'];
-
-const buildSofpRows = (data) => {
-  const rows = [];
-  const pushGroup = (section, list, normal) => {
-    (list || []).forEach((a) => {
-      rows.push([
-        section,
-        String(a.transactionTypeName || a.accountCategory || a.accountName || ''),
-        fmt(Number(a.balance) || 0, 2),
-        String(a.balanceType || normal || '')
-      ]);
-    });
-  };
-  pushGroup('Assets · Non-current', data.assets?.nonCurrentAssets, 'DR');
-  pushGroup('Assets · Current', data.assets?.currentAssets, 'DR');
-  pushGroup('Liabilities · Non-current', data.liabilities?.nonCurrentLiabilities, 'CR');
-  pushGroup('Liabilities · Current', data.liabilities?.currentLiabilities, 'CR');
-  pushGroup('Equity', data.equity, 'CR');
-  return rows;
-};
 
 /* ── SOCI ── */
 const SOCI_HEADERS = ['Line', 'Amount'];
@@ -163,7 +142,6 @@ const SNAPSHOT_HEADERS = [
   'WACC',
   'Total Cost',
   'BEC Based on WACC',
-  'BEC Cost (after deducting dividends)',
   'BEC Based on 31 March - MV',
   'Mkt value / Per share',
   'Total Mkt Value',
@@ -178,8 +156,7 @@ const buildSnapshotBodyRows = (t) =>
     fmt(r.wacc, 4),
     fmt(r.totalCost, 2),
     fmt(r.becBasedOnWacc, 4),
-    fmt(r.becCostAfterDividends, 2),
-    fmt(r.becBasedOnMarchMv, 2),
+    r.becBasedOnMarchMv != null ? fmt(r.becBasedOnMarchMv, 2) : (r.becBasedOnMarchMvNote || ''),
     fmt(r.marketValuePerShare, 4),
     fmt(r.totalMarketValue, 2),
     fmt(r.unrealizedGainLossCostBasis, 2),
@@ -194,8 +171,7 @@ const buildSnapshotTotalsRow = (totals) => {
     '-',
     fmt(t.totalCost, 2),
     fmt(t.becBasedOnWacc, 4),
-    fmt(t.becCostAfterDividends, 2),
-    fmt(t.becBasedOnMarchMv, 2),
+    t.becBasedOnMarchMv != null ? fmt(t.becBasedOnMarchMv, 2) : '',
     '-',
     fmt(t.totalMarketValue, 2),
     fmt(t.unrealizedGainLossCostBasis, 2),
@@ -217,12 +193,6 @@ const FinancialReportsDownloadCenter = () => {
       const data = await portfolioAPI.getActivePortfolios();
       const safe = Array.isArray(data) ? data : [];
       setPortfolios(safe);
-      if (safe.length > 0) {
-        setFilters((prev) => ({
-          ...prev,
-          portfolioId: prev.portfolioId || String(safe[0].portfolioId || safe[0].id || '')
-        }));
-      }
     } catch (e) {
       console.error('Failed to load portfolios:', e);
     }
@@ -286,22 +256,43 @@ const FinancialReportsDownloadCenter = () => {
 
   const exportSofpPdf = () =>
     run('sofp-pdf', async () => {
-      const data = await fetchFinancialPositionOrThrow();
-      const body = buildSofpRows(data);
+      const { financialPositionData, netProfit } = await loadSofpDataForExport({
+        getFinancialPosition: financialPositionAPI.getFinancialPosition,
+        getProfitLoss: profitLossAPI.getProfitLoss,
+        asOfDate: filters.asOfDate,
+        portfolio: filters.portfolioId || undefined
+      });
+      const body = buildSofpExportRows({ financialPositionData, netProfit });
+      const subtitlePortfolio = financialPositionData?.portfolio || portfolioLabel;
+      const subtitleAsOf = financialPositionData?.asOfDate || filters.asOfDate;
       pdfTable({
         title: 'Statement of Financial Position',
-        subtitle: `Portfolio: ${portfolioLabel}   |   As of: ${filters.asOfDate}`,
-        head: SOFP_HEADERS,
+        subtitle: `Portfolio: ${subtitlePortfolio}   |   As of: ${subtitleAsOf}`,
+        head: SOFP_EXPORT_HEADERS,
         body,
-        filenameBase: `SOFP_${baseName}`
+        filenameBase: `SOFP_${baseName}`,
+        tableOptions: {
+          // Prevent "DR/CR-3,349..." looking concatenated by allocating widths
+          columnStyles: {
+            0: { cellWidth: 160 }, // Section
+            1: { cellWidth: 300 }, // Transaction type
+            2: { cellWidth: 110, halign: 'right' }, // Amount
+            3: { cellWidth: 60, halign: 'center' } // DR/CR
+          }
+        }
       });
     });
 
   const exportSofpExcel = () =>
     run('sofp-xls', async () => {
-      const data = await fetchFinancialPositionOrThrow();
-      const rows = buildSofpRows(data);
-      downloadCsv(`SOFP_${baseName}`, SOFP_HEADERS, rows);
+      const { financialPositionData, netProfit } = await loadSofpDataForExport({
+        getFinancialPosition: financialPositionAPI.getFinancialPosition,
+        getProfitLoss: profitLossAPI.getProfitLoss,
+        asOfDate: filters.asOfDate,
+        portfolio: filters.portfolioId || undefined
+      });
+      const rows = buildSofpExportRows({ financialPositionData, netProfit });
+      downloadCsv(`SOFP_${baseName}`, SOFP_EXPORT_HEADERS, rows);
     });
 
   const exportSociPdf = () =>
@@ -679,7 +670,7 @@ const FinancialReportsDownloadCenter = () => {
       excelKey: 'sofp-xls',
       onPdf: exportSofpPdf,
       onExcel: exportSofpExcel,
-      lockWithoutPortfolio: true
+      lockWithoutPortfolio: false
     },
     {
       id: 'soci',
