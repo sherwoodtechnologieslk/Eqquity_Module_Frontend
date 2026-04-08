@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>CSE ASI — TradingView</title>
+    <title>CSE ASI</title>
     <style>
       html,
       body {
@@ -21,28 +21,22 @@
         flex: 1;
         min-height: 0;
       }
-      .tradingview-widget-copyright {
-        flex-shrink: 0;
-        font-size: 11px;
-        padding: 8px 12px;
-        color: #94a3b8;
-        font-family: system-ui, sans-serif;
-      }
-      .tradingview-widget-copyright a {
-        color: #2962ff;
-        text-decoration: none;
+      /* Hide TradingView widget promo / logo links injected into this page (same origin only) */
+      a[href*="utm_campaign=symbol-overview-logo"],
+      a[href*="utm_medium=widget"][href*="tradingview.com"] {
+        display: none !important;
+        visibility: hidden !important;
+        position: absolute !important;
+        width: 0 !important;
+        height: 0 !important;
+        overflow: hidden !important;
+        pointer-events: none !important;
       }
     </style>
   </head>
   <body>
     <div class="tradingview-widget-container">
       <div class="tradingview-widget-container__widget"></div>
-      <div class="tradingview-widget-copyright">
-        <a href="https://www.tradingview.com/symbols/CSELK-ASI/" rel="noopener nofollow" target="_blank"
-          >ASI quote</a
-        >
-        <span>&nbsp;by TradingView</span>
-      </div>
     </div>
     <script>
       (function () {
@@ -84,7 +78,7 @@
           noTimeScale: false,
           hideDateRanges: false,
           hideMarketStatus: false,
-          hideSymbolLogo: false,
+          hideSymbolLogo: true,
         };
         var s = document.createElement('script');
         s.src =
@@ -93,6 +87,22 @@
         s.async = true;
         s.innerHTML = JSON.stringify(cfg);
         root.appendChild(s);
+
+        function hideTvPromoInPage() {
+          document.querySelectorAll('a[href*="tradingview.com"]').forEach(function (a) {
+            var h = a.getAttribute('href') || '';
+            if (
+              h.indexOf('utm_campaign=symbol-overview-logo') !== -1 ||
+              (h.indexOf('utm_medium=widget') !== -1 && h.indexOf('tradingview.com') !== -1)
+            ) {
+              a.style.display = 'none';
+              a.setAttribute('aria-hidden', 'true');
+            }
+          });
+        }
+        hideTvPromoInPage();
+        var obs = new MutationObserver(hideTvPromoInPage);
+        obs.observe(document.body, { childList: true, subtree: true });
       })();
     </script>
   </body>

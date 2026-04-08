@@ -64,6 +64,13 @@
   gap: 8px;
 }
 
+.profit-loss-export-actions {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
 .profit-loss-generated-info {
   font-size: 12px;
   color: #64748b;

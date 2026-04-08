@@ -8,7 +8,8 @@ const GsecBalanceSheet = () => {
   const [error, setError] = useState('');
   const [filters, setFilters] = useState({
     startDate: '',
-    endDate: ''
+    endDate: '',
+    accountCode: ''
   });
   const [details, setDetails] = useState(null);
   const [detailsLoading, setDetailsLoading] = useState(false);
@@ -204,6 +205,16 @@ const GsecBalanceSheet = () => {
                   onChange={(e) => handleFilterChange('endDate', e.target.value)}
                 />
               </div>
+              <div className="gsec-bs-filter-group">
+                <label className="gsec-bs-filter-label">Account Code</label>
+                <input
+                  type="text"
+                  className="gsec-bs-filter-input"
+                  value={filters.accountCode}
+                  placeholder="e.g. 1010"
+                  onChange={(e) => handleFilterChange('accountCode', e.target.value)}
+                />
+              </div>
               <div className="gsec-bs-filter-group gsec-bs-filter-actions">
                 <button className="gsec-bs-apply-btn" onClick={handleApplyFilters}>
                   Apply
@@ -211,7 +222,7 @@ const GsecBalanceSheet = () => {
                 <button
                   className="gsec-bs-clear-btn"
                   onClick={() => {
-                    setFilters({ startDate: '', endDate: '' });
+                    setFilters({ startDate: '', endDate: '', accountCode: '' });
                     setTimeout(fetchData, 0);
                   }}
                 >

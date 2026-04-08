@@ -23,6 +23,10 @@ import {
   exportMtmPositionDetailsToExcel
 } from '../../utils/mtmPositionDetailsExport';
 import { buildSofpExportRows, SOFP_EXPORT_HEADERS, loadSofpDataForExport } from '../../utils/sofpExport';
+import {
+  exportGsecGeneralLedgerToExcel,
+  exportGsecGeneralLedgerToPdf
+} from '../../utils/gsecGeneralLedgerExport';
 
 const fmt = (value, decimals = 2) => {
   const num = Number(value) || 0;
@@ -658,6 +662,61 @@ const FinancialReportsDownloadCenter = () => {
       });
     });
 
+  const normalizeGsecEntryDate = (value) => {
+    if (!value) return '';
+    const d = new Date(value);
+    if (Number.isNaN(d.getTime())) return '';
+    return d.toISOString().slice(0, 10);
+  };
+
+  const filterGsecEntriesByPeriod = (entries, asOfDate) => {
+    const start = asOfYearStart(asOfDate);
+    const end = String(asOfDate || '').slice(0, 10);
+    if (!end) return [];
+    return (Array.isArray(entries) ? entries : []).filter((e) => {
+      const ed = normalizeGsecEntryDate(e.entry_date);
+      return ed && ed >= start && ed <= end;
+    });
+  };
+
+  const exportGsecGeneralLedgerPdf = () =>
+    run('gsec-gl-pdf', async () => {
+      const raw = await gsecEntriesAPI.getSavedLedgerEntries(null);
+      const entries = filterGsecEntriesByPeriod(raw, filters.asOfDate);
+      if (!entries.length) {
+        throw new Error(
+          'No GSec ledger entries in this period. Import GSec data or widen the as-of date range.'
+        );
+      }
+      const totalDebits = entries.reduce((sum, e) => sum + (parseFloat(e.debit_amount) || 0), 0);
+      const totalCredits = entries.reduce((sum, e) => sum + (parseFloat(e.credit_amount) || 0), 0);
+      exportGsecGeneralLedgerToPdf({
+        entries,
+        totalDebits,
+        totalCredits,
+        filenameBase: `GSEC_GL_${baseName}`
+      });
+    });
+
+  const exportGsecGeneralLedgerExcel = () =>
+    run('gsec-gl-xls', async () => {
+      const raw = await gsecEntriesAPI.getSavedLedgerEntries(null);
+      const entries = filterGsecEntriesByPeriod(raw, filters.asOfDate);
+      if (!entries.length) {
+        throw new Error(
+          'No GSec ledger entries in this period. Import GSec data or widen the as-of date range.'
+        );
+      }
+      const totalDebits = entries.reduce((sum, e) => sum + (parseFloat(e.debit_amount) || 0), 0);
+      const totalCredits = entries.reduce((sum, e) => sum + (parseFloat(e.credit_amount) || 0), 0);
+      exportGsecGeneralLedgerToExcel({
+        entries,
+        totalDebits,
+        totalCredits,
+        filenameBase: `GSEC_GL_${baseName}`
+      });
+    });
+
   const disabledKey = Boolean(!filters.portfolioId);
   const busy = busyKey !== '';
 
@@ -704,7 +763,7 @@ const FinancialReportsDownloadCenter = () => {
     },
     {
       id: 'mtm',
-      title: 'Mark-to-Market — Position Details',
+      title: 'Mark-to-Market - Position Details',
       subtitle: `Live positions from transaction engine · As at ${filters.asOfDate} (reference date)`,
       pdfKey: 'mtm-pdf',
       excelKey: 'mtm-xls',
@@ -716,7 +775,7 @@ const FinancialReportsDownloadCenter = () => {
       id: 'trade-report',
       title: 'Trade Report',
       subtitle:
-        'Latest parsed trade session (newest trade date in uploaded data — same as Trade Confirmation › Trade Report).',
+        'Latest parsed trade session (newest trade date in uploaded data - same as Trade Confirmation › Trade Report).',
       pdfKey: 'trade-pdf',
       excelKey: 'trade-xls',
       onPdf: exportTradeReportPdf,
@@ -733,10 +792,21 @@ const FinancialReportsDownloadCenter = () => {
       onPdf: exportCombinedTrialBalancePdf,
       onExcel: exportCombinedTrialBalanceExcel,
       lockWithoutPortfolio: false
+    },
+    {
+      id: 'gsec-gl',
+      title: 'GSec General Ledger',
+      subtitle: `Saved GSec ledger lines · Period ${asOfYearStart(filters.asOfDate)} to ${filters.asOfDate} (same export as GSec Entries › GSec General Ledger, date-scoped here)`,
+      pdfKey: 'gsec-gl-pdf',
+      excelKey: 'gsec-gl-xls',
+      onPdf: exportGsecGeneralLedgerPdf,
+      onExcel: exportGsecGeneralLedgerExcel,
+      lockWithoutPortfolio: false
     }
   ];
 
   const placeholderCards = [
+    { id: 'pnl', title: 'Profit and Loss Statement', subtitle: 'PDF and Excel export' },
     { id: 'cashflow', title: 'Cash Flow', subtitle: 'Coming soon' },
     { id: 'notes', title: 'Financial Reporting Notes', subtitle: 'Coming soon' }
   ];

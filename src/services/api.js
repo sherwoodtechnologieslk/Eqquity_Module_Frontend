@@ -479,6 +479,44 @@ export const tradeSummaryAPI = {
       throw error;
     }
   },
+
+  /** Sector equal-weight risk (ann. vol %) vs return (total %) from trade_summaries + equities */
+  getSectorRiskReturn: async (startDate, endDate) => {
+    try {
+      const params = new URLSearchParams();
+      if (startDate) params.append('startDate', startDate);
+      if (endDate) params.append('endDate', endDate);
+      const url = `${API_BASE_URL}/trade-summary/sector-risk-return?${params.toString()}`;
+      const response = await fetch(url, { headers: getAuthHeaders() });
+      if (!response.ok) {
+        const errData = await response.json().catch(() => ({}));
+        throw new Error(errData.error || `HTTP ${response.status}`);
+      }
+      return await response.json();
+    } catch (error) {
+      console.error('Error fetching sector risk-return:', error);
+      throw error;
+    }
+  },
+
+  /** Sector time-series (multi-line): equal-weight index (base 100) by day */
+  getSectorRiskReturnTimeseries: async (startDate, endDate) => {
+    try {
+      const params = new URLSearchParams();
+      if (startDate) params.append('startDate', startDate);
+      if (endDate) params.append('endDate', endDate);
+      const url = `${API_BASE_URL}/trade-summary/sector-risk-return/timeseries?${params.toString()}`;
+      const response = await fetch(url, { headers: getAuthHeaders() });
+      if (!response.ok) {
+        const errData = await response.json().catch(() => ({}));
+        throw new Error(errData.error || `HTTP ${response.status}`);
+      }
+      return await response.json();
+    } catch (error) {
+      console.error('Error fetching sector risk-return timeseries:', error);
+      throw error;
+    }
+  },
 }; 
 
 // API service for parsed trade transactions
@@ -1155,6 +1193,24 @@ export const transactionEntryAPI = {
       return await response.json();
     } catch (error) {
       console.error('Error fetching portfolio positions:', error);
+      throw error;
+    }
+  },
+
+  /** Server-side risk–return scatter (bulk DB + one response) */
+  getPortfolioRiskReturnScatter: async (portfolioId, timeRange) => {
+    const params = new URLSearchParams();
+    if (timeRange) params.set('timeRange', timeRange);
+    const q = params.toString();
+    const url = `${API_BASE_URL}/transaction-entries/portfolio/${portfolioId}/risk-return-scatter${q ? `?${q}` : ''}`;
+    try {
+      const response = await fetch(url, { headers: getAuthHeaders() });
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      return await response.json();
+    } catch (error) {
+      console.error('Error fetching portfolio risk-return scatter:', error);
       throw error;
     }
   },
@@ -2442,11 +2498,12 @@ export const gsecEntriesAPI = {
   },
 
   // Get Balance Sheet-style summary for GSec entries
-  getBalanceSheet: async ({ startDate, endDate } = {}) => {
+  getBalanceSheet: async ({ startDate, endDate, accountCode } = {}) => {
     try {
       const params = new URLSearchParams();
       if (startDate) params.append('startDate', startDate);
       if (endDate) params.append('endDate', endDate);
+      if (accountCode) params.append('accountCode', accountCode);
 
       const url = params.toString()
         ? `${API_BASE_URL}/gsec-entries/balance-sheet?${params.toString()}`

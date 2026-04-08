@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { portfolioAPI, tradeSummaryAPI, transactionEntryAPI } from '../../services/api';
 import {
   exportMtmPositionDetailsToPdf,
@@ -625,6 +625,1032 @@ const PriceAnalysisChart = ({ data }) => {
   );
 };
 
+// High-contrast palette (cycled only if sectors > palette size).
+// Key change: we assign colors per *unique sector* (no collisions), stable via sorting sector names.
+const SECTOR_RR_COLORS = [
+  '#1d4ed8', // strong blue
+  '#dc2626', // strong red
+  '#16a34a', // strong green
+  '#f59e0b', // strong amber
+  '#7c3aed', // strong purple
+  '#06b6d4', // strong cyan
+  '#db2777', // strong pink
+  '#65a30d', // strong lime
+  '#ea580c', // strong orange
+  '#0f766e', // strong teal
+  '#4f46e5', // indigo
+  '#9a3412', // brown
+  '#84cc16', // bright lime
+  '#be123c', // rose
+  '#0ea5e9', // sky
+  '#9333ea', // violet
+];
+
+/** Scatter: X = annualized volatility %, Y = total return % (equal-weight sector aggregates). */
+const SectorRiskReturnChart = ({ points }) => {
+  const wrapRef = useRef(null);
+  const [hover, setHover] = useState(null);
+
+  const sectorSeries = React.useMemo(() => {
+    const list = Array.isArray(points) ? points : [];
+    const norm = list
+      .map((p) => {
+        const sector = String(p?.sector ?? 'Other').trim() || 'Other';
+        const riskPct = Number(p?.riskPct);
+        const returnPct = Number(p?.returnPct);
+        const stockCount = p?.stockCount != null ? Number(p.stockCount) : null;
+        return {
+          sector,
+          riskPct: Number.isFinite(riskPct) ? riskPct : 0,
+          returnPct: Number.isFinite(returnPct) ? returnPct : 0,
+          stockCount: Number.isFinite(stockCount) ? stockCount : null,
+        };
+      })
+      .sort((a, b) => a.sector.localeCompare(b.sector));
+
+    // Unique per-sector colors in a stable order (sorted by sector)
+    return norm.map((row, i) => ({
+      ...row,
+      color: SECTOR_RR_COLORS[i % SECTOR_RR_COLORS.length],
+    }));
+  }, [points]);
+
+  const layout = React.useMemo(() => {
+    if (!points?.length) return null;
+    const margin = { left: 96, right: 28, top: 44, bottom: 88 };
+    const W = 920;
+    const H = 480;
+    const plotLeft = margin.left;
+    const plotRight = W - margin.right;
+    const plotTop = margin.top;
+    const plotBottom = H - margin.bottom;
+    const plotW = plotRight - plotLeft;
+    const plotH = plotBottom - plotTop;
+
+    const risks = points.map((p) => p.riskPct);
+    const rets = points.map((p) => p.returnPct);
+    let minX = Math.min(0, ...risks);
+    let maxX = Math.max(...risks, 0.01);
+    let minY = Math.min(0, ...rets);
+    let maxY = Math.max(...rets, 0.01);
+    const padX = Math.max((maxX - minX) * 0.12, 3);
+    const padY = Math.max((maxY - minY) * 0.12, 3);
+    minX -= padX;
+    maxX += padX;
+    minY -= padY;
+    maxY += padY;
+
+    const sx = (x) => plotLeft + ((x - minX) / (maxX - minX || 1)) * plotW;
+    const sy = (y) => plotBottom - ((y - minY) / (maxY - minY || 1)) * plotH;
+
+    const numTicks = 5;
+    const xTicks = [];
+    for (let i = 0; i < numTicks; i++) {
+      const t = minX + ((maxX - minX) * i) / (numTicks - 1);
+      xTicks.push({ x: sx(t), label: `${t.toFixed(1)}%` });
+    }
+    const yTicks = [];
+    for (let i = 0; i < numTicks; i++) {
+      const t = minY + ((maxY - minY) * i) / (numTicks - 1);
+      yTicks.push({ y: sy(t), label: `${t.toFixed(1)}%` });
+    }
+
+    const zeroX = sx(0);
+    const zeroY = sy(0);
+    const showZeroX = zeroX >= plotLeft && zeroX <= plotRight;
+    const showZeroY = zeroY >= plotTop && zeroY <= plotBottom;
+
+    // Stable colors per sector *and* no collisions within the current chart
+    const sectorColorMap = new Map(sectorSeries.map((s) => [s.sector, s.color]));
+    const nodes = points.map((p) => {
+      const sectorName = String(p?.sector ?? 'Other').trim() || 'Other';
+      return {
+        ...p,
+        cx: sx(p.riskPct),
+        cy: sy(p.returnPct),
+        color: sectorColorMap.get(sectorName) || SECTOR_RR_COLORS[0],
+        sector: sectorName,
+      };
+    });
+
+    return {
+      W,
+      H,
+      plotLeft,
+      plotRight,
+      plotTop,
+      plotBottom,
+      xTicks,
+      yTicks,
+      zeroX,
+      zeroY,
+      showZeroX,
+      showZeroY,
+      nodes,
+    };
+  }, [points, sectorSeries]);
+
+  const moveTooltip = (e, node) => {
+    const wrap = wrapRef.current;
+    if (!wrap) return;
+    const r = wrap.getBoundingClientRect();
+    const tw = 240;
+    const th = 120;
+    let px = e.clientX - r.left + 14;
+    let py = e.clientY - r.top + 14;
+    if (px + tw > r.width - 8) px = e.clientX - r.left - tw - 14;
+    if (py + th > r.height - 8) py = e.clientY - r.top - th - 14;
+    px = Math.max(8, px);
+    py = Math.max(8, py);
+    setHover({
+      sector: node.sector,
+      returnPct: node.returnPct,
+      riskPct: node.riskPct,
+      stockCount: node.stockCount,
+      px,
+      py,
+    });
+  };
+
+  if (!layout) return null;
+
+  return (
+    <div ref={wrapRef} className="mtm-sector-scatter-chart">
+      <p className="mtm-sector-scatter-hint">Hover a point for sector details · colors match the legend below.</p>
+      <svg
+        width="100%"
+        height="auto"
+        viewBox={`0 0 ${layout.W} ${layout.H}`}
+        className="mtm-sector-scatter-svg"
+        role="img"
+        aria-label="Sector risk versus return scatter chart"
+      >
+        <rect
+          x={layout.plotLeft}
+          y={layout.plotTop}
+          width={layout.plotRight - layout.plotLeft}
+          height={layout.plotBottom - layout.plotTop}
+          fill="none"
+          stroke="#e2e8f0"
+          strokeWidth="1"
+        />
+
+        {layout.yTicks.map((t, i) => (
+          <g key={`gy-${i}`}>
+            <line
+              x1={layout.plotLeft}
+              y1={t.y}
+              x2={layout.plotRight}
+              y2={t.y}
+              stroke="#f3f4f6"
+              strokeWidth="1"
+            />
+            <text
+              x={layout.plotLeft - 10}
+              y={t.y}
+              textAnchor="end"
+              dominantBaseline="middle"
+              fontSize="10"
+              fill="#64748b"
+              style={{ fontFamily: 'system-ui, sans-serif' }}
+            >
+              {t.label}
+            </text>
+          </g>
+        ))}
+
+        {layout.xTicks.map((t, i) => (
+          <g key={`gx-${i}`}>
+            <line
+              x1={t.x}
+              y1={layout.plotTop}
+              x2={t.x}
+              y2={layout.plotBottom}
+              stroke="#f9fafb"
+              strokeWidth="1"
+            />
+            <text
+              x={t.x}
+              y={layout.plotBottom + 22}
+              textAnchor="middle"
+              fontSize="10"
+              fill="#64748b"
+              style={{ fontFamily: 'system-ui, sans-serif' }}
+            >
+              {t.label}
+            </text>
+          </g>
+        ))}
+
+        {layout.showZeroY ? (
+          <line
+            x1={layout.plotLeft}
+            y1={layout.zeroY}
+            x2={layout.plotRight}
+            y2={layout.zeroY}
+            stroke="#94a3b8"
+            strokeWidth="1"
+            strokeDasharray="4 4"
+          />
+        ) : null}
+        {layout.showZeroX ? (
+          <line
+            x1={layout.zeroX}
+            y1={layout.plotTop}
+            x2={layout.zeroX}
+            y2={layout.plotBottom}
+            stroke="#94a3b8"
+            strokeWidth="1"
+            strokeDasharray="4 4"
+          />
+        ) : null}
+
+        {layout.nodes.map((n, idx) => (
+          <circle
+            key={`${n.sector}-${idx}`}
+            cx={n.cx}
+            cy={n.cy}
+            r="10"
+            fill={n.color}
+            fillOpacity="0.9"
+            stroke="#fff"
+            strokeWidth="2"
+            className="mtm-sector-scatter-point"
+            style={{ cursor: 'pointer' }}
+            aria-label={`${n.sector}: total return ${Number(n.returnPct).toFixed(2)} percent, annualized volatility ${Number(n.riskPct).toFixed(2)} percent`}
+            onMouseEnter={(e) => moveTooltip(e, n)}
+            onMouseMove={(e) => moveTooltip(e, n)}
+            onMouseLeave={() => setHover(null)}
+          />
+        ))}
+
+        <text
+          transform={`translate(${layout.plotLeft - 56},${(layout.plotTop + layout.plotBottom) / 2}) rotate(-90)`}
+          textAnchor="middle"
+          fontSize="10"
+          fontWeight="600"
+          fill="#6b7280"
+          letterSpacing="0.06em"
+          style={{ fontFamily: 'system-ui, sans-serif' }}
+        >
+          TOTAL RETURN (%)
+        </text>
+        <text
+          x={(layout.plotLeft + layout.plotRight) / 2}
+          y={layout.H - 28}
+          textAnchor="middle"
+          fontSize="10"
+          fontWeight="600"
+          fill="#6b7280"
+          letterSpacing="0.06em"
+          style={{ fontFamily: 'system-ui, sans-serif' }}
+        >
+          ANNUALIZED VOLATILITY (%)
+        </text>
+      </svg>
+
+      {hover ? (
+        <div
+          className="mtm-sector-scatter-tooltip"
+          style={{ left: hover.px, top: hover.py }}
+          role="tooltip"
+        >
+          <div className="mtm-sector-scatter-tooltip__title">{hover.sector}</div>
+          <div className="mtm-sector-scatter-tooltip__row">
+            <span>Total return</span>
+            <strong>{typeof hover.returnPct === 'number' ? `${hover.returnPct.toFixed(2)}%` : '—'}</strong>
+          </div>
+          <div className="mtm-sector-scatter-tooltip__row">
+            <span>Annualized volatility</span>
+            <strong>{typeof hover.riskPct === 'number' ? `${hover.riskPct.toFixed(2)}%` : '—'}</strong>
+          </div>
+          {hover.stockCount != null ? (
+            <div className="mtm-sector-scatter-tooltip__meta">{hover.stockCount} symbols in sector</div>
+          ) : null}
+        </div>
+      ) : null}
+
+      <div className="mtm-sector-scatter-legend" aria-label="Sector colors">
+        {sectorSeries.map((n) => (
+          <span key={`leg-${n.sector}`} className="mtm-sector-scatter-legend__item">
+            <i className="mtm-sector-scatter-legend__swatch" style={{ background: n.color }} />
+            <span className="mtm-sector-scatter-legend__label">{n.sector}</span>
+          </span>
+        ))}
+      </div>
+    </div>
+  );
+};
+
+/** Bar chart (Return %) by sector; bars inherit sector colors. */
+const SectorRiskReturnBarChart = ({ points }) => {
+  const wrapRef = useRef(null);
+  const [hover, setHover] = useState(null);
+
+  const series = React.useMemo(() => {
+    const list = Array.isArray(points) ? points : [];
+    return list
+      .map((p) => {
+        const sector = String(p?.sector ?? 'Other').trim() || 'Other';
+        const returnPct = Number(p?.returnPct);
+        const riskPct = Number(p?.riskPct);
+        const stockCount = p?.stockCount != null ? Number(p.stockCount) : null;
+        return {
+          sector,
+          returnPct: Number.isFinite(returnPct) ? returnPct : 0,
+          riskPct: Number.isFinite(riskPct) ? riskPct : 0,
+          stockCount: Number.isFinite(stockCount) ? stockCount : null,
+        };
+      })
+      .sort((a, b) => a.sector.localeCompare(b.sector))
+      .map((row, i) => ({ ...row, color: SECTOR_RR_COLORS[i % SECTOR_RR_COLORS.length] }));
+  }, [points]);
+
+  const layout = React.useMemo(() => {
+    if (!series.length) return null;
+    const margin = { left: 96, right: 28, top: 44, bottom: 118 };
+    const W = 920;
+    const H = 480;
+    const plotLeft = margin.left;
+    const plotRight = W - margin.right;
+    const plotTop = margin.top;
+    const plotBottom = H - margin.bottom;
+    const plotW = plotRight - plotLeft;
+    const plotH = plotBottom - plotTop;
+
+    const vals = series.map((s) => s.returnPct);
+    let minY = Math.min(0, ...vals);
+    let maxY = Math.max(0.01, ...vals);
+    const padY = Math.max((maxY - minY) * 0.12, 3);
+    minY -= padY;
+    maxY += padY;
+
+    const sy = (y) => plotBottom - ((y - minY) / (maxY - minY || 1)) * plotH;
+    const zeroY = sy(0);
+    const showZero = zeroY >= plotTop && zeroY <= plotBottom;
+
+    const n = series.length;
+    const step = plotW / Math.max(1, n);
+    const barW = Math.max(10, Math.min(42, step * 0.58));
+
+    const nodes = series.map((s, i) => {
+      const cx = plotLeft + step * (i + 0.5);
+      const x = cx - barW / 2;
+      const y = sy(s.returnPct);
+      const y0 = sy(0);
+      const topY = Math.min(y, y0);
+      const h = Math.max(2, Math.abs(y - y0));
+      return { ...s, x, y: topY, w: barW, h, cx, labelX: cx, baseY: y0 };
+    });
+
+    const numTicks = 5;
+    const yTicks = [];
+    for (let i = 0; i < numTicks; i++) {
+      const t = minY + ((maxY - minY) * i) / (numTicks - 1);
+      yTicks.push({ y: sy(t), label: `${t.toFixed(1)}%` });
+    }
+
+    return { W, H, plotLeft, plotRight, plotTop, plotBottom, yTicks, showZero, zeroY, nodes };
+  }, [series]);
+
+  const moveTooltip = (e, node) => {
+    const wrap = wrapRef.current;
+    if (!wrap) return;
+    const r = wrap.getBoundingClientRect();
+    const tw = 260;
+    const th = 120;
+    let px = e.clientX - r.left + 14;
+    let py = e.clientY - r.top + 14;
+    if (px + tw > r.width - 8) px = e.clientX - r.left - tw - 14;
+    if (py + th > r.height - 8) py = e.clientY - r.top - th - 14;
+    px = Math.max(8, px);
+    py = Math.max(8, py);
+    setHover({ ...node, px, py });
+  };
+
+  if (!layout) return null;
+
+  return (
+    <div ref={wrapRef} className="mtm-sector-alt-chart">
+      <p className="mtm-sector-scatter-hint">Bar chart: total return (%) by sector · hover bars for details.</p>
+      <svg
+        width="100%"
+        height="auto"
+        viewBox={`0 0 ${layout.W} ${layout.H}`}
+        className="mtm-sector-scatter-svg"
+        role="img"
+        aria-label="Sector total return bar chart"
+      >
+        <rect
+          x={layout.plotLeft}
+          y={layout.plotTop}
+          width={layout.plotRight - layout.plotLeft}
+          height={layout.plotBottom - layout.plotTop}
+          fill="none"
+          stroke="#e2e8f0"
+          strokeWidth="1"
+        />
+
+        {layout.yTicks.map((t, i) => (
+          <g key={`by-${i}`}>
+            <line
+              x1={layout.plotLeft}
+              y1={t.y}
+              x2={layout.plotRight}
+              y2={t.y}
+              stroke="#f3f4f6"
+              strokeWidth="1"
+            />
+            <text
+              x={layout.plotLeft - 10}
+              y={t.y}
+              textAnchor="end"
+              dominantBaseline="middle"
+              fontSize="10"
+              fill="#64748b"
+              style={{ fontFamily: 'system-ui, sans-serif' }}
+            >
+              {t.label}
+            </text>
+          </g>
+        ))}
+
+        {layout.showZero ? (
+          <line
+            x1={layout.plotLeft}
+            y1={layout.zeroY}
+            x2={layout.plotRight}
+            y2={layout.zeroY}
+            stroke="#94a3b8"
+            strokeWidth="1"
+            strokeDasharray="4 4"
+          />
+        ) : null}
+
+        {layout.nodes.map((n) => (
+          <rect
+            key={`bar-${n.sector}`}
+            x={n.x}
+            y={n.y}
+            width={n.w}
+            height={n.h}
+            fill={n.color}
+            fillOpacity="0.9"
+            stroke="#fff"
+            strokeWidth="1.5"
+            rx="4"
+            style={{ cursor: 'pointer' }}
+            aria-label={`${n.sector}: total return ${Number(n.returnPct).toFixed(2)} percent`}
+            onMouseEnter={(e) => moveTooltip(e, n)}
+            onMouseMove={(e) => moveTooltip(e, n)}
+            onMouseLeave={() => setHover(null)}
+          />
+        ))}
+
+        {/* X labels */}
+        {layout.nodes.map((n, i) => (
+          <text
+            key={`bx-${n.sector}-${i}`}
+            x={n.labelX}
+            y={layout.plotBottom + 28}
+            textAnchor="middle"
+            fontSize="10"
+            fill="#64748b"
+            style={{ fontFamily: 'system-ui, sans-serif' }}
+          >
+            {n.sector.length > 16 ? `${n.sector.slice(0, 16)}…` : n.sector}
+          </text>
+        ))}
+
+        <text
+          transform={`translate(${layout.plotLeft - 56},${(layout.plotTop + layout.plotBottom) / 2}) rotate(-90)`}
+          textAnchor="middle"
+          fontSize="10"
+          fontWeight="600"
+          fill="#6b7280"
+          letterSpacing="0.06em"
+          style={{ fontFamily: 'system-ui, sans-serif' }}
+        >
+          TOTAL RETURN (%)
+        </text>
+      </svg>
+
+      {hover ? (
+        <div className="mtm-sector-scatter-tooltip" style={{ left: hover.px, top: hover.py }} role="tooltip">
+          <div className="mtm-sector-scatter-tooltip__title">{hover.sector}</div>
+          <div className="mtm-sector-scatter-tooltip__row">
+            <span>Total return</span>
+            <strong>{typeof hover.returnPct === 'number' ? `${hover.returnPct.toFixed(2)}%` : '—'}</strong>
+          </div>
+          <div className="mtm-sector-scatter-tooltip__row">
+            <span>Annualized volatility</span>
+            <strong>{typeof hover.riskPct === 'number' ? `${hover.riskPct.toFixed(2)}%` : '—'}</strong>
+          </div>
+          {hover.stockCount != null ? (
+            <div className="mtm-sector-scatter-tooltip__meta">{hover.stockCount} symbols in sector</div>
+          ) : null}
+        </div>
+      ) : null}
+    </div>
+  );
+};
+
+/** Line chart (Return %) across sectors (alphabetical), with sector-colored points. */
+const SectorRiskReturnLineChart = ({ points }) => {
+  const wrapRef = useRef(null);
+  const [hover, setHover] = useState(null);
+
+  const series = React.useMemo(() => {
+    const list = Array.isArray(points) ? points : [];
+    return list
+      .map((p) => {
+        const sector = String(p?.sector ?? 'Other').trim() || 'Other';
+        const returnPct = Number(p?.returnPct);
+        const riskPct = Number(p?.riskPct);
+        const stockCount = p?.stockCount != null ? Number(p.stockCount) : null;
+        return {
+          sector,
+          returnPct: Number.isFinite(returnPct) ? returnPct : 0,
+          riskPct: Number.isFinite(riskPct) ? riskPct : 0,
+          stockCount: Number.isFinite(stockCount) ? stockCount : null,
+        };
+      })
+      .sort((a, b) => a.sector.localeCompare(b.sector))
+      .map((row, i) => ({ ...row, color: SECTOR_RR_COLORS[i % SECTOR_RR_COLORS.length] }));
+  }, [points]);
+
+  const layout = React.useMemo(() => {
+    if (!series.length) return null;
+    const margin = { left: 96, right: 28, top: 44, bottom: 118 };
+    const W = 920;
+    const H = 480;
+    const plotLeft = margin.left;
+    const plotRight = W - margin.right;
+    const plotTop = margin.top;
+    const plotBottom = H - margin.bottom;
+    const plotW = plotRight - plotLeft;
+    const plotH = plotBottom - plotTop;
+
+    const vals = series.map((s) => s.returnPct);
+    let minY = Math.min(0, ...vals);
+    let maxY = Math.max(0.01, ...vals);
+    const padY = Math.max((maxY - minY) * 0.12, 3);
+    minY -= padY;
+    maxY += padY;
+
+    const sy = (y) => plotBottom - ((y - minY) / (maxY - minY || 1)) * plotH;
+    const n = series.length;
+    const step = plotW / Math.max(1, n - 1);
+
+    const nodes = series.map((s, i) => ({
+      ...s,
+      cx: plotLeft + step * i,
+      cy: sy(s.returnPct),
+    }));
+
+    const lineD = nodes
+      .map((n, i) => `${i === 0 ? 'M' : 'L'} ${n.cx} ${n.cy}`)
+      .join(' ');
+
+    const zeroY = sy(0);
+    const showZero = zeroY >= plotTop && zeroY <= plotBottom;
+
+    const numTicks = 5;
+    const yTicks = [];
+    for (let i = 0; i < numTicks; i++) {
+      const t = minY + ((maxY - minY) * i) / (numTicks - 1);
+      yTicks.push({ y: sy(t), label: `${t.toFixed(1)}%` });
+    }
+
+    return { W, H, plotLeft, plotRight, plotTop, plotBottom, yTicks, showZero, zeroY, nodes, lineD };
+  }, [series]);
+
+  const moveTooltip = (e, node) => {
+    const wrap = wrapRef.current;
+    if (!wrap) return;
+    const r = wrap.getBoundingClientRect();
+    const tw = 260;
+    const th = 120;
+    let px = e.clientX - r.left + 14;
+    let py = e.clientY - r.top + 14;
+    if (px + tw > r.width - 8) px = e.clientX - r.left - tw - 14;
+    if (py + th > r.height - 8) py = e.clientY - r.top - th - 14;
+    px = Math.max(8, px);
+    py = Math.max(8, py);
+    setHover({ ...node, px, py });
+  };
+
+  if (!layout) return null;
+
+  return (
+    <div ref={wrapRef} className="mtm-sector-alt-chart">
+      <p className="mtm-sector-scatter-hint">Line chart: total return (%) across sectors (alphabetical).</p>
+      <svg
+        width="100%"
+        height="auto"
+        viewBox={`0 0 ${layout.W} ${layout.H}`}
+        className="mtm-sector-scatter-svg"
+        role="img"
+        aria-label="Sector total return line chart"
+      >
+        <rect
+          x={layout.plotLeft}
+          y={layout.plotTop}
+          width={layout.plotRight - layout.plotLeft}
+          height={layout.plotBottom - layout.plotTop}
+          fill="none"
+          stroke="#e2e8f0"
+          strokeWidth="1"
+        />
+
+        {layout.yTicks.map((t, i) => (
+          <g key={`ly-${i}`}>
+            <line
+              x1={layout.plotLeft}
+              y1={t.y}
+              x2={layout.plotRight}
+              y2={t.y}
+              stroke="#f3f4f6"
+              strokeWidth="1"
+            />
+            <text
+              x={layout.plotLeft - 10}
+              y={t.y}
+              textAnchor="end"
+              dominantBaseline="middle"
+              fontSize="10"
+              fill="#64748b"
+              style={{ fontFamily: 'system-ui, sans-serif' }}
+            >
+              {t.label}
+            </text>
+          </g>
+        ))}
+
+        {layout.showZero ? (
+          <line
+            x1={layout.plotLeft}
+            y1={layout.zeroY}
+            x2={layout.plotRight}
+            y2={layout.zeroY}
+            stroke="#94a3b8"
+            strokeWidth="1"
+            strokeDasharray="4 4"
+          />
+        ) : null}
+
+        <path d={layout.lineD} fill="none" stroke="#334155" strokeWidth="2.5" strokeLinejoin="round" strokeLinecap="round" />
+
+        {layout.nodes.map((n) => (
+          <circle
+            key={`pt-${n.sector}`}
+            cx={n.cx}
+            cy={n.cy}
+            r="8"
+            fill={n.color}
+            stroke="#fff"
+            strokeWidth="2"
+            style={{ cursor: 'pointer' }}
+            aria-label={`${n.sector}: total return ${Number(n.returnPct).toFixed(2)} percent`}
+            onMouseEnter={(e) => moveTooltip(e, n)}
+            onMouseMove={(e) => moveTooltip(e, n)}
+            onMouseLeave={() => setHover(null)}
+          />
+        ))}
+
+        {layout.nodes.map((n, i) => (
+          <text
+            key={`lx-${n.sector}-${i}`}
+            x={n.cx}
+            y={layout.plotBottom + 28}
+            textAnchor="middle"
+            fontSize="10"
+            fill="#64748b"
+            style={{ fontFamily: 'system-ui, sans-serif' }}
+          >
+            {n.sector.length > 16 ? `${n.sector.slice(0, 16)}…` : n.sector}
+          </text>
+        ))}
+
+        <text
+          transform={`translate(${layout.plotLeft - 56},${(layout.plotTop + layout.plotBottom) / 2}) rotate(-90)`}
+          textAnchor="middle"
+          fontSize="10"
+          fontWeight="600"
+          fill="#6b7280"
+          letterSpacing="0.06em"
+          style={{ fontFamily: 'system-ui, sans-serif' }}
+        >
+          TOTAL RETURN (%)
+        </text>
+      </svg>
+
+      {hover ? (
+        <div className="mtm-sector-scatter-tooltip" style={{ left: hover.px, top: hover.py }} role="tooltip">
+          <div className="mtm-sector-scatter-tooltip__title">{hover.sector}</div>
+          <div className="mtm-sector-scatter-tooltip__row">
+            <span>Total return</span>
+            <strong>{typeof hover.returnPct === 'number' ? `${hover.returnPct.toFixed(2)}%` : '—'}</strong>
+          </div>
+          <div className="mtm-sector-scatter-tooltip__row">
+            <span>Annualized volatility</span>
+            <strong>{typeof hover.riskPct === 'number' ? `${hover.riskPct.toFixed(2)}%` : '—'}</strong>
+          </div>
+          {hover.stockCount != null ? (
+            <div className="mtm-sector-scatter-tooltip__meta">{hover.stockCount} symbols in sector</div>
+          ) : null}
+        </div>
+      ) : null}
+    </div>
+  );
+};
+
+/** Multi-line time series: equal-weight sector index (base 100) over dates. */
+const SectorRiskReturnLineTimeChart = ({ payload }) => {
+  const wrapRef = useRef(null);
+  const [focus, setFocus] = useState(null); // { idx, px, py }
+  const [highlightSector, setHighlightSector] = useState(null);
+
+  const prepared = React.useMemo(() => {
+    if (!payload?.dates?.length || !payload?.sectors?.length || !payload?.seriesBySector) return null;
+    const dates = payload.dates;
+    const sectors = [...payload.sectors].sort((a, b) => a.localeCompare(b));
+
+    const sectorColorMap = new Map(
+      sectors.map((s, i) => [s, SECTOR_RR_COLORS[i % SECTOR_RR_COLORS.length]])
+    );
+
+    let minV = Infinity;
+    let maxV = -Infinity;
+    sectors.forEach((s) => {
+      const arr = payload.seriesBySector[s] || [];
+      arr.forEach((v) => {
+        const n = Number(v);
+        if (!Number.isFinite(n)) return;
+        minV = Math.min(minV, n);
+        maxV = Math.max(maxV, n);
+      });
+    });
+    if (!Number.isFinite(minV) || !Number.isFinite(maxV)) return null;
+    const pad = Math.max((maxV - minV) * 0.08, 0.5);
+    minV -= pad;
+    maxV += pad;
+
+    return { dates, sectors, sectorColorMap, minV, maxV };
+  }, [payload]);
+
+  const layout = React.useMemo(() => {
+    if (!prepared) return null;
+    const margin = { left: 96, right: 28, top: 44, bottom: 88 };
+    const W = 920;
+    const H = 480;
+    const plotLeft = margin.left;
+    const plotRight = W - margin.right;
+    const plotTop = margin.top;
+    const plotBottom = H - margin.bottom;
+    const plotW = plotRight - plotLeft;
+    const plotH = plotBottom - plotTop;
+
+    const n = prepared.dates.length;
+    const sx = (i) => plotLeft + (i * plotW) / Math.max(1, n - 1);
+    const sy = (v) => plotBottom - ((v - prepared.minV) / (prepared.maxV - prepared.minV || 1)) * plotH;
+
+    const yTicks = [];
+    const numTicks = 5;
+    for (let i = 0; i < numTicks; i++) {
+      const t = prepared.minV + ((prepared.maxV - prepared.minV) * i) / (numTicks - 1);
+      yTicks.push({ y: sy(t), label: t.toFixed(1) });
+    }
+
+    const formatTickDate = (iso) => {
+      if (!iso) return '';
+      const d = new Date(iso);
+      if (Number.isNaN(d.getTime())) return String(iso);
+      return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+    };
+
+    // x ticks (max 7) — ensure strictly increasing unique indices
+    const maxXTicks = 7;
+    const rawIdx =
+      n <= maxXTicks
+        ? Array.from({ length: n }, (_, i) => i)
+        : Array.from({ length: maxXTicks }, (_, k) =>
+            Math.round((k * (n - 1)) / (maxXTicks - 1))
+          );
+
+    const tickIdx = Array.from(new Set([0, ...rawIdx, n - 1]))
+      .filter((i) => i >= 0 && i < n)
+      .sort((a, b) => a - b);
+
+    const xTicks = tickIdx.map((i) => ({
+      i,
+      x: sx(i),
+      label: formatTickDate(prepared.dates[i])
+    }));
+
+    // build paths
+    const paths = prepared.sectors.map((sector) => {
+      const series = payload.seriesBySector[sector] || [];
+      const pts = series.map((v, i) => ({ x: sx(i), y: sy(Number(v)) }));
+      const d = pts.map((p, i) => `${i === 0 ? 'M' : 'L'} ${p.x} ${p.y}`).join(' ');
+      return {
+        sector,
+        color: prepared.sectorColorMap.get(sector),
+        d,
+        pts,
+      };
+    });
+
+    return { W, H, plotLeft, plotRight, plotTop, plotBottom, sx, sy, yTicks, xTicks, paths };
+  }, [prepared, payload]);
+
+  const onMove = (e) => {
+    if (!layout || !prepared) return;
+    const wrap = wrapRef.current;
+    if (!wrap) return;
+    const r = wrap.getBoundingClientRect();
+    const x = e.clientX - r.left;
+    const plotX = Math.max(layout.plotLeft, Math.min(layout.plotRight, x));
+    const t = (plotX - layout.plotLeft) / (layout.plotRight - layout.plotLeft || 1);
+    const idx = Math.round(t * (prepared.dates.length - 1));
+    const px = plotX + 14;
+    const py = 60;
+    setFocus({ idx, px, py, anchorX: plotX });
+  };
+
+  if (!layout || !prepared) return null;
+
+  const focusIdx = focus?.idx ?? null;
+  const focusDate = focusIdx != null ? prepared.dates[focusIdx] : null;
+
+  return (
+    <div ref={wrapRef} className="mtm-sector-alt-chart" onMouseMove={onMove} onMouseLeave={() => setFocus(null)}>
+      <p className="mtm-sector-scatter-hint">
+        Line (Time): each sector is a separate line (equal-weight index, base 100).
+      </p>
+      <svg
+        width="100%"
+        height="auto"
+        viewBox={`0 0 ${layout.W} ${layout.H}`}
+        className="mtm-sector-scatter-svg"
+        role="img"
+        aria-label="Sector performance time series (multi-line)"
+      >
+        <rect
+          x={layout.plotLeft}
+          y={layout.plotTop}
+          width={layout.plotRight - layout.plotLeft}
+          height={layout.plotBottom - layout.plotTop}
+          fill="none"
+          stroke="#e2e8f0"
+          strokeWidth="1"
+        />
+
+        {layout.yTicks.map((t, i) => (
+          <g key={`ty-${i}`}>
+            <line x1={layout.plotLeft} y1={t.y} x2={layout.plotRight} y2={t.y} stroke="#f3f4f6" strokeWidth="1" />
+            <text
+              x={layout.plotLeft - 10}
+              y={t.y}
+              textAnchor="end"
+              dominantBaseline="middle"
+              fontSize="10"
+              fill="#64748b"
+              style={{ fontFamily: 'system-ui, sans-serif' }}
+            >
+              {t.label}
+            </text>
+          </g>
+        ))}
+
+        {layout.xTicks.map((t, i) => (
+          <g key={`tx-${i}`}>
+            <line x1={t.x} y1={layout.plotTop} x2={t.x} y2={layout.plotBottom} stroke="#f9fafb" strokeWidth="1" />
+            <text
+              x={t.x}
+              y={layout.plotBottom + 22}
+              textAnchor="middle"
+              fontSize="10"
+              fill="#64748b"
+              style={{ fontFamily: 'system-ui, sans-serif' }}
+            >
+              {t.label}
+            </text>
+          </g>
+        ))}
+
+        {layout.paths.map((p) => {
+          const active = highlightSector == null || highlightSector === p.sector;
+          return (
+            <path
+              key={`path-${p.sector}`}
+              d={p.d}
+              fill="none"
+              stroke={p.color}
+              strokeWidth={active ? 2.6 : 1.4}
+              opacity={active ? 0.95 : 0.25}
+              strokeLinejoin="round"
+              strokeLinecap="round"
+            />
+          );
+        })}
+
+        {focus && focusIdx != null ? (
+          <line
+            x1={focus.anchorX}
+            y1={layout.plotTop}
+            x2={focus.anchorX}
+            y2={layout.plotBottom}
+            stroke="#94a3b8"
+            strokeWidth="1"
+            strokeDasharray="4 4"
+          />
+        ) : null}
+
+        <text
+          transform={`translate(${layout.plotLeft - 56},${(layout.plotTop + layout.plotBottom) / 2}) rotate(-90)`}
+          textAnchor="middle"
+          fontSize="10"
+          fontWeight="600"
+          fill="#6b7280"
+          letterSpacing="0.06em"
+          style={{ fontFamily: 'system-ui, sans-serif' }}
+        >
+          SECTOR INDEX (BASE 100)
+        </text>
+      </svg>
+
+      <div className="mtm-sector-scatter-legend" aria-label="Sector colors (click to highlight)">
+        {prepared.sectors.map((s) => {
+          const color = prepared.sectorColorMap.get(s);
+          const isActive = highlightSector === s;
+          return (
+            <button
+              type="button"
+              key={`leg2-${s}`}
+              className="mtm-sector-legend-btn"
+              onClick={() => setHighlightSector((prev) => (prev === s ? null : s))}
+              title={isActive ? 'Click to show all sectors' : 'Click to highlight this sector'}
+            >
+              <i className="mtm-sector-scatter-legend__swatch" style={{ background: color, opacity: isActive || highlightSector == null ? 1 : 0.35 }} />
+              <span className="mtm-sector-scatter-legend__label">{s}</span>
+            </button>
+          );
+        })}
+      </div>
+
+      {focusIdx != null && focusDate ? (
+        <div className="mtm-sector-scatter-tooltip" style={{ left: focus.px, top: focus.py }} role="tooltip">
+          <div className="mtm-sector-scatter-tooltip__title">{focusDate}</div>
+          {(() => {
+            const list = prepared.sectors
+              .map((s) => ({ sector: s, v: Number(payload.seriesBySector[s]?.[focusIdx]) }))
+              .filter((x) => Number.isFinite(x.v))
+              .sort((a, b) => b.v - a.v);
+            const top = highlightSector
+              ? list.filter((x) => x.sector === highlightSector)
+              : list.slice(0, 6);
+            return top.map((row) => (
+              <div key={`tt-${row.sector}`} className="mtm-sector-scatter-tooltip__row">
+                <span>{row.sector}</span>
+                <strong>{row.v.toFixed(2)}</strong>
+              </div>
+            ));
+          })()}
+          <div className="mtm-sector-scatter-tooltip__meta">
+            Showing {highlightSector ? 'selected sector' : 'top 6 sectors'} at this date
+          </div>
+        </div>
+      ) : null}
+    </div>
+  );
+};
+
+function sectorRiskDateRange(period) {
+  const endDate = new Date();
+  const startDate = new Date();
+  switch (period) {
+    case '1M':
+      startDate.setMonth(startDate.getMonth() - 1);
+      break;
+    case '3M':
+      startDate.setMonth(startDate.getMonth() - 3);
+      break;
+    case '6M':
+      startDate.setMonth(startDate.getMonth() - 6);
+      break;
+    case '1Y':
+      startDate.setFullYear(startDate.getFullYear() - 1);
+      break;
+    default:
+      startDate.setMonth(startDate.getMonth() - 3);
+  }
+  return {
+    start: startDate.toISOString().split('T')[0],
+    end: endDate.toISOString().split('T')[0],
+  };
+}
+
 const MarkToMarketValuation = () => {
   const [portfolios, setPortfolios] = useState([]);
   const [selectedPortfolio, setSelectedPortfolio] = useState('');
@@ -643,7 +1669,14 @@ const MarkToMarketValuation = () => {
   const [selectedAnalysisCompany, setSelectedAnalysisCompany] = useState('');
   const [priceAnalysisData, setPriceAnalysisData] = useState([]);
   const [priceAnalysisLoading, setPriceAnalysisLoading] = useState(false);
-
+  const [sectorRiskReturnData, setSectorRiskReturnData] = useState(null);
+  const [sectorRiskReturnLoading, setSectorRiskReturnLoading] = useState(false);
+  const [sectorRiskReturnError, setSectorRiskReturnError] = useState('');
+  const [sectorRiskReturnPeriod, setSectorRiskReturnPeriod] = useState('3M');
+  const [sectorRiskReturnChartType, setSectorRiskReturnChartType] = useState('scatter'); // scatter | bar | line
+  const [sectorRiskReturnTimeseries, setSectorRiskReturnTimeseries] = useState(null);
+  const [sectorRiskReturnTimeseriesLoading, setSectorRiskReturnTimeseriesLoading] = useState(false);
+  const [sectorRiskReturnTimeseriesError, setSectorRiskReturnTimeseriesError] = useState('');
 
   // Mock performance data for line chart - will be used when implementing dynamic chart
   // const mockPerformanceData = [
@@ -915,6 +1948,59 @@ const MarkToMarketValuation = () => {
     }
   }, [selectedAnalysisCompany, loadPriceAnalysisData]);
 
+  useEffect(() => {
+    if (activeTab !== 'sector-risk-return') return undefined;
+    let cancelled = false;
+    (async () => {
+      setSectorRiskReturnLoading(true);
+      setSectorRiskReturnError('');
+      try {
+        const { start, end } = sectorRiskDateRange(sectorRiskReturnPeriod);
+        const data = await tradeSummaryAPI.getSectorRiskReturn(start, end);
+        if (!cancelled) setSectorRiskReturnData(data);
+      } catch (e) {
+        console.error(e);
+        if (!cancelled) {
+          setSectorRiskReturnData(null);
+          setSectorRiskReturnError(
+            e?.message || 'Could not load sector risk–return data.'
+          );
+        }
+      } finally {
+        if (!cancelled) setSectorRiskReturnLoading(false);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [activeTab, sectorRiskReturnPeriod]);
+
+  useEffect(() => {
+    if (activeTab !== 'sector-risk-return') return undefined;
+    if (sectorRiskReturnChartType !== 'line') return undefined; // line = multi-line time series
+    let cancelled = false;
+    (async () => {
+      setSectorRiskReturnTimeseriesLoading(true);
+      setSectorRiskReturnTimeseriesError('');
+      try {
+        const { start, end } = sectorRiskDateRange(sectorRiskReturnPeriod);
+        const data = await tradeSummaryAPI.getSectorRiskReturnTimeseries(start, end);
+        if (!cancelled) setSectorRiskReturnTimeseries(data);
+      } catch (e) {
+        console.error(e);
+        if (!cancelled) {
+          setSectorRiskReturnTimeseries(null);
+          setSectorRiskReturnTimeseriesError(e?.message || 'Could not load sector time-series.');
+        }
+      } finally {
+        if (!cancelled) setSectorRiskReturnTimeseriesLoading(false);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [activeTab, sectorRiskReturnPeriod, sectorRiskReturnChartType]);
+
   return (
     <div className="mtm-page">
       <div className="mtm-content-wrapper">
@@ -1077,6 +2163,12 @@ const MarkToMarketValuation = () => {
               onClick={() => setActiveTab('price-analysis')}
             >
               Price Analysis
+            </button>
+            <button
+              className={`mtm-tab ${activeTab === 'sector-risk-return' ? 'active' : ''}`}
+              onClick={() => setActiveTab('sector-risk-return')}
+            >
+              Sector Risk–Return
             </button>
             <button 
               className={`mtm-tab ${activeTab === 'tax-summary' ? 'active' : ''}`}
@@ -1381,6 +2473,120 @@ const MarkToMarketValuation = () => {
                     </div>
                   )}
                 </div>
+              </div>
+            )}
+
+            {activeTab === 'sector-risk-return' && (
+              <div className="mtm-sector-risk-return-content">
+                <div className="mtm-sector-risk-return-toolbar">
+                  <div className="mtm-sector-risk-return-intro">
+                    <h3 className="mtm-sector-risk-return-title">Sector Risk–Return</h3>
+                    <p className="mtm-sector-risk-return-desc">
+                      Each point is an <strong>equal-weight</strong> sector aggregate from{' '}
+                      <strong>trade summary</strong> prices: Y = total return over the period, X =
+                      annualized volatility of daily returns. Symbols without sector map to{' '}
+                      <strong>Other</strong>.
+                    </p>
+                  </div>
+                  <div className="mtm-sector-risk-return-controls">
+                    <label htmlFor="sectorRiskPeriodSelect">Period:</label>
+                    <select
+                      id="sectorRiskPeriodSelect"
+                      className="mtm-sector-risk-period-select"
+                      value={sectorRiskReturnPeriod}
+                      onChange={(e) => setSectorRiskReturnPeriod(e.target.value)}
+                      disabled={sectorRiskReturnLoading}
+                    >
+                      <option value="1M">1 Month</option>
+                      <option value="3M">3 Months</option>
+                      <option value="6M">6 Months</option>
+                      <option value="1Y">1 Year</option>
+                    </select>
+
+                    <div className="mtm-sector-chart-type" role="group" aria-label="Chart type">
+                      <button
+                        type="button"
+                        className={`mtm-sector-chart-type-btn ${sectorRiskReturnChartType === 'scatter' ? 'active' : ''}`}
+                        onClick={() => setSectorRiskReturnChartType('scatter')}
+                      >
+                        Scatter
+                      </button>
+                      <button
+                        type="button"
+                        className={`mtm-sector-chart-type-btn ${sectorRiskReturnChartType === 'bar' ? 'active' : ''}`}
+                        onClick={() => setSectorRiskReturnChartType('bar')}
+                      >
+                        Bar
+                      </button>
+                      <button
+                        type="button"
+                        className={`mtm-sector-chart-type-btn ${sectorRiskReturnChartType === 'line' ? 'active' : ''}`}
+                        onClick={() => setSectorRiskReturnChartType('line')}
+                      >
+                        Line (Time)
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+                {sectorRiskReturnError ? (
+                  <div className="mtm-sector-risk-return-error" role="alert">
+                    {sectorRiskReturnError}
+                  </div>
+                ) : null}
+
+                {sectorRiskReturnLoading ? (
+                  <div className="mtm-chart-loading mtm-sector-risk-return-chart-wrap">
+                    <div className="mtm-loading-spinner" />
+                    <p>Building sector risk–return from market data…</p>
+                  </div>
+                ) : !sectorRiskReturnData?.sectors?.length ? (
+                  <div className="mtm-chart-no-data mtm-sector-risk-return-chart-wrap">
+                    <p>
+                      Not enough trade-summary history to plot sectors. Upload more daily summaries
+                      or pick a longer period.
+                    </p>
+                  </div>
+                ) : sectorRiskReturnChartType === 'line' ? (
+                  <div className="mtm-sector-risk-return-chart-wrap">
+                    {sectorRiskReturnTimeseriesError ? (
+                      <div className="mtm-sector-risk-return-error" role="alert">
+                        {sectorRiskReturnTimeseriesError}
+                      </div>
+                    ) : sectorRiskReturnTimeseriesLoading ? (
+                      <div className="mtm-chart-loading mtm-sector-risk-return-chart-wrap">
+                        <div className="mtm-loading-spinner" />
+                        <p>Loading sector time-series…</p>
+                      </div>
+                    ) : !sectorRiskReturnTimeseries?.dates?.length ? (
+                      <div className="mtm-chart-no-data mtm-sector-risk-return-chart-wrap">
+                        <p>Not enough history to plot multi-line sector series. Try a longer period.</p>
+                      </div>
+                    ) : (
+                      <SectorRiskReturnLineTimeChart payload={sectorRiskReturnTimeseries} />
+                    )}
+                    <p className="mtm-sector-risk-return-meta">
+                      {sectorRiskReturnData.startDate} → {sectorRiskReturnData.endDate} ·{' '}
+                      {sectorRiskReturnData.symbolsWithMetrics ?? 0} symbols with valid return &amp;
+                      volatility · {sectorRiskReturnData.sectors.length} sectors
+                    </p>
+                  </div>
+                ) : (
+                  <div className="mtm-sector-risk-return-chart-wrap">
+                    {sectorRiskReturnChartType === 'scatter' ? (
+                      <SectorRiskReturnChart points={sectorRiskReturnData.sectors} />
+                    ) : sectorRiskReturnChartType === 'bar' ? (
+                      <SectorRiskReturnBarChart points={sectorRiskReturnData.sectors} />
+                    ) : (
+                      <SectorRiskReturnLineChart points={sectorRiskReturnData.sectors} />
+                    )}
+                    <p className="mtm-sector-risk-return-meta">
+                      {sectorRiskReturnData.startDate} → {sectorRiskReturnData.endDate} ·{' '}
+                      {sectorRiskReturnData.symbolsWithMetrics ?? 0} symbols with valid return &amp;
+                      volatility · {sectorRiskReturnData.sectors.length} sectors
+                    </p>
+                  </div>
+                )}
               </div>
             )}
             

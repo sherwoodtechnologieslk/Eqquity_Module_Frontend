@@ -264,7 +264,6 @@ function App() {
     'GSEC ENTRIES': <GsecEntries />,
     'Balance Sheet': <GsecBalanceSheet />,
     'GSec General Ledger': <GsecGeneralLedger />,
-    'GSec Chart of Accounts': <div style={{ padding: '2rem' }}><h3>GSec Chart of Accounts</h3><p>Coming Soon...</p></div>,
     'Combined General Ledger': <CombinedGL onTabChange={handleTabChange} />,
     'Combined Trial Balance': <CombinedTrialBalance onTabChange={handleTabChange} />,
   };
