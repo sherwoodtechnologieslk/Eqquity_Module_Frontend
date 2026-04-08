@@ -161,7 +161,7 @@ export function exportMtmPositionDetailsToPdf({ mtmData, portfolioName, totals, 
 
   const doc = new jsPDF({ orientation: 'landscape', unit: 'pt', format: 'a4' });
   doc.setFontSize(11);
-  doc.text('Mark-to-Market — Position Details', 40, 34);
+  doc.text('Mark-to-Market - Position Details', 40, 34);
   if (subtitle) {
     doc.setFontSize(9);
     doc.setTextColor(71, 85, 105);
