@@ -1878,7 +1878,7 @@ const MarkToMarketValuation = () => {
 
   const totals = computeMtmPortfolioTotals(mtmData);
 
-  // Load price analysis: last 7 calendar days (inclusive), local date
+  // Load price analysis: last 7 available trading days (based on trade_date)
   const loadPriceAnalysisData = useCallback(async (companySymbol) => {
     if (!companySymbol) {
       setPriceAnalysisData([]);
@@ -1887,14 +1887,40 @@ const MarkToMarketValuation = () => {
 
     setPriceAnalysisLoading(true);
     try {
+      // Fetch a wider window so we can always show the last 7 available dates,
+      // even if there are gaps (weekends/holidays/missing data).
       const end = new Date();
       const start = new Date();
-      start.setDate(start.getDate() - 6);
+      start.setDate(start.getDate() - 45);
       const toYmd = (d) => {
         const y = d.getFullYear();
         const m = String(d.getMonth() + 1).padStart(2, '0');
         const day = String(d.getDate()).padStart(2, '0');
         return `${y}-${m}-${day}`;
+      };
+      const normalizeTradeDateKey = (raw) => {
+        if (!raw) return '';
+        if (raw instanceof Date) return toYmd(raw);
+        const s = String(raw).trim();
+        if (!s) return '';
+
+        // ISO-like: "YYYY-MM-DD..." → take date portion
+        const iso = s.match(/^(\d{4})-(\d{2})-(\d{2})/);
+        if (iso) return `${iso[1]}-${iso[2]}-${iso[3]}`;
+
+        // Common "DD/MM/YYYY" or "DD-MM-YYYY"
+        const dmy = s.match(/^(\d{1,2})[/-](\d{1,2})[/-](\d{4})/);
+        if (dmy) {
+          const dd = String(dmy[1]).padStart(2, '0');
+          const mm = String(dmy[2]).padStart(2, '0');
+          const yyyy = dmy[3];
+          return `${yyyy}-${mm}-${dd}`;
+        }
+
+        // Fallback: try Date parsing
+        const d = new Date(s);
+        if (!Number.isNaN(d.getTime())) return toYmd(d);
+        return s.slice(0, 10);
       };
       const startDate = toYmd(start);
       const endDate = toYmd(end);
@@ -1906,22 +1932,21 @@ const MarkToMarketValuation = () => {
         ? portfolioCompany.costValue / portfolioCompany.quantity
         : 0;
 
-      // One point per calendar day (keep last row if multiple rows share trade_date)
+      // One point per trading day (keep last row if multiple rows share the same day)
       const byDay = new Map();
       for (const trade of tradeData) {
-        const raw = trade.trade_date;
-        const key =
-          typeof raw === 'string'
-            ? raw.slice(0, 10)
-            : raw instanceof Date
-              ? toYmd(raw)
-              : String(raw || '').slice(0, 10);
+        const key = normalizeTradeDateKey(trade.trade_date);
         if (!key) continue;
         byDay.set(key, trade);
       }
 
-      const chartData = [...byDay.keys()]
-        .sort()
+      const allDatesAsc = [...byDay.keys()].sort((a, b) => {
+        // keys are normalized to YYYY-MM-DD
+        return a.localeCompare(b);
+      });
+      const last7DatesAsc = allDatesAsc.slice(Math.max(0, allDatesAsc.length - 7));
+
+      const chartData = last7DatesAsc
         .map((date) => {
           const t = byDay.get(date);
           const price = parseFloat(t.last_trade);
@@ -2432,7 +2457,7 @@ const MarkToMarketValuation = () => {
                 <div className="mtm-price-analysis-toolbar">
                   <h3 className="mtm-price-analysis-toolbar-title">Price Analysis</h3>
                   <p className="mtm-price-analysis-toolbar-desc">
-                    Compare your average cost with market price movements (last 7 days).
+                    Compare your average cost with market price movements (last 7 available trading days).
                   </p>
                   <div className="mtm-price-analysis-toolbar-company">
                     <label htmlFor="analysisCompanySelect">Select Company:</label>
