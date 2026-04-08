@@ -26,6 +26,13 @@
   box-sizing: border-box;
 }
 
+.dashboard-hero--portfolio-only {
+  grid-template-columns: 1fr;
+  gap: var(--dash-space-2);
+  padding: var(--dash-space-2) var(--dash-space-3);
+  align-items: start;
+}
+
 .dashboard-hero__intro {
   min-width: 0;
 }

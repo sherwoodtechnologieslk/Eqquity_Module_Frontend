@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { transactionEntryAPI, tradeSummaryAPI, portfolioAPI, equityAPI } from '../../services/api';
+import { transactionEntryAPI, portfolioAPI } from '../../services/api';
 import './RiskReturnScatterPlot.css';
 
 const RiskReturnScatterPlot = ({ syncedPortfolioId }) => {
@@ -11,31 +11,6 @@ const RiskReturnScatterPlot = ({ syncedPortfolioId }) => {
   const [portfolios, setPortfolios] = useState([]);
   const [selectedPortfolio, setSelectedPortfolio] = useState('all');
   const [hoveredPoint, setHoveredPoint] = useState(null);
-  const [calculationProgress, setCalculationProgress] = useState({ current: 0, total: 0 });
-  const [equitySectorMap, setEquitySectorMap] = useState({}); // Map of symbol -> sector
-
-  // Fetch equities to get sector information
-  useEffect(() => {
-    const fetchEquities = async () => {
-      try {
-        const equities = await equityAPI.getAllEquities();
-        // Create a map of symbol -> sector
-        const sectorMap = {};
-        equities.forEach(equity => {
-          if (equity.symbol && equity.sector) {
-            sectorMap[equity.symbol] = equity.sector;
-          }
-        });
-        console.log('🔍 RISK-RETURN - Loaded equity sector map:', sectorMap);
-        setEquitySectorMap(sectorMap);
-      } catch (error) {
-        console.error('Error fetching equities for sector mapping:', error);
-        setEquitySectorMap({});
-      }
-    };
-    fetchEquities();
-  }, []);
-
   // Fetch active portfolios (syncedPortfolioId on first paint comes from dashboard hero)
   useEffect(() => {
     const fetchPortfolios = async () => {
@@ -80,71 +55,6 @@ const RiskReturnScatterPlot = ({ syncedPortfolioId }) => {
     }
   }, [syncedPortfolioId, portfolios]);
 
-  // Calculate date range based on time range selection
-  const getDateRange = (timeRange) => {
-    const endDate = new Date();
-    const startDate = new Date();
-    
-    switch (timeRange) {
-      case '30D':
-        startDate.setDate(startDate.getDate() - 30);
-        break;
-      case '60D':
-        startDate.setDate(startDate.getDate() - 60);
-        break;
-      case '90D':
-        startDate.setDate(startDate.getDate() - 90);
-        break;
-      case '1Y':
-        startDate.setFullYear(startDate.getFullYear() - 1);
-        break;
-      default:
-        startDate.setDate(startDate.getDate() - 90);
-    }
-    
-    return {
-      startDate: startDate.toISOString().split('T')[0],
-      endDate: endDate.toISOString().split('T')[0]
-    };
-  };
-
-  // Calculate volatility from historical prices
-  const calculateVolatility = (prices) => {
-    if (!prices || prices.length < 2) return null;
-    
-    // Calculate daily returns
-    const returns = [];
-    for (let i = 1; i < prices.length; i++) {
-      if (prices[i-1] > 0) {
-        const dailyReturn = (prices[i] - prices[i-1]) / prices[i-1];
-        returns.push(dailyReturn);
-      }
-    }
-    
-    if (returns.length < 2) return null;
-    
-    // Calculate mean return
-    const meanReturn = returns.reduce((sum, r) => sum + r, 0) / returns.length;
-    
-    // Calculate variance
-    const variance = returns.reduce((sum, r) => sum + Math.pow(r - meanReturn, 2), 0) / returns.length;
-    
-    // Calculate standard deviation (volatility)
-    const stdDev = Math.sqrt(variance);
-    
-    // Annualize volatility (assuming 252 trading days per year)
-    // For shorter periods, adjust accordingly
-    const annualizedVolatility = stdDev * Math.sqrt(252);
-    
-    return annualizedVolatility * 100; // Convert to percentage
-  };
-
-  // Calculate return percentage
-  const calculateReturn = (currentPrice, avgPrice) => {
-    if (!avgPrice || avgPrice === 0) return null;
-    return ((currentPrice - avgPrice) / avgPrice) * 100;
-  };
-
   // Get sector color
   const getSectorColor = (sector, index) => {
     const sectorColors = {
@@ -173,7 +83,7 @@ const RiskReturnScatterPlot = ({ syncedPortfolioId }) => {
     return '#EF4444'; // Red - High negative
   };
 
-  // Fetch and process data
+  // Fetch pre-computed scatter points from the backend (single request)
   const loadScatterData = useCallback(async () => {
     if (!selectedPortfolio || selectedPortfolio === 'all') {
       setScatterData([]);
@@ -183,127 +93,23 @@ const RiskReturnScatterPlot = ({ syncedPortfolioId }) => {
 
     setIsLoading(true);
     setError(null);
-    setCalculationProgress({ current: 0, total: 0 });
 
     try {
-      console.log('🔍 RISK-RETURN - Fetching positions for portfolio ID:', selectedPortfolio);
-      
-      // Fetch portfolio positions
-      const positions = await transactionEntryAPI.getPortfolioPositions(selectedPortfolio);
-      
-      console.log('🔍 RISK-RETURN - Received positions:', positions);
-      console.log('🔍 RISK-RETURN - Number of positions:', positions?.length);
-      
-      if (!positions || positions.length === 0) {
-        console.log('⚠️ RISK-RETURN - No positions found for portfolio');
-        setScatterData([]);
-        setIsLoading(false);
-        return;
-      }
-
-      const { startDate, endDate } = getDateRange(selectedTimeRange);
-      const scatterPoints = [];
-      let processedCount = 0;
-
-      setCalculationProgress({ current: 0, total: positions.length });
-
-      // Process each holding
-      for (const position of positions) {
-        try {
-          const symbol = position.symbol;
-          if (!symbol) continue;
-
-          // Fetch historical price data
-          const historicalData = await tradeSummaryAPI.getCompanyData(symbol, startDate, endDate);
-          
-          console.log(`🔍 RISK-RETURN - ${symbol}: Historical data points:`, historicalData?.length);
-          
-          if (!historicalData || historicalData.length < 10) {
-            // Reduced minimum from 20 to 10 for more flexibility
-            console.log(`⚠️ RISK-RETURN - ${symbol}: Insufficient historical data (${historicalData?.length || 0} points, need at least 10)`);
-            processedCount++;
-            setCalculationProgress({ current: processedCount, total: positions.length });
-            continue;
-          }
-
-          // Extract and sort prices by date
-          const prices = historicalData
-            .filter(item => item.last_trade && parseFloat(item.last_trade) > 0)
-            .sort((a, b) => new Date(a.trade_date) - new Date(b.trade_date))
-            .map(item => parseFloat(item.last_trade));
-
-          console.log(`🔍 RISK-RETURN - ${symbol}: Valid prices after filtering:`, prices.length);
-
-          if (prices.length < 10) {
-            // Reduced minimum from 20 to 10
-            console.log(`⚠️ RISK-RETURN - ${symbol}: Insufficient valid prices (${prices.length} points, need at least 10)`);
-            processedCount++;
-            setCalculationProgress({ current: processedCount, total: positions.length });
-            continue;
-          }
-
-          // Calculate volatility
-          const volatility = calculateVolatility(prices);
-          if (volatility === null) {
-            processedCount++;
-            setCalculationProgress({ current: processedCount, total: positions.length });
-            continue;
-          }
-
-          // Get current price (use last price from historical data or from position)
-          const currentPrice = parseFloat(position.currentPrice) || parseFloat(position.lastTrade) || prices[prices.length - 1];
-          const avgPrice = parseFloat(position.avgPrice) || parseFloat(position.averagePrice) || (parseFloat(position.costValue) / parseFloat(position.quantity));
-
-          // Calculate return
-          const returnValue = calculateReturn(currentPrice, avgPrice);
-          if (returnValue === null) {
-            processedCount++;
-            setCalculationProgress({ current: processedCount, total: positions.length });
-            continue;
-          }
-
-          // Get sector from equities table using symbol
-          const sector = equitySectorMap[symbol] || position.sector || 'Unknown';
-
-          // Create scatter point with return value
-          scatterPoints.push({
-            symbol: symbol,
-            companyName: position.companyName || position.company_name || symbol,
-            volatility: volatility,
-            return: returnValue,
-            sector: sector,
-            marketValue: parseFloat(position.marketValue) || parseFloat(position.grossSales) || 0,
-            quantity: parseFloat(position.quantity) || 0,
-            currentPrice: currentPrice,
-            avgPrice: avgPrice
-          });
-
-          processedCount++;
-          setCalculationProgress({ current: processedCount, total: positions.length });
-        } catch (error) {
-          console.error(`Error processing ${position.symbol}:`, error);
-          processedCount++;
-          setCalculationProgress({ current: processedCount, total: positions.length });
-          continue;
-        }
-      }
-
-      console.log('🔍 RISK-RETURN - Final scatter points:', scatterPoints.length);
-      setScatterData(scatterPoints);
-      
-      if (scatterPoints.length === 0) {
-        console.warn('⚠️ RISK-RETURN - No scatter points created. All holdings may have been filtered out.');
-        setError('No holdings with sufficient historical data found. Try selecting a different time range or ensure trade summary data is uploaded.');
-      }
+      const scatterPoints = await transactionEntryAPI.getPortfolioRiskReturnScatter(
+        selectedPortfolio,
+        selectedTimeRange
+      );
+      const list = Array.isArray(scatterPoints) ? scatterPoints : [];
+      setScatterData(list);
+      setError(null);
     } catch (error) {
-      console.error('❌ RISK-RETURN - Error loading scatter data:', error);
+      console.error('Error loading risk-return scatter:', error);
       setError(`Failed to load risk-return data: ${error.message || 'Please try again.'}`);
       setScatterData([]);
     } finally {
       setIsLoading(false);
-      setCalculationProgress({ current: 0, total: 0 });
     }
-  }, [selectedPortfolio, selectedTimeRange, equitySectorMap]);
+  }, [selectedPortfolio, selectedTimeRange]);
 
   useEffect(() => {
     if (selectedPortfolio) {
@@ -454,11 +260,7 @@ const RiskReturnScatterPlot = ({ syncedPortfolioId }) => {
       {isLoading && (
         <div className="scatter-plot-loading">
           <div className="loading-spinner"></div>
-          <p>
-            {calculationProgress.total > 0
-              ? `Calculating volatility for ${calculationProgress.current} of ${calculationProgress.total} holdings...`
-              : 'Loading data...'}
-          </p>
+          <p>Loading risk–return data…</p>
         </div>
       )}
 
