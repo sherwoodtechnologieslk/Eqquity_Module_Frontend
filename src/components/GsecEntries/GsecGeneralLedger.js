@@ -1,5 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { gsecEntriesAPI } from '../../services/api';
+import {
+  exportGsecGeneralLedgerToExcel,
+  exportGsecGeneralLedgerToPdf
+} from '../../utils/gsecGeneralLedgerExport';
 import './Styles/GsecGeneralLedger.css';
 
 const GsecGeneralLedger = () => {
@@ -15,7 +19,7 @@ const GsecGeneralLedger = () => {
     account_category: ''
   });
   const [currentPage, setCurrentPage] = useState(1);
-  const [entriesPerPage] = useState(20);
+  const [entriesPerPage] = useState(50);
 
   const fetchEntries = async () => {
     try {
@@ -127,6 +131,24 @@ const GsecGeneralLedger = () => {
     const d = new Date(value);
     if (Number.isNaN(d.getTime())) return value;
     return d.toLocaleDateString('en-LK');
+  };
+
+  const handleExportPdf = () => {
+    if (!filteredEntries.length) return;
+    exportGsecGeneralLedgerToPdf({
+      entries: filteredEntries,
+      totalDebits,
+      totalCredits
+    });
+  };
+
+  const handleExportExcel = () => {
+    if (!filteredEntries.length) return;
+    exportGsecGeneralLedgerToExcel({
+      entries: filteredEntries,
+      totalDebits,
+      totalCredits
+    });
   };
 
   if (loading) {
@@ -279,6 +301,25 @@ const GsecGeneralLedger = () => {
             </h2>
             <div className="gsec-gl-table-actions">
               <button
+                type="button"
+                className="gsec-gl-refresh-btn"
+                onClick={handleExportPdf}
+                disabled={!filteredEntries.length}
+                title="Download current filtered rows as PDF"
+              >
+                Export PDF
+              </button>
+              <button
+                type="button"
+                className="gsec-gl-refresh-btn"
+                onClick={handleExportExcel}
+                disabled={!filteredEntries.length}
+                title="Download current filtered rows as Excel"
+              >
+                Export Excel
+              </button>
+              <button
+                type="button"
                 className="gsec-gl-refresh-btn"
                 onClick={fetchEntries}
                 disabled={loading}
