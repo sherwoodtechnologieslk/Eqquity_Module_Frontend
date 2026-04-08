@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>CSE sector indices</title>
+    <style>
+      html,
+      body {
+        margin: 0;
+        height: 100%;
+        background: #0f0f0f;
+      }
+      .tradingview-widget-container {
+        height: 100%;
+        min-height: 100%;
+        display: flex;
+        flex-direction: column;
+      }
+      .tradingview-widget-container__widget {
+        flex: 1;
+        min-height: 0;
+      }
+      a[href*="utm_campaign=symbol-overview-logo"],
+      a[href*="utm_medium=widget"][href*="tradingview.com"] {
+        display: none !important;
+        visibility: hidden !important;
+        position: absolute !important;
+        width: 0 !important;
+        height: 0 !important;
+        overflow: hidden !important;
+        pointer-events: none !important;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="tradingview-widget-container">
+      <div class="tradingview-widget-container__widget"></div>
+    </div>
+    <script>
+      (function () {
+        var root = document.querySelector('.tradingview-widget-container');
+        if (!root) return;
+        var cfg = {
+          lineWidth: 2,
+          lineType: 0,
+          chartType: 'area',
+          fontColor: 'rgb(106, 109, 120)',
+          gridLineColor: 'rgba(242, 242, 242, 0.06)',
+          volumeUpColor: 'rgba(34, 171, 148, 0.5)',
+          volumeDownColor: 'rgba(247, 82, 95, 0.5)',
+          backgroundColor: '#0F0F0F',
+          widgetFontColor: '#DBDBDB',
+          upColor: '#22ab94',
+          downColor: '#f7525f',
+          borderUpColor: '#22ab94',
+          borderDownColor: '#f7525f',
+          wickUpColor: '#22ab94',
+          wickDownColor: '#f7525f',
+          colorTheme: 'dark',
+          isTransparent: false,
+          locale: 'en',
+          chartOnly: false,
+          scalePosition: 'right',
+          scaleMode: 'Normal',
+          fontFamily:
+            '-apple-system, BlinkMacSystemFont, Trebuchet MS, Roboto, Ubuntu, sans-serif',
+          valuesTracking: '1',
+          changeMode: 'price-and-percent',
+          symbols: [
+            ['CSELK:S&PSL20|1D'],
+            ['CSELK:SPCSEBP|1D'],
+            ['CSELK:SPCSEDFP|1D'],
+            ['CSELK:SPCSEEIP|1D'],
+            ['CSELK:SPCSECGP|1D'],
+            ['CSELK:SPCSEHSP|1D'],
+            ['CSELK:SPCSERMP|1D'],
+            ['CSELK:SPCSEFRP|1D'],
+          ],
+          dateRanges: ['1d|1', '1m|30', '3m|60', '12m|1D', '60m|1W', 'all|1M'],
+          fontSize: '10',
+          headerFontSize: 'medium',
+          autosize: true,
+          width: '100%',
+          height: '100%',
+          noTimeScale: false,
+          hideDateRanges: false,
+          hideMarketStatus: false,
+          hideSymbolLogo: false,
+        };
+        var s = document.createElement('script');
+        s.src =
+          'https://s3.tradingview.com/external-embedding/embed-widget-symbol-overview.js';
+        s.type = 'text/javascript';
+        s.async = true;
+        s.innerHTML = JSON.stringify(cfg);
+        root.appendChild(s);
+
+        function hideTvPromoInPage() {
+          document.querySelectorAll('a[href*="tradingview.com"]').forEach(function (a) {
+            var h = a.getAttribute('href') || '';
+            if (
+              h.indexOf('utm_campaign=symbol-overview-logo') !== -1 ||
+              (h.indexOf('utm_medium=widget') !== -1 && h.indexOf('tradingview.com') !== -1)
+            ) {
+              a.style.display = 'none';
+              a.setAttribute('aria-hidden', 'true');
+            }
+          });
+        }
+        hideTvPromoInPage();
+        var obs = new MutationObserver(hideTvPromoInPage);
+        obs.observe(document.body, { childList: true, subtree: true });
+      })();
+    </script>
+  </body>
+</html>

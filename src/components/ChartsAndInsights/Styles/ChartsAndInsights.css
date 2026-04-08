@@ -37,6 +37,10 @@
   min-height: 640px;
 }
 
+.charts-insights-widget-wrap--sector-indices {
+  min-height: 720px;
+}
+
 .tradingview-widget-copyright {
   flex-shrink: 0;
   font-size: 11px;
@@ -62,6 +66,15 @@
   width: 100%;
   flex: 1;
   min-height: 560px;
+  border: none;
+  background: #0f0f0f;
+}
+
+.tradingview-sector-indices-iframe {
+  display: block;
+  width: 100%;
+  flex: 1;
+  min-height: 640px;
   border: none;
   background: #0f0f0f;
 }

@@ -240,7 +240,8 @@ export const equityManagerMenuItems = [
     ),
     name: "Charts and Insights",
     subTopics: [
-      "CSE ASPI"
+      "CSE ASPI",
+      "CSE Sector Indices"
     ]
   },
   {

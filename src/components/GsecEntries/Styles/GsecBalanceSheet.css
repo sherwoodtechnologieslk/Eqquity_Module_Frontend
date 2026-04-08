@@ -90,6 +90,36 @@
   margin: 0;
 }
 
+.gsec-bs-table-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.gsec-bs-export-btn {
+  padding: 0.5rem 0.95rem;
+  border-radius: 999px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  cursor: pointer;
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  background: rgba(255, 255, 255, 0.14);
+  color: #ffffff;
+  transition: all 0.15s ease;
+  backdrop-filter: blur(8px);
+}
+
+.gsec-bs-export-btn:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.22);
+  transform: translateY(-1px);
+}
+
+.gsec-bs-export-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
 .gsec-bs-filters-content {
   padding: 1.25rem 1.5rem 1.5rem;
 }

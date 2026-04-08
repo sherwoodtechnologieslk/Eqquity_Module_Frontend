@@ -531,44 +531,54 @@ const ProfitLoss = () => {
               </div>
             </div>
 
-            {/* Net P&L Summary */}
-            <div className="profit-loss-net-summary">
-              <div className="profit-loss-net-summary-card">
-                <h3 className="profit-loss-net-title">Net Profit/Loss Summary</h3>
-                <div className="profit-loss-net-breakdown">
-                  <div className="profit-loss-net-item">
-                    <span className="profit-loss-net-label">Operating Profit:</span>
-                    <span className={`profit-loss-net-value ${getBalanceColor(profitLossData?.totals.operating_profit || 0)}`}>
-                      {formatCurrency(profitLossData?.totals.operating_profit || 0)}
-                    </span>
+            {/* Net P&L Summary (simple, no row boxes) */}
+            <div className="profit-loss-net-summary-simple">
+              <div className="profit-loss-net-summary-simple-header">
+                <h3 className="profit-loss-net-summary-simple-title">Net Profit/Loss Summary</h3>
+                <p className="profit-loss-net-summary-simple-subtitle">
+                  A quick breakdown of key P&amp;L drivers for the selected period.
+                </p>
+              </div>
+
+              <div className="profit-loss-net-summary-simple-body">
+                <div className="profit-loss-net-summary-simple-row">
+                  <div className="profit-loss-net-summary-simple-label">Operating Profit</div>
+                  <div className={`profit-loss-net-summary-simple-value ${getBalanceColor(profitLossData?.totals.operating_profit || 0)}`}>
+                    {formatCurrency(profitLossData?.totals.operating_profit || 0)}
                   </div>
-                  <div className="profit-loss-net-item">
-                    <span className="profit-loss-net-label">Other Income:</span>
-                    <span className={`profit-loss-net-value ${getBalanceColor(profitLossData?.totals.total_other_income || 0)}`}>
-                      {formatCurrency(profitLossData?.totals.total_other_income || 0)}
-                    </span>
+                </div>
+
+                <div className="profit-loss-net-summary-simple-row">
+                  <div className="profit-loss-net-summary-simple-label">Other Income</div>
+                  <div className={`profit-loss-net-summary-simple-value ${getBalanceColor(profitLossData?.totals.total_other_income || 0)}`}>
+                    {formatCurrency(profitLossData?.totals.total_other_income || 0)}
                   </div>
-                  <div className="profit-loss-net-item">
-                    <span className="profit-loss-net-label">Provisions:</span>
-                    <span className={`profit-loss-net-value ${getBalanceColor((profitLossData?.totals.total_provisions || 0) * -1)}`}>
-                      {formatCurrency(profitLossData?.totals.total_provisions || 0)}
-                    </span>
+                </div>
+
+                <div className="profit-loss-net-summary-simple-row">
+                  <div className="profit-loss-net-summary-simple-label">Provisions</div>
+                  <div className={`profit-loss-net-summary-simple-value ${getBalanceColor((profitLossData?.totals.total_provisions || 0) * -1)}`}>
+                    {formatCurrency(profitLossData?.totals.total_provisions || 0)}
                   </div>
-                  <div className="profit-loss-net-item">
-                    <span className="profit-loss-net-label">Unrealized Capital Gains:</span>
-                    <span className={`profit-loss-net-value ${getBalanceColor(profitLossData?.totals.unrealized_capital_gains || 0)}`}>
-                      {formatCurrency(profitLossData?.totals.unrealized_capital_gains || 0)}
-                    </span>
+                </div>
+
+                <div className="profit-loss-net-summary-simple-row">
+                  <div className="profit-loss-net-summary-simple-label">Unrealized Capital Gains</div>
+                  <div className={`profit-loss-net-summary-simple-value ${getBalanceColor(profitLossData?.totals.unrealized_capital_gains || 0)}`}>
+                    {formatCurrency(profitLossData?.totals.unrealized_capital_gains || 0)}
                   </div>
-                  <div className="profit-loss-net-item profit-loss-net-total">
-                    <span className="profit-loss-net-label">Net Profit/Loss:</span>
-                    <span className={`profit-loss-net-value ${getBalanceColor(profitLossData?.totals.net_profit || 0)}`}>
-                      {formatCurrency(profitLossData?.totals.net_profit || 0)}
-                    </span>
+                </div>
+
+                <div className="profit-loss-net-summary-simple-row profit-loss-net-summary-simple-total">
+                  <div className="profit-loss-net-summary-simple-label">Net Profit/Loss</div>
+                  <div className={`profit-loss-net-summary-simple-value ${getBalanceColor(profitLossData?.totals.net_profit || 0)}`}>
+                    {formatCurrency(profitLossData?.totals.net_profit || 0)}
                   </div>
                 </div>
               </div>
             </div>
+
+
           </div>
         ) : (
           <div className="profit-loss-summary-view">

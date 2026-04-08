@@ -1,5 +1,9 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { gsecEntriesAPI } from '../../services/api';
+import {
+  exportGsecBalanceSheetToExcel,
+  exportGsecBalanceSheetToPdf
+} from '../../utils/gsecBalanceSheetExport';
 import './Styles/GsecBalanceSheet.css';
 
 const GsecBalanceSheet = () => {
@@ -48,6 +52,26 @@ const GsecBalanceSheet = () => {
 
   const handleApplyFilters = () => {
     fetchData();
+  };
+
+  const handleExportPdf = () => {
+    const accounts = data?.accounts || [];
+    exportGsecBalanceSheetToPdf({
+      accounts,
+      period: data?.period,
+      totals: grouped?.totals,
+      filenameBase: `gsec-balance-sheet-${filters?.startDate || 'start'}-${filters?.endDate || 'end'}`
+    });
+  };
+
+  const handleExportExcel = () => {
+    const accounts = data?.accounts || [];
+    exportGsecBalanceSheetToExcel({
+      accounts,
+      period: data?.period,
+      totals: grouped?.totals,
+      filenameBase: `gsec-balance-sheet-${filters?.startDate || 'start'}-${filters?.endDate || 'end'}`
+    });
   };
 
   const handleViewDetails = async (accountCode) => {
@@ -259,6 +283,26 @@ const GsecBalanceSheet = () => {
         <div className="gsec-bs-main-card">
           <div className="gsec-bs-card-header gsec-bs-main-header">
             <h2 className="gsec-bs-card-title">Accounts by Category</h2>
+            <div className="gsec-bs-table-actions">
+              <button
+                type="button"
+                className="gsec-bs-export-btn"
+                onClick={handleExportPdf}
+                disabled={!data?.accounts?.length}
+                title="Download current balance sheet rows as PDF"
+              >
+                Export PDF
+              </button>
+              <button
+                type="button"
+                className="gsec-bs-export-btn"
+                onClick={handleExportExcel}
+                disabled={!data?.accounts?.length}
+                title="Download current balance sheet rows as Excel"
+              >
+                Export Excel
+              </button>
+            </div>
           </div>
 
           <div className="gsec-bs-table-container">
