@@ -2,6 +2,8 @@ import React, { useState, useEffect, useCallback } from 'react';
 import './Styles/ProfitLoss.css';
 import { profitLossAPI, transactionEntryAPI } from '../../services/api';
 import { portfolioAPI } from '../../services/api';
+import ExportPdfExcelButtons from '../FinancialReporting/ExportPdfExcelButtons';
+import { exportProfitLossToExcel, exportProfitLossToPdf } from '../../utils/profitLossExport';
 
 const ProfitLoss = () => {
   const [profitLossData, setProfitLossData] = useState(null);
@@ -210,6 +212,25 @@ const ProfitLoss = () => {
         <div className="profit-loss-header-right">
           <div className="profit-loss-generated-info">
             Generated: {new Date(profitLossData?.totals.generated_date).toLocaleString()}
+          </div>
+          <div className="profit-loss-export-actions">
+            <ExportPdfExcelButtons
+              exportDisabled={!profitLossData}
+              excelLabel="Download Excel"
+              pdfLabel="Download PDF"
+              onExportExcel={() =>
+                exportProfitLossToExcel({
+                  profitLossData,
+                  viewMode
+                })
+              }
+              onExportPdf={() =>
+                exportProfitLossToPdf({
+                  profitLossData,
+                  viewMode
+                })
+              }
+            />
           </div>
         </div>
       </div>
