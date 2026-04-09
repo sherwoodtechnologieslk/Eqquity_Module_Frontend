@@ -144,10 +144,6 @@ function App() {
 
   // Handle manager type change from Sidebar
   const handleManagerChange = (managerType) => {
-    if (managerType === 'wealth' && selectedManager !== 'wealth') {
-      setPremiumModalVariant('wealth');
-      setIsPremiumModalOpen(true);
-    }
     setSelectedManager(managerType);
     // Reset to first tab when switching managers
     setActiveSidebarItem(0);

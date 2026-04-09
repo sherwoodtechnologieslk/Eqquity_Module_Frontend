@@ -5,8 +5,6 @@ const Navbar = ({ activeTab, onTabChange, visibleTabs = [], user, onLogout, onOp
   const [isScrolled, setIsScrolled] = useState(false);
   const [hoveredTab, setHoveredTab] = useState(null);
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
-  const [notifOpen, setNotifOpen] = useState(false);
-  const notifRef = useRef(null);
   const navbarRef = useRef(null);
 
   // All possible tabs with their properties
@@ -105,17 +103,6 @@ const Navbar = ({ activeTab, onTabChange, visibleTabs = [], user, onLogout, onOp
     }
   }, []);
 
-  // Close notification panel when clicking outside
-  useEffect(() => {
-    const handleClickOutside = (e) => {
-      if (notifRef.current && !notifRef.current.contains(e.target)) {
-        setNotifOpen(false);
-      }
-    };
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
-
   const handleTabClick = (tabName) => {
     setTimeout(() => onTabChange(tabName), 100);
   };
@@ -206,30 +193,6 @@ const Navbar = ({ activeTab, onTabChange, visibleTabs = [], user, onLogout, onOp
 
         <div className="navbar-actions">
           <div className="user-section">
-
-            {/* Notification bell */}
-            <div className="notif-wrapper" ref={notifRef}>
-              <button
-                className="notif-btn"
-                aria-label="Notifications"
-                onClick={() => setNotifOpen((o) => !o)}
-              >
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
-                  <path d="M12 2a7 7 0 0 0-7 7v3.586l-1.707 1.707A1 1 0 0 0 4 16h16a1 1 0 0 0 .707-1.707L19 12.586V9a7 7 0 0 0-7-7zm0 20a3 3 0 0 0 2.83-2H9.17A3 3 0 0 0 12 22z"/>
-                </svg>
-              </button>
-
-              {notifOpen && (
-                <div className="notif-panel" role="dialog" aria-label="Notifications">
-                  <div className="notif-panel__empty">
-                    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" aria-hidden>
-                      <path d="M12 2a7 7 0 0 0-7 7v3.586l-1.707 1.707A1 1 0 0 0 4 16h16a1 1 0 0 0 .707-1.707L19 12.586V9a7 7 0 0 0-7-7zm0 20a3 3 0 0 0 2.83-2H9.17A3 3 0 0 0 12 22z"/>
-                    </svg>
-                    <p>No notifications</p>
-                  </div>
-                </div>
-              )}
-            </div>
 
             <div className="user-avatar" title={`User Profile - ${user?.first_name} ${user?.last_name}`} onClick={onOpenProfile} style={{ cursor: 'pointer' }}>
               <span>{user?.first_name?.[0]}{user?.last_name?.[0]}</span>

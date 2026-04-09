@@ -1,6 +1,17 @@
 /* Trade Confirmation Styles */
 
 .tc-container {
+  /* Match the top navigation bar blues */
+  --tc-accent: #2563eb;
+  --tc-accent-strong: #1e40af;
+  --tc-accent-soft: rgba(37, 99, 235, 0.10);
+  --tc-accent-soft-2: rgba(37, 99, 235, 0.16);
+
+  /* Sidebar-style dark surface (for “black” UI parts) */
+  --tc-dark-surface: linear-gradient(145deg, #0f172a 0%, #1e293b 50%, #334155 100%);
+  --tc-dark-border: rgba(255, 255, 255, 0.12);
+  --tc-dark-shadow: 0 10px 28px rgba(0, 0, 0, 0.22), 0 4px 14px rgba(0, 0, 0, 0.12);
+
   min-height: 100vh;
   padding: 2rem 1rem;
   box-sizing: border-box;
@@ -40,10 +51,10 @@
   justify-content: center;
   width: 4rem;
   height: 4rem;
-  background: linear-gradient(135deg, #2563eb, #22c55e);
+  background: linear-gradient(135deg, #1e40af 0%, #2563eb 50%, #3b82f6 100%);
   border-radius: 0;
   flex-shrink: 0;
-  box-shadow: 0 8px 24px rgba(37, 99, 235, 0.3);
+  box-shadow: 0 8px 24px rgba(37, 99, 235, 0.22);
 }
 
 .tc-header-icon {
@@ -199,13 +210,13 @@
 }
 
 .tc-tab:hover {
-  color: #2563eb;
-  background-color: rgba(37, 99, 235, 0.06);
+  color: var(--tc-accent);
+  background-color: var(--tc-accent-soft);
 }
 
 .tc-tab-active {
-  color: #2563eb;
-  border-bottom-color: #2563eb;
+  color: var(--tc-accent);
+  border-bottom-color: var(--tc-accent);
   background-color: #fff;
   font-weight: 700;
   box-shadow: 0 -1px 0 0 #fff;
@@ -413,13 +424,13 @@
 .tc-report-table th {
   text-align: left;
   padding: 10px 10px;
-  background: #0f172a;
+  background: var(--tc-dark-surface);
   color: #ffffff;
   font-weight: 900;
   text-transform: uppercase;
   letter-spacing: 0.05em;
   font-size: 12px;
-  border: 1px solid #e2e8f0;
+  border: 1px solid rgba(255, 255, 255, 0.12);
 }
 
 .tc-report-table th:first-child,
@@ -552,7 +563,7 @@
 .tc-unupdated-table th {
   text-align: left;
   padding: 0.85rem 0.9rem;
-  background: #0f172a;
+  background: var(--tc-dark-surface);
   color: #ffffff;
   font-weight: 900;
   border-bottom: 1px solid #e2e8f0;
@@ -701,8 +712,8 @@
 }
 
 .tc-row-selected {
-  background-color: #eff6ff !important;
-  border-left: 3px solid #3b82f6;
+  background-color: rgba(15, 23, 42, 0.06) !important;
+  border-left: 3px solid var(--tc-accent);
 }
 
 .tc-expand-icon {
@@ -749,7 +760,7 @@
 .tc-buy-badge {
   display: inline-block;
   padding: 0.25rem 0.5rem;
-  background-color: #10b981;
+  background-color: var(--tc-accent);
   color: white;
   border-radius: 0.25rem;
   font-size: 0.75rem;
@@ -760,7 +771,7 @@
 .tc-sell-badge {
   display: inline-block;
   padding: 0.25rem 0.5rem;
-  background-color: #ef4444;
+  background-color: var(--tc-accent);
   color: white;
   border-radius: 0.25rem;
   font-size: 0.75rem;
@@ -785,7 +796,7 @@
 /* Primary action — sizing aligned with .fp-export-button */
 .tc-refresh-btn {
   padding: 10px 20px;
-  background: linear-gradient(135deg, #2563eb, #1d4ed8);
+  background: var(--tc-accent);
   color: #ffffff;
   border: none;
   border-radius: 0;
@@ -794,13 +805,13 @@
   font-family: 'Arial', 'Helvetica', sans-serif;
   cursor: pointer;
   transition: all 0.3s ease;
-  box-shadow: 0 4px 15px rgba(37, 99, 235, 0.35);
+  box-shadow: 0 4px 15px rgba(15, 23, 42, 0.25);
 }
 
 .tc-refresh-btn:hover {
-  background: linear-gradient(135deg, #1d4ed8, #1e40af);
+  background: var(--tc-accent-strong);
   transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(37, 99, 235, 0.45);
+  box-shadow: 0 6px 20px rgba(15, 23, 42, 0.32);
 }
 
 .tc-loading, .tc-error, .tc-no-data {
@@ -818,7 +829,7 @@
   width: 40px;
   height: 40px;
   border: 4px solid #e5e7eb;
-  border-top-color: #3b82f6;
+  border-top-color: var(--tc-accent);
   border-radius: 50%;
   animation: spin 1s linear infinite;
   margin-bottom: 1rem;
@@ -831,7 +842,7 @@
 .tc-retry-btn {
   margin-top: 1rem;
   padding: 0.75rem 1.5rem;
-  background: #3b82f6;
+  background: var(--tc-accent);
   color: white;
   border: none;
   border-radius: 0.375rem;
@@ -934,7 +945,7 @@
 }
 
 .tc-table-header-row {
-  background: #1e293b;
+  background: var(--tc-dark-surface);
 }
 
 .tc-table-header-row th {
@@ -945,7 +956,7 @@
   font-size: 0.6875rem;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  border-bottom: 1px solid #0f172a;
+  border-bottom: 1px solid var(--tc-dark-border);
   white-space: nowrap;
 }
 
@@ -1085,7 +1096,6 @@
   min-width: 96px;
   text-align: center;
 }
-
 .tc-transaction-row .tc-col-exec-id,
 .tc-transaction-row .tc-col-settlement,
 .tc-total-row .tc-col-exec-id,
@@ -1096,10 +1106,10 @@
 .tc-summary-section {
   margin-top: 3rem;
   padding: 2rem;
-  background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
+  background: rgba(255, 255, 255, 0.85);
   border-radius: 0.75rem;
-  border: 2px solid #3b82f6;
-  box-shadow: 0 4px 6px -1px rgba(59, 130, 246, 0.2), 0 2px 4px -1px rgba(59, 130, 246, 0.1);
+  border: 2px solid var(--tc-accent);
+  box-shadow: 0 4px 6px -1px rgba(15, 23, 42, 0.14), 0 2px 4px -1px rgba(15, 23, 42, 0.08);
 }
 
 .tc-summary-row {
@@ -1107,7 +1117,7 @@
   justify-content: space-between;
   align-items: center;
   padding: 1rem 0;
-  border-bottom: 1px solid #bfdbfe;
+  border-bottom: 1px solid #e2e8f0;
   font-size: 1.125rem;
 }
 
@@ -1116,7 +1126,7 @@
 }
 
 .tc-summary-row.tc-net-row {
-  border-top: 2px solid #3b82f6;
+  border-top: 2px solid var(--tc-accent);
   margin-top: 0.5rem;
   padding-top: 1.5rem;
   font-size: 1.25rem;
@@ -1125,7 +1135,7 @@
 
 .tc-summary-label {
   font-weight: 600;
-  color: #1e40af;
+  color: var(--tc-accent);
 }
 
 .tc-summary-value {
