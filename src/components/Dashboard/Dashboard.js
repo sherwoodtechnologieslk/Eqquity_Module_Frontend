@@ -1244,6 +1244,21 @@ const Dashboard = ({ onTabChange }) => {
                   <span className="action-subtitle">Generate reports</span>
                 </div>
             </button>
+
+            <button
+              className="action-card secondary"
+              onClick={() => onTabChange && onTabChange('Financial Reports Export')}
+            >
+              <div className="action-icon">
+                <svg viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z" />
+                </svg>
+              </div>
+              <div className="action-content">
+                <span className="action-title">Reporting Download Center</span>
+                <span className="action-subtitle">Excel &amp; PDF exports</span>
+              </div>
+            </button>
             </div>
           </div>
         </div>
