@@ -649,20 +649,21 @@ const Sidebar = ({ onSelect, activeIndex = 0, onLogout, onManagerChange, selecte
 
   // Handle manager type switch
   const handleManagerSwitch = (managerType) => {
+    if (onManagerChange) {
+      const allowed = onManagerChange(managerType);
+      if (allowed === false) {
+        setIsDropdownOpen(false);
+        return;
+      }
+    }
+
     setSelectedManager(managerType);
     setIsDropdownOpen(false); // Close dropdown after selection
     setActive(0); // Reset active item when switching managers
-    // Get the new menu items for the selected manager type
     const newMenuItems = managerType === 'equity' ? equityManagerMenuItems : wealthManagerMenuItems;
-    // Notify parent about the manager change
-    if (onManagerChange) {
-      onManagerChange(managerType);
-    }
-    // Notify parent about the switch if needed
     if (onSelect && newMenuItems.length > 0) {
       onSelect(0, newMenuItems[0]?.subTopics || []);
     } else if (onSelect) {
-      // If no menu items, pass empty array
       onSelect(0, []);
     }
   };

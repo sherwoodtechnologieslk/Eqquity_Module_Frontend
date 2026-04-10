@@ -13,18 +13,18 @@
 .cgl-header-section {
   display: flex;
   align-items: center;
-  gap: 1.5rem;
+  gap: 1.25rem;
   margin-bottom: 1rem;
-  padding-top: 0.75rem;
-  padding-bottom: 1rem;
+  padding-top: 0.25rem;
+  padding-bottom: 0.75rem;
 }
 
 .cgl-header-icon {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 4rem;
-  height: 4rem;
+  width: 3rem;
+  height: 3rem;
   background: linear-gradient(135deg, #2563eb, #22c55e);
   border-radius: 0.18rem;
   box-shadow: 0 8px 24px rgba(37, 99, 235, 0.3);
@@ -32,8 +32,8 @@
 }
 
 .cgl-icon {
-  width: 2rem;
-  height: 2rem;
+  width: 1.5rem;
+  height: 1.5rem;
   color: #ffffff;
 }
 
@@ -44,16 +44,19 @@
 }
 
 .cgl-main-title {
-  font-size: 2rem;
+  font-size: 1.5rem;
   font-weight: 800;
   color: #0f172a;
-  margin: 0;
+  margin: 0 0 0.35rem 0;
+  letter-spacing: -0.01em;
+  line-height: 1.2;
 }
 
 .cgl-subtitle {
-  font-size: 0.95rem;
+  font-size: 0.9375rem;
   color: #475569;
   margin: 0;
+  line-height: 1.45;
 }
 
 .cgl-filters-card {
@@ -392,7 +395,58 @@
   background: #dc2626;
 }
 
+@media (max-width: 1100px) {
+  .cgl-header-section {
+    gap: 1rem;
+    padding-top: 0.25rem;
+    padding-bottom: 0.65rem;
+  }
+
+  .cgl-main-title {
+    font-size: 1.5rem;
+  }
+
+  .cgl-header-icon {
+    width: 3rem;
+    height: 3rem;
+  }
+
+  .cgl-icon {
+    width: 1.5rem;
+    height: 1.5rem;
+  }
+}
+
 @media (max-width: 768px) {
+  .cgl-header-section {
+    flex-direction: column;
+    text-align: center;
+    gap: 1rem;
+    padding: 0.35rem 1rem 0.75rem;
+  }
+
+  .cgl-header-text-group {
+    align-items: center;
+  }
+
+  .cgl-header-icon {
+    width: 2.875rem;
+    height: 2.875rem;
+  }
+
+  .cgl-icon {
+    width: 1.4rem;
+    height: 1.4rem;
+  }
+
+  .cgl-main-title {
+    font-size: 1.4rem;
+  }
+
+  .cgl-subtitle {
+    font-size: 0.9rem;
+  }
+
   .cgl-filters-content {
     padding: 1.25rem 1.25rem 1.5rem;
   }
@@ -403,6 +457,26 @@
 
   .cgl-table-container {
     padding-bottom: 0.5rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .cgl-header-icon {
+    width: 2.5rem;
+    height: 2.5rem;
+  }
+
+  .cgl-icon {
+    width: 1.25rem;
+    height: 1.25rem;
+  }
+
+  .cgl-main-title {
+    font-size: 1.25rem;
+  }
+
+  .cgl-subtitle {
+    font-size: 0.8125rem;
   }
 }
 

@@ -2392,8 +2392,8 @@ const isVoucherSettled = (voucher) => {
           <div style={{
             display: 'flex',
             gap: '1rem',
-            marginTop: '1.5rem',
-            marginBottom: '2rem',
+            marginTop: '0.75rem',
+            marginBottom: '1rem',
             padding: '0 1.5rem',
             borderBottom: '2px solid #e5e7eb'
           }}>
@@ -2519,7 +2519,7 @@ const isVoucherSettled = (voucher) => {
             </button>
           </div>
 
-          <div className="other-trans-form-content">
+          <div className="other-trans-form-content other-trans-form-content--transaction-info">
             {activeFormType === 'voucher' ? (
             <form onSubmit={handleSubmit}>
               <div className="other-trans-form-grid">

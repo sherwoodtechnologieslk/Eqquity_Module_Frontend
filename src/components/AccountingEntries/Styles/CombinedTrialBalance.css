@@ -13,18 +13,18 @@
 .ctb-header-section {
   display: flex;
   align-items: center;
-  gap: 1.5rem;
+  gap: 1.25rem;
   margin-bottom: 1rem;
-  padding-top: 0.75rem;
-  padding-bottom: 1rem;
+  padding-top: 0.25rem;
+  padding-bottom: 0.75rem;
 }
 
 .ctb-header-icon {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 4rem;
-  height: 4rem;
+  width: 3rem;
+  height: 3rem;
   background: linear-gradient(135deg, #0f172a, #2563eb);
   border-radius: 0.18rem;
   box-shadow: 0 8px 24px rgba(15, 23, 42, 0.4);
@@ -32,8 +32,8 @@
 }
 
 .ctb-icon {
-  width: 2rem;
-  height: 2rem;
+  width: 1.5rem;
+  height: 1.5rem;
   color: #ffffff;
 }
 
@@ -44,16 +44,19 @@
 }
 
 .ctb-main-title {
-  font-size: 2rem;
+  font-size: 1.5rem;
   font-weight: 800;
   color: #0f172a;
-  margin: 0;
+  margin: 0 0 0.35rem 0;
+  letter-spacing: -0.01em;
+  line-height: 1.2;
 }
 
 .ctb-subtitle {
-  font-size: 0.95rem;
+  font-size: 0.9375rem;
   color: #475569;
   margin: 0;
+  line-height: 1.45;
 }
 
 .ctb-header-meta {
@@ -323,6 +326,28 @@
   font-weight: 600;
 }
 
+.ctb-account-drilldown {
+  cursor: pointer;
+  color: #000000;
+  text-decoration: underline;
+  text-decoration-color: transparent;
+  transition: text-decoration-color 0.15s ease;
+}
+
+.ctb-account-drilldown:hover {
+  color: #000000;
+  text-decoration-color: rgba(0, 0, 0, 0.45);
+}
+
+.ctb-account-drilldown:focus {
+  outline: 2px solid #000000;
+  outline-offset: 2px;
+}
+
+.ctb-account-name.ctb-account-drilldown {
+  font-weight: 600;
+}
+
 .ctb-account-type {
   font-size: 0.75rem;
   text-transform: uppercase;
@@ -392,13 +417,95 @@
   background: #dc2626;
 }
 
+@media (max-width: 1100px) {
+  .ctb-header-section {
+    gap: 1rem;
+    padding-top: 0.25rem;
+    padding-bottom: 0.65rem;
+  }
+
+  .ctb-main-title {
+    font-size: 1.5rem;
+  }
+
+  .ctb-header-icon {
+    width: 3rem;
+    height: 3rem;
+  }
+
+  .ctb-icon {
+    width: 1.5rem;
+    height: 1.5rem;
+  }
+}
+
 @media (max-width: 768px) {
+  .ctb-header-section {
+    flex-direction: column;
+    text-align: center;
+    gap: 1rem;
+    padding: 0.35rem 1rem 0.75rem;
+    align-items: center;
+  }
+
+  .ctb-header-text-group {
+    align-items: center;
+  }
+
+  .ctb-header-meta {
+    margin-left: 0;
+    width: 100%;
+    text-align: center;
+  }
+
+  .ctb-header-icon {
+    width: 2.875rem;
+    height: 2.875rem;
+  }
+
+  .ctb-icon {
+    width: 1.4rem;
+    height: 1.4rem;
+  }
+
+  .ctb-main-title {
+    font-size: 1.4rem;
+  }
+
+  .ctb-subtitle {
+    font-size: 0.9rem;
+  }
+
   .ctb-filters-content {
     padding: 1.25rem 1.25rem 1.5rem;
   }
 
   .ctb-card-header {
     padding: 0.85rem 1.1rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .ctb-header-icon {
+    width: 2.5rem;
+    height: 2.5rem;
+  }
+
+  .ctb-icon {
+    width: 1.25rem;
+    height: 1.25rem;
+  }
+
+  .ctb-main-title {
+    font-size: 1.25rem;
+  }
+
+  .ctb-subtitle {
+    font-size: 0.8125rem;
+  }
+
+  .ctb-header-meta {
+    font-size: 0.8rem;
   }
 }
 

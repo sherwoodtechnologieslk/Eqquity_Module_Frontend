@@ -142,18 +142,19 @@ function App() {
     }
   };
 
-  // Handle manager type change from Sidebar
+  // Handle manager type change from Sidebar. Returns false if the switch was blocked (premium gate).
   const handleManagerChange = (managerType) => {
-    setSelectedManager(managerType);
-    // Reset to first tab when switching managers
-    setActiveSidebarItem(0);
     if (managerType === 'wealth') {
-      setVisibleTabs(['Dashboard', 'Portfolio Overview', 'Fund Performance', 'Client Summary', 'AUM Overview']);
-      setActiveTab('Dashboard');
-    } else {
-      setVisibleTabs(['Dashboard', 'Portfolio Overview', 'Market Summary', 'Recent Activity', 'Performance Metrics']);
-      setActiveTab('Dashboard');
+      setPremiumModalVariant('wealth');
+      setIsPremiumModalOpen(true);
+      return false;
     }
+
+    setSelectedManager(managerType);
+    setActiveSidebarItem(0);
+    setVisibleTabs(['Dashboard', 'Portfolio Overview', 'Market Summary', 'Recent Activity', 'Performance Metrics']);
+    setActiveTab('Dashboard');
+    return true;
   };
 
   // Tab component mappings
