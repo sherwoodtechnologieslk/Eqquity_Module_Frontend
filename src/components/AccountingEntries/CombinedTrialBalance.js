@@ -2,7 +2,55 @@ import React, { useEffect, useMemo, useRef, useState } from 'react';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { trialBalanceAPI, gsecEntriesAPI } from '../../services/api';
+import AccountDetailsModal from '../EquityEntries/AccountDetailsModal';
 import './Styles/CombinedTrialBalance.css';
+
+/** Map GSec balance-sheet account API payload into AccountDetailsModal shape */
+const normalizeGsecDetailForModal = (data) => {
+  const rows = data?.entries || [];
+  const entries = rows.map((e) => ({
+    date: e.entry_date,
+    description: e.description || '—',
+    reference: e.deal_number != null && e.deal_number !== '' ? String(e.deal_number) : '—',
+    debit: Number(e.debit_amount) || 0,
+    credit: Number(e.credit_amount) || 0,
+    transaction_type: [e.account_category, e.currency].filter(Boolean).join(' · ') || 'GSec',
+  }));
+  const total_debit = entries.reduce((s, e) => s + e.debit, 0);
+  const total_credit = entries.reduce((s, e) => s + e.credit, 0);
+  const net_balance = total_debit - total_credit;
+  return {
+    accountCode: data?.accountCode,
+    accountName: data?.accountName || rows[0]?.account_name || '',
+    period: {
+      startDate: data?.period?.startDate,
+      endDate: data?.period?.endDate,
+      portfolio: 'GSec',
+    },
+    entries,
+    totals: {
+      total_debit,
+      total_credit,
+      net_balance,
+      balance_type: net_balance > 0 ? 'DR' : net_balance < 0 ? 'CR' : 'ZERO',
+    },
+  };
+};
+
+const enrichEquityAccountDetails = (data) => {
+  if (!data) return null;
+  return {
+    ...data,
+    entries: (data.entries || []).map((e) => ({
+      ...e,
+      transaction_type:
+        e.transaction_type ||
+        (e.description && /opening/i.test(String(e.description)) ? 'Opening balance' : null) ||
+        e.status ||
+        '—',
+    })),
+  };
+};
 
 const CombinedTrialBalance = ({ onTabChange }) => {
   const [equityTB, setEquityTB] = useState(null);
@@ -18,6 +66,55 @@ const CombinedTrialBalance = ({ onTabChange }) => {
   });
   const [sourceFilter, setSourceFilter] = useState('all'); // all | equity | gsec
   const [searchTerm, setSearchTerm] = useState('');
+
+  const [accountModalOpen, setAccountModalOpen] = useState(false);
+  const [accountModalCode, setAccountModalCode] = useState('');
+  const [accountModalData, setAccountModalData] = useState(null);
+  const [accountModalError, setAccountModalError] = useState('');
+  const [accountModalSourceLabel, setAccountModalSourceLabel] = useState('');
+
+  const handleCloseAccountModal = () => {
+    setAccountModalOpen(false);
+    setAccountModalData(null);
+    setAccountModalError('');
+    setAccountModalCode('');
+    setAccountModalSourceLabel('');
+  };
+
+  const handleAccountDrillDown = async (acc, evt) => {
+    if (evt) {
+      evt.stopPropagation();
+    }
+    if (!acc?.account_code) return;
+
+    setAccountModalOpen(true);
+    setAccountModalCode(acc.account_code);
+    setAccountModalSourceLabel(acc.source === 'Equity' ? 'Equity ledger' : 'GSec ledger');
+    setAccountModalData(null);
+    setAccountModalError('');
+
+    try {
+      if (acc.source === 'Equity') {
+        const res = await trialBalanceAPI.getAccountDetails(acc.account_code, filters);
+        if (!res?.success) {
+          throw new Error(res?.error || 'Failed to load equity account details');
+        }
+        setAccountModalData(enrichEquityAccountDetails(res.data));
+      } else {
+        const res = await gsecEntriesAPI.getBalanceSheetAccountDetails(acc.account_code, {
+          startDate: filters.startDate || undefined,
+          endDate: filters.endDate || undefined,
+        });
+        if (!res?.success) {
+          throw new Error(res?.error || 'Failed to load GSec account details');
+        }
+        setAccountModalData(normalizeGsecDetailForModal(res.data));
+      }
+    } catch (err) {
+      console.error('Combined TB account drill-down:', err);
+      setAccountModalError(err.message || 'Failed to load account details');
+    }
+  };
 
   const fetchData = async (options = {}) => {
     const { showLoader = true } = options;
@@ -469,8 +566,36 @@ const CombinedTrialBalance = ({ onTabChange }) => {
                           {acc.source}
                         </span>
                       </td>
-                      <td className="ctb-account-code">{acc.account_code}</td>
-                      <td className="ctb-account-name">{acc.account_name}</td>
+                      <td
+                        className="ctb-account-code ctb-account-drilldown"
+                        onClick={(e) => handleAccountDrillDown(acc, e)}
+                        role="button"
+                        tabIndex={0}
+                        title="View transactions and balances for this account"
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter' || e.key === ' ') {
+                            e.preventDefault();
+                            handleAccountDrillDown(acc, e);
+                          }
+                        }}
+                      >
+                        {acc.account_code}
+                      </td>
+                      <td
+                        className="ctb-account-name ctb-account-drilldown"
+                        onClick={(e) => handleAccountDrillDown(acc, e)}
+                        role="button"
+                        tabIndex={0}
+                        title="View transactions and balances for this account"
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter' || e.key === ' ') {
+                            e.preventDefault();
+                            handleAccountDrillDown(acc, e);
+                          }
+                        }}
+                      >
+                        {acc.account_name}
+                      </td>
                       <td className="ctb-account-type">{acc.account_type}</td>
                       <td className="ctb-debit">
                         {acc.total_debit > 0 ? formatCurrency(acc.total_debit) : '-'}
@@ -486,6 +611,15 @@ const CombinedTrialBalance = ({ onTabChange }) => {
           </div>
         </div>
       </div>
+
+      <AccountDetailsModal
+        isOpen={accountModalOpen}
+        onClose={handleCloseAccountModal}
+        accountCode={accountModalCode}
+        accountData={accountModalData}
+        loadError={accountModalError}
+        detailSource={accountModalSourceLabel}
+      />
     </div>
   );
 };

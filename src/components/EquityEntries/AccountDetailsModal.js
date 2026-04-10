@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import './Styles/AccountDetailsModal.css';
 
-const AccountDetailsModal = ({ isOpen, onClose, accountCode, accountData }) => {
+const AccountDetailsModal = ({ isOpen, onClose, accountCode, accountData, loadError, detailSource }) => {
   const [isVisible, setIsVisible] = useState(false);
 
   useEffect(() => {
@@ -40,13 +40,21 @@ const AccountDetailsModal = ({ isOpen, onClose, accountCode, accountData }) => {
             </div>
             <div className="account-modal-title-section">
               <h2 className="account-modal-title">Account Details</h2>
-              <p className="account-modal-subtitle">Detailed view for account: {accountData?.accountCode || accountCode}</p>
+              <p className="account-modal-subtitle">
+                {detailSource
+                  ? `${detailSource} — ${accountData?.accountCode || accountCode}`
+                  : `Detailed view for account: ${accountData?.accountCode || accountCode}`}
+              </p>
             </div>
           </div>
 
           <div className="account-modal-body">
             <div className="account-modal-scroll-container">
-              {accountData ? (
+              {loadError ? (
+                <div className="account-modal-error">
+                  <p>{loadError}</p>
+                </div>
+              ) : accountData ? (
                 <div className="account-details-content">
                   {/* Account Summary */}
                   <div className="account-summary-section">

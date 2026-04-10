@@ -56,16 +56,6 @@
   margin: 0;
 }
 
-.gsec-bs-header-meta {
-  margin-left: auto;
-  font-size: 0.85rem;
-  color: #64748b;
-}
-
-.gsec-bs-period span {
-  font-weight: 600;
-}
-
 .gsec-bs-filters-card {
   background: #ffffff;
   border-radius: 0.18rem;

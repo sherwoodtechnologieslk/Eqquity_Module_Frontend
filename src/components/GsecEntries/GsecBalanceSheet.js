@@ -194,14 +194,6 @@ const GsecBalanceSheet = () => {
               Snapshot of GSec assets and related accounts based on imported GSec entries.
             </p>
           </div>
-          <div className="gsec-bs-header-meta">
-            <div className="gsec-bs-period">
-              Period:&nbsp;
-              <span>
-                {formatDate(data?.period?.startDate)} - {formatDate(data?.period?.endDate)}
-              </span>
-            </div>
-          </div>
         </div>
 
         {/* Filters */}

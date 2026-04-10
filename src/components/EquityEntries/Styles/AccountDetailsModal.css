@@ -401,6 +401,20 @@
   color: #64748b;
 }
 
+.account-modal-error {
+  padding: 2rem 1.5rem;
+  text-align: center;
+  color: #b91c1c;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  border-radius: 0.5rem;
+  font-size: 0.9rem;
+}
+
+.account-modal-error p {
+  margin: 0;
+}
+
 /* Loading State */
 .account-loading {
   display: flex;
