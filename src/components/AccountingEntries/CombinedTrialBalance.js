@@ -531,6 +531,10 @@ const CombinedTrialBalance = ({ onTabChange }) => {
               </button>
             </div>
           </div>
+          <p className="ctb-table-hint">
+            Click an <strong>account code</strong> or <strong>account name</strong> to view transaction
+            details (including opening balances where applicable) for that account.
+          </p>
           <div className="ctb-table-container">
             {filteredAccounts.length === 0 ? (
               <div className="ctb-no-data">
