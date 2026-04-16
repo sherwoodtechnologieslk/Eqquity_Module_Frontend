@@ -1,6 +1,49 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { portfolioAPI, portfolioCostingMethodAPI, transactionEntryAPI } from '../../services/api';
 import './Styles/PortfolioDropdown.css';
+
+const ALL_PORTFOLIOS_VALUE = '__ALL_PORTFOLIOS__';
+
+function toLocalYmd(d) {
+  if (!(d instanceof Date) || Number.isNaN(d.getTime())) return null;
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${y}-${m}-${day}`;
+}
+
+function txTradeDateYmd(tx) {
+  if (!tx) return null;
+  const raw =
+    tx.trade_date ??
+    tx.tradeDate ??
+    tx.tradeDateTime ??
+    tx.trade_datetime ??
+    tx.date ??
+    tx.transaction_date ??
+    tx.transactionDate;
+  if (!raw) return null;
+  if (raw instanceof Date) return toLocalYmd(raw);
+  const s = String(raw).trim();
+  if (!s) return null;
+
+  // ISO-like: "YYYY-MM-DD..." → take date portion
+  const iso = s.match(/^(\d{4})-(\d{2})-(\d{2})/);
+  if (iso) return `${iso[1]}-${iso[2]}-${iso[3]}`;
+
+  // Common "DD/MM/YYYY" or "DD-MM-YYYY"
+  const dmy = s.match(/^(\d{1,2})[/-](\d{1,2})[/-](\d{4})/);
+  if (dmy) {
+    const dd = String(dmy[1]).padStart(2, '0');
+    const mm = String(dmy[2]).padStart(2, '0');
+    const yyyy = dmy[3];
+    return `${yyyy}-${mm}-${dd}`;
+  }
+
+  const d = new Date(s);
+  if (!Number.isNaN(d.getTime())) return toLocalYmd(d);
+  return s.slice(0, 10);
+}
 
 const PortfolioDropdown = () => {
   const [portfolios, setPortfolios] = useState([]);
@@ -11,9 +54,12 @@ const PortfolioDropdown = () => {
   const [selectedPortfolioCostingMethod, setSelectedPortfolioCostingMethod] = useState('');
   const [isOpen, setIsOpen] = useState(false);
   const [isFocused, setIsFocused] = useState(false);
-  const [portfolioHoldings, setPortfolioHoldings] = useState([]);
   const [holdingsLoading, setHoldingsLoading] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [holdingsLastUpdateFrom, setHoldingsLastUpdateFrom] = useState('');
+  const [holdingsLastUpdateTo, setHoldingsLastUpdateTo] = useState('');
+  const [rawBuyTransactions, setRawBuyTransactions] = useState([]);
+  const [rawSellTransactions, setRawSellTransactions] = useState([]);
 
   // Define costing method labels for display
   const costingMethodLabels = {
@@ -24,8 +70,6 @@ const PortfolioDropdown = () => {
 
   // Empty array - ready for real API data
   // const mockPortfolioData = [];
-
-  const ALL_PORTFOLIOS_VALUE = '__ALL_PORTFOLIOS__';
 
   const loadPortfolios = async () => {
     try {
@@ -41,6 +85,8 @@ const PortfolioDropdown = () => {
       setSelectedPortfolio('');
       setSelectedPortfolioId('');
       setSelectedPortfolioCostingMethod('');
+      setRawBuyTransactions([]);
+      setRawSellTransactions([]);
     } finally {
       setPortfoliosLoading(false);
     }
@@ -80,6 +126,12 @@ const PortfolioDropdown = () => {
     });
 
     const holdings = Array.from(groupMap.values()).map((g) => {
+      const lastTradeDate = [...g.buys, ...g.sells]
+        .map((t) => txTradeDateYmd(t))
+        .filter(Boolean)
+        .sort()
+        .slice(-1)[0] || null;
+
       const totalBuyQuantity = g.buys.reduce((sum, tx) => sum + (parseFloat(tx.quantity) || 0), 0);
       const totalBuyGrossValue = g.buys.reduce((sum, tx) => sum + (parseFloat(tx.gross_value) || 0), 0);
       const totalSellQuantity = g.sells.reduce((sum, tx) => sum + (parseFloat(tx.quantity) || 0), 0);
@@ -113,7 +165,8 @@ const PortfolioDropdown = () => {
         costValue: calculatedCostValue,
         totalCharges: calculatedCharges,
         netValue,
-        costPerShare
+        costPerShare,
+        lastTradeDate
       };
     })
     .filter((h) => (h.netQuantity || 0) > 0)
@@ -142,7 +195,8 @@ const PortfolioDropdown = () => {
           console.error('Error fetching sell transactions:', sellTxError);
         }
 
-        setPortfolioHoldings(buildHoldingsFromTransactions(buyTransactions || [], sellTransactions || []));
+        setRawBuyTransactions(buyTransactions || []);
+        setRawSellTransactions(sellTransactions || []);
         return;
       }
 
@@ -150,7 +204,8 @@ const PortfolioDropdown = () => {
       const selectedPortfolio = portfolios.find(p => p.portfolioName === portfolioName);
       if (!selectedPortfolio) {
         console.error('Portfolio not found:', portfolioName);
-        setPortfolioHoldings([]);
+        setRawBuyTransactions([]);
+        setRawSellTransactions([]);
         return;
       }
       
@@ -160,18 +215,14 @@ const PortfolioDropdown = () => {
       
       if (!portfolioId) {
         console.error('No portfolio ID found for portfolio:', portfolioName);
-        setPortfolioHoldings([]);
+        setRawBuyTransactions([]);
+        setRawSellTransactions([]);
         return;
       }
       
-      // Use the existing backend API that already has correct WAP calculation
-      const positionsData = await transactionEntryAPI.getPortfolioPositions(portfolioId);
-      console.log('Positions data from backend:', positionsData);
-      
-      // Fetch all buy transactions for this portfolio to calculate Net Quantity and Cost Value
+      // Fetch all buy transactions, then filter to this portfolio
       let buyTransactions = [];
       try {
-        // Get all buy transactions and filter by portfolio
         const allBuyTransactions = await transactionEntryAPI.getAllBuyTransactions();
         buyTransactions = allBuyTransactions.filter(tx => 
           tx.portfolio && tx.portfolio.toLowerCase().trim() === portfolioName.toLowerCase().trim()
@@ -179,13 +230,10 @@ const PortfolioDropdown = () => {
         console.log('Buy transactions for portfolio:', buyTransactions);
       } catch (buyTxError) {
         console.error('Error fetching buy transactions:', buyTxError);
-        // Continue with existing calculation if buy transactions fetch fails
       }
       
-      // Fetch all sell transactions for this portfolio to reduce from buy shares
       let sellTransactions = [];
       try {
-        // Get all sell transactions and filter by portfolio
         const allSellTransactions = await transactionEntryAPI.getAllSellTransactions();
         sellTransactions = allSellTransactions.filter(tx => 
           tx.portfolio_name && tx.portfolio_name.toLowerCase().trim() === portfolioName.toLowerCase().trim()
@@ -193,115 +241,15 @@ const PortfolioDropdown = () => {
         console.log('Sell transactions for portfolio:', sellTransactions);
       } catch (sellTxError) {
         console.error('Error fetching sell transactions:', sellTxError);
-        // Continue with existing calculation if sell transactions fetch fails
       }
-      
-      // Transform the backend data to match the frontend format
-      const holdings = positionsData.map(position => {
-        const companyName = position.companyName || position.symbol || 'Unknown';
-        const companyId = position.equityId || position.id || null;
-        
-        // Find all buy transactions for this company
-        const companyBuyTransactions = buyTransactions.filter(tx => {
-          const txCompanyName = (tx.company_name || tx.companyName || '').toLowerCase().trim();
-          const txSymbol = (tx.symbol || '').toLowerCase().trim();
-          const positionCompanyName = companyName.toLowerCase().trim();
-          const positionSymbol = (position.symbol || '').toLowerCase().trim();
-          
-          return txCompanyName === positionCompanyName || 
-                 txSymbol === positionSymbol ||
-                 (companyId && (tx.equity_id === companyId || tx.equityId === companyId));
-        });
-        
-        console.log(`Buy transactions for ${companyName}:`, companyBuyTransactions);
-        
-        // Find all sell transactions for this company
-        const companySellTransactions = sellTransactions.filter(tx => {
-          const txCompanyName = (tx.company_name || tx.companyName || '').toLowerCase().trim();
-          const txSymbol = (tx.symbol || '').toLowerCase().trim();
-          const positionCompanyName = companyName.toLowerCase().trim();
-          const positionSymbol = (position.symbol || '').toLowerCase().trim();
-          
-          return txCompanyName === positionCompanyName || 
-                 txSymbol === positionSymbol ||
-                 (companyId && (tx.equity_id === companyId || tx.equityId === companyId));
-        });
-        
-        console.log(`Sell transactions for ${companyName}:`, companySellTransactions);
-        
-        // Calculate total buy quantity and gross value
-        const totalBuyQuantity = companyBuyTransactions.reduce((sum, tx) => {
-          const qty = parseFloat(tx.quantity) || 0;
-          return sum + qty;
-        }, 0);
-        
-        const totalBuyGrossValue = companyBuyTransactions.reduce((sum, tx) => {
-          const grossValue = parseFloat(tx.gross_value) || 0;
-          return sum + grossValue;
-        }, 0);
-        
-        // Calculate total sell quantity
-        const totalSellQuantity = companySellTransactions.reduce((sum, tx) => {
-          const qty = parseFloat(tx.quantity) || 0;
-          return sum + qty;
-        }, 0);
-        
-        // Calculate Net Quantity: Buy Quantity - Sell Quantity (remaining shares)
-        const calculatedNetQuantity = Math.max(0, totalBuyQuantity - totalSellQuantity);
-        
-        // Calculate WAP (Weighted Average Price) from buy transactions
-        const wap = totalBuyQuantity > 0 ? totalBuyGrossValue / totalBuyQuantity : 0;
-        
-        // Calculate Cost Value using WAP: Remaining Quantity * WAP
-        const calculatedCostValue = calculatedNetQuantity * wap;
-        
-        // Calculate Charges: sum of all individual charge fields from buy transactions (only for remaining shares proportion)
-        // Proportion charges based on remaining quantity
-        const totalBuyCharges = companyBuyTransactions.reduce((sum, tx) => {
-          const brokerage = parseFloat(tx.brokerage) || 0;
-          const cdsFees = parseFloat(tx.cds_fees) || 0;
-          const cseFees = parseFloat(tx.cse_fees) || 0;
-          const clearingFees = parseFloat(tx.clearing_fees) || 0;
-          const sec = parseFloat(tx.sec) || 0;
-          const stl = parseFloat(tx.stl) || 0;
-          return sum + brokerage + cdsFees + cseFees + clearingFees + sec + stl;
-        }, 0);
-        
-        // Proportion charges based on remaining quantity (WAP approach)
-        const calculatedCharges = totalBuyQuantity > 0 ? (totalBuyCharges * (calculatedNetQuantity / totalBuyQuantity)) : 0;
-        
-        // Use calculated values if buy transactions exist, otherwise use backend values
-        const netQuantity = calculatedNetQuantity > 0 ? calculatedNetQuantity : (parseFloat(position.quantity) || 0);
-        const costValue = calculatedCostValue > 0 ? calculatedCostValue : (parseFloat(position.costValue) || 0);
-        
-        const costPrice = wap > 0 ? wap : (parseFloat(position.costPrice) || 0); // Use calculated WAP
-        
-        // Use calculated charges from buy transactions, otherwise fallback to backend charges
-        const charges = calculatedCharges > 0 ? calculatedCharges : (parseFloat(position.charges) || 0);
-        // Calculate Net Value: Cost Value + Charges (for remaining shares)
-        const netValue = costValue + charges;
-        const costPerShare = netQuantity > 0 ? netValue / netQuantity : 0;
-        
-        return {
-          companyName: companyName,
-          companyId: companyId,
-          netQuantity: netQuantity,
-          avgBuyPrice: costPrice, // This is the WAP from backend
-          costValue: costValue,
-          totalCharges: charges,
-          netValue: netValue,
-          costPerShare: costPerShare
-        };
-      })
-      .filter(holding => holding.netQuantity > 0) // Only show companies with positive holdings
-      .sort((a, b) => a.companyName.localeCompare(b.companyName));
 
-      console.log('Final holdings with calculated values:', holdings); // Debug log
-      setPortfolioHoldings(holdings);
+      setRawBuyTransactions(buyTransactions || []);
+      setRawSellTransactions(sellTransactions || []);
     } catch (error) {
       console.error('Error loading portfolio holdings:', error);
       console.error('Error details:', error.message);
-      setPortfolioHoldings([]);
+      setRawBuyTransactions([]);
+      setRawSellTransactions([]);
     } finally {
       setHoldingsLoading(false);
     }
@@ -321,6 +269,64 @@ const PortfolioDropdown = () => {
     loadPortfolios();
     loadAssignedCostingMethods();
   }, []);
+
+  useEffect(() => {
+    setHoldingsLastUpdateFrom('');
+    setHoldingsLastUpdateTo('');
+  }, [selectedPortfolio]);
+
+  const isAllPortfoliosSelected = selectedPortfolio === ALL_PORTFOLIOS_VALUE;
+
+  const filteredTransactions = useMemo(() => {
+    const from = holdingsLastUpdateFrom.trim();
+    const to = holdingsLastUpdateTo.trim();
+    const todayYmd = toLocalYmd(new Date());
+    if (!from && !to) {
+      return { buy: rawBuyTransactions, sell: rawSellTransactions };
+    }
+
+    let effFrom = from;
+    let effTo = to;
+    if (from && to && from > to) {
+      effFrom = to;
+      effTo = from;
+    }
+
+    const inRange = (tx) => {
+      const ymd = txTradeDateYmd(tx);
+      if (!ymd) return false;
+      if (effFrom && ymd < effFrom) return false;
+      if (effTo) {
+        if (ymd > effTo) return false;
+      } else if (effFrom && todayYmd && ymd > todayYmd) {
+        return false;
+      }
+      return true;
+    };
+
+    return {
+      buy: (rawBuyTransactions || []).filter(inRange),
+      sell: (rawSellTransactions || []).filter(inRange),
+    };
+  }, [rawBuyTransactions, rawSellTransactions, holdingsLastUpdateFrom, holdingsLastUpdateTo]);
+
+  const holdingsAllDates = useMemo(
+    () => buildHoldingsFromTransactions(rawBuyTransactions || [], rawSellTransactions || []),
+    [rawBuyTransactions, rawSellTransactions]
+  );
+
+  const holdingsFilteredDates = useMemo(
+    () => buildHoldingsFromTransactions(filteredTransactions.buy || [], filteredTransactions.sell || []),
+    [filteredTransactions]
+  );
+
+  const hasHoldingsDateFilter = Boolean(holdingsLastUpdateFrom.trim() || holdingsLastUpdateTo.trim());
+
+  const holdingsDateRangeWasReversed = Boolean(
+    holdingsLastUpdateFrom.trim() &&
+      holdingsLastUpdateTo.trim() &&
+      holdingsLastUpdateFrom.trim() > holdingsLastUpdateTo.trim()
+  );
 
 
   const handleRefresh = async () => {
@@ -360,7 +366,8 @@ const PortfolioDropdown = () => {
     if (value) {
       await loadPortfolioHoldings(value);
     } else {
-      setPortfolioHoldings([]);
+      setRawBuyTransactions([]);
+      setRawSellTransactions([]);
     }
   };
 
@@ -458,47 +465,107 @@ const PortfolioDropdown = () => {
         </div>
       </div>
 
-      {/* Costing Method Info Section */}
       {selectedPortfolio && (
-        <div className="pf-costing-method-section">
-          <div className="pf-costing-method-card">
-            <div className="pf-costing-method-header">
-              <div className="pf-costing-method-content">
-                <h3 className="pf-costing-method-title">Portfolio Costing Method</h3>
-                <div className="pf-costing-method-details">
-                  <span className="pf-portfolio-info">
-                    <strong>Portfolio:</strong>{' '}
+        <div className="pf-secondary-container" aria-label="Trade date filter and costing method">
+          <div className="pf-secondary-grid pf-secondary-grid-v2">
+            <div
+              className={`pf-holdings-date-filter${holdingsDateRangeWasReversed ? ' pf-holdings-date-filter-reversed' : ''}`}
+              aria-label="Filter holdings by transaction trade date"
+            >
+              <div className="pf-panel-title-row">
+                <div className="pf-panel-title">
+                  <span>Trade date</span>
+                </div>
+                {hasHoldingsDateFilter ? (
+                  <button
+                    type="button"
+                    className="pf-link-btn"
+                    onClick={() => {
+                      setHoldingsLastUpdateFrom('');
+                      setHoldingsLastUpdateTo('');
+                    }}
+                  >
+                    Clear
+                  </button>
+                ) : (
+                  <span className="pf-panel-meta">Optional</span>
+                )}
+              </div>
+              {holdingsDateRangeWasReversed ? (
+                <div className="pf-inline-warning">From/To were reversed for filtering.</div>
+              ) : null}
+              <div className="pf-holdings-date-filter-controls">
+                <div className="pf-holdings-date-filter-field">
+                  <label htmlFor="pfHoldingsLastFrom">From</label>
+                  <input
+                    id="pfHoldingsLastFrom"
+                    type="date"
+                    className="pf-holdings-date-input"
+                    value={holdingsLastUpdateFrom}
+                    onChange={(e) => setHoldingsLastUpdateFrom(e.target.value)}
+                    disabled={holdingsLoading}
+                  />
+                </div>
+                <div className="pf-holdings-date-filter-field">
+                  <label htmlFor="pfHoldingsLastTo">To</label>
+                  <input
+                    id="pfHoldingsLastTo"
+                    type="date"
+                    className="pf-holdings-date-input"
+                    value={holdingsLastUpdateTo}
+                    onChange={(e) => setHoldingsLastUpdateTo(e.target.value)}
+                    disabled={holdingsLoading}
+                  />
+                </div>
+              </div>
+              <ul className="pf-rule-list" aria-label="Trade date filter rules">
+                <li><strong>From</strong> only: include trades from that date through today.</li>
+                <li><strong>To</strong> only: include trades on or before that date.</li>
+                <li><strong>Both</strong>: inclusive between the dates.</li>
+                <li>Leave both blank to use all trades.</li>
+              </ul>
+            </div>
+
+            <div className="pf-costing-method-section">
+              <div className="pf-panel-title-row">
+                <div className="pf-panel-title">
+                  <span>Costing method</span>
+                </div>
+                {selectedPortfolioCostingMethod ? (
+                  <span className="pf-badge pf-badge-blue">Assigned</span>
+                ) : (
+                  <span className="pf-badge pf-badge-gray">Not assigned</span>
+                )}
+              </div>
+
+              <div className="pf-kv">
+                <div className="pf-kv-row">
+                  <div className="pf-kv-label">Portfolio</div>
+                  <div className="pf-kv-value">
                     {selectedPortfolio === ALL_PORTFOLIOS_VALUE
                       ? 'All Portfolios'
                       : `${selectedPortfolio} (${selectedPortfolioId})`}
-                  </span>
-                  <div className="pf-costing-method-info">
+                  </div>
+                </div>
+                <div className="pf-kv-row">
+                  <div className="pf-kv-label">Method</div>
+                  <div className="pf-kv-value">
                     {selectedPortfolio === ALL_PORTFOLIOS_VALUE ? (
-                      <span className="pf-costing-method-value pf-method-not-assigned">
-                        Multiple portfolios selected — costing method varies by portfolio
+                      <span className="pf-muted">
+                        Multiple portfolios selected - costing method varies by portfolio
                       </span>
                     ) : selectedPortfolioCostingMethod ? (
-                      <>
-                        <span className="pf-costing-method-label">Assigned Method:</span>
-                        <span className="pf-costing-method-value pf-method-assigned">
-                          {costingMethodLabels[selectedPortfolioCostingMethod] || selectedPortfolioCostingMethod}
-                        </span>
-                      </>
-                    ) : (
-                      <span className="pf-costing-method-value pf-method-not-assigned">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                          <circle cx="12" cy="12" r="10"></circle>
-                          <line x1="12" y1="8" x2="12" y2="12"></line>
-                          <line x1="12" y1="16" x2="12.01" y2="16"></line>
-                        </svg>
-                        No costing method assigned to this portfolio
+                      <span className="pf-method-pill">
+                        {costingMethodLabels[selectedPortfolioCostingMethod] || selectedPortfolioCostingMethod}
                       </span>
+                    ) : (
+                      <span className="pf-muted">No costing method assigned</span>
                     )}
                   </div>
                 </div>
               </div>
-            </div>
           </div>
+        </div>
         </div>
       )}
 
@@ -506,8 +573,28 @@ const PortfolioDropdown = () => {
       {selectedPortfolio && (
            <div className="ph-table-section">
              <div className="ph-table-header">
-               <h2>Portfolio Holdings</h2>
-               <p>Current holdings for portfolio: <strong>{selectedPortfolio}</strong></p>
+               <div className="ph-table-header-row">
+                 <h2>Portfolio Holdings</h2>
+                 {hasHoldingsDateFilter ? (
+                   <button
+                     type="button"
+                     className="pf-holdings-date-clear ph-header-clear"
+                     onClick={() => {
+                       setHoldingsLastUpdateFrom('');
+                       setHoldingsLastUpdateTo('');
+                     }}
+                   >
+                     Clear date filter
+                   </button>
+                 ) : null}
+               </div>
+               <p>
+                 Current holdings for{' '}
+                 <strong>{isAllPortfoliosSelected ? 'All Portfolios' : selectedPortfolio}</strong>
+                 {hasHoldingsDateFilter && holdingsAllDates.length > 0
+                   ? ` (${holdingsFilteredDates.length} of ${holdingsAllDates.length} rows by trade date filter).`
+                   : '.'}
+               </p>
           </div>
           
              {holdingsLoading ? (
@@ -515,7 +602,7 @@ const PortfolioDropdown = () => {
                  <div className="ph-loading-spinner"></div>
                  <p>Loading portfolio holdings...</p>
             </div>
-             ) : portfolioHoldings.length === 0 ? (
+             ) : holdingsAllDates.length === 0 ? (
                <div className="ph-no-data">
                  <div className="ph-no-data-icon">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -524,6 +611,29 @@ const PortfolioDropdown = () => {
             </div>
                  <h3>No Holdings Data</h3>
                  <p>No holdings found for this portfolio. Make sure you have transactions recorded for this portfolio.</p>
+              </div>
+            ) : hasHoldingsDateFilter && holdingsFilteredDates.length === 0 ? (
+              <div className="ph-no-data">
+                <div className="ph-no-data-icon">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                  </svg>
+                </div>
+                <h3>No Holdings in This Date Range</h3>
+                <p>
+                  None of the holdings remain after filtering trades by <strong>trade date</strong>. Adjust the filter
+                  or clear the dates.
+                </p>
+                <button
+                  type="button"
+                  className="pf-holdings-date-clear ph-no-data-clear"
+                  onClick={() => {
+                    setHoldingsLastUpdateFrom('');
+                    setHoldingsLastUpdateTo('');
+                  }}
+                >
+                  Clear date filter
+                </button>
               </div>
             ) : (
                <div className="ph-table-container">
@@ -537,10 +647,11 @@ const PortfolioDropdown = () => {
                        <th>Charges</th>
                        <th>Net Value</th>
                        <th>Cost per Share</th>
+                        <th>Last Trade Date</th>
                       </tr>
                     </thead>
                    <tbody>
-                     {portfolioHoldings.map((holding) => (
+                     {holdingsFilteredDates.map((holding) => (
                        <tr key={holding.companyName} className="ph-table-row">
                          <td className="ph-company-name">{holding.companyName}</td>
                          <td className="ph-quantity">{(holding.netQuantity || 0).toLocaleString()}</td>
@@ -549,6 +660,9 @@ const PortfolioDropdown = () => {
                          <td className="ph-charges">{(holding.totalCharges || 0).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
                          <td className="ph-net-value">{(holding.netValue || 0).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 4})}</td>
                          <td className="ph-cost-per-share">{(holding.costPerShare || 0).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 4})}</td>
+                         <td className="ph-last-update">
+                           {holding.lastTradeDate ? holding.lastTradeDate : '—'}
+                         </td>
                         </tr>
                       ))}
                     </tbody>
@@ -556,31 +670,32 @@ const PortfolioDropdown = () => {
                      <tr className="ph-total-row">
                        <td><strong>Portfolio Totals</strong></td>
                        <td className="ph-total-quantity">
-                         {portfolioHoldings.reduce((sum, holding) => sum + (holding.netQuantity || 0), 0).toLocaleString()}
+                         {holdingsFilteredDates.reduce((sum, holding) => sum + (holding.netQuantity || 0), 0).toLocaleString()}
                        </td>
                        <td className="ph-total-avg-price">
-                         {portfolioHoldings.length > 0 ? 
-                           (portfolioHoldings.reduce((sum, holding) => sum + (holding.costValue || 0), 0) / 
-                            portfolioHoldings.reduce((sum, holding) => sum + (holding.netQuantity || 0), 0)).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 4}) : 
+                         {holdingsFilteredDates.length > 0 ? 
+                           (holdingsFilteredDates.reduce((sum, holding) => sum + (holding.costValue || 0), 0) / 
+                            holdingsFilteredDates.reduce((sum, holding) => sum + (holding.netQuantity || 0), 0)).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 4}) : 
                            '0.00'
                          }
                        </td>
                        <td className="ph-total-value-sum">
-                         {portfolioHoldings.reduce((sum, holding) => sum + (holding.costValue || 0), 0).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 4})}
+                         {holdingsFilteredDates.reduce((sum, holding) => sum + (holding.costValue || 0), 0).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 4})}
                        </td>
                        <td className="ph-total-charges">
-                         {portfolioHoldings.reduce((sum, holding) => sum + (holding.totalCharges || 0), 0).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}
+                         {holdingsFilteredDates.reduce((sum, holding) => sum + (holding.totalCharges || 0), 0).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}
                        </td>
                        <td className="ph-total-net-value">
-                         {portfolioHoldings.reduce((sum, holding) => sum + (holding.netValue || 0), 0).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 4})}
+                         {holdingsFilteredDates.reduce((sum, holding) => sum + (holding.netValue || 0), 0).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 4})}
                        </td>
                        <td className="ph-total-cost-per-share">
-                         {portfolioHoldings.length > 0 ? 
-                           (portfolioHoldings.reduce((sum, holding) => sum + (holding.netValue || 0), 0) / 
-                            portfolioHoldings.reduce((sum, holding) => sum + (holding.netQuantity || 0), 0)).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 4}) : 
+                         {holdingsFilteredDates.length > 0 ? 
+                           (holdingsFilteredDates.reduce((sum, holding) => sum + (holding.netValue || 0), 0) / 
+                            holdingsFilteredDates.reduce((sum, holding) => sum + (holding.netQuantity || 0), 0)).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 4}) : 
                            '0.00'
                          }
                        </td>
+                       <td className="ph-total-last-update" aria-hidden="true" />
                      </tr>
                    </tfoot>
                   </table>

@@ -1,6 +1,17 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useMemo, useState, useEffect, useCallback } from 'react';
 import { transactionEntryAPI, portfolioAPI } from '../../services/api';
+import { Scatter } from 'react-chartjs-2';
+import {
+  Chart as ChartJS,
+  LinearScale,
+  PointElement,
+  Tooltip,
+  Legend,
+  ScatterController
+} from 'chart.js';
 import './RiskReturnScatterPlot.css';
+
+ChartJS.register(LinearScale, PointElement, Tooltip, Legend, ScatterController);
 
 const RiskReturnScatterPlot = ({ syncedPortfolioId }) => {
   const [scatterData, setScatterData] = useState([]);
@@ -10,7 +21,6 @@ const RiskReturnScatterPlot = ({ syncedPortfolioId }) => {
   const [colorMode, setColorMode] = useState('sector'); // 'sector' or 'performance'
   const [portfolios, setPortfolios] = useState([]);
   const [selectedPortfolio, setSelectedPortfolio] = useState('all');
-  const [hoveredPoint, setHoveredPoint] = useState(null);
   // Fetch active portfolios (syncedPortfolioId on first paint comes from dashboard hero)
   useEffect(() => {
     const fetchPortfolios = async () => {
@@ -149,69 +159,200 @@ const RiskReturnScatterPlot = ({ syncedPortfolioId }) => {
 
   const chartData = getChartData();
 
-  // Responsive width — wider plot on desktop
-  const availableWidth =
-    typeof window !== 'undefined' ? window.innerWidth - 420 : 720;
-  const containerWidth = Math.min(760, Math.max(440, availableWidth));
-  const chartWidth = containerWidth;
-  const chartHeight = 560;
-  const margin = { top: 20, right: 20, bottom: 60, left: 80 };
-  const innerWidth = chartWidth - margin.left - margin.right;
-  const innerHeight = chartHeight - margin.top - margin.bottom;
+  // Chart.js handles responsive sizing; we keep the layout via CSS.
 
-  const scaleX = (volatility) => {
-    if (!chartData) return 0;
-    return ((volatility - chartData.minVolatility) / chartData.volatilityRange) * innerWidth;
-  };
+  // point color/size are handled in the Chart.js dataset (scriptable props)
 
-  const scaleY = (returnValue) => {
-    if (!chartData) return 0;
-    return innerHeight - ((returnValue - chartData.minReturn) / chartData.returnRange) * innerHeight;
-  };
+  const chartJsData = useMemo(() => {
+    if (!scatterData?.length) return null;
+    return {
+      datasets: [
+        {
+          label: 'Holdings',
+          data: scatterData.map((p, index) => ({
+            x: p.volatility,
+            y: p.return,
+            symbol: p.symbol,
+            companyName: p.companyName,
+            sector: p.sector,
+            marketValue: p.marketValue,
+            quantity: p.quantity,
+            __color: colorMode === 'sector' ? getSectorColor(p.sector, index) : getPerformanceColor(p.return),
+            __radius: (() => {
+              if (scatterData.length === 0) return 6;
+              const maxValue = Math.max(...scatterData.map(d => d.marketValue));
+              const minValue = Math.min(...scatterData.map(d => d.marketValue));
+              const range = maxValue - minValue;
+              if (range === 0) return 6;
+              const normalized = (p.marketValue - minValue) / range;
+              return 4 + normalized * 8;
+            })()
+          })),
+          pointBackgroundColor: (ctx) => ctx?.raw?.__color || '#94a3b8',
+          pointBorderColor: '#ffffff',
+          pointBorderWidth: 1,
+          pointRadius: (ctx) => Number(ctx?.raw?.__radius) || 6,
+          pointHoverRadius: (ctx) => (Number(ctx?.raw?.__radius) || 6) + 2,
+          pointHoverBorderColor: '#1E40AF',
+          pointHoverBorderWidth: 2
+        }
+      ]
+    };
+  }, [scatterData, colorMode]);
 
-  const getPointColor = (point, index) => {
-    if (colorMode === 'sector') {
-      return getSectorColor(point.sector, index);
-    } else {
-      return getPerformanceColor(point.return);
-    }
-  };
+  const quadrantPlugin = useMemo(() => {
+    return {
+      id: 'riskReturnQuadrants',
+      beforeDraw: (chart) => {
+        const { ctx, chartArea, scales } = chart;
+        if (!chartArea) return;
+        const x = scales.x;
+        const y = scales.y;
+        if (!x || !y) return;
 
-  const getPointSize = (marketValue) => {
-    if (scatterData.length === 0) return 6;
-    const maxValue = Math.max(...scatterData.map(d => d.marketValue));
-    const minValue = Math.min(...scatterData.map(d => d.marketValue));
-    const range = maxValue - minValue;
-    if (range === 0) return 6;
-    const normalized = (marketValue - minValue) / range;
-    return 4 + normalized * 8; // Size between 4 and 12
-  };
+        const midX = (x.min + x.max) / 2;
+        const midY = (y.min + y.max) / 2;
+        const sx = x.getPixelForValue(midX);
+        const sy = y.getPixelForValue(midY);
+
+        ctx.save();
+        // Quadrant fills
+        ctx.fillStyle = 'rgba(34, 197, 94, 0.07)'; // lower vol, higher return
+        ctx.fillRect(chartArea.left, chartArea.top, sx - chartArea.left, sy - chartArea.top);
+
+        ctx.fillStyle = 'rgba(245, 158, 11, 0.08)'; // higher vol, higher return
+        ctx.fillRect(sx, chartArea.top, chartArea.right - sx, sy - chartArea.top);
+
+        ctx.fillStyle = 'rgba(100, 116, 139, 0.07)'; // lower vol, lower return
+        ctx.fillRect(chartArea.left, sy, sx - chartArea.left, chartArea.bottom - sy);
+
+        ctx.fillStyle = 'rgba(239, 68, 68, 0.08)'; // higher vol, lower return
+        ctx.fillRect(sx, sy, chartArea.right - sx, chartArea.bottom - sy);
+
+        // Mid lines (dashed)
+        ctx.strokeStyle = 'rgba(148, 163, 184, 0.65)';
+        ctx.lineWidth = 1;
+        ctx.setLineDash([4, 4]);
+        ctx.beginPath();
+        ctx.moveTo(sx, chartArea.top);
+        ctx.lineTo(sx, chartArea.bottom);
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.moveTo(chartArea.left, sy);
+        ctx.lineTo(chartArea.right, sy);
+        ctx.stroke();
+        ctx.setLineDash([]);
+        ctx.restore();
+      },
+      afterDraw: (chart) => {
+        const { ctx, chartArea, scales } = chart;
+        if (!chartArea) return;
+        const y = scales.y;
+        if (!y) return;
+        if (y.min > 0 || y.max < 0) return;
+
+        const y0 = y.getPixelForValue(0);
+        ctx.save();
+        ctx.strokeStyle = 'rgba(107, 114, 128, 0.7)';
+        ctx.lineWidth = 2;
+        ctx.setLineDash([4, 4]);
+        ctx.beginPath();
+        ctx.moveTo(chartArea.left, y0);
+        ctx.lineTo(chartArea.right, y0);
+        ctx.stroke();
+        ctx.setLineDash([]);
+        ctx.restore();
+      }
+    };
+  }, []);
+
+  const chartJsOptions = useMemo(() => {
+    return {
+      responsive: true,
+      maintainAspectRatio: false,
+      animation: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          backgroundColor: 'rgba(15, 23, 42, 0.92)',
+          titleFont: { size: 12, weight: '600' },
+          bodyFont: { size: 12 },
+          padding: 10,
+          cornerRadius: 4,
+          callbacks: {
+            title: (items) => {
+              const raw = items?.[0]?.raw;
+              const symbol = raw?.symbol || '';
+              const name = raw?.companyName || '';
+              return name ? `${symbol} — ${name}` : symbol;
+            },
+            label: (ctx) => {
+              const raw = ctx?.raw || {};
+              const vol = Number(raw.x) || 0;
+              const ret = Number(raw.y) || 0;
+              const mv = Number(raw.marketValue) || 0;
+              const qty = Number(raw.quantity) || 0;
+              const mvFmt = new Intl.NumberFormat('en-US', {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+              }).format(mv);
+              const qtyFmt = new Intl.NumberFormat('en-US', {
+                maximumFractionDigits: 0
+              }).format(qty);
+              const sector = raw.sector || 'Unknown';
+              return [
+                `Volatility: ${vol.toFixed(2)}%`,
+                `Return: ${ret >= 0 ? '+' : ''}${ret.toFixed(2)}%`,
+                `Sector: ${sector}`,
+                `Market Value: LKR ${mvFmt}`,
+                `Quantity: ${qtyFmt}`
+              ];
+            }
+          }
+        }
+      },
+      scales: {
+        x: {
+          type: 'linear',
+          title: {
+            display: true,
+            text: 'Risk (Volatility %)',
+            color: '#374151',
+            font: { size: 12, weight: '600' }
+          },
+          ticks: {
+            color: '#6B7280',
+            callback: (v) => `${Number(v).toFixed(1)}%`
+          },
+          grid: {
+            color: 'rgba(229, 231, 235, 0.55)'
+          }
+        },
+        y: {
+          type: 'linear',
+          title: {
+            display: true,
+            text: 'Return (%)',
+            color: '#374151',
+            font: { size: 12, weight: '600' }
+          },
+          ticks: {
+            color: '#6B7280',
+            callback: (v) => `${Number(v).toFixed(1)}%`
+          },
+          grid: {
+            color: 'rgba(229, 231, 235, 0.55)'
+          }
+        }
+      }
+    };
+  }, []);
 
   return (
     <div className="risk-return-scatter-plot">
       <div className="scatter-plot-header">
         <div className="header-left">
-          <h3>Risk-Return Scatter Plot</h3>
-          <span className="card-subtitle">Portfolio holdings by risk vs return</span>
-        </div>
-        <div className="header-controls">
-          {portfolios.length > 0 && (
-            <select
-              value={selectedPortfolio}
-              onChange={(e) => setSelectedPortfolio(e.target.value)}
-              className="portfolio-selector"
-            >
-              <option value="all">All Portfolios</option>
-              {portfolios.map((portfolio) => {
-                const portfolioId = portfolio.id || portfolio.portfolioId;
-                return (
-                  <option key={portfolioId} value={portfolioId}>
-                    {portfolio.portfolioName}
-                  </option>
-                );
-              })}
-            </select>
-          )}
+          <span className="card-subtitle">Risk-Return Scatter Plot: Portfolio holdings by risk vs return</span>
         </div>
       </div>
 
@@ -285,246 +426,28 @@ const RiskReturnScatterPlot = ({ syncedPortfolioId }) => {
 
       {!isLoading && !error && scatterData.length > 0 && chartData && (
         <div className="scatter-plot-container">
-          <div className="scatter-plot-svg-wrapper">
-            <svg 
-              width={chartWidth} 
-              height={chartHeight} 
-              viewBox={`0 0 ${chartWidth} ${chartHeight}`}
-              className="scatter-plot-svg"
-              preserveAspectRatio="xMidYMid meet"
-            >
-            <defs>
-              <filter id="glow">
-                <feGaussianBlur stdDeviation="2" result="coloredBlur"/>
-                <feMerge>
-                  <feMergeNode in="coloredBlur"/>
-                  <feMergeNode in="SourceGraphic"/>
-                </feMerge>
-              </filter>
-            </defs>
-
-            <g transform={`translate(${margin.left}, ${margin.top})`}>
-              {chartData.volatilityRange > 0 && chartData.returnRange > 0 && (
-                <g className="quadrant-zones" aria-hidden="true">
-                  {(() => {
-                    const midVol =
-                      (chartData.minVolatility + chartData.maxVolatility) / 2;
-                    const midRet =
-                      (chartData.minReturn + chartData.maxReturn) / 2;
-                    const sx = scaleX(midVol);
-                    const sy = scaleY(midRet);
-                    return (
-                      <>
-                        <rect
-                          x={0}
-                          y={0}
-                          width={sx}
-                          height={sy}
-                          fill="rgba(34, 197, 94, 0.07)"
-                        />
-                        <rect
-                          x={sx}
-                          y={0}
-                          width={innerWidth - sx}
-                          height={sy}
-                          fill="rgba(245, 158, 11, 0.08)"
-                        />
-                        <rect
-                          x={0}
-                          y={sy}
-                          width={sx}
-                          height={innerHeight - sy}
-                          fill="rgba(100, 116, 139, 0.07)"
-                        />
-                        <rect
-                          x={sx}
-                          y={sy}
-                          width={innerWidth - sx}
-                          height={innerHeight - sy}
-                          fill="rgba(239, 68, 68, 0.08)"
-                        />
-                        <line
-                          x1={sx}
-                          y1={0}
-                          x2={sx}
-                          y2={innerHeight}
-                          stroke="#94a3b8"
-                          strokeWidth="1"
-                          strokeDasharray="4 4"
-                          opacity="0.65"
-                        />
-                        <line
-                          x1={0}
-                          y1={sy}
-                          x2={innerWidth}
-                          y2={sy}
-                          stroke="#94a3b8"
-                          strokeWidth="1"
-                          strokeDasharray="4 4"
-                          opacity="0.65"
-                        />
-                      </>
-                    );
-                  })()}
-                </g>
-              )}
-              {/* Grid lines */}
-              <g className="grid-lines">
-                {[0, 0.25, 0.5, 0.75, 1].map((t) => (
-                  <g key={t}>
-                    <line
-                      x1={0}
-                      y1={t * innerHeight}
-                      x2={innerWidth}
-                      y2={t * innerHeight}
-                      stroke="#E5E7EB"
-                      strokeWidth="1"
-                      opacity="0.5"
-                    />
-                    <line
-                      x1={t * innerWidth}
-                      y1={0}
-                      x2={t * innerWidth}
-                      y2={innerHeight}
-                      stroke="#E5E7EB"
-                      strokeWidth="1"
-                      opacity="0.5"
-                    />
-                  </g>
-                ))}
-              </g>
-
-              {/* Zero return line */}
-              {chartData.minReturn <= 0 && chartData.maxReturn >= 0 && (
-                <line
-                  x1={0}
-                  y1={scaleY(0)}
-                  x2={innerWidth}
-                  y2={scaleY(0)}
-                  stroke="#6B7280"
-                  strokeWidth="2"
-                  strokeDasharray="4 4"
-                  opacity="0.7"
-                />
-              )}
-
-              {/* Data points */}
-              {scatterData.map((point, index) => {
-                const x = scaleX(point.volatility);
-                const y = scaleY(point.return);
-                const color = getPointColor(point, index);
-                const size = getPointSize(point.marketValue);
-                const isHovered = hoveredPoint?.symbol === point.symbol;
-
-                return (
-                  <g key={point.symbol}>
-                    <circle
-                      cx={x}
-                      cy={y}
-                      r={isHovered ? size + 2 : size}
-                      fill={color}
-                      stroke={isHovered ? '#1E40AF' : '#fff'}
-                      strokeWidth={isHovered ? 2 : 1}
-                      opacity={isHovered ? 1 : 0.85}
-                      className="scatter-point"
-                      filter={isHovered ? 'url(#glow)' : 'none'}
-                      onMouseEnter={() => setHoveredPoint(point)}
-                      onMouseLeave={() => setHoveredPoint(null)}
-                      style={{ cursor: 'pointer' }}
-                    />
-                  </g>
-                );
-              })}
-
-              {/* Axes */}
-              <g className="axes">
-                {/* X-axis */}
-                <line
-                  x1={0}
-                  y1={innerHeight}
-                  x2={innerWidth}
-                  y2={innerHeight}
-                  stroke="#374151"
-                  strokeWidth="2"
-                />
-                {/* Y-axis */}
-                <line
-                  x1={0}
-                  y1={0}
-                  x2={0}
-                  y2={innerHeight}
-                  stroke="#374151"
-                  strokeWidth="2"
-                />
-              </g>
-
-              {/* X-axis labels */}
-              <g className="x-axis-labels">
-                {[0, 0.25, 0.5, 0.75, 1].map((t) => {
-                  const value = chartData.minVolatility + t * chartData.volatilityRange;
-                  return (
-                    <text
-                      key={t}
-                      x={t * innerWidth}
-                      y={innerHeight + 20}
-                      textAnchor="middle"
-                      className="axis-label"
-                      fontSize="11"
-                      fill="#6B7280"
-                    >
-                      {value.toFixed(1)}%
-                    </text>
-                  );
-                })}
-              </g>
-
-              {/* Y-axis labels */}
-              <g className="y-axis-labels">
-                {[0, 0.25, 0.5, 0.75, 1].map((t) => {
-                  const value = chartData.maxReturn - t * chartData.returnRange;
-                  return (
-                    <text
-                      key={t}
-                      x={-10}
-                      y={t * innerHeight + 5}
-                      textAnchor="end"
-                      className="axis-label"
-                      fontSize="11"
-                      fill="#6B7280"
-                      dominantBaseline="middle"
-                    >
-                      {value.toFixed(1)}%
-                    </text>
-                  );
-                })}
-              </g>
-
-              {/* Axis titles */}
-              <text
-                x={innerWidth / 2}
-                y={innerHeight + 45}
-                textAnchor="middle"
-                className="axis-title"
-                fontSize="12"
-                fontWeight="600"
-                fill="#374151"
-              >
-                Risk (Volatility %)
-              </text>
-              <text
-                x={-innerHeight / 2}
-                y={-50}
-                textAnchor="middle"
-                className="axis-title"
-                fontSize="12"
-                fontWeight="600"
-                fill="#374151"
-                transform="rotate(-90)"
-              >
-                Return (%)
-              </text>
-            </g>
-          </svg>
+          <div className="scatter-plot-svg-wrapper scatter-plot-chartjs-wrapper">
+            {chartJsData && (
+              <Scatter
+                data={chartJsData}
+                options={{
+                  ...chartJsOptions,
+                  scales: {
+                    x: {
+                      ...chartJsOptions.scales.x,
+                      min: chartData.minVolatility,
+                      max: chartData.maxVolatility
+                    },
+                    y: {
+                      ...chartJsOptions.scales.y,
+                      min: chartData.minReturn,
+                      max: chartData.maxReturn
+                    }
+                  }
+                }}
+                plugins={[quadrantPlugin]}
+              />
+            )}
           </div>
 
           <div className="scatter-quadrant-legend" aria-label="Risk-return zones">
@@ -545,40 +468,6 @@ const RiskReturnScatterPlot = ({ syncedPortfolioId }) => {
               Higher vol · lower return
             </span>
           </div>
-
-          {/* Tooltip */}
-          {hoveredPoint && (
-            <div className="scatter-tooltip">
-              <div className="tooltip-header">
-                <strong>{hoveredPoint.symbol}</strong>
-                <span>{hoveredPoint.companyName}</span>
-              </div>
-              <div className="tooltip-content">
-                <div className="tooltip-row">
-                  <span>Volatility:</span>
-                  <span>{hoveredPoint.volatility.toFixed(2)}%</span>
-                </div>
-                <div className="tooltip-row">
-                  <span>Return:</span>
-                  <span className={hoveredPoint.return >= 0 ? 'positive' : 'negative'}>
-                    {hoveredPoint.return >= 0 ? '+' : ''}{hoveredPoint.return.toFixed(2)}%
-                  </span>
-                </div>
-                <div className="tooltip-row">
-                  <span>Sector:</span>
-                  <span>{hoveredPoint.sector}</span>
-                </div>
-                <div className="tooltip-row">
-                  <span>Market Value:</span>
-                  <span>LKR {hoveredPoint.marketValue.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
-                </div>
-                <div className="tooltip-row">
-                  <span>Quantity:</span>
-                  <span>{hoveredPoint.quantity.toLocaleString()}</span>
-                </div>
-              </div>
-            </div>
-          )}
 
           {/* Legend */}
           <div className="scatter-legend">

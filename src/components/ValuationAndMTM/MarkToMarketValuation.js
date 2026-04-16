@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { portfolioAPI, tradeSummaryAPI, transactionEntryAPI } from '../../services/api';
 import {
   exportMtmPositionDetailsToPdf,
@@ -75,6 +75,21 @@ function parseTradeDate(raw) {
     return new Date(raw);
   }
   return new Date(raw);
+}
+
+/** Local calendar YYYY-MM-DD (matches native date inputs). */
+function toLocalYmd(d) {
+  if (!(d instanceof Date) || Number.isNaN(d.getTime())) return null;
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${y}-${m}-${day}`;
+}
+
+function lastPriceUpdateLocalYmd(item) {
+  if (!item?.lastPriceUpdate) return null;
+  const d = new Date(item.lastPriceUpdate);
+  return toLocalYmd(d);
 }
 
 function formatAxisPriceLKR(value) {
@@ -1655,6 +1670,8 @@ const MarkToMarketValuation = () => {
   const [portfolios, setPortfolios] = useState([]);
   const [selectedPortfolio, setSelectedPortfolio] = useState('');
   const [mtmData, setMtmData] = useState([]);
+  const [mtmLastUpdateFrom, setMtmLastUpdateFrom] = useState('');
+  const [mtmLastUpdateTo, setMtmLastUpdateTo] = useState('');
   const [loading, setLoading] = useState(false);
   const [portfoliosLoading, setPortfoliosLoading] = useState(true);
   const [portfoliosError, setPortfoliosError] = useState('');
@@ -1823,6 +1840,11 @@ const MarkToMarketValuation = () => {
   }, [selectedPortfolio, loadMtmData]);
 
   useEffect(() => {
+    setMtmLastUpdateFrom('');
+    setMtmLastUpdateTo('');
+  }, [selectedPortfolio]);
+
+  useEffect(() => {
     if (selectedCompany) {
       fetchCompanyData(selectedCompany, selectedPeriod);
     }
@@ -1876,7 +1898,43 @@ const MarkToMarketValuation = () => {
     return portfolio ? portfolio.portfolioName : '';
   };
 
-  const totals = computeMtmPortfolioTotals(mtmData);
+  const filteredMtmData = useMemo(() => {
+    if (!mtmData.length) return [];
+    const from = mtmLastUpdateFrom.trim();
+    const to = mtmLastUpdateTo.trim();
+    if (!from && !to) return mtmData;
+
+    let effFrom = from;
+    let effTo = to;
+    if (from && to && from > to) {
+      effFrom = to;
+      effTo = from;
+    }
+
+    const todayYmd = toLocalYmd(new Date());
+
+    return mtmData.filter((item) => {
+      const ymd = lastPriceUpdateLocalYmd(item);
+      if (!ymd) return false;
+      if (effFrom && ymd < effFrom) return false;
+      if (effTo) {
+        if (ymd > effTo) return false;
+      } else if (effFrom && todayYmd && ymd > todayYmd) {
+        return false;
+      }
+      return true;
+    });
+  }, [mtmData, mtmLastUpdateFrom, mtmLastUpdateTo]);
+
+  const totals = useMemo(() => computeMtmPortfolioTotals(filteredMtmData), [filteredMtmData]);
+
+  const hasLastUpdateDateFilter = Boolean(mtmLastUpdateFrom.trim() || mtmLastUpdateTo.trim());
+
+  const mtmDateRangeWasReversed = Boolean(
+    mtmLastUpdateFrom.trim() &&
+      mtmLastUpdateTo.trim() &&
+      mtmLastUpdateFrom.trim() > mtmLastUpdateTo.trim()
+  );
 
   // Load price analysis: last 7 available trading days (based on trade_date)
   const loadPriceAnalysisData = useCallback(async (companySymbol) => {
@@ -2047,117 +2105,170 @@ const MarkToMarketValuation = () => {
           </div>
         </div>
 
-        {/* Portfolio Selection and Controls */}
-        <div className="mtm-controls-section">
-          <div className="mtm-portfolio-selector">
-            <label htmlFor="portfolioSelect">Select Portfolio:</label>
-            <select
-              id="portfolioSelect"
-              value={selectedPortfolio}
-              onChange={(e) => setSelectedPortfolio(e.target.value)}
-              className="mtm-portfolio-select"
-              disabled={portfoliosLoading}
-            >
-              {portfoliosLoading ? (
-                <option value="">Loading portfolios...</option>
-              ) : portfolios.length === 0 ? (
-                <option value="">No portfolios found.</option>
-              ) : (
-                portfolios.map(portfolio => (
-                  <option key={portfolio.id} value={portfolio.id}>
-                    {portfolio.portfolioName}
-                  </option>
-                ))
-              )}
-            </select>
-            {portfoliosError && (
-              <div className="mtm-error-message" style={{ color: 'red', fontSize: '12px', marginTop: '5px' }}>
-                {portfoliosError}
-                <button 
-                  onClick={fetchPortfolios}
-                  style={{ 
-                    marginLeft: '10px', 
-                    padding: '2px 8px', 
-                    fontSize: '11px', 
-                    backgroundColor: '#007bff', 
-                    color: 'white', 
-                    border: 'none', 
-                    borderRadius: '0', 
-                    cursor: 'pointer' 
-                  }}
+        {/* Portfolio controls + valuation summary in one panel */}
+        <div className="mtm-toolbar-summary-panel">
+          <div className="mtm-toolbar-top">
+            <div className="mtm-controls-section">
+              <div className="mtm-portfolio-selector">
+                <label htmlFor="portfolioSelect">Select Portfolio:</label>
+                <select
+                  id="portfolioSelect"
+                  value={selectedPortfolio}
+                  onChange={(e) => setSelectedPortfolio(e.target.value)}
+                  className="mtm-portfolio-select"
+                  disabled={portfoliosLoading}
                 >
-                  Retry
+                  {portfoliosLoading ? (
+                    <option value="">Loading portfolios...</option>
+                  ) : portfolios.length === 0 ? (
+                    <option value="">No portfolios found.</option>
+                  ) : (
+                    portfolios.map(portfolio => (
+                      <option key={portfolio.id} value={portfolio.id}>
+                        {portfolio.portfolioName}
+                      </option>
+                    ))
+                  )}
+                </select>
+                {portfoliosError && (
+                  <div className="mtm-error-message" style={{ color: 'red', fontSize: '12px', marginTop: '5px' }}>
+                    {portfoliosError}
+                    <button 
+                      onClick={fetchPortfolios}
+                      style={{ 
+                        marginLeft: '10px', 
+                        padding: '2px 8px', 
+                        fontSize: '11px', 
+                        backgroundColor: '#007bff', 
+                        color: 'white', 
+                        border: 'none', 
+                        borderRadius: '0', 
+                        cursor: 'pointer' 
+                      }}
+                    >
+                      Retry
+                    </button>
+                  </div>
+                )}
+              </div>
+              
+              <div className="mtm-action-buttons">
+                <button 
+                  onClick={refreshMtmData}
+                  className="mtm-btn mtm-btn-primary"
+                  disabled={loading || !selectedPortfolio}
+                >
+                  {loading ? (
+                    <>
+                      <span className="mtm-btn-spinner"></span>
+                      Refreshing...
+                    </>
+                  ) : (
+                    <>
+                      <span className="mtm-btn-icon">↻</span>
+                      Refresh Data
+                    </>
+                  )}
                 </button>
               </div>
-            )}
-          </div>
-          
-          <div className="mtm-action-buttons">
-            <button 
-              onClick={refreshMtmData}
-              className="mtm-btn mtm-btn-primary"
-              disabled={loading || !selectedPortfolio}
+            </div>
+
+            <div
+              className={`mtm-date-filter-section${mtmDateRangeWasReversed ? ' mtm-date-filter-reversed' : ''}`}
+              aria-label="Filter positions by last price update date"
             >
-              {loading ? (
-                <>
-                  <span className="mtm-btn-spinner"></span>
-                  Refreshing...
-                </>
-              ) : (
-                <>
-                  <span className="mtm-btn-icon">↻</span>
-                  Refresh Data
-                </>
-              )}
-            </button>
-          </div>
-        </div>
-
-        {/* Portfolio Summary Cards */}
-        <div className="mtm-summary-section">
-          <div className="mtm-summary-card">
-            <div className="mtm-summary-icon total-cost">
-            </div>
-            <div className="mtm-summary-content">
-              <h3>Total Cost Value</h3>
-              <p className="mtm-summary-amount">{formatCurrency(totals.totalCost)}</p>
-            </div>
-          </div>
-
-          <div className="mtm-summary-card">
-            <div className="mtm-summary-icon total-market">
-            </div>
-            <div className="mtm-summary-content">
-              <h3>Total Market Value</h3>
-              <p className="mtm-summary-amount">{formatCurrency(totals.totalMarket)}</p>
-            </div>
-          </div>
-
-          <div className="mtm-summary-card">
-            <div className={`mtm-summary-icon total-gain-loss ${totals.totalGainLoss >= 0 ? 'positive' : 'negative'}`}>
-            </div>
-            <div className="mtm-summary-content">
-              <h3>Total Unrealized Capital Gain</h3>
-              <p className={`mtm-summary-amount ${totals.totalGainLoss >= 0 ? 'positive' : 'negative'}`}>
-                {formatCurrency(totals.totalGainLoss)}
-              </p>
-              <p className="mtm-summary-percentage">
-                {formatPercentage(totals.totalGainLossPercentage)}
+              <div className="mtm-date-filter-heading-row">
+                <span className="mtm-date-filter-title">Last price update</span>
+                {mtmDateRangeWasReversed ? (
+                  <span className="mtm-date-filter-note">From/To were reversed for filtering.</span>
+                ) : null}
+              </div>
+              <div className="mtm-date-filter-controls">
+                <div className="mtm-date-filter-field">
+                  <label htmlFor="mtmLastUpdateFrom">From</label>
+                  <input
+                    id="mtmLastUpdateFrom"
+                    type="date"
+                    className="mtm-date-input"
+                    value={mtmLastUpdateFrom}
+                    onChange={(e) => setMtmLastUpdateFrom(e.target.value)}
+                    disabled={!selectedPortfolio || loading || portfoliosLoading}
+                  />
+                </div>
+                <div className="mtm-date-filter-field">
+                  <label htmlFor="mtmLastUpdateTo">To</label>
+                  <input
+                    id="mtmLastUpdateTo"
+                    type="date"
+                    className="mtm-date-input"
+                    value={mtmLastUpdateTo}
+                    onChange={(e) => setMtmLastUpdateTo(e.target.value)}
+                    disabled={!selectedPortfolio || loading || portfoliosLoading}
+                  />
+                </div>
+                <button
+                  type="button"
+                  className="mtm-btn mtm-btn-secondary mtm-date-filter-clear"
+                  onClick={() => {
+                    setMtmLastUpdateFrom('');
+                    setMtmLastUpdateTo('');
+                  }}
+                  disabled={!hasLastUpdateDateFilter || !selectedPortfolio}
+                >
+                  Clear dates
+                </button>
+              </div>
+              <p className="mtm-date-filter-hint">
+                <strong>From</strong> only: last update from that date through today. <strong>To</strong> only: last update on or before that date (no start date). <strong>Both</strong>: inclusive between the dates. Leave both blank for all positions.
               </p>
             </div>
           </div>
 
-          <div className="mtm-summary-card">
-            <div className="mtm-summary-icon last-updated">
+          <div className="mtm-summary-section">
+            <div className="mtm-summary-card">
+              <div className="mtm-summary-icon total-cost">
+              </div>
+              <div className="mtm-summary-content">
+                <h3>Total Cost Value</h3>
+                <p className="mtm-summary-amount">{formatCurrency(totals.totalCost)}</p>
+              </div>
             </div>
-            <div className="mtm-summary-content">
-              <h3>Last Updated</h3>
-              <p className="mtm-summary-amount">
-                {lastUpdated.toLocaleDateString()}
-              </p>
-              <p className="mtm-summary-time">
-                {lastUpdated.toLocaleTimeString()}
-              </p>
+
+            <div className="mtm-summary-card">
+              <div className="mtm-summary-icon total-market">
+              </div>
+              <div className="mtm-summary-content">
+                <h3>Total Market Value</h3>
+                <p className="mtm-summary-amount">{formatCurrency(totals.totalMarket)}</p>
+              </div>
+            </div>
+
+            <div className="mtm-summary-card">
+              <div className={`mtm-summary-icon total-gain-loss ${totals.totalGainLoss >= 0 ? 'positive' : 'negative'}`}>
+              </div>
+              <div className="mtm-summary-content">
+                <h3>Total Unrealized Capital Gain</h3>
+                <p className={`mtm-summary-amount ${totals.totalGainLoss >= 0 ? 'positive' : 'negative'}`}>
+                  {formatCurrency(totals.totalGainLoss)}
+                </p>
+                <p className="mtm-summary-percentage">
+                  {formatPercentage(totals.totalGainLossPercentage)}
+                </p>
+              </div>
+            </div>
+
+            <div className="mtm-summary-card">
+              <div className="mtm-summary-icon last-updated">
+              </div>
+              <div className="mtm-summary-content">
+                <h3>Last Updated</h3>
+                <p className="mtm-summary-amount">
+                  {lastUpdated.toLocaleDateString()}
+                </p>
+                <p className="mtm-summary-time">
+                  {lastUpdated.toLocaleTimeString()}
+                </p>
+              </div>
             </div>
           </div>
         </div>
@@ -2330,18 +2441,18 @@ const MarkToMarketValuation = () => {
                       <div className="mtm-card-content">
                         <div className="mtm-card-value">
                           {(() => {
-                            const bestPerformer = mtmData.reduce((best, current) => 
+                            const bestPerformer = filteredMtmData.reduce((best, current) => 
                               current.gainLossPercentage > best.gainLossPercentage ? current : best, 
-                              mtmData[0] || { symbol: 'N/A', gainLossPercentage: 0 }
+                              filteredMtmData[0] || { symbol: 'N/A', gainLossPercentage: 0 }
                             );
                             return bestPerformer.symbol;
                           })()}
                         </div>
                         <div className="mtm-card-change positive">
                           {(() => {
-                            const bestPerformer = mtmData.reduce((best, current) => 
+                            const bestPerformer = filteredMtmData.reduce((best, current) => 
                               current.gainLossPercentage > best.gainLossPercentage ? current : best, 
-                              mtmData[0] || { gainLossPercentage: 0 }
+                              filteredMtmData[0] || { gainLossPercentage: 0 }
                             );
                             return '+' + formatPercentage(bestPerformer.gainLossPercentage);
                           })()}
@@ -2361,24 +2472,24 @@ const MarkToMarketValuation = () => {
                       <div className="mtm-card-content">
                         <div className="mtm-card-value">
                           {(() => {
-                            const worstPerformer = mtmData.reduce((worst, current) => 
+                            const worstPerformer = filteredMtmData.reduce((worst, current) => 
                               current.gainLossPercentage < worst.gainLossPercentage ? current : worst, 
-                              mtmData[0] || { symbol: 'N/A', gainLossPercentage: 0 }
+                              filteredMtmData[0] || { symbol: 'N/A', gainLossPercentage: 0 }
                             );
                             return worstPerformer.symbol;
                           })()}
                         </div>
                         <div className={`mtm-card-change ${(() => {
-                          const worstPerformer = mtmData.reduce((worst, current) => 
+                          const worstPerformer = filteredMtmData.reduce((worst, current) => 
                             current.gainLossPercentage < worst.gainLossPercentage ? current : worst, 
-                            mtmData[0] || { gainLossPercentage: 0 }
+                            filteredMtmData[0] || { gainLossPercentage: 0 }
                           );
                           return worstPerformer.gainLossPercentage >= 0 ? 'positive' : 'negative';
                         })()}`}>
                           {(() => {
-                            const worstPerformer = mtmData.reduce((worst, current) => 
+                            const worstPerformer = filteredMtmData.reduce((worst, current) => 
                               current.gainLossPercentage < worst.gainLossPercentage ? current : worst, 
-                              mtmData[0] || { gainLossPercentage: 0 }
+                              filteredMtmData[0] || { gainLossPercentage: 0 }
                             );
                             return '+' + formatPercentage(worstPerformer.gainLossPercentage);
                           })()}
@@ -2398,7 +2509,7 @@ const MarkToMarketValuation = () => {
                       <div className="mtm-stat-content">
                         <div className="mtm-stat-label">WINNERS</div>
                         <div className="mtm-stat-value">
-                          {mtmData.filter(item => item.gainLossPercentage > 0).length}
+                          {filteredMtmData.filter(item => item.gainLossPercentage > 0).length}
                         </div>
                       </div>
                     </div>
@@ -2412,7 +2523,7 @@ const MarkToMarketValuation = () => {
                       <div className="mtm-stat-content">
                         <div className="mtm-stat-label">LOSERS</div>
                         <div className="mtm-stat-value">
-                          {mtmData.filter(item => item.gainLossPercentage < 0).length}
+                          {filteredMtmData.filter(item => item.gainLossPercentage < 0).length}
                         </div>
                       </div>
                     </div>
@@ -2426,8 +2537,8 @@ const MarkToMarketValuation = () => {
                       <div className="mtm-stat-content">
                         <div className="mtm-stat-label">WIN RATE</div>
                         <div className="mtm-stat-value">
-                          {mtmData.length > 0 ? 
-                            ((mtmData.filter(item => item.gainLossPercentage > 0).length / mtmData.length) * 100).toFixed(0) + '%' : 
+                          {filteredMtmData.length > 0 ? 
+                            ((filteredMtmData.filter(item => item.gainLossPercentage > 0).length / filteredMtmData.length) * 100).toFixed(0) + '%' : 
                             '0%'
                           }
                         </div>
@@ -2443,7 +2554,7 @@ const MarkToMarketValuation = () => {
                       <div className="mtm-stat-content">
                         <div className="mtm-stat-label">AVG POSITION SIZE</div>
                         <div className="mtm-stat-value">
-                          {formatCurrency(mtmData.length > 0 ? totals.totalMarket / mtmData.length : 0)}
+                          {formatCurrency(filteredMtmData.length > 0 ? totals.totalMarket / filteredMtmData.length : 0)}
                         </div>
                       </div>
                     </div>
@@ -2630,16 +2741,21 @@ const MarkToMarketValuation = () => {
             <div className="mtm-table-header-row">
               <div className="mtm-table-header-text">
                 <h2>Position Details</h2>
-                <p>Mark-to-market valuation for all positions in the selected portfolio</p>
+                <p>
+                  Mark-to-market valuation for positions in the selected portfolio
+                  {hasLastUpdateDateFilter && mtmData.length > 0
+                    ? ` (${filteredMtmData.length} of ${mtmData.length} shown by last price update filter).`
+                    : '.'}
+                </p>
               </div>
               <div className="mtm-table-header-actions fre-header-actions">
                 <ExportPdfExcelButtons
-                  exportDisabled={loading || mtmData.length === 0}
+                  exportDisabled={loading || mtmData.length === 0 || filteredMtmData.length === 0}
                   pdfLabel="Download PDF"
                   excelLabel="Download Excel"
                   onExportPdf={() =>
                     exportMtmPositionDetailsToPdf({
-                      mtmData,
+                      mtmData: filteredMtmData,
                       portfolioName: getSelectedPortfolioName(),
                       totals,
                       lastUpdated
@@ -2647,7 +2763,7 @@ const MarkToMarketValuation = () => {
                   }
                   onExportExcel={() =>
                     exportMtmPositionDetailsToExcel({
-                      mtmData,
+                      mtmData: filteredMtmData,
                       portfolioName: getSelectedPortfolioName(),
                       totals
                     })
@@ -2671,6 +2787,29 @@ const MarkToMarketValuation = () => {
               </div>
               <h3>No Position Data</h3>
               <p>No positions found for the selected portfolio. Make sure you have buy transactions recorded for this portfolio.</p>
+            </div>
+          ) : filteredMtmData.length === 0 ? (
+            <div className="mtm-no-data">
+              <div className="mtm-no-data-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                </svg>
+              </div>
+              <h3>No Positions in This Date Range</h3>
+              <p>
+                None of the {mtmData.length} position{mtmData.length === 1 ? '' : 's'} have a <strong>Last Update</strong> in the selected range, or dates are missing. Adjust the Last price update filter above or clear the dates.
+              </p>
+              <button
+                type="button"
+                className="mtm-btn mtm-btn-secondary"
+                style={{ marginTop: '1rem' }}
+                onClick={() => {
+                  setMtmLastUpdateFrom('');
+                  setMtmLastUpdateTo('');
+                }}
+              >
+                Clear date filter
+              </button>
             </div>
           ) : (
             <div className="mtm-table-container">
@@ -2696,7 +2835,7 @@ const MarkToMarketValuation = () => {
                   </tr>
                 </thead>
                 <tbody>
-                  {mtmData.map((item) => (
+                  {filteredMtmData.map((item) => (
                     <tr key={item.id} className="mtm-table-row">
                       <td className="mtm-company-name">{item.companyName}</td>
                       <td className="mtm-symbol">{item.symbol}</td>
@@ -2727,9 +2866,12 @@ const MarkToMarketValuation = () => {
                 </tbody>
                 <tfoot>
                   <tr className="mtm-total-row">
-                    <td colSpan="4"><strong>Portfolio Totals</strong></td>
+                    <td colSpan="3"><strong>Portfolio Totals</strong></td>
+                    <td className="mtm-total-cost-price" title="Weighted average cost per share for the portfolio">
+                      {formatCurrency4(totals.weightedAvgCostPrice ?? 0)}
+                    </td>
                     <td></td>
-                    <td></td>
+                    <td className="mtm-total-cost">{formatCurrency(totals.totalCost)}</td>
                      <td className="mtm-total-gross-sales">{formatCurrency(totals.totalGrossSales)}</td>
                      <td></td>
                      <td></td>

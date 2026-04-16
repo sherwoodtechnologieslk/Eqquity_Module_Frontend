@@ -79,222 +79,160 @@ const WealthManagerDashboard = () => {
 
   return (
     <div className="wm-dashboard">
-      {/* Header Section */}
-      <div className="wm-dashboard-header">
-        <div>
-          <h1>Wealth Management Dashboard</h1>
-          <p className="wm-dashboard-subtitle">Unit Trust Portfolio Overview</p>
+      {/* Calm header (no big banner) */}
+      <div className="wm2-head">
+        <div className="wm2-head-left">
+          <h1 className="wm2-title">Wealth Overview</h1>
+          <div className="wm2-subtitle">Unit trust operations • Monitoring • Client activity</div>
         </div>
-        <div className="wm-header-time">
-          <div className="wm-time-display">{currentTime.toLocaleTimeString()}</div>
-          <div className="wm-date-display">{currentTime.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</div>
-        </div>
-      </div>
-
-      {/* Key Metrics Cards */}
-      <div className="wm-metrics-grid">
-        <div className="wm-metric-card wm-aum-card">
-          <div className="wm-metric-icon">
-            <svg fill="currentColor" viewBox="0 0 20 20">
-              <path d="M4 4a2 2 0 00-2 2v1h16V6a2 2 0 00-2-2H4z"/>
-              <path fillRule="evenodd" d="M18 9H2v5a2 2 0 002 2h12a2 2 0 002-2V9zM4 13a1 1 0 011-1h1a1 1 0 110 2H5a1 1 0 01-1-1zm5-1a1 1 0 100 2h1a1 1 0 100-2H9z" clipRule="evenodd"/>
-            </svg>
-          </div>
-          <div className="wm-metric-content">
-            <div className="wm-metric-label">Total AUM</div>
-            <div className="wm-metric-value">{formatCurrency(dashboardData.aum.total)}</div>
-            <div className={`wm-metric-change wm-${dashboardData.aum.changeType}`}>
-              <svg width="12" height="12" viewBox="0 0 12 12" fill="currentColor">
-                <path d="M6 0L10 6H2L6 0Z"/>
-              </svg>
-              {dashboardData.aum.change}% vs last month
-            </div>
-          </div>
-        </div>
-
-        <div className="wm-metric-card wm-clients-card">
-          <div className="wm-metric-icon">
-            <svg fill="currentColor" viewBox="0 0 20 20">
-              <path d="M9 6a3 3 0 11-6 0 3 3 0 016 0zM17 6a3 3 0 11-6 0 3 3 0 016 0zM12.93 17c.046-.327.07-.66.07-1a6.97 6.97 0 00-1.5-4.33A5 5 0 0119 16v1h-6.07zM6 11a5 5 0 015 5v1H1v-1a5 5 0 015-5z"/>
-            </svg>
-          </div>
-          <div className="wm-metric-content">
-            <div className="wm-metric-label">Total Clients</div>
-            <div className="wm-metric-value">{formatNumber(dashboardData.clients.total)}</div>
-            <div className="wm-metric-sub-info">
-              <span>{formatNumber(dashboardData.clients.active)} Active</span>
-              <span className="wm-new-badge">+{dashboardData.clients.new} New</span>
-            </div>
-          </div>
-        </div>
-
-        <div className="wm-metric-card wm-funds-card">
-          <div className="wm-metric-icon">
-            <svg fill="currentColor" viewBox="0 0 20 20">
-              <path d="M4 4a2 2 0 00-2 2v1h16V6a2 2 0 00-2-2H4z"/>
-              <path fillRule="evenodd" d="M18 9H2v5a2 2 0 002 2h12a2 2 0 002-2V9zM4 13a1 1 0 011-1h1a1 1 0 110 2H5a1 1 0 01-1-1zm5-1a1 1 0 100 2h1a1 1 0 100-2H9z" clipRule="evenodd"/>
-            </svg>
-          </div>
-          <div className="wm-metric-content">
-            <div className="wm-metric-label">Active Funds</div>
-            <div className="wm-metric-value">{dashboardData.funds.active}</div>
-            <div className="wm-metric-sub-info">
-              <span>of {dashboardData.funds.total} Total</span>
-            </div>
-          </div>
-        </div>
-
-        <div className="wm-metric-card wm-transactions-card">
-          <div className="wm-metric-icon">
-            <svg fill="currentColor" viewBox="0 0 20 20">
-              <path fillRule="evenodd" d="M4 4a2 2 0 00-2 2v4a2 2 0 002 2V6h10a2 2 0 00-2-2H4z" clipRule="evenodd"/>
-              <path fillRule="evenodd" d="M14 4a2 2 0 012 2v8a2 2 0 01-2 2H8a2 2 0 01-2-2V6a2 2 0 012-2h6zm-1 3a1 1 0 00-1 1v4a1 1 0 001 1h1a1 1 0 001-1V8a1 1 0 00-1-1h-1z" clipRule="evenodd"/>
-            </svg>
-          </div>
-          <div className="wm-metric-content">
-            <div className="wm-metric-label">Today's Transactions</div>
-            <div className="wm-metric-value">{formatNumber(dashboardData.transactions.today)}</div>
-            <div className="wm-metric-sub-info">
-              <span>{formatCurrency(dashboardData.transactions.value)} Value</span>
-              <span className="wm-pending-badge">{dashboardData.transactions.pending} Pending</span>
-            </div>
+        <div className="wm2-time">
+          <div className="wm2-time-top">{currentTime.toLocaleTimeString()}</div>
+          <div className="wm2-time-bottom">
+            {currentTime.toLocaleDateString('en-US', {
+              weekday: 'long',
+              year: 'numeric',
+              month: 'long',
+              day: 'numeric'
+            })}
           </div>
         </div>
       </div>
 
-      {/* Main Content Grid */}
-      <div className="wm-dashboard-grid">
-        {/* Left Column */}
-        <div className="wm-dashboard-left">
-          {/* NAV Trend Chart */}
-          <div className="wm-dashboard-card">
-            <div className="wm-card-header">
-              <h3>NAV Trend (Last 5 Days)</h3>
-              <select className="wm-period-select">
-                <option>Last 5 Days</option>
-                <option>Last Month</option>
-                <option>Last 3 Months</option>
-                <option>Last Year</option>
-              </select>
-            </div>
-            <div className="wm-nav-chart">
-              <div className="wm-chart-container">
-                {dashboardData.navTrend.map((point, index) => {
-                  const maxValue = Math.max(...dashboardData.navTrend.map(p => p.value));
-                  const height = (point.value / maxValue) * 100;
-                  return (
-                    <div key={index} className="wm-chart-bar-container">
-                      <div className="wm-chart-bar" style={{ height: `${height}%` }}>
-                        <div className="wm-bar-value">{point.value.toFixed(2)}</div>
-                      </div>
-                      <div className="wm-bar-label">{point.date}</div>
-                    </div>
-                  );
-                })}
+      {/* At-a-glance strip */}
+      <div className="wm2-kpis">
+        <div className="wm2-kpi">
+          <div className="wm2-kpi-label">AUM</div>
+          <div className="wm2-kpi-value">{formatCurrency(dashboardData.aum.total)}</div>
+          <div className={`wm2-kpi-delta ${dashboardData.aum.changeType === 'positive' ? 'is-pos' : 'is-neg'}`}>
+            {dashboardData.aum.changeType === 'positive' ? '▲' : '▼'} {dashboardData.aum.change}% MoM
+          </div>
+        </div>
+        <div className="wm2-kpi">
+          <div className="wm2-kpi-label">Clients</div>
+          <div className="wm2-kpi-value">{formatNumber(dashboardData.clients.total)}</div>
+          <div className="wm2-kpi-meta">
+            <span>{formatNumber(dashboardData.clients.active)} active</span>
+            <span className="wm2-pill">+{dashboardData.clients.new} new</span>
+          </div>
+        </div>
+        <div className="wm2-kpi">
+          <div className="wm2-kpi-label">Funds</div>
+          <div className="wm2-kpi-value">{formatNumber(dashboardData.funds.active)}</div>
+          <div className="wm2-kpi-meta">
+            <span>{formatNumber(dashboardData.funds.total)} total</span>
+            <span className="wm2-pill">{dashboardData.funds.topPerformer}</span>
+          </div>
+        </div>
+        <div className="wm2-kpi">
+          <div className="wm2-kpi-label">Today</div>
+          <div className="wm2-kpi-value">{formatNumber(dashboardData.transactions.today)}</div>
+          <div className="wm2-kpi-meta">
+            <span>{formatCurrency(dashboardData.transactions.value)} value</span>
+            <span className="wm2-pill">{dashboardData.transactions.pending} pending</span>
+          </div>
+        </div>
+      </div>
+
+      {/* Editorial grid */}
+      <div className="wm2-grid">
+        <div className="wm2-card wm2-span-2">
+          <div className="wm2-card-head">
+            <div className="wm2-card-title">NAV trend</div>
+            <select className="wm2-select" defaultValue="Last 5 Days">
+              <option>Last 5 Days</option>
+              <option>Last Month</option>
+              <option>Last 3 Months</option>
+              <option>Last Year</option>
+            </select>
+          </div>
+          <div className="wm2-bars">
+            {dashboardData.navTrend.map((point, index) => {
+              const maxValue = Math.max(...dashboardData.navTrend.map((p) => p.value));
+              const height = (point.value / maxValue) * 100;
+              const isLast = index === dashboardData.navTrend.length - 1;
+              return (
+                <div key={index} className="wm2-bar-col">
+                  <div className={`wm2-bar ${isLast ? 'is-accent' : ''}`} style={{ height: `${height}%` }} />
+                  <div className="wm2-bar-label">{point.date}</div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+
+        <div className="wm2-card">
+          <div className="wm2-card-head">
+            <div className="wm2-card-title">Top funds</div>
+            <div className="wm2-muted">by weekly return</div>
+          </div>
+          <div className="wm2-list">
+            {dashboardData.topFunds.slice(0, 5).map((fund, index) => (
+              <div key={index} className="wm2-row">
+                <div className="wm2-rank">{index + 1}</div>
+                <div className="wm2-row-main">
+                  <div className="wm2-row-title">{fund.name}</div>
+                  <div className="wm2-row-sub">{fund.category}</div>
+                </div>
+                <div className="wm2-row-right">
+                  <div className="wm2-row-metric">NAV {fund.nav.toFixed(2)}</div>
+                  <div className={`wm2-row-delta ${fund.change >= 0 ? 'is-pos' : 'is-neg'}`}>
+                    {fund.change >= 0 ? '▲' : '▼'} {fund.change}%
+                  </div>
+                </div>
               </div>
-            </div>
-          </div>
-
-          {/* Portfolio Allocation */}
-          <div className="wm-dashboard-card">
-            <div className="wm-card-header">
-              <h3>Portfolio Allocation</h3>
-            </div>
-            <div className="wm-allocation-container">
-              {dashboardData.portfolioAllocation.map((item, index) => (
-                <div key={index} className="wm-allocation-item">
-                  <div className="wm-allocation-header">
-                    <span className="wm-allocation-category">{item.category}</span>
-                    <span className="wm-allocation-percentage">{item.percentage}%</span>
-                  </div>
-                  <div className="wm-allocation-bar">
-                    <div 
-                      className="wm-allocation-fill" 
-                      style={{ width: `${item.percentage}%` }}
-                    ></div>
-                  </div>
-                  <div className="wm-allocation-value">{formatCurrency(item.value)}</div>
-                </div>
-              ))}
-            </div>
+            ))}
           </div>
         </div>
 
-        {/* Right Column */}
-        <div className="wm-dashboard-right">
-          {/* Top Performing Funds */}
-          <div className="wm-dashboard-card">
-            <div className="wm-card-header">
-              <h3>Top Performing Funds</h3>
-            </div>
-            <div className="wm-funds-list">
-              {dashboardData.topFunds.map((fund, index) => (
-                <div key={index} className="wm-fund-item">
-                  <div className="wm-fund-rank">#{index + 1}</div>
-                  <div className="wm-fund-info">
-                    <div className="wm-fund-name">{fund.name}</div>
-                    <div className="wm-fund-category">{fund.category}</div>
-                  </div>
-                  <div className="wm-fund-nav">
-                    <div className="wm-nav-value">NAV: {fund.nav.toFixed(2)}</div>
-                    <div className="wm-nav-change wm-positive">
-                      <svg width="10" height="10" viewBox="0 0 10 10" fill="currentColor">
-                        <path d="M5 0L9 6H1L5 0Z"/>
-                      </svg>
-                      {fund.change}%
-                    </div>
-                  </div>
-                  <div className="wm-fund-aum">{formatCurrency(fund.aum)}</div>
-                </div>
-              ))}
-            </div>
+        <div className="wm2-card">
+          <div className="wm2-card-head">
+            <div className="wm2-card-title">Allocation</div>
+            <div className="wm2-muted">asset mix</div>
           </div>
+          <div className="wm2-alloc">
+            {dashboardData.portfolioAllocation.map((item, index) => (
+              <div key={index} className="wm2-alloc-row">
+                <div className="wm2-alloc-top">
+                  <div className="wm2-alloc-name">{item.category}</div>
+                  <div className="wm2-alloc-pct">{item.percentage}%</div>
+                </div>
+                <div className="wm2-alloc-track">
+                  <div className="wm2-alloc-fill" style={{ width: `${item.percentage}%` }} />
+                </div>
+                <div className="wm2-alloc-val">{formatCurrency(item.value)}</div>
+              </div>
+            ))}
+          </div>
+        </div>
 
-          {/* Recent Transactions */}
-          <div className="wm-dashboard-card">
-            <div className="wm-card-header">
-              <h3>Recent Transactions</h3>
-              <button className="wm-view-all-btn">View All</button>
-            </div>
-            <div className="wm-transactions-list">
-              {dashboardData.recentTransactions.map((transaction) => (
-                <div key={transaction.id} className="wm-transaction-item">
-                  <div className="wm-transaction-icon">
-                    {transaction.type === 'Purchase' && (
-                      <svg fill="currentColor" viewBox="0 0 20 20">
-                        <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-11a1 1 0 10-2 0v2H7a1 1 0 100 2h2v2a1 1 0 102 0v-2h2a1 1 0 100-2h-2V7z" clipRule="evenodd"/>
-                      </svg>
-                    )}
-                    {transaction.type === 'Redemption' && (
-                      <svg fill="currentColor" viewBox="0 0 20 20">
-                        <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM7 9a1 1 0 000 2h6a1 1 0 100-2H7z" clipRule="evenodd"/>
-                      </svg>
-                    )}
-                    {transaction.type === 'Switch' && (
-                      <svg fill="currentColor" viewBox="0 0 20 20">
-                        <path fillRule="evenodd" d="M3 10a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm9.293-2.707a1 1 0 011.414 0l3 3a1 1 0 010 1.414l-3 3a1 1 0 01-1.414-1.414L12.586 11H6a1 1 0 110-2h6.586l-1.293-1.293a1 1 0 010-1.414z" clipRule="evenodd"/>
-                      </svg>
-                    )}
-                  </div>
-                  <div className="wm-transaction-details">
-                    <div className="wm-transaction-client">{transaction.client}</div>
-                    <div className="wm-transaction-fund">{transaction.fund}</div>
-                    <div className="wm-transaction-meta">
-                      <span>{transaction.type}</span>
-                      <span>•</span>
-                      <span>{formatNumber(transaction.units)} Units</span>
-                    </div>
-                  </div>
-                  <div className="wm-transaction-amount">
-                    <div className="wm-amount-value">{formatCurrency(transaction.amount)}</div>
-                    <div className={`wm-transaction-status wm-${transaction.status.toLowerCase()}`}>
-                      {transaction.status}
-                    </div>
-                    <div className="wm-transaction-time">{transaction.time}</div>
+        <div className="wm2-card wm2-span-2">
+          <div className="wm2-card-head">
+            <div className="wm2-card-title">Recent activity</div>
+            <button className="wm2-link" type="button">
+              View all
+            </button>
+          </div>
+          <div className="wm2-table">
+            {dashboardData.recentTransactions.map((t) => (
+              <div key={t.id} className="wm2-trow">
+                <div className="wm2-tmain">
+                  <div className="wm2-tname">{t.client}</div>
+                  <div className="wm2-tsub">
+                    {t.type} • {t.fund} • {formatNumber(t.units)} units
                   </div>
                 </div>
-              ))}
-            </div>
+                <div className="wm2-tright">
+                  <div className="wm2-tamt">{formatCurrency(t.amount)}</div>
+                  <div className="wm2-tmeta">
+                    <span className={`wm2-status ${t.status.toLowerCase() === 'completed' ? 'is-ok' : 'is-warn'}`}>
+                      {t.status}
+                    </span>
+                    <span className="wm2-dot">•</span>
+                    <span className="wm2-muted">{t.time}</span>
+                  </div>
+                </div>
+              </div>
+            ))}
           </div>
         </div>
       </div>

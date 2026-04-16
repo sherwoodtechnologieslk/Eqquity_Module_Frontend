@@ -46,32 +46,169 @@
 }
 
 .mtm-main-title {
-  font-size: 2rem;
+  font-size: 1.65rem;
   font-weight: 800;
   margin: 0;
   letter-spacing: -0.02em;
-  line-height: 1.1;
+  line-height: 1.15;
   color: #1f2937;
 }
 
 .mtm-subtitle {
-  font-size: 1rem;
+  font-size: 0.9375rem;
   color: #6b7280;
   margin: 0;
   font-weight: 400;
 }
 
-/* Controls Section */
-.mtm-controls-section {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
+/* Portfolio toolbar + summary share one outer card (.mtm-toolbar-summary-panel) */
+.mtm-toolbar-summary-panel {
   margin-bottom: 2rem;
   padding: 1.5rem 2rem;
   background: white;
   border-radius: 0;
   box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
   border: 1px solid #e2e8f0;
+}
+
+.mtm-toolbar-summary-panel .mtm-toolbar-top {
+  padding-bottom: 1.25rem;
+  margin-bottom: 1.25rem;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.mtm-toolbar-summary-panel .mtm-controls-section {
+  padding-bottom: 0;
+  margin-bottom: 0;
+  border-bottom: none;
+}
+
+.mtm-date-filter-section {
+  margin-top: 1.25rem;
+  padding-top: 1.25rem;
+  border-top: 1px solid #e2e8f0;
+}
+
+.mtm-date-filter-heading-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.75rem 1rem;
+  margin-bottom: 0.75rem;
+}
+
+.mtm-date-filter-title {
+  font-weight: 600;
+  color: #374151;
+  font-size: 1rem;
+}
+
+.mtm-date-filter-note {
+  font-size: 0.8125rem;
+  color: #b45309;
+}
+
+.mtm-date-filter-section.mtm-date-filter-reversed .mtm-date-filter-note {
+  font-weight: 600;
+}
+
+.mtm-date-filter-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 1rem 1.25rem;
+}
+
+.mtm-date-filter-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.mtm-date-filter-field label {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: #4b5563;
+}
+
+.mtm-date-input {
+  padding: 0.6rem 0.75rem;
+  border: 2px solid #e5e7eb;
+  border-radius: 0;
+  font-size: 0.9375rem;
+  color: #374151;
+  background: #fff;
+  min-width: 11rem;
+}
+
+.mtm-date-input:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.mtm-date-input:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.mtm-date-filter-clear {
+  align-self: flex-end;
+}
+
+.mtm-date-filter-hint {
+  margin: 0.85rem 0 0 0;
+  font-size: 0.8125rem;
+  color: #6b7280;
+  line-height: 1.45;
+  max-width: 52rem;
+}
+
+.mtm-toolbar-summary-panel .mtm-summary-section {
+  margin-bottom: 0;
+  gap: 1rem;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+}
+
+.mtm-toolbar-summary-panel .mtm-summary-card {
+  background: #f8fafc;
+  border: 1px solid #e5e7eb;
+  box-shadow: none;
+  padding: 0.75rem 1rem;
+}
+
+.mtm-toolbar-summary-panel .mtm-summary-card:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.mtm-toolbar-summary-panel .mtm-summary-content h3 {
+  font-size: 0.6875rem;
+  margin: 0 0 0.3rem 0;
+  letter-spacing: 0.06em;
+}
+
+.mtm-toolbar-summary-panel .mtm-summary-amount {
+  font-size: 1.0625rem;
+  margin: 0 0 0.125rem 0;
+  line-height: 1.25;
+}
+
+.mtm-toolbar-summary-panel .mtm-summary-percentage {
+  font-size: 0.75rem;
+}
+
+.mtm-toolbar-summary-panel .mtm-summary-time {
+  font-size: 0.75rem;
+}
+
+/* Controls row (inside toolbar-summary panel) */
+.mtm-controls-section {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
 }
 
 .mtm-portfolio-selector {
@@ -173,12 +310,11 @@
   100% { transform: rotate(360deg); }
 }
 
-/* Summary Section */
+/* Summary grid (nested under .mtm-toolbar-summary-panel) */
 .mtm-summary-section {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
   gap: 1.5rem;
-  margin-bottom: 2rem;
 }
 
 .mtm-summary-card {
@@ -1398,6 +1534,7 @@
 }
 
 .mtm-total-cost,
+.mtm-total-cost-price,
 .mtm-total-market {
   color: #1f2937;
 }
@@ -1461,6 +1598,14 @@
   .mtm-page {
     padding: 1rem;
   }
+
+  .mtm-toolbar-summary-panel {
+    padding: 1rem 1.25rem;
+  }
+
+  .mtm-toolbar-summary-panel .mtm-summary-section {
+    grid-template-columns: 1fr;
+  }
   
   .mtm-header-section {
     flex-direction: column;
@@ -1470,7 +1615,7 @@
   }
   
   .mtm-main-title {
-    font-size: 1.6rem;
+    font-size: 1.35rem;
   }
   
   .mtm-controls-section {
@@ -1876,11 +2021,11 @@
   }
   
   .mtm-main-title {
-    font-size: 1.4rem;
+    font-size: 1.2rem;
   }
   
   .mtm-subtitle {
-    font-size: 0.9rem;
+    font-size: 0.85rem;
   }
   
   .mtm-performance-row {

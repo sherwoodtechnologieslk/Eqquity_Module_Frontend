@@ -23,8 +23,8 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 4rem;
-  height: 4rem;
+  width: 3.25rem;
+  height: 3.25rem;
   background: linear-gradient(135deg, #22c55e, #15803d);
   border-radius: 0.18rem;
   box-shadow: 0 8px 32px rgba(22, 163, 74, 0.25), 0 2px 8px rgba(22, 163, 74, 0.18);
@@ -32,8 +32,8 @@
 }
 
 .gsec-bs-icon {
-  width: 2rem;
-  height: 2rem;
+  width: 1.5rem;
+  height: 1.5rem;
   color: #fff;
 }
 
@@ -44,14 +44,16 @@
 }
 
 .gsec-bs-main-title {
-  font-size: 2rem;
+  font-size: 1.65rem;
   font-weight: 800;
   color: #022c22;
   margin: 0;
+  line-height: 1.15;
+  letter-spacing: -0.02em;
 }
 
 .gsec-bs-subtitle {
-  font-size: 0.95rem;
+  font-size: 0.875rem;
   color: #475569;
   margin: 0;
 }
@@ -472,6 +474,24 @@
 }
 
 @media (max-width: 768px) {
+  .gsec-bs-header-icon {
+    width: 2.875rem;
+    height: 2.875rem;
+  }
+
+  .gsec-bs-icon {
+    width: 1.35rem;
+    height: 1.35rem;
+  }
+
+  .gsec-bs-main-title {
+    font-size: 1.35rem;
+  }
+
+  .gsec-bs-subtitle {
+    font-size: 0.8125rem;
+  }
+
   .gsec-bs-card-header {
     padding: 0.85rem 1rem;
   }

@@ -22,16 +22,17 @@
 }
 
 .pvs-title {
-  font-size: 1.75rem;
+  font-size: 1.45rem;
   font-weight: 800;
   color: #0f172a;
   margin: 0 0 0.5rem 0;
   letter-spacing: -0.02em;
+  line-height: 1.2;
 }
 
 .pvs-subtitle {
   margin: 0;
-  font-size: 0.95rem;
+  font-size: 0.875rem;
   color: #64748b;
   font-weight: 400;
 }
@@ -395,7 +396,11 @@
   }
 
   .pvs-title {
-    font-size: 1.4rem;
+    font-size: 1.25rem;
+  }
+
+  .pvs-subtitle {
+    font-size: 0.8125rem;
   }
 
   .pvs-header-actions {

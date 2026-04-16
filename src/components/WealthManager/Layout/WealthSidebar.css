@@ -1,0 +1,248 @@
+/* Wealth sidebar — standalone (does not use Equity Sidebar.css) */
+
+.wm-sidebar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 130;
+  width: var(--wm-sidebar-width, 300px);
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: linear-gradient(
+    180deg,
+    rgba(24, 32, 50, 0.98) 0%,
+    rgba(18, 26, 42, 0.96) 45%,
+    rgba(16, 22, 38, 0.98) 100%
+  );
+  border-right: 1px solid var(--wm-border, rgba(255, 255, 255, 0.14));
+  box-shadow: 8px 0 36px rgba(0, 0, 0, 0.24);
+  backdrop-filter: blur(16px);
+  font-family: 'DM Sans', system-ui, sans-serif;
+}
+
+.wm-sidebar::before {
+  content: '';
+  position: absolute;
+  inset: 0 0 0 0;
+  background: linear-gradient(
+    180deg,
+    rgba(34, 197, 94, 0.06) 0%,
+    transparent 28%
+  );
+  pointer-events: none;
+}
+
+.wm-sidebar__brand {
+  position: relative;
+  padding: 1.35rem 1.15rem 1.1rem;
+  border-bottom: 1px solid var(--wm-border, rgba(255, 255, 255, 0.12));
+}
+
+.wm-sidebar__logo {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.15rem;
+  margin-bottom: 1rem;
+  text-align: center;
+}
+
+.wm-sidebar__logo-line1 {
+  font-family: 'Fraunces', serif;
+  font-size: 0.95rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.88);
+}
+
+.wm-sidebar__logo-line2 {
+  font-family: 'Fraunces', serif;
+  font-size: 1.05rem;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: rgba(134, 239, 172, 0.95);
+}
+
+.wm-sidebar__actions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.wm-sidebar__btn {
+  width: 100%;
+  padding: 0.6rem 0.85rem;
+  border-radius: 12px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+}
+
+.wm-sidebar__btn--ghost {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--wm-border, rgba(255, 255, 255, 0.12));
+  color: rgba(255, 255, 255, 0.82);
+}
+
+.wm-sidebar__btn--ghost:hover {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.18);
+}
+
+.wm-sidebar__btn--accent {
+  background: rgba(34, 197, 94, 0.12);
+  border: 1px solid rgba(34, 197, 94, 0.35);
+  color: rgba(134, 239, 172, 0.95);
+}
+
+.wm-sidebar__btn--accent:hover {
+  background: rgba(34, 197, 94, 0.18);
+}
+
+.wm-sidebar__nav {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  padding: 0.85rem 0.65rem 1rem;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+.wm-sidebar__nav::-webkit-scrollbar {
+  width: 6px;
+}
+
+.wm-sidebar__nav::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.12);
+  border-radius: 999px;
+}
+
+.wm-sidebar__section-label {
+  padding: 0.35rem 0.55rem 0.65rem;
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.45);
+}
+
+.wm-sidebar__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.wm-sidebar__list > li {
+  margin: 0;
+  padding: 0;
+}
+
+.wm-sidebar__item {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  padding: 0.62rem 0.65rem;
+  border-radius: 12px;
+  border: 1px solid transparent;
+  background: transparent;
+  color: rgba(255, 255, 255, 0.78);
+  font: inherit;
+  cursor: pointer;
+  text-align: left;
+  transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+}
+
+.wm-sidebar__item:hover {
+  background: rgba(255, 255, 255, 0.05);
+  color: rgba(255, 255, 255, 0.92);
+}
+
+.wm-sidebar__item.is-active {
+  background: rgba(34, 197, 94, 0.12);
+  border-color: rgba(34, 197, 94, 0.28);
+  color: rgba(255, 255, 255, 0.95);
+}
+
+.wm-sidebar__item.is-active .wm-sidebar__icon-wrap {
+  background: rgba(34, 197, 94, 0.18);
+  color: rgba(134, 239, 172, 0.95);
+}
+
+.wm-sidebar__icon-wrap {
+  flex-shrink: 0;
+  width: 2rem;
+  height: 2rem;
+  display: grid;
+  place-items: center;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.06);
+  color: rgba(134, 239, 172, 0.85);
+  font-size: 1rem;
+}
+
+.wm-sidebar__item:not(.is-active) .wm-sidebar__icon-wrap {
+  color: rgba(255, 255, 255, 0.55);
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.wm-sidebar__label {
+  flex: 1;
+  min-width: 0;
+  font-size: 0.84rem;
+  font-weight: 600;
+  line-height: 1.25;
+}
+
+.wm-sidebar__active-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: rgba(34, 197, 94, 0.9);
+  box-shadow: 0 0 10px rgba(34, 197, 94, 0.45);
+  opacity: 0;
+  transition: opacity 0.15s ease;
+}
+
+.wm-sidebar__item.is-active .wm-sidebar__active-dot {
+  opacity: 1;
+}
+
+.wm-sidebar__footer {
+  position: relative;
+  padding: 0.85rem 1rem 1.1rem;
+  border-top: 1px solid var(--wm-border, rgba(255, 255, 255, 0.12));
+  background: rgba(0, 0, 0, 0.08);
+}
+
+.wm-sidebar__logout {
+  width: 100%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.45rem;
+  padding: 0.65rem 0.85rem;
+  border-radius: 12px;
+  font: inherit;
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--wm-border, rgba(255, 255, 255, 0.12));
+  color: rgba(255, 255, 255, 0.82);
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+.wm-sidebar__logout:hover {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.2);
+}

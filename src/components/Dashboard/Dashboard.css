@@ -656,11 +656,19 @@
 }
 
 /* Sector Pie Chart Styles - Matching Portfolio Overview */
+.content-card.dashboard-sector-mix-card {
+  padding: var(--dash-space-2);
+}
+
+.content-card.dashboard-sector-mix-card .card-header {
+  margin-bottom: 0.45rem;
+}
+
 .chart-container {
   display: flex;
-  gap: 1.5rem;
+  gap: 0.6rem;
   align-items: flex-start;
-  padding: 1rem;
+  padding: 0.35rem 0.25rem;
 }
 
 .pie-chart {
@@ -670,29 +678,78 @@
   flex: 1;
 }
 
-.sector-pie-chart {
+/* Chart.js sector doughnut */
+.pie-chart--chartjs .pie-chart__canvas-wrap {
+  position: relative;
+  width: 200px;
+  height: 200px;
+  margin: 0 auto;
   filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.1));
 }
 
-.sector-slice {
-  transition: all 0.3s ease;
-  cursor: pointer;
+.pie-chart--chartjs .pie-chart__canvas-wrap canvas {
+  display: block;
 }
 
-.sector-slice:hover {
-  filter: brightness(1.1);
-  transform: scale(1.02);
-  transform-origin: center;
+.pie-chart__center {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  text-align: center;
+  pointer-events: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0;
 }
 
-.pie-center-text {
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
+.pie-chart__center-num {
+  font-size: 12px;
+  font-weight: 600;
+  color: #374151;
+  line-height: 1.2;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu',
+    'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
+}
+
+.pie-chart__center-label {
+  font-size: 10px;
+  color: #6b7280;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu',
+    'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
+}
+
+.pie-chart--empty {
+  position: relative;
+  width: 200px;
+  height: 200px;
+  margin: 0 auto;
+  filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.06));
+}
+
+.pie-chart__placeholder-ring {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: 160px;
+  height: 160px;
+  border-radius: 50%;
+  border: 2px dashed #e2e8f0;
+  box-sizing: border-box;
+}
+
+.pie-chart__center--empty .pie-chart__center-num,
+.pie-chart__center--empty .pie-chart__center-label {
+  color: #94a3b8;
 }
 
 .chart-legend {
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
+  gap: 0.4rem;
   min-width: 200px;
   max-height: 300px;
   overflow-y: auto;
@@ -701,8 +758,8 @@
 .chart-legend .legend-item {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
-  padding: 0.5rem;
+  gap: 0.45rem;
+  padding: 0.3rem 0.35rem;
   background: #f8fafc;
   border-radius: 0;
   transition: background-color 0.2s ease;
@@ -724,7 +781,7 @@
 .chart-legend .legend-content {
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
+  gap: 0.15rem;
   flex: 1;
 }
 
@@ -770,12 +827,17 @@
   background: transparent;
   border: none;
   box-shadow: none;
-  padding: 0 0 var(--dash-space-2);
+  padding: 0;
   margin: 0;
   margin-left: 1.25rem;
   display: flex;
   flex-direction: column;
   gap: 0.85rem;
+}
+
+/* Tighter stack under hero: less air before the first chart/card */
+.left-column > .market-status-bare + .content-card {
+  margin-top: -4px;
 }
 
 .market-status-bare__top {
@@ -1082,6 +1144,7 @@
   min-height: min(640px, 85vh);
   display: flex;
   flex-direction: column;
+  padding: var(--dash-space-2);
 }
 
 .content-card.dashboard-chart-lead .risk-return-scatter-plot {
@@ -1106,8 +1169,7 @@
   background: transparent;
   border: none;
   box-shadow: none;
-  padding-left: 0;
-  padding-right: 0;
+  padding: 0.25rem 0;
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -1152,7 +1214,11 @@
 }
 
 .health-card .header-left h3 {
-  color: #0f172a;
+  color: #94a3b8;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  margin-bottom: 0.35rem;
 }
 
 .health-card .card-subtitle {
@@ -2441,13 +2507,19 @@
   
   .chart-container {
     flex-direction: column;
-    gap: 0.75rem;
-    padding: 0.75rem;
+    gap: 0.45rem;
+    padding: 0.35rem 0.3rem;
   }
   
-  .sector-pie-chart {
+  .pie-chart--chartjs .pie-chart__canvas-wrap,
+  .pie-chart--empty {
     width: 180px;
     height: 180px;
+  }
+
+  .pie-chart__placeholder-ring {
+    width: 144px;
+    height: 144px;
   }
   
   .chart-legend {
