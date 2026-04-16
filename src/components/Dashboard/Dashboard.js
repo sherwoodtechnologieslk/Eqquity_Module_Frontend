@@ -3,6 +3,7 @@ import { tradeSummaryAPI, transactionEntryAPI } from '../../services/api';
 import { realizedPnLService } from '../../services/realizedPnLService';
 import { authService } from '../../services/authService';
 import RiskReturnScatterPlot from './RiskReturnScatterPlot';
+import DashboardSectorMixChart from './DashboardSectorMixChart';
 import './Dashboard.css';
 
 function formatLkrCompact(value) {
@@ -182,14 +183,17 @@ const Dashboard = ({ onTabChange }) => {
     });
   };
 
-  // Check if market is open (9:30 AM to 2:30 PM)
+  // Check if market is open (9:30 AM to 2:30 PM, weekdays only — CSE closed Sat/Sun)
   const isMarketOpen = (date) => {
+    const day = date.getDay();
+    if (day === 0 || day === 6) return false;
+
     const hour = date.getHours();
     const minute = date.getMinutes();
     const currentTime = hour * 60 + minute;
     const openTime = 9 * 60 + 30; // 9:30 AM
     const closeTime = 14 * 60 + 30; // 2:30 PM
-    
+
     return currentTime >= openTime && currentTime <= closeTime;
   };
 
@@ -704,7 +708,6 @@ const Dashboard = ({ onTabChange }) => {
         <div className="content-card">
           <div className="card-header">
             <div className="header-left">
-              <h3>Top Performers</h3>
               <span className="card-subtitle">Most traded stocks</span>
             </div>
           </div>
@@ -730,7 +733,6 @@ const Dashboard = ({ onTabChange }) => {
         <div className="content-card">
           <div className="card-header">
             <div className="header-left">
-              <h3>Recent Transactions</h3>
               <span className="card-subtitle">Latest trading activity</span>
             </div>
           </div>
@@ -868,93 +870,17 @@ const Dashboard = ({ onTabChange }) => {
           </div>
 
           {/* Sector Pie Chart */}
-          <div className="content-card">
+          <div className="content-card dashboard-sector-mix-card">
             <div className="card-header">
               <div className="header-left">
-                <h3>Sector Distribution</h3>
                 <span className="card-subtitle">{sectorDistributionSubtitle}</span>
               </div>
             </div>
             <div className="chart-container">
-              <div className="pie-chart">
-                <svg width="200" height="200" viewBox="0 0 200 200" className="sector-pie-chart">
-                  {dashboardData.sectorData && dashboardData.sectorData.length > 0 ? dashboardData.sectorData.map((sector, index) => {
-                    const startAngle = sector.startAngle;
-                    const endAngle = sector.endAngle;
-                    const largeArcFlag = sector.percentage > 50 ? 1 : 0;
-                    
-                    const startAngleRad = (startAngle - 90) * (Math.PI / 180);
-                    const endAngleRad = (endAngle - 90) * (Math.PI / 180);
-                    
-                    const radius = 80;
-                    const centerX = 100;
-                    const centerY = 100;
-                    
-                    const x1 = centerX + radius * Math.cos(startAngleRad);
-                    const y1 = centerY + radius * Math.sin(startAngleRad);
-                    const x2 = centerX + radius * Math.cos(endAngleRad);
-                    const y2 = centerY + radius * Math.sin(endAngleRad);
-                    
-                    const pathData = [
-                      `M ${centerX} ${centerY}`,
-                      `L ${x1} ${y1}`,
-                      `A ${radius} ${radius} 0 ${largeArcFlag} 1 ${x2} ${y2}`,
-                      'Z'
-                    ].join(' ');
-                    
-                    return (
-                      <path
-                        key={index}
-                        d={pathData}
-                        fill={sector.color}
-                        stroke="#fff"
-                        strokeWidth="2"
-                        className="sector-slice"
-                      />
-                    );
-                  }) : (
-                    // Fallback circle if no data
-                    <circle
-                      cx="100"
-                      cy="100"
-                      r="80"
-                      fill="none"
-                      stroke="#e2e8f0"
-                      strokeWidth="2"
-                      strokeDasharray="5,5"
-                    />
-                  )}
-                  <circle
-                    cx="100"
-                    cy="100"
-                    r="30"
-                    fill="#fff"
-                    stroke="#e5e7eb"
-                    strokeWidth="2"
-                  />
-                  <text
-                    x="100"
-                    y="95"
-                    textAnchor="middle"
-                    className="pie-center-text"
-                    fontSize="12"
-                    fontWeight="600"
-                    fill="#374151"
-                  >
-                    {dashboardData.totalCompanies || 0}
-                  </text>
-                  <text
-                    x="100"
-                    y="110"
-                    textAnchor="middle"
-                    className="pie-center-text"
-                    fontSize="10"
-                    fill="#6B7280"
-                  >
-                    Sectors
-                  </text>
-                </svg>
-              </div>
+              <DashboardSectorMixChart
+                sectorData={dashboardData.sectorData}
+                totalCompanies={dashboardData.totalCompanies}
+              />
               <div className="chart-legend">
                 {dashboardData.sectorLegend && dashboardData.sectorLegend.length > 0 ? dashboardData.sectorLegend.map((sector, index) => (
                   <div key={index} className="legend-item">
@@ -986,7 +912,6 @@ const Dashboard = ({ onTabChange }) => {
             <div className="card-header">
               <div className="header-left">
                 <h3>Portfolio Health & Risk</h3>
-                <span className="card-subtitle">High-level view using sample data</span>
               </div>
             </div>
 
@@ -1180,8 +1105,7 @@ const Dashboard = ({ onTabChange }) => {
         <div className="content-card">
           <div className="card-header">
             <div className="header-left">
-            <h3>Quick Actions</h3>
-              <span className="card-subtitle">Common tasks</span>
+              <span className="card-subtitle">Quick Actions</span>
             </div>
           </div>
           <div className="actions-grid">

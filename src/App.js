@@ -6,6 +6,9 @@ import Sidebar, { equityManagerMenuItems, wealthManagerMenuItems } from './compo
 import AuthContainer from './components/Auth/AuthContainer';
 import UserProfileModal from './components/Auth/UserProfileModal';
 import { authService } from './services/authService';
+import WealthSidebar from './components/WealthManager/Layout/WealthSidebar';
+import WealthNavbar from './components/WealthManager/Layout/WealthNavbar';
+import './components/WealthManager/Layout/WealthLayout.css';
 import Dashboard from './components/Dashboard';
 import WealthManagerDashboard from './components/WealthManager/WM Dashboard/WealthManagerDashboard';
 import WMPortfolioOverview from './components/WealthManager/WM Dashboard/WMPortfolioOverview';
@@ -75,7 +78,6 @@ import PerformanceReport from './components/FinancialReporting/PerformanceReport
 import FinancialReportingNotes from './components/FinancialReporting/FinancialReportingNotes';
 import FinancialReportsExport from './components/FinancialReporting/FinancialReportsExport';
 import FinancialReportsDownloadCenter from './components/FinancialReporting/FinancialReportsDownloadCenter';
-import PremiumModal from './components/PremiumModal/premiumModal';
 import GsecEntries from './components/GsecEntries/GsecEntries';
 import GsecGeneralLedger from './components/GsecEntries/GsecGeneralLedger';
 import GsecBalanceSheet from './components/GsecEntries/GsecBalanceSheet';
@@ -108,24 +110,11 @@ function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [user, setUser] = useState(null);
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
-  const [isPremiumModalOpen, setIsPremiumModalOpen] = useState(false);
-  const [premiumModalVariant, setPremiumModalVariant] = useState('default');
   const [isLoading, setIsLoading] = useState(true);
   const [aiAssistantOpen, setAiAssistantOpen] = useState(false);
   
-  // Premium gating (keep only the truly premium sections here)
-  const premiumGatedTabs = new Set([]);
-  const premiumGatedSidebarItems = new Set(['Portfolio Transfers']);
-
-
   // Handle tab selection from Navbar - use Sidebar's menuItems as single source of truth for indices
   const handleTabChange = (tabName) => {
-    if (premiumGatedTabs.has(tabName)) {
-      setPremiumModalVariant('default');
-      setIsPremiumModalOpen(true);
-      return;
-    }
-
     setActiveTab(tabName);
 
     // Use the correct menu set based on selected manager
@@ -142,19 +131,17 @@ function App() {
     }
   };
 
-  // Handle manager type change from Sidebar. Returns false if the switch was blocked (premium gate).
+  // Handle manager type change from Sidebar
   const handleManagerChange = (managerType) => {
-    if (managerType === 'wealth') {
-      setPremiumModalVariant('wealth');
-      setIsPremiumModalOpen(true);
-      return false;
-    }
-
     setSelectedManager(managerType);
     setActiveSidebarItem(0);
-    setVisibleTabs(['Dashboard', 'Portfolio Overview', 'Market Summary', 'Recent Activity', 'Performance Metrics']);
-    setActiveTab('Dashboard');
-    return true;
+    if (managerType === 'wealth') {
+      setVisibleTabs(['Dashboard', 'Portfolio Overview', 'Fund Performance', 'Client Summary', 'AUM Overview']);
+      setActiveTab('Dashboard');
+    } else {
+      setVisibleTabs(['Dashboard', 'Portfolio Overview', 'Market Summary', 'Recent Activity', 'Performance Metrics']);
+      setActiveTab('Dashboard');
+    }
   };
 
   // Tab component mappings
@@ -269,16 +256,6 @@ function App() {
 
   // Handle sidebar selection
   const handleSidebarSelect = (index, subTopics) => {
-    // Show premium modal for gated sections
-    const currentMenuItems =
-      selectedManager === 'wealth' ? wealthManagerMenuItems : equityManagerMenuItems;
-    const selectedItem = currentMenuItems[index];
-    if (selectedItem?.name && premiumGatedSidebarItems.has(selectedItem.name)) {
-      setPremiumModalVariant('default');
-      setIsPremiumModalOpen(true);
-      return;
-    }
-
     setActiveSidebarItem(index);
 
     if (Array.isArray(subTopics) && subTopics.length > 0) {
@@ -288,16 +265,6 @@ function App() {
       setVisibleTabs([]);
       setActiveTab('');
     }
-  };
-
-  // Handle Contact Sales button click
-  const handleContactSales = () => {
-    setIsPremiumModalOpen(false);
-    setPremiumModalVariant('default');
-    // Add your contact sales logic here
-    // For example: window.open('mailto:sales@example.com', '_blank');
-    // Or navigate to a contact page
-    console.log('Contact Sales clicked');
   };
 
   // Check authentication status on app load
@@ -375,27 +342,51 @@ function App() {
   }
 
   return (
-    <div className="dashboard-root">
-      <Sidebar
-        onSelect={handleSidebarSelect}
-        activeIndex={activeSidebarItem}
-        onLogout={handleLogout}
-        onManagerChange={handleManagerChange}
-        selectedManager={selectedManager}
-        isClientView={isClientView}
-        onClientViewToggle={setIsClientView}
-      />
-      <div className="dashboard-main">
-        <Navbar
-          activeTab={activeTab}
-          onTabChange={handleTabChange}
-          visibleTabs={visibleTabs}
-          user={user}
+    <div className={selectedManager === 'wealth' ? 'wm-root' : 'dashboard-root'}>
+      {selectedManager === 'wealth' ? (
+        <WealthSidebar
+          onSelect={handleSidebarSelect}
+          activeIndex={activeSidebarItem}
           onLogout={handleLogout}
-          onOpenProfile={() => setIsProfileModalOpen(true)}
+          onManagerChange={handleManagerChange}
+          isClientView={isClientView}
+          onClientViewToggle={setIsClientView}
         />
+      ) : (
+        <Sidebar
+          onSelect={handleSidebarSelect}
+          activeIndex={activeSidebarItem}
+          onLogout={handleLogout}
+          onManagerChange={handleManagerChange}
+          selectedManager={selectedManager}
+          isClientView={isClientView}
+          onClientViewToggle={setIsClientView}
+        />
+      )}
+
+      <div className={selectedManager === 'wealth' ? 'wm-main' : 'dashboard-main'}>
+        {selectedManager === 'wealth' ? (
+          <WealthNavbar
+            activeTab={activeTab}
+            onTabChange={handleTabChange}
+            visibleTabs={visibleTabs}
+            user={user}
+            onOpenProfile={() => setIsProfileModalOpen(true)}
+          />
+        ) : (
+          <Navbar
+            activeTab={activeTab}
+            onTabChange={handleTabChange}
+            visibleTabs={visibleTabs}
+            user={user}
+            onLogout={handleLogout}
+            onOpenProfile={() => setIsProfileModalOpen(true)}
+          />
+        )}
+
         {selectedManager === 'equity' && <DynamicHeader />}
-        <div className="dashboard-content">
+
+        <div className={selectedManager === 'wealth' ? 'wm-content' : 'dashboard-content'}>
           {tabToComponent[activeTab] || (
             <div style={{ padding: '2rem', textAlign: 'center', color: '#ef4444' }}>
               <h3>Component Not Found</h3>
@@ -410,17 +401,6 @@ function App() {
         user={user}
         isOpen={isProfileModalOpen}
         onClose={() => setIsProfileModalOpen(false)}
-      />
-      
-      {/* Premium Modal */}
-      <PremiumModal
-        isOpen={isPremiumModalOpen}
-        onClose={() => {
-          setIsPremiumModalOpen(false);
-          setPremiumModalVariant('default');
-        }}
-        onContactSales={handleContactSales}
-        variant={premiumModalVariant}
       />
 
       <AIAssistantDock

@@ -20,10 +20,12 @@
 }
 
 .realized-pnl-page-title {
-  font-size: 28px;
+  font-size: 1.375rem;
   font-weight: 700;
   color: #1e293b;
   margin: 0;
+  line-height: 1.2;
+  letter-spacing: -0.02em;
 }
 
 .realized-pnl-page-controls {
@@ -531,7 +533,7 @@
   }
   
   .realized-pnl-page-title {
-    font-size: 24px;
+    font-size: 1.25rem;
   }
   
   .realized-pnl-summary-grid {
@@ -561,6 +563,10 @@
 }
 
 @media (max-width: 480px) {
+  .realized-pnl-page-title {
+    font-size: 1.125rem;
+  }
+
   .realized-pnl-trades-table {
     font-size: 11px;
   }

@@ -24,8 +24,8 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 4rem;
-  height: 4rem;
+  width: 3.25rem;
+  height: 3.25rem;
   background: linear-gradient(135deg, #22c55e, #16a34a);
   border-radius: 0.18rem;
   box-shadow: 0 8px 32px rgba(22, 163, 74, 0.18), 0 2px 8px rgba(22, 163, 74, 0.12);
@@ -33,8 +33,8 @@
 }
 
 .gsec-gl-icon {
-  width: 2rem;
-  height: 2rem;
+  width: 1.5rem;
+  height: 1.5rem;
   color: #fff;
 }
 
@@ -46,16 +46,17 @@
 }
 
 .gsec-gl-main-title {
-  font-size: 2rem;
+  font-size: 1.65rem;
   font-weight: 800;
   color: #022c22;
   margin: 0 0 0.25rem 0;
-  letter-spacing: -0.01em;
+  letter-spacing: -0.02em;
+  line-height: 1.15;
 }
 
 .gsec-gl-subtitle {
   color: #475569;
-  font-size: 1rem;
+  font-size: 0.875rem;
   margin: 0;
 }
 
@@ -363,6 +364,24 @@
 }
 
 @media (max-width: 768px) {
+  .gsec-gl-header-icon {
+    width: 2.875rem;
+    height: 2.875rem;
+  }
+
+  .gsec-gl-icon {
+    width: 1.35rem;
+    height: 1.35rem;
+  }
+
+  .gsec-gl-main-title {
+    font-size: 1.35rem;
+  }
+
+  .gsec-gl-subtitle {
+    font-size: 0.8125rem;
+  }
+
   .gsec-gl-filters-content {
     padding: 1.25rem 1.25rem 1.5rem;
   }

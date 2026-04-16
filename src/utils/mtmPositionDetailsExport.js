@@ -69,14 +69,14 @@ const totalsFootRow = (totals) => {
   const totalUnrealizedPnL =
     (Number(t.totalProjectedSalesWithCOF) || 0) -
     ((Number(t.totalCost) || 0) + (Number(t.totalCharges) || 0));
-  // Align with on-screen footer: blanks under Market / Cost Value, then rolled-up columns
+  // Align with on-screen footer: blank under Market, totals for Cost Value onward
   return [
     'Portfolio Totals',
     '',
     '',
+    fmt4(t.weightedAvgCostPrice ?? 0),
     '',
-    '',
-    '',
+    fmt2(t.totalCost || 0),
     fmt2(t.totalGrossSales),
     '',
     '',
@@ -112,6 +112,8 @@ export function computeMtmPortfolioTotals(mtmData) {
   if (!data.length) {
     return {
       totalCost: 0,
+      totalQuantity: 0,
+      weightedAvgCostPrice: 0,
       totalGrossSales: 0,
       totalCharges: 0,
       totalProjectedSales: 0,
@@ -122,6 +124,7 @@ export function computeMtmPortfolioTotals(mtmData) {
       totalMarket: 0
     };
   }
+  const totalQuantity = data.reduce((sum, item) => sum + (Number(item.quantity) || 0), 0);
   const totalCost = data.reduce((sum, item) => sum + (Number(item.costValue) || 0), 0);
   const totalGrossSales = data.reduce((sum, item) => sum + (Number(item.grossSales) || 0), 0);
   const totalCharges = data.reduce((sum, item) => sum + (Number(item.charges) || 0), 0);
@@ -131,8 +134,11 @@ export function computeMtmPortfolioTotals(mtmData) {
   const totalMarket = data.reduce((sum, item) => sum + (Number(item.grossSales) || 0), 0);
   const totalGainLoss = totalGrossSales - totalCost;
   const totalGainLossPercentage = totalCost > 0 ? (totalGainLoss / totalCost) * 100 : 0;
+  const weightedAvgCostPrice = totalQuantity > 0 ? totalCost / totalQuantity : 0;
   return {
     totalCost,
+    totalQuantity,
+    weightedAvgCostPrice,
     totalGrossSales,
     totalCharges,
     totalProjectedSales,

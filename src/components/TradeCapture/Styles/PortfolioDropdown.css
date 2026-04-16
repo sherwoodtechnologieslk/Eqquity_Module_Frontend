@@ -160,6 +160,289 @@
   max-width: 380px;
 }
 
+.pf-secondary-container {
+  width: 100%;
+  max-width: none;
+  margin-top: 0.9rem;
+  padding: 0;
+  background: transparent;
+  border: none;
+  border-radius: 0;
+  box-shadow: none;
+}
+
+
+.pf-secondary-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  align-items: start;
+}
+
+.pf-secondary-grid-v2 {
+  background: rgba(255, 255, 255, 0.9);
+  border: 1px solid rgba(203, 213, 225, 0.85);
+  border-radius: 0.35rem;
+  padding: 1rem;
+  position: relative;
+}
+
+.pf-secondary-grid-v2::after {
+  content: '';
+  position: absolute;
+  top: 0.9rem;
+  bottom: 0.9rem;
+  left: 50%;
+  width: 1px;
+  background: linear-gradient(180deg, transparent 0%, rgba(148, 163, 184, 0.65) 20%, rgba(148, 163, 184, 0.65) 80%, transparent 100%);
+  pointer-events: none;
+}
+
+.pf-holdings-date-filter {
+  width: 100%;
+  max-width: none;
+  margin-top: 0;
+  padding: 0;
+  background: transparent;
+  border: none;
+  box-shadow: none;
+}
+
+.pf-panel-title-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-bottom: 0.75rem;
+}
+
+.pf-panel-title {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+  font-weight: 800;
+  font-size: 0.95rem;
+  color: #0f172a;
+}
+
+
+.pf-panel-meta {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #64748b;
+}
+
+.pf-link-btn {
+  background: none;
+  border: none;
+  padding: 0.25rem 0.1rem;
+  color: #1d4ed8;
+  font-weight: 800;
+  font-size: 0.85rem;
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.pf-link-btn:hover {
+  color: #1e40af;
+}
+
+.pf-inline-warning {
+  margin: -0.25rem 0 0.65rem 0;
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: #92400e;
+  background: rgba(251, 191, 36, 0.12);
+  border: 1px solid rgba(251, 191, 36, 0.35);
+  padding: 0.4rem 0.55rem;
+  border-radius: 0.3rem;
+}
+
+.pf-holdings-date-filter-all-note {
+  margin: 0 0 0.75rem 0;
+  font-size: 0.8125rem;
+  color: #64748b;
+  line-height: 1.45;
+}
+
+.pf-holdings-date-filter-controls {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.65rem 0.75rem;
+  align-items: end;
+}
+
+.pf-holdings-date-filter-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.pf-holdings-date-filter-field label {
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: #475569;
+}
+
+.pf-holdings-date-input {
+  padding: 0.5rem 0.55rem;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 0.18rem;
+  font-size: 0.88rem;
+  color: #334155;
+  background: #fff;
+  min-width: 0;
+  width: 100%;
+}
+
+.pf-holdings-date-input:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+}
+
+.pf-holdings-date-input:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.pf-rule-list {
+  margin: 0.75rem 0 0 0;
+  padding: 0.65rem 0.75rem;
+  list-style: none;
+  border-radius: 0.35rem;
+  background: rgba(241, 245, 249, 0.55);
+  border: 1px dashed rgba(148, 163, 184, 0.6);
+  color: #475569;
+  font-size: 0.78rem;
+  line-height: 1.35;
+  display: grid;
+  gap: 0.25rem;
+}
+
+.pf-rule-list li::before {
+  content: '•';
+  color: #3b82f6;
+  font-weight: 900;
+  margin-right: 0.5rem;
+}
+
+.pf-muted {
+  color: #64748b;
+}
+
+.pf-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.25rem 0.55rem;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  border: 1px solid transparent;
+}
+
+.pf-badge-blue {
+  background: rgba(59, 130, 246, 0.12);
+  color: #1d4ed8;
+  border-color: rgba(59, 130, 246, 0.28);
+}
+
+.pf-badge-gray {
+  background: rgba(148, 163, 184, 0.18);
+  color: #475569;
+  border-color: rgba(148, 163, 184, 0.35);
+}
+
+.pf-kv {
+  margin-top: 0.5rem;
+  display: grid;
+  gap: 0.65rem;
+}
+
+.pf-kv-row {
+  display: grid;
+  grid-template-columns: 7.5rem 1fr;
+  gap: 0.75rem;
+  align-items: start;
+}
+
+.pf-kv-label {
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #64748b;
+}
+
+.pf-kv-value {
+  font-size: 0.92rem;
+  font-weight: 700;
+  color: #0f172a;
+  line-height: 1.35;
+}
+
+.pf-method-pill {
+  display: inline-flex;
+  padding: 0.35rem 0.55rem;
+  border-radius: 0.45rem;
+  background: rgba(59, 130, 246, 0.12);
+  border: 1px solid rgba(59, 130, 246, 0.24);
+  color: #1e40af;
+  font-weight: 800;
+  font-size: 0.86rem;
+}
+
+.pf-secondary-grid .pf-costing-method-section {
+  padding: 0;
+}
+
+.pf-secondary-grid .pf-costing-method-section .pf-costing-method-card {
+  background: transparent;
+  border: none;
+  box-shadow: none;
+  margin: 0;
+}
+
+.pf-secondary-grid .pf-costing-method-section .pf-costing-method-card:hover {
+  transform: none;
+  box-shadow: none;
+}
+
+.pf-secondary-grid .pf-costing-method-section .pf-costing-method-header {
+  padding: 0;
+  background: transparent;
+  border: none;
+}
+
+@media (max-width: 860px) {
+  .pf-secondary-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .pf-secondary-grid-v2::after {
+    display: none;
+  }
+
+  .pf-kv-row {
+    grid-template-columns: 1fr;
+    gap: 0.25rem;
+  }
+}
+
+.ph-no-data-clear {
+  margin-top: 1rem;
+}
+
+.ph-last-update,
+.ph-total-last-update {
+  font-size: 0.875rem;
+  color: #475569;
+  white-space: nowrap;
+}
+
 .pf-select-container {
   position: relative;
   background: rgba(248, 250, 252, 0.9);
@@ -2169,8 +2452,17 @@
   background: #f8fafc;
 }
 
+.ph-table-header-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+  margin-bottom: 0.5rem;
+}
+
 .ph-table-header h2 {
-  margin: 0 0 0.5rem 0;
+  margin: 0;
   font-size: 1.5rem;
   font-weight: 700;
   color: #1f2937;

@@ -26,8 +26,8 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 4rem;
-  height: 4rem;
+  width: 3.25rem;
+  height: 3.25rem;
   background: linear-gradient(135deg, #60a5fa, #2563eb);
   border-radius: 0.18rem;
   margin: 0;
@@ -36,8 +36,8 @@
 }
 
 .gl-icon {
-  width: 2rem;
-  height: 2rem;
+  width: 1.5rem;
+  height: 1.5rem;
   color: #fff;
 }
 
@@ -49,17 +49,17 @@
 }
 
 .gl-main-title {
-  font-size: 2rem;
+  font-size: 1.65rem;
   font-weight: 800;
   color: #1f2937;
   margin: 0 0 0.5rem 0;
-  letter-spacing: -0.01em;
-  line-height: 1.1;
+  letter-spacing: -0.02em;
+  line-height: 1.15;
 }
 
 .gl-subtitle {
   color: #475569;
-  font-size: 1.1rem;
+  font-size: 0.875rem;
   font-weight: 400;
   margin: 0;
   margin-bottom: 0.1rem;
@@ -642,15 +642,15 @@
     padding-bottom: 1.2rem;
   }
   .gl-main-title {
-    font-size: 1.8rem;
+    font-size: 1.55rem;
   }
   .gl-header-icon {
-    width: 3.5rem;
-    height: 3.5rem;
+    width: 3rem;
+    height: 3rem;
   }
   .gl-icon {
-    width: 1.75rem;
-    height: 1.75rem;
+    width: 1.4rem;
+    height: 1.4rem;
   }
 }
 
@@ -668,15 +668,22 @@
   }
   
   .gl-header-icon {
+    width: 2.875rem;
+    height: 2.875rem;
     margin-bottom: 0.5rem;
+  }
+
+  .gl-icon {
+    width: 1.35rem;
+    height: 1.35rem;
   }
   
   .gl-main-title {
-    font-size: 1.5rem;
+    font-size: 1.35rem;
   }
   
   .gl-subtitle {
-    font-size: 1rem;
+    font-size: 0.8125rem;
   }
   
   .gl-filters-content {
@@ -721,21 +728,21 @@
 
 @media (max-width: 480px) {
   .gl-header-icon {
-    width: 3rem;
-    height: 3rem;
+    width: 2.625rem;
+    height: 2.625rem;
   }
   
   .gl-icon {
-    width: 1.5rem;
-    height: 1.5rem;
+    width: 1.25rem;
+    height: 1.25rem;
   }
   
   .gl-main-title {
-    font-size: 1.25rem;
+    font-size: 1.125rem;
   }
   
   .gl-subtitle {
-    font-size: 0.875rem;
+    font-size: 0.8125rem;
   }
   
   .gl-summary-stats {

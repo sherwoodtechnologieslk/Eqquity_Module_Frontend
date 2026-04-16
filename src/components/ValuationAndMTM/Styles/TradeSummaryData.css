@@ -1,7 +1,8 @@
 /* Trade Summary Data Page - Unique Classnames */
 .tsd-equity-module-main-container {
   min-height: 100vh;
-  padding: 2rem 1rem;
+  /* Tight top: sit closer to fixed DynamicHeader */
+  padding: 0.5rem 1rem 2rem;
   box-sizing: border-box;
 }
 
@@ -10,10 +11,10 @@
   display: flex;
   align-items: center;
   gap: 2rem;
-  margin-bottom: 2.5rem;
+  margin-bottom: 2rem;
   text-align: left;
-  padding-top: 2rem;
-  padding-bottom: 2rem;
+  padding-top: 0.25rem;
+  padding-bottom: 1.25rem;
 }
 
 .tsd-header-content-wrapper {
@@ -49,12 +50,12 @@
 }
 
 .tsd-header-text-content h2 {
-  font-size: 2.1rem;
+  font-size: 1.65rem;
   font-weight: 800;
   color: #1f2937;
   margin: 0 0 0.5rem 0;
   letter-spacing: -0.01em;
-  line-height: 1.1;
+  line-height: 1.15;
 }
 
 .tsd-header-text-content p {
@@ -683,11 +684,11 @@
 @media (max-width: 1100px) {
   .tsd-page-header-section {
     gap: 1.2rem;
-    padding-top: 1.2rem;
-    padding-bottom: 1.2rem;
+    padding-top: 0.35rem;
+    padding-bottom: 1rem;
   }
   .tsd-header-text-content h2 {
-    font-size: 2.2rem;
+    font-size: 1.55rem;
   }
   .tsd-header-icon-svg {
     width: 4rem;
@@ -701,15 +702,15 @@
 
 @media (max-width: 768px) {
   .tsd-equity-module-main-container {
-    padding: 1rem;
+    padding: 0.5rem 1rem 1.5rem;
   }
   
   .tsd-page-header-section {
     flex-direction: column;
     align-items: flex-start;
     gap: 1rem;
-    padding-top: 1rem;
-    padding-bottom: 1rem;
+    padding-top: 0.25rem;
+    padding-bottom: 0.85rem;
   }
   
   .tsd-header-icon-svg {
@@ -717,7 +718,7 @@
   }
   
   .tsd-header-text-content h2 {
-    font-size: 1.5rem;
+    font-size: 1.3rem;
   }
   
   .tsd-controls-section {
@@ -763,7 +764,7 @@
   }
   
   .tsd-header-text-content h2 {
-    font-size: 1.25rem;
+    font-size: 1.1rem;
   }
   
   .tsd-header-text-content p {

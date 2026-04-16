@@ -1,0 +1,353 @@
+/* Wealth Manager layout (private banking / premium) */
+
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600&display=swap');
+
+:root {
+  /* Deep slate — dark but lifted from near-black */
+  --wm-bg: #121a2a;
+  --wm-panel: rgba(255, 255, 255, 0.09);
+  --wm-panel-2: rgba(255, 255, 255, 0.125);
+  --wm-border: rgba(255, 255, 255, 0.14);
+  --wm-text: rgba(255, 255, 255, 0.92);
+  --wm-muted: rgba(255, 255, 255, 0.68);
+  --wm-accent: #22c55e;     /* emerald */
+  --wm-accent-2: #86efac;   /* soft mint */
+  --wm-shadow: 0 18px 50px rgba(0, 0, 0, 0.28);
+  --wm-radius: 18px;
+  --wm-radius-sm: 14px;
+  --wm-sidebar-width: 300px;
+}
+
+.wm-root {
+  display: flex;
+  min-height: 100vh;
+  width: 100vw;
+  position: relative;
+  background:
+    radial-gradient(1100px 680px at 18% 8%, rgba(34, 197, 94, 0.11), transparent 60%),
+    radial-gradient(900px 620px at 82% 18%, rgba(78, 116, 255, 0.085), transparent 64%),
+    radial-gradient(1200px 720px at 40% 120%, rgba(255, 255, 255, 0.07), transparent 55%),
+    linear-gradient(180deg, #141d2e 0%, #121a2a 42%, #151f32 100%);
+  color: var(--wm-text);
+  font-family: 'DM Sans', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+.wm-main {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  margin-left: var(--wm-sidebar-width); /* sidebar */
+}
+
+.wm-content {
+  flex: 1;
+  padding: 1.6rem 1.8rem 2.25rem;
+  margin-top: 92px; /* navbar */
+}
+
+@media (max-width: 1200px) {
+  :root { --wm-sidebar-width: 280px; }
+}
+
+@media (max-width: 900px) {
+  :root { --wm-sidebar-width: 260px; }
+}
+
+@media (max-width: 768px) {
+  :root { --wm-sidebar-width: 0px; }
+  .wm-main { margin-left: 0; }
+  .wm-content { padding: 1.25rem 1rem 2rem; }
+}
+
+/* Wealth navbar (separate from equity navbar) */
+.wm-navbar {
+  position: fixed;
+  top: 0;
+  left: var(--wm-sidebar-width);
+  right: 0;
+  height: 92px;
+  z-index: 120;
+  display: flex;
+  align-items: center;
+  padding: 0 1.25rem;
+  border-bottom: 1px solid var(--wm-border);
+  background:
+    linear-gradient(180deg, rgba(22, 30, 48, 0.94) 0%, rgba(20, 28, 44, 0.82) 60%, rgba(18, 26, 40, 0.65) 100%);
+  backdrop-filter: blur(18px);
+  box-shadow: 0 14px 48px rgba(0, 0, 0, 0.26);
+}
+
+.wm-navbar-title {
+  font-family: 'Fraunces', serif;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  color: rgba(255,255,255,0.92);
+  font-size: 1.15rem;
+}
+
+.wm-navbar-pills {
+  display: flex;
+  gap: 8px;
+  padding: 8px;
+  border-radius: 999px;
+  border: 1px solid var(--wm-border);
+  background: rgba(255, 255, 255, 0.055);
+}
+
+.wm-pill {
+  padding: 0.55rem 0.9rem;
+  border-radius: 999px;
+  border: 1px solid transparent;
+  background: transparent;
+  color: rgba(255,255,255,0.74);
+  font-size: 0.86rem;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 160ms ease, border-color 160ms ease, color 160ms ease;
+}
+
+.wm-pill:hover {
+  background: rgba(255,255,255,0.05);
+  color: rgba(255,255,255,0.86);
+}
+
+.wm-pill.is-active {
+  border-color: rgba(34,197,94,0.45);
+  background: rgba(34,197,94,0.14);
+  color: rgba(134,239,172,0.95);
+}
+
+.wm-kpi-chip {
+  display: inline-flex;
+  gap: 10px;
+  align-items: center;
+  padding: 0.55rem 0.75rem;
+  border-radius: 999px;
+  border: 1px solid var(--wm-border);
+  background: rgba(255, 255, 255, 0.055);
+}
+
+.wm-avatar {
+  width: 42px;
+  height: 42px;
+  border-radius: 999px;
+  border: 1px solid rgba(34,197,94,0.35);
+  background:
+    radial-gradient(circle at 25% 25%, rgba(34,197,94,0.30), rgba(255,255,255,0.05) 55%, transparent 70%);
+  color: rgba(255,255,255,0.92);
+  cursor: pointer;
+  font-weight: 700;
+}
+
+/* ---- Wealth content pages (scoped) ---- */
+
+.wm-root .wm-dashboard,
+.wm-root .wmp-container,
+.wm-root .wcs-container,
+.wm-root .wao-container {
+  background: transparent !important;
+}
+
+.wm-root .wm-dashboard-header,
+.wm-root .wmp-header,
+.wm-root .wcs-header,
+.wm-root .wao-header {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0.055) 100%) !important;
+  border: 1px solid var(--wm-border) !important;
+  box-shadow: var(--wm-shadow) !important;
+  backdrop-filter: blur(14px);
+  border-radius: var(--wm-radius) !important;
+}
+
+.wm-root .wm-dashboard-header::before {
+  background: linear-gradient(90deg, rgba(34,197,94,0.9) 0%, rgba(134,239,172,0.85) 50%, rgba(34,197,94,0.9) 100%) !important;
+}
+
+.wm-root .wm-dashboard-header h1,
+.wm-root .wmp-header-content h2,
+.wm-root .wcs-header-content h2,
+.wm-root .wao-header-content h2 {
+  -webkit-text-fill-color: unset;
+  font-family: 'Fraunces', serif;
+  color: rgba(255,255,255,0.92) !important;
+  background: none !important;
+}
+
+.wm-root .wm-dashboard-subtitle,
+.wm-root .wmp-subtitle,
+.wm-root .wcs-subtitle,
+.wm-root .wao-subtitle {
+  color: rgba(255,255,255,0.62) !important;
+}
+
+.wm-root .wm-dashboard-subtitle::before {
+  background: rgba(34,197,94,0.92) !important;
+}
+
+.wm-root .wm-header-time {
+  background: rgba(255, 255, 255, 0.06) !important;
+  border: 1px solid var(--wm-border) !important;
+  border-radius: var(--wm-radius-sm) !important;
+}
+
+.wm-root .wm-time-display {
+  color: rgba(134,239,172,0.92) !important;
+}
+
+.wm-root .wm-date-display {
+  color: rgba(255,255,255,0.60) !important;
+}
+
+.wm-root .wm-metric-card,
+.wm-root .wm-dashboard-card,
+.wm-root .wmp-section,
+.wm-root .wcs-section,
+.wm-root .wao-section {
+  background: rgba(255, 255, 255, 0.085) !important;
+  border: 1px solid var(--wm-border) !important;
+  box-shadow: var(--wm-shadow) !important;
+  backdrop-filter: blur(12px);
+  border-radius: var(--wm-radius) !important;
+}
+
+.wm-root .wm-card-header,
+.wm-root .wmp-section-header,
+.wm-root .wcs-section-header,
+.wm-root .wao-section-header {
+  border-bottom-color: rgba(255, 255, 255, 0.12) !important;
+}
+
+.wm-root .wm-dashboard-grid {
+  gap: 1.5rem !important;
+}
+
+.wm-root .wm-metrics-grid {
+  gap: 1.1rem !important;
+}
+
+.wm-root .wm-dashboard-header {
+  padding: 1.6rem 1.75rem !important;
+}
+
+.wm-root .wm-metric-card {
+  padding: 1.2rem 1.1rem !important;
+}
+
+.wm-root .wm-metric-icon {
+  border-radius: 14px !important;
+  background: rgba(34,197,94,0.14) !important;
+  color: rgba(134,239,172,0.92) !important;
+  border: 1px solid rgba(34,197,94,0.22) !important;
+}
+
+.wm-root .wm-aum-card .wm-metric-icon,
+.wm-root .wm-clients-card .wm-metric-icon,
+.wm-root .wm-funds-card .wm-metric-icon,
+.wm-root .wm-transactions-card .wm-metric-icon {
+  background: rgba(34,197,94,0.14) !important;
+  color: rgba(134,239,172,0.92) !important;
+}
+
+.wm-root .wm-new-badge,
+.wm-root .wm-pending-badge {
+  border-radius: 999px !important;
+  background: rgba(255,255,255,0.08) !important;
+  border: 1px solid rgba(255,255,255,0.12) !important;
+  color: rgba(255,255,255,0.80) !important;
+}
+
+.wm-root .wm-pending-badge {
+  border-color: rgba(34,197,94,0.25) !important;
+}
+
+.wm-root .wm-card-header h3,
+.wm-root .wmp-section-header h3,
+.wm-root .wcs-section-header h3,
+.wm-root .wao-section-header h3,
+.wm-root .wm-metric-value,
+.wm-root .wm-transaction-client,
+.wm-root .wm-fund-name,
+.wm-root .wm-nav-value,
+.wm-root .wm-amount-value {
+  color: rgba(255,255,255,0.92) !important;
+}
+
+.wm-root .wm-metric-label,
+.wm-root .wm-metric-sub-info,
+.wm-root .wm-transaction-fund,
+.wm-root .wm-transaction-meta,
+.wm-root .wm-bar-label,
+.wm-root .wm-allocation-value,
+.wm-root .wm-fund-category,
+.wm-root .wm-fund-aum {
+  color: rgba(255,255,255,0.60) !important;
+}
+
+.wm-root .wm-period-select,
+.wm-root .wmp-select,
+.wm-root .wcs-select,
+.wm-root .wao-select {
+  background: rgba(255, 255, 255, 0.07) !important;
+  border: 1px solid rgba(255, 255, 255, 0.15) !important;
+  color: rgba(255,255,255,0.85) !important;
+}
+
+.wm-root .wm-view-all-btn,
+.wm-root .wmp-btn-primary,
+.wm-root .wcs-btn-primary,
+.wm-root .wao-btn-primary {
+  background: linear-gradient(135deg, rgba(34,197,94,0.95) 0%, rgba(134,239,172,0.9) 100%) !important;
+  color: rgba(10,10,12,0.95) !important;
+  box-shadow: 0 10px 30px rgba(34,197,94,0.18);
+}
+
+.wm-root .wm-view-all-btn:hover,
+.wm-root .wmp-btn-primary:hover,
+.wm-root .wcs-btn-primary:hover,
+.wm-root .wao-btn-primary:hover {
+  filter: brightness(1.02);
+}
+
+.wm-root .wm-fund-item,
+.wm-root .wm-transaction-item {
+  background: rgba(255, 255, 255, 0.07) !important;
+  border: 1px solid rgba(255, 255, 255, 0.12) !important;
+  border-radius: var(--wm-radius-sm) !important;
+}
+
+.wm-root .wm-fund-item:hover,
+.wm-root .wm-transaction-item:hover {
+  background: rgba(255, 255, 255, 0.09) !important;
+  border-color: rgba(34,197,94,0.22) !important;
+}
+
+.wm-root .wm-transaction-icon {
+  background: rgba(34,197,94,0.12) !important;
+  color: rgba(134,239,172,0.92) !important;
+  border-radius: 14px !important;
+}
+
+.wm-root .wm-bar-value {
+  color: rgba(255,255,255,0.85) !important;
+}
+
+.wm-root .wm-allocation-bar,
+.wm-root .wao-asset-bar {
+  background: rgba(255,255,255,0.10) !important;
+}
+
+.wm-root .wm-transactions-list::-webkit-scrollbar-track {
+  background: rgba(255,255,255,0.06) !important;
+}
+
+.wm-root .wm-transactions-list::-webkit-scrollbar-thumb {
+  background: rgba(255,255,255,0.18) !important;
+}
+
+.wm-root .wm-transactions-list::-webkit-scrollbar-thumb:hover {
+  background: rgba(255,255,255,0.28) !important;
+}
+
