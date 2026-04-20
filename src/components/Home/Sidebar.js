@@ -139,7 +139,7 @@ export const equityManagerMenuItems = [
       </svg>
     ),
     name: "Financial Reports Export",
-    subTopics: ["Equity Portfolio Snapshot", "Financial Reports Export", "Performance Report"]
+    subTopics: ["Equity Portfolio Snapshot", "Financial Reports Export", "Performance Report", "Other Reports"]
   },
   {
     icon: (

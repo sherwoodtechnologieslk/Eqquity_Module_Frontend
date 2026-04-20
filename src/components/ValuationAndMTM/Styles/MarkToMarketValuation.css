@@ -92,9 +92,17 @@
 .mtm-date-filter-heading-row {
   display: flex;
   flex-wrap: wrap;
-  align-items: baseline;
+  align-items: center;
+  justify-content: space-between;
   gap: 0.75rem 1rem;
   margin-bottom: 0.75rem;
+}
+
+.mtm-date-filter-heading-left {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.65rem;
+  min-width: 0;
 }
 
 .mtm-date-filter-title {
@@ -104,8 +112,13 @@
 }
 
 .mtm-date-filter-note {
-  font-size: 0.8125rem;
-  color: #b45309;
+  font-size: 0.75rem;
+  color: #92400e;
+  background: #fffbeb;
+  border: 1px solid #fcd34d;
+  padding: 0.2rem 0.5rem;
+  border-radius: 999px;
+  white-space: nowrap;
 }
 
 .mtm-date-filter-section.mtm-date-filter-reversed .mtm-date-filter-note {
@@ -117,6 +130,21 @@
   flex-wrap: wrap;
   align-items: flex-end;
   gap: 1rem 1.25rem;
+}
+
+.mtm-date-filter-range {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 0.75rem 1rem;
+}
+
+.mtm-date-filter-sep {
+  color: #9ca3af;
+  font-weight: 800;
+  line-height: 1;
+  padding: 0 0.15rem 0.65rem;
+  user-select: none;
 }
 
 .mtm-date-filter-field {
@@ -153,7 +181,9 @@
 }
 
 .mtm-date-filter-clear {
-  align-self: flex-end;
+  align-self: center;
+  padding: 0.55rem 0.95rem;
+  font-size: 0.875rem;
 }
 
 .mtm-date-filter-hint {
@@ -162,6 +192,14 @@
   color: #6b7280;
   line-height: 1.45;
   max-width: 52rem;
+}
+
+.mtm-date-filter-hint-item {
+  margin-top: 0.35rem;
+}
+
+.mtm-date-filter-hint-item:first-child {
+  margin-top: 0;
 }
 
 .mtm-toolbar-summary-panel .mtm-summary-section {

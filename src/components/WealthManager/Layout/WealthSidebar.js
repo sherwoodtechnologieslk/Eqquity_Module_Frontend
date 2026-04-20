@@ -11,6 +11,7 @@ const WealthSidebar = ({
   onClientViewToggle,
 }) => {
   const [active, setActive] = useState(activeIndex);
+  const [isBrandMenuOpen, setIsBrandMenuOpen] = useState(false);
 
   useEffect(() => {
     setActive(activeIndex);
@@ -28,22 +29,47 @@ const WealthSidebar = ({
   return (
     <aside className="wm-sidebar" aria-label="Wealth navigation">
       <div className="wm-sidebar__brand">
-        <div className="wm-sidebar__logo">
-          <span className="wm-sidebar__logo-line1">Sherwood</span>
-          <span className="wm-sidebar__logo-line2">Wealth</span>
+        <div className="wm-sidebar__brandRow">
+          <button
+            type="button"
+            className="wm-sidebar__brandTrigger"
+            onClick={() => setIsBrandMenuOpen((v) => !v)}
+            aria-haspopup="menu"
+            aria-expanded={isBrandMenuOpen}
+            title="Switch manager"
+          >
+            <span className="wm-sidebar__logo">
+              <span className="wm-sidebar__logo-line1">Sherwood</span>
+              <span className="wm-sidebar__logo-line2">Wealth</span>
+            </span>
+            <span className="wm-sidebar__caret" aria-hidden>
+              {isBrandMenuOpen ? '▴' : '▾'}
+            </span>
+          </button>
+
+          {isBrandMenuOpen && (
+            <div className="wm-sidebar__brandMenu" role="menu" aria-label="Manager switch">
+              <button type="button" className="wm-sidebar__brandItem is-active" role="menuitem">
+                Wealth Manager
+              </button>
+              {onManagerChange && (
+                <button
+                  type="button"
+                  className="wm-sidebar__brandItem"
+                  role="menuitem"
+                  onClick={() => {
+                    setIsBrandMenuOpen(false);
+                    onManagerChange('equity');
+                  }}
+                >
+                  Equity Manager
+                </button>
+              )}
+            </div>
+          )}
         </div>
 
         <div className="wm-sidebar__actions">
-          {onManagerChange && (
-            <button
-              type="button"
-              className="wm-sidebar__btn wm-sidebar__btn--ghost"
-              onClick={() => onManagerChange('equity')}
-              title="Back to Equity Manager"
-            >
-              Switch to Equity
-            </button>
-          )}
           {onClientViewToggle && (
             <button
               type="button"

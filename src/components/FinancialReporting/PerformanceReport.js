@@ -2,103 +2,12 @@ import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react'
 import './Styles/PerformanceReport.css';
 import { portfolioAPI, transactionEntryAPI, equityAPI } from '../../services/api';
 import { downloadPerformanceReportPdf } from '../../utils/performanceReportPdfExport';
-
-const PERIODS = ['MTD', 'QTD', 'YTD', '1Y'];
+import { PERIODS, parseHistory, buildPerformanceReportModel } from '../../utils/portfolioPerformanceReportModel';
 
 const n0 = (v) => new Intl.NumberFormat('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(v);
 const n2 = (v) => new Intl.NumberFormat('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(v);
 const sgn = (v) => (v > 0 ? '+' : '');
 const cls = (v) => (v > 0 ? 'fr-pos' : v < 0 ? 'fr-neg' : '');
-
-function periodStartDate(period) {
-  const now = new Date();
-  if (period === 'MTD') return new Date(now.getFullYear(), now.getMonth(), 1);
-  if (period === 'QTD') {
-    const q = Math.floor(now.getMonth() / 3) * 3;
-    return new Date(now.getFullYear(), q, 1);
-  }
-  if (period === 'YTD') return new Date(now.getFullYear(), 0, 1);
-  if (period === '1Y') {
-    const d = new Date(now);
-    d.setFullYear(d.getFullYear() - 1);
-    return d;
-  }
-  return new Date(now.getFullYear(), 0, 1);
-}
-
-function parseHistory(raw) {
-  if (!Array.isArray(raw)) return [];
-  return raw
-    .map((d) => ({
-      t: new Date(d.date).getTime(),
-      date: new Date(d.date),
-      value: parseFloat(d.value) || 0,
-    }))
-    .filter((p) => Number.isFinite(p.value) && p.value >= 0)
-    .sort((a, b) => a.t - b.t);
-}
-
-function valueOnOrBefore(points, targetMs) {
-  let best = null;
-  for (const p of points) {
-    if (p.t <= targetMs && p.value > 0) best = p.value;
-  }
-  return best;
-}
-
-function valueOnOrAfter(points, targetMs) {
-  for (const p of points) {
-    if (p.t >= targetMs && p.value > 0) return p.value;
-  }
-  return null;
-}
-
-function sliceHistory(points, fromMs, toMs) {
-  return points.filter((p) => p.t >= fromMs && p.t <= toMs);
-}
-
-function periodReturnPercent(points, period) {
-  if (!points.length) return null;
-  const endVal = points[points.length - 1].value;
-  if (endVal <= 0) return null;
-  const startMs = periodStartDate(period).getTime();
-  let startVal = valueOnOrBefore(points, startMs);
-  if (startVal == null) startVal = valueOnOrAfter(points, startMs);
-  if (startVal == null || startVal <= 0) return null;
-  return ((endVal / startVal) - 1) * 100;
-}
-
-function maxDrawdownFromSlice(slice) {
-  if (!slice.length) return null;
-  let peak = slice[0].value;
-  let maxDd = 0;
-  for (const p of slice) {
-    if (p.value > peak) peak = p.value;
-    if (peak > 0) {
-      const dd = ((p.value - peak) / peak) * 100;
-      if (dd < maxDd) maxDd = dd;
-    }
-  }
-  return maxDd;
-}
-
-function volatilityAndSharpe(slice) {
-  const rets = [];
-  for (let i = 1; i < slice.length; i++) {
-    const a = slice[i - 1].value;
-    const b = slice[i].value;
-    if (a > 0) rets.push((b - a) / a);
-  }
-  if (rets.length < 2) return { volatility: null, sharpe: null };
-  const mean = rets.reduce((s, r) => s + r, 0) / rets.length;
-  const variance = rets.reduce((s, r) => s + (r - mean) ** 2, 0) / (rets.length - 1 || 1);
-  const std = Math.sqrt(variance);
-  const daySpan = Math.max(1, (slice[slice.length - 1].t - slice[0].t) / 86400000);
-  const periodsPerYear = Math.max(12, Math.min(252, (rets.length / daySpan) * 365));
-  const volPct = std * Math.sqrt(periodsPerYear) * 100;
-  const sharpe = std > 1e-12 ? (mean / std) * Math.sqrt(periodsPerYear) : null;
-  return { volatility: volPct, sharpe };
-}
 
 const dash = '—';
 
@@ -188,98 +97,26 @@ const PerformanceReport = () => {
     };
   }, [selectedPortfolioId]);
 
-  const holdingRows = useMemo(() => {
-    const totalMkt = positions.reduce(
-      (s, p) => s + (parseFloat(p.marketPrice) || 0) * (parseFloat(p.quantity) || 0),
-      0
-    );
-    return positions
-      .map((p) => {
-        const qty = parseFloat(p.quantity) || 0;
-        const costPrice = parseFloat(p.costPrice) || 0;
-        const currentPrice = parseFloat(p.marketPrice) || 0;
-        const symKey = (p.symbol || '').trim().toUpperCase();
-        const sector = sectorBySymbol.get(symKey) || 'Unclassified';
-        const cost = qty * costPrice;
-        const mkt = qty * currentPrice;
-        const gl = mkt - cost;
-        const ret = costPrice > 0 ? ((currentPrice - costPrice) / costPrice) * 100 : 0;
-        const weight = totalMkt > 0 ? (mkt / totalMkt) * 100 : 0;
-        return {
-          symbol: p.symbol,
-          name: p.companyName || dash,
-          sector,
-          qty,
-          costPrice,
-          currentPrice,
-          cost,
-          mkt,
-          gl,
-          ret,
-          weight,
-        };
-      })
-      .sort((a, b) => b.mkt - a.mkt);
-  }, [positions, sectorBySymbol]);
-
-  const sectorRows = useMemo(() => {
-    const bySec = new Map();
-    for (const r of holdingRows) {
-      if (!bySec.has(r.sector)) bySec.set(r.sector, { mkt: 0, weightedRet: 0 });
-      const g = bySec.get(r.sector);
-      g.mkt += r.mkt;
-      g.weightedRet += r.mkt * r.ret;
-    }
-    const totalMkt = holdingRows.reduce((s, r) => s + r.mkt, 0);
-    return [...bySec.entries()]
-      .map(([sector, { mkt, weightedRet }]) => ({
-        sector,
-        weight: totalMkt > 0 ? (mkt / totalMkt) * 100 : 0,
-        periodReturn: mkt > 0 ? weightedRet / mkt : 0,
-      }))
-      .sort((a, b) => b.weight - a.weight);
-  }, [holdingRows]);
-
-  const metricsByPeriod = useMemo(() => {
-    const out = {};
-    PERIODS.forEach((p) => {
-      out[p] = {
-        totalReturn: periodReturnPercent(historyPoints, p),
-        benchmarkReturn: null,
-      };
-    });
-    return out;
-  }, [historyPoints]);
-
-  const m = useMemo(() => {
-    const nowMs = Date.now();
-    const startMs = periodStartDate(period).getTime();
-    const slice = sliceHistory(historyPoints, startMs, nowMs);
-    const useSlice = slice.length >= 2 ? slice : historyPoints;
-    const totalReturn = periodReturnPercent(historyPoints, period);
-    const portfolioValue = holdingRows.reduce((s, r) => s + r.mkt, 0);
-    const maxDrawdown = maxDrawdownFromSlice(useSlice.length ? useSlice : historyPoints);
-    const { volatility, sharpe } = volatilityAndSharpe(useSlice.length >= 3 ? useSlice : historyPoints);
-    return {
-      totalReturn,
-      benchmarkReturn: null,
-      sharpe,
-      beta: null,
-      alpha: null,
-      maxDrawdown,
-      volatility,
-      portfolioValue,
-    };
-  }, [period, historyPoints, holdingRows]);
-
-  const totCost = holdingRows.reduce((s, r) => s + r.cost, 0);
-  const totMkt = holdingRows.reduce((s, r) => s + r.mkt, 0);
-  const totGL = totMkt - totCost;
-  const totRet = totCost > 0 ? (totGL / totCost) * 100 : null;
-
-  const sectorContribTotal = sectorRows.reduce(
-    (s, x) => s + (x.weight / 100) * x.periodReturn,
-    0
+  const {
+    holdingRows,
+    sectorRows,
+    metricsByPeriod,
+    m,
+    totCost,
+    totMkt,
+    totGL,
+    totRet,
+    sectorContribTotal
+  } = useMemo(
+    () =>
+      buildPerformanceReportModel({
+        positions,
+        historyPoints,
+        sectorBySymbol,
+        period,
+        referenceDate: new Date()
+      }),
+    [positions, historyPoints, sectorBySymbol, period]
   );
 
   const today = new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });

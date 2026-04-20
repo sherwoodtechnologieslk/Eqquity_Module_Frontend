@@ -9,7 +9,8 @@ import {
   trialBalanceAPI,
   gsecEntriesAPI,
   parsedTradeTransactionAPI,
-  transactionEntryAPI
+  transactionEntryAPI,
+  equityAPI
 } from '../../services/api';
 import {
   getLatestDayTradeReportState,
@@ -27,6 +28,10 @@ import {
   exportGsecGeneralLedgerToExcel,
   exportGsecGeneralLedgerToPdf
 } from '../../utils/gsecGeneralLedgerExport';
+import {
+  exportPortfolioPerformanceReportPdf,
+  exportPortfolioPerformanceReportCsv
+} from '../../utils/portfolioPerformanceReportExport';
 
 const fmt = (value, decimals = 2) => {
   const num = Number(value) || 0;
@@ -549,6 +554,60 @@ const FinancialReportsDownloadCenter = () => {
       exportTradeReportToExcel({ groupedData, latestTradeDate, filenameBase: `TRADE_${baseName}` });
     });
 
+  const resolveSelectedEquityPortfolioOrThrow = () => {
+    const selectedPortfolioObj = portfolios.find(
+      (p) => String(p.portfolioId || p.id || '') === String(filters.portfolioId || '')
+    );
+    const portfolioName = selectedPortfolioObj?.portfolioName || selectedPortfolioObj?.name || '';
+    const portfolioBackendId = selectedPortfolioObj?.id || selectedPortfolioObj?.portfolioId || '';
+    if (!portfolioBackendId) {
+      throw new Error('Portfolio Performance Report: select a portfolio.');
+    }
+    return { portfolioName, portfolioBackendId };
+  };
+
+  const loadPortfolioPerformanceReportInputs = async () => {
+    const { portfolioName, portfolioBackendId } = resolveSelectedEquityPortfolioOrThrow();
+    const [positions, histRes, eqList] = await Promise.all([
+      transactionEntryAPI.getPortfolioPositions(portfolioBackendId),
+      portfolioAPI.getPortfolioValueHistory(portfolioBackendId, '1Y'),
+      equityAPI.getActiveEquities().catch(() => [])
+    ]);
+    const sectorBySymbol = new Map();
+    (Array.isArray(eqList) ? eqList : []).forEach((e) => {
+      const s = (e.symbol || '').trim().toUpperCase();
+      if (s) sectorBySymbol.set(s, (e.sector || '').trim() || 'Unclassified');
+    });
+    return {
+      portfolioName,
+      positions: Array.isArray(positions) ? positions : [],
+      historyRaw: histRes,
+      sectorBySymbol
+    };
+  };
+
+  const exportPortfolioPerformanceReportPdfFromCenter = () =>
+    run('perf-pdf', async () => {
+      const inputs = await loadPortfolioPerformanceReportInputs();
+      exportPortfolioPerformanceReportPdf({
+        ...inputs,
+        asOfDate: filters.asOfDate,
+        period: 'YTD',
+        filenameBase: `PPORT_PERF_${baseName}`
+      });
+    });
+
+  const exportPortfolioPerformanceReportCsvFromCenter = () =>
+    run('perf-xls', async () => {
+      const inputs = await loadPortfolioPerformanceReportInputs();
+      exportPortfolioPerformanceReportCsv({
+        ...inputs,
+        asOfDate: filters.asOfDate,
+        period: 'YTD',
+        filenameBase: `PPORT_PERF_${baseName}`
+      });
+    });
+
   const exportCombinedTrialBalanceExcel = () =>
     run('ctb-xls', async () => {
       const blob = await trialBalanceAPI.exportCombinedTrialBalanceExcel({
@@ -769,6 +828,16 @@ const FinancialReportsDownloadCenter = () => {
       excelKey: 'mtm-xls',
       onPdf: exportMtmPositionDetailsPdf,
       onExcel: exportMtmPositionDetailsExcel,
+      lockWithoutPortfolio: true
+    },
+    {
+      id: 'portfolio-performance',
+      title: 'Portfolio Performance Report',
+      subtitle: `YTD summary vs as-of ${filters.asOfDate}; holdings & sectors (aligned with Performance Report tab).`,
+      pdfKey: 'perf-pdf',
+      excelKey: 'perf-xls',
+      onPdf: exportPortfolioPerformanceReportPdfFromCenter,
+      onExcel: exportPortfolioPerformanceReportCsvFromCenter,
       lockWithoutPortfolio: true
     },
     {
