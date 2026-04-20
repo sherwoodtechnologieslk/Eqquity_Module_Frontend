@@ -2178,33 +2178,13 @@ const MarkToMarketValuation = () => {
               aria-label="Filter positions by last price update date"
             >
               <div className="mtm-date-filter-heading-row">
-                <span className="mtm-date-filter-title">Last price update</span>
-                {mtmDateRangeWasReversed ? (
-                  <span className="mtm-date-filter-note">From/To were reversed for filtering.</span>
-                ) : null}
-              </div>
-              <div className="mtm-date-filter-controls">
-                <div className="mtm-date-filter-field">
-                  <label htmlFor="mtmLastUpdateFrom">From</label>
-                  <input
-                    id="mtmLastUpdateFrom"
-                    type="date"
-                    className="mtm-date-input"
-                    value={mtmLastUpdateFrom}
-                    onChange={(e) => setMtmLastUpdateFrom(e.target.value)}
-                    disabled={!selectedPortfolio || loading || portfoliosLoading}
-                  />
-                </div>
-                <div className="mtm-date-filter-field">
-                  <label htmlFor="mtmLastUpdateTo">To</label>
-                  <input
-                    id="mtmLastUpdateTo"
-                    type="date"
-                    className="mtm-date-input"
-                    value={mtmLastUpdateTo}
-                    onChange={(e) => setMtmLastUpdateTo(e.target.value)}
-                    disabled={!selectedPortfolio || loading || portfoliosLoading}
-                  />
+                <div className="mtm-date-filter-heading-left">
+                  <span className="mtm-date-filter-title">Last price update</span>
+                  {mtmDateRangeWasReversed ? (
+                    <span className="mtm-date-filter-note" role="status">
+                      From/To were reversed for filtering
+                    </span>
+                  ) : null}
                 </div>
                 <button
                   type="button"
@@ -2218,9 +2198,50 @@ const MarkToMarketValuation = () => {
                   Clear dates
                 </button>
               </div>
-              <p className="mtm-date-filter-hint">
-                <strong>From</strong> only: last update from that date through today. <strong>To</strong> only: last update on or before that date (no start date). <strong>Both</strong>: inclusive between the dates. Leave both blank for all positions.
-              </p>
+
+              <div className="mtm-date-filter-controls" role="group" aria-label="Last price update date range">
+                <div className="mtm-date-filter-range">
+                  <div className="mtm-date-filter-field">
+                    <label htmlFor="mtmLastUpdateFrom">From</label>
+                    <input
+                      id="mtmLastUpdateFrom"
+                      type="date"
+                      className="mtm-date-input"
+                      value={mtmLastUpdateFrom}
+                      onChange={(e) => setMtmLastUpdateFrom(e.target.value)}
+                      disabled={!selectedPortfolio || loading || portfoliosLoading}
+                    />
+                  </div>
+
+                  <span className="mtm-date-filter-sep" aria-hidden="true">
+                    →
+                  </span>
+
+                  <div className="mtm-date-filter-field">
+                    <label htmlFor="mtmLastUpdateTo">To</label>
+                    <input
+                      id="mtmLastUpdateTo"
+                      type="date"
+                      className="mtm-date-input"
+                      value={mtmLastUpdateTo}
+                      onChange={(e) => setMtmLastUpdateTo(e.target.value)}
+                      disabled={!selectedPortfolio || loading || portfoliosLoading}
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <div className="mtm-date-filter-hint" aria-label="How the date filter works">
+                <div className="mtm-date-filter-hint-item">
+                  <strong>From</strong> only: last update from that date through today.
+                </div>
+                <div className="mtm-date-filter-hint-item">
+                  <strong>To</strong> only: last update on or before that date (no start date).
+                </div>
+                <div className="mtm-date-filter-hint-item">
+                  <strong>Both</strong>: inclusive between the dates. Leave both blank for all positions.
+                </div>
+              </div>
             </div>
           </div>
 

@@ -78,6 +78,7 @@ import PerformanceReport from './components/FinancialReporting/PerformanceReport
 import FinancialReportingNotes from './components/FinancialReporting/FinancialReportingNotes';
 import FinancialReportsExport from './components/FinancialReporting/FinancialReportsExport';
 import FinancialReportsDownloadCenter from './components/FinancialReporting/FinancialReportsDownloadCenter';
+import OtherReports from './components/FinancialReporting/OtherReports';
 import GsecEntries from './components/GsecEntries/GsecEntries';
 import GsecGeneralLedger from './components/GsecEntries/GsecGeneralLedger';
 import GsecBalanceSheet from './components/GsecEntries/GsecBalanceSheet';
@@ -247,6 +248,7 @@ function App() {
     'Cash Flow Mapping': <CashFlowMapping />,
     'GL Mapping': <GLMapping />,
     'Performance Report': <PerformanceReport />,
+    'Other Reports': <OtherReports />,
     'GSEC ENTRIES': <GsecEntries />,
     'Balance Sheet': <GsecBalanceSheet />,
     'GSec General Ledger': <GsecGeneralLedger />,
