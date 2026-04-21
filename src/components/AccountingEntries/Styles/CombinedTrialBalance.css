@@ -395,6 +395,32 @@
   color: #059669;
 }
 
+.ctb-balance-type-cell {
+  text-align: center;
+  font-weight: 600;
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: #475569;
+}
+
+.ctb-data-table tfoot {
+  background: #f8fafc;
+}
+
+.ctb-totals-row td {
+  border-top: 2px solid #cbd5e1;
+  font-weight: 700;
+}
+
+.ctb-totals-label {
+  text-align: right;
+  color: #0f172a;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  font-size: 0.75rem;
+}
+
 .ctb-no-data {
   padding: 1.5rem;
   text-align: center;

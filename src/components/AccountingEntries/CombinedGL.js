@@ -1,5 +1,8 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { generalLedgerAPI, gsecEntriesAPI } from '../../services/api';
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
+import * as XLSX from 'xlsx';
 import './Styles/CombinedGL.css';
 
 const CombinedGL = ({ onTabChange }) => {
@@ -7,6 +10,7 @@ const CombinedGL = ({ onTabChange }) => {
   const [gsecEntries, setGsecEntries] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [exporting, setExporting] = useState(false);
 
   const [filters, setFilters] = useState({
     source: 'all', // all | equity | gsec
@@ -160,6 +164,126 @@ const CombinedGL = ({ onTabChange }) => {
     return d.toLocaleDateString('en-LK');
   };
 
+  const formatNumber = (amount) => {
+    const n = Number(amount) || 0;
+    return new Intl.NumberFormat('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(n);
+  };
+
+  const handleExportPdf = async () => {
+    setExporting(true);
+    setError('');
+    try {
+      const doc = new jsPDF('p', 'pt', 'a4');
+      const stamp = new Date().toISOString().slice(0, 10);
+
+      doc.setFontSize(16);
+      doc.text('Combined General Ledger', 40, 40);
+      doc.setFontSize(10);
+      doc.text(`Export date: ${stamp}`, 40, 58);
+
+      const filterSummary = [
+        filters.source ? `Source=${filters.source}` : null,
+        filters.account_code ? `Account=${filters.account_code}` : null,
+        filters.dateFrom ? `From=${filters.dateFrom}` : null,
+        filters.dateTo ? `To=${filters.dateTo}` : null,
+        searchTerm ? `Search="${searchTerm}"` : null,
+      ].filter(Boolean).join('  •  ');
+      if (filterSummary) {
+        doc.text(filterSummary, 40, 74);
+      }
+
+      const rows = filteredEntries.map((e) => ([
+        e.source || '',
+        formatDateDisplay(e.date) || '',
+        e.account_code || '',
+        e.account_name || '',
+        e.description || '',
+        e.reference || '',
+        formatNumber(e.debit),
+        formatNumber(e.credit),
+        formatNumber(e.balance),
+        e.transaction_type || '',
+        e.status || ''
+      ]));
+
+      autoTable(doc, {
+        startY: filterSummary ? 92 : 80,
+        head: [[
+          'Source',
+          'Date',
+          'Account Code',
+          'Account Name',
+          'Description',
+          'Reference',
+          'Debit',
+          'Credit',
+          'Balance',
+          'Type',
+          'Status'
+        ]],
+        body: rows,
+        styles: { fontSize: 8, cellPadding: 3, valign: 'middle' },
+        headStyles: { fillColor: [15, 23, 42], textColor: [255, 255, 255], fontStyle: 'bold' },
+        alternateRowStyles: { fillColor: [248, 250, 252] },
+        margin: { left: 40, right: 40 }
+      });
+
+      doc.save(`combined-general-ledger-${stamp}.pdf`);
+    } catch (err) {
+      console.error('Failed to export combined GL PDF:', err);
+      setError('Failed to export combined general ledger PDF: ' + (err.message || 'Unknown error'));
+    } finally {
+      setExporting(false);
+    }
+  };
+
+  const handleExportExcel = async () => {
+    setExporting(true);
+    setError('');
+    try {
+      const stamp = new Date().toISOString().slice(0, 10);
+
+      const data = filteredEntries.map((e) => ({
+        Source: e.source || '',
+        Date: formatDateDisplay(e.date) || '',
+        AccountCode: e.account_code || '',
+        AccountName: e.account_name || '',
+        Description: e.description || '',
+        Reference: e.reference || '',
+        Debit: Number(e.debit) || 0,
+        Credit: Number(e.credit) || 0,
+        Balance: Number(e.balance) || 0,
+        Type: e.transaction_type || '',
+        Status: e.status || ''
+      }));
+
+      const ws = XLSX.utils.json_to_sheet(data);
+      // Optional: set column widths for readability
+      ws['!cols'] = [
+        { wch: 10 }, // Source
+        { wch: 12 }, // Date
+        { wch: 18 }, // AccountCode
+        { wch: 28 }, // AccountName
+        { wch: 40 }, // Description
+        { wch: 18 }, // Reference
+        { wch: 14 }, // Debit
+        { wch: 14 }, // Credit
+        { wch: 14 }, // Balance
+        { wch: 16 }, // Type
+        { wch: 12 }  // Status
+      ];
+
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, 'CombinedGL');
+      XLSX.writeFile(wb, `combined-general-ledger-${stamp}.xlsx`);
+    } catch (err) {
+      console.error('Failed to export combined GL Excel:', err);
+      setError('Failed to export combined general ledger Excel: ' + (err.message || 'Unknown error'));
+    } finally {
+      setExporting(false);
+    }
+  };
+
   if (loading) {
     return (
       <div className="cgl-page-container">
@@ -309,6 +433,26 @@ const CombinedGL = ({ onTabChange }) => {
             <h2 className="cgl-card-title">
               Combined Ledger Entries ({filteredEntries.length} records)
             </h2>
+            <div className="cgl-header-actions">
+              <button
+                type="button"
+                className="cgl-export-btn"
+                onClick={handleExportPdf}
+                disabled={exporting || filteredEntries.length === 0}
+                title="Export current filtered ledger to PDF"
+              >
+                {exporting ? 'Exporting…' : 'Export to PDF'}
+              </button>
+              <button
+                type="button"
+                className="cgl-export-btn"
+                onClick={handleExportExcel}
+                disabled={exporting || filteredEntries.length === 0}
+                title="Export current filtered ledger to Excel"
+              >
+                {exporting ? 'Exporting…' : 'Export to Excel'}
+              </button>
+            </div>
           </div>
 
           <div className="cgl-table-container">

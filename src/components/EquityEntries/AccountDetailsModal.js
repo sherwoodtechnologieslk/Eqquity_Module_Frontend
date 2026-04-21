@@ -16,14 +16,15 @@ const AccountDetailsModal = ({ isOpen, onClose, accountCode, accountData, loadEr
   };
 
   const formatCurrency = (amount) => {
-    return new Intl.NumberFormat('en-IN', {
+    // Trial Balance uses 3-digit grouping (e.g., 1,234,567.89), not lakh grouping.
+    return new Intl.NumberFormat('en-US', {
       minimumFractionDigits: 2,
       maximumFractionDigits: 2
     }).format(amount || 0);
   };
 
   const formatDate = (dateString) => {
-    return new Date(dateString).toLocaleDateString('en-IN');
+    return new Date(dateString).toLocaleDateString('en-US');
   };
 
   if (!isOpen) return null;

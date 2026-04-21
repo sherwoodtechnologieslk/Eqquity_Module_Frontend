@@ -174,19 +174,23 @@ const OtherTransactions = () => {
     paymentMethod: ''
   });
 
-  // GL to GL form state
+  const newGlJournalLineId = () =>
+    `${Date.now()}-${Math.random().toString(36).slice(2, 11)}`;
+
+  // GL to GL: shared header + multiple debit/credit lines (balanced journal; multi-line API pending)
   const [glToGlForm, setGlToGlForm] = useState({
     voucherNumber: generateVoucherNumber(),
-    debitAccountCode: '',
-    debitAccountName: '',
-    creditAccountCode: '',
-    creditAccountName: '',
-    amount: '',
     date: new Date().toISOString().split('T')[0],
     description: '',
     reference: '',
     notes: ''
   });
+  const [glToGlDebitLines, setGlToGlDebitLines] = useState(() => [
+    { id: newGlJournalLineId(), accountCode: '', accountName: '', amount: '' }
+  ]);
+  const [glToGlCreditLines, setGlToGlCreditLines] = useState(() => [
+    { id: newGlJournalLineId(), accountCode: '', accountName: '', amount: '' }
+  ]);
   
   // Transaction types for Liability Settlement form
   const [transactionTypesForLiabilitySettlement, setTransactionTypesForLiabilitySettlement] = useState([]);
@@ -196,6 +200,7 @@ const OtherTransactions = () => {
   const [vouchersLoading, setVouchersLoading] = useState(false);
   const [generalLedgerEntries, setGeneralLedgerEntries] = useState([]);
   const [generalLedgerLoading, setGeneralLedgerLoading] = useState(false);
+  const [generalLedgerVoucherSearch, setGeneralLedgerVoucherSearch] = useState('');
   // Reverse Transaction form state
   const [reverseForm, setReverseForm] = useState({ category: '', subCategory: '', transactionType: '', voucherId: '', voucherNumber: '', amount: '', cashFlowOnSettlement: '', date: new Date().toISOString().split('T')[0], notes: '' });
   const [reverseSubmitting, setReverseSubmitting] = useState(false);
@@ -772,6 +777,26 @@ const OtherTransactions = () => {
       setGeneralLedgerLoading(false);
     }
   };
+
+  /** GL tab: filter by voucher # (stored in `reference`; also checks `voucher_number` if present) */
+  const displayGeneralLedgerEntries = useMemo(() => {
+    const q = generalLedgerVoucherSearch.trim().toLowerCase();
+    let rows = generalLedgerEntries;
+    if (q) {
+      rows = generalLedgerEntries.filter((entry) => {
+        const voucher = String(entry.reference ?? entry.voucher_number ?? '').toLowerCase();
+        return voucher.includes(q);
+      });
+    } else {
+      rows = generalLedgerEntries.slice(0, 50);
+    }
+    return {
+      rows,
+      isFiltered: Boolean(q),
+      matchCount: q ? rows.length : generalLedgerEntries.length,
+      totalCount: generalLedgerEntries.length,
+    };
+  }, [generalLedgerEntries, generalLedgerVoucherSearch]);
 
   // Fetch vouchers based on category filter
   const fetchVouchers = async () => {
@@ -1542,64 +1567,164 @@ const OtherTransactions = () => {
     setSubmitMessage('');
   };
 
-  const handleGlToGlChange = (e) => {
+  const handleGlToGlHeaderChange = (e) => {
     const { name, value } = e.target;
-    // When user selects a GL account code, auto-fill the corresponding account name from COA
-    if (name === 'debitAccountCode') {
-      const code = String(value || '').trim();
-      const coa = chartAccounts.find(a => a.account_code === code);
-      setGlToGlForm(prev => ({
-        ...prev,
-        debitAccountCode: value,
-        debitAccountName: coa?.description || prev.debitAccountName
-      }));
-      return;
-    }
-    if (name === 'creditAccountCode') {
-      const code = String(value || '').trim();
-      const coa = chartAccounts.find(a => a.account_code === code);
-      setGlToGlForm(prev => ({
-        ...prev,
-        creditAccountCode: value,
-        creditAccountName: coa?.description || prev.creditAccountName
-      }));
-      return;
-    }
-
     setGlToGlForm(prev => ({ ...prev, [name]: value }));
+  };
+
+  const handleGlToGlDebitLineChange = (lineId, field, value) => {
+    setGlToGlDebitLines(prev =>
+      prev.map(line => {
+        if (line.id !== lineId) return line;
+        if (field === 'accountCode') {
+          const code = String(value || '').trim();
+          const coa = chartAccounts.find(a => a.account_code === code);
+          return {
+            ...line,
+            accountCode: value,
+            accountName: coa?.description || line.accountName
+          };
+        }
+        return { ...line, [field]: value };
+      })
+    );
+  };
+
+  const handleGlToGlCreditLineChange = (lineId, field, value) => {
+    setGlToGlCreditLines(prev =>
+      prev.map(line => {
+        if (line.id !== lineId) return line;
+        if (field === 'accountCode') {
+          const code = String(value || '').trim();
+          const coa = chartAccounts.find(a => a.account_code === code);
+          return {
+            ...line,
+            accountCode: value,
+            accountName: coa?.description || line.accountName
+          };
+        }
+        return { ...line, [field]: value };
+      })
+    );
+  };
+
+  const addGlToGlDebitLine = () => {
+    setGlToGlDebitLines(prev => [
+      ...prev,
+      { id: newGlJournalLineId(), accountCode: '', accountName: '', amount: '' }
+    ]);
+  };
+
+  const addGlToGlCreditLine = () => {
+    setGlToGlCreditLines(prev => [
+      ...prev,
+      { id: newGlJournalLineId(), accountCode: '', accountName: '', amount: '' }
+    ]);
+  };
+
+  const removeGlToGlDebitLine = (lineId) => {
+    setGlToGlDebitLines(prev => (prev.length <= 1 ? prev : prev.filter(l => l.id !== lineId)));
+  };
+
+  const removeGlToGlCreditLine = (lineId) => {
+    setGlToGlCreditLines(prev => (prev.length <= 1 ? prev : prev.filter(l => l.id !== lineId)));
   };
 
   const handleGlToGlReset = () => {
     setGlToGlForm({
       voucherNumber: generateVoucherNumber(),
-      debitAccountCode: '',
-      debitAccountName: '',
-      creditAccountCode: '',
-      creditAccountName: '',
-      amount: '',
       date: new Date().toISOString().split('T')[0],
       description: '',
       reference: '',
       notes: ''
     });
+    setGlToGlDebitLines([{ id: newGlJournalLineId(), accountCode: '', accountName: '', amount: '' }]);
+    setGlToGlCreditLines([{ id: newGlJournalLineId(), accountCode: '', accountName: '', amount: '' }]);
     setSubmitMessage('');
   };
 
   const handleGlToGlSubmit = async (e) => {
     e.preventDefault();
 
-    if (!glToGlForm.debitAccountCode?.trim()) {
-      setSubmitMessage('Error: Debit GL Account Code is required');
+    const parseLineAmount = (raw) => {
+      const n = parseFloat(String(raw || '').replace(/,/g, ''));
+      return Number.isFinite(n) ? n : NaN;
+    };
+
+    const debitTotals = glToGlDebitLines.map((line, idx) => ({
+      idx,
+      code: (line.accountCode || '').trim(),
+      name: (line.accountName || '').trim(),
+      amt: parseLineAmount(line.amount)
+    }));
+    const creditTotals = glToGlCreditLines.map((line, idx) => ({
+      idx,
+      code: (line.accountCode || '').trim(),
+      name: (line.accountName || '').trim(),
+      amt: parseLineAmount(line.amount)
+    }));
+
+    const incompleteDebit = debitTotals.some(
+      d =>
+        (d.code && (!Number.isFinite(d.amt) || d.amt <= 0)) ||
+        (Number.isFinite(d.amt) && d.amt > 0 && !d.code)
+    );
+    const incompleteCredit = creditTotals.some(
+      c =>
+        (c.code && (!Number.isFinite(c.amt) || c.amt <= 0)) ||
+        (Number.isFinite(c.amt) && c.amt > 0 && !c.code)
+    );
+
+    if (incompleteDebit || incompleteCredit) {
+      setSubmitMessage('Error: Each debit/credit line with an account must have a positive amount, and amounts require an account code.');
       return;
     }
-    if (!glToGlForm.creditAccountCode?.trim()) {
-      setSubmitMessage('Error: Credit GL Account Code is required');
+
+    const lineIsFilled = (line) => {
+      const code = (line.accountCode || '').trim();
+      const amt = parseLineAmount(line.amount);
+      return code && Number.isFinite(amt) && amt > 0;
+    };
+    const filledDebitCount = glToGlDebitLines.filter(lineIsFilled).length;
+    const filledCreditCount = glToGlCreditLines.filter(lineIsFilled).length;
+
+    const sumDr = debitTotals.reduce((s, d) => s + (d.code && Number.isFinite(d.amt) ? d.amt : 0), 0);
+    const sumCr = creditTotals.reduce((s, c) => s + (c.code && Number.isFinite(c.amt) ? c.amt : 0), 0);
+
+    if (filledDebitCount === 0 || filledCreditCount === 0) {
+      setSubmitMessage('Error: Add at least one debit line and one credit line with account codes and amounts.');
       return;
     }
-    if (!glToGlForm.amount || isNaN(parseFloat(glToGlForm.amount)) || parseFloat(glToGlForm.amount) <= 0) {
-      setSubmitMessage('Error: Amount must be a positive number');
+
+    if (Math.abs(sumDr - sumCr) > 0.009) {
+      setSubmitMessage(
+        `Error: Total debits (${sumDr.toFixed(2)}) must equal total credits (${sumCr.toFixed(2)}).`
+      );
       return;
     }
+
+    if (sumDr <= 0) {
+      setSubmitMessage('Error: Total debit amount must be greater than zero.');
+      return;
+    }
+
+    const glDebitLinesPayload = glToGlDebitLines
+      .filter(lineIsFilled)
+      .map((line) => ({
+        accountCode: (line.accountCode || '').trim(),
+        accountName: (line.accountName || '').trim() || null,
+        amount: parseLineAmount(line.amount)
+      }));
+    const glCreditLinesPayload = glToGlCreditLines
+      .filter(lineIsFilled)
+      .map((line) => ({
+        accountCode: (line.accountCode || '').trim(),
+        accountName: (line.accountName || '').trim() || null,
+        amount: parseLineAmount(line.amount)
+      }));
+
+    const d0 = glDebitLinesPayload[0];
+    const c0 = glCreditLinesPayload[0];
 
     setIsSubmitting(true);
     setSubmitMessage('');
@@ -1608,24 +1733,21 @@ const OtherTransactions = () => {
       const user = authService.getStoredUser();
       const userEmail = user?.email || '';
 
-      const debitCode = glToGlForm.debitAccountCode.trim();
-      const creditCode = glToGlForm.creditAccountCode.trim();
-      const debitCoa = chartAccounts.find(a => a.account_code === debitCode);
-      const creditCoa = chartAccounts.find(a => a.account_code === creditCode);
-
       const payload = {
         voucherNumber: glToGlForm.voucherNumber,
         accountType: 'gl_to_gl',
         transactionType: 'GL_TO_GL',
         description: glToGlForm.description,
-        amount: glToGlForm.amount,
+        amount: String(sumDr),
         date: glToGlForm.date,
         reference: glToGlForm.reference,
         notes: glToGlForm.notes,
-        debitGlAccountCode: debitCode,
-        debitCoaDescription: glToGlForm.debitAccountName?.trim() || debitCoa?.description || null,
-        creditGlAccountCode: creditCode,
-        creditCoaDescription: glToGlForm.creditAccountName?.trim() || creditCoa?.description || null,
+        glDebitLines: glDebitLinesPayload,
+        glCreditLines: glCreditLinesPayload,
+        debitGlAccountCode: d0.accountCode,
+        debitCoaDescription: d0.accountName,
+        creditGlAccountCode: c0.accountCode,
+        creditCoaDescription: c0.accountName,
         userEmail
       };
 
@@ -3092,7 +3214,7 @@ const isVoucherSettled = (voucher) => {
               </div>
             </form>
             ) : activeFormType === 'glToGl' ? (
-            /* GL to GL Form */
+            /* GL to GL Form — one voucher; multiple debit/credit lines (multi-line post when backend ready) */
             <form onSubmit={handleGlToGlSubmit}>
               <div className="other-trans-form-grid">
                 {/* Voucher Number */}
@@ -3126,11 +3248,11 @@ const isVoucherSettled = (voucher) => {
                   <input
                     name="voucherNumber"
                     value={glToGlForm.voucherNumber}
-                    onChange={handleGlToGlChange}
+                    onChange={handleGlToGlHeaderChange}
                     className="other-trans-form-input"
                   />
                   <small style={{ color: '#6b7280', fontSize: '0.75rem' }}>
-                    Auto-generated voucher number
+                    Same voucher number applies to every debit/credit line below
                   </small>
                 </div>
 
@@ -3141,39 +3263,58 @@ const isVoucherSettled = (voucher) => {
                     type="date"
                     name="date"
                     value={glToGlForm.date}
-                    onChange={handleGlToGlChange}
+                    onChange={handleGlToGlHeaderChange}
                     className="other-trans-form-input"
                     required
                   />
                 </div>
 
-                {/* Amount */}
-                <div className="other-trans-field-group">
-                  <label className="other-trans-field-label">Amount *</label>
-                  <input
-                    type="number"
-                    name="amount"
-                    value={glToGlForm.amount}
-                    onChange={handleGlToGlChange}
-                    className="other-trans-form-input"
-                    step="0.01"
-                    min="0"
-                    required
-                  />
+                {/* Totals hint */}
+                <div className="other-trans-field-group" style={{ alignSelf: 'end' }}>
+                  <label className="other-trans-field-label">Journal balance</label>
+                  <div className="other-trans-gl2gl-balance-card">
+                    {(() => {
+                      const parseAmt = (raw) => {
+                        const n = parseFloat(String(raw || '').replace(/,/g, ''));
+                        return Number.isFinite(n) ? n : 0;
+                      };
+                      const dr = glToGlDebitLines.reduce(
+                        (s, l) => s + ((l.accountCode || '').trim() ? parseAmt(l.amount) : 0),
+                        0
+                      );
+                      const cr = glToGlCreditLines.reduce(
+                        (s, l) => s + ((l.accountCode || '').trim() ? parseAmt(l.amount) : 0),
+                        0
+                      );
+                      const bal = dr - cr;
+                      return (
+                        <>
+                          <div><strong>Debits:</strong> {dr.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
+                          <div><strong>Credits:</strong> {cr.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
+                          <div
+                            style={{ marginTop: '0.35rem' }}
+                            className={Math.abs(bal) < 0.01 ? 'other-trans-gl2gl-balance-ok' : 'other-trans-gl2gl-balance-warn'}
+                          >
+                            <strong>Out of balance:</strong> {bal.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                          </div>
+                        </>
+                      );
+                    })()}
+                  </div>
                 </div>
 
-                {/* Debit GL */}
-                <div className="other-trans-field-group">
-                  <label className="other-trans-field-label">Debit GL Account Code *</label>
-                  <input
-                    name="debitAccountCode"
-                    value={glToGlForm.debitAccountCode}
-                    onChange={handleGlToGlChange}
-                    className="other-trans-form-input"
-                    list="glToGlDebitAccounts"
-                    placeholder={chartAccountsLoading ? 'Loading chart of accounts...' : 'Start typing account code'}
-                    required
-                  />
+                {/* Debit lines */}
+                <div className="other-trans-field-group" style={{ gridColumn: '1 / -1' }}>
+                  <div className="other-trans-gl2gl-section-header">
+                    <label className="other-trans-field-label" style={{ marginBottom: 0 }}>Debit lines</label>
+                    <button
+                      type="button"
+                      onClick={addGlToGlDebitLine}
+                      className="other-trans-btn other-trans-btn-secondary"
+                    >
+                      + Add debit line
+                    </button>
+                  </div>
                   <datalist id="glToGlDebitAccounts">
                     {chartAccounts.map((a) => (
                       <option key={`dr-${a.account_code}`} value={a.account_code}>
@@ -3181,23 +3322,74 @@ const isVoucherSettled = (voucher) => {
                       </option>
                     ))}
                   </datalist>
-                  <small style={{ color: '#6b7280', fontSize: '0.75rem' }}>
-                    Pick from Chart of Accounts (code)
-                  </small>
+                  <div className="other-trans-gl2gl-lines">
+                    {glToGlDebitLines.map((line, idx) => (
+                      <div
+                        key={line.id}
+                        className="other-trans-gl2gl-line-card"
+                      >
+                        <div className="other-trans-gl2gl-line-card-header">
+                          <span className="other-trans-gl2gl-line-title">Debit line {idx + 1}</span>
+                          {glToGlDebitLines.length > 1 && (
+                            <button
+                              type="button"
+                              onClick={() => removeGlToGlDebitLine(line.id)}
+                              className="other-trans-gl2gl-remove-btn"
+                            >
+                              Remove
+                            </button>
+                          )}
+                        </div>
+                        <div className="other-trans-form-grid" style={{ margin: 0 }}>
+                          <div className="other-trans-field-group">
+                            <label className="other-trans-field-label">GL code *</label>
+                            <input
+                              value={line.accountCode}
+                              onChange={(e) => handleGlToGlDebitLineChange(line.id, 'accountCode', e.target.value)}
+                              className="other-trans-form-input"
+                              list="glToGlDebitAccounts"
+                              placeholder={chartAccountsLoading ? 'Loading…' : 'Account code'}
+                            />
+                          </div>
+                          <div className="other-trans-field-group">
+                            <label className="other-trans-field-label">Amount *</label>
+                            <input
+                              type="number"
+                              value={line.amount}
+                              onChange={(e) => handleGlToGlDebitLineChange(line.id, 'amount', e.target.value)}
+                              className="other-trans-form-input"
+                              step="0.01"
+                              min="0"
+                              placeholder="0.00"
+                            />
+                          </div>
+                          <div className="other-trans-field-group" style={{ gridColumn: '1 / -1' }}>
+                            <label className="other-trans-field-label">Account name (optional)</label>
+                            <input
+                              value={line.accountName}
+                              onChange={(e) => handleGlToGlDebitLineChange(line.id, 'accountName', e.target.value)}
+                              className="other-trans-form-input"
+                              placeholder="Defaults from Chart of Accounts when code matches"
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
                 </div>
 
-                {/* Credit GL */}
-                <div className="other-trans-field-group">
-                  <label className="other-trans-field-label">Credit GL Account Code *</label>
-                  <input
-                    name="creditAccountCode"
-                    value={glToGlForm.creditAccountCode}
-                    onChange={handleGlToGlChange}
-                    className="other-trans-form-input"
-                    list="glToGlCreditAccounts"
-                    placeholder={chartAccountsLoading ? 'Loading chart of accounts...' : 'Start typing account code'}
-                    required
-                  />
+                {/* Credit lines */}
+                <div className="other-trans-field-group" style={{ gridColumn: '1 / -1' }}>
+                  <div className="other-trans-gl2gl-section-header">
+                    <label className="other-trans-field-label" style={{ marginBottom: 0 }}>Credit lines</label>
+                    <button
+                      type="button"
+                      onClick={addGlToGlCreditLine}
+                      className="other-trans-btn other-trans-btn-secondary"
+                    >
+                      + Add credit line
+                    </button>
+                  </div>
                   <datalist id="glToGlCreditAccounts">
                     {chartAccounts.map((a) => (
                       <option key={`cr-${a.account_code}`} value={a.account_code}>
@@ -3205,32 +3397,65 @@ const isVoucherSettled = (voucher) => {
                       </option>
                     ))}
                   </datalist>
-                  <small style={{ color: '#6b7280', fontSize: '0.75rem' }}>
-                    Pick from Chart of Accounts (code)
-                  </small>
+                  <div className="other-trans-gl2gl-lines">
+                    {glToGlCreditLines.map((line, idx) => (
+                      <div
+                        key={line.id}
+                        className="other-trans-gl2gl-line-card"
+                      >
+                        <div className="other-trans-gl2gl-line-card-header">
+                          <span className="other-trans-gl2gl-line-title">Credit line {idx + 1}</span>
+                          {glToGlCreditLines.length > 1 && (
+                            <button
+                              type="button"
+                              onClick={() => removeGlToGlCreditLine(line.id)}
+                              className="other-trans-gl2gl-remove-btn"
+                            >
+                              Remove
+                            </button>
+                          )}
+                        </div>
+                        <div className="other-trans-form-grid" style={{ margin: 0 }}>
+                          <div className="other-trans-field-group">
+                            <label className="other-trans-field-label">GL code *</label>
+                            <input
+                              value={line.accountCode}
+                              onChange={(e) => handleGlToGlCreditLineChange(line.id, 'accountCode', e.target.value)}
+                              className="other-trans-form-input"
+                              list="glToGlCreditAccounts"
+                              placeholder={chartAccountsLoading ? 'Loading…' : 'Account code'}
+                            />
+                          </div>
+                          <div className="other-trans-field-group">
+                            <label className="other-trans-field-label">Amount *</label>
+                            <input
+                              type="number"
+                              value={line.amount}
+                              onChange={(e) => handleGlToGlCreditLineChange(line.id, 'amount', e.target.value)}
+                              className="other-trans-form-input"
+                              step="0.01"
+                              min="0"
+                              placeholder="0.00"
+                            />
+                          </div>
+                          <div className="other-trans-field-group" style={{ gridColumn: '1 / -1' }}>
+                            <label className="other-trans-field-label">Account name (optional)</label>
+                            <input
+                              value={line.accountName}
+                              onChange={(e) => handleGlToGlCreditLineChange(line.id, 'accountName', e.target.value)}
+                              className="other-trans-form-input"
+                              placeholder="Defaults from Chart of Accounts when code matches"
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
                 </div>
 
-                {/* Optional names */}
-                <div className="other-trans-field-group">
-                  <label className="other-trans-field-label">Debit Account Name (optional)</label>
-                  <input
-                    name="debitAccountName"
-                    value={glToGlForm.debitAccountName}
-                    onChange={handleGlToGlChange}
-                    className="other-trans-form-input"
-                    placeholder="If blank, COA description will be used"
-                  />
-                </div>
-                <div className="other-trans-field-group">
-                  <label className="other-trans-field-label">Credit Account Name (optional)</label>
-                  <input
-                    name="creditAccountName"
-                    value={glToGlForm.creditAccountName}
-                    onChange={handleGlToGlChange}
-                    className="other-trans-form-input"
-                    placeholder="If blank, COA description will be used"
-                  />
-                </div>
+                <p className="other-trans-gl2gl-helper">
+                  Totals must match before posting. Extra blank rows are ignored. All filled debit and credit lines are saved as one voucher with multiple GL lines.
+                </p>
 
                 {/* Description */}
                 <div className="other-trans-field-group" style={{ gridColumn: '1 / -1' }}>
@@ -3238,7 +3463,7 @@ const isVoucherSettled = (voucher) => {
                   <input
                     name="description"
                     value={glToGlForm.description}
-                    onChange={handleGlToGlChange}
+                    onChange={handleGlToGlHeaderChange}
                     className="other-trans-form-input"
                     placeholder="Narration for the journal"
                   />
@@ -3250,7 +3475,7 @@ const isVoucherSettled = (voucher) => {
                   <input
                     name="reference"
                     value={glToGlForm.reference}
-                    onChange={handleGlToGlChange}
+                    onChange={handleGlToGlHeaderChange}
                     className="other-trans-form-input"
                     placeholder="Optional reference"
                   />
@@ -3262,7 +3487,7 @@ const isVoucherSettled = (voucher) => {
                   <textarea
                     name="notes"
                     value={glToGlForm.notes}
-                    onChange={handleGlToGlChange}
+                    onChange={handleGlToGlHeaderChange}
                     rows="3"
                     className="other-trans-form-textarea"
                     placeholder="Optional notes"
@@ -5548,86 +5773,148 @@ const isVoucherSettled = (voucher) => {
                   fontWeight: '600',
                   fontSize: '1.125rem'
                 }}>
-                  General Ledger Entries ({generalLedgerEntries.length})
+                  General Ledger Entries ({displayGeneralLedgerEntries.totalCount}
+                  {displayGeneralLedgerEntries.isFiltered
+                    ? ` · ${displayGeneralLedgerEntries.matchCount} matching line${displayGeneralLedgerEntries.matchCount === 1 ? '' : 's'}`
+                    : ''}
+                  )
                 </div>
-                <div style={{ overflowX: 'auto' }}>
-                  <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-                    <thead>
-                      <tr style={{ background: '#f9fafb' }}>
-                        <th style={{ padding: '0.75rem 1rem', textAlign: 'left', fontSize: '0.875rem', fontWeight: '600', color: '#374151', borderBottom: '1px solid #e5e7eb' }}>Date</th>
-                        <th style={{ padding: '0.75rem 1rem', textAlign: 'left', fontSize: '0.875rem', fontWeight: '600', color: '#374151', borderBottom: '1px solid #e5e7eb' }}>Voucher #</th>
-                        <th style={{ padding: '0.75rem 1rem', textAlign: 'left', fontSize: '0.875rem', fontWeight: '600', color: '#374151', borderBottom: '1px solid #e5e7eb' }}>Account Code</th>
-                        <th style={{ padding: '0.75rem 1rem', textAlign: 'left', fontSize: '0.875rem', fontWeight: '600', color: '#374151', borderBottom: '1px solid #e5e7eb' }}>Account Name</th>
-                        <th style={{ padding: '0.75rem 1rem', textAlign: 'right', fontSize: '0.875rem', fontWeight: '600', color: '#374151', borderBottom: '1px solid #e5e7eb' }}>Debit</th>
-                        <th style={{ padding: '0.75rem 1rem', textAlign: 'right', fontSize: '0.875rem', fontWeight: '600', color: '#374151', borderBottom: '1px solid #e5e7eb' }}>Credit</th>
-                        <th style={{ padding: '0.75rem 1rem', textAlign: 'left', fontSize: '0.875rem', fontWeight: '600', color: '#374151', borderBottom: '1px solid #e5e7eb' }}>Description</th>
-                        <th style={{ padding: '0.75rem 1rem', textAlign: 'left', fontSize: '0.875rem', fontWeight: '600', color: '#374151', borderBottom: '1px solid #e5e7eb' }}>Status</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {generalLedgerEntries.slice(0, 50).map((entry, index) => (
-                        <tr key={entry.id || index} style={{ 
-                          borderBottom: '1px solid #e5e7eb',
-                          transition: 'all 0.2s ease'
-                        }}
-                        onMouseEnter={(e) => {
-                          e.currentTarget.style.background = '#f9fafb';
-                        }}
-                        onMouseLeave={(e) => {
-                          e.currentTarget.style.background = 'white';
-                        }}
-                        >
-                          <td style={{ padding: '0.75rem 1rem', fontSize: '0.875rem', color: '#6b7280' }}>
-                            {(() => {
-                              const dateToDisplay = entry.transaction_date || entry.date || null;
-                              return dateToDisplay ? dateToDisplay.substring(0, 10) : 'N/A';
-                            })()}
-                          </td>
-                          <td style={{ padding: '0.75rem 1rem', fontSize: '0.875rem', fontWeight: '600', color: '#3b82f6' }}>
-                            {entry.reference || 'N/A'}
-                          </td>
-                          <td style={{ padding: '0.75rem 1rem', fontSize: '0.875rem', fontWeight: '600', color: '#1f2937' }}>
-                            {entry.account_code || 'N/A'}
-                          </td>
-                          <td style={{ padding: '0.75rem 1rem', fontSize: '0.875rem', color: '#374151' }}>
-                            {entry.account_name || 'N/A'}
-                          </td>
-                          <td style={{ padding: '0.75rem 1rem', fontSize: '0.875rem', textAlign: 'right', color: entry.debit > 0 ? '#059669' : '#6b7280', fontWeight: entry.debit > 0 ? '600' : '400' }}>
-                            {entry.debit && entry.debit > 0 ? parseFloat(entry.debit).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : '0.00'}
-                          </td>
-                          <td style={{ padding: '0.75rem 1rem', fontSize: '0.875rem', textAlign: 'right', color: entry.credit > 0 ? '#dc2626' : '#6b7280', fontWeight: entry.credit > 0 ? '600' : '400' }}>
-                            {entry.credit && entry.credit > 0 ? parseFloat(entry.credit).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : '0.00'}
-                          </td>
-                          <td style={{ padding: '0.75rem 1rem', fontSize: '0.875rem', color: '#6b7280' }}>
-                            {entry.description || 'N/A'}
-                          </td>
-                          <td style={{ padding: '0.75rem 1rem' }}>
-                            <span style={{
-                              padding: '0.25rem 0.75rem',
-                              borderRadius: '9999px',
-                              fontSize: '0.75rem',
-                              fontWeight: '600',
-                              background: entry.status === 'Posted' ? '#d1fae5' : '#fee2e2',
-                              color: entry.status === 'Posted' ? '#065f46' : '#991b1b'
-                            }}>
-                              {entry.status || 'Unknown'}
-                            </span>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
+                <div
+                  style={{
+                    padding: '1rem 1.5rem',
+                    borderBottom: '1px solid #e5e7eb',
+                    background: '#f8fafc',
+                    display: 'flex',
+                    flexWrap: 'wrap',
+                    alignItems: 'center',
+                    gap: '0.75rem'
+                  }}
+                >
+                  <label htmlFor="other-trans-gl-voucher-search" style={{ fontSize: '0.8125rem', fontWeight: '600', color: '#374151' }}>
+                    Search by voucher number
+                  </label>
+                  <input
+                    id="other-trans-gl-voucher-search"
+                    type="search"
+                    placeholder="Type voucher # (partial match)…"
+                    value={generalLedgerVoucherSearch}
+                    onChange={(e) => setGeneralLedgerVoucherSearch(e.target.value)}
+                    autoComplete="off"
+                    style={{
+                      flex: '1 1 16rem',
+                      maxWidth: '24rem',
+                      padding: '0.5rem 0.75rem',
+                      fontSize: '0.875rem',
+                      border: '1px solid #cbd5e1',
+                      borderRadius: '0.375rem',
+                      background: '#fff'
+                    }}
+                  />
+                  {generalLedgerVoucherSearch.trim() ? (
+                    <button
+                      type="button"
+                      onClick={() => setGeneralLedgerVoucherSearch('')}
+                      style={{
+                        padding: '0.5rem 0.9rem',
+                        fontSize: '0.8125rem',
+                        fontWeight: '600',
+                        color: '#475569',
+                        background: '#e2e8f0',
+                        border: 'none',
+                        borderRadius: '0.375rem',
+                        cursor: 'pointer'
+                      }}
+                    >
+                      Clear
+                    </button>
+                  ) : null}
                 </div>
-                {generalLedgerEntries.length > 50 && (
-                  <div style={{ 
-                    padding: '1rem',
-                    textAlign: 'center',
-                    color: '#6b7280',
-                    fontSize: '0.875rem',
-                    borderTop: '1px solid #e5e7eb'
-                  }}>
-                    Showing first 50 entries of {generalLedgerEntries.length} total entries
+                {displayGeneralLedgerEntries.isFiltered && displayGeneralLedgerEntries.rows.length === 0 ? (
+                  <div style={{ padding: '2rem 1.5rem', textAlign: 'center', color: '#6b7280', fontSize: '0.9375rem' }}>
+                    No general ledger lines match voucher &quot;{generalLedgerVoucherSearch.trim()}&quot;.
                   </div>
+                ) : (
+                  <>
+                    <div style={{ overflowX: 'auto' }}>
+                      <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                        <thead>
+                          <tr style={{ background: '#f9fafb' }}>
+                            <th style={{ padding: '0.75rem 1rem', textAlign: 'left', fontSize: '0.875rem', fontWeight: '600', color: '#374151', borderBottom: '1px solid #e5e7eb' }}>Date</th>
+                            <th style={{ padding: '0.75rem 1rem', textAlign: 'left', fontSize: '0.875rem', fontWeight: '600', color: '#374151', borderBottom: '1px solid #e5e7eb' }}>Voucher #</th>
+                            <th style={{ padding: '0.75rem 1rem', textAlign: 'left', fontSize: '0.875rem', fontWeight: '600', color: '#374151', borderBottom: '1px solid #e5e7eb' }}>Account Code</th>
+                            <th style={{ padding: '0.75rem 1rem', textAlign: 'left', fontSize: '0.875rem', fontWeight: '600', color: '#374151', borderBottom: '1px solid #e5e7eb' }}>Account Name</th>
+                            <th style={{ padding: '0.75rem 1rem', textAlign: 'right', fontSize: '0.875rem', fontWeight: '600', color: '#374151', borderBottom: '1px solid #e5e7eb' }}>Debit</th>
+                            <th style={{ padding: '0.75rem 1rem', textAlign: 'right', fontSize: '0.875rem', fontWeight: '600', color: '#374151', borderBottom: '1px solid #e5e7eb' }}>Credit</th>
+                            <th style={{ padding: '0.75rem 1rem', textAlign: 'left', fontSize: '0.875rem', fontWeight: '600', color: '#374151', borderBottom: '1px solid #e5e7eb' }}>Description</th>
+                            <th style={{ padding: '0.75rem 1rem', textAlign: 'left', fontSize: '0.875rem', fontWeight: '600', color: '#374151', borderBottom: '1px solid #e5e7eb' }}>Status</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {displayGeneralLedgerEntries.rows.map((entry, index) => (
+                            <tr key={entry.id || index} style={{ 
+                              borderBottom: '1px solid #e5e7eb',
+                              transition: 'all 0.2s ease'
+                            }}
+                            onMouseEnter={(e) => {
+                              e.currentTarget.style.background = '#f9fafb';
+                            }}
+                            onMouseLeave={(e) => {
+                              e.currentTarget.style.background = 'white';
+                            }}
+                            >
+                              <td style={{ padding: '0.75rem 1rem', fontSize: '0.875rem', color: '#6b7280' }}>
+                                {(() => {
+                                  const dateToDisplay = entry.transaction_date || entry.date || null;
+                                  return dateToDisplay ? dateToDisplay.substring(0, 10) : 'N/A';
+                                })()}
+                              </td>
+                              <td style={{ padding: '0.75rem 1rem', fontSize: '0.875rem', fontWeight: '600', color: '#3b82f6' }}>
+                                {entry.reference || entry.voucher_number || 'N/A'}
+                              </td>
+                              <td style={{ padding: '0.75rem 1rem', fontSize: '0.875rem', fontWeight: '600', color: '#1f2937' }}>
+                                {entry.account_code || 'N/A'}
+                              </td>
+                              <td style={{ padding: '0.75rem 1rem', fontSize: '0.875rem', color: '#374151' }}>
+                                {entry.account_name || 'N/A'}
+                              </td>
+                              <td style={{ padding: '0.75rem 1rem', fontSize: '0.875rem', textAlign: 'right', color: entry.debit > 0 ? '#059669' : '#6b7280', fontWeight: entry.debit > 0 ? '600' : '400' }}>
+                                {entry.debit && entry.debit > 0 ? parseFloat(entry.debit).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : '0.00'}
+                              </td>
+                              <td style={{ padding: '0.75rem 1rem', fontSize: '0.875rem', textAlign: 'right', color: entry.credit > 0 ? '#dc2626' : '#6b7280', fontWeight: entry.credit > 0 ? '600' : '400' }}>
+                                {entry.credit && entry.credit > 0 ? parseFloat(entry.credit).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : '0.00'}
+                              </td>
+                              <td style={{ padding: '0.75rem 1rem', fontSize: '0.875rem', color: '#6b7280' }}>
+                                {entry.description || 'N/A'}
+                              </td>
+                              <td style={{ padding: '0.75rem 1rem' }}>
+                                <span style={{
+                                  padding: '0.25rem 0.75rem',
+                                  borderRadius: '9999px',
+                                  fontSize: '0.75rem',
+                                  fontWeight: '600',
+                                  background: entry.status === 'Posted' ? '#d1fae5' : '#fee2e2',
+                                  color: entry.status === 'Posted' ? '#065f46' : '#991b1b'
+                                }}>
+                                  {entry.status || 'Unknown'}
+                                </span>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                    {!displayGeneralLedgerEntries.isFiltered && displayGeneralLedgerEntries.totalCount > 50 && (
+                      <div style={{ 
+                        padding: '1rem',
+                        textAlign: 'center',
+                        color: '#6b7280',
+                        fontSize: '0.875rem',
+                        borderTop: '1px solid #e5e7eb'
+                      }}>
+                        Showing first 50 entries of {displayGeneralLedgerEntries.totalCount} total entries. Use voucher search to find a specific transaction.
+                      </div>
+                    )}
+                  </>
                 )}
               </div>
             )}

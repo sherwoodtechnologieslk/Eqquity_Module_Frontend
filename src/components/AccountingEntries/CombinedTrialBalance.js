@@ -231,7 +231,7 @@ const CombinedTrialBalance = ({ onTabChange }) => {
         '',
         formatCurrency(totals.debit),
         formatCurrency(totals.credit),
-        '',
+        formatCurrency(netDifference),
         isBalanced ? 'BALANCED' : 'OUT OF BALANCE'
       ];
 
@@ -393,7 +393,8 @@ const CombinedTrialBalance = ({ onTabChange }) => {
     { debit: 0, credit: 0 }
   );
 
-  const isBalanced = Math.abs(totals.debit - totals.credit) < 0.01;
+  const netDifference = totals.debit - totals.credit;
+  const isBalanced = Math.abs(netDifference) < 0.01;
 
   if (loading) {
     return (
@@ -514,7 +515,8 @@ const CombinedTrialBalance = ({ onTabChange }) => {
           </span>
           <span className="ctb-status-details">
             Total Debits: {formatCurrency(totals.debit)} | Total Credits:{' '}
-            {formatCurrency(totals.credit)} | Accounts: {filteredAccounts.length}
+            {formatCurrency(totals.credit)} | Net (DR − CR):{' '}
+            {formatCurrency(netDifference)} | Accounts: {filteredAccounts.length}
           </span>
         </div>
 
@@ -550,6 +552,8 @@ const CombinedTrialBalance = ({ onTabChange }) => {
                     <th>Type / Category</th>
                     <th>Debit</th>
                     <th>Credit</th>
+                    <th>Net</th>
+                    <th>DR / CR</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -607,9 +611,48 @@ const CombinedTrialBalance = ({ onTabChange }) => {
                       <td className="ctb-credit">
                         {acc.total_credit > 0 ? formatCurrency(acc.total_credit) : '-'}
                       </td>
+                      <td
+                        className={`ctb-net-balance${
+                          acc.net_balance > 0.005
+                            ? ' positive'
+                            : acc.net_balance < -0.005
+                              ? ' negative'
+                              : ''
+                        }`}
+                      >
+                        {Math.abs(acc.net_balance) < 0.005
+                          ? '—'
+                          : formatCurrency(acc.net_balance)}
+                      </td>
+                      <td className="ctb-balance-type-cell">
+                        {acc.balance_type || '—'}
+                      </td>
                     </tr>
                   ))}
                 </tbody>
+                <tfoot>
+                  <tr className="ctb-totals-row">
+                    <td colSpan={4} className="ctb-totals-label">
+                      Totals
+                    </td>
+                    <td className="ctb-debit">{formatCurrency(totals.debit)}</td>
+                    <td className="ctb-credit">{formatCurrency(totals.credit)}</td>
+                    <td
+                      className={`ctb-net-balance${
+                        netDifference > 0.005
+                          ? ' positive'
+                          : netDifference < -0.005
+                            ? ' negative'
+                            : ''
+                      }`}
+                    >
+                      {formatCurrency(netDifference)}
+                    </td>
+                    <td className="ctb-balance-type-cell">
+                      {isBalanced ? 'BALANCED' : 'OUT OF BALANCE'}
+                    </td>
+                  </tr>
+                </tfoot>
               </table>
             )}
           </div>

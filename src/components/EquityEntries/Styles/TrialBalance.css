@@ -266,7 +266,8 @@
 }
 
 .tb-table-header th {
-  padding: 1rem 0.75rem;
+  padding: 0.6rem 0.6rem;
+  line-height: 1.15;
   text-align: left;
   font-weight: 700;
   color: #374151;
@@ -310,7 +311,8 @@
 }
 
 .tb-account-row td {
-  padding: 1rem 0.75rem;
+  padding: 0.55rem 0.6rem;
+  line-height: 1.15;
   vertical-align: top;
 }
 
@@ -391,6 +393,11 @@
   font-weight: 600;
 }
 
+.tb-type-subtotal-row td {
+  padding: 0.65rem 0.6rem;
+  line-height: 1.15;
+}
+
 .tb-subtotal-label {
   color: #374151;
   font-size: 0.875rem;
@@ -431,7 +438,8 @@
 }
 
 .tb-grand-total-row td {
-  padding: 1.5rem 0.75rem;
+  padding: 0.85rem 0.6rem;
+  line-height: 1.15;
   font-size: 1rem;
   text-transform: uppercase;
   letter-spacing: 0.5px;
