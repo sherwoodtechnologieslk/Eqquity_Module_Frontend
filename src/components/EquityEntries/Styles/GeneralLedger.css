@@ -366,7 +366,7 @@
 .gl-ledger-table th {
   background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
   color: white;
-  padding: 1rem;
+  padding: 0.6rem 0.75rem;
   text-align: left;
   font-weight: 600;
   font-size: 0.875rem;
@@ -375,6 +375,7 @@
   text-transform: uppercase;
   letter-spacing: 0.05em;
   white-space: nowrap;
+  line-height: 1.15;
 }
 
 .gl-ledger-table th:last-child {
@@ -382,11 +383,12 @@
 }
 
 .gl-ledger-table td {
-  padding: 0.875rem 1rem;
+  padding: 0.55rem 0.75rem;
   border-bottom: 1px solid #f3f4f6;
   border-right: 1px solid #f3f4f6;
   color: #374151;
   vertical-align: middle;
+  line-height: 1.15;
 }
 
 .gl-ledger-table td:last-child {
