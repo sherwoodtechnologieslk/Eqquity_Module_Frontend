@@ -26,7 +26,7 @@
     "copy-pdf-worker": "node copy-pdf-worker.js",
     "postinstall": "node copy-pdf-worker.js",
     "start": "cross-env REACT_APP_API_URL=http://98.91.201.168/api react-scripts start",
-    "build": "cross-env CI=false REACT_APP_API_URL=/api react-scripts build",
+    "build": "cross-env CI=false react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject"
   },
