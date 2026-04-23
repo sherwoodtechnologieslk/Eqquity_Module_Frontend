@@ -23,7 +23,7 @@ const DoubleEntries = () => {
       setLoading(true);
       setError('');
       const token = localStorage.getItem('token');
-      const response = await fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:8080/api'}/journal-entries`, {
+      const response = await fetch(`${process.env.REACT_APP_API_URL || 'http://98.91.201.168/api'}/journal-entries`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',

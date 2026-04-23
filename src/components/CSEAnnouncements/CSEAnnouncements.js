@@ -19,7 +19,7 @@ const CSEAnnouncements = () => {
       
       console.log('🔄 Loading CSE announcements...');
       
-      const response = await fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:8080/api'}/cse-announcements/announcements/json`, {
+      const response = await fetch(`${process.env.REACT_APP_API_URL || 'http://98.91.201.168/api'}/cse-announcements/announcements/json`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json'

@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_BASE_URL = 'http://localhost:8080/api/funds-centers';
+const API_BASE_URL = 'http://98.91.201.168/api/funds-centers';
 
 const fundsCenterService = {
     // Get all funds centers

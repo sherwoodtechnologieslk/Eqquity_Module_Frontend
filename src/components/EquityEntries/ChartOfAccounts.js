@@ -171,7 +171,7 @@ const ChartOfAccounts = () => {
         throw new Error('No token, authorization denied');
       }
 
-      const baseUrl = process.env.REACT_APP_API_URL || 'http://localhost:8080/api';
+      const baseUrl = process.env.REACT_APP_API_URL || 'http://98.91.201.168/api';
       const response = await fetch(`${baseUrl}/chart-of-accounts/system-accounts/export`, {
         method: 'GET',
         headers: {

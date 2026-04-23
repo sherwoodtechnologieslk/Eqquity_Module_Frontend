@@ -47,7 +47,7 @@ const TrialBalance = () => {
     try {
       // Fetch portfolios for filter dropdown (from general ledger)
       const token = localStorage.getItem('token');
-      const response = await fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:8080/api'}/general-ledger/portfolios`, {
+      const response = await fetch(`${process.env.REACT_APP_API_URL || 'http://98.91.201.168/api'}/general-ledger/portfolios`, {
         headers: {
           'Content-Type': 'application/json',
           ...(token && { 'Authorization': `Bearer ${token}` })

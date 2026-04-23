@@ -128,7 +128,7 @@ const Dashboard = ({ onTabChange }) => {
           // If not in localStorage, fetch from API
           const token = localStorage.getItem('token');
           if (token) {
-            fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:8080/api'}/auth/me`, {
+            fetch(`${process.env.REACT_APP_API_URL || 'http://98.91.201.168/api'}/auth/me`, {
               method: 'GET',
               headers: {
                 'Content-Type': 'application/json',
@@ -230,7 +230,7 @@ const Dashboard = ({ onTabChange }) => {
       
       // Get active portfolios count
       const token = localStorage.getItem('token');
-      const portfoliosResponse = await fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:8080/api'}/portfolios/active`, {
+      const portfoliosResponse = await fetch(`${process.env.REACT_APP_API_URL || 'http://98.91.201.168/api'}/portfolios/active`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
@@ -282,7 +282,7 @@ const Dashboard = ({ onTabChange }) => {
         setSelectedPortfolioKey(null);
       }
 
-      const apiBase = process.env.REACT_APP_API_URL || 'http://localhost:8080/api';
+      const apiBase = process.env.REACT_APP_API_URL || 'http://98.91.201.168/api';
       // Run in parallel with P&L below (no dependency on portfolio id)
       const txPromise = Promise.all([
         tradeSummaryAPI.getBuyTransactions(),

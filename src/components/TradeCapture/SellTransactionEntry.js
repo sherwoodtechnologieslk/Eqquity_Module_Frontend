@@ -53,7 +53,7 @@ const generateSellDealNumber = async () => {
   try {
     // Try to fetch all sell transactions from the backend
     // We'll check for today's transactions to find the max sequence
-    const response = await fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:8080/api'}/transaction-entries/sell-all`, {
+    const response = await fetch(`${process.env.REACT_APP_API_URL || 'http://98.91.201.168/api'}/transaction-entries/sell-all`, {
       headers: {
         'Authorization': `Bearer ${localStorage.getItem('token') || ''}`
       }

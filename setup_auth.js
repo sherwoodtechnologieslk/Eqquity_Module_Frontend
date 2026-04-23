@@ -18,7 +18,7 @@ console.log('✅ Authentication token set successfully!');
 console.log('🔄 Refresh your page to see the dashboard working');
 
 // Test API call
-fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:8080/api'}/portfolios/active`, {
+fetch(`${process.env.REACT_APP_API_URL || 'http://98.91.201.168/api'}/portfolios/active`, {
     headers: {
         'Authorization': `Bearer ${token}`,
         'Content-Type': 'application/json'

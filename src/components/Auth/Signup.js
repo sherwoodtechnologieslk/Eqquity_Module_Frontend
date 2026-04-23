@@ -95,7 +95,7 @@ const Signup = ({ onSignup, switchToLogin }) => {
 
         try {
             const { confirmPassword, ...signupData } = formData;
-            const response = await axios.post(`${process.env.REACT_APP_API_URL || 'http://localhost:8080/api'}/auth/signup`, signupData);
+            const response = await axios.post(`${process.env.REACT_APP_API_URL || 'http://98.91.201.168/api'}/auth/signup`, signupData);
             
             if (response.data.token) {
                 // Store token in localStorage
