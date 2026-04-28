@@ -432,7 +432,9 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 1000;
+  padding: 24px;
+  box-sizing: border-box;
+  z-index: 100000;
 }
 
 .reconciliation-modal-content {
@@ -443,6 +445,12 @@
   width: 90%;
   max-height: 90vh;
   overflow-y: auto;
+}
+
+.reconciliation-import-modal-content {
+  max-width: 1200px;
+  width: min(1200px, calc(100vw - 48px));
+  max-height: calc(100vh - 48px);
 }
 
 .reconciliation-modal-header {
