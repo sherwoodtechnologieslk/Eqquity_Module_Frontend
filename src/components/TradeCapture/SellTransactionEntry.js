@@ -1268,20 +1268,9 @@ const SellTransactionEntry = ({ setFifoParams, setActiveTab }) => {
 
 
       <div className="sell-content-wrapper">
-        <div className="sell-header-section">
-  <div className="sell-header-icon">
-    <svg viewBox="0 0 24 24" fill="currentColor">
-            <path d="M12 2L13.09 8.26L22 9L13.09 9.74L12 16L10.91 9.74L2 9L10.91 8.26L12 2Z"/>
-          </svg>
-  </div>
-  <div className="sell-header-text-group">
-    <h1 className="sell-main-title">Sell Transaction Entry</h1>
-    <p className="sell-subtitle">Record your stock sale transaction details</p>
-  </div>
-</div>
         <div className="sell-container">
           <div className="sell-card-header">
-            <h2 className="sell-card-title">Transaction Details</h2>
+            <h2 className="sell-card-title">Sell Transaction Entry- Record your stock sale transaction details</h2>
           </div>
           <div className="sell-form-content">
             {showSuccess && (

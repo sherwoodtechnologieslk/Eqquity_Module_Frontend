@@ -1,4 +1,6 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useEffect, useCallback, useState } from 'react';
+import { createPortal } from 'react-dom';
+import * as pdfjsLib from 'pdfjs-dist';
 import { chartOfAccountsAPI, accountReconciliationAPI } from '../../services/api';
 import './Styles/AccountReconciliation.css';
 
@@ -42,6 +44,71 @@ const AccountReconciliation = () => {
   const [error, setError] = useState('');
   const [showImportModal, setShowImportModal] = useState(false);
   const [selectedFile, setSelectedFile] = useState(null);
+  const [isUploadingStatement, setIsUploadingStatement] = useState(false);
+  const [statementUploadMessage, setStatementUploadMessage] = useState('');
+  const [statementPreviewText, setStatementPreviewText] = useState('');
+  const [statementPdfPages, setStatementPdfPages] = useState([]);
+  const [statementPreviewError, setStatementPreviewError] = useState('');
+  const [isPreparingPreview, setIsPreparingPreview] = useState(false);
+  const [showPdfPasswordModal, setShowPdfPasswordModal] = useState(false);
+  const [pdfPassword, setPdfPassword] = useState('');
+  const [pdfImportPassword, setPdfImportPassword] = useState('');
+  const [pdfPasswordError, setPdfPasswordError] = useState('');
+
+  // PDF.js worker - assumes public/pdf.worker.min.js exists (same as PendingDividends)
+  pdfjsLib.GlobalWorkerOptions.workerSrc = '/pdf.worker.min.js';
+
+  const buildPdfTextLayoutPreview = async (file, password) => {
+    const arrayBuffer = await file.arrayBuffer();
+    const bytes = new Uint8Array(arrayBuffer);
+    const loadingTask = pdfjsLib.getDocument({
+      data: bytes,
+      password: password || undefined
+    });
+    const pdf = await loadingTask.promise;
+
+    const maxPages = pdf.numPages || 1;
+    const pages = [];
+
+    for (let pageIndex = 1; pageIndex <= maxPages; pageIndex++) {
+      const page = await pdf.getPage(pageIndex);
+      const viewport = page.getViewport({ scale: 1.25 });
+      const textContent = await page.getTextContent();
+
+      // Convert PDF.js text items into positioned spans (approx "same format")
+      const items = (textContent.items || [])
+        .map((it) => ({
+          ...it,
+          str: typeof it.str === 'string' ? it.str.replace(/[^\x20-\x7E]/g, '') : ''
+        }))
+        .filter((it) => it && it.str.trim() !== '')
+        .map((it, idx) => {
+          const tx = pdfjsLib.Util.transform(viewport.transform, it.transform);
+          const fontSize = Math.max(1, Math.hypot(tx[0], tx[1]));
+          const angle = Math.atan2(tx[1], tx[0]);
+          const left = tx[4];
+          const top = tx[5] - fontSize;
+
+          return {
+            key: `${pageIndex}-${idx}`,
+            text: it.str,
+            left,
+            top,
+            fontSize,
+            angle
+          };
+        });
+
+      pages.push({
+        pageNumber: pageIndex,
+        width: viewport.width,
+        height: viewport.height,
+        items
+      });
+    }
+
+    return pages;
+  };
 
   // Load accounts on component mount
   useEffect(() => {
@@ -106,6 +173,164 @@ const AccountReconciliation = () => {
       ...prev,
       [field]: value
     }));
+  };
+
+  const handleStatementFileChange = async (e) => {
+    const file = e.target.files && e.target.files[0];
+    setSelectedFile(file || null);
+    setStatementUploadMessage('');
+    setStatementPreviewText('');
+    setStatementPdfPages([]);
+    setStatementPreviewError('');
+    setShowPdfPasswordModal(false);
+    setPdfPassword('');
+    setPdfImportPassword('');
+    setPdfPasswordError('');
+
+    if (!file) return;
+
+    setIsPreparingPreview(true);
+    try {
+      const name = String(file.name || '').toLowerCase();
+
+      if (name.endsWith('.pdf')) {
+        setStatementPreviewError('');
+        setStatementPreviewText('');
+        setStatementPdfPages([]);
+        setPdfPassword('');
+        setPdfImportPassword('');
+        setPdfPasswordError('Enter the PDF password to preview it.');
+        setShowPdfPasswordModal(true);
+      } else if (name.endsWith('.csv') || name.endsWith('.txt')) {
+        const raw = await file.text();
+        const snippet = raw.length > 4000 ? `${raw.slice(0, 4000)}\n\n... (truncated preview)` : raw;
+        setStatementPreviewText(snippet || '(Empty file)');
+      } else if (name.endsWith('.xlsx') || name.endsWith('.xls')) {
+        setStatementPreviewText(
+          'Preview not available for Excel files yet. Please click Upload to import and view transactions.'
+        );
+      } else {
+        setStatementPreviewText(
+          'Preview not available for this file type. Please click Upload to import and view transactions.'
+        );
+      }
+    } catch (err) {
+      console.error('Error preparing statement preview:', err);
+      setStatementPreviewError('Could not generate a preview for this file. You can still try uploading it.');
+    } finally {
+      setIsPreparingPreview(false);
+    }
+  };
+
+  const handleRemoveStatementFile = () => {
+    setSelectedFile(null);
+    setStatementUploadMessage('');
+    setStatementPreviewText('');
+    setStatementPdfPages([]);
+    setStatementPreviewError('');
+    setShowPdfPasswordModal(false);
+    setPdfPassword('');
+    setPdfImportPassword('');
+    setPdfPasswordError('');
+    // Reset file input so the same file can be re-selected
+    const fileInput = document.getElementById('reconciliationStatementFile');
+    if (fileInput) {
+      fileInput.value = '';
+    }
+  };
+
+  const handleUploadStatement = async () => {
+    if (!filters.accountCode) {
+      setError('Please select an account to reconcile before uploading a statement.');
+      setStatementUploadMessage('Select an account to reconcile, then upload the statement.');
+      return;
+    }
+    if (!selectedFile) {
+      setError('Please choose a statement file to upload.');
+      setStatementUploadMessage('Please choose a file to upload.');
+      return;
+    }
+    setIsUploadingStatement(true);
+    setError('');
+    setStatementUploadMessage('');
+
+    try {
+      const result = await accountReconciliationAPI.uploadExternalStatement(
+        selectedFile,
+        filters.accountCode,
+        pdfImportPassword
+      );
+
+      // Support multiple backend response shapes
+      const transactions =
+        (result && Array.isArray(result.transactions) && result.transactions) ||
+        (Array.isArray(result) && result) ||
+        (result && Array.isArray(result.data) && result.data) ||
+        [];
+
+      const openingBalance =
+        (result && (result.openingBalance ?? result.opening_balance)) ?? 0;
+      const closingBalance =
+        (result && (result.closingBalance ?? result.closing_balance)) ?? 0;
+
+      setExternalTransactions(transactions);
+      setUnmatchedExternal(transactions);
+      setExternalOpeningBalance(Number(openingBalance) || 0);
+      setExternalClosingBalance(Number(closingBalance) || 0);
+
+      // Reset any previous matching state when new external data arrives
+      setMatchedTransactions([]);
+      setReconciliationStatus('pending');
+
+      setShowImportModal(false);
+      handleRemoveStatementFile();
+      setStatementUploadMessage('Statement uploaded successfully. External transactions are now loaded.');
+    } catch (err) {
+      console.error('Error uploading external statement:', err);
+      setError(err?.message || 'Failed to upload statement. Please try again.');
+      setStatementUploadMessage(err?.message || 'Failed to upload statement. Please try again.');
+    } finally {
+      setIsUploadingStatement(false);
+    }
+  };
+
+  const handlePdfPasswordSubmit = async () => {
+    if (!pdfPassword.trim()) {
+      setPdfPasswordError('Please enter a password');
+      return;
+    }
+    if (!selectedFile) {
+      setPdfPasswordError('Please select the PDF file again.');
+      return;
+    }
+
+    setIsPreparingPreview(true);
+    setStatementPreviewError('');
+    setStatementPreviewText('');
+    setStatementPdfPages([]);
+    setPdfPasswordError('');
+
+    try {
+      const pages = await buildPdfTextLayoutPreview(selectedFile, pdfPassword);
+      setStatementPdfPages(pages);
+      setPdfImportPassword(pdfPassword);
+      setShowPdfPasswordModal(false);
+      setPdfPassword('');
+      setPdfPasswordError('');
+    } catch (err) {
+      console.error('Error unlocking PDF for preview:', err);
+      const passwordLike =
+        err?.name === 'PasswordException' ||
+        String(err?.message || '').toLowerCase().includes('password') ||
+        String(err?.message || '').toLowerCase().includes('encrypted');
+      if (passwordLike) {
+        setPdfPasswordError('Incorrect password. Please try again.');
+      } else {
+        setPdfPasswordError(err?.message || 'Failed to unlock PDF.');
+      }
+    } finally {
+      setIsPreparingPreview(false);
+    }
   };
 
 
@@ -270,7 +495,10 @@ const AccountReconciliation = () => {
     return new Date(dateString).toLocaleDateString('en-LK');
   };
 
-  const selectedAccount = accounts.find(acc => acc.account_code === filters.accountCode);
+  const selectedAccount = accounts.find(acc => {
+    const code = acc.account_code || acc.accountCode || acc.code;
+    return code === filters.accountCode;
+  });
 
   return (
     <div className="account-reconciliation">
@@ -280,8 +508,16 @@ const AccountReconciliation = () => {
           <h1>Account Reconciliation</h1>
           {selectedAccount && (
             <div className="account-reconciliation-info">
-              <span className="account-reconciliation-code">{selectedAccount.account_code}</span>
-              <span className="account-reconciliation-name">{selectedAccount.account_name}</span>
+              <span className="account-reconciliation-code">
+                {selectedAccount.account_code || selectedAccount.accountCode || selectedAccount.code}
+              </span>
+              <span className="account-reconciliation-name">
+                {selectedAccount.account_name ||
+                  selectedAccount.accountName ||
+                  selectedAccount.name ||
+                  selectedAccount.description ||
+                  'Unnamed account'}
+              </span>
             </div>
           )}
         </div>
@@ -301,11 +537,20 @@ const AccountReconciliation = () => {
             onChange={(e) => handleFilterChange('accountCode', e.target.value)}
           >
             <option value="">Select Account</option>
-            {accounts.map(account => (
-              <option key={account.account_code} value={account.account_code}>
-                {account.account_code} - {account.account_name}
-              </option>
-            ))}
+            {accounts.map((account, idx) => {
+              const code = account.account_code || account.accountCode || account.code || '';
+              const name =
+                account.account_name ||
+                account.accountName ||
+                account.name ||
+                account.description ||
+                '';
+              return (
+                <option key={code || account.id || `acc-${idx}`} value={code}>
+                  {code} - {name || 'Unnamed account'}
+                </option>
+              );
+            })}
           </select>
         </div>
 
@@ -626,40 +871,170 @@ const AccountReconciliation = () => {
       </div>
 
       {/* Import Modal */}
-      {showImportModal && (
+      {showImportModal && createPortal((
         <div className="reconciliation-modal-overlay">
-          <div className="reconciliation-modal-content">
+          <div className="reconciliation-modal-content reconciliation-import-modal-content">
             <div className="reconciliation-modal-header">
               <h3>Import External Statement</h3>
               <button 
                 className="reconciliation-modal-close"
-                onClick={() => setShowImportModal(false)}
+                type="button"
+                onClick={() => {
+                  setShowImportModal(false);
+                  handleRemoveStatementFile();
+                }}
               >
                 ×
               </button>
             </div>
             <div className="reconciliation-modal-body">
+              {!filters.accountCode && (
+                <div className="reconciliation-error-message" style={{ marginBottom: 12 }}>
+                  Select an <strong>Account to Reconcile</strong> first (required for uploading statements).
+                </div>
+              )}
+              {statementUploadMessage && (
+                <div
+                  className="reconciliation-error-message"
+                  style={{
+                    marginBottom: 12,
+                    background: statementUploadMessage.toLowerCase().includes('success')
+                      ? '#ecfdf5'
+                      : undefined,
+                    borderColor: statementUploadMessage.toLowerCase().includes('success')
+                      ? '#10b981'
+                      : undefined,
+                    color: statementUploadMessage.toLowerCase().includes('success')
+                      ? '#065f46'
+                      : undefined
+                  }}
+                >
+                  {statementUploadMessage}
+                </div>
+              )}
               <div className="reconciliation-file-upload">
                 <input
                   type="file"
-                  accept=".csv,.xlsx,.pdf"
-                  onChange={(e) => setSelectedFile(e.target.files[0])}
+                  id="reconciliationStatementFile"
+                  accept=".csv,.xlsx,.xls,.pdf"
+                  onChange={handleStatementFileChange}
                   className="reconciliation-file-input"
                 />
                 <div className="reconciliation-file-info">
-                  {selectedFile ? selectedFile.name : 'No file selected'}
+                  {selectedFile ? (
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
+                      <span>{selectedFile.name}</span>
+                      <button
+                        type="button"
+                        className="reconciliation-btn reconciliation-btn-sm reconciliation-btn-danger"
+                        onClick={handleRemoveStatementFile}
+                        disabled={isUploadingStatement}
+                      >
+                        Remove
+                      </button>
+                    </div>
+                  ) : (
+                    'No file selected'
+                  )}
                 </div>
               </div>
+
+              {(isPreparingPreview || statementPreviewText || statementPdfPages.length > 0 || statementPreviewError) && (
+                <div style={{ marginTop: 12 }}>
+                  <div style={{ fontWeight: 600, marginBottom: 6 }}>Statement preview</div>
+                  {isPreparingPreview ? (
+                    <div style={{ color: '#6b7280' }}>Preparing preview...</div>
+                  ) : statementPreviewError && !showPdfPasswordModal ? (
+                    <div className="reconciliation-error-message" style={{ marginBottom: 8 }}>
+                      {statementPreviewError}
+                    </div>
+                  ) : null}
+                  {statementPdfPages.length > 0 ? (
+                    <div
+                      style={{
+                        maxHeight: 650,
+                        overflow: 'auto',
+                        borderRadius: 10,
+                        border: '1px solid rgba(17,24,39,0.12)',
+                        background: '#fff',
+                        padding: 10
+                      }}
+                    >
+                      {statementPdfPages.map((page) => (
+                        <div key={page.pageNumber} style={{ marginBottom: 14 }}>
+                          <div style={{ fontSize: 12, color: '#6b7280', marginBottom: 6 }}>
+                            Page {page.pageNumber}
+                          </div>
+                          <div
+                            style={{
+                              position: 'relative',
+                              width: page.width,
+                              height: page.height,
+                              background: '#fff',
+                              border: '1px solid rgba(17,24,39,0.10)'
+                            }}
+                          >
+                            {page.items.map((it) => (
+                              <span
+                                key={it.key}
+                                style={{
+                                  position: 'absolute',
+                                  left: it.left,
+                                  top: it.top,
+                                  fontSize: it.fontSize,
+                                  transform: it.angle ? `rotate(${it.angle}rad)` : undefined,
+                                  transformOrigin: '0 0',
+                                  whiteSpace: 'pre',
+                                  color: '#111827'
+                                }}
+                              >
+                                {it.text}
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : null}
+                  {statementPreviewText ? (
+                    <pre
+                      style={{
+                        maxHeight: 220,
+                        overflow: 'auto',
+                        background: '#0b1220',
+                        color: '#e5e7eb',
+                        padding: 12,
+                        borderRadius: 8,
+                        whiteSpace: 'pre-wrap',
+                        wordBreak: 'break-word',
+                        fontSize: 12,
+                        lineHeight: 1.4,
+                        border: '1px solid rgba(255,255,255,0.08)'
+                      }}
+                    >
+                      {statementPreviewText}
+                    </pre>
+                  ) : null}
+                </div>
+              )}
+
               <div className="reconciliation-upload-actions">
                 <button 
                   className="reconciliation-btn"
-                  onClick={() => {/* Handle file upload */}}
+                  type="button"
+                  onClick={handleUploadStatement}
+                  disabled={isUploadingStatement || !selectedFile || !filters.accountCode}
                 >
-                  Upload
+                  {isUploadingStatement ? 'Uploading...' : 'Upload'}
                 </button>
                 <button 
                   className="reconciliation-btn reconciliation-btn-secondary"
-                  onClick={() => setShowImportModal(false)}
+                  type="button"
+                  onClick={() => {
+                    setShowImportModal(false);
+                    handleRemoveStatementFile();
+                  }}
+                  disabled={isUploadingStatement}
                 >
                   Cancel
                 </button>
@@ -667,7 +1042,84 @@ const AccountReconciliation = () => {
             </div>
           </div>
         </div>
-      )}
+      ), document.body)}
+
+      {/* PDF Password Modal (preview only) */}
+      {showImportModal && showPdfPasswordModal && createPortal((
+        <div className="reconciliation-modal-overlay">
+          <div className="reconciliation-modal-content" onClick={(e) => e.stopPropagation()} style={{ maxWidth: 520 }}>
+            <div className="reconciliation-modal-header">
+              <h3>PDF Password Required</h3>
+              <button
+                className="reconciliation-modal-close"
+                type="button"
+                onClick={() => {
+                  setShowPdfPasswordModal(false);
+                  setPdfPassword('');
+                  setPdfImportPassword('');
+                  setPdfPasswordError('');
+                }}
+              >
+                ×
+              </button>
+            </div>
+            <div className="reconciliation-modal-body">
+              <p style={{ marginTop: 0, color: '#374151' }}>
+                This PDF is password protected. Enter the password to preview it.
+              </p>
+              {pdfPasswordError && (
+                <div className="reconciliation-error-message" style={{ marginBottom: 12 }}>
+                  {pdfPasswordError}
+                </div>
+              )}
+              <div className="reconciliation-filter-group" style={{ marginBottom: 0 }}>
+                <label>Password:</label>
+                <input
+                  type="password"
+                  value={pdfPassword}
+                  onChange={(e) => {
+                    setPdfPassword(e.target.value);
+                    setPdfPasswordError('');
+                  }}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      e.preventDefault();
+                      handlePdfPasswordSubmit();
+                    }
+                  }}
+                  placeholder="Enter PDF password"
+                />
+              </div>
+              <div className="reconciliation-upload-actions" style={{ marginTop: 16 }}>
+                <button
+                  className="reconciliation-btn reconciliation-btn-secondary"
+                  type="button"
+                  onClick={() => {
+                    setShowPdfPasswordModal(false);
+                    setPdfPassword('');
+                    setPdfImportPassword('');
+                    setPdfPasswordError('');
+                  }}
+                  disabled={isPreparingPreview}
+                >
+                  Cancel
+                </button>
+                <button
+                  className="reconciliation-btn"
+                  type="button"
+                  onClick={handlePdfPasswordSubmit}
+                  disabled={isPreparingPreview || !pdfPassword.trim()}
+                >
+                  {isPreparingPreview ? 'Unlocking...' : 'Unlock & Preview'}
+                </button>
+              </div>
+              <div style={{ marginTop: 10, fontSize: 12, color: '#6b7280' }}>
+                The same password will be used when importing this PDF statement.
+              </div>
+            </div>
+          </div>
+        </div>
+      ), document.body)}
 
       {/* Error Display */}
       {error && (

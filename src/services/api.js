@@ -2210,7 +2210,9 @@ export const accountReconciliationAPI = {
         queryParams.append('portfolio', filters.portfolio);
       }
       
-      const response = await fetch(`${API_BASE_URL}/account-reconciliation/transactions?${queryParams}`);
+      const response = await fetch(`${API_BASE_URL}/account-reconciliation/transactions?${queryParams}`, {
+        headers: getAuthHeaders()
+      });
       
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
@@ -2274,19 +2276,30 @@ export const accountReconciliationAPI = {
   },
 
   // Upload external statement
-  uploadExternalStatement: async (file, accountCode) => {
+  uploadExternalStatement: async (file, accountCode, password = '') => {
     try {
       const formData = new FormData();
       formData.append('file', file);
       formData.append('accountCode', accountCode);
+      if (password) {
+        formData.append('password', password);
+      }
       
       const response = await fetch(`${API_BASE_URL}/account-reconciliation/upload-statement`, {
         method: 'POST',
+        headers: getAuthHeaders(),
         body: formData
       });
       
       if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+        let message = `HTTP error! status: ${response.status}`;
+        try {
+          const body = await response.json();
+          message = body?.error || message;
+        } catch {
+          // Keep the status message if the server didn't return JSON.
+        }
+        throw new Error(message);
       }
       
       return await response.json();
