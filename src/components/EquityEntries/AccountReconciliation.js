@@ -4,6 +4,47 @@ import * as pdfjsLib from 'pdfjs-dist';
 import { chartOfAccountsAPI, accountReconciliationAPI } from '../../services/api';
 import './Styles/AccountReconciliation.css';
 
+function normalizeStatementDateForDisplay(value, yearHint) {
+  if (!value) return '';
+  const str = String(value).trim();
+  if (/^\d{4}-\d{2}-\d{2}/.test(str)) return str.slice(0, 10);
+
+  const monthMatch = str.match(/^(\d{1,2})(JAN|FEB|MAR|APR|MAY|JUN|JUL|AUG|SEP|OCT|NOV|DEC)$/i);
+  if (monthMatch) {
+    const months = {
+      JAN: '01',
+      FEB: '02',
+      MAR: '03',
+      APR: '04',
+      MAY: '05',
+      JUN: '06',
+      JUL: '07',
+      AUG: '08',
+      SEP: '09',
+      OCT: '10',
+      NOV: '11',
+      DEC: '12'
+    };
+    const year =
+      typeof yearHint === 'number' && Number.isFinite(yearHint)
+        ? yearHint
+        : new Date().getFullYear();
+    return `${year}-${months[monthMatch[2].toUpperCase()]}-${String(Number(monthMatch[1])).padStart(2, '0')}`;
+  }
+
+  const m = str.match(/^(\d{1,2})[-/](\d{1,2})[-/](\d{2,4})$/);
+  if (!m) return '';
+
+  const first = Number(m[1]);
+  const second = Number(m[2]);
+  let year = Number(m[3]);
+  if (year < 100) year += 2000;
+  const month = first > 12 ? second : first;
+  const day = first > 12 ? first : second;
+
+  return `${String(year).padStart(4, '0')}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+}
+
 const AccountReconciliation = () => {
   // State for filters and configuration
   const [filters, setFilters] = useState({
@@ -45,9 +86,12 @@ const AccountReconciliation = () => {
   const [showImportModal, setShowImportModal] = useState(false);
   const [selectedFile, setSelectedFile] = useState(null);
   const [isUploadingStatement, setIsUploadingStatement] = useState(false);
+  const [isPassingEntries, setIsPassingEntries] = useState(false);
+  const [externalLoading, setExternalLoading] = useState(false);
   const [statementUploadMessage, setStatementUploadMessage] = useState('');
   const [statementPreviewText, setStatementPreviewText] = useState('');
   const [statementPdfPages, setStatementPdfPages] = useState([]);
+  const [statementPreviewRows, setStatementPreviewRows] = useState([]);
   const [statementPreviewError, setStatementPreviewError] = useState('');
   const [isPreparingPreview, setIsPreparingPreview] = useState(false);
   const [showPdfPasswordModal, setShowPdfPasswordModal] = useState(false);
@@ -57,6 +101,230 @@ const AccountReconciliation = () => {
 
   // PDF.js worker - assumes public/pdf.worker.min.js exists (same as PendingDividends)
   pdfjsLib.GlobalWorkerOptions.workerSrc = '/pdf.worker.min.js';
+
+  const parsePreviewNumber = (value) => {
+    if (value === null || value === undefined) return 0;
+    const raw = String(value).replace(/\(([^)]+)\)/g, '-$1');
+    const match = raw.match(/-?\d[\d,]*(?:\.\d+)?/);
+    if (!match) return 0;
+    let numericText = match[0];
+
+    // Some PDFs split/drop the decimal point in money values:
+    // "LKR 88,925.32" can be extracted as "LKR88,92532".
+    if (!numericText.includes('.') && numericText.includes(',')) {
+      const sign = numericText.startsWith('-') ? '-' : '';
+      const digits = numericText.replace(/[^0-9]/g, '');
+      const lastGroup = numericText.split(',').pop() || '';
+      if (digits.length > 2 && lastGroup.length > 3) {
+        numericText = `${sign}${digits.slice(0, -2)}.${digits.slice(-2)}`;
+      }
+    }
+
+    const n = Number(numericText.replace(/,/g, ''));
+    return Number.isFinite(n) ? n : 0;
+  };
+
+  const extractStatementAmounts = (value) => {
+    const compact = String(value || '').replace(/\s+/g, '');
+    const matches = [...compact.matchAll(/(CR|DR)(-?\d[\d,]*(?:\.\d+)?)LKR(\d[\d,]*(?:\.\d+)?)/gi)];
+    if (matches.length === 0) return null;
+
+    const last = matches[matches.length - 1];
+    return {
+      crDr: last[1].toUpperCase(),
+      transactionAmount: parsePreviewNumber(last[2]),
+      runningBalance: parsePreviewNumber(last[3])
+    };
+  };
+
+  const formatPreviewAmount = (value) => {
+    const n = Number(value);
+    if (!Number.isFinite(n) || n === 0) return '-';
+    return n.toLocaleString(undefined, {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2
+    });
+  };
+
+  const sanitizePdfEnglishText = (value) => {
+    if (!value) return '';
+    const cleaned = String(value)
+      .replace(/[^A-Za-z0-9\s.,:/()\-+&'#]/g, '')
+      .replace(/\s+/g, ' ')
+      .trim();
+
+    const artifactTokens = new Set([
+      'J',
+      'MF',
+      'M0',
+      'MX',
+      'MFMX',
+      'MF0',
+      'M0IMX',
+      'M0LMX',
+      'M0X',
+      'MWR',
+      'NMF',
+      'NFX',
+      'NZTO',
+      'NZT0',
+      '0',
+      'ZT0',
+      'ZT00',
+      'X',
+      'V'
+    ]);
+
+    const withoutArtifacts = cleaned
+      .split(' ')
+      .filter((token) => {
+        const normalizedToken = token.replace(/[^A-Za-z0-9]/g, '').toUpperCase();
+        if (!normalizedToken) return false;
+        if (/^0+$/.test(normalizedToken)) return false;
+        return !artifactTokens.has(normalizedToken);
+      })
+      .join(' ')
+      .trim();
+
+    return withoutArtifacts;
+  };
+
+  const normalizePreviewDate = (value) => {
+    if (!value) return '';
+    const str = String(value).trim();
+    if (/^\d{4}-\d{2}-\d{2}/.test(str)) return str.slice(0, 10);
+
+    const monthMatch = str.match(/^(\d{1,2})(JAN|FEB|MAR|APR|MAY|JUN|JUL|AUG|SEP|OCT|NOV|DEC)$/i);
+    if (monthMatch) {
+      const months = {
+        JAN: '01',
+        FEB: '02',
+        MAR: '03',
+        APR: '04',
+        MAY: '05',
+        JUN: '06',
+        JUL: '07',
+        AUG: '08',
+        SEP: '09',
+        OCT: '10',
+        NOV: '11',
+        DEC: '12'
+      };
+      const year = new Date(filters.startDate || filters.endDate || new Date()).getFullYear();
+      return `${year}-${months[monthMatch[2].toUpperCase()]}-${String(Number(monthMatch[1])).padStart(2, '0')}`;
+    }
+
+    const m = str.match(/^(\d{1,2})[-/](\d{1,2})[-/](\d{2,4})$/);
+    if (!m) return '';
+
+    const first = Number(m[1]);
+    const second = Number(m[2]);
+    let year = Number(m[3]);
+    if (year < 100) year += 2000;
+    const month = first > 12 ? second : first;
+    const day = first > 12 ? first : second;
+
+    return `${String(year).padStart(4, '0')}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+  };
+
+  const parsePdfPreviewRows = (pages) => {
+    const rows = [];
+    const isStatementDate = (value) => /^(\d{1,2})(JAN|FEB|MAR|APR|MAY|JUN|JUL|AUG|SEP|OCT|NOV|DEC)$/i.test(String(value || '').trim());
+    const isCrDr = (value) => /^(CR|DR)$/i.test(String(value || '').trim());
+    const validTransactionTypes = new Set(['CR', 'DR', 'POS', 'REF', 'TRF', 'INTEREST', 'TAX']);
+    const isIgnoredTableText = (value) =>
+      /seylan bank plc|galle road|hot line|infoseylan\.lk|www\.seylan\.lk|generated from seylan online banking|bears no signature|page\s*\d+\s*of\s*\d+/i.test(
+        String(value || '')
+      );
+
+    const columnForItem = (item, pageWidth) => {
+      const ratio = pageWidth ? item.left / pageWidth : 0;
+
+      if (ratio < 0.13) return 'transactionDate';
+      if (ratio < 0.25) return 'transactionValueDate';
+      if (ratio < 0.36) return 'transactionType';
+      if (ratio < 0.58) return 'transactionDescription';
+      if (ratio < 0.66) return 'crDr';
+      if (ratio < 0.84) return 'transactionAmount';
+      return 'runningBalance';
+    };
+
+    pages.forEach((page) => {
+      (page.lineItems || []).forEach((line) => {
+        const text = (line.items || []).map((item) => item.text).join(' ').replace(/\s+/g, ' ').trim();
+        if (!text) return;
+        if (/transaction\s+date|transaction\s+value\s+date|running\s+balance/i.test(text)) return;
+        if (isIgnoredTableText(text)) return;
+
+        const row = {
+          transactionDate: '',
+          transactionValueDate: '',
+          transactionType: '',
+          transactionDescription: '',
+          crDr: '',
+          transactionAmount: '',
+          runningBalance: ''
+        };
+
+        (line.items || [])
+          .sort((a, b) => a.left - b.left)
+          .forEach((item) => {
+            const column = columnForItem(item, page.width);
+            row[column] = `${row[column]} ${item.text}`.trim();
+          });
+
+        const rawTransactionDate = row.transactionDate;
+        const rawTransactionValueDate = row.transactionValueDate;
+        row.transactionDate = normalizePreviewDate(row.transactionDate) || row.transactionDate;
+        row.transactionValueDate = normalizePreviewDate(row.transactionValueDate) || row.transactionValueDate;
+        const extractedAmounts = extractStatementAmounts(text);
+        const amount = extractedAmounts?.transactionAmount ?? parsePreviewNumber(row.transactionAmount);
+        const balance = extractedAmounts?.runningBalance ?? parsePreviewNumber(row.runningBalance);
+
+        const isContinuationLine =
+          !rawTransactionDate &&
+          !rawTransactionValueDate &&
+          !row.transactionType &&
+          !row.crDr &&
+          !amount &&
+          !balance &&
+          row.transactionDescription &&
+          rows.length > 0;
+
+        if (isContinuationLine) {
+          rows[rows.length - 1].transactionDescription = `${rows[rows.length - 1].transactionDescription} ${row.transactionDescription}`
+            .replace(/\s+/g, ' ')
+            .trim();
+          return;
+        }
+
+        const normalizedType = String(row.transactionType || '').trim().toUpperCase();
+        const normalizedCrDr = String(extractedAmounts?.crDr || row.crDr || '').trim().toUpperCase();
+        const hasTransactionDates = isStatementDate(rawTransactionDate) && isStatementDate(rawTransactionValueDate);
+        const isActualTransaction =
+          hasTransactionDates &&
+          validTransactionTypes.has(normalizedType) &&
+          isCrDr(normalizedCrDr) &&
+          amount !== 0 &&
+          balance !== 0;
+
+        if (!isActualTransaction) return;
+
+        rows.push({
+          id: `${page.pageNumber}-${rows.length + 1}`,
+          transactionDate: row.transactionDate,
+          transactionValueDate: row.transactionValueDate,
+          transactionType: normalizedType,
+          transactionDescription: row.transactionDescription || text,
+          crDr: normalizedCrDr,
+          transactionAmount: amount,
+          runningBalance: balance
+        });
+      });
+    });
+
+    return rows;
+  };
 
   const buildPdfTextLayoutPreview = async (file, password) => {
     const arrayBuffer = await file.arrayBuffer();
@@ -79,7 +347,7 @@ const AccountReconciliation = () => {
       const items = (textContent.items || [])
         .map((it) => ({
           ...it,
-          str: typeof it.str === 'string' ? it.str.replace(/[^\x20-\x7E]/g, '') : ''
+          str: sanitizePdfEnglishText(it.str)
         }))
         .filter((it) => it && it.str.trim() !== '')
         .map((it, idx) => {
@@ -99,11 +367,33 @@ const AccountReconciliation = () => {
           };
         });
 
+      const lines = [];
+      const sortedItems = [...items].sort((a, b) => (a.top - b.top) || (a.left - b.left));
+      sortedItems.forEach((item) => {
+        const currentLine = lines[lines.length - 1];
+        if (currentLine && Math.abs(currentLine.top - item.top) <= 4) {
+          currentLine.items.push(item);
+        } else {
+          lines.push({ top: item.top, items: [item] });
+        }
+      });
+
       pages.push({
         pageNumber: pageIndex,
         width: viewport.width,
         height: viewport.height,
-        items
+        items,
+        lineItems: lines.map((line) => ({
+          top: line.top,
+          items: line.items.sort((a, b) => a.left - b.left)
+        })),
+        lines: lines.map((line) =>
+          line.items
+            .sort((a, b) => a.left - b.left)
+            .map((item) => item.text)
+            .join(' ')
+            .trim()
+        )
       });
     }
 
@@ -130,7 +420,7 @@ const AccountReconciliation = () => {
       setLoading(true);
       setError('');
       
-      const data = await accountReconciliationAPI.getAccountTransactions(filters.accountCode, {
+      const data = await accountReconciliationAPI.getAccountTransactions('', {
         startDate: filters.startDate,
         endDate: filters.endDate
       });
@@ -148,25 +438,75 @@ const AccountReconciliation = () => {
     } finally {
       setLoading(false);
     }
-  }, [filters.accountCode, filters.startDate, filters.endDate]);
+  }, [filters.startDate, filters.endDate]);
 
-  const loadExternalTransactions = async () => {
-    // This would typically load from uploaded bank statements or external APIs
-    // For now, using empty data - no mock data
-    const emptyExternalData = [];
-    
-    setExternalTransactions(emptyExternalData);
-    setExternalOpeningBalance(0);
-    setExternalClosingBalance(0);
-    setUnmatchedExternal(emptyExternalData);
-  };
+  const mapStatementEntryRow = useCallback(
+    (row) => {
+      const rawDate = row.transaction_date ?? row.transactionDate;
+      const hintYear = new Date(filters.startDate || filters.endDate || new Date()).getFullYear();
+      const normalizedDate = normalizeStatementDateForDisplay(rawDate, hintYear) || rawDate;
+      const amount = Number(row.transaction_amount ?? row.transactionAmount) || 0;
+      const side = String(row.cr_dr ?? row.crDr ?? '').toUpperCase();
+      const isCredit = side === 'CR';
 
-  // Load GL transactions when filters change
-  useEffect(() => {
-    if (filters.accountCode) {
-      loadGlTransactions();
+      return {
+        id: row.id != null ? `stmt_${row.id}` : `stmt_${normalizedDate}_${row.transaction_description || ''}`,
+        date: normalizedDate,
+        reference: row.transaction_type || row.transactionType || '',
+        description: row.transaction_description || row.transactionDescription || '',
+        debit: isCredit ? 0 : Math.abs(amount),
+        credit: isCredit ? Math.abs(amount) : 0,
+        balance: Number(row.running_balance ?? row.runningBalance) || 0,
+        _sourceFile: row.source_file_name || row.sourceFileName || ''
+      };
+    },
+    [filters.startDate, filters.endDate]
+  );
+
+  const loadExternalTransactions = useCallback(async () => {
+    if (!filters.accountCode) {
+      setExternalTransactions([]);
+      setUnmatchedExternal([]);
+      setExternalOpeningBalance(0);
+      setExternalClosingBalance(0);
+      return;
     }
+
+    try {
+      setExternalLoading(true);
+
+      const data = await accountReconciliationAPI.getStatementEntries(filters.accountCode, {
+        startDate: filters.startDate,
+        endDate: filters.endDate
+      });
+
+      const rows = data.transactions || [];
+      const mapped = rows.map(mapStatementEntryRow);
+
+      setExternalTransactions(mapped);
+      setUnmatchedExternal(mapped);
+      setExternalOpeningBalance(Number(data.openingBalance) || 0);
+      setExternalClosingBalance(Number(data.closingBalance) || 0);
+
+      setMatchedTransactions([]);
+      setReconciliationStatus('pending');
+    } catch (error) {
+      console.error('Error loading statement entries:', error);
+      setStatementUploadMessage(error?.message || 'Failed to load saved statement entries.');
+    } finally {
+      setExternalLoading(false);
+    }
+  }, [filters.accountCode, filters.startDate, filters.endDate, mapStatementEntryRow]);
+
+  // Load all GL transactions for the selected date range when filters change.
+  useEffect(() => {
+    loadGlTransactions();
   }, [filters, loadGlTransactions]);
+
+  // Load saved bank statement rows for the selected account and date range.
+  useEffect(() => {
+    loadExternalTransactions();
+  }, [loadExternalTransactions]);
 
   const handleFilterChange = (field, value) => {
     setFilters(prev => ({
@@ -181,6 +521,7 @@ const AccountReconciliation = () => {
     setStatementUploadMessage('');
     setStatementPreviewText('');
     setStatementPdfPages([]);
+    setStatementPreviewRows([]);
     setStatementPreviewError('');
     setShowPdfPasswordModal(false);
     setPdfPassword('');
@@ -197,6 +538,7 @@ const AccountReconciliation = () => {
         setStatementPreviewError('');
         setStatementPreviewText('');
         setStatementPdfPages([]);
+        setStatementPreviewRows([]);
         setPdfPassword('');
         setPdfImportPassword('');
         setPdfPasswordError('Enter the PDF password to preview it.');
@@ -227,6 +569,7 @@ const AccountReconciliation = () => {
     setStatementUploadMessage('');
     setStatementPreviewText('');
     setStatementPdfPages([]);
+    setStatementPreviewRows([]);
     setStatementPreviewError('');
     setShowPdfPasswordModal(false);
     setPdfPassword('');
@@ -294,6 +637,39 @@ const AccountReconciliation = () => {
     }
   };
 
+  const handlePassEntries = async () => {
+    if (!filters.accountCode) {
+      setError('Please select an account to reconcile before passing entries.');
+      setStatementUploadMessage('Select an account to reconcile, then pass the entries.');
+      return;
+    }
+    if (statementPreviewRows.length === 0) {
+      setStatementUploadMessage('No extracted statement entries available to pass.');
+      return;
+    }
+
+    setIsPassingEntries(true);
+    setError('');
+    setStatementUploadMessage('');
+
+    try {
+      const result = await accountReconciliationAPI.passStatementEntries({
+        accountCode: filters.accountCode,
+        sourceFileName: selectedFile?.name || '',
+        entries: statementPreviewRows
+      });
+
+      await loadExternalTransactions();
+      setStatementUploadMessage(`${result.insertedCount || statementPreviewRows.length} entries passed successfully.`);
+    } catch (err) {
+      console.error('Error passing statement entries:', err);
+      setError(err?.message || 'Failed to pass entries. Please try again.');
+      setStatementUploadMessage(err?.message || 'Failed to pass entries. Please try again.');
+    } finally {
+      setIsPassingEntries(false);
+    }
+  };
+
   const handlePdfPasswordSubmit = async () => {
     if (!pdfPassword.trim()) {
       setPdfPasswordError('Please enter a password');
@@ -308,11 +684,13 @@ const AccountReconciliation = () => {
     setStatementPreviewError('');
     setStatementPreviewText('');
     setStatementPdfPages([]);
+    setStatementPreviewRows([]);
     setPdfPasswordError('');
 
     try {
       const pages = await buildPdfTextLayoutPreview(selectedFile, pdfPassword);
       setStatementPdfPages(pages);
+      setStatementPreviewRows(parsePdfPreviewRows(pages));
       setPdfImportPassword(pdfPassword);
       setShowPdfPasswordModal(false);
       setPdfPassword('');
@@ -333,6 +711,33 @@ const AccountReconciliation = () => {
     }
   };
 
+  const calculateDifferences = useCallback(() => {
+    const unrecordedDeposits = unmatchedExternal
+      .filter(t => t.debit > 0)
+      .reduce((sum, t) => sum + t.debit, 0);
+
+    const outstandingCheques = unmatchedGl
+      .filter(t => t.credit > 0)
+      .reduce((sum, t) => sum + t.credit, 0);
+
+    const bankCharges = unmatchedExternal
+      .filter(t => t.credit > 0 && t.description.toLowerCase().includes('fee'))
+      .reduce((sum, t) => sum + t.credit, 0);
+
+    const netDifference = (glClosingBalance + unrecordedDeposits - outstandingCheques) - externalClosingBalance;
+
+    setDifferences({
+      unrecordedDeposits,
+      outstandingCheques,
+      bankCharges,
+      otherDiscrepancies: 0,
+      netDifference
+    });
+  }, [glClosingBalance, externalClosingBalance, unmatchedGl, unmatchedExternal]);
+
+  useEffect(() => {
+    calculateDifferences();
+  }, [calculateDifferences]);
 
   const handleAutoMatch = () => {
     const newMatches = [];
@@ -367,32 +772,6 @@ const AccountReconciliation = () => {
     setMatchedTransactions(prev => [...prev, ...newMatches]);
     setUnmatchedGl(remainingGl);
     setUnmatchedExternal(remainingExternal);
-    
-    calculateDifferences();
-  };
-
-  const calculateDifferences = () => {
-    const unrecordedDeposits = unmatchedExternal
-      .filter(t => t.debit > 0)
-      .reduce((sum, t) => sum + t.debit, 0);
-    
-    const outstandingCheques = unmatchedGl
-      .filter(t => t.credit > 0)
-      .reduce((sum, t) => sum + t.credit, 0);
-    
-    const bankCharges = unmatchedExternal
-      .filter(t => t.credit > 0 && t.description.toLowerCase().includes('fee'))
-      .reduce((sum, t) => sum + t.credit, 0);
-    
-    const netDifference = (glClosingBalance + unrecordedDeposits - outstandingCheques) - externalClosingBalance;
-    
-    setDifferences({
-      unrecordedDeposits,
-      outstandingCheques,
-      bankCharges,
-      otherDiscrepancies: 0,
-      netDifference
-    });
   };
 
   const handleSaveReconciliation = async () => {
@@ -435,9 +814,7 @@ const AccountReconciliation = () => {
       setError('');
       
       // Refresh GL transactions
-      if (filters.accountCode) {
-        await loadGlTransactions();
-      }
+      await loadGlTransactions();
       
       // Refresh external transactions
       await loadExternalTransactions();
@@ -611,8 +988,10 @@ const AccountReconciliation = () => {
           <button 
             className="reconciliation-btn"
             onClick={loadExternalTransactions}
+            disabled={externalLoading || !filters.accountCode}
+            type="button"
           >
-            Load External Data
+            {externalLoading ? 'Loading…' : 'Load External Data'}
           </button>
           <button 
             className="reconciliation-btn reconciliation-btn-secondary"
@@ -697,6 +1076,7 @@ const AccountReconciliation = () => {
               <thead>
                 <tr>
                   <th>Date</th>
+                  <th>Account</th>
                   <th>Journal Entry ID</th>
                   <th>Description</th>
                   <th>Debit</th>
@@ -709,7 +1089,11 @@ const AccountReconciliation = () => {
                 {unmatchedGl.map(transaction => (
                   <tr key={transaction.id} className="reconciliation-transaction-row">
                     <td>{formatDate(transaction.date)}</td>
-                    <td>{transaction.reference}</td>
+                    <td>
+                      {transaction.account_code || transaction.accountCode || '-'}
+                      {(transaction.account_name || transaction.accountName) ? ` - ${transaction.account_name || transaction.accountName}` : ''}
+                    </td>
+                    <td>{transaction.reference || transaction.journal_entry_id || transaction.id || '-'}</td>
                     <td>{transaction.description}</td>
                     <td className="reconciliation-debit-amount">{transaction.debit > 0 ? formatCurrency(transaction.debit) : '-'}</td>
                     <td className="reconciliation-credit-amount">{transaction.credit > 0 ? formatCurrency(transaction.credit) : '-'}</td>
@@ -939,7 +1323,7 @@ const AccountReconciliation = () => {
                 </div>
               </div>
 
-              {(isPreparingPreview || statementPreviewText || statementPdfPages.length > 0 || statementPreviewError) && (
+              {(isPreparingPreview || statementPreviewText || statementPdfPages.length > 0 || statementPreviewRows.length > 0 || statementPreviewError) && (
                 <div style={{ marginTop: 12 }}>
                   <div style={{ fontWeight: 600, marginBottom: 6 }}>Statement preview</div>
                   {isPreparingPreview ? (
@@ -947,6 +1331,41 @@ const AccountReconciliation = () => {
                   ) : statementPreviewError && !showPdfPasswordModal ? (
                     <div className="reconciliation-error-message" style={{ marginBottom: 8 }}>
                       {statementPreviewError}
+                    </div>
+                  ) : null}
+                  {statementPreviewRows.length > 0 ? (
+                    <div style={{ marginBottom: 14 }}>
+                      <div style={{ fontWeight: 600, marginBottom: 8 }}>
+                        Extracted transactions table (preview only)
+                      </div>
+                      <div style={{ maxHeight: 280, overflow: 'auto', border: '1px solid #e5e7eb' }}>
+                        <table className="reconciliation-table reconciliation-preview-table" style={{ margin: 0 }}>
+                          <thead>
+                            <tr>
+                              <th>Transaction Date</th>
+                              <th>Transaction Value Date</th>
+                              <th>Transaction Type</th>
+                              <th>Transaction Description</th>
+                              <th>CR/DR</th>
+                              <th>Transaction Amount</th>
+                              <th>Running Balance</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {statementPreviewRows.map((row) => (
+                              <tr key={row.id}>
+                                <td>{row.transactionDate || '-'}</td>
+                                <td>{row.transactionValueDate || '-'}</td>
+                                <td>{row.transactionType || '-'}</td>
+                                <td>{row.transactionDescription || '-'}</td>
+                                <td>{row.crDr || '-'}</td>
+                                <td>{formatPreviewAmount(row.transactionAmount)}</td>
+                                <td>{formatPreviewAmount(row.runningBalance)}</td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
                     </div>
                   ) : null}
                   {statementPdfPages.length > 0 ? (
@@ -1019,11 +1438,19 @@ const AccountReconciliation = () => {
               )}
 
               <div className="reconciliation-upload-actions">
+                <button
+                  className="reconciliation-btn reconciliation-btn-success"
+                  type="button"
+                  onClick={handlePassEntries}
+                  disabled={isPassingEntries || statementPreviewRows.length === 0 || !filters.accountCode}
+                >
+                  {isPassingEntries ? 'Passing Entries...' : 'Pass Entries'}
+                </button>
                 <button 
                   className="reconciliation-btn"
                   type="button"
                   onClick={handleUploadStatement}
-                  disabled={isUploadingStatement || !selectedFile || !filters.accountCode}
+                  disabled={isUploadingStatement || isPassingEntries || !selectedFile || !filters.accountCode}
                 >
                   {isUploadingStatement ? 'Uploading...' : 'Upload'}
                 </button>
@@ -1034,7 +1461,7 @@ const AccountReconciliation = () => {
                     setShowImportModal(false);
                     handleRemoveStatementFile();
                   }}
-                  disabled={isUploadingStatement}
+                  disabled={isUploadingStatement || isPassingEntries}
                 >
                   Cancel
                 </button>

@@ -103,7 +103,8 @@ export const equityManagerMenuItems = [
     subTopics: [
       "GSEC ENTRIES",
       "Balance Sheet",
-      "GSec General Ledger"
+      "GSec General Ledger",
+      "GSec Manual Entry Posting"
     ]
   },
   {
