@@ -17,6 +17,8 @@ const FinancialPosition = ({ onTabChange }) => {
   const [error, setError] = useState('');
   const [netProfit, setNetProfit] = useState(null); // from P&L -> used for retained earnings display
   const [selectedAccount, setSelectedAccount] = useState(null);
+  const [showMtmData, setShowMtmData] = useState(false);
+  const [showNotes, setShowNotes] = useState(false);
   const [filters, setFilters] = useState({
     asOfDate: new Date().toISOString().split('T')[0],
     portfolio: ''
@@ -84,7 +86,11 @@ const FinancialPosition = ({ onTabChange }) => {
       };
 
       const [fpResp, plResp] = await Promise.all([
-        financialPositionAPI.getFinancialPosition(filters),
+        financialPositionAPI.getFinancialPosition({
+          ...filters,
+          withMtmData: showMtmData,
+          withNotes: showNotes
+        }),
         profitLossAPI
           .getProfitLoss(profitLossFilters)
           .catch((err) => {
@@ -113,7 +119,7 @@ const FinancialPosition = ({ onTabChange }) => {
     } finally {
       setIsLoading(false);
     }
-  }, [filters]);
+  }, [filters, showMtmData, showNotes]);
 
   useEffect(() => {
     fetchFinancialPosition();
@@ -333,6 +339,18 @@ const FinancialPosition = ({ onTabChange }) => {
           </button>
           <button className="fp-export-button" onClick={exportSofpExcel}>
             Export to Excel
+          </button>
+          <button
+            className={`fp-export-button ${showMtmData ? 'active' : ''}`}
+            onClick={() => setShowMtmData((prev) => !prev)}
+          >
+            With MTM data
+          </button>
+          <button
+            className={`fp-export-button ${showNotes ? 'active' : ''}`}
+            onClick={() => setShowNotes((prev) => !prev)}
+          >
+            With notes
           </button>
         </div>
       </div>

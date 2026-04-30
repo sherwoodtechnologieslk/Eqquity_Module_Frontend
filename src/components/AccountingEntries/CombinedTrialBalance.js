@@ -52,6 +52,35 @@ const enrichEquityAccountDetails = (data) => {
   };
 };
 
+/** YYYY-MM-DD in local calendar (avoids day shift from toISOString() in non-UTC timezones). */
+const toLocalYmd = (d) => {
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${y}-${m}-${day}`;
+};
+
+/** Same default range as trialBalanceAPI.getTrialBalance (month start → today, ISO yyyy-mm-dd). */
+const getDefaultTrialBalanceDateRange = () => {
+  const now = new Date();
+  const startDate = toLocalYmd(new Date(now.getFullYear(), now.getMonth(), 1));
+  const endDate = toLocalYmd(now);
+  return { startDate, endDate };
+};
+
+const resolveTrialBalanceDates = (f) => {
+  const defaults = getDefaultTrialBalanceDateRange();
+  const s =
+    f?.startDate != null && String(f.startDate).trim() !== ''
+      ? String(f.startDate).trim()
+      : defaults.startDate;
+  const e =
+    f?.endDate != null && String(f.endDate).trim() !== ''
+      ? String(f.endDate).trim()
+      : defaults.endDate;
+  return { startDate: s, endDate: e };
+};
+
 const CombinedTrialBalance = ({ onTabChange }) => {
   const [equityTB, setEquityTB] = useState(null);
   const [gsecBS, setGsecBS] = useState(null);
@@ -60,10 +89,7 @@ const CombinedTrialBalance = ({ onTabChange }) => {
   const [exporting, setExporting] = useState(false);
   const hasLoadedOnceRef = useRef(false);
 
-  const [filters, setFilters] = useState({
-    startDate: '',
-    endDate: '',
-  });
+  const [filters, setFilters] = useState(() => getDefaultTrialBalanceDateRange());
   const [sourceFilter, setSourceFilter] = useState('all'); // all | equity | gsec
   const [searchTerm, setSearchTerm] = useState('');
 
@@ -72,6 +98,9 @@ const CombinedTrialBalance = ({ onTabChange }) => {
   const [accountModalData, setAccountModalData] = useState(null);
   const [accountModalError, setAccountModalError] = useState('');
   const [accountModalSourceLabel, setAccountModalSourceLabel] = useState('');
+
+  const filtersRef = useRef(filters);
+  filtersRef.current = filters;
 
   const handleCloseAccountModal = () => {
     setAccountModalOpen(false);
@@ -94,16 +123,18 @@ const CombinedTrialBalance = ({ onTabChange }) => {
     setAccountModalError('');
 
     try {
+      const resolved = resolveTrialBalanceDates(filters);
+      const queryFilters = { ...filters, startDate: resolved.startDate, endDate: resolved.endDate };
       if (acc.source === 'Equity') {
-        const res = await trialBalanceAPI.getAccountDetails(acc.account_code, filters);
+        const res = await trialBalanceAPI.getAccountDetails(acc.account_code, queryFilters);
         if (!res?.success) {
           throw new Error(res?.error || 'Failed to load equity account details');
         }
         setAccountModalData(enrichEquityAccountDetails(res.data));
       } else {
         const res = await gsecEntriesAPI.getBalanceSheetAccountDetails(acc.account_code, {
-          startDate: filters.startDate || undefined,
-          endDate: filters.endDate || undefined,
+          startDate: resolved.startDate,
+          endDate: resolved.endDate,
         });
         if (!res?.success) {
           throw new Error(res?.error || 'Failed to load GSec account details');
@@ -117,7 +148,11 @@ const CombinedTrialBalance = ({ onTabChange }) => {
   };
 
   const fetchData = async (options = {}) => {
-    const { showLoader = true } = options;
+    const { showLoader = true, filtersOverride } = options;
+    const active = filtersOverride ?? filtersRef.current;
+    const resolved = resolveTrialBalanceDates(active);
+    const queryFilters = { ...active, startDate: resolved.startDate, endDate: resolved.endDate };
+
     try {
       if (showLoader || !hasLoadedOnceRef.current) {
         setLoading(true);
@@ -125,8 +160,11 @@ const CombinedTrialBalance = ({ onTabChange }) => {
       setError('');
 
       const [tbRes, gsecRes] = await Promise.all([
-        trialBalanceAPI.getTrialBalance(filters),
-        gsecEntriesAPI.getBalanceSheet(filters),
+        trialBalanceAPI.getTrialBalance(queryFilters),
+        gsecEntriesAPI.getBalanceSheet({
+          startDate: resolved.startDate,
+          endDate: resolved.endDate,
+        }),
       ]);
 
       if (!tbRes?.success) {
@@ -150,7 +188,7 @@ const CombinedTrialBalance = ({ onTabChange }) => {
   useEffect(() => {
     fetchData({ showLoader: true });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [filters.startDate, filters.endDate]);
 
   // Keep screen fresh when transactions update elsewhere (tab often stays mounted).
   useEffect(() => {
@@ -170,12 +208,20 @@ const CombinedTrialBalance = ({ onTabChange }) => {
       window.clearInterval(intervalId);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [filters]);
+  }, []);
 
   const handleDateChange = (field, value) => {
+    const defaults = getDefaultTrialBalanceDateRange();
+    const raw = value != null ? String(value).trim() : '';
+    const next =
+      raw !== ''
+        ? raw
+        : field === 'startDate'
+          ? defaults.startDate
+          : defaults.endDate;
     setFilters((prev) => ({
       ...prev,
-      [field]: value,
+      [field]: next,
     }));
   };
 
@@ -280,9 +326,10 @@ const CombinedTrialBalance = ({ onTabChange }) => {
     setError('');
 
     try {
+      const resolved = resolveTrialBalanceDates(filters);
       const blob = await trialBalanceAPI.exportCombinedTrialBalanceExcel({
-        startDate: filters.startDate || undefined,
-        endDate: filters.endDate || undefined,
+        startDate: resolved.startDate,
+        endDate: resolved.endDate,
         source: sourceFilter,
         search: searchTerm || undefined
       });
@@ -306,10 +353,8 @@ const CombinedTrialBalance = ({ onTabChange }) => {
   };
 
   const clearFilters = () => {
-    setFilters({
-      startDate: '',
-      endDate: '',
-    });
+    const defaults = getDefaultTrialBalanceDateRange();
+    setFilters(defaults);
     setSourceFilter('all');
     setSearchTerm('');
   };
@@ -324,11 +369,24 @@ const CombinedTrialBalance = ({ onTabChange }) => {
   };
 
   const formatDate = (dateString) => {
-    if (!dateString) return '';
-    const d = new Date(dateString);
-    if (Number.isNaN(d.getTime())) return dateString;
+    if (dateString == null || String(dateString).trim() === '') return '';
+    const s = String(dateString).trim();
+    const m = s.match(/^(\d{4})-(\d{2})-(\d{2})/);
+    if (m) {
+      const y = Number(m[1]);
+      const mo = Number(m[2]);
+      const d = Number(m[3]);
+      const local = new Date(y, mo - 1, d);
+      if (!Number.isNaN(local.getTime())) {
+        return local.toLocaleDateString('en-LK');
+      }
+    }
+    const d = new Date(s);
+    if (Number.isNaN(d.getTime())) return s;
     return d.toLocaleDateString('en-LK');
   };
+
+  const filterDisplayDates = useMemo(() => resolveTrialBalanceDates(filters), [filters]);
 
   const combinedAccounts = useMemo(() => {
     const equityAccounts = (equityTB?.accounts || []).map((a) => ({
@@ -460,8 +518,9 @@ const CombinedTrialBalance = ({ onTabChange }) => {
                 <label className="ctb-filter-label">Start Date</label>
                 <input
                   type="date"
+                  lang="en-US"
                   className="ctb-filter-input"
-                  value={filters.startDate}
+                  value={filterDisplayDates.startDate}
                   onChange={(e) => handleDateChange('startDate', e.target.value)}
                 />
               </div>
@@ -469,8 +528,9 @@ const CombinedTrialBalance = ({ onTabChange }) => {
                 <label className="ctb-filter-label">End Date</label>
                 <input
                   type="date"
+                  lang="en-US"
                   className="ctb-filter-input"
-                  value={filters.endDate}
+                  value={filterDisplayDates.endDate}
                   onChange={(e) => handleDateChange('endDate', e.target.value)}
                 />
               </div>

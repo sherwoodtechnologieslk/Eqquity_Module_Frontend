@@ -1,5 +1,16 @@
 const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8080/api';
 
+/** YYYY-MM-DD in local calendar (avoids day shift from toISOString() in non-UTC timezones). */
+const toLocalYmd = (d) => {
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${y}-${m}-${day}`;
+};
+const defaultMonthStartYmd = () => toLocalYmd(new Date(new Date().getFullYear(), new Date().getMonth(), 1));
+const defaultTodayYmd = () => toLocalYmd(new Date());
+const defaultYearStartYmd = () => toLocalYmd(new Date(new Date().getFullYear(), 0, 1));
+
 // Helper function to get auth headers
 const getAuthHeaders = () => {
     const token = localStorage.getItem('token');
@@ -2038,8 +2049,8 @@ export const trialBalanceAPI = {
   getTrialBalance: async (filters = {}) => {
     try {
       const queryParams = new URLSearchParams({
-        startDate: filters.startDate || new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString().split('T')[0],
-        endDate: filters.endDate || new Date().toISOString().split('T')[0],
+        startDate: filters.startDate || defaultMonthStartYmd(),
+        endDate: filters.endDate || defaultTodayYmd(),
         _ts: Date.now().toString()
       });
       
@@ -2078,8 +2089,8 @@ export const trialBalanceAPI = {
   getTrialBalanceSummary: async (filters = {}) => {
     try {
       const queryParams = new URLSearchParams({
-        startDate: filters.startDate || new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString().split('T')[0],
-        endDate: filters.endDate || new Date().toISOString().split('T')[0],
+        startDate: filters.startDate || defaultMonthStartYmd(),
+        endDate: filters.endDate || defaultTodayYmd(),
         _ts: Date.now().toString()
       });
       
@@ -2118,8 +2129,8 @@ export const trialBalanceAPI = {
   getAccountDetails: async (accountCode, filters = {}) => {
     try {
       const queryParams = new URLSearchParams({
-        startDate: filters.startDate || new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString().split('T')[0],
-        endDate: filters.endDate || new Date().toISOString().split('T')[0],
+        startDate: filters.startDate || defaultMonthStartYmd(),
+        endDate: filters.endDate || defaultTodayYmd(),
         _ts: Date.now().toString()
       });
       
@@ -2202,8 +2213,8 @@ export const accountReconciliationAPI = {
     try {
       const queryParams = new URLSearchParams({
         accountCode: accountCode,
-        startDate: filters.startDate || new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString().split('T')[0],
-        endDate: filters.endDate || new Date().toISOString().split('T')[0]
+        startDate: filters.startDate || defaultMonthStartYmd(),
+        endDate: filters.endDate || defaultTodayYmd()
       });
       
       if (filters.portfolio) {
@@ -2307,6 +2318,76 @@ export const accountReconciliationAPI = {
       console.error('Error uploading external statement:', error);
       throw error;
     }
+  },
+
+  // Save previewed statement entries to database
+  passStatementEntries: async ({ accountCode, sourceFileName, entries }) => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/account-reconciliation/pass-entries`, {
+        method: 'POST',
+        headers: {
+          ...getAuthHeaders(),
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          accountCode,
+          sourceFileName,
+          entries
+        })
+      });
+
+      if (!response.ok) {
+        let message = `HTTP error! status: ${response.status}`;
+        try {
+          const body = await response.json();
+          message = body?.error || message;
+        } catch {
+          // Keep the status message if the server didn't return JSON.
+        }
+        throw new Error(message);
+      }
+
+      return await response.json();
+    } catch (error) {
+      console.error('Error passing statement entries:', error);
+      throw error;
+    }
+  },
+
+  // Load saved statement entries from database
+  getStatementEntries: async (accountCode, filters = {}) => {
+    try {
+      const queryParams = new URLSearchParams();
+      if (accountCode) {
+        queryParams.append('accountCode', accountCode);
+      }
+      if (filters.startDate) {
+        queryParams.append('startDate', filters.startDate);
+      }
+      if (filters.endDate) {
+        queryParams.append('endDate', filters.endDate);
+      }
+
+      const response = await fetch(`${API_BASE_URL}/account-reconciliation/statement-entries?${queryParams}`, {
+        headers: getAuthHeaders()
+      });
+
+      if (!response.ok) {
+        let message = `HTTP error! status: ${response.status}`;
+        try {
+          const body = await response.json();
+          message = body?.error || message;
+        } catch {
+          // Keep the status message if the server didn't return JSON.
+        }
+        throw new Error(message);
+      }
+
+      return await response.json();
+    } catch (error) {
+      console.error('Error fetching statement entries:', error);
+      throw error;
+    }
   }
 };
 
@@ -2316,8 +2397,8 @@ export const profitLossAPI = {
   getProfitLoss: async (filters = {}) => {
     try {
       const queryParams = new URLSearchParams({
-        startDate: filters.startDate || new Date(new Date().getFullYear(), 0, 1).toISOString().split('T')[0],
-        endDate: filters.endDate || new Date().toISOString().split('T')[0]
+        startDate: filters.startDate || defaultYearStartYmd(),
+        endDate: filters.endDate || defaultTodayYmd()
       });
       
       if (filters.portfolio) {
@@ -2343,8 +2424,8 @@ export const profitLossAPI = {
   getProfitLossSummary: async (filters = {}) => {
     try {
       const queryParams = new URLSearchParams({
-        startDate: filters.startDate || new Date(new Date().getFullYear(), 0, 1).toISOString().split('T')[0],
-        endDate: filters.endDate || new Date().toISOString().split('T')[0]
+        startDate: filters.startDate || defaultYearStartYmd(),
+        endDate: filters.endDate || defaultTodayYmd()
       });
       
       if (filters.portfolio) {
@@ -2372,11 +2453,17 @@ export const financialPositionAPI = {
   getFinancialPosition: async (filters = {}) => {
     try {
       const queryParams = new URLSearchParams({
-        asOfDate: filters.asOfDate || new Date().toISOString().split('T')[0]
+        asOfDate: filters.asOfDate || defaultTodayYmd()
       });
       
       if (filters.portfolio) {
         queryParams.append('portfolioId', filters.portfolio);
+      }
+      if (filters.withMtmData) {
+        queryParams.append('withMtmData', 'true');
+      }
+      if (filters.withNotes) {
+        queryParams.append('withNotes', 'true');
       }
       
       const response = await fetch(`${API_BASE_URL}/financial-position?${queryParams}`, {
@@ -2398,7 +2485,7 @@ export const financialPositionAPI = {
   getFinancialPositionSummary: async (filters = {}) => {
     try {
       const queryParams = new URLSearchParams({
-        asOfDate: filters.asOfDate || new Date().toISOString().split('T')[0]
+        asOfDate: filters.asOfDate || defaultTodayYmd()
       });
       
       if (filters.portfolio) {
@@ -2424,7 +2511,7 @@ export const financialPositionAPI = {
   getPortfolioExportTable: async (filters = {}) => {
     try {
       const queryParams = new URLSearchParams({
-        asOfDate: filters.asOfDate || new Date().toISOString().split('T')[0]
+        asOfDate: filters.asOfDate || defaultTodayYmd()
       });
 
       if (filters.portfolioId) {
@@ -2490,6 +2577,20 @@ export const gsecEntriesAPI = {
     } catch (error) {
       console.error('Error saving GSec entries to database:', error);
       const message = error.message || 'Failed to save GSec entries to database';
+      throw new Error(message);
+    }
+  },
+
+  /** GSec Manual Entry Posting only: duplicate-aware save with optional bypass */
+  manualPostEntries: async (entries, { passDuplicates = false } = {}) => {
+    try {
+      return await makeAuthenticatedRequest(`${API_BASE_URL}/gsec-entries/manual-post`, {
+        method: 'POST',
+        body: JSON.stringify({ entries, passDuplicates })
+      });
+    } catch (error) {
+      console.error('Error posting GSec manual entries:', error);
+      const message = error.message || 'Failed to post GSec manual entries';
       throw new Error(message);
     }
   },

@@ -2,7 +2,7 @@
 .opening-bal-entry-container {
   --opening-bal-content-max: 1200px;
   min-height: 100vh;
-  padding: 2rem 1rem;
+  padding: 1rem 1rem 2rem;
   box-sizing: border-box;
 }
 
@@ -34,14 +34,14 @@
 /* Page header — card strip aligned with form (title + subtitle) */
 .opening-bal-page-header {
   max-width: var(--opening-bal-content-max);
-  margin: 0 auto 1.25rem;
-  padding-top: 0.5rem;
+  margin: 0 auto 0.85rem;
+  padding-top: 0;
 }
 
 .opening-bal-header-section {
   display: flex;
   align-items: flex-start;
-  gap: 1rem;
+  gap: 0.5rem;
   text-align: left;
   padding: 1.25rem 1.5rem;
   background: #fff;

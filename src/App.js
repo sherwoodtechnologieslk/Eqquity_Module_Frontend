@@ -82,6 +82,7 @@ import OtherReports from './components/FinancialReporting/OtherReports';
 import GsecEntries from './components/GsecEntries/GsecEntries';
 import GsecGeneralLedger from './components/GsecEntries/GsecGeneralLedger';
 import GsecBalanceSheet from './components/GsecEntries/GsecBalanceSheet';
+import GsecManualEntryPosting from './components/GsecEntries/GsecManualEntryPosting';
 import CombinedGL from './components/AccountingEntries/CombinedGL';
 import CombinedTrialBalance from './components/AccountingEntries/CombinedTrialBalance';
 import HolidayCalendar from './components/HolidayCalendar/HolidayCalendar';
@@ -252,6 +253,7 @@ function App() {
     'GSEC ENTRIES': <GsecEntries />,
     'Balance Sheet': <GsecBalanceSheet />,
     'GSec General Ledger': <GsecGeneralLedger />,
+    'GSec Manual Entry Posting': <GsecManualEntryPosting />,
     'Combined General Ledger': <CombinedGL onTabChange={handleTabChange} />,
     'Combined Trial Balance': <CombinedTrialBalance onTabChange={handleTabChange} />,
   };
