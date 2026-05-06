@@ -44,6 +44,7 @@
 
 .wm-content {
   flex: 1;
+  min-width: 0; /* wide child content scrolls in-place instead of expanding main */
   padding: 1.6rem 1.8rem 2.25rem;
   margin-top: 92px; /* navbar */
 }
