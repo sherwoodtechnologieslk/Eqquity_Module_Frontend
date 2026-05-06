@@ -529,7 +529,30 @@ const AccountReconciliation = () => {
     } finally {
       setLoading(false);
     }
-  }, [filters.accountCode, filters.startDate, filters.endDate]);
+  }, [filters.startDate, filters.endDate]);
+
+  const mapStatementEntryRow = useCallback(
+    (row) => {
+      const rawDate = row.transaction_date ?? row.transactionDate;
+      const hintYear = new Date(filters.startDate || filters.endDate || new Date()).getFullYear();
+      const normalizedDate = normalizeStatementDateForDisplay(rawDate, hintYear) || rawDate;
+      const amount = Number(row.transaction_amount ?? row.transactionAmount) || 0;
+      const side = String(row.cr_dr ?? row.crDr ?? '').toUpperCase();
+      const isCredit = side === 'CR';
+
+      return {
+        id: row.id != null ? `stmt_${row.id}` : `stmt_${normalizedDate}_${row.transaction_description || ''}`,
+        date: normalizedDate,
+        reference: row.transaction_type || row.transactionType || '',
+        description: row.transaction_description || row.transactionDescription || '',
+        debit: isCredit ? 0 : Math.abs(amount),
+        credit: isCredit ? Math.abs(amount) : 0,
+        balance: Number(row.running_balance ?? row.runningBalance) || 0,
+        _sourceFile: row.source_file_name || row.sourceFileName || ''
+      };
+    },
+    [filters.startDate, filters.endDate]
+  );
 
   // Explicit filter deps so changing Account to Reconcile always runs a GL fetch.
   useEffect(() => {
@@ -634,6 +657,11 @@ const AccountReconciliation = () => {
   useEffect(() => {
     void refetchReconciliationMatches('merge');
   }, [refetchReconciliationMatches]);
+
+  // Load saved bank statement rows for the selected account and date range.
+  useEffect(() => {
+    loadExternalTransactions();
+  }, [loadExternalTransactions]);
 
   const handleFilterChange = (field, value) => {
     const nextValue = field === 'accountCode' ? String(value || '').trim() : value;
