@@ -1471,9 +1471,7 @@ const BuyTransactionEntry = () => {
                     Daily cost calculated as (Net Value × Cost of Funds (After-Tax) %) ÷ 365
                   </small>
                 </div>
-              </div>
-
-              <div className="buy-field-group">
+                <div className="buy-field-group buy-field-span-full">
                   <label className="buy-field-label">Generate Payment</label>
                   <div className="buy-toggle-container">
                     <label className="buy-toggle-wrapper">
@@ -1498,6 +1496,8 @@ const BuyTransactionEntry = () => {
                     </span>
                   </div>
                 </div>
+              </div>
+
               {/* Buttons */}
               <div className="buy-button-section">
                 <button

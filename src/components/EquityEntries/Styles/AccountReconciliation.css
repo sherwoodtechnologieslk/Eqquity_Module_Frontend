@@ -264,14 +264,6 @@
   overflow: hidden;
 }
 
-.reconciliation-panel-gl {
-  border-left: 4px solid #3b82f6;
-}
-
-.reconciliation-panel-external {
-  border-left: 4px solid #059669;
-}
-
 .reconciliation-panel-header {
   background-color: #f8fafc;
   padding: 16px 20px;
@@ -364,7 +356,6 @@
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
   border: 1px solid #e2e8f0;
   margin-bottom: 24px;
-  border-left: 4px solid #8b5cf6;
 }
 
 .reconciliation-matched-section .reconciliation-panel-header {

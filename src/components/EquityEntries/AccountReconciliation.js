@@ -1,4 +1,4 @@
-import React, { useEffect, useCallback, useState } from 'react';
+import React, { useEffect, useCallback, useMemo, useState } from 'react';
 import { createPortal } from 'react-dom';
 import * as pdfjsLib from 'pdfjs-dist';
 import { chartOfAccountsAPI, accountReconciliationAPI } from '../../services/api';
@@ -45,12 +45,59 @@ function normalizeStatementDateForDisplay(value, yearHint) {
   return `${String(year).padStart(4, '0')}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
 }
 
+/** Matches COA CSV "Transaction Type" (e.g. (410) Cash and Short Term Deposits → transaction_type). */
+const CASH_AND_SHORT_TERM_DEPOSITS_TYPE = 'Cash and Short Term Deposits';
+
+const getAccountTransactionTypeLabel = (account) =>
+  String(account?.transaction_type ?? account?.transactionType ?? '').trim();
+
+const isCashAndShortTermDepositsAccount = (account) =>
+  getAccountTransactionTypeLabel(account).toLowerCase() === CASH_AND_SHORT_TERM_DEPOSITS_TYPE.toLowerCase();
+
+const ALL_TIME_RANGE_START = '1900-01-01';
+
+/** Narrow cash accounts by bank name (matches COA description text). */
+const RECONCILE_BANK_SELECT_OPTIONS = [
+  { value: '', label: 'Select bank' },
+  { value: 'seylan', label: 'Seylan Bank' },
+  { value: 'hatton', label: 'Hattion Nattion Bank' },
+  { value: 'commercial', label: 'COMMERCIAL BANK' },
+  { value: 'sampath', label: 'Sampath bank' }
+];
+
+const RECONCILE_BANK_KEYWORDS = {
+  seylan: ['seylan'],
+  hatton: ['hatton', 'hnb', 'hattion', 'nattion', 'hatton national'],
+  commercial: ['commercial'],
+  sampath: ['sampath']
+};
+
+const accountMatchesReconcileBank = (account, bankKey) => {
+  const key = String(bankKey || '').trim();
+  if (!key) return true;
+  const keywords = RECONCILE_BANK_KEYWORDS[key];
+  if (!keywords || !keywords.length) return true;
+  const text = [
+    account?.account_name,
+    account?.accountName,
+    account?.name,
+    account?.description,
+    account?.transaction_type,
+    account?.transactionType
+  ]
+    .filter(Boolean)
+    .join(' ')
+    .toLowerCase();
+  return keywords.some((k) => text.includes(String(k).toLowerCase()));
+};
+
 const AccountReconciliation = () => {
-  // State for filters and configuration
+  // State for filters and configuration (default period: All time — matches handlePeriodChange('all'))
   const [filters, setFilters] = useState({
+    bank: '',
     accountCode: '',
-    period: 'month',
-    startDate: new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString().split('T')[0],
+    period: 'all',
+    startDate: ALL_TIME_RANGE_START,
     endDate: new Date().toISOString().split('T')[0],
     referenceType: 'bank', // bank, vendor, customer
     referenceNumber: ''
@@ -61,8 +108,20 @@ const AccountReconciliation = () => {
   const [glTransactions, setGlTransactions] = useState([]);
   const [externalTransactions, setExternalTransactions] = useState([]);
   const [matchedTransactions, setMatchedTransactions] = useState([]);
-  const [unmatchedGl, setUnmatchedGl] = useState([]);
-  const [unmatchedExternal, setUnmatchedExternal] = useState([]);
+
+  const unmatchedGl = useMemo(() => {
+    const matchedGlIds = new Set(
+      matchedTransactions.map((m) => m?.glTransaction?.id).filter(Boolean)
+    );
+    return glTransactions.filter((t) => t.id != null && !matchedGlIds.has(t.id));
+  }, [glTransactions, matchedTransactions]);
+
+  const unmatchedExternal = useMemo(() => {
+    const matchedExtIds = new Set(
+      matchedTransactions.map((m) => m?.externalTransaction?.id).filter(Boolean)
+    );
+    return externalTransactions.filter((t) => t.id != null && !matchedExtIds.has(t.id));
+  }, [externalTransactions, matchedTransactions]);
 
   // State for balances
   const [glOpeningBalance, setGlOpeningBalance] = useState(0);
@@ -98,6 +157,13 @@ const AccountReconciliation = () => {
   const [pdfPassword, setPdfPassword] = useState('');
   const [pdfImportPassword, setPdfImportPassword] = useState('');
   const [pdfPasswordError, setPdfPasswordError] = useState('');
+
+  /** Manual match: which side was clicked + that row; modal lists the other side. */
+  const [matchPickerModal, setMatchPickerModal] = useState({
+    open: false,
+    source: null,
+    origin: null
+  });
 
   // PDF.js worker - assumes public/pdf.worker.min.js exists (same as PendingDividends)
   pdfjsLib.GlobalWorkerOptions.workerSrc = '/pdf.worker.min.js';
@@ -415,23 +481,48 @@ const AccountReconciliation = () => {
     }
   };
 
+  const reconcileAccounts = useMemo(
+    () => (Array.isArray(accounts) ? accounts.filter(isCashAndShortTermDepositsAccount) : []),
+    [accounts]
+  );
+
+  const reconcileAccountsFiltered = useMemo(
+    () => reconcileAccounts.filter((acc) => accountMatchesReconcileBank(acc, filters.bank)),
+    [reconcileAccounts, filters.bank]
+  );
+
+  useEffect(() => {
+    const selected = String(filters.accountCode || '').trim();
+    if (!selected) return;
+    const codes = reconcileAccountsFiltered.map((acc) =>
+      String(acc.account_code || acc.accountCode || acc.code || '').trim()
+    );
+    if (!codes.includes(selected)) {
+      setFilters((prev) => ({ ...prev, accountCode: '' }));
+    }
+  }, [reconcileAccountsFiltered, filters.accountCode]);
+
   const loadGlTransactions = useCallback(async () => {
+    const accountCode = String(filters.accountCode || '').trim();
+    if (!accountCode) {
+      setGlTransactions([]);
+      setGlOpeningBalance(0);
+      setGlClosingBalance(0);
+      return;
+    }
+
     try {
       setLoading(true);
       setError('');
-      
-      const data = await accountReconciliationAPI.getAccountTransactions('', {
+
+      const data = await accountReconciliationAPI.getAccountTransactions(accountCode, {
         startDate: filters.startDate,
         endDate: filters.endDate
       });
-      
+
       setGlTransactions(data.transactions || []);
-      setGlOpeningBalance(data.openingBalance || 0);
-      setGlClosingBalance(data.closingBalance || 0);
-      
-      // Initialize unmatched GL transactions
-      setUnmatchedGl(data.transactions || []);
-      
+      setGlOpeningBalance(Number(data.openingBalance ?? data.opening_balance) || 0);
+      setGlClosingBalance(Number(data.closingBalance ?? data.closing_balance) || 0);
     } catch (error) {
       console.error('Error loading GL transactions:', error);
       setError('Failed to load general ledger transactions');
@@ -463,10 +554,37 @@ const AccountReconciliation = () => {
     [filters.startDate, filters.endDate]
   );
 
+  // Explicit filter deps so changing Account to Reconcile always runs a GL fetch.
+  useEffect(() => {
+    void loadGlTransactions();
+  }, [filters.accountCode, filters.startDate, filters.endDate, loadGlTransactions]);
+
+  const mapStatementEntryRow = useCallback(
+    (row) => {
+      const rawDate = row.transaction_date ?? row.transactionDate;
+      const hintYear = new Date(filters.startDate || filters.endDate || new Date()).getFullYear();
+      const normalizedDate = normalizeStatementDateForDisplay(rawDate, hintYear) || rawDate;
+      const amount = Number(row.transaction_amount ?? row.transactionAmount) || 0;
+      const side = String(row.cr_dr ?? row.crDr ?? '').toUpperCase();
+      const isCredit = side === 'CR';
+
+      return {
+        id: row.id != null ? `stmt_${row.id}` : `stmt_${normalizedDate}_${row.transaction_description || ''}`,
+        date: normalizedDate,
+        reference: row.transaction_type || row.transactionType || '',
+        description: row.transaction_description || row.transactionDescription || '',
+        debit: isCredit ? 0 : Math.abs(amount),
+        credit: isCredit ? Math.abs(amount) : 0,
+        balance: Number(row.running_balance ?? row.runningBalance) || 0,
+        _sourceFile: row.source_file_name || row.sourceFileName || ''
+      };
+    },
+    [filters.startDate, filters.endDate]
+  );
+
   const loadExternalTransactions = useCallback(async () => {
     if (!filters.accountCode) {
       setExternalTransactions([]);
-      setUnmatchedExternal([]);
       setExternalOpeningBalance(0);
       setExternalClosingBalance(0);
       return;
@@ -484,12 +602,8 @@ const AccountReconciliation = () => {
       const mapped = rows.map(mapStatementEntryRow);
 
       setExternalTransactions(mapped);
-      setUnmatchedExternal(mapped);
       setExternalOpeningBalance(Number(data.openingBalance) || 0);
       setExternalClosingBalance(Number(data.closingBalance) || 0);
-
-      setMatchedTransactions([]);
-      setReconciliationStatus('pending');
     } catch (error) {
       console.error('Error loading statement entries:', error);
       setStatementUploadMessage(error?.message || 'Failed to load saved statement entries.');
@@ -498,10 +612,51 @@ const AccountReconciliation = () => {
     }
   }, [filters.accountCode, filters.startDate, filters.endDate, mapStatementEntryRow]);
 
-  // Load all GL transactions for the selected date range when filters change.
+  // Load saved bank statement rows for the selected account and date range.
   useEffect(() => {
-    loadGlTransactions();
-  }, [filters, loadGlTransactions]);
+    loadExternalTransactions();
+  }, [loadExternalTransactions]);
+
+  const refetchReconciliationMatches = useCallback(
+    async (mode = 'merge') => {
+      const accountCode = String(filters.accountCode || '').trim();
+      if (!accountCode) {
+        setMatchedTransactions([]);
+        return;
+      }
+      try {
+        const data = await accountReconciliationAPI.getReconciliationMatches({
+          accountCode,
+          startDate: filters.startDate,
+          endDate: filters.endDate
+        });
+        const fromDb = Array.isArray(data.matches) ? data.matches : [];
+        if (mode === 'replace') {
+          setMatchedTransactions(fromDb);
+          return;
+        }
+        setMatchedTransactions((prev) => {
+          const localOnly = prev.filter((m) => m?.id && String(m.id).startsWith('manual_'));
+          const dbGl = new Set(fromDb.map((m) => m?.glTransaction?.id).filter(Boolean));
+          const dbExt = new Set(fromDb.map((m) => m?.externalTransaction?.id).filter(Boolean));
+          const localFiltered = localOnly.filter(
+            (m) => !dbGl.has(m.glTransaction?.id) && !dbExt.has(m.externalTransaction?.id)
+          );
+          return [...fromDb, ...localFiltered];
+        });
+      } catch (error) {
+        console.error('Error loading reconciliation matches:', error);
+        if (mode === 'replace') {
+          setMatchedTransactions([]);
+        }
+      }
+    },
+    [filters.accountCode, filters.startDate, filters.endDate]
+  );
+
+  useEffect(() => {
+    void refetchReconciliationMatches('merge');
+  }, [refetchReconciliationMatches]);
 
   // Load saved bank statement rows for the selected account and date range.
   useEffect(() => {
@@ -509,10 +664,25 @@ const AccountReconciliation = () => {
   }, [loadExternalTransactions]);
 
   const handleFilterChange = (field, value) => {
-    setFilters(prev => ({
+    const nextValue = field === 'accountCode' ? String(value || '').trim() : value;
+    setFilters((prev) => ({
       ...prev,
-      [field]: value
+      [field]: nextValue
     }));
+  };
+
+  const handlePeriodChange = (value) => {
+    if (value === 'all') {
+      const today = new Date().toISOString().split('T')[0];
+      setFilters((prev) => ({
+        ...prev,
+        period: 'all',
+        startDate: ALL_TIME_RANGE_START,
+        endDate: today
+      }));
+      return;
+    }
+    setFilters((prev) => ({ ...prev, period: value }));
   };
 
   const handleStatementFileChange = async (e) => {
@@ -617,7 +787,6 @@ const AccountReconciliation = () => {
         (result && (result.closingBalance ?? result.closing_balance)) ?? 0;
 
       setExternalTransactions(transactions);
-      setUnmatchedExternal(transactions);
       setExternalOpeningBalance(Number(openingBalance) || 0);
       setExternalClosingBalance(Number(closingBalance) || 0);
 
@@ -739,47 +908,50 @@ const AccountReconciliation = () => {
     calculateDifferences();
   }, [calculateDifferences]);
 
-  const handleAutoMatch = () => {
-    const newMatches = [];
-    const remainingGl = [...unmatchedGl];
-    const remainingExternal = [...unmatchedExternal];
-    
-    // Simple auto-matching by amount and date proximity
-    remainingGl.forEach((glTrans, glIndex) => {
-      const matchingExternal = remainingExternal.find((extTrans, extIndex) => {
-        const amountMatch = Math.abs(glTrans.debit - extTrans.debit) < 0.01 || 
-                           Math.abs(glTrans.credit - extTrans.credit) < 0.01;
-        const dateMatch = Math.abs(new Date(glTrans.date) - new Date(extTrans.date)) <= 3 * 24 * 60 * 60 * 1000; // 3 days
-        
-        return amountMatch && dateMatch;
-      });
-      
-      if (matchingExternal) {
-        const extIndex = remainingExternal.findIndex(t => t.id === matchingExternal.id);
-        newMatches.push({
-          id: `auto_match_${Date.now()}_${Math.random()}`,
-          glTransaction: glTrans,
-          externalTransaction: matchingExternal,
-          matchType: 'auto',
-          matchedAt: new Date().toISOString()
-        });
-        
-        remainingGl.splice(glIndex, 1);
-        remainingExternal.splice(extIndex, 1);
-      }
-    });
-    
-    setMatchedTransactions(prev => [...prev, ...newMatches]);
-    setUnmatchedGl(remainingGl);
-    setUnmatchedExternal(remainingExternal);
+  const closeMatchPickerModal = () => {
+    setMatchPickerModal({ open: false, source: null, origin: null });
+  };
+
+  const openMatchPickerModal = (source, origin) => {
+    if (!origin) return;
+    setMatchPickerModal({ open: true, source, origin });
+  };
+
+  const handleConfirmManualMatch = (glTransaction, externalTransaction) => {
+    if (!glTransaction?.id || !externalTransaction?.id) return;
+    const newMatch = {
+      id: `manual_${Date.now()}_${Math.random().toString(36).slice(2, 9)}`,
+      glTransaction,
+      externalTransaction,
+      matchType: 'manual',
+      matchedAt: new Date().toISOString()
+    };
+    setMatchedTransactions((prev) => [...prev, newMatch]);
+    closeMatchPickerModal();
+  };
+
+  const handleUnmatch = (match) => {
+    if (!match?.glTransaction || !match?.externalTransaction) return;
+    setMatchedTransactions((prev) => prev.filter((m) => m.id !== match.id));
   };
 
   const handleSaveReconciliation = async () => {
+    const accountCode = String(filters.accountCode || '').trim();
+    if (!accountCode) {
+      setError('Select an account to reconcile before saving.');
+      return;
+    }
+    if (!matchedTransactions.length) {
+      setError('There are no matched pairs to save. Match at least one GL line to a statement line first.');
+      return;
+    }
     try {
       setLoading(true);
-      
+      setError('');
+
       const reconciliationData = {
-        accountCode: filters.accountCode,
+        accountCode,
+        bank: filters.bank || null,
         period: {
           startDate: filters.startDate,
           endDate: filters.endDate
@@ -793,16 +965,29 @@ const AccountReconciliation = () => {
         status: 'reconciled',
         reconciledAt: new Date().toISOString()
       };
-      
-      // Save to backend
-      await accountReconciliationAPI.saveReconciliation(reconciliationData);
-      
+
+      const result = await accountReconciliationAPI.saveReconciliation(reconciliationData);
+
+      await refetchReconciliationMatches('replace');
+
       setReconciliationStatus('reconciled');
-      alert('Reconciliation saved successfully!');
-      
+      const saved = Number(result?.savedCount) || 0;
+      const skipped = Number(result?.skippedCount) || 0;
+      if (saved === 0 && matchedTransactions.length > 0) {
+        setError(
+          `Save ran but the server stored 0 matches (skipped ${skipped}). Open DevTools → Network → save response, or check the server log for details.`
+        );
+        alert('No matches were written to the database. See the message above the form.');
+      } else {
+        alert(
+          skipped > 0
+            ? `Saved ${saved} match(es). ${skipped} pair(s) were skipped (missing GL or statement id).`
+            : `Reconciliation saved successfully (${saved} match(es)).`
+        );
+      }
     } catch (error) {
       console.error('Error saving reconciliation:', error);
-      setError('Failed to save reconciliation');
+      setError(error?.message || 'Failed to save reconciliation');
     } finally {
       setLoading(false);
     }
@@ -813,17 +998,10 @@ const AccountReconciliation = () => {
       setLoading(true);
       setError('');
       
-      // Refresh GL transactions
       await loadGlTransactions();
-      
-      // Refresh external transactions
       await loadExternalTransactions();
-      
-      // Reset reconciliation status if needed
-      if (reconciliationStatus === 'reconciled') {
-        setReconciliationStatus('pending');
-      }
-      
+      await refetchReconciliationMatches('merge');
+
     } catch (error) {
       console.error('Error refreshing data:', error);
       setError('Failed to refresh data');
@@ -872,7 +1050,7 @@ const AccountReconciliation = () => {
     return new Date(dateString).toLocaleDateString('en-LK');
   };
 
-  const selectedAccount = accounts.find(acc => {
+  const selectedAccount = reconcileAccountsFiltered.find((acc) => {
     const code = acc.account_code || acc.accountCode || acc.code;
     return code === filters.accountCode;
   });
@@ -908,13 +1086,27 @@ const AccountReconciliation = () => {
       {/* Filters Section */}
       <div className="account-reconciliation-filters">
         <div className="reconciliation-filter-group">
+          <label>Select bank:</label>
+          <select
+            value={filters.bank}
+            onChange={(e) => handleFilterChange('bank', e.target.value)}
+          >
+            {RECONCILE_BANK_SELECT_OPTIONS.map((opt) => (
+              <option key={opt.value || 'all'} value={opt.value}>
+                {opt.label}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        <div className="reconciliation-filter-group">
           <label>Account to Reconcile:</label>
           <select
             value={filters.accountCode}
             onChange={(e) => handleFilterChange('accountCode', e.target.value)}
           >
             <option value="">Select Account</option>
-            {accounts.map((account, idx) => {
+            {reconcileAccountsFiltered.map((account, idx) => {
               const code = account.account_code || account.accountCode || account.code || '';
               const name =
                 account.account_name ||
@@ -935,31 +1127,14 @@ const AccountReconciliation = () => {
           <label>Period:</label>
           <select
             value={filters.period}
-            onChange={(e) => handleFilterChange('period', e.target.value)}
+            onChange={(e) => handlePeriodChange(e.target.value)}
           >
             <option value="month">Current Month</option>
             <option value="quarter">Current Quarter</option>
             <option value="year">Current Year</option>
             <option value="custom">Custom Range</option>
+            <option value="all">All time</option>
           </select>
-        </div>
-
-        <div className="reconciliation-filter-group">
-          <label>Start Date:</label>
-          <input
-            type="date"
-            value={filters.startDate}
-            onChange={(e) => handleFilterChange('startDate', e.target.value)}
-          />
-        </div>
-
-        <div className="reconciliation-filter-group">
-          <label>End Date:</label>
-          <input
-            type="date"
-            value={filters.endDate}
-            onChange={(e) => handleFilterChange('endDate', e.target.value)}
-          />
         </div>
 
         <div className="reconciliation-filter-group">
@@ -998,12 +1173,6 @@ const AccountReconciliation = () => {
             onClick={() => setShowImportModal(true)}
           >
             Import Statement
-          </button>
-          <button 
-            className="reconciliation-btn reconciliation-btn-success"
-            onClick={handleAutoMatch}
-          >
-            Auto Match
           </button>
         </div>
       </div>
@@ -1081,7 +1250,6 @@ const AccountReconciliation = () => {
                   <th>Description</th>
                   <th>Debit</th>
                   <th>Credit</th>
-                  <th>Balance</th>
                   <th>Actions</th>
                 </tr>
               </thead>
@@ -1097,11 +1265,11 @@ const AccountReconciliation = () => {
                     <td>{transaction.description}</td>
                     <td className="reconciliation-debit-amount">{transaction.debit > 0 ? formatCurrency(transaction.debit) : '-'}</td>
                     <td className="reconciliation-credit-amount">{transaction.credit > 0 ? formatCurrency(transaction.credit) : '-'}</td>
-                    <td className="reconciliation-balance-amount">{formatCurrency(transaction.balance)}</td>
                     <td>
                       <button 
                         className="reconciliation-btn reconciliation-btn-sm reconciliation-btn-outline"
-                        onClick={() => {/* Handle manual match */}}
+                        type="button"
+                        onClick={() => openMatchPickerModal('gl', transaction)}
                       >
                         Match
                       </button>
@@ -1144,7 +1312,8 @@ const AccountReconciliation = () => {
                     <td>
                       <button 
                         className="reconciliation-btn reconciliation-btn-sm reconciliation-btn-outline"
-                        onClick={() => {/* Handle manual match */}}
+                        type="button"
+                        onClick={() => openMatchPickerModal('external', transaction)}
                       >
                         Match
                       </button>
@@ -1199,7 +1368,8 @@ const AccountReconciliation = () => {
                     <td>
                       <button 
                         className="reconciliation-btn reconciliation-btn-sm reconciliation-btn-danger"
-                        onClick={() => {/* Handle unmatch */}}
+                        type="button"
+                        onClick={() => handleUnmatch(match)}
                       >
                         Unmatch
                       </button>
@@ -1253,6 +1423,230 @@ const AccountReconciliation = () => {
           </button>
         </div>
       </div>
+
+      {/* Manual match: pick counterpart from the other table */}
+      {matchPickerModal.open &&
+        typeof document !== 'undefined' &&
+        createPortal(
+          (
+            <div
+              className="reconciliation-modal-overlay"
+              role="presentation"
+              onClick={closeMatchPickerModal}
+            >
+              <div
+                className="reconciliation-modal-content"
+                style={{ maxWidth: 920, width: '92%' }}
+                onClick={(e) => e.stopPropagation()}
+              >
+                <div className="reconciliation-modal-header">
+                  <h3>
+                    {matchPickerModal.source === 'gl'
+                      ? 'Match GL line to bank statement'
+                      : 'Match bank statement line to GL'}
+                  </h3>
+                  <button
+                    className="reconciliation-modal-close"
+                    type="button"
+                    onClick={closeMatchPickerModal}
+                    aria-label="Close"
+                  >
+                    ×
+                  </button>
+                </div>
+                <div className="reconciliation-modal-body">
+                  <div style={{ fontWeight: 600, marginBottom: 8 }}>Line you clicked</div>
+                  {matchPickerModal.source === 'gl' && matchPickerModal.origin ? (
+                    <table className="reconciliation-transactions-table" style={{ marginBottom: 16 }}>
+                      <thead>
+                        <tr>
+                          <th>Date</th>
+                          <th>Ref</th>
+                          <th>Description</th>
+                          <th>Debit</th>
+                          <th>Credit</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr>
+                          <td>{formatDate(matchPickerModal.origin.date)}</td>
+                          <td>
+                            {matchPickerModal.origin.reference ||
+                              matchPickerModal.origin.journal_entry_id ||
+                              matchPickerModal.origin.id ||
+                              '—'}
+                          </td>
+                          <td>{matchPickerModal.origin.description || '—'}</td>
+                          <td className="reconciliation-debit-amount">
+                            {matchPickerModal.origin.debit > 0
+                              ? formatCurrency(matchPickerModal.origin.debit)
+                              : '—'}
+                          </td>
+                          <td className="reconciliation-credit-amount">
+                            {matchPickerModal.origin.credit > 0
+                              ? formatCurrency(matchPickerModal.origin.credit)
+                              : '—'}
+                          </td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  ) : null}
+                  {matchPickerModal.source === 'external' && matchPickerModal.origin ? (
+                    <table className="reconciliation-transactions-table" style={{ marginBottom: 16 }}>
+                      <thead>
+                        <tr>
+                          <th>Date</th>
+                          <th>Reference</th>
+                          <th>Description</th>
+                          <th>Debit</th>
+                          <th>Credit</th>
+                          <th>Balance</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr>
+                          <td>{formatDate(matchPickerModal.origin.date)}</td>
+                          <td>{matchPickerModal.origin.reference || '—'}</td>
+                          <td>{matchPickerModal.origin.description || '—'}</td>
+                          <td className="reconciliation-debit-amount">
+                            {matchPickerModal.origin.debit > 0
+                              ? formatCurrency(matchPickerModal.origin.debit)
+                              : '—'}
+                          </td>
+                          <td className="reconciliation-credit-amount">
+                            {matchPickerModal.origin.credit > 0
+                              ? formatCurrency(matchPickerModal.origin.credit)
+                              : '—'}
+                          </td>
+                          <td className="reconciliation-balance-amount">
+                            {formatCurrency(matchPickerModal.origin.balance)}
+                          </td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  ) : null}
+
+                  <div style={{ fontWeight: 600, margin: '12px 0 8px' }}>
+                    {matchPickerModal.source === 'gl'
+                      ? 'Unmatched bank statement lines — pick one to match'
+                      : 'Unmatched GL lines — pick one to match'}
+                  </div>
+                  <div style={{ maxHeight: 380, overflow: 'auto', border: '1px solid #e5e7eb' }}>
+                    {matchPickerModal.source === 'gl' ? (
+                      unmatchedExternal.length === 0 ? (
+                        <p style={{ padding: 16, color: '#6b7280', margin: 0 }}>
+                          No unmatched external lines. Load a statement or import transactions first.
+                        </p>
+                      ) : (
+                        <table className="reconciliation-transactions-table" style={{ margin: 0 }}>
+                          <thead>
+                            <tr>
+                              <th>Date</th>
+                              <th>Reference</th>
+                              <th>Description</th>
+                              <th>Debit</th>
+                              <th>Credit</th>
+                              <th>Balance</th>
+                              <th>Action</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {unmatchedExternal.map((row) => (
+                              <tr key={row.id}>
+                                <td>{formatDate(row.date)}</td>
+                                <td>{row.reference || '—'}</td>
+                                <td>{row.description || '—'}</td>
+                                <td className="reconciliation-debit-amount">
+                                  {row.debit > 0 ? formatCurrency(row.debit) : '—'}
+                                </td>
+                                <td className="reconciliation-credit-amount">
+                                  {row.credit > 0 ? formatCurrency(row.credit) : '—'}
+                                </td>
+                                <td className="reconciliation-balance-amount">{formatCurrency(row.balance)}</td>
+                                <td>
+                                  <button
+                                    type="button"
+                                    className="reconciliation-btn reconciliation-btn-sm reconciliation-btn-success"
+                                    onClick={() =>
+                                      handleConfirmManualMatch(matchPickerModal.origin, row)
+                                    }
+                                  >
+                                    Match with this
+                                  </button>
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      )
+                    ) : unmatchedGl.length === 0 ? (
+                      <p style={{ padding: 16, color: '#6b7280', margin: 0 }}>
+                        No unmatched GL lines for this account and date range.
+                      </p>
+                    ) : (
+                      <table className="reconciliation-transactions-table" style={{ margin: 0 }}>
+                        <thead>
+                          <tr>
+                            <th>Date</th>
+                            <th>Account</th>
+                            <th>Ref</th>
+                            <th>Description</th>
+                            <th>Debit</th>
+                            <th>Credit</th>
+                            <th>Action</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {unmatchedGl.map((row) => (
+                            <tr key={row.id}>
+                              <td>{formatDate(row.date)}</td>
+                              <td>
+                                {row.account_code || row.accountCode || '—'}
+                                {(row.account_name || row.accountName)
+                                  ? ` — ${row.account_name || row.accountName}`
+                                  : ''}
+                              </td>
+                              <td>{row.reference || row.journal_entry_id || row.id || '—'}</td>
+                              <td>{row.description || '—'}</td>
+                              <td className="reconciliation-debit-amount">
+                                {row.debit > 0 ? formatCurrency(row.debit) : '—'}
+                              </td>
+                              <td className="reconciliation-credit-amount">
+                                {row.credit > 0 ? formatCurrency(row.credit) : '—'}
+                              </td>
+                              <td>
+                                <button
+                                  type="button"
+                                  className="reconciliation-btn reconciliation-btn-sm reconciliation-btn-success"
+                                  onClick={() =>
+                                    handleConfirmManualMatch(row, matchPickerModal.origin)
+                                  }
+                                >
+                                  Match with this
+                                </button>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    )}
+                  </div>
+
+                  <div className="reconciliation-upload-actions" style={{ marginTop: 16 }}>
+                    <button
+                      type="button"
+                      className="reconciliation-btn reconciliation-btn-secondary"
+                      onClick={closeMatchPickerModal}
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          ),
+          document.body
+        )}
 
       {/* Import Modal */}
       {showImportModal && createPortal((

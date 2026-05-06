@@ -1400,32 +1400,20 @@ const SellTransactionEntry = ({ setFifoParams, setActiveTab }) => {
                 </div>
                 <div className="sell-form-group">
                   <label htmlFor="dealNumber">Deal Number</label>
-                  <div style={{ display: 'flex', gap: '0.5rem' }}>
+                  <div className="sell-deal-number-container">
                     <input
                       type="text"
                       id="dealNumber"
                       name="dealNumber"
                       value={form.dealNumber}
                       readOnly
-                      className="sell-form-input"
+                      className="sell-form-input sell-deal-number-input"
                       placeholder="Auto-generated"
-                      style={{ flex: 1 }}
                     />
                     <button
                       type="button"
                       onClick={regenerateDealNumber}
-                      style={{
-                        padding: '0.5rem 1rem',
-                        backgroundColor: '#f3f4f6',
-                        border: '1px solid #d1d5db',
-                        borderRadius: '0.375rem',
-                        cursor: 'pointer',
-                        fontSize: '0.875rem',
-                        fontWeight: '500',
-                        color: '#374151'
-                      }}
-                      onMouseEnter={(e) => e.target.style.backgroundColor = '#e5e7eb'}
-                      onMouseLeave={(e) => e.target.style.backgroundColor = '#f3f4f6'}
+                      className="sell-regenerate-deal-btn"
                     >
                       Regenerate
                     </button>
@@ -1560,7 +1548,7 @@ const SellTransactionEntry = ({ setFifoParams, setActiveTab }) => {
                   />
                   <small className="sell-field-note">Dates of the original buy transactions</small>
                 </div>
-                <div className="sell-form-group">
+                <div className="sell-form-group sell-form-span-full">
                   <label htmlFor="capitalGain">Capital Gain (LKR)</label>
                   <div className="sell-capital-gain-row">
                     <input

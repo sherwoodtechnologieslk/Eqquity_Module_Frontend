@@ -1,4 +1,4 @@
- import React, { useState, useEffect, useMemo } from 'react';
+  import React, { useState, useEffect, useMemo } from 'react';
 import { createPortal } from 'react-dom';
 import './Styles/OtherTransactions.css';
 import { accountAPI, otherTransactionAPI, otherTransactionGLEntryAPI, glAccountMappingAPI, otherTransactionTypeAPI, chartOfAccountsAPI, accountCategoryAPI } from '../../services/api';
@@ -30,6 +30,99 @@ const generateLiabilitySettlementVoucherNumber = () => {
   const minute = String(date.getMinutes()).padStart(2, '0');
   const second = String(date.getSeconds()).padStart(2, '0');
   return `LS-${year}${month}${day}-${hour}${minute}${second}`;
+};
+
+/** Letterhead shown on printable Payment Voucher / Payment Advice — edit to match your organisation. */
+const PAYMENT_VOUCHER_LETTERHEAD = {
+  companyName: 'SHERWOOD TECHNOLOGIES (PVT) LTD',
+  registrationNo: '',
+  addressLine: '',
+  phone: '',
+  fax: '',
+  email: ''
+};
+
+const formatDateDdMmYyyy = (value) => {
+  if (!value || typeof value !== 'string') return '—';
+  const s = value.substring(0, 10);
+  const m = s.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  if (m) return `${m[3]}-${m[2]}-${m[1]}`;
+  return s;
+};
+
+const mapGlRowsToVoucherLines = (entries) => {
+  if (!Array.isArray(entries)) return [];
+  return entries
+    .map((e) => {
+      const debit = parseFloat(e.debit) || 0;
+      const credit = parseFloat(e.credit) || 0;
+      if (debit > 0) {
+        return {
+          accountDesc: e.account_name || '—',
+          accountNo: e.account_code || '—',
+          drCr: 'DR',
+          amount: debit
+        };
+      }
+      if (credit > 0) {
+        return {
+          accountDesc: e.account_name || '—',
+          accountNo: e.account_code || '—',
+          drCr: 'CR',
+          amount: credit
+        };
+      }
+      return null;
+    })
+    .filter(Boolean);
+};
+
+/** Approximates journal lines for draft preview (Create Voucher) when GL is not yet posted. */
+const buildDraftJournalLinesFromForm = (form) => {
+  const amt = parseFloat(form.amount);
+  if (!Number.isFinite(amt) || amt <= 0) return [];
+
+  const bankDesc = [form.paymentBankName, form.paymentBranchName, form.paymentAccountName, form.paymentAccountNumber]
+    .filter(Boolean)
+    .join(' · ') || 'Bank / Cash';
+  const txnDesc = [form.transactionType, form.coaDescription, form.glAccountCode].filter(Boolean).join(' · ') || 'Transaction account';
+  const codeTxn = form.glAccountCode || '—';
+  const codeBank = '—';
+
+  const cat = String(form.category || '').toLowerCase().trim();
+  const isIncome =
+    cat === 'revenue' || cat === 'otherincome' || cat === 'other income' || cat === 'income';
+  const isExpense = cat === 'expense' || cat === 'provisions';
+  const isAsset = cat === 'asset';
+  const isLiabilityFamily = cat === 'liability' || cat === 'equity';
+  const isLiabilitySettlement =
+    isLiabilityFamily &&
+    String(form.transactionType || '')
+      .toLowerCase()
+      .includes('settlement');
+
+  if (isIncome) {
+    return [
+      { accountDesc: bankDesc, accountNo: codeBank, drCr: 'DR', amount: amt },
+      { accountDesc: txnDesc, accountNo: codeTxn, drCr: 'CR', amount: amt }
+    ];
+  }
+  if (isExpense || isAsset || (isLiabilityFamily && isLiabilitySettlement)) {
+    return [
+      { accountDesc: txnDesc, accountNo: codeTxn, drCr: 'DR', amount: amt },
+      { accountDesc: bankDesc, accountNo: codeBank, drCr: 'CR', amount: amt }
+    ];
+  }
+  if (isLiabilityFamily) {
+    return [
+      { accountDesc: bankDesc, accountNo: codeBank, drCr: 'DR', amount: amt },
+      { accountDesc: txnDesc, accountNo: codeTxn, drCr: 'CR', amount: amt }
+    ];
+  }
+  return [
+    { accountDesc: txnDesc, accountNo: codeTxn, drCr: 'DR', amount: amt },
+    { accountDesc: bankDesc, accountNo: codeBank, drCr: 'CR', amount: amt }
+  ];
 };
 
 const OtherTransactions = () => {
@@ -96,6 +189,9 @@ const OtherTransactions = () => {
   const [accounts, setAccounts] = useState([]);
   const [accountsLoading, setAccountsLoading] = useState(true);
   const [showPreviewModal, setShowPreviewModal] = useState(false);
+  const [previewModalVoucherId, setPreviewModalVoucherId] = useState(null);
+  const [previewGlLines, setPreviewGlLines] = useState([]);
+  const [previewGlLoading, setPreviewGlLoading] = useState(false);
   const [accountsWithMapping, setAccountsWithMapping] = useState([]); // Accounts that have GL mappings
 
   // Holidays for date validation
@@ -761,6 +857,62 @@ const OtherTransactions = () => {
       loadCoA();
     }
   }, [activeTab, activeFormType]);
+
+  useEffect(() => {
+    if (!showPreviewModal) {
+      setPreviewGlLines([]);
+      setPreviewGlLoading(false);
+      return;
+    }
+    if (!previewModalVoucherId) {
+      setPreviewGlLines([]);
+      setPreviewGlLoading(false);
+      return;
+    }
+    let cancelled = false;
+    setPreviewGlLoading(true);
+    otherTransactionGLEntryAPI
+      .getEntriesByTransactionId(previewModalVoucherId)
+      .then((data) => {
+        if (!cancelled) setPreviewGlLines(Array.isArray(data) ? data : []);
+      })
+      .catch(() => {
+        if (!cancelled) setPreviewGlLines([]);
+      })
+      .finally(() => {
+        if (!cancelled) setPreviewGlLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [showPreviewModal, previewModalVoucherId]);
+
+  const formalVoucherTableLines = useMemo(() => {
+    if (previewModalVoucherId) {
+      if (previewGlLines.length > 0) return mapGlRowsToVoucherLines(previewGlLines);
+      if (!previewGlLoading) return buildDraftJournalLinesFromForm(form);
+      return [];
+    }
+    return buildDraftJournalLinesFromForm(form);
+  }, [previewModalVoucherId, previewGlLines, previewGlLoading, form]);
+
+  const formalVoucherTotals = useMemo(() => {
+    const debit = formalVoucherTableLines.filter((r) => r.drCr === 'DR').reduce((s, r) => s + r.amount, 0);
+    const credit = formalVoucherTableLines.filter((r) => r.drCr === 'CR').reduce((s, r) => s + r.amount, 0);
+    return { debit, credit };
+  }, [formalVoucherTableLines]);
+
+  const letterheadContactLine = useMemo(
+    () =>
+      [
+        PAYMENT_VOUCHER_LETTERHEAD.phone && `T: ${PAYMENT_VOUCHER_LETTERHEAD.phone}`,
+        PAYMENT_VOUCHER_LETTERHEAD.fax && `F: ${PAYMENT_VOUCHER_LETTERHEAD.fax}`,
+        PAYMENT_VOUCHER_LETTERHEAD.email && `E: ${PAYMENT_VOUCHER_LETTERHEAD.email}`
+      ]
+        .filter(Boolean)
+        .join(' | '),
+    []
+  );
 
   // Fetch general ledger entries for Other Transactions only
   const fetchGeneralLedger = async () => {
@@ -2346,6 +2498,12 @@ const isVoucherSettled = (voucher) => {
     }
   };
 
+  const closePreviewModal = () => {
+    setShowPreviewModal(false);
+    setPreviewModalVoucherId(null);
+    setPreviewGlLines([]);
+  };
+
   // Handle view voucher details - reuse the existing preview modal
   const handleViewVoucher = (voucher) => {
     // Determine main category from account_type
@@ -2359,6 +2517,7 @@ const isVoucherSettled = (voucher) => {
       voucherNumber: voucher.voucher_number,
       category: mainCategory,
       subCategory: subCategoryName,
+      selectedTransactionTypeId: '',
       transactionType: voucher.transaction_type || '',
       description: voucher.description || '',
       amount: voucher.amount || '',
@@ -2375,8 +2534,11 @@ const isVoucherSettled = (voucher) => {
       paymentAccountNumber: voucher.payment_account_number || '',
       paymentBankName: voucher.payment_bank_name || '',
       paymentBranchName: voucher.payment_branch_name || '',
-      paymentMethod: voucher.payment_method || ''
+      paymentMethod: voucher.payment_method || '',
+      glAccountCode: '',
+      coaDescription: ''
     });
+    setPreviewModalVoucherId(voucher.id);
     setShowPreviewModal(true);
   };
 
@@ -3200,7 +3362,10 @@ const isVoucherSettled = (voucher) => {
                   type="button"
                   className="other-trans-btn other-trans-btn-tertiary"
                   disabled={isSubmitting}
-                  onClick={() => setShowPreviewModal(true)}
+                  onClick={() => {
+                    setPreviewModalVoucherId(null);
+                    setShowPreviewModal(true);
+                  }}
                 >
                   Preview Voucher
                 </button>
@@ -6204,7 +6369,7 @@ const isVoucherSettled = (voucher) => {
       {showPreviewModal && typeof document !== 'undefined' && createPortal(
         <div 
           className="other-trans-preview-modal-overlay" 
-          onClick={() => setShowPreviewModal(false)}
+          onClick={closePreviewModal}
           style={{
             position: 'fixed',
             top: 0,
@@ -6233,25 +6398,253 @@ const isVoucherSettled = (voucher) => {
               position: 'relative'
             }}
           >
-            <div className="other-trans-preview-modal-header">
+            <div className="other-trans-preview-modal-header no-print">
               <h2 className="other-trans-preview-modal-title">
                 <svg style={{ width: '1.5rem', height: '1.5rem', marginRight: '0.75rem' }} fill="currentColor" viewBox="0 0 20 20">
                   <path fillRule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clipRule="evenodd"/>
                 </svg>
                 Voucher Preview
               </h2>
-              <button 
-                className="other-trans-preview-close-btn"
-                onClick={() => setShowPreviewModal(false)}
-              >
-                <svg width="24" height="24" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd"/>
-                </svg>
-              </button>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                <button
+                  type="button"
+                  className="other-trans-btn other-trans-btn-secondary"
+                  style={{ margin: 0, padding: '0.5rem 1rem', fontSize: '0.875rem' }}
+                  onClick={() => window.print()}
+                >
+                  Print
+                </button>
+                <button 
+                  className="other-trans-preview-close-btn"
+                  type="button"
+                  onClick={closePreviewModal}
+                >
+                  <svg width="24" height="24" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd"/>
+                  </svg>
+                </button>
+              </div>
             </div>
 
             <div className="other-trans-preview-modal-body">
-              <div className="other-trans-preview-section">
+              <div className="pv-print-root">
+                <div className="pv-letterhead-top">
+                  <div>
+                    <div className="pv-company-name">{PAYMENT_VOUCHER_LETTERHEAD.companyName}</div>
+                    {PAYMENT_VOUCHER_LETTERHEAD.registrationNo ? (
+                      <div className="pv-co-meta">Company Registration No. {PAYMENT_VOUCHER_LETTERHEAD.registrationNo}</div>
+                    ) : null}
+                    {PAYMENT_VOUCHER_LETTERHEAD.addressLine ? (
+                      <div className="pv-co-meta">{PAYMENT_VOUCHER_LETTERHEAD.addressLine}</div>
+                    ) : null}
+                    {letterheadContactLine ? <div className="pv-co-meta">{letterheadContactLine}</div> : null}
+                  </div>
+                  <div className="pv-logo-mark" aria-hidden="true">
+                    {PAYMENT_VOUCHER_LETTERHEAD.companyName.split(' ')[0] || '—'}
+                  </div>
+                </div>
+
+                <div className="pv-doc-title">Payment Voucher</div>
+
+                <div className="pv-meta-block">
+                  <div className="pv-field-row">
+                    <span className="pv-label">Date:</span>
+                    <span className="pv-value">{formatDateDdMmYyyy(form.date)}</span>
+                  </div>
+                  <div className="pv-field-row">
+                    <span className="pv-label">Voucher No:</span>
+                    <span className="pv-value">{form.voucherNumber || '—'}</span>
+                  </div>
+                  <div className="pv-field-row">
+                    <span className="pv-label">Payee:</span>
+                    <span className="pv-value">{form.counterparty || '—'}</span>
+                  </div>
+                  <div className="pv-field-row">
+                    <span className="pv-label">Payment Type:</span>
+                    <span className="pv-value">{String(form.paymentMethod || '—').toUpperCase()}</span>
+                  </div>
+                  <div className="pv-field-row">
+                    <span className="pv-label">Narration:</span>
+                    <span className="pv-value">{form.description || '—'}</span>
+                  </div>
+                  <div className="pv-field-row">
+                    <span className="pv-label">Document Attached:</span>
+                    <span className="pv-value">{form.reference ? `Inv no: ${form.reference}` : '—'}</span>
+                  </div>
+                </div>
+
+                {previewModalVoucherId && previewGlLoading ? (
+                  <p className="pv-loading-note">Loading accounting lines…</p>
+                ) : null}
+
+                <table className="pv-table">
+                  <thead>
+                    <tr>
+                      <th>Account Description</th>
+                      <th>Account No</th>
+                      <th className="center">DR/CR</th>
+                      <th className="num">Amount</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {formalVoucherTableLines.length === 0 && !(previewModalVoucherId && previewGlLoading) ? (
+                      <tr>
+                        <td colSpan={4} style={{ textAlign: 'center', color: '#6b7280' }}>
+                          No journal lines to display. Enter amount and accounts, or open a saved voucher.
+                        </td>
+                      </tr>
+                    ) : null}
+                    {formalVoucherTableLines.map((row, idx) => (
+                      <tr key={`${row.accountNo}-${row.drCr}-${idx}`}>
+                        <td>{row.accountDesc}</td>
+                        <td>{row.accountNo}</td>
+                        <td className="center">{row.drCr}</td>
+                        <td className="num">
+                          {row.amount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                        </td>
+                      </tr>
+                    ))}
+                    {formalVoucherTableLines.length > 0 ? (
+                      <>
+                        <tr className="pv-totals-row">
+                          <td colSpan={3} style={{ textAlign: 'right' }}>Total Debit</td>
+                          <td className="num">
+                            {formalVoucherTotals.debit.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                          </td>
+                        </tr>
+                        <tr className="pv-totals-row">
+                          <td colSpan={3} style={{ textAlign: 'right' }}>Total Credit</td>
+                          <td className="num">
+                            {formalVoucherTotals.credit.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                          </td>
+                        </tr>
+                      </>
+                    ) : null}
+                  </tbody>
+                </table>
+
+                {formalVoucherTableLines.length > 0 ? (
+                  <div className="pv-currency-note">Amounts stated in {form.currency || 'LKR'}.</div>
+                ) : null}
+
+                <div className="pv-bank-block">
+                  <div className="pv-field-row">
+                    <span className="pv-label">Branch Account:</span>
+                    <span className="pv-value">{form.paymentAccountNumber || '—'}</span>
+                  </div>
+                  <div className="pv-field-row">
+                    <span className="pv-label">Cheque No:</span>
+                    <span className="pv-value">—</span>
+                  </div>
+                  <div className="pv-field-row">
+                    <span className="pv-label">Value:</span>
+                    <span className="pv-value">
+                      {Number.isFinite(parseFloat(form.amount))
+                        ? parseFloat(form.amount).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+                        : '—'}
+                    </span>
+                  </div>
+                </div>
+
+                <div className="pv-signoff">
+                  <div className="pv-signoff-text">Yours faithfully</div>
+                  <div className="pv-signoff-line" />
+                  <div className="pv-signoff-label">Authorised Signatory</div>
+                </div>
+
+                <div className="pv-signatures">
+                  {['Prepared by', 'Approved by', '1st signatory', '2nd signatory', 'Received with thanks', 'Date'].map((label) => (
+                    <div key={label}>
+                      <div>{label}</div>
+                      <div className="pv-sign-line" />
+                    </div>
+                  ))}
+                </div>
+
+                <hr className="pv-advice-separator" />
+
+                <div className="pv-letterhead-top">
+                  <div>
+                    <div className="pv-company-name">{PAYMENT_VOUCHER_LETTERHEAD.companyName}</div>
+                    {PAYMENT_VOUCHER_LETTERHEAD.registrationNo ? (
+                      <div className="pv-co-meta">Company Registration No. {PAYMENT_VOUCHER_LETTERHEAD.registrationNo}</div>
+                    ) : null}
+                    {PAYMENT_VOUCHER_LETTERHEAD.addressLine ? (
+                      <div className="pv-co-meta">{PAYMENT_VOUCHER_LETTERHEAD.addressLine}</div>
+                    ) : null}
+                    {letterheadContactLine ? <div className="pv-co-meta">{letterheadContactLine}</div> : null}
+                  </div>
+                  <div className="pv-logo-mark" aria-hidden="true">
+                    {PAYMENT_VOUCHER_LETTERHEAD.companyName.split(' ')[0] || '—'}
+                  </div>
+                </div>
+
+                <div className="pv-doc-title">PAYMENT ADVICE</div>
+
+                <div className="pv-meta-block">
+                  <div className="pv-field-row">
+                    <span className="pv-field-pair">
+                      <span className="pv-label">Date:</span>
+                      <span className="pv-value">{formatDateDdMmYyyy(form.date)}</span>
+                    </span>
+                    <span className="pv-field-pair">
+                      <span className="pv-label">Voucher No:</span>
+                      <span className="pv-value">{form.voucherNumber || '—'}</span>
+                    </span>
+                  </div>
+                  <div className="pv-field-row">
+                    <span className="pv-field-pair">
+                      <span className="pv-label">Payee:</span>
+                      <span className="pv-value">{form.counterparty || '—'}</span>
+                    </span>
+                    <span className="pv-field-pair">
+                      <span className="pv-label">Payment Type:</span>
+                      <span className="pv-value">{String(form.paymentMethod || '—').toUpperCase()}</span>
+                    </span>
+                  </div>
+                  <div className="pv-field-row">
+                    <span className="pv-label">Narration:</span>
+                    <span className="pv-value">{form.description || '—'}</span>
+                  </div>
+                  <div className="pv-field-row">
+                    <span className="pv-label">Document Attached:</span>
+                    <span className="pv-value">{form.reference ? `Inv no: ${form.reference}` : '—'}</span>
+                  </div>
+                </div>
+
+                <div className="pv-bank-block">
+                  <div className="pv-field-row">
+                    <span className="pv-field-pair">
+                      <span className="pv-label">Branch Account:</span>
+                      <span className="pv-value">{form.paymentAccountNumber || '—'}</span>
+                    </span>
+                    <span className="pv-field-pair">
+                      <span className="pv-label">Cheque No:</span>
+                      <span className="pv-value">—</span>
+                    </span>
+                    <span className="pv-field-pair">
+                      <span className="pv-label">Value:</span>
+                      <span className="pv-value">
+                        {Number.isFinite(parseFloat(form.amount))
+                          ? parseFloat(form.amount).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+                          : '—'}
+                      </span>
+                    </span>
+                  </div>
+                </div>
+
+                <div className="pv-signoff">
+                  <div className="pv-signoff-text">Yours faithfully</div>
+                  <div className="pv-signoff-line" />
+                  <div className="pv-signoff-label">Authorised Signatory</div>
+                </div>
+              </div>
+
+              <p className="no-print" style={{ fontSize: '0.8125rem', color: '#6b7280', margin: '0 0 1rem' }}>
+                Below: full field breakdown (same data as the printable voucher above).
+              </p>
+
+              <div className="other-trans-preview-section no-print">
                 <h3 className="other-trans-preview-section-title">Transaction Details</h3>
                 <div className="other-trans-preview-grid">
                   <div className="other-trans-preview-field">
@@ -6315,7 +6708,7 @@ const isVoucherSettled = (voucher) => {
                 </div>
               </div>
 
-              <div className="other-trans-preview-section">
+              <div className="other-trans-preview-section no-print">
                 <h3 className="other-trans-preview-section-title">Payment & Settlement Details</h3>
                 <div className="other-trans-preview-grid">
                   <div className="other-trans-preview-field">
@@ -6364,7 +6757,7 @@ const isVoucherSettled = (voucher) => {
               </div>
 
               {form.notes && (
-                <div className="other-trans-preview-section">
+                <div className="other-trans-preview-section no-print">
                   <h3 className="other-trans-preview-section-title">Notes</h3>
                   <div className="other-trans-preview-field">
                     <span className="other-trans-preview-value" style={{ paddingLeft: 0 }}>{form.notes}</span>
@@ -6373,10 +6766,18 @@ const isVoucherSettled = (voucher) => {
               )}
             </div>
 
-            <div className="other-trans-preview-modal-footer">
+            <div className="other-trans-preview-modal-footer no-print">
               <button 
+                type="button"
                 className="other-trans-btn other-trans-btn-secondary"
-                onClick={() => setShowPreviewModal(false)}
+                onClick={() => window.print()}
+              >
+                Print
+              </button>
+              <button 
+                type="button"
+                className="other-trans-btn other-trans-btn-secondary"
+                onClick={closePreviewModal}
               >
                 Close Preview
               </button>

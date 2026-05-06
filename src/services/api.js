@@ -2236,24 +2236,71 @@ export const accountReconciliationAPI = {
     }
   },
 
-  // Save reconciliation
+  // Save reconciliation (persists matched pairs for this account + period only)
   saveReconciliation: async (reconciliationData) => {
     try {
+      if (!localStorage.getItem('token')) {
+        clearAuthAndRedirectToLogin();
+        throw new Error('No token, authorization denied');
+      }
       const response = await fetch(`${API_BASE_URL}/account-reconciliation/save`, {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json',
+          ...getAuthHeaders(),
+          'Content-Type': 'application/json'
         },
         body: JSON.stringify(reconciliationData)
       });
-      
+
       if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+        let message = `HTTP error! status: ${response.status}`;
+        try {
+          const body = await response.json();
+          message = body?.error || message;
+        } catch {
+          // ignore
+        }
+        throw new Error(message);
       }
-      
+
       return await response.json();
     } catch (error) {
       console.error('Error saving reconciliation:', error);
+      throw error;
+    }
+  },
+
+  getReconciliationMatches: async (filters = {}) => {
+    try {
+      const queryParams = new URLSearchParams();
+      if (filters.accountCode) {
+        queryParams.append('accountCode', filters.accountCode);
+      }
+      if (filters.startDate) {
+        queryParams.append('startDate', filters.startDate);
+      }
+      if (filters.endDate) {
+        queryParams.append('endDate', filters.endDate);
+      }
+
+      const response = await fetch(`${API_BASE_URL}/account-reconciliation/matches?${queryParams}`, {
+        headers: getAuthHeaders()
+      });
+
+      if (!response.ok) {
+        let message = `HTTP error! status: ${response.status}`;
+        try {
+          const body = await response.json();
+          message = body?.error || message;
+        } catch {
+          // ignore
+        }
+        throw new Error(message);
+      }
+
+      return await response.json();
+    } catch (error) {
+      console.error('Error fetching reconciliation matches:', error);
       throw error;
     }
   },
