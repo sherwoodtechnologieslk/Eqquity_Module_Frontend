@@ -2,6 +2,8 @@
   padding: 24px;
   background-color: #f8fafc;
   min-height: 100vh;
+  min-width: 0;
+  max-width: 100%;
 }
 
 .journal-entries-header {
@@ -131,12 +133,67 @@
   border: 1px solid #e2e8f0;
   overflow-x: auto;
   overflow-y: visible;
+  -webkit-overflow-scrolling: touch;
+}
+
+.journal-entries .entries-table-container {
+  min-width: 0;
+  max-width: 100%;
 }
 
 .entries-table {
   width: 100%;
   min-width: 1200px;
   border-collapse: collapse;
+}
+
+.journal-entries .entries-table {
+  table-layout: fixed;
+  min-width: 1280px;
+}
+
+/* Account Code: narrow column; header may wrap, cell uses ellipsis if unusually long */
+.journal-entries .entries-table th:nth-child(2),
+.journal-entries .entries-table td:nth-child(2) {
+  width: 6rem;
+  max-width: 6rem;
+}
+
+.journal-entries .entries-table th:nth-child(2) {
+  white-space: normal;
+  line-height: 1.25;
+  hyphens: none;
+}
+
+.journal-entries .entries-table td:nth-child(2) {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Description + Reference: explicit share of width and wrapping so text cannot paint into the next column */
+.journal-entries .entries-table th:nth-child(4),
+.journal-entries .entries-table td:nth-child(4) {
+  width: 22%;
+  min-width: 11rem;
+  white-space: normal;
+  word-break: break-word;
+  overflow-wrap: anywhere;
+  hyphens: auto;
+}
+
+.journal-entries .entries-table th:nth-child(5),
+.journal-entries .entries-table td:nth-child(5) {
+  width: 13%;
+  min-width: 7rem;
+  white-space: normal;
+  word-break: break-word;
+  overflow-wrap: anywhere;
+  hyphens: auto;
+}
+
+.journal-entries .entries-table td {
+  vertical-align: top;
 }
 
 .entries-table th {
@@ -400,11 +457,6 @@
 
   .filter-group {
     min-width: auto;
-  }
-
-  .entries-table-container {
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
   }
 
   .entries-table {
