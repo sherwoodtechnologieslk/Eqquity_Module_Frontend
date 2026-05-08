@@ -933,16 +933,13 @@ const AccountReconciliation = () => {
   const handleUnmatch = (match) => {
     if (!match?.glTransaction || !match?.externalTransaction) return;
     setMatchedTransactions((prev) => prev.filter((m) => m.id !== match.id));
+    setReconciliationStatus('pending');
   };
 
   const handleSaveReconciliation = async () => {
     const accountCode = String(filters.accountCode || '').trim();
     if (!accountCode) {
       setError('Select an account to reconcile before saving.');
-      return;
-    }
-    if (!matchedTransactions.length) {
-      setError('There are no matched pairs to save. Match at least one GL line to a statement line first.');
       return;
     }
     try {
@@ -982,7 +979,9 @@ const AccountReconciliation = () => {
         alert(
           skipped > 0
             ? `Saved ${saved} match(es). ${skipped} pair(s) were skipped (missing GL or statement id).`
-            : `Reconciliation saved successfully (${saved} match(es)).`
+            : saved === 0
+              ? 'Reconciliation saved. All matches for this period were cleared.'
+              : `Reconciliation saved successfully (${saved} match(es)).`
         );
       }
     } catch (error) {
@@ -1409,14 +1408,14 @@ const AccountReconciliation = () => {
           </button>
           
           <button 
-            className="reconciliation-btn reconciliation-btn-warning"
+            className="reconciliation-btn reconciliation-btn-secondary"
             onClick={() => {/* Handle print */}}
           >
             Print Report
           </button>
           
           <button 
-            className="reconciliation-btn reconciliation-btn-warning"
+            className="reconciliation-btn reconciliation-btn-secondary"
             onClick={() => {/* Handle attach documents */}}
           >
             Attach Documents

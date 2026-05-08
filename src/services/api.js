@@ -2928,6 +2928,25 @@ export const dashboardAPI = {
       throw error;
     }
   }
+  ,
+  getGlobalMarketStatus: async () => {
+    try {
+      // Server-side proxy keeps Alpha Vantage API key off the browser
+      const response = await fetch(`${API_BASE_URL}/dashboard/global-market-status`, {
+        headers: getAuthHeaders()
+      });
+      if (!response.ok) {
+        const err = await response.json().catch(() => ({}));
+        throw new Error(err?.error || err?.message || `HTTP error! status: ${response.status}`);
+      }
+      const json = await response.json();
+      // route returns { success, data, ... }
+      return json?.data ?? json;
+    } catch (error) {
+      console.error('Error fetching global market status:', error);
+      throw error;
+    }
+  }
 };
 
 // API service for AI-powered analysis

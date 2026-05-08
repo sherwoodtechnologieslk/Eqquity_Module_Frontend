@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from 'react';
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
 import './Styles/AccountDetailsModal.css';
 
 const AccountDetailsModal = ({ isOpen, onClose, accountCode, accountData, loadError, detailSource }) => {
@@ -16,7 +18,7 @@ const AccountDetailsModal = ({ isOpen, onClose, accountCode, accountData, loadEr
   };
 
   const formatCurrency = (amount) => {
-    // Trial Balance uses 3-digit grouping (e.g., 1,234,567.89), not lakh grouping.
+    // Trial Balance uses 3-digit grouping
     return new Intl.NumberFormat('en-US', {
       minimumFractionDigits: 2,
       maximumFractionDigits: 2
@@ -25,6 +27,98 @@ const AccountDetailsModal = ({ isOpen, onClose, accountCode, accountData, loadEr
 
   const formatDate = (dateString) => {
     return new Date(dateString).toLocaleDateString('en-US');
+  };
+
+  const csvEscape = (value) => {
+    const s = value == null ? '' : String(value);
+    const needsQuotes = /[",\n\r]/.test(s);
+    const escaped = s.replace(/"/g, '""');
+    return needsQuotes ? `"${escaped}"` : escaped;
+  };
+
+  const handleExportPdf = () => {
+    if (!accountData) return;
+    const stamp = new Date().toISOString().slice(0, 10);
+    const code = accountData.accountCode || accountCode || '';
+    const name = accountData.accountName || '';
+
+    const doc = new jsPDF({ orientation: 'landscape', unit: 'pt', format: 'a4' });
+    doc.setFontSize(12);
+    doc.text('Account Entries', 40, 34);
+    doc.setFontSize(9);
+    const subtitle = [
+      detailSource ? String(detailSource) : null,
+      code ? `Account: ${code}${name ? ` — ${name}` : ''}` : null,
+      accountData.period?.startDate && accountData.period?.endDate
+        ? `Period: ${formatDate(accountData.period.startDate)} - ${formatDate(accountData.period.endDate)}`
+        : null
+    ]
+      .filter(Boolean)
+      .join('  •  ');
+    if (subtitle) doc.text(subtitle, 40, 50);
+
+    const rows = (accountData.entries || []).map((e) => [
+      formatDate(e.date),
+      e.description || '',
+      e.reference || '',
+      e.debit > 0 ? formatCurrency(e.debit) : '-',
+      e.credit > 0 ? formatCurrency(e.credit) : '-',
+      e.transaction_type || ''
+    ]);
+
+    autoTable(doc, {
+      startY: subtitle ? 66 : 54,
+      head: [['Date', 'Description', 'Reference', 'Debit', 'Credit', 'Type']],
+      body: rows,
+      theme: 'grid',
+      styles: { fontSize: 7, cellPadding: 3, valign: 'top' },
+      headStyles: { fillColor: [15, 23, 42], textColor: [255, 255, 255], fontStyle: 'bold' },
+      alternateRowStyles: { fillColor: [248, 250, 252] },
+      columnStyles: {
+        0: { cellWidth: 70 },
+        1: { cellWidth: 240 },
+        2: { cellWidth: 90 },
+        3: { halign: 'right', cellWidth: 70 },
+        4: { halign: 'right', cellWidth: 70 },
+        5: { cellWidth: 90 }
+      },
+      margin: { left: 40, right: 40 }
+    });
+
+    doc.save(`account-entries-${code || 'account'}-${stamp}.pdf`);
+  };
+
+  const handleExportCsv = () => {
+    if (!accountData) return;
+    const stamp = new Date().toISOString().slice(0, 10);
+    const code = accountData.accountCode || accountCode || 'account';
+
+    const header = ['Date', 'Description', 'Reference', 'Debit', 'Credit', 'Type'];
+    const lines = [
+      header.map(csvEscape).join(','),
+      ...(accountData.entries || []).map((e) =>
+        [
+          formatDate(e.date),
+          e.description || '',
+          e.reference || '',
+          e.debit || 0,
+          e.credit || 0,
+          e.transaction_type || ''
+        ]
+          .map(csvEscape)
+          .join(',')
+      )
+    ];
+
+    const blob = new Blob([lines.join('\n')], { type: 'text/csv;charset=utf-8;' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `account-entries-${code}-${stamp}.csv`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    window.URL.revokeObjectURL(url);
   };
 
   if (!isOpen) return null;
@@ -42,9 +136,52 @@ const AccountDetailsModal = ({ isOpen, onClose, accountCode, accountData, loadEr
             <div className="account-modal-title-section">
               <h2 className="account-modal-title">Account Details</h2>
               <p className="account-modal-subtitle">
-                {detailSource
-                  ? `${detailSource} — ${accountData?.accountCode || accountCode}`
-                  : `Detailed view for account: ${accountData?.accountCode || accountCode}`}
+                <span className="account-modal-subtitle-text">
+                  {detailSource
+                    ? `${detailSource} — ${accountData?.accountCode || accountCode}`
+                    : `Detailed view for account: ${accountData?.accountCode || accountCode}`}
+                </span>
+                <span className="account-modal-subtitle-actions">
+                  <span
+                    className={`account-modal-header-link ${!accountData ? 'disabled' : ''}`}
+                    role="button"
+                    tabIndex={!accountData ? -1 : 0}
+                    onClick={!accountData ? undefined : handleExportPdf}
+                    onKeyDown={
+                      !accountData
+                        ? undefined
+                        : (e) => {
+                            if (e.key === 'Enter' || e.key === ' ') {
+                              e.preventDefault();
+                              handleExportPdf();
+                            }
+                          }
+                    }
+                    title={!accountData ? 'Load account details before exporting' : 'Export entries to PDF'}
+                  >
+                    Export PDF
+                  </span>
+                  <span className="account-modal-header-sep">|</span>
+                  <span
+                    className={`account-modal-header-link ${!accountData ? 'disabled' : ''}`}
+                    role="button"
+                    tabIndex={!accountData ? -1 : 0}
+                    onClick={!accountData ? undefined : handleExportCsv}
+                    onKeyDown={
+                      !accountData
+                        ? undefined
+                        : (e) => {
+                            if (e.key === 'Enter' || e.key === ' ') {
+                              e.preventDefault();
+                              handleExportCsv();
+                            }
+                          }
+                    }
+                    title={!accountData ? 'Load account details before exporting' : 'Export entries to CSV'}
+                  >
+                    Export CSV
+                  </span>
+                </span>
               </p>
             </div>
           </div>

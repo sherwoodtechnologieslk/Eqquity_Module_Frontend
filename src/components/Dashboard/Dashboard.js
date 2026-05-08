@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { tradeSummaryAPI, transactionEntryAPI } from '../../services/api';
+import { tradeSummaryAPI, transactionEntryAPI, dashboardAPI } from '../../services/api';
 import { realizedPnLService } from '../../services/realizedPnLService';
 import { authService } from '../../services/authService';
 import RiskReturnScatterPlot from './RiskReturnScatterPlot';
@@ -14,6 +14,113 @@ function formatLkrCompact(value) {
   if (abs >= 1e6) return `${sign}LKR ${(abs / 1e6).toFixed(2)}M`;
   if (abs >= 1e5) return `${sign}LKR ${(abs / 1e3).toFixed(0)}K`;
   return `${sign}LKR ${abs.toLocaleString('en-US', { maximumFractionDigits: 0 })}`;
+}
+
+/**
+ * Pull `markets[]` from Alpha Vantage MARKET_STATUS (and a few alternate shapes).
+ * Must run before treating `Note` / `Information` as errors — those keys can be
+ * truthy non-strings (e.g. []) and would incorrectly wipe rows if checked first.
+ */
+function extractMarketsArray(data) {
+  if (data == null) return [];
+  if (typeof data === 'string') {
+    try {
+      return extractMarketsArray(JSON.parse(data));
+    } catch {
+      return [];
+    }
+  }
+  if (Array.isArray(data)) {
+    const looksLikeVenue = (row) =>
+      row &&
+      typeof row === 'object' &&
+      ('market_type' in row || 'current_status' in row || 'primary_exchanges' in row);
+    return data.length > 0 && looksLikeVenue(data[0]) ? data : [];
+  }
+  if (typeof data !== 'object') return [];
+
+  const pick = (v) => (Array.isArray(v) && v.length && typeof v[0] === 'object' ? v : null);
+  const direct =
+    pick(data.markets) ||
+    pick(data.Markets) ||
+    pick(data.market) ||
+    pick(data.results);
+  if (direct) return direct;
+
+  if (data.data && typeof data.data === 'object') {
+    return extractMarketsArray(data.data);
+  }
+  return [];
+}
+
+/** Alpha Vantage MARKET_STATUS: markets[] or throttled/error payload */
+function parseGlobalMarketPayload(data) {
+  const markets = extractMarketsArray(data);
+  const noteOrInfo =
+    data && typeof data === 'object'
+      ? [data.Note, data.Information].map((x) => (typeof x === 'string' ? x.trim() : '')).find(Boolean)
+      : '';
+
+  if (markets.length > 0) {
+    return { markets, apiMessage: noteOrInfo || null, rawKeys: null };
+  }
+
+  if (data && typeof data === 'object' && data['Error Message']) {
+    return { markets: [], apiMessage: String(data['Error Message']), rawKeys: null };
+  }
+  if (data && typeof data === 'object' && typeof data.Information === 'string' && data.Information.trim()) {
+    return { markets: [], apiMessage: data.Information.trim(), rawKeys: null };
+  }
+  if (data && typeof data === 'object' && typeof data.Note === 'string' && data.Note.trim()) {
+    return { markets: [], apiMessage: data.Note.trim(), rawKeys: null };
+  }
+
+  let rawKeys = null;
+  if (data && typeof data === 'object') {
+    rawKeys = Object.keys(data).join(', ');
+  } else if (typeof data === 'string') {
+    rawKeys = data.length > 120 ? `${data.slice(0, 120)}…` : data;
+  }
+  return { markets: [], apiMessage: null, rawKeys };
+}
+
+function isGlobalVenueOpen(m) {
+  return String(m?.current_status || '').toLowerCase() === 'open';
+}
+
+function groupMarketsByType(markets) {
+  const norm = (t) => String(t || '').toLowerCase();
+  const matchType = (m, typeKey) => {
+    const mt = norm(m.market_type);
+    if (typeKey === 'Equity') return mt === 'equity';
+    if (typeKey === 'Forex') return mt === 'forex';
+    if (typeKey === 'Cryptocurrency') {
+      return mt === 'cryptocurrency' || mt === 'crypto';
+    }
+    return false;
+  };
+  const order = [
+    { typeKey: 'Equity', heading: 'Equity markets' },
+    { typeKey: 'Forex', heading: 'Forex markets' },
+    { typeKey: 'Cryptocurrency', heading: 'Crypto markets' }
+  ];
+  const used = new Set();
+  const groups = order.map(({ typeKey, heading }) => {
+    const rows = [];
+    markets.forEach((m, i) => {
+      if (matchType(m, typeKey)) {
+        rows.push(m);
+        used.add(i);
+      }
+    });
+    return { heading, rows };
+  });
+  const primary = groups.filter((g) => g.rows.length > 0);
+  const otherRows = markets.filter((_, i) => !used.has(i));
+  if (otherRows.length > 0) {
+    primary.push({ heading: 'Other markets', rows: otherRows });
+  }
+  return primary;
 }
 
 // Mock portfolio health / insights data for right column (frontend only)
@@ -115,6 +222,11 @@ const Dashboard = ({ onTabChange }) => {
   const [userRegion, setUserRegion] = useState('');
   const [portfoliosList, setPortfoliosList] = useState([]);
   const [selectedPortfolioKey, setSelectedPortfolioKey] = useState(null);
+  const [globalMarketStatus, setGlobalMarketStatus] = useState({
+    fetchedAt: null,
+    error: null,
+    data: null
+  });
 
   // Load user region from localStorage or API
   useEffect(() => {
@@ -610,6 +722,37 @@ const Dashboard = ({ onTabChange }) => {
     loadDashboardData();
   }, [loadDashboardData]);
 
+  // Load global market open/close status (Equities/Forex/Crypto around the world)
+  useEffect(() => {
+    let isMounted = true;
+
+    const load = async () => {
+      try {
+        const data = await dashboardAPI.getGlobalMarketStatus();
+        if (!isMounted) return;
+        setGlobalMarketStatus({
+          fetchedAt: new Date(),
+          error: null,
+          data
+        });
+      } catch (e) {
+        if (!isMounted) return;
+        setGlobalMarketStatus({
+          fetchedAt: new Date(),
+          error: e?.message || 'Failed to load global market status',
+          data: null
+        });
+      }
+    };
+
+    load();
+    const interval = setInterval(load, 5 * 60 * 1000); // refresh every 5 minutes
+    return () => {
+      isMounted = false;
+      clearInterval(interval);
+    };
+  }, []);
+
   if (isLoading) {
     return (
       <div className="dashboard-loading">
@@ -620,6 +763,14 @@ const Dashboard = ({ onTabChange }) => {
   }
 
   const marketStatus = getMarketStatus(currentTime);
+
+  const {
+    markets: globalMarkets,
+    apiMessage: globalMarketApiMessage,
+    rawKeys: globalMarketRawKeys
+  } = parseGlobalMarketPayload(globalMarketStatus.data);
+  const globalMarketGroups = groupMarketsByType(globalMarkets);
+  const openMarketsNow = globalMarkets.filter(isGlobalVenueOpen);
 
   const portfolioCount = dashboardData.activePortfolios ?? 0;
   const sectorChartName = dashboardData.sectorChartPortfolioName;
@@ -696,6 +847,132 @@ const Dashboard = ({ onTabChange }) => {
             <div className="market-status-bare__clock">
               <span className="market-status-bare__time">{formatTime(currentTime)}</span>
               <span className="market-status-bare__date">{formatDate(currentTime)}</span>
+            </div>
+          </div>
+
+          {/* Global market open/close status (Alpha Vantage MARKET_STATUS) */}
+          <div className="content-card global-markets-card">
+            <div className="card-header">
+              <div className="header-left">
+                <span className="card-subtitle">Global Market Status</span>
+              </div>
+            </div>
+            <div className="global-markets-body">
+              {globalMarketStatus.error ? (
+                <div className="empty-state">
+                  <p>{globalMarketStatus.error}</p>
+                  <span>Set ALPHAVANTAGE_API_KEY on the backend and restart the server.</span>
+                </div>
+              ) : globalMarketStatus.data == null ? (
+                <div className="empty-state">
+                  <p>Loading global market status…</p>
+                  <span>Refreshes every 5 minutes.</span>
+                </div>
+              ) : globalMarkets.length === 0 && globalMarketApiMessage ? (
+                <div className="empty-state">
+                  <p>Market status unavailable</p>
+                  <span className="global-markets-api-msg">{globalMarketApiMessage}</span>
+                </div>
+              ) : globalMarkets.length === 0 ? (
+                <div className="empty-state">
+                  <p>No venue rows found in the provider response.</p>
+                  {globalMarketRawKeys ? (
+                    <span className="global-markets-api-msg">
+                      Top-level fields returned: {globalMarketRawKeys}
+                    </span>
+                  ) : (
+                    <span className="global-markets-api-msg">
+                      Confirm the backend can reach https://www.alphavantage.co and that
+                      ALPHAVANTAGE_API_KEY is valid. If the server recently cached an empty
+                      payload, restart the backend or wait about one minute.
+                    </span>
+                  )}
+                </div>
+              ) : (
+                <>
+                  {globalMarketApiMessage && (
+                    <div className="global-markets-api-banner" role="status">
+                      {globalMarketApiMessage}
+                    </div>
+                  )}
+                  {openMarketsNow.length > 0 && (
+                    <div className="global-markets-open-strip" aria-label="Markets currently open">
+                      <div className="global-markets-open-strip__label">Currently open</div>
+                      <ul className="global-markets-open-list">
+                        {openMarketsNow.map((m, idx) => (
+                          <li key={`${m.primary_exchanges || 'm'}-${idx}`}>
+                            <span className="global-markets-open-list__dot" aria-hidden />
+                            <span className="global-markets-open-list__name">
+                              {m.primary_exchanges || '—'}
+                            </span>
+                            <span className="global-markets-open-list__meta">
+                              {m.region ? `${m.region} · ` : ''}
+                              {m.market_type || ''}
+                            </span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+
+                  {globalMarketGroups.map((group) => (
+                    <div key={group.heading} className="global-markets-group">
+                      <h4 className="global-markets-group__title">{group.heading}</h4>
+                      <div className="global-markets-table-wrap">
+                        <table className="global-markets-table">
+                          <thead>
+                            <tr>
+                              <th scope="col">Exchange</th>
+                              <th scope="col">Region</th>
+                              <th scope="col">Status</th>
+                              <th scope="col">Opens</th>
+                              <th scope="col">Closes</th>
+                              <th scope="col">Notes</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {group.rows.map((m, idx) => {
+                              const open = isGlobalVenueOpen(m);
+                              return (
+                                <tr key={`${group.heading}-${m.primary_exchanges || idx}-${idx}`}>
+                                  <td className="global-markets-table__exchange">
+                                    {m.primary_exchanges || '—'}
+                                  </td>
+                                  <td>{m.region || '—'}</td>
+                                  <td>
+                                    <span
+                                      className={`global-markets-pill ${open ? 'is-open' : 'is-closed'}`}
+                                    >
+                                      {open ? 'Open' : 'Closed'}
+                                    </span>
+                                  </td>
+                                  <td className="global-markets-table__time">{m.local_open || '—'}</td>
+                                  <td className="global-markets-table__time">{m.local_close || '—'}</td>
+                                  <td className="global-markets-table__notes">
+                                    {m.notes ? String(m.notes) : '—'}
+                                  </td>
+                                </tr>
+                              );
+                            })}
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+                  ))}
+
+                  {globalMarketStatus.fetchedAt && (
+                    <p className="global-markets-footer">
+                      Last updated:{' '}
+                      {globalMarketStatus.fetchedAt.toLocaleTimeString('en-US', {
+                        hour: '2-digit',
+                        minute: '2-digit',
+                        second: '2-digit',
+                        hour12: true
+                      })}
+                    </p>
+                  )}
+                </>
+              )}
             </div>
           </div>
 

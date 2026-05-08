@@ -297,6 +297,8 @@ const OtherTransactions = () => {
   const [generalLedgerEntries, setGeneralLedgerEntries] = useState([]);
   const [generalLedgerLoading, setGeneralLedgerLoading] = useState(false);
   const [generalLedgerVoucherSearch, setGeneralLedgerVoucherSearch] = useState('');
+  const [generalLedgerCurrentPage, setGeneralLedgerCurrentPage] = useState(1);
+  const [generalLedgerEntriesPerPage] = useState(50);
   // Reverse Transaction form state
   const [reverseForm, setReverseForm] = useState({ category: '', subCategory: '', transactionType: '', voucherId: '', voucherNumber: '', amount: '', cashFlowOnSettlement: '', date: new Date().toISOString().split('T')[0], notes: '' });
   const [reverseSubmitting, setReverseSubmitting] = useState(false);
@@ -930,25 +932,43 @@ const OtherTransactions = () => {
     }
   };
 
+  useEffect(() => {
+    setGeneralLedgerCurrentPage(1);
+  }, [generalLedgerVoucherSearch, generalLedgerEntries]);
+
   /** GL tab: filter by voucher # (stored in `reference`; also checks `voucher_number` if present) */
   const displayGeneralLedgerEntries = useMemo(() => {
     const q = generalLedgerVoucherSearch.trim().toLowerCase();
-    let rows = generalLedgerEntries;
-    if (q) {
-      rows = generalLedgerEntries.filter((entry) => {
-        const voucher = String(entry.reference ?? entry.voucher_number ?? '').toLowerCase();
-        return voucher.includes(q);
-      });
-    } else {
-      rows = generalLedgerEntries.slice(0, 50);
-    }
+    const allRows = q
+      ? generalLedgerEntries.filter((entry) => {
+          const voucher = String(entry.reference ?? entry.voucher_number ?? '').toLowerCase();
+          return voucher.includes(q);
+        })
+      : generalLedgerEntries;
+
+    const totalCount = allRows.length;
+    const totalPages = Math.max(1, Math.ceil(totalCount / generalLedgerEntriesPerPage));
+    const safePage = Math.min(Math.max(1, generalLedgerCurrentPage), totalPages);
+    const indexOfLast = safePage * generalLedgerEntriesPerPage;
+    const indexOfFirst = indexOfLast - generalLedgerEntriesPerPage;
+    const rows = allRows.slice(indexOfFirst, indexOfLast);
+
     return {
       rows,
       isFiltered: Boolean(q),
-      matchCount: q ? rows.length : generalLedgerEntries.length,
-      totalCount: generalLedgerEntries.length,
+      matchCount: q ? totalCount : totalCount,
+      totalCount,
+      totalPages,
+      currentPage: safePage,
+      indexOfFirst,
+      indexOfLast: Math.min(indexOfLast, totalCount)
     };
-  }, [generalLedgerEntries, generalLedgerVoucherSearch]);
+  }, [
+    generalLedgerEntries,
+    generalLedgerVoucherSearch,
+    generalLedgerCurrentPage,
+    generalLedgerEntriesPerPage
+  ]);
 
   // Fetch vouchers based on category filter
   const fetchVouchers = async () => {
@@ -5744,8 +5764,8 @@ const isVoucherSettled = (voucher) => {
             ) : (
               <div style={{
                 display: 'grid',
-                gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))',
-                gap: '1.5rem'
+                gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))',
+                gap: '1rem'
               }}>
                 {filteredVouchers.map((voucher) => (
                   <div 
@@ -5753,7 +5773,7 @@ const isVoucherSettled = (voucher) => {
                     style={{
                       background: 'white',
                       borderRadius: '0.375rem',
-                      padding: '1.5rem',
+                      padding: '1rem',
                       boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
                       border: '1px solid #e5e7eb',
                       transition: 'all 0.2s ease',
@@ -5773,7 +5793,7 @@ const isVoucherSettled = (voucher) => {
                       display: 'flex',
                       justifyContent: 'space-between',
                       alignItems: 'start',
-                      marginBottom: '1rem'
+                      marginBottom: '0.75rem'
                     }}>
                       <div>
                         <h3 style={{ 
@@ -5818,24 +5838,24 @@ const isVoucherSettled = (voucher) => {
                     </div>
 
                     <h4 style={{
-                      fontSize: '1.125rem',
+                      fontSize: '1rem',
                       fontWeight: '700',
                       color: '#1f2937',
-                      margin: '0.5rem 0'
+                      margin: '0.35rem 0'
                     }}>
                       {voucher.transaction_type || 'N/A'}
                     </h4>
 
                     {voucher.amount && (
                       <div style={{
-                        margin: '0.75rem 0',
-                        padding: '0.75rem',
+                        margin: '0.5rem 0',
+                        padding: '0.5rem',
                         background: '#f9fafb',
                         borderRadius: '0.25rem'
                       }}>
-                        <div style={{ fontSize: '0.875rem', color: '#6b7280' }}>Amount</div>
+                        <div style={{ fontSize: '0.8125rem', color: '#6b7280' }}>Amount</div>
                         <div style={{ 
-                          fontSize: '1.25rem', 
+                          fontSize: '1.1rem', 
                           fontWeight: '700', 
                           color: '#1f2937' 
                         }}>
@@ -5860,8 +5880,8 @@ const isVoucherSettled = (voucher) => {
                     <div style={{
                       display: 'flex',
                       gap: '0.5rem',
-                      marginTop: '1rem',
-                      paddingTop: '1rem',
+                      marginTop: '0.75rem',
+                      paddingTop: '0.75rem',
                       borderTop: '1px solid #e5e7eb'
                     }}>
                       <button
@@ -5871,36 +5891,17 @@ const isVoucherSettled = (voucher) => {
                         }}
                         style={{
                           flex: 1,
-                          padding: '0.5rem',
+                          padding: '0.4rem',
                           border: '1px solid #3b82f6',
                           background: 'transparent',
                           color: '#3b82f6',
                           borderRadius: '0.25rem',
                           cursor: 'pointer',
                           fontWeight: '500',
-                          fontSize: '0.875rem'
+                          fontSize: '0.8125rem'
                         }}
                       >
                         View
-                      </button>
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleDeleteVoucher(voucher.id);
-                        }}
-                        style={{
-                          flex: 1,
-                          padding: '0.5rem',
-                          border: '1px solid #ef4444',
-                          background: 'transparent',
-                          color: '#ef4444',
-                          borderRadius: '0.25rem',
-                          cursor: 'pointer',
-                          fontWeight: '500',
-                          fontSize: '0.875rem'
-                        }}
-                      >
-                        Delete
                       </button>
                     </div>
                   </div>
@@ -6068,15 +6069,137 @@ const isVoucherSettled = (voucher) => {
                         </tbody>
                       </table>
                     </div>
-                    {!displayGeneralLedgerEntries.isFiltered && displayGeneralLedgerEntries.totalCount > 50 && (
-                      <div style={{ 
-                        padding: '1rem',
-                        textAlign: 'center',
-                        color: '#6b7280',
-                        fontSize: '0.875rem',
-                        borderTop: '1px solid #e5e7eb'
-                      }}>
-                        Showing first 50 entries of {displayGeneralLedgerEntries.totalCount} total entries. Use voucher search to find a specific transaction.
+                    {displayGeneralLedgerEntries.totalPages > 1 && (
+                      <div
+                        style={{
+                          padding: '1rem 1.25rem',
+                          borderTop: '1px solid #e5e7eb',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'space-between',
+                          gap: '0.75rem',
+                          flexWrap: 'wrap',
+                          background: '#fff'
+                        }}
+                      >
+                        <div style={{ color: '#6b7280', fontSize: '0.875rem' }}>
+                          Showing {displayGeneralLedgerEntries.indexOfFirst + 1}-{displayGeneralLedgerEntries.indexOfLast} of{' '}
+                          {displayGeneralLedgerEntries.totalCount}
+                        </div>
+
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
+                          <button
+                            type="button"
+                            onClick={() =>
+                              setGeneralLedgerCurrentPage((p) => Math.max(1, p - 1))
+                            }
+                            disabled={displayGeneralLedgerEntries.currentPage === 1}
+                            style={{
+                              padding: '0.4rem 0.75rem',
+                              border: '1px solid #cbd5e1',
+                              background: displayGeneralLedgerEntries.currentPage === 1 ? '#f1f5f9' : '#fff',
+                              color: '#334155',
+                              borderRadius: '0.375rem',
+                              cursor: displayGeneralLedgerEntries.currentPage === 1 ? 'not-allowed' : 'pointer',
+                              fontSize: '0.8125rem',
+                              fontWeight: 600
+                            }}
+                          >
+                            Previous
+                          </button>
+
+                          {(() => {
+                            const total = displayGeneralLedgerEntries.totalPages;
+                            const current = displayGeneralLedgerEntries.currentPage;
+                            const pages = [];
+
+                            const addPage = (n) => pages.push({ type: 'page', n });
+                            const addEllipsis = (key) => pages.push({ type: 'ellipsis', key });
+
+                            if (total <= 7) {
+                              for (let i = 1; i <= total; i++) addPage(i);
+                            } else {
+                              addPage(1);
+                              if (current > 4) addEllipsis('left');
+
+                              const start = Math.max(2, current - 1);
+                              const end = Math.min(total - 1, current + 1);
+                              for (let i = start; i <= end; i++) addPage(i);
+
+                              if (current < total - 3) addEllipsis('right');
+                              addPage(total);
+                            }
+
+                            return pages.map((item) => {
+                              if (item.type === 'ellipsis') {
+                                return (
+                                  <span key={item.key} style={{ padding: '0 0.25rem', color: '#94a3b8' }}>
+                                    …
+                                  </span>
+                                );
+                              }
+
+                              const isActive = item.n === current;
+                              return (
+                                <button
+                                  key={item.n}
+                                  type="button"
+                                  onClick={() => setGeneralLedgerCurrentPage(item.n)}
+                                  style={{
+                                    minWidth: 34,
+                                    padding: '0.4rem 0.6rem',
+                                    border: '1px solid ' + (isActive ? '#2563eb' : '#cbd5e1'),
+                                    background: isActive ? '#2563eb' : '#fff',
+                                    color: isActive ? '#fff' : '#334155',
+                                    borderRadius: '0.375rem',
+                                    cursor: 'pointer',
+                                    fontSize: '0.8125rem',
+                                    fontWeight: 700
+                                  }}
+                                >
+                                  {item.n}
+                                </button>
+                              );
+                            });
+                          })()}
+
+                          <button
+                            type="button"
+                            onClick={() =>
+                              setGeneralLedgerCurrentPage((p) =>
+                                Math.min(displayGeneralLedgerEntries.totalPages, p + 1)
+                              )
+                            }
+                            disabled={
+                              displayGeneralLedgerEntries.currentPage ===
+                              displayGeneralLedgerEntries.totalPages
+                            }
+                            style={{
+                              padding: '0.4rem 0.75rem',
+                              border: '1px solid #cbd5e1',
+                              background:
+                                displayGeneralLedgerEntries.currentPage ===
+                                displayGeneralLedgerEntries.totalPages
+                                  ? '#f1f5f9'
+                                  : '#fff',
+                              color: '#334155',
+                              borderRadius: '0.375rem',
+                              cursor:
+                                displayGeneralLedgerEntries.currentPage ===
+                                displayGeneralLedgerEntries.totalPages
+                                  ? 'not-allowed'
+                                  : 'pointer',
+                              fontSize: '0.8125rem',
+                              fontWeight: 600
+                            }}
+                          >
+                            Next
+                          </button>
+
+                          <div style={{ color: '#6b7280', fontSize: '0.8125rem', marginLeft: '0.25rem' }}>
+                            Page {displayGeneralLedgerEntries.currentPage} of {displayGeneralLedgerEntries.totalPages}
+                          </div>
+                        </div>
                       </div>
                     )}
                   </>
@@ -6406,14 +6529,6 @@ const isVoucherSettled = (voucher) => {
                 Voucher Preview
               </h2>
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                <button
-                  type="button"
-                  className="other-trans-btn other-trans-btn-secondary"
-                  style={{ margin: 0, padding: '0.5rem 1rem', fontSize: '0.875rem' }}
-                  onClick={() => window.print()}
-                >
-                  Print
-                </button>
                 <button 
                   className="other-trans-preview-close-btn"
                   type="button"
@@ -6767,20 +6882,6 @@ const isVoucherSettled = (voucher) => {
             </div>
 
             <div className="other-trans-preview-modal-footer no-print">
-              <button 
-                type="button"
-                className="other-trans-btn other-trans-btn-secondary"
-                onClick={() => window.print()}
-              >
-                Print
-              </button>
-              <button 
-                type="button"
-                className="other-trans-btn other-trans-btn-secondary"
-                onClick={closePreviewModal}
-              >
-                Close Preview
-              </button>
             </div>
           </div>
         </div>,

@@ -80,23 +80,10 @@ const RightsIssueEntry = () => {
   return (
     <div className="rights-page-container">
       <div className="rights-content-wrapper">
-        <div className="rights-header-section">
-          <div className="rights-header-icon">
-            <svg className="rights-icon" fill="currentColor" viewBox="0 0 20 20">
-              <path d="M4 4a2 2 0 00-2 2v8a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2H4zm0 6h12v6H4v-6z"/>
-              <path d="M6 6h8v2H6V6z"/>
-            </svg>
-          </div>
-          <div className="rights-header-text-group">
-            <h1 className="rights-main-title">Rights Issue Entry</h1>
-            <p className="rights-subtitle">Manage and track rights issue subscriptions and allocations</p>
-          </div>
-        </div>
-
         {/* Form Card */}
         <div className="rights-form-card">
           <div className="rights-card-header">
-            <h2 className="rights-card-title">Rights Issue Information</h2>
+            <h2 className="rights-card-title">Rights Issue Entry- Manage and track rights issue subscriptions and allocations</h2>
           </div>
 
           <div className="rights-form-content">
