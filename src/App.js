@@ -85,6 +85,7 @@ import GsecBalanceSheet from './components/GsecEntries/GsecBalanceSheet';
 import GsecManualEntryPosting from './components/GsecEntries/GsecManualEntryPosting';
 import CombinedGL from './components/AccountingEntries/CombinedGL';
 import CombinedTrialBalance from './components/AccountingEntries/CombinedTrialBalance';
+import AccountSummaries from './components/AccountingEntries/AccountSummaries';
 import HolidayCalendar from './components/HolidayCalendar/HolidayCalendar';
 import FundsCenters from './components/FundsCenters/FundsCenters';
 import ViewMap from './components/FundsCenters/ViewMap';
@@ -256,6 +257,7 @@ function App() {
     'GSec Manual Entry Posting': <GsecManualEntryPosting />,
     'Combined General Ledger': <CombinedGL onTabChange={handleTabChange} />,
     'Combined Trial Balance': <CombinedTrialBalance onTabChange={handleTabChange} />,
+    'Account Summaries': <AccountSummaries onTabChange={handleTabChange} />,
   };
 
   // Handle sidebar selection

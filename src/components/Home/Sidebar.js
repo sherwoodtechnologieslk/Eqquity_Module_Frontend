@@ -116,7 +116,8 @@ export const equityManagerMenuItems = [
     name: "Accounting Entries",
     subTopics: [
       "Combined General Ledger",
-      "Combined Trial Balance"
+      "Combined Trial Balance",
+      "Account Summaries"
     ]
   },
   {

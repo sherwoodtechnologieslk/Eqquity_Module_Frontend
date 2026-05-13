@@ -1,0 +1,153 @@
+.cas-header-wrap {
+  flex-wrap: wrap;
+}
+
+.cas-tabs-card {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 0.25rem;
+  padding: 0.75rem 0.75rem;
+  margin-bottom: 1rem;
+  box-shadow: 0 10px 28px rgba(15, 23, 42, 0.08);
+}
+
+.cas-tabs-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.cas-tab {
+  appearance: none;
+  border: 1px solid #e2e8f0;
+  background: #ffffff;
+  color: #0f172a;
+  font-size: 0.875rem;
+  font-weight: 700;
+  padding: 0.45rem 0.75rem;
+  border-radius: 999px;
+  cursor: pointer;
+  transition: background 120ms ease, border-color 120ms ease, color 120ms ease;
+}
+
+.cas-tab:hover {
+  background: #f8fafc;
+  border-color: #cbd5e1;
+}
+
+.cas-tab.active {
+  background: #0f172a;
+  border-color: #0f172a;
+  color: #ffffff;
+}
+
+.cas-tab:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+}
+
+.cas-metrics {
+  display: grid;
+  grid-template-columns: repeat(1, minmax(0, 1fr));
+  gap: 1rem;
+  margin-bottom: 0.5rem;
+}
+
+@media (min-width: 900px) {
+  .cas-metrics {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+.cas-metric-card {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 0.25rem;
+  padding: 1rem 1rem;
+  box-shadow: 0 10px 28px rgba(15, 23, 42, 0.08);
+}
+
+.cas-metric-label {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin-bottom: 0.5rem;
+}
+
+.cas-metric-value {
+  font-size: 1.1rem;
+  font-weight: 800;
+  color: #0f172a;
+}
+
+.cas-metric-value.debit {
+  color: #15803d;
+}
+
+.cas-metric-value.credit {
+  color: #b45309;
+}
+
+.cas-metric-value.positive {
+  color: #15803d;
+}
+
+.cas-metric-value.negative {
+  color: #b91c1c;
+}
+
+.cas-loading,
+.cas-error {
+  grid-column: 1 / -1;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 0.25rem;
+  padding: 0.9rem 1rem;
+  box-shadow: 0 10px 28px rgba(15, 23, 42, 0.08);
+  color: #475569;
+  font-weight: 600;
+}
+
+.cas-error {
+  border-color: #fecaca;
+  background: #fff1f2;
+  color: #9f1239;
+}
+
+.cas-accounts-card {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 0.25rem;
+  box-shadow: 0 10px 28px rgba(15, 23, 42, 0.08);
+  overflow: hidden;
+  margin-bottom: 1.25rem;
+}
+
+.cas-accounts-header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.9rem 1rem;
+  border-bottom: 1px solid #e2e8f0;
+  background: linear-gradient(90deg, #0f172a 0%, #2563eb 100%);
+}
+
+.cas-accounts-title {
+  font-size: 0.95rem;
+  font-weight: 800;
+  color: #ffffff;
+}
+
+.cas-accounts-meta {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.85);
+}
+
+.cas-accounts-hint {
+  font-weight: 500;
+  opacity: 0.92;
+}

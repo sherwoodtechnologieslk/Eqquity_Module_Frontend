@@ -124,6 +124,18 @@
   cursor: not-allowed;
 }
 
+.other-reports-content {
+  margin-top: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 12px;
+  background: transparent;
+  border: none;
+  box-shadow: none;
+  padding: 0;
+}
+
 .fre-filters {
   display: grid;
   grid-template-columns: 1.6fr 1fr;
