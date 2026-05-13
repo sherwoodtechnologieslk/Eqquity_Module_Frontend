@@ -395,11 +395,23 @@ const Dashboard = ({ onTabChange }) => {
       }
 
       const apiBase = process.env.REACT_APP_API_URL || 'http://localhost:8080/api';
-      // Run in parallel with P&L below (no dependency on portfolio id)
-      const txPromise = Promise.all([
-        tradeSummaryAPI.getBuyTransactions(),
-        transactionEntryAPI.getAllSellTransactions()
-      ]);
+      // Run in parallel with P&L below (no dependency on portfolio id).
+      // Use allSettled so one failing endpoint (e.g. sell-all) does not reject the whole dashboard load.
+      const txPromise = (async () => {
+        const results = await Promise.allSettled([
+          tradeSummaryAPI.getBuyTransactions(),
+          transactionEntryAPI.getAllSellTransactions(),
+        ]);
+        const buyTransactions = results[0].status === 'fulfilled' ? results[0].value || [] : [];
+        const sellTransactions = results[1].status === 'fulfilled' ? results[1].value || [] : [];
+        if (results[0].status === 'rejected') {
+          console.error('Dashboard: buy transactions request failed:', results[0].reason);
+        }
+        if (results[1].status === 'rejected') {
+          console.error('Dashboard: sell transactions request failed:', results[1].reason);
+        }
+        return [buyTransactions, sellTransactions];
+      })();
       const holdingsPromise = fetch(`${apiBase}/portfolios/overview`, {
         method: 'GET',
         headers: {
