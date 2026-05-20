@@ -102,6 +102,7 @@ export const equityManagerMenuItems = [
     name: "GSec Entries",
     subTopics: [
       "GSEC ENTRIES",
+      "Missing GSec Entries",
       "Balance Sheet",
       "GSec General Ledger",
       "GSec Manual Entry Posting"
