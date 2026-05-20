@@ -2642,6 +2642,20 @@ export const gsecEntriesAPI = {
     }
   },
 
+  // Remote rows not in local gsec_entries (deal_number + entry date, time ignored)
+  getMissingFromRemote: async ({ force = false } = {}) => {
+    try {
+      const url = force
+        ? `${API_BASE_URL}/gsec-entries/missing-from-remote?force=1`
+        : `${API_BASE_URL}/gsec-entries/missing-from-remote`;
+      return await makeAuthenticatedRequest(url, { method: 'GET' });
+    } catch (error) {
+      console.error('Error fetching missing GSec entries:', error);
+      const message = error.message || 'Failed to fetch missing GSec entries';
+      throw new Error(message);
+    }
+  },
+
   // Get saved GSec ledger entries (optional filter by deal_number)
   getSavedLedgerEntries: async (dealNumber = null) => {
     try {
