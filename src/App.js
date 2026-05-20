@@ -83,6 +83,7 @@ import GsecEntries from './components/GsecEntries/GsecEntries';
 import GsecGeneralLedger from './components/GsecEntries/GsecGeneralLedger';
 import GsecBalanceSheet from './components/GsecEntries/GsecBalanceSheet';
 import GsecManualEntryPosting from './components/GsecEntries/GsecManualEntryPosting';
+import GsecMissingEntries from './components/GsecEntries/GsecMissingEntries';
 import CombinedGL from './components/AccountingEntries/CombinedGL';
 import CombinedTrialBalance from './components/AccountingEntries/CombinedTrialBalance';
 import AccountSummaries from './components/AccountingEntries/AccountSummaries';
@@ -252,6 +253,7 @@ function App() {
     'Performance Report': <PerformanceReport />,
     'Other Reports': <OtherReports />,
     'GSEC ENTRIES': <GsecEntries />,
+    'Missing GSec Entries': <GsecMissingEntries />,
     'Balance Sheet': <GsecBalanceSheet />,
     'GSec General Ledger': <GsecGeneralLedger />,
     'GSec Manual Entry Posting': <GsecManualEntryPosting />,

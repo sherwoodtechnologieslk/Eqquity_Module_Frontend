@@ -1,10 +1,21 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import {
+  Chart as ChartJS,
+  CategoryScale,
+  LinearScale,
+  BarElement,
+  Tooltip,
+  Legend
+} from 'chart.js';
+import { Bar } from 'react-chartjs-2';
 import { tradeSummaryAPI, transactionEntryAPI, dashboardAPI } from '../../services/api';
 import { realizedPnLService } from '../../services/realizedPnLService';
 import { authService } from '../../services/authService';
 import RiskReturnScatterPlot from './RiskReturnScatterPlot';
 import DashboardSectorMixChart from './DashboardSectorMixChart';
 import './Dashboard.css';
+
+ChartJS.register(CategoryScale, LinearScale, BarElement, Tooltip, Legend);
 
 function formatLkrCompact(value) {
   const n = Number(value) || 0;
@@ -209,6 +220,7 @@ const Dashboard = ({ onTabChange }) => {
     sectorLegend: [],
     totalCompanies: 0,
     sectorChartPortfolioName: null,
+    costVsMvByCompany: [],
     pnlMetrics: {
       totalRealizedCapitalGain: 0,
       realizedPnL: 0,
@@ -358,6 +370,7 @@ const Dashboard = ({ onTabChange }) => {
       let sectorLegend = [];
       let totalCompanies = 0;
       let sectorChartPortfolioName = null;
+      let costVsMvByCompany = [];
       let pnlMetrics = {
         totalRealizedCapitalGain: 0,
         realizedPnL: 0,
@@ -492,6 +505,23 @@ const Dashboard = ({ onTabChange }) => {
             const totalProjectedSalesWithCOF = mtmData.reduce((sum, item) => sum + (item.projectedSalesWithCOF || 0), 0);
             const totalUnrealizedCapitalGain = totalGrossSales - totalCost;
             const unrealizedPnL = totalProjectedSalesWithCOF - (totalCost + totalCharges);
+
+            const companyAggMap = new Map();
+            mtmData.forEach((item) => {
+              const key =
+                item.company_name ||
+                item.companyName ||
+                item.symbol ||
+                item.companyCode ||
+                'Unknown';
+              const cur = companyAggMap.get(key) || { company: key, symbol: item.symbol || key, cost: 0, marketValue: 0 };
+              cur.cost += Number(item.costValue) || 0;
+              cur.marketValue += Number(item.grossSales) || 0;
+              companyAggMap.set(key, cur);
+            });
+            costVsMvByCompany = [...companyAggMap.values()]
+              .map((c) => ({ ...c, unrealised: c.marketValue - c.cost }))
+              .sort((a, b) => b.marketValue - a.marketValue);
             console.log('🔍 DASHBOARD DEBUG - Step-by-step calculations:', {
               totalCost,
               totalGrossSales,
@@ -699,6 +729,7 @@ const Dashboard = ({ onTabChange }) => {
         sectorLegend: sectorLegend,
         totalCompanies: totalCompanies,
         sectorChartPortfolioName,
+        costVsMvByCompany,
         pnlMetrics: pnlMetrics
       });
       
@@ -718,6 +749,7 @@ const Dashboard = ({ onTabChange }) => {
         sectorLegend: [],
         totalCompanies: 0,
         sectorChartPortfolioName: null,
+        costVsMvByCompany: [],
         pnlMetrics: {
           totalRealizedCapitalGain: 0,
           realizedPnL: 0,
@@ -764,6 +796,75 @@ const Dashboard = ({ onTabChange }) => {
       clearInterval(interval);
     };
   }, []);
+
+  const costVsMvCompanies = useMemo(() => {
+    const list = Array.isArray(dashboardData.costVsMvByCompany) ? dashboardData.costVsMvByCompany : [];
+    if (list.length <= 8) return list;
+    const top = list.slice(0, 7);
+    const rest = list.slice(7);
+    const otherCost = rest.reduce((s, r) => s + (r.cost || 0), 0);
+    const otherMv = rest.reduce((s, r) => s + (r.marketValue || 0), 0);
+    return [
+      ...top,
+      {
+        company: `Others (${rest.length})`,
+        symbol: 'OTHERS',
+        cost: otherCost,
+        marketValue: otherMv,
+        unrealised: otherMv - otherCost
+      }
+    ];
+  }, [dashboardData.costVsMvByCompany]);
+
+  const costVsMvChartData = useMemo(
+    () => ({
+      labels: costVsMvCompanies.map((c) => c.symbol || c.company),
+      datasets: [
+        {
+          label: 'Cost',
+          data: costVsMvCompanies.map((c) => c.cost || 0),
+          backgroundColor: '#94a3b8',
+          borderRadius: 0
+        },
+        {
+          label: 'Market value',
+          data: costVsMvCompanies.map((c) => c.marketValue || 0),
+          backgroundColor: '#1e3a8a',
+          borderRadius: 0
+        }
+      ]
+    }),
+    [costVsMvCompanies]
+  );
+
+  const costVsMvChartOptions = useMemo(
+    () => ({
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { position: 'top', labels: { font: { size: 12 } } },
+        tooltip: {
+          cornerRadius: 0,
+          callbacks: {
+            title: (items) => {
+              const idx = items?.[0]?.dataIndex ?? 0;
+              const row = costVsMvCompanies[idx];
+              return row ? row.company : items?.[0]?.label;
+            },
+            label: (ctx) => `${ctx.dataset.label}: ${formatLkrCompact(Number(ctx.raw) || 0)}`
+          }
+        }
+      },
+      scales: {
+        x: { grid: { display: false }, ticks: { font: { size: 11 } } },
+        y: {
+          ticks: { callback: (v) => formatLkrCompact(v), font: { size: 11 } },
+          grid: { color: '#e2e8f0' }
+        }
+      }
+    }),
+    [costVsMvCompanies]
+  );
 
   if (isLoading) {
     return (
@@ -1155,6 +1256,29 @@ const Dashboard = ({ onTabChange }) => {
                   maximumFractionDigits: 0
                 }).format(dashboardData.pnlMetrics.unrealizedPnL)}</span>
               </div>
+            </div>
+          </div>
+
+          {/* Cost vs Market Value by Company */}
+          <div className="content-card dashboard-cost-vs-mv-card">
+            <div className="card-header">
+              <div className="header-left">
+                <h3>Cost vs market value by company</h3>
+                <span className="card-subtitle">
+                  {costVsMvCompanies.length > 0
+                    ? `${costVsMvCompanies.length} ${costVsMvCompanies.length === 1 ? 'holding' : 'holdings'} in this portfolio`
+                    : 'No position data available'}
+                </span>
+              </div>
+            </div>
+            <div className="cost-vs-mv-chart-container">
+              {costVsMvCompanies.length > 0 ? (
+                <Bar data={costVsMvChartData} options={costVsMvChartOptions} />
+              ) : (
+                <div className="no-data-message">
+                  <p>No position data available for this portfolio.</p>
+                </div>
+              )}
             </div>
           </div>
 
