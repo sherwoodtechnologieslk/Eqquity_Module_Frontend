@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import './App.css';
 import Navbar from './components/Home/Navbar';
 import DynamicHeader from './components/Home/DynamicHeader';
@@ -90,6 +90,7 @@ import AccountSummaries from './components/AccountingEntries/AccountSummaries';
 import HolidayCalendar from './components/HolidayCalendar/HolidayCalendar';
 import FundsCenters from './components/FundsCenters/FundsCenters';
 import ViewMap from './components/FundsCenters/ViewMap';
+import GlobalMarkets from './components/FundsCenters/GlobalMarkets';
 import CashFlowMapping from './components/SettlementAndAccounting/CashFlowMapping';
 import SettlementInstructions from './components/SettlementAndAccounting/SettlementInstructions';
 import GLMapping from './components/SettlementAndAccounting/GLMapping';
@@ -116,10 +117,14 @@ function App() {
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [aiAssistantOpen, setAiAssistantOpen] = useState(false);
+  // Optional context payload passed across tabs (e.g. SOFP "View notes" → Financial Reporting Notes).
+  // Cleared when the tab is changed without a payload.
+  const [tabContext, setTabContext] = useState(null);
   
   // Handle tab selection from Navbar - use Sidebar's menuItems as single source of truth for indices
-  const handleTabChange = (tabName) => {
+  const handleTabChange = useCallback((tabName, context = null) => {
     setActiveTab(tabName);
+    setTabContext(context ?? null);
 
     // Use the correct menu set based on selected manager
     const currentMenuItems =
@@ -133,7 +138,7 @@ function App() {
       setActiveSidebarItem(sectionIndex);
       setVisibleTabs(currentMenuItems[sectionIndex].subTopics || []);
     }
-  };
+  }, [selectedManager]);
 
   // Handle manager type change from Sidebar
   const handleManagerChange = (managerType) => {
@@ -182,6 +187,7 @@ function App() {
     'Holiday Settings': <HolidayCalendar mode="settings" />,
     'Funds Centers': <FundsCenters />,
     'View Map': <ViewMap />,
+    'Global Markets': <GlobalMarkets />,
 
     'Buy': <BuyTransactionEntry />,
     'Sell': <SellTransactionEntry setActiveTab={setActiveTab} />,
@@ -244,7 +250,6 @@ function App() {
     'Statement of Financial Position': <FinancialPosition onTabChange={handleTabChange} />,
     'Statement of Comprehensive Income': <StatementOfComprehensiveIncome />,
     'Cash Flow': <CashFlow />,
-    'Financial Reporting Notes': <FinancialReportingNotes />,
     'Equity Portfolio Snapshot': <FinancialReportsExport />,
     'Financial Reports Export': <FinancialReportsDownloadCenter />,
     'Settlement Instructions': <SettlementInstructions />,
@@ -265,6 +270,7 @@ function App() {
   // Handle sidebar selection
   const handleSidebarSelect = (index, subTopics) => {
     setActiveSidebarItem(index);
+    setTabContext(null);
 
     if (Array.isArray(subTopics) && subTopics.length > 0) {
       setVisibleTabs(subTopics);
@@ -395,11 +401,18 @@ function App() {
         {selectedManager === 'equity' && <DynamicHeader />}
 
         <div className={selectedManager === 'wealth' ? 'wm-content' : 'dashboard-content'}>
-          {tabToComponent[activeTab] || (
-            <div style={{ padding: '2rem', textAlign: 'center', color: '#ef4444' }}>
-              <h3>Component Not Found</h3>
-              <p>The requested component is not available.</p>
-            </div>
+          {activeTab === 'Financial Reporting Notes' ? (
+            <FinancialReportingNotes
+              context={tabContext}
+              onTabChange={handleTabChange}
+            />
+          ) : (
+            tabToComponent[activeTab] || (
+              <div style={{ padding: '2rem', textAlign: 'center', color: '#ef4444' }}>
+                <h3>Component Not Found</h3>
+                <p>The requested component is not available.</p>
+              </div>
+            )
           )}
         </div>
       </div>

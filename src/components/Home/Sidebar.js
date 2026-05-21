@@ -73,7 +73,8 @@ export const equityManagerMenuItems = [
     name: "Funds Centers",
     subTopics: [
       "Funds Centers",
-      "View Map"
+      "View Map",
+      "Global Markets"
     ]
   },
   {
@@ -130,9 +131,9 @@ export const equityManagerMenuItems = [
     name: "Financial Reporting",
     subTopics: [
       "Statement of Financial Position",
+      "Financial Reporting Notes",
       "Statement of Comprehensive Income",
-      "Cash Flow",
-      "Financial Reporting Notes"
+      "Cash Flow"
     ]
   },
   {

@@ -36,7 +36,6 @@ const GsecMissingEntries = () => {
     totalRemote: 0,
     totalLocalPairs: 0
   });
-  const [debug, setDebug] = useState(null);
   const [partial, setPartial] = useState({ partial: false, failedPages: 0 });
 
   const loadData = useCallback(async ({ force = false } = {}) => {
@@ -55,14 +54,12 @@ const GsecMissingEntries = () => {
         totalRemote: data.totalRemote ?? 0,
         totalLocalPairs: data.totalLocalPairs ?? 0
       });
-      setDebug(data.debug || null);
       setPartial({ partial: !!data.partial, failedPages: data.failedPages || 0 });
     } catch (err) {
       console.error('Failed to load missing GSec entries:', err);
       setError(err.message || 'Failed to load missing GSec entries');
       setGroups([]);
       setSummary({ totalMissing: 0, totalRemote: 0, totalLocalPairs: 0 });
-      setDebug(null);
       setPartial({ partial: false, failedPages: 0 });
     } finally {
       setLoading(false);
@@ -139,13 +136,6 @@ const GsecMissingEntries = () => {
           Warning: {partial.failedPages} remote page(s) failed to load after retries. Results may be
           incomplete — click Refresh to try again.
         </div>
-      )}
-
-      {debug && (
-        <details className="gsec-debug" style={{ marginBottom: '1rem' }}>
-          <summary>Debug info (sample keys, counts)</summary>
-          <pre>{JSON.stringify(debug, null, 2)}</pre>
-        </details>
       )}
 
       {!loading && !error && groups.length === 0 && (
