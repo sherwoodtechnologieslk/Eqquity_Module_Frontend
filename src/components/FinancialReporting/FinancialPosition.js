@@ -664,8 +664,22 @@ const FinancialPosition = ({ onTabChange }) => {
                   type="button"
                   className="fp-modal-view-notes"
                   onClick={() => {
+                    const ctx = {
+                      source: 'SOFP',
+                      accountCode: selectedAccount?.accountCode || '',
+                      accountName: selectedAccount?.accountName || '',
+                      transactionTypeName: selectedAccount?.transactionTypeName || '',
+                      accountCategory: selectedAccount?.accountCategory || '',
+                      balance: Number(selectedAccount?.balance) || 0,
+                      balanceType: selectedAccount?.balanceType || '',
+                      asOfDate: financialPositionData?.asOfDate || filters.asOfDate,
+                      portfolioId: filters.portfolio || '',
+                      portfolioLabel:
+                        financialPositionData?.portfolio || 'All Portfolios',
+                      displayLabel: getSofpRowLabel(selectedAccount)
+                    };
                     setSelectedAccount(null);
-                    onTabChange?.('Financial Reporting Notes');
+                    onTabChange?.('Financial Reporting Notes', ctx);
                   }}
                 >
                   View notes
