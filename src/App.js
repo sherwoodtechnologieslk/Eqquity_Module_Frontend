@@ -105,6 +105,9 @@ import BlockAnalysisDashboard from './components/PredictiveValuationModel/BlockA
 import AIAssistantDock from './components/AIAssistant/AIAssistantDock';
 import CSEASPIPage from './components/ChartsAndInsights/CSEASPIPage';
 import CSESectorIndicesPage from './components/ChartsAndInsights/CSESectorIndicesPage';
+import AssetRegister from './components/FixedAssets/AssetRegister';
+import AssetEntry from './components/FixedAssets/AssetEntry';
+import AssetCategories from './components/FixedAssets/AssetCategories';
 
 function App() {
   const [activeTab, setActiveTab] = useState('Dashboard');
@@ -265,6 +268,9 @@ function App() {
     'Combined General Ledger': <CombinedGL onTabChange={handleTabChange} />,
     'Combined Trial Balance': <CombinedTrialBalance onTabChange={handleTabChange} />,
     'Account Summaries': <AccountSummaries onTabChange={handleTabChange} />,
+    'Asset Register': <AssetRegister onTabChange={handleTabChange} />,
+    'Add Asset': <AssetEntry onTabChange={handleTabChange} />,
+    'Asset Categories': <AssetCategories onTabChange={handleTabChange} />,
   };
 
   // Handle sidebar selection
@@ -407,12 +413,14 @@ function App() {
               onTabChange={handleTabChange}
             />
           ) : (
-            tabToComponent[activeTab] || (
-              <div style={{ padding: '2rem', textAlign: 'center', color: '#ef4444' }}>
-                <h3>Component Not Found</h3>
-                <p>The requested component is not available.</p>
-              </div>
-            )
+            <div key={activeTab}>
+              {tabToComponent[activeTab] || (
+                <div style={{ padding: '2rem', textAlign: 'center', color: '#ef4444' }}>
+                  <h3>Component Not Found</h3>
+                  <p>The requested component is not available.</p>
+                </div>
+              )}
+            </div>
           )}
         </div>
       </div>

@@ -219,21 +219,26 @@ const Dashboard = ({ onTabChange }) => {
     };
   };
 
-  // Sector color mapping function - Beautiful blue shades
+  // Sector color mapping function - Distinct, high-contrast palette
   const getSectorColor = (index) => {
-    const blueShades = [
-      '#1E40AF', // Deep blue
-      '#3B82F6', // Blue
-      '#60A5FA', // Light blue
-      '#93C5FD', // Lighter blue
-      '#DBEAFE', // Very light blue
-      '#1D4ED8', // Darker blue
-      '#2563EB', // Medium blue
-      '#3B82F6', // Standard blue
-      '#60A5FA', // Light blue
-      '#93C5FD'  // Very light blue
+    const sectorPalette = [
+      '#1E40AF', // Indigo
+      '#10B981', // Emerald
+      '#F59E0B', // Amber
+      '#EF4444', // Red
+      '#8B5CF6', // Violet
+      '#06B6D4', // Cyan
+      '#84CC16', // Lime
+      '#F97316', // Orange
+      '#EC4899', // Pink
+      '#0EA5E9', // Sky
+      '#22C55E', // Green
+      '#A855F7', // Purple
+      '#14B8A6', // Teal
+      '#EAB308', // Yellow
+      '#DC2626'  // Crimson
     ];
-    return blueShades[index % blueShades.length];
+    return sectorPalette[index % sectorPalette.length];
   };
 
   const loadDashboardData = useCallback(async () => {
@@ -833,9 +838,6 @@ const Dashboard = ({ onTabChange }) => {
           <div className="performers-container">
             {dashboardData.topPerformers.map((performer, index) => (
               <div key={index} className="performer-card">
-                <div className="performer-rank">
-                  <span>{index + 1}</span>
-                </div>
                 <div className="performer-info">
                   <div className="performer-symbol">{performer.symbol || 'N/A'}</div>
                   <div className="performer-name">{performer.name || 'Unknown'}</div>
@@ -935,7 +937,7 @@ const Dashboard = ({ onTabChange }) => {
         <div className="right-column">
           {/* P&L Metrics */}
           <div className="pnl-metrics-grid">
-            <div className="pnl-metric-card">
+            <div className="pnl-metric-card pnl-metric-card--realized-gain">
               <svg className="pnl-metric-svg" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
                 <path d="M7.41 15.41L12 10.83l4.59 4.58L18 14l-6-6-6 6z"/>
               </svg>
@@ -948,7 +950,7 @@ const Dashboard = ({ onTabChange }) => {
               </div>
             </div>
 
-            <div className="pnl-metric-card primary">
+            <div className="pnl-metric-card primary pnl-metric-card--realized-pnl">
               <svg className="pnl-metric-svg" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
                 <path d="M16 6l2.29 2.29-4.88 4.88-4-4L2 16.59 3.41 18l6-6 4 4 6.3-6.29L22 12V6z"/>
               </svg>
@@ -961,7 +963,7 @@ const Dashboard = ({ onTabChange }) => {
               </div>
             </div>
 
-            <div className="pnl-metric-card">
+            <div className="pnl-metric-card pnl-metric-card--unrealized-gain">
               <svg className="pnl-metric-svg" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
                 <path d="M12,20A8,8 0 0,0 20,12A8,8 0 0,0 12,4A8,8 0 0,0 4,12A8,8 0 0,0 12,20M12,2A10,10 0 0,1 22,12A10,10 0 0,1 12,22C6.47,22 2,17.5 2,12A10,10 0 0,1 12,2M12.5,7V12.25L17,14.92L16.25,16.15L11,13V7H12.5Z"/>
               </svg>
@@ -974,7 +976,7 @@ const Dashboard = ({ onTabChange }) => {
               </div>
             </div>
 
-            <div className="pnl-metric-card primary">
+            <div className="pnl-metric-card primary pnl-metric-card--unrealized-pnl">
               <svg className="pnl-metric-svg" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
                 <path d="M22,21H2V3H4V19H6V17H10V19H12V16H16V19H18V17H22V21Z"/>
               </svg>
@@ -1139,7 +1141,6 @@ const Dashboard = ({ onTabChange }) => {
           <div className="content-card">
             <div className="card-header">
               <div className="header-left">
-                <h3>Insights & Upcoming (Mock)</h3>
                 <span className="card-subtitle">
                   Sample view for benchmark, events and watchlist
                 </span>
