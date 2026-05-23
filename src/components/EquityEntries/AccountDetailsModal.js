@@ -12,6 +12,9 @@ const AccountDetailsModal = ({ isOpen, onClose, accountCode, accountData, loadEr
     }
   }, [isOpen]);
 
+  const entries = accountData?.entries || [];
+  const showSourceColumn = entries.some((e) => e && e.source);
+
   const handleClose = () => {
     setIsVisible(false);
     setTimeout(onClose, 300);
@@ -57,31 +60,50 @@ const AccountDetailsModal = ({ isOpen, onClose, accountCode, accountData, loadEr
       .join('  •  ');
     if (subtitle) doc.text(subtitle, 40, 50);
 
-    const rows = (accountData.entries || []).map((e) => [
-      formatDate(e.date),
-      e.description || '',
-      e.reference || '',
-      e.debit > 0 ? formatCurrency(e.debit) : '-',
-      e.credit > 0 ? formatCurrency(e.credit) : '-',
-      e.transaction_type || ''
-    ]);
+    const baseHead = ['Date', 'Description', 'Reference', 'Debit', 'Credit', 'Type'];
+    const head = showSourceColumn ? ['Source', ...baseHead] : baseHead;
+
+    const rows = (accountData.entries || []).map((e) => {
+      const base = [
+        formatDate(e.date),
+        e.description || '',
+        e.reference || '',
+        e.debit > 0 ? formatCurrency(e.debit) : '-',
+        e.credit > 0 ? formatCurrency(e.credit) : '-',
+        e.transaction_type || ''
+      ];
+      return showSourceColumn ? [e.source || '', ...base] : base;
+    });
+
+    const baseColumnStyles = {
+      0: { cellWidth: 70 },
+      1: { cellWidth: 240 },
+      2: { cellWidth: 90 },
+      3: { halign: 'right', cellWidth: 70 },
+      4: { halign: 'right', cellWidth: 70 },
+      5: { cellWidth: 90 }
+    };
+    const columnStyles = showSourceColumn
+      ? {
+          0: { cellWidth: 70 },
+          1: { cellWidth: 70 },
+          2: { cellWidth: 220 },
+          3: { cellWidth: 90 },
+          4: { halign: 'right', cellWidth: 70 },
+          5: { halign: 'right', cellWidth: 70 },
+          6: { cellWidth: 90 }
+        }
+      : baseColumnStyles;
 
     autoTable(doc, {
       startY: subtitle ? 66 : 54,
-      head: [['Date', 'Description', 'Reference', 'Debit', 'Credit', 'Type']],
+      head: [head],
       body: rows,
       theme: 'grid',
       styles: { fontSize: 7, cellPadding: 3, valign: 'top' },
       headStyles: { fillColor: [15, 23, 42], textColor: [255, 255, 255], fontStyle: 'bold' },
       alternateRowStyles: { fillColor: [248, 250, 252] },
-      columnStyles: {
-        0: { cellWidth: 70 },
-        1: { cellWidth: 240 },
-        2: { cellWidth: 90 },
-        3: { halign: 'right', cellWidth: 70 },
-        4: { halign: 'right', cellWidth: 70 },
-        5: { cellWidth: 90 }
-      },
+      columnStyles,
       margin: { left: 40, right: 40 }
     });
 
@@ -93,21 +115,22 @@ const AccountDetailsModal = ({ isOpen, onClose, accountCode, accountData, loadEr
     const stamp = new Date().toISOString().slice(0, 10);
     const code = accountData.accountCode || accountCode || 'account';
 
-    const header = ['Date', 'Description', 'Reference', 'Debit', 'Credit', 'Type'];
+    const baseHeader = ['Date', 'Description', 'Reference', 'Debit', 'Credit', 'Type'];
+    const header = showSourceColumn ? ['Source', ...baseHeader] : baseHeader;
     const lines = [
       header.map(csvEscape).join(','),
-      ...(accountData.entries || []).map((e) =>
-        [
+      ...(accountData.entries || []).map((e) => {
+        const base = [
           formatDate(e.date),
           e.description || '',
           e.reference || '',
           e.debit || 0,
           e.credit || 0,
           e.transaction_type || ''
-        ]
-          .map(csvEscape)
-          .join(',')
-      )
+        ];
+        const cells = showSourceColumn ? [e.source || '', ...base] : base;
+        return cells.map(csvEscape).join(',');
+      })
     ];
 
     const blob = new Blob([lines.join('\n')], { type: 'text/csv;charset=utf-8;' });
@@ -279,6 +302,7 @@ const AccountDetailsModal = ({ isOpen, onClose, accountCode, accountData, loadEr
                         <table className="entries-table">
                           <thead>
                             <tr>
+                              {showSourceColumn && <th>Source</th>}
                               <th>Date</th>
                               <th>Description</th>
                               <th>Reference</th>
@@ -290,6 +314,16 @@ const AccountDetailsModal = ({ isOpen, onClose, accountCode, accountData, loadEr
                           <tbody>
                             {accountData.entries.map((entry, index) => (
                               <tr key={index}>
+                                {showSourceColumn && (
+                                  <td>
+                                    <span
+                                      className="entry-source-badge"
+                                      data-source={entry.source || ''}
+                                    >
+                                      {entry.source || '—'}
+                                    </span>
+                                  </td>
+                                )}
                                 <td>{formatDate(entry.date)}</td>
                                 <td>{entry.description}</td>
                                 <td>{entry.reference}</td>

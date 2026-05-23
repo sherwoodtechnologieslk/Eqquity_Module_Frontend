@@ -23,7 +23,7 @@ body {
   flex-direction: column;
   min-width: 0;
   background: #f5f7fa;
-  margin-left: 320px; /* Account for sidebar width */
+  margin-left: 274px; /* Account for sidebar width */
   transition: margin-left 0.3s ease;
   position: relative;
   z-index: 1;
@@ -33,7 +33,7 @@ body {
 .navbar {
   position: fixed;
   top: 0;
-  left: 320px; /* Start where sidebar ends */
+  left: 274px; /* Start where sidebar ends */
   right: 0; /* Extend to the right edge */
   height: 80px; /* Match the margin-top in .dashboard-content */
   background: white;
@@ -54,7 +54,7 @@ body {
   max-width: none;
   margin: 0;
   width: 100%;
-  margin-top: 148px; /* Account for fixed navbar (100px) + spacing (10px) + dynamic header (38px) - minimal gap */
+  margin-top: 132px; /* Account for fixed navbar (84px) + spacing (10px) + dynamic header (38px) - minimal gap */
   padding-top: 0.25rem; /* Minimal top padding to bring content closer */
 }
 
@@ -152,11 +152,11 @@ textarea {
 /* Responsive tweaks */
 @media (max-width: 1200px) {
   .dashboard-main {
-    margin-left: 280px;
+    margin-left: 250px;
   }
   
   .navbar {
-    left: 280px; /* Match sidebar width at this breakpoint */
+    left: 250px; /* Match sidebar width at this breakpoint */
   }
   
   .dashboard-content {
@@ -166,11 +166,11 @@ textarea {
 
 @media (max-width: 900px) {
   .dashboard-main {
-    margin-left: 260px;
+    margin-left: 230px;
   }
   
   .navbar {
-    left: 260px; /* Match sidebar width at this breakpoint */
+    left: 230px; /* Match sidebar width at this breakpoint */
   }
 }
 
@@ -194,7 +194,7 @@ textarea {
   }
   
   .dashboard-content {
-    margin-top: 148px; /* Minimal space for stacked navbar + dynamic header on mobile */
+    margin-top: 132px; /* Minimal space for stacked navbar + dynamic header on mobile */
     padding-top: 0.25rem; /* Minimal top padding */
   }
 }

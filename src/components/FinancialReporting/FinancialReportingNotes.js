@@ -1,32 +1,6 @@
 import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import './Styles/FinancialPosition.css';
-import { accountCategoryAPI, accountReconciliationAPI } from '../../services/api';
-
-/** Display label for account_type */
-const formatAccountType = (t) => {
-  if (!t) return '';
-  return String(t)
-    .trim()
-    .split(/\s+/)
-    .map((w) => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase())
-    .join(' ');
-};
-
-/** Tab label: main category name only (strip subtitle after -, –, -, |, or before '('). */
-const mainCategoryTabLabel = (t) => {
-  if (!t) return '';
-  let s = String(t).trim();
-  for (const d of [' - ', ' – ', ' - ', ' | ']) {
-    const i = s.indexOf(d);
-    if (i > 0) {
-      s = s.slice(0, i).trim();
-      break;
-    }
-  }
-  const paren = s.indexOf(' (');
-  if (paren > 0) s = s.slice(0, paren).trim();
-  return formatAccountType(s);
-};
+import { accountReconciliationAPI } from '../../services/api';
 
 /** Currency formatting for the entries detail table (2dp). */
 const formatAmount = (n) =>
@@ -66,68 +40,6 @@ const sourceBadgeClass = (src) => {
   }
 };
 
-const collectDistinctAccountTypes = (rows) => {
-  const byLower = new Map();
-  for (const row of rows) {
-    const raw = row?.account_type;
-    if (raw == null || String(raw).trim() === '') continue;
-    const trimmed = String(raw).trim();
-    const key = trimmed.toLowerCase();
-    if (!byLower.has(key)) byLower.set(key, trimmed);
-  }
-  return Array.from(byLower.values());
-};
-
-const ACCOUNT_TYPE_ORDER = [
-  'asset',
-  'liability',
-  'equity',
-  'revenue',
-  'expense',
-  'other income',
-  'provisions'
-];
-
-const sortAccountTypes = (types) => {
-  return [...types].sort((a, b) => {
-    const al = a.toLowerCase();
-    const bl = b.toLowerCase();
-    const ia = ACCOUNT_TYPE_ORDER.indexOf(al);
-    const ib = ACCOUNT_TYPE_ORDER.indexOf(bl);
-    if (ia !== -1 && ib !== -1) return ia - ib;
-    if (ia !== -1) return -1;
-    if (ib !== -1) return 1;
-    return a.localeCompare(b, undefined, { sensitivity: 'base' });
-  });
-};
-
-const buildTypeCategoryTree = (allRows, activeKeyLower) => {
-  const rows = allRows.filter((r) => (r.account_type || '').toLowerCase() === activeKeyLower);
-  const categoryOrder = new Map();
-  for (const r of rows) {
-    const raw = (r.category_name || '').trim();
-    if (!raw) continue;
-    const key = raw.toLowerCase();
-    if (!categoryOrder.has(key)) categoryOrder.set(key, raw);
-  }
-  const sortedCatKeys = [...categoryOrder.keys()].sort((a, b) =>
-    categoryOrder.get(a).localeCompare(categoryOrder.get(b), undefined, { sensitivity: 'base' })
-  );
-  return sortedCatKeys.map((catKey) => {
-    const categoryDisplayName = categoryOrder.get(catKey);
-    const txSet = new Set();
-    for (const r of rows) {
-      if ((r.category_name || '').trim().toLowerCase() !== catKey) continue;
-      const tt = (r.transaction_type_name || '').trim();
-      if (tt) txSet.add(tt);
-    }
-    const transactionTypeNames = [...txSet].sort((a, b) =>
-      a.localeCompare(b, undefined, { sensitivity: 'base' })
-    );
-    return { categoryName: categoryDisplayName, transactionTypeNames };
-  });
-};
-
 const sofpContextKey = (ctx) => {
   if (!ctx) return '';
   return [
@@ -139,17 +51,10 @@ const sofpContextKey = (ctx) => {
 };
 
 const FinancialReportingNotes = ({ context = null, onTabChange }) => {
-  const [allRows, setAllRows] = useState([]);
-  const [accountTypes, setAccountTypes] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
-  const [activeAccountType, setActiveAccountType] = useState(null);
-
   const incomingContextKey = sofpContextKey(context);
   const [dismissedContextKey, setDismissedContextKey] = useState('');
   const prevIncomingKeyRef = useRef('');
 
-  // Reset local dismiss when a new SOFP navigation arrives (stable string key, not object ref).
   useEffect(() => {
     if (incomingContextKey && incomingContextKey !== prevIncomingKeyRef.current) {
       setDismissedContextKey('');
@@ -229,54 +134,6 @@ const FinancialReportingNotes = ({ context = null, onTabChange }) => {
     }
   };
 
-  useEffect(() => {
-    let cancelled = false;
-    (async () => {
-      try {
-        setLoading(true);
-        setError('');
-        const [mainCats, txTypes] = await Promise.all([
-          accountCategoryAPI.getAll().catch(() => []),
-          accountCategoryAPI.getAllTransactionTypes().catch(() => [])
-        ]);
-        if (cancelled) return;
-
-        const main = Array.isArray(mainCats) ? mainCats : [];
-        const tx = Array.isArray(txTypes) ? txTypes : [];
-        const merged = [...main, ...tx];
-
-        setAllRows(merged);
-
-        const distinct = sortAccountTypes(collectDistinctAccountTypes(merged));
-        setAccountTypes(distinct);
-        setActiveAccountType((prev) => {
-          if (prev && distinct.some((t) => t.toLowerCase() === prev.toLowerCase())) {
-            return distinct.find((t) => t.toLowerCase() === prev.toLowerCase()) ?? null;
-          }
-          return distinct[0] ?? null;
-        });
-      } catch (e) {
-        if (!cancelled) {
-          setError(e.message || 'Failed to load account categories');
-          setAllRows([]);
-          setAccountTypes([]);
-        }
-      } finally {
-        if (!cancelled) setLoading(false);
-      }
-    })();
-    return () => {
-      cancelled = true;
-    };
-  }, []);
-
-  const activeKey = activeAccountType?.toLowerCase() ?? '';
-
-  const categoryTree = useMemo(
-    () => (activeKey ? buildTypeCategoryTree(allRows, activeKey) : []),
-    [allRows, activeKey]
-  );
-
   return (
     <div className="fp-main-container">
       <div className="fp-content-wrapper">
@@ -286,7 +143,7 @@ const FinancialReportingNotes = ({ context = null, onTabChange }) => {
           </div>
         </div>
 
-        {activeContext && (
+        {activeContext ? (
           <div className="frn-context-panel">
             <div className="frn-context-header">
               <div className="frn-context-title-wrap">
@@ -445,82 +302,12 @@ const FinancialReportingNotes = ({ context = null, onTabChange }) => {
               </>
             )}
           </div>
+        ) : (
+          <div className="frn-empty frn-empty-landing">
+            Open the <strong>Statement of Financial Position</strong>, click a line item,
+            then choose <strong>View notes</strong> to see the GL entries behind that balance.
+          </div>
         )}
-
-        <div className="frn-body">
-          {loading && (
-            <div className="frn-loading">
-              <div className="fp-loading-spinner" />
-              <p className="frn-loading-text">Loading…</p>
-            </div>
-          )}
-
-          {!loading && error && <div className="frn-error">{error}</div>}
-
-          {!loading && !error && accountTypes.length === 0 && (
-            <div className="frn-empty">
-              No rows found in <strong>account_categories</strong> for your user. Add data under Account Categories.
-            </div>
-          )}
-
-          {!loading && !error && accountTypes.length > 0 && (
-            <>
-              <div className="frn-tabs-wrap" role="tablist" aria-label="account_type">
-                <div className="frn-tabs-scroll">
-                  {accountTypes.map((type) => {
-                    const isActive =
-                      activeAccountType != null &&
-                      type.toLowerCase() === (activeAccountType || '').toLowerCase();
-                    return (
-                      <button
-                        key={type.toLowerCase()}
-                        type="button"
-                        role="tab"
-                        aria-selected={isActive}
-                        className={`frn-tab frn-tab-single ${isActive ? 'frn-tab-active' : ''}`}
-                        onClick={() => setActiveAccountType(type)}
-                      >
-                        <span className="frn-tab-label">{mainCategoryTabLabel(type)}</span>
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-
-              <div className="frn-panel" role="tabpanel">
-                {activeAccountType ? (
-                  categoryTree.length > 0 ? (
-                    <div className="frn-tree frn-tree-flat">
-                      <h3 className="frn-mock-block-title">Category structure</h3>
-                      {categoryTree.map(({ categoryName, transactionTypeNames }) => (
-                        <div key={categoryName.toLowerCase()} className="frn-cat-block">
-                          <h3 className="frn-cat-title">{categoryName}</h3>
-                          {transactionTypeNames.length > 0 ? (
-                            <ul className="frn-tx-only-list">
-                              {transactionTypeNames.map((tt) => (
-                                <li key={tt}>{tt}</li>
-                              ))}
-                            </ul>
-                          ) : (
-                            <p className="frn-sub-empty">
-                              No transaction_type_name for this category_name (main category row only, or empty).
-                            </p>
-                          )}
-                        </div>
-                      ))}
-                    </div>
-                  ) : (
-                    <p className="frn-panel-placeholder">
-                      No <strong>category_name</strong> for this <strong>account_type</strong> in account_categories.
-                    </p>
-                  )
-                ) : (
-                  <p className="frn-panel-placeholder">Select an account type tab above.</p>
-                )}
-              </div>
-            </>
-          )}
-        </div>
       </div>
     </div>
   );

@@ -125,6 +125,19 @@ export const equityManagerMenuItems = [
   {
     icon: (
       <svg fill="currentColor" viewBox="0 0 20 20">
+        <path fillRule="evenodd" d="M4 4a2 2 0 012-2h8a2 2 0 012 2v12a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm3 2a1 1 0 000 2h6a1 1 0 100-2H7zm0 4a1 1 0 100 2h6a1 1 0 100-2H7zm0 4a1 1 0 100 2h3a1 1 0 100-2H7z" clipRule="evenodd"/>
+      </svg>
+    ),
+    name: "Fixed Assets",
+    subTopics: [
+      "Asset Register",
+      "Add Asset",
+      "Asset Categories"
+    ]
+  },
+  {
+    icon: (
+      <svg fill="currentColor" viewBox="0 0 20 20">
         <path d="M4 3a1 1 0 00-1 1v12a1 1 0 001 1h12a1 1 0 001-1V9.414a1 1 0 00-.293-.707l-4.414-4.414A1 1 0 0011.586 4H4z"/>
       </svg>
     ),
