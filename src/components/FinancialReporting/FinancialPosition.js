@@ -459,14 +459,7 @@ const FinancialPosition = ({ onTabChange }) => {
                     </thead>
                     <tbody>
                       {(displayedAssetBuckets.nonCurrentAssets || []).map((account, index) =>
-                        renderAccountRow(
-                          {
-                            ...account,
-                            accountName: account.accountCategory || account.accountName
-                          },
-                          index,
-                          'DR'
-                        )
+                        renderAccountRow(account, index, 'DR')
                       )}
                       {displayedAssetBuckets.nonCurrentAssets.length > 0 &&
                         renderSubtotalRow(
