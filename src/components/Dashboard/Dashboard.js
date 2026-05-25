@@ -219,24 +219,27 @@ const Dashboard = ({ onTabChange }) => {
     };
   };
 
-  // Sector color mapping function - Distinct, high-contrast palette
+  // Sector color mapping function — Balanced multi-hue
+  // Mid-saturation tones (~50-60%): more presence than fully muted, but
+  // avoids neon greens and bright reds. Hover state still highlights with
+  // a more vivid version (see DashboardSectorMixChart.js).
   const getSectorColor = (index) => {
     const sectorPalette = [
-      '#1E40AF', // Indigo
-      '#10B981', // Emerald
-      '#F59E0B', // Amber
-      '#EF4444', // Red
-      '#8B5CF6', // Violet
-      '#06B6D4', // Cyan
-      '#84CC16', // Lime
-      '#F97316', // Orange
-      '#EC4899', // Pink
-      '#0EA5E9', // Sky
-      '#22C55E', // Green
-      '#A855F7', // Purple
-      '#14B8A6', // Teal
-      '#EAB308', // Yellow
-      '#DC2626'  // Crimson
+      '#3B6FA8', // Steel blue
+      '#4F9669', // Forest green
+      '#D89E3A', // Warm amber
+      '#C9624E', // Terracotta (replaces bright red)
+      '#7B5FBF', // Indigo violet
+      '#3FA0A8', // Teal
+      '#8AA83C', // Olive green
+      '#D77B45', // Burnt orange
+      '#B85F8E', // Berry pink
+      '#3F8FCF', // Sky blue
+      '#5FA877', // Sage green (replaces neon green)
+      '#A06FCB', // Purple
+      '#3F9C8E', // Sea teal
+      '#C49A2E', // Goldenrod
+      '#A65349'  // Brick
     ];
     return sectorPalette[index % sectorPalette.length];
   };
