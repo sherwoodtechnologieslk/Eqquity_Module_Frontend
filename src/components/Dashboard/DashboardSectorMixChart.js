@@ -47,26 +47,10 @@ const enhance = (hex) => {
   return hslToHex(h, Math.min(95, s + 20), Math.max(8, Math.min(92, l - 6)));
 };
 
-// Compact LKR formatter for the donut center.
-const formatLkrCompact = (value) => {
-  const n = Number(value) || 0;
-  const sign = n < 0 ? '-' : '';
-  const abs = Math.abs(n);
-  if (abs >= 1e9) return `${sign}LKR ${(abs / 1e9).toFixed(2)}B`;
-  if (abs >= 1e6) return `${sign}LKR ${(abs / 1e6).toFixed(2)}M`;
-  if (abs >= 1e3) return `${sign}LKR ${(abs / 1e3).toFixed(1)}K`;
-  return `${sign}LKR ${abs.toLocaleString('en-US', { maximumFractionDigits: 0 })}`;
-};
-
 /**
  * Sector mix doughnut for the dashboard — Chart.js pilot (replaces inline SVG pie).
  */
 function DashboardSectorMixChart({ sectorData, totalCompanies }) {
-  const totalValue = useMemo(
-    () => (sectorData || []).reduce((acc, s) => acc + (Number(s.value) || 0), 0),
-    [sectorData]
-  );
-
   const chartData = useMemo(() => {
     if (!sectorData?.length) return null;
     return {
@@ -77,11 +61,10 @@ function DashboardSectorMixChart({ sectorData, totalCompanies }) {
           backgroundColor: sectorData.map((s) => s.color),
           hoverBackgroundColor: sectorData.map((s) => enhance(s.color)),
           borderColor: '#ffffff',
-          borderWidth: 3,
+          borderWidth: 2,
           hoverBorderColor: '#ffffff',
           hoverBorderWidth: 3,
-          hoverOffset: 12,
-          spacing: 1
+          hoverOffset: 10
         }
       ]
     };
@@ -92,28 +75,20 @@ function DashboardSectorMixChart({ sectorData, totalCompanies }) {
       responsive: true,
       maintainAspectRatio: true,
       aspectRatio: 1,
-      cutout: '62%',
+      cutout: '37%',
       layout: {
-        padding: 6
+        padding: 4
       },
       plugins: {
         legend: {
           display: false
         },
         tooltip: {
-          backgroundColor: 'rgba(15, 23, 42, 0.95)',
-          titleColor: '#f8fafc',
-          bodyColor: '#e2e8f0',
+          backgroundColor: 'rgba(15, 23, 42, 0.92)',
           titleFont: { size: 12, weight: '600' },
-          bodyFont: { size: 12, weight: '500' },
-          padding: { top: 8, right: 12, bottom: 8, left: 12 },
-          cornerRadius: 6,
-          displayColors: true,
-          boxWidth: 10,
-          boxHeight: 10,
-          boxPadding: 6,
-          borderColor: 'rgba(255, 255, 255, 0.08)',
-          borderWidth: 1,
+          bodyFont: { size: 12 },
+          padding: 10,
+          cornerRadius: 4,
           callbacks: {
             title: (items) => (items[0]?.label != null ? String(items[0].label) : ''),
             label: (ctx) => {
@@ -125,7 +100,7 @@ function DashboardSectorMixChart({ sectorData, totalCompanies }) {
                 minimumFractionDigits: 0,
                 maximumFractionDigits: 0
               }).format(raw);
-              return ` LKR ${formatted}  •  ${pct}%`;
+              return `LKR ${formatted} (${pct}%)`;
             }
           }
         }
@@ -146,18 +121,13 @@ function DashboardSectorMixChart({ sectorData, totalCompanies }) {
     );
   }
 
-  const sectorCount = totalCompanies ?? sectorData.length;
-
   return (
     <div className="pie-chart pie-chart--chartjs">
       <div className="pie-chart__canvas-wrap">
         <Doughnut data={chartData} options={options} />
         <div className="pie-chart__center" aria-hidden>
-          <span className="pie-chart__center-pill">
-            {sectorCount} {sectorCount === 1 ? 'Sector' : 'Sectors'}
-          </span>
-          <span className="pie-chart__center-num">{formatLkrCompact(totalValue)}</span>
-          <span className="pie-chart__center-label">Total value</span>
+          <span className="pie-chart__center-num">{totalCompanies ?? sectorData.length}</span>
+          <span className="pie-chart__center-label">Sectors</span>
         </div>
       </div>
     </div>
