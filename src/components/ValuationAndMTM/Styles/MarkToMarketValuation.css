@@ -1442,16 +1442,16 @@
 .mtm-table {
   width: 100%;
   border-collapse: collapse;
-  font-size: 0.875rem;
+  font-size: 0.75rem;
 }
 
 .mtm-table th {
   background: linear-gradient(135deg, #3b82f6, #2563eb);
   color: white;
-  padding: 1rem;
+  padding: 0.55rem 0.75rem;
   text-align: left;
   font-weight: 600;
-  font-size: 0.875rem;
+  font-size: 0.7rem;
   text-transform: uppercase;
   letter-spacing: 0.05em;
   position: sticky;
@@ -1460,7 +1460,7 @@
 }
 
 .mtm-table td {
-  padding: 1rem;
+  padding: 0.5rem 0.75rem;
   border-bottom: 1px solid #f1f5f9;
   color: #374151;
 }
@@ -1680,12 +1680,12 @@
   }
   
   .mtm-table-container {
-    font-size: 0.75rem;
+    font-size: 0.7rem;
   }
   
   .mtm-table th,
   .mtm-table td {
-    padding: 0.75rem 0.5rem;
+    padding: 0.4rem 0.4rem;
   }
   
   /* Performance Analysis Responsive */
