@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import './Styles/CSEAnnouncements.css';
+import NewsEvents from './NewsEvents';
 
 const CSEAnnouncements = () => {
   const [announcements, setAnnouncements] = useState([]);
@@ -157,7 +158,9 @@ const CSEAnnouncements = () => {
 
       {/* Content */}
       <div className="cse-content">
-        {isLoading ? (
+        {activeTab === 'news-events' ? (
+          <NewsEvents />
+        ) : isLoading ? (
           <div className="loading-container">
             <div className="loading-spinner"></div>
             <p>Loading announcements...</p>

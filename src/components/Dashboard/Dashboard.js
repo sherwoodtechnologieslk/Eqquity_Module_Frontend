@@ -13,7 +13,9 @@ import { realizedPnLService } from '../../services/realizedPnLService';
 import { authService } from '../../services/authService';
 import RiskReturnScatterPlot from './RiskReturnScatterPlot';
 import DashboardSectorMixChart from './DashboardSectorMixChart';
+import MarketNewsWidget from './MarketNewsWidget';
 import './Dashboard.css';
+import './LatestActivityCard.css';
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, Tooltip, Legend);
 
@@ -853,87 +855,124 @@ const Dashboard = ({ onTabChange }) => {
           </div>
         </div>
 
+        {/* Market News (NewsAPI) */}
+        <MarketNewsWidget onOpenFull={() => onTabChange && onTabChange('News & Events')} />
+
         {/* Recent Transactions */}
-        <div className="content-card">
-          <div className="card-header">
-            <div className="header-left">
-              <span className="card-subtitle">Latest trading activity</span>
-            </div>
-          </div>
-          <div className="transactions-container">
-            {dashboardData.recentTransactions && dashboardData.recentTransactions.length > 0 ? (
-              <>
-                {dashboardData.recentTransactions.slice(0, 7).map(transaction => (
-                  <div
-                    key={transaction.id}
-                    className={`transaction-card ${
-                      (transaction.type || 'BUY') === 'SELL' ? 'sell' : 'buy'
-                    }`}
-                  >
-                    <div className="transaction-left">
-                      <div
-                        className={`transaction-badge ${
-                          (transaction.type || 'BUY').toLowerCase() === 'sell'
-                            ? 'sell'
-                            : 'buy'
-                        }`}
-                      >
-                        {transaction.type || 'BUY'}
-                      </div>
-                      <div className="transaction-date">
-                        {transaction.date
-                          ? new Date(transaction.date).toLocaleDateString('en-US', {
-                              month: 'short',
-                              day: 'numeric'
-                            })
-                          : 'N/A'}
-                      </div>
-                    </div>
-                    <div className="transaction-center">
-                      <div className="transaction-symbol">{transaction.symbol || 'N/A'}</div>
-                      {transaction.company && transaction.company !== 'N/A' && (
-                        <div className="transaction-company">{transaction.company}</div>
-                      )}
-                    </div>
-                    <div className="transaction-right">
-                      <div className="transaction-quantity">
-                        {Number(transaction.quantity || 0).toLocaleString('en-US', {
-                          minimumFractionDigits: 2,
-                          maximumFractionDigits: 2
-                        })}{' '}
-                        shares
-                      </div>
-                      <div
-                        className={`transaction-price ${
-                          (transaction.type || 'BUY') === 'SELL' ? 'sell' : 'buy'
-                        }`}
-                      >
-                        {Number(
-                          transaction.type === 'SELL'
-                            ? transaction.sold_price || transaction.price || 0
-                            : transaction.price || 0
-                        ).toLocaleString('en-US', {
-                          minimumFractionDigits: 2,
-                          maximumFractionDigits: 4
-                        })}
-                      </div>
-                    </div>
+        {(() => {
+          const recentTx = dashboardData.recentTransactions || [];
+          const buyCount = recentTx.filter(
+            (t) => (t.type || 'BUY').toUpperCase() === 'BUY'
+          ).length;
+          const sellCount = recentTx.filter(
+            (t) => (t.type || 'BUY').toUpperCase() === 'SELL'
+          ).length;
+
+          return (
+            <div className="content-card latest-activity-card">
+              <div className="card-header latest-activity-card__header">
+                <div className="latest-activity-card__heading">
+                  <div className="latest-activity-card__heading-text">
+                    <h3 className="latest-activity-card__title-text">
+                      Latest trading activity
+                    </h3>
+                    <span className="latest-activity-card__subtitle-text">
+                      Recent buys &amp; sells across your portfolios
+                    </span>
                   </div>
-                ))}
-              </>
-            ) : (
-              <div className="empty-state">
-                <div className="empty-icon">
-                  <svg viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-5 14H7v-2h7v2zm3-4H7v-2h10v2zm0-4H7V7h10v2z"/>
-                  </svg>
                 </div>
-                <p>No recent transactions</p>
-                <span>Start trading to see activity here</span>
+                {recentTx.length > 0 && (
+                  <div className="latest-activity-card__stats">
+                    <span className="latest-activity-card__stat latest-activity-card__stat--buy">
+                      <span className="latest-activity-card__stat-dot" />
+                      {buyCount} Buys
+                    </span>
+                    <span className="latest-activity-card__stat latest-activity-card__stat--sell">
+                      <span className="latest-activity-card__stat-dot" />
+                      {sellCount} Sells
+                    </span>
+                  </div>
+                )}
               </div>
-            )}
-          </div>
-        </div>
+
+              <div className="latest-activity-card__body transactions-container">
+                {recentTx.length > 0 ? (
+                  recentTx.slice(0, 7).map((transaction) => (
+                    <div
+                      key={transaction.id}
+                      className={`transaction-card ${
+                        (transaction.type || 'BUY') === 'SELL' ? 'sell' : 'buy'
+                      }`}
+                    >
+                      <div className="transaction-left">
+                        <div
+                          className={`transaction-badge ${
+                            (transaction.type || 'BUY').toLowerCase() === 'sell'
+                              ? 'sell'
+                              : 'buy'
+                          }`}
+                        >
+                          {transaction.type || 'BUY'}
+                        </div>
+                        <div className="transaction-date">
+                          {transaction.date
+                            ? new Date(transaction.date).toLocaleDateString('en-US', {
+                                month: 'short',
+                                day: 'numeric'
+                              })
+                            : 'N/A'}
+                        </div>
+                      </div>
+                      <div className="transaction-center">
+                        <div className="transaction-symbol">
+                          {transaction.symbol || 'N/A'}
+                        </div>
+                        {transaction.company && transaction.company !== 'N/A' && (
+                          <div className="transaction-company">{transaction.company}</div>
+                        )}
+                      </div>
+                      <div className="transaction-right">
+                        <div className="transaction-quantity">
+                          {Number(transaction.quantity || 0).toLocaleString('en-US', {
+                            minimumFractionDigits: 2,
+                            maximumFractionDigits: 2
+                          })}{' '}
+                          shares
+                        </div>
+                        <div
+                          className={`transaction-price ${
+                            (transaction.type || 'BUY') === 'SELL' ? 'sell' : 'buy'
+                          }`}
+                        >
+                          {Number(
+                            transaction.type === 'SELL'
+                              ? transaction.sold_price || transaction.price || 0
+                              : transaction.price || 0
+                          ).toLocaleString('en-US', {
+                            minimumFractionDigits: 2,
+                            maximumFractionDigits: 4
+                          })}
+                        </div>
+                      </div>
+                    </div>
+                  ))
+                ) : (
+                  <div className="latest-activity-card__empty">
+                    <div className="latest-activity-card__empty-icon">
+                      <svg viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-5 14H7v-2h7v2zm3-4H7v-2h10v2zm0-4H7V7h10v2z" />
+                      </svg>
+                    </div>
+                    <p className="latest-activity-card__empty-title">No recent transactions</p>
+                    <span className="latest-activity-card__empty-text">
+                      Start trading to see activity here
+                    </span>
+                  </div>
+                )}
+              </div>
+            </div>
+          );
+        })()}
       </div>
 
         {/* Right Column */}

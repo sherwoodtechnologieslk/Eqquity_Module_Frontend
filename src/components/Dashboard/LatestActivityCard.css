@@ -1,0 +1,238 @@
+/* Latest trading activity container — modern dashboard card.
+   Mirrors the visual language of MarketNewsWidget (squared corners,
+   gradient accent strip, icon-led header) so the dashboard cards feel
+   like a family. */
+
+.latest-activity-card {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 0;
+    box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04), 0 8px 24px rgba(15, 23, 42, 0.04);
+    overflow: hidden;
+    font-family: 'Inter', sans-serif;
+    position: relative;
+    transition: box-shadow 0.2s ease;
+
+    /* Reset content-card paddings/before since we manage layout ourselves. */
+    padding: 0 !important;
+}
+
+.latest-activity-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, #22c55e 0%, #3b82f6 50%, #ef4444 100%);
+    z-index: 2;
+}
+
+/* ---------- Header ---------- */
+.latest-activity-card__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 1rem 1.1rem 0.85rem;
+    border-bottom: 1px solid #f1f5f9;
+    margin: 0 !important;
+}
+
+.latest-activity-card__heading {
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+    min-width: 0;
+}
+
+.latest-activity-card__icon {
+    width: 32px;
+    height: 32px;
+    background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
+    color: #1e40af;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex: 0 0 auto;
+    border-radius: 0;
+}
+
+.latest-activity-card__heading-text {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+}
+
+.latest-activity-card__title-text {
+    margin: 0;
+    font-size: 0.98rem;
+    font-weight: 700;
+    color: #0f172a;
+    letter-spacing: -0.01em;
+}
+
+.latest-activity-card__subtitle-text {
+    font-size: 0.72rem;
+    color: #64748b;
+    font-weight: 500;
+}
+
+.latest-activity-card__stats {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    flex: 0 0 auto;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+}
+
+.latest-activity-card__stat {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    padding: 0.32rem 0.6rem;
+    border: 1px solid #e2e8f0;
+    background: #f8fafc;
+    font-size: 0.72rem;
+    font-weight: 700;
+    color: #475569;
+    line-height: 1;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+
+.latest-activity-card__stat--buy {
+    background: rgba(34, 197, 94, 0.1);
+    color: #166534;
+    border-color: rgba(34, 197, 94, 0.25);
+}
+
+.latest-activity-card__stat--sell {
+    background: rgba(239, 68, 68, 0.1);
+    color: #991b1b;
+    border-color: rgba(239, 68, 68, 0.25);
+}
+
+.latest-activity-card__stat-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: currentColor;
+}
+
+/* ---------- Body / rows ---------- */
+.latest-activity-card__body {
+    padding: 0.7rem 1.1rem 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+/* The inner .transaction-card / .transaction-* classes still come from
+   Dashboard.css; we only nudge a few details when nested in our card. */
+.latest-activity-card .transaction-card {
+    border-radius: 0;
+    border-color: #eef2f6;
+    padding: 0.75rem 0.9rem 0.75rem 1rem;
+    background: #ffffff;
+    transition: background-color 0.15s ease, border-color 0.15s ease, transform 0.15s ease,
+        box-shadow 0.15s ease;
+}
+
+.latest-activity-card .transaction-card::before {
+    width: 3px;
+    top: 0;
+    bottom: 0;
+}
+
+.latest-activity-card .transaction-card:hover {
+    background: #f8fafc;
+    border-color: #cbd5e1;
+    transform: none;
+    box-shadow: none;
+}
+
+.latest-activity-card .transaction-badge {
+    padding: 0.22rem 0.55rem;
+    font-size: 0.62rem;
+}
+
+.latest-activity-card .transaction-date {
+    color: #94a3b8;
+    font-size: 0.72rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+
+.latest-activity-card .transaction-symbol {
+    font-size: 0.95rem;
+}
+
+.latest-activity-card .transaction-company {
+    font-size: 0.74rem;
+    color: #94a3b8;
+    font-weight: 500;
+}
+
+.latest-activity-card .transaction-quantity {
+    font-size: 0.78rem;
+    color: #64748b;
+    font-weight: 600;
+}
+
+.latest-activity-card .transaction-price {
+    font-size: 0.95rem;
+    font-weight: 800;
+}
+
+/* ---------- Empty state inside the card ---------- */
+.latest-activity-card__empty {
+    padding: 2.25rem 1rem;
+    text-align: center;
+    color: #64748b;
+}
+
+.latest-activity-card__empty-icon {
+    width: 48px;
+    height: 48px;
+    margin: 0 auto 0.6rem;
+    background: #f1f5f9;
+    color: #94a3b8;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.latest-activity-card__empty-icon svg {
+    width: 22px;
+    height: 22px;
+}
+
+.latest-activity-card__empty-title {
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: #475569;
+    margin: 0 0 0.2rem;
+}
+
+.latest-activity-card__empty-text {
+    font-size: 0.8rem;
+    color: #94a3b8;
+}
+
+/* ---------- Responsive ---------- */
+@media (max-width: 480px) {
+    .latest-activity-card__header {
+        padding: 0.85rem 0.9rem;
+        flex-wrap: wrap;
+    }
+    .latest-activity-card__stats {
+        width: 100%;
+        justify-content: flex-start;
+    }
+    .latest-activity-card__body {
+        padding: 0.6rem 0.85rem 0.9rem;
+    }
+}
