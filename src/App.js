@@ -71,6 +71,7 @@ import RecentActivity from './components/RecentActivity/RecentActivity';
 import PerformanceMetrics from './components/PerformanceMetrics/PerformanceMetrics';
 import MarketAnnouncements from './components/CSEAnnouncements/MarketAnnouncements';
 import CorporateNotices from './components/CSEAnnouncements/CorporateNotices';
+import NewsEvents from './components/CSEAnnouncements/NewsEvents';
 import FinancialPosition from './components/FinancialReporting/FinancialPosition';
 import StatementOfComprehensiveIncome from './components/FinancialReporting/StatementOfComprehensiveIncome';
 import CashFlow from './components/FinancialReporting/CashFlow';
@@ -265,6 +266,7 @@ function App() {
     'Avg Cost Calculator': <AvgCostCalculator />,
     'Market Announcements': <MarketAnnouncements />,
     'Corporate Notices': <CorporateNotices />,
+    'News & Events': <NewsEvents />,
     'TradeCore': <TradeCore />,
     'Statement of Financial Position': <FinancialPosition onTabChange={handleTabChange} />,
     'Statement of Comprehensive Income': <StatementOfComprehensiveIncome />,
