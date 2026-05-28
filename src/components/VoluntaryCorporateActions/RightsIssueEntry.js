@@ -155,8 +155,6 @@ const RightsIssueEntry = () => {
       ['subscriptionEnd', 'Subscription End']
     ],
     entitlement: [
-      ['portfolioCode', 'Portfolio Code'],
-      ['clientName', 'Client Name'],
       ['sharesHeld', 'Shares Held on Record Date']
     ],
     subscription: [],
@@ -275,16 +273,10 @@ const RightsIssueEntry = () => {
 
   const renderMaster = () => (
     <>
-      <SectionHeader title="Security Details" />
+      <SectionHeader title="Security & Offer" />
       <div className="rights-form-grid">
-        <Field label="Rights Issue Reference No" name="rightsRefNo" placeholder="e.g. RI-2026-001" />
         <Field label="Security Code" name="securityCode" placeholder="e.g. JKH.N" required />
         <Field label="Security Name" name="securityName" placeholder="Enter security name" required />
-        <Field label="Rights Security Code (Tradable)" name="rightsSecurityCode" placeholder="Temporary rights symbol" />
-      </div>
-
-      <SectionHeader title="Ratio & Pricing" />
-      <div className="rights-form-grid">
         <div className="rights-field-group">
           <label className="rights-field-label">
             Rights Ratio <span className="rights-required">*</span>
@@ -306,10 +298,10 @@ const RightsIssueEntry = () => {
               className="rights-form-input"
             />
           </div>
-          <span className="rights-help-text">Numerator : Denominator (e.g. 1 : 5)</span>
+          <span className="rights-help-text">e.g. 1 : 5 (1 new share per 5 held)</span>
         </div>
-        <Field label="Issue Price (LKR)" name="issuePrice" type="number" placeholder="Enter offer price" required />
-        <Field label="Market Price on Announcement (LKR)" name="marketPrice" type="number" placeholder="Optional" />
+        <Field label="Issue Price (LKR)" name="issuePrice" type="number" placeholder="Discounted price per share" required />
+        <Field label="Market Price on Announcement (LKR)" name="marketPrice" type="number" placeholder="Optional reference" />
         <div className="rights-field-group">
           <label className="rights-field-label">Discount %</label>
           <input
@@ -322,19 +314,174 @@ const RightsIssueEntry = () => {
             placeholder="Auto-calculated"
             className="rights-form-input calculated"
           />
+          <span className="rights-help-text">(Market − Issue) ÷ Market × 100</span>
         </div>
       </div>
 
-      <SectionHeader title="Important Dates" />
+      <SectionHeader title="Key Dates" />
       <div className="rights-form-grid">
         <Field label="Announcement Date" name="announcementDate" type="date" required />
         <Field label="Record Date" name="recordDate" type="date" required />
         <Field label="Ex-Rights Date" name="exRightsDate" type="date" required />
         <Field label="Subscription Start" name="subscriptionStart" type="date" required />
         <Field label="Subscription End" name="subscriptionEnd" type="date" required />
-        <Field label="Last Trading Date of Rights" name="rightsLastTradingDate" type="date" />
         <Field label="Allotment Date" name="allotmentDate" type="date" />
         <Field label="CDS Credit Date" name="cdsCreditDate" type="date" />
+      </div>
+
+      <SectionHeader title="My Holding & Entitlement" />
+      <div className="rights-form-grid">
+        <Field label="Portfolio (Optional)" name="portfolioCode" placeholder="Pick a portfolio if you use multiple" />
+        <Field
+          label="Shares Held on Record Date"
+          name="sharesHeld"
+          type="number"
+          placeholder="Shares you owned on record date"
+          required
+        />
+        <div className="rights-field-group">
+          <label className="rights-field-label">Rights Entitlement (Raw)</label>
+          <input
+            readOnly
+            value={
+              toNumber(form.rightsRatioDen) > 0
+                ? formatNumber(computed.rawEntitlement, 4)
+                : ''
+            }
+            placeholder="Auto-calculated"
+            className="rights-form-input calculated"
+          />
+          <span className="rights-help-text">Shares Held × Numerator ÷ Denominator</span>
+        </div>
+        <div className="rights-field-group">
+          <label className="rights-field-label">Rounded Entitlement</label>
+          <input
+            readOnly
+            value={
+              toNumber(form.rightsRatioDen) > 0
+                ? formatNumber(computed.roundedEntitlement, 0)
+                : ''
+            }
+            placeholder="Auto-calculated"
+            className="rights-form-input calculated"
+          />
+          <span className="rights-help-text">Final rights shares you can buy</span>
+        </div>
+        <div className="rights-field-group">
+          <label className="rights-field-label">Rights Value (LKR)</label>
+          <input
+            readOnly
+            value={
+              toNumber(form.issuePrice) > 0
+                ? formatNumber(computed.rightsValue, 2)
+                : ''
+            }
+            placeholder="Auto-calculated"
+            className="rights-form-input calculated"
+          />
+          <span className="rights-help-text">Cost to take up the full entitlement</span>
+        </div>
+      </div>
+
+      <SectionHeader title="My Subscription & Payment" />
+      <div className="rights-form-grid">
+        <Field
+          label="Accepted Quantity"
+          name="acceptedQty"
+          type="number"
+          placeholder="How many you'll take up"
+        />
+        <Field
+          label="Excess Rights Applied"
+          name="excessApplied"
+          type="number"
+          placeholder="Extra shares you're applying for"
+        />
+        <div className="rights-field-group">
+          <label className="rights-field-label">Amount Payable (LKR)</label>
+          <input
+            readOnly
+            value={
+              toNumber(form.acceptedQty) > 0 && toNumber(form.issuePrice) > 0
+                ? formatNumber(computed.amountPayable, 2)
+                : ''
+            }
+            placeholder="Auto-calculated"
+            className="rights-form-input calculated"
+          />
+          <span className="rights-help-text">Accepted Qty × Issue Price</span>
+        </div>
+        <Field
+          label="Amount Paid (LKR)"
+          name="amountPaid"
+          type="number"
+          placeholder="Amount actually paid"
+        />
+        <Field label="Payment Date" name="paymentDate" type="date" />
+      </div>
+
+      <SectionHeader title="Allotment & Result" />
+      <div className="rights-form-grid">
+        <Field
+          label="Entitlement Allotted"
+          name="entitlementAllotted"
+          type="number"
+          placeholder="Shares granted from entitlement"
+        />
+        <Field
+          label="Excess Allotted"
+          name="excessAllotted"
+          type="number"
+          placeholder="Extra shares granted"
+        />
+        <div className="rights-field-group">
+          <label className="rights-field-label">Total Allotted</label>
+          <input
+            readOnly
+            value={formatNumber(computed.totalAllotted, 0)}
+            placeholder="Auto-calculated"
+            className="rights-form-input calculated"
+          />
+          <span className="rights-help-text">Entitlement + Excess allotted</span>
+        </div>
+        <div className="rights-field-group">
+          <label className="rights-field-label">Refund Amount (LKR)</label>
+          <input
+            readOnly
+            value={formatNumber(computed.refundAmount, 2)}
+            placeholder="Auto-calculated"
+            className="rights-form-input calculated"
+          />
+          <span className="rights-help-text">If you paid more than shares allotted</span>
+        </div>
+        <Field
+          label="Existing Holding Qty"
+          name="oldQty"
+          type="number"
+          placeholder="Shares held before allotment"
+        />
+        <Field
+          label="Existing Avg Cost (LKR)"
+          name="oldAvgCost"
+          type="number"
+          placeholder="Current average cost per share"
+        />
+        <div className="rights-field-group">
+          <label className="rights-field-label">New Average Cost (LKR)</label>
+          <input
+            readOnly
+            value={
+              toNumber(form.oldQty) + computed.totalAllotted > 0
+                ? formatNumber(computed.newAvgCost, 4)
+                : ''
+            }
+            placeholder="Auto-calculated"
+            className="rights-form-input calculated"
+          />
+          <span className="rights-help-text">
+            (Old Qty × Old Cost + Allotted × Issue Price) ÷ (Old Qty + Allotted)
+          </span>
+        </div>
       </div>
     </>
   );

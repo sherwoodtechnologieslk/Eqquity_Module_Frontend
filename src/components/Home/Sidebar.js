@@ -274,7 +274,8 @@ export const equityManagerMenuItems = [
       "Risk Management Chart",
       "Share Price Prediction",
       "Prediction Indicators",
-      "Block Analysis Dashboard"
+      "Block Analysis Dashboard",
+      "ML Stock Predictor"
     ]
   },
   {
