@@ -60,7 +60,15 @@ const makeAuthenticatedRequest = async (url, options = {}) => {
         let errorMessage = `HTTP error! status: ${response.status}`;
         try {
             const errorData = await response.json();
-            errorMessage = errorData.error || errorData.message || errorMessage;
+            // Prefer detail (FastAPI / ML proxy) over generic wrapper text
+            errorMessage =
+                errorData.detail ||
+                errorData.message ||
+                errorData.error ||
+                errorMessage;
+            if (typeof errorMessage === 'object') {
+                errorMessage = JSON.stringify(errorMessage);
+            }
         } catch (e) {
             // If response is not JSON, use default error message
         }
@@ -3055,3 +3063,171 @@ export const aiChatAPI = {
     });
   },
 };
+
+/**
+ * CSE Stock ML predictions (Python FastAPI behind the Node.js backend).
+ * Proxied at /api/ml/* — see Equity_module_Backend/routes/mlPredictionRoutes.js
+ */
+export const mlPredictionAPI = {
+  /** Probe the ML service. Returns { ok, ml_service, ml_service_url }. */
+  health: async () => {
+    const res = await fetch(`${API_BASE_URL}/ml/health`);
+    if (!res.ok) throw new Error(`Health check failed (${res.status})`);
+    return res.json();
+  },
+
+  /** Model availability + most recent training summary. */
+  status: async () => {
+    return await makeAuthenticatedRequest(`${API_BASE_URL}/ml/status`, {
+      method: 'GET',
+    });
+  },
+
+  /**
+   * Re-train all models from one or many CSV / TSV files.
+   * @param {File|File[]} fileOrFiles Single file or array of File objects
+   * @returns {Promise<object>} { message, files_processed, summary }
+   */
+  train: async (fileOrFiles) => {
+    const token = localStorage.getItem('token');
+    if (!token) throw new Error('Not authenticated');
+
+    const list = Array.isArray(fileOrFiles) ? fileOrFiles : [fileOrFiles];
+    if (!list.length) throw new Error('Select at least one file to upload.');
+
+    const form = new FormData();
+    list.forEach((f) => form.append('files', f));
+
+    const res = await fetch(`${API_BASE_URL}/ml/train`, {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${token}` },
+      body: form,
+    });
+    if (!res.ok) {
+      const errBody = await res.json().catch(() => ({}));
+      throw new Error(errBody.detail || errBody.error || `Train failed (${res.status})`);
+    }
+    return res.json();
+  },
+
+  /**
+   * Predict for a single stock row.
+   * payload = { company?, symbol?, open, high, low, prev_close,
+   *             last_trade?, share_volume?, trade_volume? }
+   */
+  predict: async (payload) => {
+    return await makeAuthenticatedRequest(`${API_BASE_URL}/ml/predict`, {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    });
+  },
+
+  // Notebook reproduction endpoints (require trained models)
+  eda: async () =>
+    makeAuthenticatedRequest(`${API_BASE_URL}/ml/eda`, { method: 'GET' }),
+  correlation: async () =>
+    makeAuthenticatedRequest(`${API_BASE_URL}/ml/correlation`, { method: 'GET' }),
+  classificationDetails: async () =>
+    makeAuthenticatedRequest(`${API_BASE_URL}/ml/classification/details`, { method: 'GET' }),
+  regressionDetails: async () =>
+    makeAuthenticatedRequest(`${API_BASE_URL}/ml/regression/details`, { method: 'GET' }),
+  clusteringDetails: async () =>
+    makeAuthenticatedRequest(`${API_BASE_URL}/ml/clustering/details`, { method: 'GET' }),
+  anomalyDetails: async () =>
+    makeAuthenticatedRequest(`${API_BASE_URL}/ml/anomaly/details`, { method: 'GET' }),
+  volatilityDetails: async () =>
+    makeAuthenticatedRequest(`${API_BASE_URL}/ml/volatility/details`, { method: 'GET' }),
+
+  /** Paginated/filtered all-stocks results table. */
+  results: async ({ limit = 0, onlyAnomalies = false, clusterLabel = '', search = '' } = {}) => {
+    const qs = new URLSearchParams();
+    if (limit) qs.set('limit', limit);
+    if (onlyAnomalies) qs.set('only_anomalies', 'true');
+    if (clusterLabel) qs.set('cluster_label', clusterLabel);
+    if (search) qs.set('search', search);
+    const url = `${API_BASE_URL}/ml/results${qs.toString() ? `?${qs}` : ''}`;
+    return makeAuthenticatedRequest(url, { method: 'GET' });
+  },
+
+  /** Trigger CSV download of full enriched dataset. */
+  downloadResultsCsv: async () => {
+    await _downloadCsv(`${API_BASE_URL}/ml/results.csv`, 'cse_ml_results.csv');
+  },
+
+  /**
+   * Buy signals (Notebook Cell 13) — sorted by buy_score then gainer_probability.
+   * Filters: { limit, recommendation, minScore, clusterLabel, search }
+   */
+  recommendations: async ({
+    limit = 0,
+    recommendation = '',
+    minScore = null,
+    clusterLabel = '',
+    search = '',
+  } = {}) => {
+    const qs = new URLSearchParams();
+    if (limit) qs.set('limit', limit);
+    if (recommendation) qs.set('recommendation', recommendation);
+    if (minScore !== null && minScore !== '') qs.set('min_score', minScore);
+    if (clusterLabel) qs.set('cluster_label', clusterLabel);
+    if (search) qs.set('search', search);
+    const url = `${API_BASE_URL}/ml/recommendations${qs.toString() ? `?${qs}` : ''}`;
+    return makeAuthenticatedRequest(url, { method: 'GET' });
+  },
+
+  downloadRecommendationsCsv: async () => {
+    await _downloadCsv(
+      `${API_BASE_URL}/ml/recommendations.csv`,
+      'stock_buy_recommendations.csv'
+    );
+  },
+
+  /**
+   * Next-day buy signals — one row per company.
+   * Filters: { limit, recommendation, minProbability, search }
+   * recommendation is one of STRONG BUY | BUY | WATCH | AVOID.
+   * minProbability is between 0 and 1.
+   */
+  nextDay: async ({
+    limit = 0,
+    recommendation = '',
+    minProbability = null,
+    search = '',
+  } = {}) => {
+    const qs = new URLSearchParams();
+    if (limit) qs.set('limit', limit);
+    if (recommendation) qs.set('recommendation', recommendation);
+    if (minProbability !== null && minProbability !== '') {
+      qs.set('min_probability', minProbability);
+    }
+    if (search) qs.set('search', search);
+    const url = `${API_BASE_URL}/ml/next-day${qs.toString() ? `?${qs}` : ''}`;
+    return makeAuthenticatedRequest(url, { method: 'GET' });
+  },
+
+  downloadNextDayCsv: async () => {
+    await _downloadCsv(
+      `${API_BASE_URL}/ml/next-day.csv`,
+      'next_day_recommendations.csv'
+    );
+  },
+};
+
+async function _downloadCsv(url, filename) {
+  const token = localStorage.getItem('token');
+  if (!token) throw new Error('Not authenticated');
+  const res = await fetch(url, { headers: { Authorization: `Bearer ${token}` } });
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({}));
+    throw new Error(body.detail || body.error || `CSV download failed (${res.status})`);
+  }
+  const blob = await res.blob();
+  const objUrl = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = objUrl;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(objUrl);
+}

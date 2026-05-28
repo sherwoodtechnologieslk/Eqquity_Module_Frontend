@@ -102,6 +102,7 @@ import RiskManagementChart from './components/PredictiveValuationModel/RiskManag
 import SharePricePrediction from './components/PredictiveValuationModel/SharePricePrediction';
 import PredictionIndicators from './components/PredictiveValuationModel/PredictionIndicators';
 import BlockAnalysisDashboard from './components/PredictiveValuationModel/BlockAnalysisDashboard';
+import MLStockPrediction from './components/PredictiveValuationModel/MLStockPrediction';
 import AIAssistantDock from './components/AIAssistant/AIAssistantDock';
 import CSEASPIPage from './components/ChartsAndInsights/CSEASPIPage';
 import CSESectorIndicesPage from './components/ChartsAndInsights/CSESectorIndicesPage';
@@ -222,6 +223,7 @@ function App() {
     'Share Price Prediction': <SharePricePrediction />,
     'Prediction Indicators': <PredictionIndicators />,
     'Block Analysis Dashboard': <BlockAnalysisDashboard />,
+    'ML Stock Predictor': <MLStockPrediction />,
 
     'Dividend': <DividendEntry/>,
     'Dividends': <DividendEntry/>, // Alias for Mandatory Corporate Actions
