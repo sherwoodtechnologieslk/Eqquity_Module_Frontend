@@ -1,5 +1,7 @@
-  import React, { useState, useEffect, useMemo } from 'react';
+  import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import { createPortal } from 'react-dom';
+import jsPDF from 'jspdf';
+import html2canvas from 'html2canvas';
 import './Styles/OtherTransactions.css';
 import { accountAPI, otherTransactionAPI, otherTransactionGLEntryAPI, glAccountMappingAPI, otherTransactionTypeAPI, chartOfAccountsAPI, accountCategoryAPI } from '../../services/api';
 import { authService } from '../../services/authService';
@@ -32,8 +34,8 @@ const generateLiabilitySettlementVoucherNumber = () => {
   return `LS-${year}${month}${day}-${hour}${minute}${second}`;
 };
 
-/** Letterhead shown on printable Payment Voucher / Payment Advice — edit to match your organisation. */
-const PAYMENT_VOUCHER_LETTERHEAD = {
+// Letterhead used by all printable documents (Voucher / Invoice / Request Letter)
+const PRINT_LETTERHEAD = {
   companyName: 'SHERWOOD TECHNOLOGIES (PVT) LTD',
   registrationNo: '',
   addressLine: '',
@@ -43,86 +45,236 @@ const PAYMENT_VOUCHER_LETTERHEAD = {
 };
 
 const formatDateDdMmYyyy = (value) => {
-  if (!value || typeof value !== 'string') return '—';
-  const s = value.substring(0, 10);
+  if (!value) return '—';
+  const s = String(value).substring(0, 10);
   const m = s.match(/^(\d{4})-(\d{2})-(\d{2})$/);
   if (m) return `${m[3]}-${m[2]}-${m[1]}`;
   return s;
 };
 
-const mapGlRowsToVoucherLines = (entries) => {
-  if (!Array.isArray(entries)) return [];
-  return entries
-    .map((e) => {
-      const debit = parseFloat(e.debit) || 0;
-      const credit = parseFloat(e.credit) || 0;
-      if (debit > 0) {
-        return {
-          accountDesc: e.account_name || '—',
-          accountNo: e.account_code || '—',
-          drCr: 'DR',
-          amount: debit
-        };
-      }
-      if (credit > 0) {
-        return {
-          accountDesc: e.account_name || '—',
-          accountNo: e.account_code || '—',
-          drCr: 'CR',
-          amount: credit
-        };
-      }
-      return null;
-    })
-    .filter(Boolean);
+const formatAmount = (value) => {
+  const n = parseFloat(value);
+  if (!Number.isFinite(n)) return '—';
+  return n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 };
 
-/** Approximates journal lines for draft preview (Create Voucher) when GL is not yet posted. */
-const buildDraftJournalLinesFromForm = (form) => {
-  const amt = parseFloat(form.amount);
-  if (!Number.isFinite(amt) || amt <= 0) return [];
-
-  const bankDesc = [form.paymentBankName, form.paymentBranchName, form.paymentAccountName, form.paymentAccountNumber]
-    .filter(Boolean)
-    .join(' · ') || 'Bank / Cash';
-  const txnDesc = [form.transactionType, form.coaDescription, form.glAccountCode].filter(Boolean).join(' · ') || 'Transaction account';
-  const codeTxn = form.glAccountCode || '—';
-  const codeBank = '—';
-
-  const cat = String(form.category || '').toLowerCase().trim();
-  const isIncome =
-    cat === 'revenue' || cat === 'otherincome' || cat === 'other income' || cat === 'income';
-  const isExpense = cat === 'expense' || cat === 'provisions';
-  const isAsset = cat === 'asset';
-  const isLiabilityFamily = cat === 'liability' || cat === 'equity';
-  const isLiabilitySettlement =
-    isLiabilityFamily &&
-    String(form.transactionType || '')
-      .toLowerCase()
-      .includes('settlement');
-
-  if (isIncome) {
-    return [
-      { accountDesc: bankDesc, accountNo: codeBank, drCr: 'DR', amount: amt },
-      { accountDesc: txnDesc, accountNo: codeTxn, drCr: 'CR', amount: amt }
-    ];
+const numberToWords = (num) => {
+  const n = Math.floor(Math.abs(parseFloat(num) || 0));
+  if (n === 0) return 'Zero';
+  const ones = ['', 'One', 'Two', 'Three', 'Four', 'Five', 'Six', 'Seven', 'Eight', 'Nine',
+    'Ten', 'Eleven', 'Twelve', 'Thirteen', 'Fourteen', 'Fifteen', 'Sixteen', 'Seventeen', 'Eighteen', 'Nineteen'];
+  const tens = ['', '', 'Twenty', 'Thirty', 'Forty', 'Fifty', 'Sixty', 'Seventy', 'Eighty', 'Ninety'];
+  const chunk = (x) => {
+    let s = '';
+    if (x >= 100) { s += ones[Math.floor(x / 100)] + ' Hundred '; x %= 100; }
+    if (x >= 20) { s += tens[Math.floor(x / 10)] + (x % 10 ? '-' + ones[x % 10] : '') + ' '; }
+    else if (x > 0) { s += ones[x] + ' '; }
+    return s;
+  };
+  let result = '';
+  const scales = ['', 'Thousand', 'Million', 'Billion'];
+  let scaleIdx = 0;
+  let remaining = n;
+  while (remaining > 0) {
+    const part = remaining % 1000;
+    if (part) result = chunk(part) + (scales[scaleIdx] ? scales[scaleIdx] + ' ' : '') + result;
+    remaining = Math.floor(remaining / 1000);
+    scaleIdx++;
   }
-  if (isExpense || isAsset || (isLiabilityFamily && isLiabilitySettlement)) {
-    return [
-      { accountDesc: txnDesc, accountNo: codeTxn, drCr: 'DR', amount: amt },
-      { accountDesc: bankDesc, accountNo: codeBank, drCr: 'CR', amount: amt }
-    ];
+  return result.trim();
+};
+
+// Reusable CSS shared between the in-modal renderer and the print-only window
+const INLINE_DOC_STYLE = `
+  .inline-doc-print-wrap, .inline-doc-render {
+    font-family: 'Times New Roman', Times, serif; color: #111; background: #fff;
   }
-  if (isLiabilityFamily) {
-    return [
-      { accountDesc: bankDesc, accountNo: codeBank, drCr: 'DR', amount: amt },
-      { accountDesc: txnDesc, accountNo: codeTxn, drCr: 'CR', amount: amt }
-    ];
+  .inline-doc-render { padding: 14px 18px; }
+  .inline-doc-print-wrap { padding: 24px 28px; max-width: 780px; margin: 0 auto; }
+  .inline-doc-render .lh, .inline-doc-print-wrap .lh { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; border-bottom: 2px solid #111; padding-bottom: 8px; }
+  .inline-doc-render .co-name, .inline-doc-print-wrap .co-name { font-size: 14pt; font-weight: 700; }
+  .inline-doc-render .co-meta, .inline-doc-print-wrap .co-meta { font-size: 8pt; color: #374151; margin-top: 2px; }
+  .inline-doc-render .logo, .inline-doc-print-wrap .logo { font-size: 12pt; font-weight: 800; color: #1e40af; text-align: right; max-width: 40%; }
+  .inline-doc-render .doc-title, .inline-doc-print-wrap .doc-title { text-align: center; margin: 14px 0 10px; font-size: 12pt; font-weight: 700; text-decoration: underline; text-underline-offset: 4px; letter-spacing: 0.04em; }
+  .inline-doc-render .meta, .inline-doc-print-wrap .meta { margin: 8px 0 12px; font-size: 9.5pt; }
+  .inline-doc-render .meta .row, .inline-doc-print-wrap .meta .row { display: flex; gap: 6px; margin-bottom: 4px; flex-wrap: wrap; }
+  .inline-doc-render .meta .label, .inline-doc-print-wrap .meta .label { font-weight: 600; min-width: 110px; color: #374151; }
+  .inline-doc-render .meta .value, .inline-doc-print-wrap .meta .value { flex: 1; }
+  .inline-doc-render table.t, .inline-doc-print-wrap table.t { width: 100%; border-collapse: collapse; margin: 10px 0; font-size: 9pt; }
+  .inline-doc-render table.t th, .inline-doc-render table.t td,
+  .inline-doc-print-wrap table.t th, .inline-doc-print-wrap table.t td { border: 1px solid #333; padding: 5px 7px; vertical-align: top; text-align: left; }
+  .inline-doc-render table.t th, .inline-doc-print-wrap table.t th { background: #f3f4f6; font-weight: 700; }
+  .inline-doc-render table.t td.num, .inline-doc-render table.t th.num,
+  .inline-doc-print-wrap table.t td.num, .inline-doc-print-wrap table.t th.num { text-align: right; white-space: nowrap; }
+  .inline-doc-render table.t td.center, .inline-doc-render table.t th.center,
+  .inline-doc-print-wrap table.t td.center, .inline-doc-print-wrap table.t th.center { text-align: center; }
+  .inline-doc-render .totals td, .inline-doc-print-wrap .totals td { font-weight: 700; }
+  .inline-doc-render .note, .inline-doc-print-wrap .note { font-size: 8.5pt; color: #4b5563; margin: 6px 0 0; }
+  .inline-doc-render .body-text, .inline-doc-print-wrap .body-text { font-size: 10pt; line-height: 1.55; margin: 8px 0; text-align: justify; }
+  .inline-doc-render .body-text p, .inline-doc-print-wrap .body-text p { margin: 0 0 8px; }
+  .inline-doc-render .signoff, .inline-doc-print-wrap .signoff { margin-top: 28px; font-size: 9.5pt; }
+  .inline-doc-render .signoff .line, .inline-doc-print-wrap .signoff .line { border-bottom: 1px solid #111; width: 180px; min-height: 22px; margin: 18px 0 4px; }
+  .inline-doc-render .signoff .lbl, .inline-doc-print-wrap .signoff .lbl { font-weight: 700; }
+  .inline-doc-render .signatures, .inline-doc-print-wrap .signatures { margin-top: 22px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; font-size: 8pt; }
+  .inline-doc-render .signatures .sig-line, .inline-doc-print-wrap .signatures .sig-line { border-bottom: 1px dotted #555; min-height: 26px; margin-top: 4px; }
+  @media print {
+    body.inline-doc-printing > *:not(.inline-doc-print-anchor) { display: none !important; }
+    body.inline-doc-printing .inline-doc-print-anchor { display: block !important; }
   }
-  return [
-    { accountDesc: txnDesc, accountNo: codeTxn, drCr: 'DR', amount: amt },
-    { accountDesc: bankDesc, accountNo: codeBank, drCr: 'CR', amount: amt }
-  ];
+`;
+
+const buildLetterheadHtml = () => {
+  const meta = [
+    PRINT_LETTERHEAD.registrationNo && `Company Registration No. ${PRINT_LETTERHEAD.registrationNo}`,
+    PRINT_LETTERHEAD.addressLine,
+    [
+      PRINT_LETTERHEAD.phone && `T: ${PRINT_LETTERHEAD.phone}`,
+      PRINT_LETTERHEAD.fax && `F: ${PRINT_LETTERHEAD.fax}`,
+      PRINT_LETTERHEAD.email && `E: ${PRINT_LETTERHEAD.email}`
+    ].filter(Boolean).join(' | ')
+  ].filter(Boolean).map((m) => `<div class="co-meta">${m}</div>`).join('');
+  const logoMark = (PRINT_LETTERHEAD.companyName.split(' ')[0] || '—');
+  return `<div class="lh">
+    <div>
+      <div class="co-name">${PRINT_LETTERHEAD.companyName}</div>
+      ${meta}
+    </div>
+    <div class="logo">${logoMark}</div>
+  </div>`;
+};
+
+const buildPaymentVoucherDoc = (form, glLines) => {
+  const lines = Array.isArray(glLines) && glLines.length
+    ? glLines.map((e) => {
+        const debit = parseFloat(e.debit) || 0;
+        const credit = parseFloat(e.credit) || 0;
+        if (debit > 0) return { desc: e.account_name || '—', no: e.account_code || '—', dc: 'DR', amt: debit };
+        if (credit > 0) return { desc: e.account_name || '—', no: e.account_code || '—', dc: 'CR', amt: credit };
+        return null;
+      }).filter(Boolean)
+    : [];
+  const totalDr = lines.filter((r) => r.dc === 'DR').reduce((s, r) => s + r.amt, 0);
+  const totalCr = lines.filter((r) => r.dc === 'CR').reduce((s, r) => s + r.amt, 0);
+
+  const linesHtml = lines.length
+    ? lines.map((r) => `<tr><td>${r.desc}</td><td>${r.no}</td><td class="center">${r.dc}</td><td class="num">${formatAmount(r.amt)}</td></tr>`).join('')
+    : `<tr><td colspan="4" class="center" style="color:#6b7280">No journal lines recorded.</td></tr>`;
+
+  return `${buildLetterheadHtml()}
+  <div class="doc-title">PAYMENT VOUCHER</div>
+  <div class="meta">
+    <div class="row"><span class="label">Date:</span><span class="value">${formatDateDdMmYyyy(form.date)}</span></div>
+    <div class="row"><span class="label">Voucher No:</span><span class="value">${form.voucherNumber || '—'}</span></div>
+    <div class="row"><span class="label">Payee:</span><span class="value">${form.counterparty || '—'}</span></div>
+    <div class="row"><span class="label">Payment Type:</span><span class="value">${String(form.paymentMethod || '—').toUpperCase()}</span></div>
+    <div class="row"><span class="label">Narration:</span><span class="value">${form.description || '—'}</span></div>
+    <div class="row"><span class="label">Document Attached:</span><span class="value">${form.reference ? `Inv no: ${form.reference}` : '—'}</span></div>
+  </div>
+  <table class="t">
+    <thead><tr><th>Account Description</th><th>Account No</th><th class="center">DR/CR</th><th class="num">Amount</th></tr></thead>
+    <tbody>
+      ${linesHtml}
+      ${lines.length ? `
+      <tr class="totals"><td colspan="3" style="text-align:right">Total Debit</td><td class="num">${formatAmount(totalDr)}</td></tr>
+      <tr class="totals"><td colspan="3" style="text-align:right">Total Credit</td><td class="num">${formatAmount(totalCr)}</td></tr>` : ''}
+    </tbody>
+  </table>
+  <div class="note">Amounts stated in ${form.currency || 'LKR'}.</div>
+  <div class="meta" style="margin-top:14px">
+    <div class="row"><span class="label">Branch Account:</span><span class="value">${form.paymentAccountNumber || '—'}</span></div>
+    <div class="row"><span class="label">Bank / Branch:</span><span class="value">${[form.paymentBankName, form.paymentBranchName].filter(Boolean).join(' · ') || '—'}</span></div>
+    <div class="row"><span class="label">Value:</span><span class="value">${formatAmount(form.amount)} ${form.currency || ''}</span></div>
+  </div>
+  <div class="signoff">
+    <div>Yours faithfully</div>
+    <div class="line"></div>
+    <div class="lbl">Authorised Signatory</div>
+  </div>
+  <div class="signatures">
+    ${['Prepared by', 'Approved by', '1st signatory', '2nd signatory', 'Received with thanks', 'Date']
+      .map((l) => `<div><div>${l}</div><div class="sig-line"></div></div>`).join('')}
+  </div>`;
+};
+
+const buildInvoiceDoc = (form) => {
+  const qty = 1;
+  const unit = parseFloat(form.amount) || 0;
+  const total = qty * unit;
+  const desc = form.description || form.transactionType || 'Service / Goods supplied';
+  return `${buildLetterheadHtml()}
+  <div class="doc-title">INVOICE</div>
+  <div class="meta">
+    <div class="row"><span class="label">Invoice No:</span><span class="value">${form.reference || form.voucherNumber || '—'}</span></div>
+    <div class="row"><span class="label">Invoice Date:</span><span class="value">${formatDateDdMmYyyy(form.date)}</span></div>
+    <div class="row"><span class="label">Bill To:</span><span class="value">${form.counterparty || '—'}</span></div>
+    <div class="row"><span class="label">Reference:</span><span class="value">${form.voucherNumber || '—'}</span></div>
+  </div>
+  <table class="t">
+    <thead><tr><th>#</th><th>Description</th><th class="center">Qty</th><th class="num">Unit Price (${form.currency || 'LKR'})</th><th class="num">Amount (${form.currency || 'LKR'})</th></tr></thead>
+    <tbody>
+      <tr>
+        <td class="center">1</td>
+        <td>${desc}</td>
+        <td class="center">${qty}</td>
+        <td class="num">${formatAmount(unit)}</td>
+        <td class="num">${formatAmount(total)}</td>
+      </tr>
+      <tr class="totals"><td colspan="4" style="text-align:right">Sub Total</td><td class="num">${formatAmount(total)}</td></tr>
+      <tr class="totals"><td colspan="4" style="text-align:right">Total Payable</td><td class="num">${formatAmount(total)} ${form.currency || ''}</td></tr>
+    </tbody>
+  </table>
+  <div class="body-text">
+    <p><strong>Amount in words:</strong> ${numberToWords(total)} ${form.currency || ''} only.</p>
+    <p><strong>Payment Terms:</strong> ${form.paymentMethod ? String(form.paymentMethod).toUpperCase() : 'As per agreement.'}</p>
+    ${form.notes ? `<p><strong>Notes:</strong> ${form.notes}</p>` : ''}
+  </div>
+  <div class="signoff">
+    <div>For ${PRINT_LETTERHEAD.companyName}</div>
+    <div class="line"></div>
+    <div class="lbl">Authorised Signatory</div>
+  </div>`;
+};
+
+const buildRequestLetterDoc = (form) => {
+  const todayStr = formatDateDdMmYyyy(getToday());
+  const recipient = form.counterparty || form.paymentBankName || 'The Manager';
+  const bankLine = [form.paymentBankName, form.paymentBranchName].filter(Boolean).join(', ');
+  const accountLine = [form.paymentAccountName, form.paymentAccountNumber].filter(Boolean).join(' - ');
+  const amt = formatAmount(form.amount);
+  const subjectRef = form.reference || form.voucherNumber || '';
+  return `${buildLetterheadHtml()}
+  <div class="doc-title">REQUEST LETTER</div>
+  <div class="meta">
+    <div class="row"><span class="label">Date:</span><span class="value">${todayStr}</span></div>
+    <div class="row"><span class="label">Ref:</span><span class="value">${form.voucherNumber || '—'}</span></div>
+  </div>
+  <div class="body-text">
+    <p>To,<br/>${recipient}${bankLine ? `<br/>${bankLine}` : ''}</p>
+    <p><strong>Subject: Request for ${form.transactionType || 'transaction processing'}${subjectRef ? ` (Ref: ${subjectRef})` : ''}</strong></p>
+    <p>Dear Sir/Madam,</p>
+    <p>
+      We, <strong>${PRINT_LETTERHEAD.companyName}</strong>, kindly request you to process the
+      following ${form.transactionType ? form.transactionType.toLowerCase() : 'transaction'} on our behalf:
+    </p>
+    <p>
+      <strong>Amount:</strong> ${form.currency || 'LKR'} ${amt}
+      ${Number.isFinite(parseFloat(form.amount)) ? `(${numberToWords(form.amount)} ${form.currency || ''} only)` : ''}<br/>
+      ${accountLine ? `<strong>Account:</strong> ${accountLine}<br/>` : ''}
+      ${form.description ? `<strong>Purpose:</strong> ${form.description}<br/>` : ''}
+      ${form.cashFlowOnSettlement ? `<strong>Settlement Note:</strong> ${form.cashFlowOnSettlement}<br/>` : ''}
+    </p>
+    <p>
+      Please debit the relevant account and arrange the settlement accordingly. We confirm that the
+      funds are available and the necessary internal approvals have been obtained.
+    </p>
+    <p>Thank you for your prompt attention to this matter.</p>
+    <p>Yours faithfully,</p>
+  </div>
+  <div class="signoff" style="margin-top:14px">
+    <div>For ${PRINT_LETTERHEAD.companyName}</div>
+    <div class="line"></div>
+    <div class="lbl">Authorised Signatory</div>
+  </div>`;
 };
 
 const OtherTransactions = () => {
@@ -189,10 +341,38 @@ const OtherTransactions = () => {
   const [accounts, setAccounts] = useState([]);
   const [accountsLoading, setAccountsLoading] = useState(true);
   const [showPreviewModal, setShowPreviewModal] = useState(false);
-  const [previewModalVoucherId, setPreviewModalVoucherId] = useState(null);
-  const [previewGlLines, setPreviewGlLines] = useState([]);
-  const [previewGlLoading, setPreviewGlLoading] = useState(false);
   const [accountsWithMapping, setAccountsWithMapping] = useState([]); // Accounts that have GL mappings
+
+  // Inline (in-modal) Voucher / Invoice / Request Letter document state
+  const [inlineDocType, setInlineDocType] = useState(null); // 'voucher' | 'invoice' | 'letter' | null
+  const [inlineDocHtml, setInlineDocHtml] = useState('');
+  const [inlineDocTitle, setInlineDocTitle] = useState('');
+  const [inlineDocEditing, setInlineDocEditing] = useState(false);
+  const [inlineDocPdfLoading, setInlineDocPdfLoading] = useState(false);
+  const [inlineDocFmtState, setInlineDocFmtState] = useState({ bold: false, italic: false, underline: false });
+  const inlineDocRef = useRef(null);
+
+  // Inject the shared inline-document stylesheet once
+  useEffect(() => {
+    const id = 'inline-doc-shared-style';
+    if (document.getElementById(id)) return;
+    const styleEl = document.createElement('style');
+    styleEl.id = id;
+    styleEl.innerHTML = INLINE_DOC_STYLE;
+    document.head.appendChild(styleEl);
+  }, []);
+
+  // Imperatively set the inline document HTML when a *new* document is generated.
+  // Using ref-based assignment (instead of dangerouslySetInnerHTML) so the contents
+  // are NOT overwritten on every re-render — that's what was wiping the user's edits.
+  useEffect(() => {
+    if (!inlineDocRef.current) return;
+    if (inlineDocType && inlineDocHtml) {
+      inlineDocRef.current.innerHTML = inlineDocHtml;
+    } else {
+      inlineDocRef.current.innerHTML = '';
+    }
+  }, [inlineDocType, inlineDocHtml]);
 
   // Holidays for date validation
   const [holidays, setHolidays] = useState([]);
@@ -859,62 +1039,6 @@ const OtherTransactions = () => {
       loadCoA();
     }
   }, [activeTab, activeFormType]);
-
-  useEffect(() => {
-    if (!showPreviewModal) {
-      setPreviewGlLines([]);
-      setPreviewGlLoading(false);
-      return;
-    }
-    if (!previewModalVoucherId) {
-      setPreviewGlLines([]);
-      setPreviewGlLoading(false);
-      return;
-    }
-    let cancelled = false;
-    setPreviewGlLoading(true);
-    otherTransactionGLEntryAPI
-      .getEntriesByTransactionId(previewModalVoucherId)
-      .then((data) => {
-        if (!cancelled) setPreviewGlLines(Array.isArray(data) ? data : []);
-      })
-      .catch(() => {
-        if (!cancelled) setPreviewGlLines([]);
-      })
-      .finally(() => {
-        if (!cancelled) setPreviewGlLoading(false);
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, [showPreviewModal, previewModalVoucherId]);
-
-  const formalVoucherTableLines = useMemo(() => {
-    if (previewModalVoucherId) {
-      if (previewGlLines.length > 0) return mapGlRowsToVoucherLines(previewGlLines);
-      if (!previewGlLoading) return buildDraftJournalLinesFromForm(form);
-      return [];
-    }
-    return buildDraftJournalLinesFromForm(form);
-  }, [previewModalVoucherId, previewGlLines, previewGlLoading, form]);
-
-  const formalVoucherTotals = useMemo(() => {
-    const debit = formalVoucherTableLines.filter((r) => r.drCr === 'DR').reduce((s, r) => s + r.amount, 0);
-    const credit = formalVoucherTableLines.filter((r) => r.drCr === 'CR').reduce((s, r) => s + r.amount, 0);
-    return { debit, credit };
-  }, [formalVoucherTableLines]);
-
-  const letterheadContactLine = useMemo(
-    () =>
-      [
-        PAYMENT_VOUCHER_LETTERHEAD.phone && `T: ${PAYMENT_VOUCHER_LETTERHEAD.phone}`,
-        PAYMENT_VOUCHER_LETTERHEAD.fax && `F: ${PAYMENT_VOUCHER_LETTERHEAD.fax}`,
-        PAYMENT_VOUCHER_LETTERHEAD.email && `E: ${PAYMENT_VOUCHER_LETTERHEAD.email}`
-      ]
-        .filter(Boolean)
-        .join(' | '),
-    []
-  );
 
   // Fetch general ledger entries for Other Transactions only
   const fetchGeneralLedger = async () => {
@@ -2520,8 +2644,191 @@ const isVoucherSettled = (voucher) => {
 
   const closePreviewModal = () => {
     setShowPreviewModal(false);
-    setPreviewModalVoucherId(null);
-    setPreviewGlLines([]);
+    setInlineDocType(null);
+    setInlineDocHtml('');
+    setInlineDocEditing(false);
+  };
+
+  const handleGenerateVoucher = async () => {
+    let glLines = [];
+    try {
+      const user = authService.getStoredUser();
+      const userEmail = user?.email || '';
+      if (form.voucherNumber && userEmail) {
+        const all = await otherTransactionAPI.getTransactionsByUser(userEmail);
+        const match = (all || []).find((t) => t.voucher_number === form.voucherNumber);
+        if (match?.id) {
+          glLines = await otherTransactionGLEntryAPI.getEntriesByTransactionId(match.id);
+        }
+      }
+    } catch (err) {
+      console.warn('Could not fetch GL entries for voucher print:', err);
+    }
+    setInlineDocTitle(`Payment Voucher - ${form.voucherNumber || ''}`);
+    setInlineDocHtml(buildPaymentVoucherDoc(form, glLines));
+    setInlineDocType('voucher');
+    setInlineDocEditing(false);
+  };
+
+  const handleGenerateInvoice = () => {
+    setInlineDocTitle(`Invoice - ${form.reference || form.voucherNumber || ''}`);
+    setInlineDocHtml(buildInvoiceDoc(form));
+    setInlineDocType('invoice');
+    setInlineDocEditing(false);
+  };
+
+  const handleGenerateRequestLetter = () => {
+    setInlineDocTitle(`Request Letter - ${form.voucherNumber || ''}`);
+    setInlineDocHtml(buildRequestLetterDoc(form));
+    setInlineDocType('letter');
+    setInlineDocEditing(false);
+  };
+
+  const handleInlineDocBack = () => {
+    setInlineDocType(null);
+    setInlineDocHtml('');
+    setInlineDocEditing(false);
+  };
+
+  const toggleInlineDocEdit = () => {
+    const next = !inlineDocEditing;
+    setInlineDocEditing(next);
+    if (next && inlineDocRef.current) {
+      setTimeout(() => inlineDocRef.current && inlineDocRef.current.focus(), 0);
+    }
+  };
+
+  const inlineDocFmt = useCallback((cmd) => {
+    if (!inlineDocEditing) return;
+    try { document.execCommand(cmd, false, null); } catch (e) {}
+    if (inlineDocRef.current) inlineDocRef.current.focus();
+    try {
+      setInlineDocFmtState({
+        bold: document.queryCommandState('bold'),
+        italic: document.queryCommandState('italic'),
+        underline: document.queryCommandState('underline')
+      });
+    } catch (e) {}
+  }, [inlineDocEditing]);
+
+  useEffect(() => {
+    if (!inlineDocEditing) return;
+    const handler = () => {
+      try {
+        setInlineDocFmtState({
+          bold: document.queryCommandState('bold'),
+          italic: document.queryCommandState('italic'),
+          underline: document.queryCommandState('underline')
+        });
+      } catch (e) {}
+    };
+    const keyHandler = (e) => {
+      if (!inlineDocRef.current) return;
+      const inside = inlineDocRef.current.contains(document.activeElement) || inlineDocRef.current === document.activeElement;
+      if (!inside) return;
+      const key = e.key && e.key.toLowerCase();
+      if ((e.ctrlKey || e.metaKey) && (key === 'b' || key === 'i' || key === 'u')) {
+        e.preventDefault();
+        inlineDocFmt(key === 'b' ? 'bold' : key === 'i' ? 'italic' : 'underline');
+      }
+    };
+    document.addEventListener('selectionchange', handler);
+    document.addEventListener('keyup', handler);
+    document.addEventListener('mouseup', handler);
+    document.addEventListener('keydown', keyHandler);
+    return () => {
+      document.removeEventListener('selectionchange', handler);
+      document.removeEventListener('keyup', handler);
+      document.removeEventListener('mouseup', handler);
+      document.removeEventListener('keydown', keyHandler);
+    };
+  }, [inlineDocEditing, inlineDocFmt]);
+
+  const handleInlineDocPrint = () => {
+    if (!inlineDocRef.current) return;
+    const printContents = inlineDocRef.current.innerHTML;
+    const iframe = document.createElement('iframe');
+    iframe.setAttribute('aria-hidden', 'true');
+    iframe.style.position = 'fixed';
+    iframe.style.right = '0';
+    iframe.style.bottom = '0';
+    iframe.style.width = '0';
+    iframe.style.height = '0';
+    iframe.style.border = '0';
+    iframe.style.opacity = '0';
+    document.body.appendChild(iframe);
+    const idoc = iframe.contentDocument || iframe.contentWindow.document;
+    idoc.open();
+    idoc.write(
+      '<!doctype html><html><head><meta charset="utf-8"/>' +
+      '<title>' + (inlineDocTitle || 'Document') + '</title>' +
+      '<style>' + INLINE_DOC_STYLE + '</style>' +
+      '</head><body><div class="inline-doc-print-wrap">' + printContents + '</div></body></html>'
+    );
+    idoc.close();
+    const doPrint = () => {
+      try {
+        iframe.contentWindow.focus();
+        iframe.contentWindow.print();
+      } catch (err) {
+        console.error('Print failed:', err);
+      }
+      setTimeout(() => {
+        if (iframe.parentNode) iframe.parentNode.removeChild(iframe);
+      }, 1500);
+    };
+    if (iframe.contentWindow && iframe.contentDocument && iframe.contentDocument.readyState === 'complete') {
+      setTimeout(doPrint, 120);
+    } else {
+      iframe.onload = () => setTimeout(doPrint, 120);
+    }
+  };
+
+  const handleInlineDocExportPdf = async () => {
+    if (!inlineDocRef.current) return;
+    setInlineDocPdfLoading(true);
+    const wasEditing = inlineDocEditing;
+    if (wasEditing) setInlineDocEditing(false);
+    try {
+      await new Promise((r) => setTimeout(r, 30));
+      const node = inlineDocRef.current;
+      const canvas = await html2canvas(node, { scale: 2, backgroundColor: '#ffffff', useCORS: true });
+      const pdf = new jsPDF({ orientation: 'p', unit: 'mm', format: 'a4' });
+      const pageW = pdf.internal.pageSize.getWidth();
+      const pageH = pdf.internal.pageSize.getHeight();
+      const margin = 10;
+      const imgW = pageW - margin * 2;
+      const imgH = (canvas.height * imgW) / canvas.width;
+      const imgData = canvas.toDataURL('image/png');
+      if (imgH <= pageH - margin * 2) {
+        pdf.addImage(imgData, 'PNG', margin, margin, imgW, imgH);
+      } else {
+        const pageContentH = pageH - margin * 2;
+        const pxPerMm = canvas.width / imgW;
+        const sliceHpx = pageContentH * pxPerMm;
+        let sY = 0;
+        while (sY < canvas.height) {
+          const sH = Math.min(sliceHpx, canvas.height - sY);
+          const slice = document.createElement('canvas');
+          slice.width = canvas.width;
+          slice.height = sH;
+          slice.getContext('2d').drawImage(canvas, 0, sY, canvas.width, sH, 0, 0, canvas.width, sH);
+          const sliceData = slice.toDataURL('image/png');
+          const sliceMm = sH / pxPerMm;
+          if (sY > 0) pdf.addPage();
+          pdf.addImage(sliceData, 'PNG', margin, margin, imgW, sliceMm);
+          sY += sH;
+        }
+      }
+      const safeTitle = (inlineDocTitle || 'document').replace(/[^a-z0-9\-_ ]/gi, '_');
+      pdf.save(`${safeTitle}.pdf`);
+    } catch (err) {
+      console.error('PDF export failed:', err);
+      alert(`Failed to export PDF: ${err.message || err}`);
+    } finally {
+      setInlineDocPdfLoading(false);
+      if (wasEditing) setInlineDocEditing(true);
+    }
   };
 
   // Handle view voucher details - reuse the existing preview modal
@@ -2558,7 +2865,6 @@ const isVoucherSettled = (voucher) => {
       glAccountCode: '',
       coaDescription: ''
     });
-    setPreviewModalVoucherId(voucher.id);
     setShowPreviewModal(true);
   };
 
@@ -3383,7 +3689,6 @@ const isVoucherSettled = (voucher) => {
                   className="other-trans-btn other-trans-btn-tertiary"
                   disabled={isSubmitting}
                   onClick={() => {
-                    setPreviewModalVoucherId(null);
                     setShowPreviewModal(true);
                   }}
                 >
@@ -6514,16 +6819,16 @@ const isVoucherSettled = (voucher) => {
               background: 'white',
               borderRadius: '0.18rem',
               boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)',
-              maxWidth: '900px',
-              width: '90%',
-              maxHeight: '90vh',
+              maxWidth: '1040px',
+              width: '92%',
+              maxHeight: '92vh',
               overflow: 'hidden',
               position: 'relative'
             }}
           >
             <div className="other-trans-preview-modal-header no-print">
               <h2 className="other-trans-preview-modal-title">
-                <svg style={{ width: '1.5rem', height: '1.5rem', marginRight: '0.75rem' }} fill="currentColor" viewBox="0 0 20 20">
+                <svg style={{ width: '1rem', height: '1rem', marginRight: '0.5rem' }} fill="currentColor" viewBox="0 0 20 20">
                   <path fillRule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clipRule="evenodd"/>
                 </svg>
                 Voucher Preview
@@ -6534,7 +6839,7 @@ const isVoucherSettled = (voucher) => {
                   type="button"
                   onClick={closePreviewModal}
                 >
-                  <svg width="24" height="24" fill="currentColor" viewBox="0 0 20 20">
+                  <svg width="16" height="16" fill="currentColor" viewBox="0 0 20 20">
                     <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd"/>
                   </svg>
                 </button>
@@ -6542,223 +6847,90 @@ const isVoucherSettled = (voucher) => {
             </div>
 
             <div className="other-trans-preview-modal-body">
-              <div className="pv-print-root">
-                <div className="pv-letterhead-top">
-                  <div>
-                    <div className="pv-company-name">{PAYMENT_VOUCHER_LETTERHEAD.companyName}</div>
-                    {PAYMENT_VOUCHER_LETTERHEAD.registrationNo ? (
-                      <div className="pv-co-meta">Company Registration No. {PAYMENT_VOUCHER_LETTERHEAD.registrationNo}</div>
-                    ) : null}
-                    {PAYMENT_VOUCHER_LETTERHEAD.addressLine ? (
-                      <div className="pv-co-meta">{PAYMENT_VOUCHER_LETTERHEAD.addressLine}</div>
-                    ) : null}
-                    {letterheadContactLine ? <div className="pv-co-meta">{letterheadContactLine}</div> : null}
-                  </div>
-                  <div className="pv-logo-mark" aria-hidden="true">
-                    {PAYMENT_VOUCHER_LETTERHEAD.companyName.split(' ')[0] || '—'}
-                  </div>
-                </div>
-
-                <div className="pv-doc-title">Payment Voucher</div>
-
-                <div className="pv-meta-block">
-                  <div className="pv-field-row">
-                    <span className="pv-label">Date:</span>
-                    <span className="pv-value">{formatDateDdMmYyyy(form.date)}</span>
-                  </div>
-                  <div className="pv-field-row">
-                    <span className="pv-label">Voucher No:</span>
-                    <span className="pv-value">{form.voucherNumber || '—'}</span>
-                  </div>
-                  <div className="pv-field-row">
-                    <span className="pv-label">Payee:</span>
-                    <span className="pv-value">{form.counterparty || '—'}</span>
-                  </div>
-                  <div className="pv-field-row">
-                    <span className="pv-label">Payment Type:</span>
-                    <span className="pv-value">{String(form.paymentMethod || '—').toUpperCase()}</span>
-                  </div>
-                  <div className="pv-field-row">
-                    <span className="pv-label">Narration:</span>
-                    <span className="pv-value">{form.description || '—'}</span>
-                  </div>
-                  <div className="pv-field-row">
-                    <span className="pv-label">Document Attached:</span>
-                    <span className="pv-value">{form.reference ? `Inv no: ${form.reference}` : '—'}</span>
-                  </div>
-                </div>
-
-                {previewModalVoucherId && previewGlLoading ? (
-                  <p className="pv-loading-note">Loading accounting lines…</p>
-                ) : null}
-
-                <table className="pv-table">
-                  <thead>
-                    <tr>
-                      <th>Account Description</th>
-                      <th>Account No</th>
-                      <th className="center">DR/CR</th>
-                      <th className="num">Amount</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {formalVoucherTableLines.length === 0 && !(previewModalVoucherId && previewGlLoading) ? (
-                      <tr>
-                        <td colSpan={4} style={{ textAlign: 'center', color: '#6b7280' }}>
-                          No journal lines to display. Enter amount and accounts, or open a saved voucher.
-                        </td>
-                      </tr>
-                    ) : null}
-                    {formalVoucherTableLines.map((row, idx) => (
-                      <tr key={`${row.accountNo}-${row.drCr}-${idx}`}>
-                        <td>{row.accountDesc}</td>
-                        <td>{row.accountNo}</td>
-                        <td className="center">{row.drCr}</td>
-                        <td className="num">
-                          {row.amount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                        </td>
-                      </tr>
-                    ))}
-                    {formalVoucherTableLines.length > 0 ? (
-                      <>
-                        <tr className="pv-totals-row">
-                          <td colSpan={3} style={{ textAlign: 'right' }}>Total Debit</td>
-                          <td className="num">
-                            {formalVoucherTotals.debit.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                          </td>
-                        </tr>
-                        <tr className="pv-totals-row">
-                          <td colSpan={3} style={{ textAlign: 'right' }}>Total Credit</td>
-                          <td className="num">
-                            {formalVoucherTotals.credit.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                          </td>
-                        </tr>
-                      </>
-                    ) : null}
-                  </tbody>
-                </table>
-
-                {formalVoucherTableLines.length > 0 ? (
-                  <div className="pv-currency-note">Amounts stated in {form.currency || 'LKR'}.</div>
-                ) : null}
-
-                <div className="pv-bank-block">
-                  <div className="pv-field-row">
-                    <span className="pv-label">Branch Account:</span>
-                    <span className="pv-value">{form.paymentAccountNumber || '—'}</span>
-                  </div>
-                  <div className="pv-field-row">
-                    <span className="pv-label">Cheque No:</span>
-                    <span className="pv-value">—</span>
-                  </div>
-                  <div className="pv-field-row">
-                    <span className="pv-label">Value:</span>
-                    <span className="pv-value">
-                      {Number.isFinite(parseFloat(form.amount))
-                        ? parseFloat(form.amount).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
-                        : '—'}
+              {inlineDocType ? (
+                <div className="other-trans-inline-doc-wrap">
+                  <div className="other-trans-inline-doc-toolbar no-print">
+                    <button
+                      type="button"
+                      className="other-trans-inline-doc-back"
+                      onClick={handleInlineDocBack}
+                    >
+                      Back to Details
+                    </button>
+                    <span className="other-trans-inline-doc-title">
+                      {inlineDocType === 'voucher' ? 'Payment Voucher' : inlineDocType === 'invoice' ? 'Invoice' : 'Request Letter'}
                     </span>
-                  </div>
-                </div>
-
-                <div className="pv-signoff">
-                  <div className="pv-signoff-text">Yours faithfully</div>
-                  <div className="pv-signoff-line" />
-                  <div className="pv-signoff-label">Authorised Signatory</div>
-                </div>
-
-                <div className="pv-signatures">
-                  {['Prepared by', 'Approved by', '1st signatory', '2nd signatory', 'Received with thanks', 'Date'].map((label) => (
-                    <div key={label}>
-                      <div>{label}</div>
-                      <div className="pv-sign-line" />
+                    <div className="other-trans-inline-doc-actions">
+                      {inlineDocEditing && (
+                        <div className="other-trans-inline-doc-fmt" role="toolbar" aria-label="Text formatting">
+                          <button
+                            type="button"
+                            className={`fmt-btn fmt-b ${inlineDocFmtState.bold ? 'active' : ''}`}
+                            title="Bold (Ctrl+B)"
+                            onMouseDown={(e) => e.preventDefault()}
+                            onClick={() => inlineDocFmt('bold')}
+                          >B</button>
+                          <button
+                            type="button"
+                            className={`fmt-btn fmt-i ${inlineDocFmtState.italic ? 'active' : ''}`}
+                            title="Italic (Ctrl+I)"
+                            onMouseDown={(e) => e.preventDefault()}
+                            onClick={() => inlineDocFmt('italic')}
+                          >I</button>
+                          <button
+                            type="button"
+                            className={`fmt-btn fmt-u ${inlineDocFmtState.underline ? 'active' : ''}`}
+                            title="Underline (Ctrl+U)"
+                            onMouseDown={(e) => e.preventDefault()}
+                            onClick={() => inlineDocFmt('underline')}
+                          >U</button>
+                          <span className="fmt-sep" />
+                          <button
+                            type="button"
+                            className="fmt-btn fmt-clear"
+                            title="Remove formatting"
+                            onMouseDown={(e) => e.preventDefault()}
+                            onClick={() => inlineDocFmt('removeFormat')}
+                          >Normal</button>
+                        </div>
+                      )}
+                      <button
+                        type="button"
+                        className={`other-trans-inline-doc-btn edit ${inlineDocEditing ? 'active' : ''}`}
+                        onClick={toggleInlineDocEdit}
+                      >
+                        {inlineDocEditing ? 'Done Editing' : 'Edit'}
+                      </button>
+                      <button
+                        type="button"
+                        className="other-trans-inline-doc-btn print"
+                        onClick={handleInlineDocPrint}
+                      >Print</button>
+                      <button
+                        type="button"
+                        className="other-trans-inline-doc-btn pdf"
+                        onClick={handleInlineDocExportPdf}
+                        disabled={inlineDocPdfLoading}
+                      >
+                        {inlineDocPdfLoading ? 'Preparing…' : 'Export PDF'}
+                      </button>
                     </div>
-                  ))}
+                  </div>
+                  {inlineDocEditing && (
+                    <div className="other-trans-inline-doc-edit-hint no-print">
+                      Edit mode: click any text to change it. Use <strong>B</strong> / <strong>I</strong> / <strong>U</strong> to format, or <strong>Normal</strong> to clear styling.
+                    </div>
+                  )}
+                  <div
+                    ref={inlineDocRef}
+                    className={`inline-doc-render ${inlineDocEditing ? 'editing' : ''}`}
+                    contentEditable={inlineDocEditing}
+                    suppressContentEditableWarning
+                    spellCheck={false}
+                  />
                 </div>
-
-                <hr className="pv-advice-separator" />
-
-                <div className="pv-letterhead-top">
-                  <div>
-                    <div className="pv-company-name">{PAYMENT_VOUCHER_LETTERHEAD.companyName}</div>
-                    {PAYMENT_VOUCHER_LETTERHEAD.registrationNo ? (
-                      <div className="pv-co-meta">Company Registration No. {PAYMENT_VOUCHER_LETTERHEAD.registrationNo}</div>
-                    ) : null}
-                    {PAYMENT_VOUCHER_LETTERHEAD.addressLine ? (
-                      <div className="pv-co-meta">{PAYMENT_VOUCHER_LETTERHEAD.addressLine}</div>
-                    ) : null}
-                    {letterheadContactLine ? <div className="pv-co-meta">{letterheadContactLine}</div> : null}
-                  </div>
-                  <div className="pv-logo-mark" aria-hidden="true">
-                    {PAYMENT_VOUCHER_LETTERHEAD.companyName.split(' ')[0] || '—'}
-                  </div>
-                </div>
-
-                <div className="pv-doc-title">PAYMENT ADVICE</div>
-
-                <div className="pv-meta-block">
-                  <div className="pv-field-row">
-                    <span className="pv-field-pair">
-                      <span className="pv-label">Date:</span>
-                      <span className="pv-value">{formatDateDdMmYyyy(form.date)}</span>
-                    </span>
-                    <span className="pv-field-pair">
-                      <span className="pv-label">Voucher No:</span>
-                      <span className="pv-value">{form.voucherNumber || '—'}</span>
-                    </span>
-                  </div>
-                  <div className="pv-field-row">
-                    <span className="pv-field-pair">
-                      <span className="pv-label">Payee:</span>
-                      <span className="pv-value">{form.counterparty || '—'}</span>
-                    </span>
-                    <span className="pv-field-pair">
-                      <span className="pv-label">Payment Type:</span>
-                      <span className="pv-value">{String(form.paymentMethod || '—').toUpperCase()}</span>
-                    </span>
-                  </div>
-                  <div className="pv-field-row">
-                    <span className="pv-label">Narration:</span>
-                    <span className="pv-value">{form.description || '—'}</span>
-                  </div>
-                  <div className="pv-field-row">
-                    <span className="pv-label">Document Attached:</span>
-                    <span className="pv-value">{form.reference ? `Inv no: ${form.reference}` : '—'}</span>
-                  </div>
-                </div>
-
-                <div className="pv-bank-block">
-                  <div className="pv-field-row">
-                    <span className="pv-field-pair">
-                      <span className="pv-label">Branch Account:</span>
-                      <span className="pv-value">{form.paymentAccountNumber || '—'}</span>
-                    </span>
-                    <span className="pv-field-pair">
-                      <span className="pv-label">Cheque No:</span>
-                      <span className="pv-value">—</span>
-                    </span>
-                    <span className="pv-field-pair">
-                      <span className="pv-label">Value:</span>
-                      <span className="pv-value">
-                        {Number.isFinite(parseFloat(form.amount))
-                          ? parseFloat(form.amount).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
-                          : '—'}
-                      </span>
-                    </span>
-                  </div>
-                </div>
-
-                <div className="pv-signoff">
-                  <div className="pv-signoff-text">Yours faithfully</div>
-                  <div className="pv-signoff-line" />
-                  <div className="pv-signoff-label">Authorised Signatory</div>
-                </div>
-              </div>
-
-              <p className="no-print" style={{ fontSize: '0.8125rem', color: '#6b7280', margin: '0 0 1rem' }}>
-                Below: full field breakdown (same data as the printable voucher above).
-              </p>
-
+              ) : (
+                <>
               <div className="other-trans-preview-section no-print">
                 <h3 className="other-trans-preview-section-title">Transaction Details</h3>
                 <div className="other-trans-preview-grid">
@@ -6879,10 +7051,45 @@ const isVoucherSettled = (voucher) => {
                   </div>
                 </div>
               )}
+                </>
+              )}
             </div>
 
+            {!inlineDocType && (
             <div className="other-trans-preview-modal-footer no-print">
+              <button
+                type="button"
+                className="other-trans-doc-btn other-trans-doc-btn-voucher"
+                onClick={handleGenerateVoucher}
+              >
+                <svg width="14" height="14" fill="currentColor" viewBox="0 0 20 20" style={{ marginRight: '0.4rem' }}>
+                  <path fillRule="evenodd" d="M4 4a2 2 0 012-2h8a2 2 0 012 2v12a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm3 1h6v2H7V5zm0 4h6v2H7V9zm0 4h4v2H7v-2z" clipRule="evenodd" />
+                </svg>
+                Generate Voucher
+              </button>
+              <button
+                type="button"
+                className="other-trans-doc-btn other-trans-doc-btn-invoice"
+                onClick={handleGenerateInvoice}
+              >
+                <svg width="14" height="14" fill="currentColor" viewBox="0 0 20 20" style={{ marginRight: '0.4rem' }}>
+                  <path fillRule="evenodd" d="M5 2a2 2 0 00-2 2v12l3-1.5L9 16l3-1.5 3 1.5V4a2 2 0 00-2-2H5zm2.5 5a.5.5 0 000 1h5a.5.5 0 000-1h-5zm0 3a.5.5 0 000 1h5a.5.5 0 000-1h-5z" clipRule="evenodd" />
+                </svg>
+                Invoice
+              </button>
+              <button
+                type="button"
+                className="other-trans-doc-btn other-trans-doc-btn-letter"
+                onClick={handleGenerateRequestLetter}
+              >
+                <svg width="14" height="14" fill="currentColor" viewBox="0 0 20 20" style={{ marginRight: '0.4rem' }}>
+                  <path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z" />
+                  <path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z" />
+                </svg>
+                Request Letter
+              </button>
             </div>
+            )}
           </div>
         </div>,
         document.body

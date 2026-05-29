@@ -202,12 +202,74 @@
 }
 
 /* ---------- List items (rest) ---------- */
+/* Viewport clips the scrolling ticker. Fade masks at top/bottom hint that
+   more items are above/below the visible window. */
+.market-news-widget__list-viewport {
+    position: relative;
+    overflow: hidden;
+    max-height: 460px; /* ~5 rows of ~88px each, tweak if rows resize */
+    padding: 0.25rem 0 0.6rem;
+}
+
+.market-news-widget__list-viewport.is-autoscrolling::before,
+.market-news-widget__list-viewport.is-autoscrolling::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    right: 0;
+    height: 28px;
+    pointer-events: none;
+    z-index: 1;
+}
+
+.market-news-widget__list-viewport.is-autoscrolling::before {
+    top: 0;
+    background: linear-gradient(to bottom, #ffffff 0%, rgba(255, 255, 255, 0) 100%);
+}
+
+.market-news-widget__list-viewport.is-autoscrolling::after {
+    bottom: 0;
+    background: linear-gradient(to top, #ffffff 0%, rgba(255, 255, 255, 0) 100%);
+}
+
 .market-news-widget__list {
     list-style: none;
-    padding: 0.25rem 0.5rem 0.6rem;
+    padding: 0 0.5rem;
     margin: 0;
     display: flex;
     flex-direction: column;
+}
+
+/* Ticker scroll. Items are rendered twice so translating by exactly -50%
+   loops back to the visual start of the first set seamlessly. */
+.market-news-widget__list-viewport.is-autoscrolling .market-news-widget__list {
+    animation: mnw-ticker 36s linear infinite;
+    will-change: transform;
+}
+
+/* Pause when the user is interacting so they can actually read / click. */
+.market-news-widget__list-viewport.is-autoscrolling:hover .market-news-widget__list,
+.market-news-widget__list-viewport.is-autoscrolling:focus-within .market-news-widget__list {
+    animation-play-state: paused;
+}
+
+@keyframes mnw-ticker {
+    0% {
+        transform: translateY(0);
+    }
+    100% {
+        transform: translateY(-50%);
+    }
+}
+
+/* Respect users who don't want motion. */
+@media (prefers-reduced-motion: reduce) {
+    .market-news-widget__list-viewport.is-autoscrolling .market-news-widget__list {
+        animation: none;
+    }
+    .market-news-widget__list-viewport.is-autoscrolling {
+        overflow-y: auto;
+    }
 }
 
 .market-news-widget__item + .market-news-widget__item .market-news-widget__link {

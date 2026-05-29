@@ -52,7 +52,8 @@ const MarketNewsWidget = ({ onOpenFull }) => {
         setIsLoading(true);
         setError(null);
         try {
-            const result = await newsApi.businessHeadlines({ pageSize: 6 });
+            // 1 featured + up to 15 list items so the ticker has enough to scroll.
+            const result = await newsApi.businessHeadlines({ pageSize: 16 });
             setArticles(result?.articles || []);
         } catch (err) {
             console.error('MarketNewsWidget load failed:', err);
@@ -172,49 +173,72 @@ const MarketNewsWidget = ({ onOpenFull }) => {
                 </a>
             )}
 
-            {!isLoading && !error && rest.length > 0 && (
-                <ul className="market-news-widget__list">
-                    {rest.map((article, index) => (
-                        <li
-                            key={`${article.url || 'mnw'}-${index}`}
-                            className="market-news-widget__item"
+            {!isLoading && !error && rest.length > 0 && (() => {
+                // Autoscroll only when there are more items than fit in the
+                // viewport, otherwise it just looks like jitter.
+                const shouldAutoscroll = rest.length > 5;
+                // Slow ticker feel — ~6s per article keeps it easy to read.
+                const animationDuration = `${Math.max(rest.length * 6, 45)}s`;
+
+                const renderItem = (article, index, ariaHidden = false) => (
+                    <li
+                        key={`${article.url || 'mnw'}-${index}${ariaHidden ? '-dup' : ''}`}
+                        className="market-news-widget__item"
+                        aria-hidden={ariaHidden || undefined}
+                    >
+                        <a
+                            href={article.url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="market-news-widget__link"
+                            tabIndex={ariaHidden ? -1 : 0}
                         >
-                            <a
-                                href={article.url}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="market-news-widget__link"
-                            >
-                                <div className="market-news-widget__thumb-wrap">
-                                    <img
-                                        className="market-news-widget__thumb"
-                                        src={article.urlToImage || FALLBACK_THUMB}
-                                        alt=""
-                                        loading="lazy"
-                                        onError={(e) => {
-                                            e.currentTarget.src = FALLBACK_THUMB;
-                                        }}
-                                    />
+                            <div className="market-news-widget__thumb-wrap">
+                                <img
+                                    className="market-news-widget__thumb"
+                                    src={article.urlToImage || FALLBACK_THUMB}
+                                    alt=""
+                                    loading="lazy"
+                                    onError={(e) => {
+                                        e.currentTarget.src = FALLBACK_THUMB;
+                                    }}
+                                />
+                            </div>
+                            <div className="market-news-widget__body">
+                                <div className="market-news-widget__meta">
+                                    <span className="market-news-widget__source">
+                                        {article.source?.name || 'Source'}
+                                    </span>
+                                    <span className="market-news-widget__dot">·</span>
+                                    <span className="market-news-widget__time">
+                                        {relativeTime(article.publishedAt)}
+                                    </span>
                                 </div>
-                                <div className="market-news-widget__body">
-                                    <div className="market-news-widget__meta">
-                                        <span className="market-news-widget__source">
-                                            {article.source?.name || 'Source'}
-                                        </span>
-                                        <span className="market-news-widget__dot">·</span>
-                                        <span className="market-news-widget__time">
-                                            {relativeTime(article.publishedAt)}
-                                        </span>
-                                    </div>
-                                    <div className="market-news-widget__title">
-                                        {article.title || 'Untitled article'}
-                                    </div>
+                                <div className="market-news-widget__title">
+                                    {article.title || 'Untitled article'}
                                 </div>
-                            </a>
-                        </li>
-                    ))}
-                </ul>
-            )}
+                            </div>
+                        </a>
+                    </li>
+                );
+
+                return (
+                    <div
+                        className={`market-news-widget__list-viewport${
+                            shouldAutoscroll ? ' is-autoscrolling' : ''
+                        }`}
+                    >
+                        <ul
+                            className="market-news-widget__list"
+                            style={shouldAutoscroll ? { animationDuration } : undefined}
+                        >
+                            {rest.map((a, i) => renderItem(a, i, false))}
+                            {shouldAutoscroll &&
+                                rest.map((a, i) => renderItem(a, i, true))}
+                        </ul>
+                    </div>
+                );
+            })()}
         </div>
     );
 };
