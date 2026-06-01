@@ -72,6 +72,9 @@ import PerformanceMetrics from './components/PerformanceMetrics/PerformanceMetri
 import MarketAnnouncements from './components/CSEAnnouncements/MarketAnnouncements';
 import CorporateNotices from './components/CSEAnnouncements/CorporateNotices';
 import NewsEvents from './components/CSEAnnouncements/NewsEvents';
+import FinancialReports from './components/CSEAnnouncements/FinancialReports';
+import TradingUpdates from './components/CSEAnnouncements/TradingUpdates';
+import RegulatoryUpdates from './components/CSEAnnouncements/RegulatoryUpdates';
 import FinancialPosition from './components/FinancialReporting/FinancialPosition';
 import StatementOfComprehensiveIncome from './components/FinancialReporting/StatementOfComprehensiveIncome';
 import CashFlow from './components/FinancialReporting/CashFlow';
@@ -176,7 +179,7 @@ function App() {
   const tabToComponent = {
     'Dashboard': selectedManager === 'wealth' 
       ? <WealthManagerDashboard /> 
-      : <Dashboard onTabChange={handleTabChange} />,
+      : <Dashboard onTabChange={handleTabChange} onOpenAIAssistant={() => setAiAssistantOpen(true)} />,
     'Portfolio Overview': selectedManager === 'wealth'
       ? <WMPortfolioOverview />
       : <PortfolioOverview onTabChange={handleTabChange} />,
@@ -266,6 +269,9 @@ function App() {
     'Avg Cost Calculator': <AvgCostCalculator />,
     'Market Announcements': <MarketAnnouncements />,
     'Corporate Notices': <CorporateNotices />,
+    'Trading Updates': <TradingUpdates />,
+    'Regulatory Updates': <RegulatoryUpdates />,
+    'Financial Reports': <FinancialReports />,
     'News & Events': <NewsEvents />,
     'TradeCore': <TradeCore />,
     'Statement of Financial Position': <FinancialPosition onTabChange={handleTabChange} />,
@@ -452,7 +458,6 @@ function App() {
 
       <AIAssistantDock
         open={aiAssistantOpen}
-        onOpen={() => setAiAssistantOpen(true)}
         onClose={() => setAiAssistantOpen(false)}
       />
 
