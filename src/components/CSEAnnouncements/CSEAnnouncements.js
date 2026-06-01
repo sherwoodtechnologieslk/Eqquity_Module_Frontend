@@ -1,6 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import './Styles/CSEAnnouncements.css';
 import NewsEvents from './NewsEvents';
+import cseApi from '../../services/cseApi';
 
 const CSEAnnouncements = () => {
   const [announcements, setAnnouncements] = useState([]);
@@ -9,9 +10,39 @@ const CSEAnnouncements = () => {
   const [activeTab, setActiveTab] = useState('corporate-notices');
   const [lastUpdated, setLastUpdated] = useState(null);
 
+  // Financial Reports tab state (live CSE proxy).
+  const [financialItems, setFinancialItems] = useState([]);
+  const [isFinancialLoading, setIsFinancialLoading] = useState(false);
+  const [financialNote, setFinancialNote] = useState('');
+  const [financialUpdatedAt, setFinancialUpdatedAt] = useState(null);
+
   useEffect(() => {
     loadAnnouncements();
   }, []);
+
+  const loadFinancialReports = useCallback(async () => {
+    setIsFinancialLoading(true);
+    setFinancialNote('');
+    try {
+      const result = await cseApi.financialAnnouncements();
+      setFinancialItems(Array.isArray(result?.items) ? result.items : []);
+      setFinancialUpdatedAt(result?.lastUpdated || new Date().toISOString());
+      if (result?.note) setFinancialNote(result.note);
+    } catch (err) {
+      // The service already soft-fails, but guard anyway.
+      setFinancialItems([]);
+      setFinancialNote('Live CSE feed is taking a break. Try again in a moment.');
+    } finally {
+      setIsFinancialLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (activeTab === 'financial-reports' && financialItems.length === 0 && !isFinancialLoading) {
+      loadFinancialReports();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeTab]);
 
   const loadAnnouncements = async () => {
     try {
@@ -86,6 +117,7 @@ const CSEAnnouncements = () => {
     { id: 'market-announcements', label: 'Market Announcements', icon: null },
     { id: 'trading-updates', label: 'Trading Updates', icon: null },
     { id: 'regulatory-updates', label: 'Regulatory Updates', icon: null },
+    { id: 'financial-reports', label: 'Financial Reports', icon: null },
     { id: 'news-events', label: 'News & Events', icon: null }
   ];
 
@@ -160,15 +192,24 @@ const CSEAnnouncements = () => {
       <div className="cse-content">
         {activeTab === 'news-events' ? (
           <NewsEvents />
+        ) : activeTab === 'financial-reports' ? (
+          <FinancialReportsPanel
+            items={financialItems}
+            isLoading={isFinancialLoading}
+            note={financialNote}
+            lastUpdated={financialUpdatedAt}
+            onRefresh={loadFinancialReports}
+            formatDate={formatDate}
+          />
         ) : isLoading ? (
           <div className="loading-container">
             <div className="loading-spinner"></div>
             <p>Loading announcements...</p>
           </div>
         ) : error ? (
-          <div className="error-container">
-            <h3>Error Loading Announcements</h3>
-            <p>{error}</p>
+          <div className="empty-container">
+            <h3>Nothing to show right now</h3>
+            <p>We couldn't reach the announcements feed. Give it another go in a moment.</p>
             <button className="retry-btn" onClick={refreshAnnouncements}>
               Try Again
             </button>
@@ -231,6 +272,90 @@ const CSEAnnouncements = () => {
         <p className="footer-disclaimer">
           This information is for reference only. Please verify with official sources.
         </p>
+      </div>
+    </div>
+  );
+};
+
+const FinancialReportsPanel = ({ items, isLoading, note, lastUpdated, onRefresh, formatDate }) => {
+  if (isLoading) {
+    return (
+      <div className="loading-container">
+        <div className="loading-spinner" />
+        <p>Fetching the latest filings from CSE...</p>
+      </div>
+    );
+  }
+
+  if (!items || items.length === 0) {
+    return (
+      <div className="empty-container">
+        <h3>No financial reports just yet</h3>
+        <p>{note || 'The CSE feed is quiet at the moment. Please check back shortly.'}</p>
+        <button className="retry-btn" onClick={onRefresh}>Refresh</button>
+      </div>
+    );
+  }
+
+  return (
+    <div className="financial-reports-panel">
+      <div className="financial-reports-header">
+        <div>
+          <span className="financial-reports-count">{items.length}</span>
+          <span className="financial-reports-count-label">recent filings</span>
+        </div>
+        <div className="financial-reports-meta">
+          {lastUpdated && (
+            <span className="financial-reports-updated">
+              Updated {formatDate(lastUpdated)}
+            </span>
+          )}
+          <button className="retry-btn" onClick={onRefresh}>Refresh</button>
+        </div>
+      </div>
+
+      <div className="announcements-list">
+        {items.map((item) => (
+          <div key={item.id} className="announcement-card financial-card">
+            <div className="announcement-header">
+              <div className="announcement-date">{formatDate(item.date)}</div>
+              <div
+                className="announcement-type"
+                style={{ backgroundColor: '#0ea5e9' }}
+              >
+                {item.symbol || 'Financial'}
+              </div>
+            </div>
+
+            <div className="announcement-content financial-card-content">
+              {item.logoUrl && (
+                <img
+                  className="financial-card-logo"
+                  src={item.logoUrl}
+                  alt=""
+                  onError={(e) => { e.currentTarget.style.display = 'none'; }}
+                />
+              )}
+              <div className="financial-card-text">
+                <div className="announcement-company">{item.company}</div>
+                <div className="announcement-title">{item.title}</div>
+              </div>
+            </div>
+
+            {item.pdfUrl && (
+              <div className="announcement-actions">
+                <a
+                  href={item.pdfUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="view-details-btn"
+                >
+                  Open PDF →
+                </a>
+              </div>
+            )}
+          </div>
+        ))}
       </div>
     </div>
   );
