@@ -1,47 +1,9 @@
-/* Floating action button — fixed on all screens */
-.ai-assistant-fab {
-  position: fixed;
-  right: 1.5rem;
-  bottom: 1.5rem;
-  width: 56px;
-  height: 56px;
-  border-radius: 50%;
-  border: none;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: linear-gradient(145deg, #1e3a5f 0%, #0f2847 100%);
-  color: #fff;
-  box-shadow:
-    0 4px 14px rgba(15, 40, 71, 0.45),
-    0 0 0 1px rgba(255, 255, 255, 0.08) inset;
-  z-index: 10050;
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
-}
-
-.ai-assistant-fab:hover {
-  transform: scale(1.06);
-  box-shadow:
-    0 6px 20px rgba(15, 40, 71, 0.5),
-    0 0 0 1px rgba(255, 255, 255, 0.12) inset;
-}
-
-.ai-assistant-fab:focus-visible {
-  outline: 2px solid #3b82f6;
-  outline-offset: 3px;
-}
-
-.ai-assistant-fab-svg {
-  width: 28px;
-  height: 28px;
-}
-
-/* Dim background */
+/* Dim background — sky tint instead of plain slate */
 .ai-assistant-backdrop {
   position: fixed;
   inset: 0;
-  background: rgba(15, 23, 42, 0.35);
+  background: rgba(12, 74, 110, 0.32);
+  backdrop-filter: blur(2px);
   z-index: 10040;
   animation: ai-backdrop-in 0.2s ease;
 }
@@ -55,7 +17,7 @@
   }
 }
 
-/* Chat panel */
+/* Chat panel — matches Agent Blux palette */
 .ai-assistant-dock-panel {
   position: fixed;
   right: 1rem;
@@ -64,11 +26,14 @@
   height: min(640px, calc(100vh - 2rem));
   max-height: calc(100vh - 2rem);
   z-index: 10060;
-  background: #f8fafc;
-  border-radius: 16px;
+  background:
+    radial-gradient(ellipse at top, rgba(125, 211, 252, 0.28) 0%, transparent 65%),
+    linear-gradient(180deg, #f0f9ff 0%, #ffffff 60%, #eef2ff 100%);
+  border-radius: 18px;
+  border-top: 3px solid #0ea5e9;
   box-shadow:
-    0 25px 50px -12px rgba(0, 0, 0, 0.25),
-    0 0 0 1px rgba(0, 0, 0, 0.06);
+    0 30px 60px -18px rgba(14, 165, 233, 0.5),
+    0 0 0 1px rgba(14, 165, 233, 0.18);
   display: flex;
   flex-direction: column;
   overflow: hidden;

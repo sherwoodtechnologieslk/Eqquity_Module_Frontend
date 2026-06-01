@@ -34,9 +34,11 @@ const generateLiabilitySettlementVoucherNumber = () => {
   return `LS-${year}${month}${day}-${hour}${minute}${second}`;
 };
 
-// Letterhead used by all printable documents (Voucher / Invoice / Request Letter)
+// Letterhead used by all printable documents (Voucher / Invoice / Request Letter).
+// Replace these placeholder values (or wire to a company-settings API) when ready.
 const PRINT_LETTERHEAD = {
-  companyName: 'SHERWOOD TECHNOLOGIES (PVT) LTD',
+  companyName: 'Company Name',
+  logoText: 'COMPANY',
   registrationNo: '',
   addressLine: '',
   phone: '',
@@ -84,22 +86,146 @@ const numberToWords = (num) => {
   return result.trim();
 };
 
-// Reusable CSS shared between the in-modal renderer and the print-only window
+// Reusable CSS shared between the in-modal renderer and the print iframe.
+// Layout is built with semantic tables so labels/values land on fixed columns,
+// like the Ambeon Capital sample voucher.
 const INLINE_DOC_STYLE = `
   .inline-doc-print-wrap, .inline-doc-render {
-    font-family: 'Times New Roman', Times, serif; color: #111; background: #fff;
+    font-family: Arial, Helvetica, sans-serif; color: #111; background: #fff;
   }
-  .inline-doc-render { padding: 14px 18px; }
-  .inline-doc-print-wrap { padding: 24px 28px; max-width: 780px; margin: 0 auto; }
-  .inline-doc-render .lh, .inline-doc-print-wrap .lh { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; border-bottom: 2px solid #111; padding-bottom: 8px; }
-  .inline-doc-render .co-name, .inline-doc-print-wrap .co-name { font-size: 14pt; font-weight: 700; }
-  .inline-doc-render .co-meta, .inline-doc-print-wrap .co-meta { font-size: 8pt; color: #374151; margin-top: 2px; }
-  .inline-doc-render .logo, .inline-doc-print-wrap .logo { font-size: 12pt; font-weight: 800; color: #1e40af; text-align: right; max-width: 40%; }
-  .inline-doc-render .doc-title, .inline-doc-print-wrap .doc-title { text-align: center; margin: 14px 0 10px; font-size: 12pt; font-weight: 700; text-decoration: underline; text-underline-offset: 4px; letter-spacing: 0.04em; }
-  .inline-doc-render .meta, .inline-doc-print-wrap .meta { margin: 8px 0 12px; font-size: 9.5pt; }
-  .inline-doc-render .meta .row, .inline-doc-print-wrap .meta .row { display: flex; gap: 6px; margin-bottom: 4px; flex-wrap: wrap; }
-  .inline-doc-render .meta .label, .inline-doc-print-wrap .meta .label { font-weight: 600; min-width: 110px; color: #374151; }
-  .inline-doc-render .meta .value, .inline-doc-print-wrap .meta .value { flex: 1; }
+  .inline-doc-render { padding: 16px 22px; }
+  .inline-doc-print-wrap { padding: 22px 28px; max-width: 780px; margin: 0 auto; }
+
+  /* ---------- Letterhead ---------- */
+  .inline-doc-render .lh, .inline-doc-print-wrap .lh {
+    display: flex; justify-content: space-between; align-items: flex-start; gap: 16px;
+    padding-bottom: 8px; border-bottom: 1px solid #111;
+  }
+  .inline-doc-render .co-name, .inline-doc-print-wrap .co-name {
+    font-size: 13pt; font-weight: 700; margin-bottom: 4px;
+  }
+  .inline-doc-render .co-meta, .inline-doc-print-wrap .co-meta {
+    font-size: 8pt; color: #1f2937; line-height: 1.35;
+  }
+  .inline-doc-render .logo, .inline-doc-print-wrap .logo {
+    font-family: 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
+    font-size: 14pt; font-weight: 300; color: #6b7280; text-align: right;
+    letter-spacing: 0.4em; line-height: 1; align-self: center;
+    text-transform: uppercase; padding-right: 2px;
+  }
+
+  /* ---------- Section title ---------- */
+  .inline-doc-render .doc-title, .inline-doc-print-wrap .doc-title {
+    text-align: center; margin: 16px 0 10px; font-size: 11pt; font-weight: 700;
+    text-decoration: underline; text-underline-offset: 5px;
+  }
+
+  /* ---------- Header info table ---------- */
+  .inline-doc-render table.hdr, .inline-doc-print-wrap table.hdr {
+    width: 100%; border-collapse: collapse; font-size: 9pt; margin: 0;
+  }
+  .inline-doc-render table.hdr td, .inline-doc-print-wrap table.hdr td {
+    padding: 6px 6px; vertical-align: top;
+  }
+  .inline-doc-render table.hdr td.lbl, .inline-doc-print-wrap table.hdr td.lbl {
+    width: 110px; font-weight: 600; white-space: nowrap;
+  }
+  .inline-doc-render table.hdr td.lbl-r, .inline-doc-print-wrap table.hdr td.lbl-r {
+    width: 110px; font-weight: 600; text-align: right; white-space: nowrap;
+  }
+  .inline-doc-render table.hdr td.val, .inline-doc-print-wrap table.hdr td.val { width: auto; }
+  .inline-doc-render table.hdr tr.sep td, .inline-doc-print-wrap table.hdr tr.sep td {
+    border-bottom: 1px solid #111; padding-top: 4px; padding-bottom: 6px;
+  }
+
+  /* ---------- Journal table (minimal lines, like sample) ---------- */
+  .inline-doc-render table.jt, .inline-doc-print-wrap table.jt {
+    width: 100%; border-collapse: collapse; margin: 4px 0 0; font-size: 9pt;
+  }
+  .inline-doc-render table.jt th, .inline-doc-print-wrap table.jt th {
+    text-align: left; padding: 8px 6px 6px; border-bottom: 1px solid #111;
+    text-decoration: underline; text-underline-offset: 4px; font-weight: 700;
+  }
+  .inline-doc-render table.jt td, .inline-doc-print-wrap table.jt td {
+    padding: 5px 6px; vertical-align: top;
+  }
+  .inline-doc-render table.jt td.num, .inline-doc-render table.jt th.num,
+  .inline-doc-print-wrap table.jt td.num, .inline-doc-print-wrap table.jt th.num {
+    text-align: right; white-space: nowrap;
+  }
+  .inline-doc-render table.jt td.center, .inline-doc-render table.jt th.center,
+  .inline-doc-print-wrap table.jt td.center, .inline-doc-print-wrap table.jt th.center {
+    text-align: center;
+  }
+  .inline-doc-render table.jt tr.totals td, .inline-doc-print-wrap table.jt tr.totals td {
+    font-weight: 700;
+  }
+  .inline-doc-render table.jt tr.totals-first td, .inline-doc-print-wrap table.jt tr.totals-first td {
+    padding-top: 8px;
+  }
+  .inline-doc-render table.jt tr.section-end td, .inline-doc-print-wrap table.jt tr.section-end td {
+    border-bottom: 1px solid #111; padding-bottom: 8px;
+  }
+
+  /* ---------- Bank / branch strip ---------- */
+  .inline-doc-render table.bank, .inline-doc-print-wrap table.bank {
+    width: 100%; border-collapse: collapse; font-size: 9pt;
+    border-bottom: 1px solid #111; margin-top: 0;
+  }
+  .inline-doc-render table.bank td, .inline-doc-print-wrap table.bank td {
+    padding: 8px 6px 10px; vertical-align: top;
+  }
+  .inline-doc-render table.bank td.lbl, .inline-doc-print-wrap table.bank td.lbl {
+    font-weight: 600; white-space: nowrap;
+  }
+
+  /* ---------- Signature grid ---------- */
+  .inline-doc-render table.sigs, .inline-doc-print-wrap table.sigs {
+    width: 100%; border-collapse: collapse; margin-top: 18px; font-size: 9pt;
+  }
+  .inline-doc-render table.sigs td, .inline-doc-print-wrap table.sigs td {
+    padding: 16px 12px 4px; vertical-align: bottom; width: 33.33%;
+  }
+  .inline-doc-render table.sigs td .slabel, .inline-doc-print-wrap table.sigs td .slabel {
+    font-weight: 600; display: inline-block; min-width: 130px;
+  }
+  .inline-doc-render table.sigs td .sline, .inline-doc-print-wrap table.sigs td .sline {
+    display: inline-block; border-bottom: 1px solid #111; width: 130px; height: 1em; vertical-align: bottom;
+  }
+
+  /* ---------- Signoff (Yours faithfully / Authorised Signatory) ---------- */
+  .inline-doc-render .signoff, .inline-doc-print-wrap .signoff { margin-top: 24px; font-size: 9.5pt; }
+  .inline-doc-render .signoff .line, .inline-doc-print-wrap .signoff .line {
+    border-bottom: 1px solid #111; width: 200px; min-height: 16px; margin: 18px 0 4px;
+  }
+  .inline-doc-render .signoff .lbl, .inline-doc-print-wrap .signoff .lbl { font-weight: 700; }
+
+  /* ---------- Payment Advice value-on-right ---------- */
+  .inline-doc-render table.advice-bank, .inline-doc-print-wrap table.advice-bank {
+    width: 100%; border-collapse: collapse; font-size: 9pt; margin-top: 0;
+    border-bottom: 1px solid #111;
+  }
+  .inline-doc-render table.advice-bank td, .inline-doc-print-wrap table.advice-bank td {
+    padding: 8px 6px 10px; vertical-align: top;
+  }
+  .inline-doc-render table.advice-bank td.lbl, .inline-doc-print-wrap table.advice-bank td.lbl {
+    font-weight: 600; white-space: nowrap;
+  }
+  .inline-doc-render table.advice-bank td.value-cell, .inline-doc-print-wrap table.advice-bank td.value-cell {
+    text-align: right; vertical-align: bottom;
+  }
+  .inline-doc-render table.advice-bank td.value-cell .vl,
+  .inline-doc-print-wrap table.advice-bank td.value-cell .vl { font-weight: 600; }
+  .inline-doc-render table.advice-bank td.value-cell .va,
+  .inline-doc-print-wrap table.advice-bank td.value-cell .va {
+    font-weight: 700; font-size: 10.5pt; display: block; margin-top: 2px;
+  }
+
+  .inline-doc-render .advice-sep, .inline-doc-print-wrap .advice-sep {
+    border: none; border-top: 1px dashed #9ca3af; margin: 28px 0 18px;
+  }
+
+  /* ---------- Generic table for Invoice ---------- */
   .inline-doc-render table.t, .inline-doc-print-wrap table.t { width: 100%; border-collapse: collapse; margin: 10px 0; font-size: 9pt; }
   .inline-doc-render table.t th, .inline-doc-render table.t td,
   .inline-doc-print-wrap table.t th, .inline-doc-print-wrap table.t td { border: 1px solid #333; padding: 5px 7px; vertical-align: top; text-align: left; }
@@ -108,15 +234,56 @@ const INLINE_DOC_STYLE = `
   .inline-doc-print-wrap table.t td.num, .inline-doc-print-wrap table.t th.num { text-align: right; white-space: nowrap; }
   .inline-doc-render table.t td.center, .inline-doc-render table.t th.center,
   .inline-doc-print-wrap table.t td.center, .inline-doc-print-wrap table.t th.center { text-align: center; }
-  .inline-doc-render .totals td, .inline-doc-print-wrap .totals td { font-weight: 700; }
-  .inline-doc-render .note, .inline-doc-print-wrap .note { font-size: 8.5pt; color: #4b5563; margin: 6px 0 0; }
+  .inline-doc-render table.t tr.totals td, .inline-doc-print-wrap table.t tr.totals td { font-weight: 700; }
+
   .inline-doc-render .body-text, .inline-doc-print-wrap .body-text { font-size: 10pt; line-height: 1.55; margin: 8px 0; text-align: justify; }
   .inline-doc-render .body-text p, .inline-doc-print-wrap .body-text p { margin: 0 0 8px; }
-  .inline-doc-render .signoff, .inline-doc-print-wrap .signoff { margin-top: 28px; font-size: 9.5pt; }
-  .inline-doc-render .signoff .line, .inline-doc-print-wrap .signoff .line { border-bottom: 1px solid #111; width: 180px; min-height: 22px; margin: 18px 0 4px; }
-  .inline-doc-render .signoff .lbl, .inline-doc-print-wrap .signoff .lbl { font-weight: 700; }
-  .inline-doc-render .signatures, .inline-doc-print-wrap .signatures { margin-top: 22px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; font-size: 8pt; }
-  .inline-doc-render .signatures .sig-line, .inline-doc-print-wrap .signatures .sig-line { border-bottom: 1px dotted #555; min-height: 26px; margin-top: 4px; }
+
+  /* ---------- Letter (Request Letter) ---------- */
+  .inline-doc-render .letter-date, .inline-doc-print-wrap .letter-date {
+    text-align: right; font-size: 9.5pt; margin: 16px 0 4px;
+  }
+  .inline-doc-render .letter-ref, .inline-doc-print-wrap .letter-ref {
+    text-align: right; font-size: 9pt; color: #374151; margin-bottom: 18px;
+  }
+  .inline-doc-render .letter-recipient, .inline-doc-print-wrap .letter-recipient {
+    font-size: 10pt; line-height: 1.5; margin: 0 0 18px;
+  }
+  .inline-doc-render .letter-recipient .rline,
+  .inline-doc-print-wrap .letter-recipient .rline { display: block; }
+  .inline-doc-render .letter-recipient .rname,
+  .inline-doc-print-wrap .letter-recipient .rname { font-weight: 700; }
+  .inline-doc-render .letter-subject, .inline-doc-print-wrap .letter-subject {
+    font-size: 10pt; font-weight: 700; text-decoration: underline; text-underline-offset: 3px;
+    margin: 6px 0 14px;
+  }
+  .inline-doc-render .letter-body, .inline-doc-print-wrap .letter-body {
+    font-size: 10pt; line-height: 1.65; text-align: justify;
+  }
+  .inline-doc-render .letter-body p, .inline-doc-print-wrap .letter-body p { margin: 0 0 10px; }
+  .inline-doc-render .letter-body .salutation, .inline-doc-print-wrap .letter-body .salutation { margin-bottom: 12px; }
+  .inline-doc-render table.req-details, .inline-doc-print-wrap table.req-details {
+    width: 90%; margin: 6px 0 12px 18px; border-collapse: collapse; font-size: 9.5pt;
+  }
+  .inline-doc-render table.req-details td, .inline-doc-print-wrap table.req-details td {
+    padding: 4px 8px; vertical-align: top;
+  }
+  .inline-doc-render table.req-details td.lbl, .inline-doc-print-wrap table.req-details td.lbl {
+    width: 160px; font-weight: 600; color: #1f2937;
+  }
+  .inline-doc-render table.req-details tr td, .inline-doc-print-wrap table.req-details tr td { border-bottom: 1px dotted #d1d5db; }
+  .inline-doc-render table.req-details tr:last-child td, .inline-doc-print-wrap table.req-details tr:last-child td { border-bottom: none; }
+  .inline-doc-render .letter-close, .inline-doc-print-wrap .letter-close { margin-top: 28px; font-size: 10pt; }
+  .inline-doc-render .letter-close .yours, .inline-doc-print-wrap .letter-close .yours { margin-bottom: 36px; }
+  .inline-doc-render .letter-close .sigline, .inline-doc-print-wrap .letter-close .sigline {
+    border-bottom: 1px solid #111; width: 220px; min-height: 14px; margin-bottom: 4px;
+  }
+  .inline-doc-render .letter-close .signer, .inline-doc-print-wrap .letter-close .signer { font-weight: 700; }
+  .inline-doc-render .letter-close .designation, .inline-doc-print-wrap .letter-close .designation { font-size: 9pt; color: #374151; }
+  .inline-doc-render .letter-cc, .inline-doc-print-wrap .letter-cc {
+    margin-top: 22px; font-size: 9pt; color: #374151;
+  }
+
   @media print {
     body.inline-doc-printing > *:not(.inline-doc-print-anchor) { display: none !important; }
     body.inline-doc-printing .inline-doc-print-anchor { display: block !important; }
@@ -133,7 +300,7 @@ const buildLetterheadHtml = () => {
       PRINT_LETTERHEAD.email && `E: ${PRINT_LETTERHEAD.email}`
     ].filter(Boolean).join(' | ')
   ].filter(Boolean).map((m) => `<div class="co-meta">${m}</div>`).join('');
-  const logoMark = (PRINT_LETTERHEAD.companyName.split(' ')[0] || '—');
+  const logoMark = PRINT_LETTERHEAD.logoText || (PRINT_LETTERHEAD.companyName.split(' ')[0] || '—');
   return `<div class="lh">
     <div>
       <div class="co-name">${PRINT_LETTERHEAD.companyName}</div>
@@ -158,41 +325,202 @@ const buildPaymentVoucherDoc = (form, glLines) => {
 
   const linesHtml = lines.length
     ? lines.map((r) => `<tr><td>${r.desc}</td><td>${r.no}</td><td class="center">${r.dc}</td><td class="num">${formatAmount(r.amt)}</td></tr>`).join('')
-    : `<tr><td colspan="4" class="center" style="color:#6b7280">No journal lines recorded.</td></tr>`;
+    : `<tr><td colspan="4" class="center" style="color:#6b7280; padding: 12px 0;">No journal lines recorded.</td></tr>`;
+
+  const totalsHtml = lines.length ? `
+        <tr class="totals totals-first"><td colspan="3" style="text-align:right">Total Credit</td><td class="num">${formatAmount(totalCr)}</td></tr>
+        <tr class="totals section-end"><td colspan="3" style="text-align:right">Total Debit</td><td class="num">${formatAmount(totalDr)}</td></tr>
+      ` : '';
+
+  const branchCode = form.paymentBranchCode || form.branchCode || '—';
+  const branchAccount = form.paymentAccountNumber || '—';
+  const branchName = form.paymentBranchName || form.paymentBankName || '—';
+  const chequeNo = form.chequeNumber || form.chequeNo || '—';
+  const payee = form.counterparty || '—';
+  const paymentType = String(form.paymentMethod || '—').toUpperCase();
+  const narration = form.description || '—';
+  const docAttached = form.reference || '—';
+  const dateStr = formatDateDdMmYyyy(form.date);
+  const voucherNo = form.voucherNumber || '—';
+
+  // ---------- Payment Voucher (top) ----------
+  const voucherHeader = `
+    <table class="hdr">
+      <colgroup>
+        <col style="width: 110px;" />
+        <col />
+        <col style="width: 110px;" />
+        <col style="width: 200px;" />
+      </colgroup>
+      <tbody>
+        <tr class="sep">
+          <td class="lbl">Date</td>
+          <td class="val">${dateStr}</td>
+          <td class="lbl-r">Voucher No</td>
+          <td class="val" style="text-align:right;">${voucherNo}</td>
+        </tr>
+        <tr>
+          <td class="lbl">Payee</td>
+          <td class="val" colspan="3">${payee}</td>
+        </tr>
+        <tr>
+          <td class="lbl">Payment Type</td>
+          <td class="val" colspan="3">${paymentType}</td>
+        </tr>
+        <tr class="sep">
+          <td class="lbl">Narration</td>
+          <td class="val" colspan="3">${narration}</td>
+        </tr>
+        <tr class="sep">
+          <td class="lbl">Document Attached</td>
+          <td class="val" colspan="3">${docAttached}</td>
+        </tr>
+      </tbody>
+    </table>`;
+
+  const voucherJournal = `
+    <table class="jt">
+      <colgroup>
+        <col />
+        <col style="width: 160px;" />
+        <col style="width: 70px;" />
+        <col style="width: 130px;" />
+      </colgroup>
+      <thead>
+        <tr>
+          <th>Account Description</th>
+          <th>Account No</th>
+          <th class="center">DR/CR</th>
+          <th class="num">Amount</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${linesHtml}
+        ${totalsHtml}
+      </tbody>
+    </table>`;
+
+  const voucherBank = `
+    <table class="bank">
+      <colgroup>
+        <col style="width: 95px;" />
+        <col />
+        <col style="width: 110px;" />
+        <col />
+        <col style="width: 100px;" />
+        <col />
+        <col style="width: 90px;" />
+        <col />
+      </colgroup>
+      <tbody>
+        <tr>
+          <td class="lbl">Branch Code</td>
+          <td>${branchCode}</td>
+          <td class="lbl">Branch Account</td>
+          <td>${branchAccount}</td>
+          <td class="lbl">Branch Name</td>
+          <td>${branchName}</td>
+          <td class="lbl">Cheque No</td>
+          <td>${chequeNo}</td>
+        </tr>
+      </tbody>
+    </table>`;
+
+  const signatureGrid = `
+    <table class="sigs">
+      <tbody>
+        <tr>
+          <td><span class="slabel">Prepared by</span><span class="sline">&nbsp;</span></td>
+          <td><span class="slabel">Approved by</span><span class="sline">&nbsp;</span></td>
+          <td><span class="slabel">1st signatory</span><span class="sline">&nbsp;</span></td>
+        </tr>
+        <tr>
+          <td><span class="slabel">2nd signatory</span><span class="sline">&nbsp;</span></td>
+          <td><span class="slabel">Received with thanks</span><span class="sline">&nbsp;</span></td>
+          <td><span class="slabel">Date</span><span class="sline">&nbsp;</span></td>
+        </tr>
+      </tbody>
+    </table>`;
+
+  // ---------- Payment Advice (bottom) ----------
+  const adviceHeader = `
+    <table class="hdr">
+      <colgroup>
+        <col style="width: 110px;" />
+        <col />
+        <col style="width: 110px;" />
+        <col style="width: 200px;" />
+      </colgroup>
+      <tbody>
+        <tr class="sep">
+          <td class="lbl">Date</td>
+          <td class="val">${dateStr}</td>
+          <td class="lbl-r">Voucher No</td>
+          <td class="val" style="text-align:right;">${voucherNo}</td>
+        </tr>
+        <tr>
+          <td class="lbl">Payee</td>
+          <td class="val" colspan="3">${payee}</td>
+        </tr>
+        <tr>
+          <td class="lbl">Payment Type</td>
+          <td class="val" colspan="3">${paymentType}</td>
+        </tr>
+        <tr class="sep">
+          <td class="lbl">Narration</td>
+          <td class="val" colspan="3">${narration}</td>
+        </tr>
+        <tr class="sep">
+          <td class="lbl">Document Attached</td>
+          <td class="val" colspan="3">${docAttached}</td>
+        </tr>
+      </tbody>
+    </table>`;
+
+  const adviceBank = `
+    <table class="advice-bank">
+      <colgroup>
+        <col style="width: 95px;" />
+        <col />
+        <col style="width: 110px;" />
+        <col />
+        <col style="width: 90px;" />
+        <col />
+        <col style="width: 130px;" />
+      </colgroup>
+      <tbody>
+        <tr>
+          <td class="lbl">Branch Code</td>
+          <td>${branchCode}</td>
+          <td class="lbl">Branch Account</td>
+          <td>${branchAccount}</td>
+          <td class="lbl">Cheque No</td>
+          <td>${chequeNo}</td>
+          <td class="value-cell" rowspan="1">
+            <span class="vl">Value</span>
+            <span class="va">${formatAmount(form.amount)}</span>
+          </td>
+        </tr>
+      </tbody>
+    </table>`;
 
   return `${buildLetterheadHtml()}
-  <div class="doc-title">PAYMENT VOUCHER</div>
-  <div class="meta">
-    <div class="row"><span class="label">Date:</span><span class="value">${formatDateDdMmYyyy(form.date)}</span></div>
-    <div class="row"><span class="label">Voucher No:</span><span class="value">${form.voucherNumber || '—'}</span></div>
-    <div class="row"><span class="label">Payee:</span><span class="value">${form.counterparty || '—'}</span></div>
-    <div class="row"><span class="label">Payment Type:</span><span class="value">${String(form.paymentMethod || '—').toUpperCase()}</span></div>
-    <div class="row"><span class="label">Narration:</span><span class="value">${form.description || '—'}</span></div>
-    <div class="row"><span class="label">Document Attached:</span><span class="value">${form.reference ? `Inv no: ${form.reference}` : '—'}</span></div>
-  </div>
-  <table class="t">
-    <thead><tr><th>Account Description</th><th>Account No</th><th class="center">DR/CR</th><th class="num">Amount</th></tr></thead>
-    <tbody>
-      ${linesHtml}
-      ${lines.length ? `
-      <tr class="totals"><td colspan="3" style="text-align:right">Total Debit</td><td class="num">${formatAmount(totalDr)}</td></tr>
-      <tr class="totals"><td colspan="3" style="text-align:right">Total Credit</td><td class="num">${formatAmount(totalCr)}</td></tr>` : ''}
-    </tbody>
-  </table>
-  <div class="note">Amounts stated in ${form.currency || 'LKR'}.</div>
-  <div class="meta" style="margin-top:14px">
-    <div class="row"><span class="label">Branch Account:</span><span class="value">${form.paymentAccountNumber || '—'}</span></div>
-    <div class="row"><span class="label">Bank / Branch:</span><span class="value">${[form.paymentBankName, form.paymentBranchName].filter(Boolean).join(' · ') || '—'}</span></div>
-    <div class="row"><span class="label">Value:</span><span class="value">${formatAmount(form.amount)} ${form.currency || ''}</span></div>
-  </div>
+  <div class="doc-title">Payment Voucher</div>
+  ${voucherHeader}
+  ${voucherJournal}
+  ${voucherBank}
+  ${signatureGrid}
+
+  <hr class="advice-sep" />
+
+  ${buildLetterheadHtml()}
+  <div class="doc-title">PAYMENT ADVICE</div>
+  ${adviceHeader}
+  ${adviceBank}
   <div class="signoff">
     <div>Yours faithfully</div>
     <div class="line"></div>
     <div class="lbl">Authorised Signatory</div>
-  </div>
-  <div class="signatures">
-    ${['Prepared by', 'Approved by', '1st signatory', '2nd signatory', 'Received with thanks', 'Date']
-      .map((l) => `<div><div>${l}</div><div class="sig-line"></div></div>`).join('')}
   </div>`;
 };
 
@@ -201,79 +529,238 @@ const buildInvoiceDoc = (form) => {
   const unit = parseFloat(form.amount) || 0;
   const total = qty * unit;
   const desc = form.description || form.transactionType || 'Service / Goods supplied';
+  const currency = form.currency || 'LKR';
+  const invoiceNo = form.reference || form.voucherNumber || '—';
+  const dateStr = formatDateDdMmYyyy(form.date);
+  const dueDateStr = dateStr; // No separate due-date field today
+  const billTo = form.counterparty || '—';
+  const ourRef = form.voucherNumber || '—';
+  const paymentTerms = form.paymentMethod ? String(form.paymentMethod).toUpperCase() : 'AS PER AGREEMENT';
+
+  // Top header block (4-column table for label/value pairs)
+  const headerBlock = `
+    <table class="hdr">
+      <colgroup>
+        <col style="width: 110px;" />
+        <col />
+        <col style="width: 110px;" />
+        <col style="width: 200px;" />
+      </colgroup>
+      <tbody>
+        <tr class="sep">
+          <td class="lbl">Invoice No</td>
+          <td class="val">${invoiceNo}</td>
+          <td class="lbl-r">Invoice Date</td>
+          <td class="val" style="text-align:right;">${dateStr}</td>
+        </tr>
+        <tr>
+          <td class="lbl">Bill To</td>
+          <td class="val" colspan="3">${billTo}</td>
+        </tr>
+        <tr>
+          <td class="lbl">Our Reference</td>
+          <td class="val">${ourRef}</td>
+          <td class="lbl-r">Due Date</td>
+          <td class="val" style="text-align:right;">${dueDateStr}</td>
+        </tr>
+        <tr class="sep">
+          <td class="lbl">Payment Terms</td>
+          <td class="val" colspan="3">${paymentTerms}</td>
+        </tr>
+      </tbody>
+    </table>`;
+
+  // Line items (minimal-border table to match Payment Voucher style)
+  const itemsTable = `
+    <table class="jt">
+      <colgroup>
+        <col style="width: 36px;" />
+        <col />
+        <col style="width: 56px;" />
+        <col style="width: 130px;" />
+        <col style="width: 140px;" />
+      </colgroup>
+      <thead>
+        <tr>
+          <th class="center">#</th>
+          <th>Description</th>
+          <th class="center">Qty</th>
+          <th class="num">Unit Price (${currency})</th>
+          <th class="num">Amount (${currency})</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td class="center">1</td>
+          <td>${desc}</td>
+          <td class="center">${qty}</td>
+          <td class="num">${formatAmount(unit)}</td>
+          <td class="num">${formatAmount(total)}</td>
+        </tr>
+        <tr class="totals totals-first">
+          <td colspan="4" style="text-align:right">Sub Total</td>
+          <td class="num">${formatAmount(total)}</td>
+        </tr>
+        <tr class="totals section-end">
+          <td colspan="4" style="text-align:right">Total Payable (${currency})</td>
+          <td class="num">${formatAmount(total)}</td>
+        </tr>
+      </tbody>
+    </table>`;
+
+  // Amount in words + notes section
+  const wordsBlock = `
+    <table class="hdr" style="margin-top: 10px;">
+      <colgroup>
+        <col style="width: 130px;" />
+        <col />
+      </colgroup>
+      <tbody>
+        <tr class="sep">
+          <td class="lbl">Amount in Words</td>
+          <td class="val" style="font-style: italic;">${numberToWords(total)} ${currency} Only.</td>
+        </tr>
+        ${form.notes ? `
+        <tr class="sep">
+          <td class="lbl">Notes</td>
+          <td class="val">${form.notes}</td>
+        </tr>` : ''}
+      </tbody>
+    </table>`;
+
+  // Optional bank-payment instructions row (only render if any bank fields exist)
+  const hasBankInfo = form.paymentBankName || form.paymentBranchName || form.paymentAccountNumber || form.paymentAccountName;
+  const bankBlock = hasBankInfo ? `
+    <div style="margin-top: 14px; font-size: 9pt; font-weight: 700; text-decoration: underline; text-underline-offset: 3px;">Payment Instructions</div>
+    <table class="bank">
+      <colgroup>
+        <col style="width: 110px;" />
+        <col />
+        <col style="width: 110px;" />
+        <col />
+      </colgroup>
+      <tbody>
+        <tr>
+          <td class="lbl">Bank Name</td>
+          <td>${form.paymentBankName || '—'}</td>
+          <td class="lbl">Branch</td>
+          <td>${form.paymentBranchName || '—'}</td>
+        </tr>
+        <tr>
+          <td class="lbl">Account Name</td>
+          <td>${form.paymentAccountName || '—'}</td>
+          <td class="lbl">Account No</td>
+          <td>${form.paymentAccountNumber || '—'}</td>
+        </tr>
+      </tbody>
+    </table>` : '';
+
   return `${buildLetterheadHtml()}
   <div class="doc-title">INVOICE</div>
-  <div class="meta">
-    <div class="row"><span class="label">Invoice No:</span><span class="value">${form.reference || form.voucherNumber || '—'}</span></div>
-    <div class="row"><span class="label">Invoice Date:</span><span class="value">${formatDateDdMmYyyy(form.date)}</span></div>
-    <div class="row"><span class="label">Bill To:</span><span class="value">${form.counterparty || '—'}</span></div>
-    <div class="row"><span class="label">Reference:</span><span class="value">${form.voucherNumber || '—'}</span></div>
-  </div>
-  <table class="t">
-    <thead><tr><th>#</th><th>Description</th><th class="center">Qty</th><th class="num">Unit Price (${form.currency || 'LKR'})</th><th class="num">Amount (${form.currency || 'LKR'})</th></tr></thead>
-    <tbody>
-      <tr>
-        <td class="center">1</td>
-        <td>${desc}</td>
-        <td class="center">${qty}</td>
-        <td class="num">${formatAmount(unit)}</td>
-        <td class="num">${formatAmount(total)}</td>
-      </tr>
-      <tr class="totals"><td colspan="4" style="text-align:right">Sub Total</td><td class="num">${formatAmount(total)}</td></tr>
-      <tr class="totals"><td colspan="4" style="text-align:right">Total Payable</td><td class="num">${formatAmount(total)} ${form.currency || ''}</td></tr>
-    </tbody>
-  </table>
-  <div class="body-text">
-    <p><strong>Amount in words:</strong> ${numberToWords(total)} ${form.currency || ''} only.</p>
-    <p><strong>Payment Terms:</strong> ${form.paymentMethod ? String(form.paymentMethod).toUpperCase() : 'As per agreement.'}</p>
-    ${form.notes ? `<p><strong>Notes:</strong> ${form.notes}</p>` : ''}
-  </div>
+  ${headerBlock}
+  ${itemsTable}
+  ${wordsBlock}
+  ${bankBlock}
   <div class="signoff">
     <div>For ${PRINT_LETTERHEAD.companyName}</div>
     <div class="line"></div>
     <div class="lbl">Authorised Signatory</div>
+  </div>
+  <div style="margin-top: 22px; font-size: 8pt; color: #6b7280; text-align: center;">
+    This is a computer-generated invoice. No signature is required if generated electronically.
   </div>`;
 };
 
 const buildRequestLetterDoc = (form) => {
   const todayStr = formatDateDdMmYyyy(getToday());
-  const recipient = form.counterparty || form.paymentBankName || 'The Manager';
-  const bankLine = [form.paymentBankName, form.paymentBranchName].filter(Boolean).join(', ');
-  const accountLine = [form.paymentAccountName, form.paymentAccountNumber].filter(Boolean).join(' - ');
-  const amt = formatAmount(form.amount);
+  const recipientName = form.counterparty || form.paymentBankName || 'The Manager';
+  const branchLine = form.paymentBranchName ? `${form.paymentBranchName} Branch` : '';
+  const bankNameLine = form.paymentBankName && form.paymentBankName !== recipientName ? form.paymentBankName : '';
+
+  const currency = form.currency || 'LKR';
+  const amtFigure = formatAmount(form.amount);
+  const amtWords = Number.isFinite(parseFloat(form.amount))
+    ? `${numberToWords(form.amount)} ${currency} Only`
+    : '';
+
+  const accountName = form.paymentAccountName || '';
+  const accountNumber = form.paymentAccountNumber || '';
+  const accountLine = [accountName, accountNumber].filter(Boolean).join(' / ');
+
   const subjectRef = form.reference || form.voucherNumber || '';
+  const txnLabel = (form.transactionType || 'Transaction Processing').trim();
+  const subjectLine = `Request for ${txnLabel}${subjectRef ? ` — Ref: ${subjectRef}` : ''}`;
+
+  // Recipient block (To: ...)
+  const recipientBlock = `
+    <div class="letter-recipient">
+      <span class="rline rname">${recipientName}</span>
+      ${bankNameLine ? `<span class="rline">${bankNameLine}</span>` : ''}
+      ${branchLine ? `<span class="rline">${branchLine}</span>` : ''}
+    </div>`;
+
+  // Detail table inside body (Amount, Account, Purpose, Settlement Note)
+  const detailRows = [];
+  detailRows.push(`<tr><td class="lbl">Amount</td><td>${currency} ${amtFigure}${amtWords ? ` &nbsp;<em>(${amtWords})</em>` : ''}</td></tr>`);
+  if (accountLine) detailRows.push(`<tr><td class="lbl">Account</td><td>${accountLine}</td></tr>`);
+  if (form.description) detailRows.push(`<tr><td class="lbl">Purpose</td><td>${form.description}</td></tr>`);
+  if (form.cashFlowOnSettlement) detailRows.push(`<tr><td class="lbl">Settlement Note</td><td>${form.cashFlowOnSettlement}</td></tr>`);
+  if (subjectRef) detailRows.push(`<tr><td class="lbl">Our Reference</td><td>${subjectRef}</td></tr>`);
+  const detailsTable = `
+    <table class="req-details">
+      <colgroup>
+        <col style="width: 160px;" />
+        <col />
+      </colgroup>
+      <tbody>${detailRows.join('')}</tbody>
+    </table>`;
+
   return `${buildLetterheadHtml()}
-  <div class="doc-title">REQUEST LETTER</div>
-  <div class="meta">
-    <div class="row"><span class="label">Date:</span><span class="value">${todayStr}</span></div>
-    <div class="row"><span class="label">Ref:</span><span class="value">${form.voucherNumber || '—'}</span></div>
+  <div class="letter-date">Date: ${todayStr}</div>
+  ${subjectRef ? `<div class="letter-ref">Our Ref: ${subjectRef}</div>` : ''}
+
+  <div class="letter-recipient">
+    <span class="rline" style="font-weight: 600;">To,</span>
   </div>
-  <div class="body-text">
-    <p>To,<br/>${recipient}${bankLine ? `<br/>${bankLine}` : ''}</p>
-    <p><strong>Subject: Request for ${form.transactionType || 'transaction processing'}${subjectRef ? ` (Ref: ${subjectRef})` : ''}</strong></p>
-    <p>Dear Sir/Madam,</p>
+  ${recipientBlock}
+
+  <div class="letter-subject">Subject: ${subjectLine}</div>
+
+  <div class="letter-body">
+    <p class="salutation">Dear Sir/Madam,</p>
+
     <p>
-      We, <strong>${PRINT_LETTERHEAD.companyName}</strong>, kindly request you to process the
-      following ${form.transactionType ? form.transactionType.toLowerCase() : 'transaction'} on our behalf:
+      We, <strong>${PRINT_LETTERHEAD.companyName}</strong>, hereby kindly request you to process
+      the following ${txnLabel.toLowerCase()} on our behalf as per the details set out below:
     </p>
+
+    ${detailsTable}
+
     <p>
-      <strong>Amount:</strong> ${form.currency || 'LKR'} ${amt}
-      ${Number.isFinite(parseFloat(form.amount)) ? `(${numberToWords(form.amount)} ${form.currency || ''} only)` : ''}<br/>
-      ${accountLine ? `<strong>Account:</strong> ${accountLine}<br/>` : ''}
-      ${form.description ? `<strong>Purpose:</strong> ${form.description}<br/>` : ''}
-      ${form.cashFlowOnSettlement ? `<strong>Settlement Note:</strong> ${form.cashFlowOnSettlement}<br/>` : ''}
+      We confirm that the necessary funds are available in the above account and that the
+      relevant internal approvals have been duly obtained for this instruction.
+      Kindly debit the said account and execute the settlement accordingly.
     </p>
+
     <p>
-      Please debit the relevant account and arrange the settlement accordingly. We confirm that the
-      funds are available and the necessary internal approvals have been obtained.
+      We would be grateful if you could acknowledge receipt of this letter and confirm completion
+      of the transaction at your earliest convenience. Should you require any further information
+      or supporting documentation, please do not hesitate to contact the undersigned.
     </p>
-    <p>Thank you for your prompt attention to this matter.</p>
-    <p>Yours faithfully,</p>
+
+    <p>Thank you for your prompt attention and continued support.</p>
   </div>
-  <div class="signoff" style="margin-top:14px">
-    <div>For ${PRINT_LETTERHEAD.companyName}</div>
-    <div class="line"></div>
-    <div class="lbl">Authorised Signatory</div>
+
+  <div class="letter-close">
+    <div class="yours">Yours faithfully,</div>
+    <div>For and on behalf of <strong>${PRINT_LETTERHEAD.companyName}</strong></div>
+    <div class="sigline">&nbsp;</div>
+    <div class="signer">Authorised Signatory</div>
+    <div class="designation">Name &amp; Designation: ________________________</div>
+  </div>
+
+  <div class="letter-cc">
+    cc: File / Accounts Department
   </div>`;
 };
 
@@ -1375,6 +1862,7 @@ const OtherTransactions = () => {
     if (catLower === 'asset' || catLower.includes('asset')) return 'asset';
     if (catLower === 'liability' || catLower.includes('liability')) return 'liability';
     if (catLower === 'equity') return 'equity';
+    if (catLower === 'gl_to_gl' || catLower === 'gl to gl') return 'gl_to_gl';
     return null;
   };
 
@@ -5974,81 +6462,39 @@ const isVoucherSettled = (voucher) => {
               marginBottom: '2rem',
               flexWrap: 'wrap'
             }}>
-              <button
-                onClick={() => setActiveCategory('all')}
-                style={{
-                  padding: '0.75rem 1.5rem',
-                  border: 'none',
-                  borderRadius: '0.375rem',
-                  background: activeCategory === 'all' ? '#3b82f6' : '#f3f4f6',
-                  color: activeCategory === 'all' ? 'white' : '#374151',
-                  fontWeight: activeCategory === 'all' ? '600' : '500',
-                  cursor: 'pointer',
-                  transition: 'all 0.2s ease'
-                }}
-              >
-                All
-              </button>
-              <button
-                onClick={() => setActiveCategory('income')}
-                style={{
-                  padding: '0.75rem 1.5rem',
-                  border: 'none',
-                  borderRadius: '0.375rem',
-                  background: activeCategory === 'income' ? '#10b981' : '#f3f4f6',
-                  color: activeCategory === 'income' ? 'white' : '#374151',
-                  fontWeight: activeCategory === 'income' ? '600' : '500',
-                  cursor: 'pointer',
-                  transition: 'all 0.2s ease'
-                }}
-              >
-                Income
-              </button>
-              <button
-                onClick={() => setActiveCategory('expense')}
-                style={{
-                  padding: '0.75rem 1.5rem',
-                  border: 'none',
-                  borderRadius: '0.375rem',
-                  background: activeCategory === 'expense' ? '#ef4444' : '#f3f4f6',
-                  color: activeCategory === 'expense' ? 'white' : '#374151',
-                  fontWeight: activeCategory === 'expense' ? '600' : '500',
-                  cursor: 'pointer',
-                  transition: 'all 0.2s ease'
-                }}
-              >
-                Expense
-              </button>
-              <button
-                onClick={() => setActiveCategory('asset')}
-                style={{
-                  padding: '0.75rem 1.5rem',
-                  border: 'none',
-                  borderRadius: '0.375rem',
-                  background: activeCategory === 'asset' ? '#8b5cf6' : '#f3f4f6',
-                  color: activeCategory === 'asset' ? 'white' : '#374151',
-                  fontWeight: activeCategory === 'asset' ? '600' : '500',
-                  cursor: 'pointer',
-                  transition: 'all 0.2s ease'
-                }}
-              >
-                Asset
-              </button>
-              <button
-                onClick={() => setActiveCategory('liability')}
-                style={{
-                  padding: '0.75rem 1.5rem',
-                  border: 'none',
-                  borderRadius: '0.375rem',
-                  background: activeCategory === 'liability' ? '#f59e0b' : '#f3f4f6',
-                  color: activeCategory === 'liability' ? 'white' : '#374151',
-                  fontWeight: activeCategory === 'liability' ? '600' : '500',
-                  cursor: 'pointer',
-                  transition: 'all 0.2s ease'
-                }}
-              >
-                Liability
-              </button>
+              {[
+                { key: 'all', label: 'All', color: '#3b82f6' },
+                { key: 'revenue', label: 'Revenue', color: '#10b981' },
+                { key: 'other income', label: 'Other Income', color: '#14b8a6' },
+                { key: 'provisions', label: 'Provisions', color: '#f97316' },
+                { key: 'expense', label: 'Expense', color: '#ef4444' },
+                { key: 'asset', label: 'Asset', color: '#8b5cf6' },
+                { key: 'liability', label: 'Liability', color: '#f59e0b' },
+                { key: 'equity', label: 'Equity', color: '#ec4899' },
+                { key: 'gl_to_gl', label: 'GL_TO_GL', color: '#0ea5e9' }
+              ].map((chip) => {
+                const isActive = activeCategory === chip.key;
+                return (
+                  <button
+                    key={chip.key}
+                    onClick={() => setActiveCategory(chip.key)}
+                    style={{
+                      padding: '0.6rem 1.15rem',
+                      border: 'none',
+                      borderRadius: '0.375rem',
+                      background: isActive ? chip.color : '#f3f4f6',
+                      color: isActive ? 'white' : '#374151',
+                      fontWeight: isActive ? '600' : '500',
+                      fontSize: '0.85rem',
+                      cursor: 'pointer',
+                      transition: 'all 0.2s ease',
+                      letterSpacing: chip.key === 'gl_to_gl' ? '0.04em' : 'normal'
+                    }}
+                  >
+                    {chip.label}
+                  </button>
+                );
+              })}
         </div>
 
             {/* Voucher Grid */}
@@ -6127,15 +6573,19 @@ const isVoucherSettled = (voucher) => {
                         textTransform: 'capitalize',
                         background: (() => {
                           const baseCat = getBaseCategory(voucher.account_type);
-                          return baseCat === 'income' ? '#d1fae5' : 
-                                 baseCat === 'expense' ? '#fee2e2' :
-                                 baseCat === 'asset' ? '#ede9fe' : '#fef3c7';
+                          return baseCat === 'income' || baseCat === 'revenue' || baseCat === 'otherIncome' ? '#d1fae5' : 
+                                 baseCat === 'expense' || baseCat === 'provisions' ? '#fee2e2' :
+                                 baseCat === 'asset' ? '#ede9fe' :
+                                 baseCat === 'gl_to_gl' ? '#e0f2fe' :
+                                 baseCat === 'equity' ? '#fce7f3' : '#fef3c7';
                         })(),
                         color: (() => {
                           const baseCat = getBaseCategory(voucher.account_type);
-                          return baseCat === 'income' ? '#065f46' : 
-                                 baseCat === 'expense' ? '#991b1b' :
-                                 baseCat === 'asset' ? '#6d28d9' : '#92400e';
+                          return baseCat === 'income' || baseCat === 'revenue' || baseCat === 'otherIncome' ? '#065f46' : 
+                                 baseCat === 'expense' || baseCat === 'provisions' ? '#991b1b' :
+                                 baseCat === 'asset' ? '#6d28d9' :
+                                 baseCat === 'gl_to_gl' ? '#075985' :
+                                 baseCat === 'equity' ? '#9d174d' : '#92400e';
                         })()
                       }}>
                         {voucher.account_type}
@@ -6789,7 +7239,7 @@ const isVoucherSettled = (voucher) => {
 
               {/* Footer */}
         <div className="other-trans-footer-section">
-          <p>SHERWOOD TECHNOLOGIES (PVT) LTD • Non-Trading Transactions Management • All data is encrypted and protected</p>
+          <p>Company Name • Non-Trading Transactions Management • All data is encrypted and protected</p>
         </div>
       </div>
 

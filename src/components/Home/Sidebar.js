@@ -290,6 +290,7 @@ export const equityManagerMenuItems = [
       "Corporate Notices",
       "Trading Updates",
       "Regulatory Updates",
+      "Financial Reports",
       "News & Events"
     ]
   },

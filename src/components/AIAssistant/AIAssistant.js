@@ -60,13 +60,13 @@ const AIAssistant = ({ variant = 'page', onClose }) => {
     <div className={`ai-assistant ${isPanel ? 'ai-assistant--panel' : ''}`}>
       <header className="ai-assistant-header">
         <div className="ai-assistant-header-row">
-          <h2 id={isPanel ? 'ai-assistant-dock-title' : undefined}>AI Assistant</h2>
+          <h2 id={isPanel ? 'ai-assistant-dock-title' : undefined}>Agent Blux</h2>
           {isPanel && onClose && (
             <button
               type="button"
               className="ai-assistant-close"
               onClick={onClose}
-              aria-label="Close AI Assistant"
+              aria-label="Close Agent Blux"
             >
               ×
             </button>

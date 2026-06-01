@@ -14,10 +14,34 @@ import { authService } from '../../services/authService';
 import RiskReturnScatterPlot from './RiskReturnScatterPlot';
 import DashboardSectorMixChart from './DashboardSectorMixChart';
 import MarketNewsWidget from './MarketNewsWidget';
+import DashboardMarketPulse from './DashboardMarketPulse';
+import DashboardMarketMovers from './DashboardMarketMovers';
+import AgentBlux from '../AgentBlux/AgentBlux';
+import { useAgentStatus } from '../../hooks/useAgentStatus';
+import { useBluxSignal } from '../../hooks/useBluxSignal';
 import './Dashboard.css';
 import './LatestActivityCard.css';
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, Tooltip, Legend);
+
+const formatPnlAmount = (value) =>
+  new Intl.NumberFormat('en-US', {
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0
+  }).format(Number(value) || 0);
+
+const getPnlSign = (value) => {
+  const n = Number(value) || 0;
+  if (n > 0) return 'pos';
+  if (n < 0) return 'neg';
+  return 'flat';
+};
+
+const getPnlIndicator = (sign) => {
+  if (sign === 'pos') return '▲';
+  if (sign === 'neg') return '▼';
+  return '◆';
+};
 
 function formatLkrCompact(value) {
   const n = Number(value) || 0;
@@ -105,7 +129,7 @@ const MOCK_WATCHLIST = [
   }
 ];
 
-const Dashboard = ({ onTabChange }) => {
+const Dashboard = ({ onTabChange, onOpenAIAssistant }) => {
   const [dashboardData, setDashboardData] = useState({
     activePortfolios: 0,
     recentTransactions: [],
@@ -116,6 +140,8 @@ const Dashboard = ({ onTabChange }) => {
     totalCompanies: 0,
     sectorChartPortfolioName: null,
     costVsMvBySector: [],
+    holdingSymbols: [],
+    holdingNames: [],
     pnlMetrics: {
       totalRealizedCapitalGain: 0,
       realizedPnL: 0,
@@ -269,6 +295,8 @@ const Dashboard = ({ onTabChange }) => {
       let totalCompanies = 0;
       let sectorChartPortfolioName = null;
       let costVsMvBySector = [];
+      let holdingSymbols = [];
+      let holdingNames = [];
       let pnlMetrics = {
         totalRealizedCapitalGain: 0,
         realizedPnL: 0,
@@ -519,6 +547,18 @@ const Dashboard = ({ onTabChange }) => {
           console.log('Fetched holdings data:', holdingsData);
         }
 
+        // Symbols / names for CSE Market Pulse (portfolio-aware ranking on dashboard)
+        holdingSymbols = [
+          ...new Set(holdingsData.map((h) => h.symbol).filter(Boolean))
+        ];
+        holdingNames = [
+          ...new Set(
+            holdingsData
+              .map((h) => h.companyName || h.company_name || h.name)
+              .filter(Boolean)
+          )
+        ];
+
         // Process holdings data using the same approach as Portfolio Overview
         const sectorMap = {};
         const sectorCostMvMap = new Map();
@@ -616,6 +656,8 @@ const Dashboard = ({ onTabChange }) => {
         sectorData = [];
         sectorLegend = [];
         totalCompanies = 0;
+        holdingSymbols = [];
+        holdingNames = [];
       }
 
       console.log('🔍 DASHBOARD DEBUG - Final pnlMetrics before setting state:', pnlMetrics);
@@ -635,6 +677,8 @@ const Dashboard = ({ onTabChange }) => {
         totalCompanies: totalCompanies,
         sectorChartPortfolioName,
         costVsMvBySector,
+        holdingSymbols,
+        holdingNames,
         pnlMetrics: pnlMetrics
       });
       
@@ -655,6 +699,8 @@ const Dashboard = ({ onTabChange }) => {
         totalCompanies: 0,
         sectorChartPortfolioName: null,
         costVsMvBySector: [],
+        holdingSymbols: [],
+        holdingNames: [],
         pnlMetrics: {
           totalRealizedCapitalGain: 0,
           realizedPnL: 0,
@@ -697,53 +743,216 @@ const Dashboard = ({ onTabChange }) => {
           label: 'Cost',
           data: costVsMvSectors.map((s) => s.cost || 0),
           backgroundColor: '#94a3b8',
-          borderRadius: 0
+          borderColor: '#64748b',
+          borderWidth: 0,
+          borderRadius: 0,
+          maxBarThickness: 22,
+          categoryPercentage: 0.7,
+          barPercentage: 0.9
         },
         {
           label: 'Market value',
           data: costVsMvSectors.map((s) => s.marketValue || 0),
-          backgroundColor: '#1e3a8a',
-          borderRadius: 0
+          backgroundColor: '#3b82f6',
+          borderColor: '#1e40af',
+          borderWidth: 0,
+          borderRadius: 0,
+          maxBarThickness: 22,
+          categoryPercentage: 0.7,
+          barPercentage: 0.9
         }
       ]
     }),
     [costVsMvSectors]
   );
 
-  const costVsMvChartOptions = useMemo(
-    () => ({
+  const costVsMvChartOptions = useMemo(() => {
+    const monoFont =
+      "'IBM Plex Mono', 'Roboto Mono', 'SF Mono', Menlo, Consolas, 'Courier New', monospace";
+    return {
       responsive: true,
       maintainAspectRatio: false,
+      animation: false,
       plugins: {
-        legend: { position: 'top', labels: { font: { size: 12 } } },
+        legend: {
+          position: 'top',
+          align: 'end',
+          labels: {
+            boxWidth: 10,
+            boxHeight: 10,
+            color: '#1e293b',
+            font: { size: 11, weight: '600', family: monoFont },
+            usePointStyle: false,
+            padding: 14
+          }
+        },
         tooltip: {
+          backgroundColor: '#ffffff',
+          titleColor: '#0f172a',
+          bodyColor: '#1e293b',
+          borderColor: '#0f172a',
+          borderWidth: 1,
+          titleFont: { size: 11, weight: '700', family: monoFont },
+          bodyFont: { size: 10, weight: '500', family: monoFont },
+          titleMarginBottom: 6,
+          padding: 10,
           cornerRadius: 0,
+          displayColors: false,
           callbacks: {
             title: (items) => {
               const idx = items?.[0]?.dataIndex ?? 0;
               const row = costVsMvSectors[idx];
-              return row ? row.sector : items?.[0]?.label;
+              const sector = row ? row.sector : items?.[0]?.label;
+              return (sector || '').toString().toUpperCase();
             },
-            label: (ctx) => `${ctx.dataset.label}: ${formatLkrCompact(Number(ctx.raw) || 0)}`
+            label: (ctx) => {
+              const label = (ctx.dataset.label || '').toString().toUpperCase();
+              const value = formatLkrCompact(Number(ctx.raw) || 0);
+              return `${label.padEnd(12, ' ')}${value}`;
+            }
           }
         }
       },
       scales: {
-        x: { grid: { display: false }, ticks: { font: { size: 11 } } },
+        x: {
+          grid: { display: false, drawBorder: false },
+          ticks: {
+            color: '#1e293b',
+            font: { size: 10, family: monoFont },
+            maxRotation: 40,
+            minRotation: 0,
+            autoSkip: false,
+            autoSkipPadding: 6,
+            callback: function (value) {
+              const label = this.getLabelForValue(value);
+              if (typeof label !== 'string') return label;
+              return label.length > 16 ? `${label.slice(0, 15)}…` : label;
+            }
+          },
+          border: { color: '#0f172a' }
+        },
         y: {
-          ticks: { callback: (v) => formatLkrCompact(v), font: { size: 11 } },
-          grid: { color: '#e2e8f0' }
+          ticks: {
+            callback: (v) => formatLkrCompact(v),
+            color: '#1e293b',
+            font: { size: 10, family: monoFont },
+            padding: 4
+          },
+          grid: { color: '#e2e8f0', drawTicks: false, drawBorder: false },
+          border: { color: '#0f172a' }
         }
       }
-    }),
-    [costVsMvSectors]
+    };
+  }, [costVsMvSectors]);
+
+  const watchlistSymbols = useMemo(
+    () => MOCK_WATCHLIST.map((w) => w.symbol).filter(Boolean),
+    []
+  );
+
+  const selectedPortfolio =
+    portfoliosList.find((p) => String(p.id) === String(selectedPortfolioKey)) ||
+    portfoliosList[0] ||
+    null;
+  const selectedPortfolioName = selectedPortfolio
+    ? selectedPortfolio.portfolioName || selectedPortfolio.name || `Portfolio ${selectedPortfolio.id}`
+    : '';
+
+  const {
+    name: bluxName,
+    status: bluxStatus,
+    patchStatus: patchBluxStatus
+  } = useAgentStatus({ pollMs: 4000 });
+
+  useBluxSignal({
+    holdingSymbols: dashboardData.holdingSymbols,
+    patchStatus: patchBluxStatus,
+    enabled: !isLoading
+  });
+
+  const handleBluxClick = useCallback(() => {
+    if (typeof onOpenAIAssistant === 'function') {
+      onOpenAIAssistant();
+    }
+  }, [onOpenAIAssistant]);
+
+  const bluxInteractive = typeof onOpenAIAssistant === 'function';
+
+  const marketPulseEl = (
+    <DashboardMarketPulse
+      holdingSymbols={dashboardData.holdingSymbols || []}
+      holdingNames={dashboardData.holdingNames || []}
+      watchlistSymbols={watchlistSymbols}
+      onNavigate={onTabChange}
+      portfolioName={selectedPortfolioName}
+    />
+  );
+
+  const marketMoversEl = (
+    <DashboardMarketMovers
+      holdingSymbols={dashboardData.holdingSymbols || []}
+      holdingNames={dashboardData.holdingNames || []}
+      watchlistSymbols={watchlistSymbols}
+    />
+  );
+
+  const bluxPanelEl = (
+    <div className="dashboard-blux-panel">
+      <div className="dashboard-blux-panel__stage">
+        <div className="dashboard-blux-panel__avatar">
+          <AgentBlux
+            name={bluxName}
+            status={bluxStatus}
+            size={480}
+            onChat={bluxInteractive ? handleBluxClick : undefined}
+          />
+        </div>
+      </div>
+    </div>
+  );
+
+  const portfolioHeroEl = (
+    <header className="dashboard-hero dashboard-hero--portfolio-only" aria-label="Portfolio snapshot">
+      <div className="dashboard-hero__intro">
+        <p className="dashboard-hero__eyebrow">Portfolio snapshot</p>
+        {portfoliosList.length > 1 ? (
+          <div className="dashboard-hero__portfolio-field">
+            <label htmlFor="dashboard-portfolio-select" className="dashboard-hero__meta-label">
+              Portfolio
+            </label>
+            <select
+              id="dashboard-portfolio-select"
+              className="dashboard-hero__portfolio-select"
+              value={selectedPortfolioKey != null ? String(selectedPortfolioKey) : ''}
+              onChange={(e) => setSelectedPortfolioKey(e.target.value)}
+            >
+              {portfoliosList.map((p) => (
+                <option key={p.id} value={String(p.id)}>
+                  {p.portfolioName || p.name || `Portfolio ${p.id}`}
+                </option>
+              ))}
+            </select>
+          </div>
+        ) : (
+          <p className="dashboard-hero__note">
+            {portfoliosList.length === 1 ? selectedPortfolioName : 'No active portfolios'}
+          </p>
+        )}
+      </div>
+    </header>
   );
 
   if (isLoading) {
     return (
-      <div className="dashboard-loading">
-        <div className="loading-spinner"></div>
-        <p>Loading dashboard...</p>
+      <div className="equity-dashboard">
+        <div className="dashboard-body">
+          <div className="dashboard-body__left">{marketPulseEl}</div>
+          <div className="dashboard-body__right">{marketMoversEl}</div>
+        </div>
+        <div className="dashboard-loading">
+          <div className="loading-spinner"></div>
+          <p>Loading dashboard...</p>
+        </div>
       </div>
     );
   }
@@ -752,10 +961,6 @@ const Dashboard = ({ onTabChange }) => {
 
   const portfolioCount = dashboardData.activePortfolios ?? 0;
   const sectorChartName = dashboardData.sectorChartPortfolioName;
-  const selectedPortfolio = portfoliosList.find((p) => String(p.id) === String(selectedPortfolioKey)) || portfoliosList[0] || null;
-  const selectedPortfolioName = selectedPortfolio
-    ? selectedPortfolio.portfolioName || selectedPortfolio.name || `Portfolio ${selectedPortfolio.id}`
-    : '';
   let sectorDistributionSubtitle = 'Sector mix for your portfolio';
   if (sectorChartName) {
     sectorDistributionSubtitle =
@@ -768,63 +973,34 @@ const Dashboard = ({ onTabChange }) => {
 
   return (
     <div className="equity-dashboard">
-      <header className="dashboard-hero dashboard-hero--portfolio-only" aria-label="Portfolio snapshot">
-        <div className="dashboard-hero__intro">
-          <p className="dashboard-hero__eyebrow">Portfolio snapshot</p>
-          {portfoliosList.length > 1 ? (
-            <div className="dashboard-hero__portfolio-field">
-              <label htmlFor="dashboard-portfolio-select" className="dashboard-hero__meta-label">
-                Portfolio
-              </label>
-              <select
-                id="dashboard-portfolio-select"
-                className="dashboard-hero__portfolio-select"
-                value={selectedPortfolioKey != null ? String(selectedPortfolioKey) : ''}
-                onChange={(e) => setSelectedPortfolioKey(e.target.value)}
-              >
-                {portfoliosList.map((p) => (
-                  <option key={p.id} value={String(p.id)}>
-                    {p.portfolioName || p.name || `Portfolio ${p.id}`}
-                  </option>
-                ))}
-              </select>
-            </div>
-          ) : (
-            <p className="dashboard-hero__note">
-              {portfoliosList.length === 1 ? selectedPortfolioName : 'No active portfolios'}
-            </p>
-          )}
-        </div>
-      </header>
-
-      {/* Main Dashboard Grid */}
-      <div className="main-grid">
-        {/* Left Column */}
-        <div className="left-column">
-          {/* Market status — no card container; sits on dashboard background */}
-          <div className="market-status-bare">
-            <div className="market-status-bare__top">
-              <h3 className="market-status-bare__title">Market Status</h3>
-              <p
-                className={`market-status-bare__state ${marketStatus.isLive ? 'is-open' : 'is-closed'}`}
-              >
+      <div className="dashboard-body">
+        <div className="dashboard-body__left">
+          {marketPulseEl}
+          {portfolioHeroEl}
+          <div className="left-column">
+          {/* Market status — single horizontal exchange strip */}
+          <div
+            className={`market-strip ${marketStatus.isLive ? 'market-strip--open' : 'market-strip--closed'}`}
+            role="status"
+            aria-label={`Market ${marketStatus.status.toLowerCase()}`}
+          >
+            <div className="market-strip__exchange">
+              <span className="market-strip__pill">
+                <span className="market-strip__dot" aria-hidden />
                 {marketStatus.status}
-              </p>
-            </div>
-            <div className="market-status-bare__hours">
-              <div className="market-status-bare__hour">
-                <span className="market-status-bare__label">Opening</span>
-                <span className="market-status-bare__value">9:30 AM</span>
-              </div>
-              <div className="market-status-bare__hour">
-                <span className="market-status-bare__label">Closing</span>
-                <span className="market-status-bare__value">2:30 PM</span>
+              </span>
+              <div className="market-strip__exchange-text">
+                <span className="market-strip__exchange-name">
+                  {userRegion || 'Colombo Stock Exchange'}
+                </span>
+                <span className="market-strip__hours">
+                  Opens 9:30 AM · Closes 2:30 PM
+                </span>
               </div>
             </div>
-            {userRegion && <div className="market-status-bare__region">{userRegion}</div>}
-            <div className="market-status-bare__clock">
-              <span className="market-status-bare__time">{formatTime(currentTime)}</span>
-              <span className="market-status-bare__date">{formatDate(currentTime)}</span>
+            <div className="market-strip__clock">
+              <span className="market-strip__time">{formatTime(currentTime)}</span>
+              <span className="market-strip__date">{formatDate(currentTime)}</span>
             </div>
           </div>
 
@@ -832,6 +1008,9 @@ const Dashboard = ({ onTabChange }) => {
         <div className="content-card heatmap-card dashboard-chart-lead">
           <RiskReturnScatterPlot syncedPortfolioId={selectedPortfolioKey} />
         </div>
+
+        {/* Market News (NewsAPI) */}
+        <MarketNewsWidget onOpenFull={() => onTabChange && onTabChange('News & Events')} />
 
         {/* Top Performers */}
         <div className="content-card">
@@ -854,9 +1033,6 @@ const Dashboard = ({ onTabChange }) => {
             ))}
           </div>
         </div>
-
-        {/* Market News (NewsAPI) */}
-        <MarketNewsWidget onOpenFull={() => onTabChange && onTabChange('News & Events')} />
 
         {/* Recent Transactions */}
         {(() => {
@@ -973,63 +1149,51 @@ const Dashboard = ({ onTabChange }) => {
             </div>
           );
         })()}
-      </div>
+          </div>
+        </div>
 
-        {/* Right Column */}
-        <div className="right-column">
+        <div className="dashboard-body__right">
+          {marketMoversEl}
+          {bluxPanelEl}
+          <div className="right-column">
           {/* P&L Metrics */}
-          <div className="pnl-metrics-grid">
-            <div className="pnl-metric-card pnl-metric-card--realized-gain">
-              <svg className="pnl-metric-svg" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
-                <path d="M7.41 15.41L12 10.83l4.59 4.58L18 14l-6-6-6 6z"/>
-              </svg>
-              <div className="metric-content">
-                <span className="metric-title">Net Realized Capital Gain</span>
-                <span className="metric-value">LKR {new Intl.NumberFormat('en-US', {
-                  minimumFractionDigits: 0,
-                  maximumFractionDigits: 0
-                }).format(dashboardData.pnlMetrics.totalRealizedCapitalGain)}</span>
-              </div>
-            </div>
-
-            <div className="pnl-metric-card primary pnl-metric-card--realized-pnl">
-              <svg className="pnl-metric-svg" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
-                <path d="M16 6l2.29 2.29-4.88 4.88-4-4L2 16.59 3.41 18l6-6 4 4 6.3-6.29L22 12V6z"/>
-              </svg>
-              <div className="metric-content">
-                <span className="metric-title">Realized P&L</span>
-                <span className="metric-value">LKR {new Intl.NumberFormat('en-US', {
-                  minimumFractionDigits: 0,
-                  maximumFractionDigits: 0
-                }).format(dashboardData.pnlMetrics.realizedPnL)}</span>
-              </div>
-            </div>
-
-            <div className="pnl-metric-card pnl-metric-card--unrealized-gain">
-              <svg className="pnl-metric-svg" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
-                <path d="M12,20A8,8 0 0,0 20,12A8,8 0 0,0 12,4A8,8 0 0,0 4,12A8,8 0 0,0 12,20M12,2A10,10 0 0,1 22,12A10,10 0 0,1 12,22C6.47,22 2,17.5 2,12A10,10 0 0,1 12,2M12.5,7V12.25L17,14.92L16.25,16.15L11,13V7H12.5Z"/>
-              </svg>
-              <div className="metric-content">
-                <span className="metric-title">Total Unrealized Capital Gain</span>
-                <span className="metric-value">LKR {new Intl.NumberFormat('en-US', {
-                  minimumFractionDigits: 0,
-                  maximumFractionDigits: 0
-                }).format(dashboardData.pnlMetrics.totalUnrealizedCapitalGain)}</span>
-              </div>
-            </div>
-
-            <div className="pnl-metric-card primary pnl-metric-card--unrealized-pnl">
-              <svg className="pnl-metric-svg" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
-                <path d="M22,21H2V3H4V19H6V17H10V19H12V16H16V19H18V17H22V21Z"/>
-              </svg>
-              <div className="metric-content">
-                <span className="metric-title">Unrealized P&L</span>
-                <span className="metric-value">LKR {new Intl.NumberFormat('en-US', {
-                  minimumFractionDigits: 0,
-                  maximumFractionDigits: 0
-                }).format(dashboardData.pnlMetrics.unrealizedPnL)}</span>
-              </div>
-            </div>
+          <div className="pnl-stats">
+            {[
+              {
+                key: 'realized-gain',
+                label: 'Net Realized Capital Gain',
+                value: dashboardData.pnlMetrics.totalRealizedCapitalGain
+              },
+              {
+                key: 'realized-pnl',
+                label: 'Realized P&L',
+                value: dashboardData.pnlMetrics.realizedPnL
+              },
+              {
+                key: 'unrealized-gain',
+                label: 'Total Unrealized Capital Gain',
+                value: dashboardData.pnlMetrics.totalUnrealizedCapitalGain
+              },
+              {
+                key: 'unrealized-pnl',
+                label: 'Unrealized P&L',
+                value: dashboardData.pnlMetrics.unrealizedPnL
+              }
+            ].map((m) => {
+              const sign = getPnlSign(m.value);
+              return (
+                <div key={m.key} className={`pnl-stat pnl-stat--${sign}`}>
+                  <span className="pnl-stat__label">{m.label}</span>
+                  <span className="pnl-stat__value">
+                    <span className="pnl-stat__currency">LKR</span>{' '}
+                    {formatPnlAmount(m.value)}
+                  </span>
+                  <span className="pnl-stat__delta" aria-hidden>
+                    {getPnlIndicator(sign)}
+                  </span>
+                </div>
+              );
+            })}
           </div>
 
           {/* Cost vs Market Value by Company */}
@@ -1368,6 +1532,7 @@ const Dashboard = ({ onTabChange }) => {
               </div>
             </button>
             </div>
+          </div>
           </div>
         </div>
       </div>
