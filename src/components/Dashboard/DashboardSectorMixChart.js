@@ -61,36 +61,43 @@ function DashboardSectorMixChart({ sectorData, totalCompanies }) {
           backgroundColor: sectorData.map((s) => s.color),
           hoverBackgroundColor: sectorData.map((s) => enhance(s.color)),
           borderColor: '#ffffff',
-          borderWidth: 2,
-          hoverBorderColor: '#ffffff',
-          hoverBorderWidth: 3,
-          hoverOffset: 10
+          borderWidth: 1,
+          hoverBorderColor: '#0f172a',
+          hoverBorderWidth: 1,
+          hoverOffset: 8
         }
       ]
     };
   }, [sectorData]);
 
-  const options = useMemo(
-    () => ({
+  const options = useMemo(() => {
+    const monoFont =
+      "'IBM Plex Mono', 'Roboto Mono', 'SF Mono', Menlo, Consolas, 'Courier New', monospace";
+    return {
       responsive: true,
       maintainAspectRatio: true,
       aspectRatio: 1,
-      cutout: '37%',
-      layout: {
-        padding: 4
-      },
+      cutout: '40%',
+      layout: { padding: 4 },
       plugins: {
-        legend: {
-          display: false
-        },
+        legend: { display: false },
         tooltip: {
-          backgroundColor: 'rgba(15, 23, 42, 0.92)',
-          titleFont: { size: 12, weight: '600' },
-          bodyFont: { size: 12 },
+          backgroundColor: '#ffffff',
+          titleColor: '#0f172a',
+          bodyColor: '#1e293b',
+          borderColor: '#0f172a',
+          borderWidth: 1,
+          titleFont: { size: 11, weight: '700', family: monoFont },
+          bodyFont: { size: 10, weight: '500', family: monoFont },
+          titleMarginBottom: 6,
           padding: 10,
-          cornerRadius: 4,
+          cornerRadius: 0,
+          displayColors: false,
           callbacks: {
-            title: (items) => (items[0]?.label != null ? String(items[0].label) : ''),
+            title: (items) => {
+              const label = items[0]?.label != null ? String(items[0].label) : '';
+              return label.toUpperCase();
+            },
             label: (ctx) => {
               const raw = Number(ctx.raw) || 0;
               const dataArr = ctx.dataset.data;
@@ -100,14 +107,16 @@ function DashboardSectorMixChart({ sectorData, totalCompanies }) {
                 minimumFractionDigits: 0,
                 maximumFractionDigits: 0
               }).format(raw);
-              return `LKR ${formatted} (${pct}%)`;
+              return [
+                `VALUE   LKR ${formatted}`,
+                `SHARE   ${pct}%`
+              ];
             }
           }
         }
       }
-    }),
-    []
-  );
+    };
+  }, []);
 
   if (!chartData) {
     return (
