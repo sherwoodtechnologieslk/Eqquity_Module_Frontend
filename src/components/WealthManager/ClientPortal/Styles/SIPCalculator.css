@@ -12,7 +12,8 @@
 
 /* ── Hero header ── */
 .sip-header {
-  background: linear-gradient(135deg, #0f172a 0%, #134e4a 55%, #0f766e 100%);
+  background: linear-gradient(135deg, #ffffff 0%, #ecfdf5 55%, #dcfce7 100%);
+  border-bottom: 1px solid rgba(22, 163, 74, 0.20);
   padding: 2.5rem 2.5rem 2rem;
   display: flex;
   flex-direction: row;
@@ -66,14 +67,14 @@
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.16em;
-  color: #14b8a6;
+  color: #15803d;
 }
 
 .sip-heading {
   margin: 0;
   font-size: 1.65rem;
   font-weight: 700;
-  color: #f8fafc;
+  color: #0b1220;
   line-height: 1.2;
   text-align: left;
 }
@@ -81,7 +82,7 @@
 .sip-lead {
   margin: 0;
   font-size: 0.875rem;
-  color: #94a3b8;
+  color: #475569;
   line-height: 1.65;
   max-width: 500px;
 }
@@ -92,10 +93,10 @@
   gap: 0.5rem;
   flex-shrink: 0;
   padding: 0.65rem 1.35rem;
-  background: #ffffff;
+  background: linear-gradient(135deg, #16a34a 0%, #15803d 100%);
   border: none;
   border-radius: 0;
-  color: #0f172a;
+  color: #ffffff;
   font-size: 0.85rem;
   font-weight: 700;
   cursor: pointer;
@@ -104,17 +105,17 @@
   position: relative;
   z-index: 1;
   white-space: nowrap;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 4px 14px rgba(22, 163, 74, 0.25);
 }
 
 .sip-header-cta:hover {
-  background: #f0fdfa;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
+  filter: brightness(1.05);
+  box-shadow: 0 6px 18px rgba(22, 163, 74, 0.35);
   transform: translateY(-1px);
 }
 
 .sip-header-cta svg {
-  color: #0f766e;
+  color: #ffffff;
 }
 
 /* ── Tab switcher (pill style) ── */
@@ -149,14 +150,14 @@
 }
 
 .sip-tab--active {
-  background: #0f172a;
+  background: linear-gradient(135deg, #16a34a 0%, #15803d 100%);
   color: #ffffff;
-  box-shadow: 0 1px 4px rgba(15, 23, 42, 0.25);
+  box-shadow: 0 2px 8px rgba(22, 163, 74, 0.25);
 }
 
 .sip-tab:hover:not(.sip-tab--active) {
-  color: #0f172a;
-  background: rgba(15, 23, 42, 0.07);
+  color: #15803d;
+  background: #ecfdf5;
 }
 
 /* ── Planner body ── */
@@ -190,8 +191,8 @@
   width: 26px;
   height: 26px;
   border-radius: 50%;
-  background: #0f172a;
-  color: #14b8a6;
+  background: #dcfce7;
+  color: #15803d;
   font-size: 0.7rem;
   font-weight: 800;
   display: flex;
@@ -321,7 +322,7 @@
 
 /* ── Display pill ── */
 .sip-display-pill {
-  background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+  background: linear-gradient(135deg, #16a34a 0%, #15803d 100%);
   color: #ffffff;
   border-radius: 0;
   padding: 0.6rem 1.1rem;
@@ -331,7 +332,7 @@
   letter-spacing: 0.01em;
   min-width: 155px;
   text-align: center;
-  border: 1px solid rgba(20, 184, 166, 0.25);
+  border: 1px solid rgba(22, 163, 74, 0.35);
 }
 
 /* ── Result section — Goal Based ── */
@@ -341,7 +342,8 @@
 
 .sip-result-banner {
   margin: 1.5rem 2rem;
-  background: linear-gradient(135deg, #0f172a 0%, #134e4a 60%, #0f766e 100%);
+  background: linear-gradient(135deg, #ffffff 0%, #ecfdf5 60%, #dcfce7 100%);
+  border: 1px solid rgba(22, 163, 74, 0.25);
   border-radius: 0;
   padding: 1.5rem 1.75rem;
   display: flex;
@@ -359,7 +361,7 @@
   width: 130px;
   height: 130px;
   border-radius: 50%;
-  background: radial-gradient(circle, rgba(20,184,166,0.2) 0%, transparent 70%);
+  background: radial-gradient(circle, rgba(22,163,74,0.15) 0%, transparent 70%);
   pointer-events: none;
 }
 
@@ -368,7 +370,7 @@
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.12em;
-  color: #5eead4;
+  color: #15803d;
   position: relative;
   z-index: 1;
 }
@@ -376,7 +378,7 @@
 .sip-result-amount {
   font-size: 1.75rem;
   font-weight: 800;
-  color: #ffffff;
+  color: #0b1220;
   letter-spacing: 0.01em;
   position: relative;
   z-index: 1;
@@ -385,7 +387,7 @@
 
 .sip-result-meta {
   font-size: 0.75rem;
-  color: #94a3b8;
+  color: #475569;
   position: relative;
   z-index: 1;
   margin-top: 0.15rem;
@@ -429,23 +431,23 @@
   transition: border-color 0.15s, box-shadow 0.15s, transform 0.15s;
 }
 
-/* Final year card gets a premium dark look */
+/* Final year card gets a premium emerald look */
 .sip-year-card:last-child {
-  background: linear-gradient(150deg, #0f172a 0%, #134e4a 100%);
-  border: none;
-  border-top: 3px solid #14b8a6;
+  background: linear-gradient(150deg, #dcfce7 0%, #bbf7d0 100%);
+  border: 1px solid rgba(22, 163, 74, 0.30);
+  border-top: 3px solid #16a34a;
 }
 
 .sip-year-card:last-child .sip-year-card-year {
-  color: #5eead4;
+  color: #15803d;
 }
 
 .sip-year-card:last-child .sip-year-card-currency {
-  color: #5eead4;
+  color: #15803d;
 }
 
 .sip-year-card:last-child .sip-year-card-value {
-  color: #ffffff;
+  color: #0b1220;
 }
 
 .sip-year-card:hover {
@@ -530,8 +532,8 @@
   width: 30px;
   height: 30px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #0f172a 0%, #134e4a 100%);
-  color: #14b8a6;
+  background: #dcfce7;
+  color: #15803d;
   font-size: 0.78rem;
   font-weight: 800;
   display: flex;
