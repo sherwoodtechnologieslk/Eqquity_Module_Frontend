@@ -21,7 +21,7 @@
   font-weight: 800;
   color: #1e293b;
   margin: 0 0 0.5rem 0;
-  background: linear-gradient(135deg, #1e293b 0%, #0f766e 100%);
+  background: linear-gradient(135deg, #0f766e 0%, #14b8a6 50%, #06b6d4 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -94,28 +94,32 @@
 
 .wcs-summary-card {
   padding: 1.25rem;
-  border: 1px solid rgba(148, 163, 184, 0.4);
-  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.15);
+  border: 1px solid rgba(15, 23, 42, 0.10);
+  box-shadow: 0 4px 14px rgba(15, 23, 42, 0.06);
   position: relative;
   overflow: hidden;
-  background: #020617;
-  color: #e5e7eb;
+  background: #ffffff;
+  color: #0f172a;
 }
 
 .wcs-card-1 {
-  background: radial-gradient(circle at top left, #2563eb, #020617);
+  background: linear-gradient(135deg, #ffffff 0%, #f0fdfa 100%);
+  border-left: 3px solid #0d615c;
 }
 
 .wcs-card-2 {
-  background: radial-gradient(circle at top left, #0f766e, #020617);
+  background: linear-gradient(135deg, #ffffff 0%, #f0fdfa 100%);
+  border-left: 3px solid #0f766e;
 }
 
 .wcs-card-3 {
-  background: radial-gradient(circle at top left, #16a34a, #020617);
+  background: linear-gradient(135deg, #ffffff 0%, #ccfbf1 100%);
+  border-left: 3px solid #0d9488;
 }
 
 .wcs-card-4 {
-  background: radial-gradient(circle at top left, #f97316, #020617);
+  background: linear-gradient(135deg, #ffffff 0%, #f0fdfa 100%);
+  border-left: 3px solid #14b8a6;
 }
 
 .wcs-summary-header {
@@ -130,13 +134,14 @@
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.08em;
-  color: #cbd5f5;
+  color: #475569;
 }
 
 .wcs-summary-value {
   font-size: 1.7rem;
   font-weight: 800;
   margin-bottom: 0.25rem;
+  color: #0b1220;
 }
 
 .wcs-summary-value-small {
@@ -146,11 +151,12 @@
   gap: 0.75rem;
   font-size: 1rem;
   font-weight: 700;
+  color: #0b1220;
 }
 
 .wcs-summary-note {
   font-size: 0.8rem;
-  color: #cbd5f5;
+  color: #64748b;
 }
 
 .wcs-pill {
@@ -158,8 +164,9 @@
   font-size: 0.75rem;
   font-weight: 600;
   border-radius: 999px;
-  border: 1px solid rgba(148, 163, 184, 0.6);
-  background: rgba(15, 23, 42, 0.8);
+  border: 1px solid rgba(15, 118, 110, 0.35);
+  background: #ccfbf1;
+  color: #0f766e;
 }
 
 /* Sections */

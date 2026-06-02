@@ -1,26 +1,29 @@
+/* Client Portal sidebar — light mode (white + emerald) */
+
 .cp-sidebar {
   position: fixed;
   left: 0;
   top: 0;
   width: 260px;
   height: 100vh;
-  background: linear-gradient(180deg, #0f766e 0%, #14b8a6 100%);
+  background: linear-gradient(180deg, #ffffff 0%, #f6faf7 100%);
   display: flex;
   flex-direction: column;
   z-index: 1000;
-  box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
+  box-shadow: 4px 0 18px rgba(15, 23, 42, 0.05);
+  border-right: 1px solid rgba(15, 23, 42, 0.08);
 }
 
 .cp-sidebar-header {
   padding: 1.5rem;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  border-bottom: 1px solid rgba(15, 23, 42, 0.08);
 }
 
 .cp-logo {
   display: flex;
   align-items: center;
   gap: 0.75rem;
-  color: white;
+  color: #15803d;
 }
 
 .cp-logo svg {
@@ -31,7 +34,7 @@
 .cp-logo-text {
   font-size: 1.25rem;
   font-weight: 600;
-  color: white;
+  color: #0b1220;
 }
 
 .cp-sidebar-content {
@@ -43,36 +46,37 @@
 .cp-user-info {
   padding: 1rem 1.5rem;
   margin-bottom: 1rem;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  border-bottom: 1px solid rgba(15, 23, 42, 0.08);
 }
 
 .cp-user-avatar {
   width: 48px;
   height: 48px;
   border-radius: 0;
-  background: rgba(255, 255, 255, 0.2);
+  background: #dcfce7;
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 1.25rem;
   font-weight: 600;
-  color: white;
+  color: #15803d;
   margin-bottom: 0.75rem;
 }
 
 .cp-user-details {
-  color: white;
+  color: #0f172a;
 }
 
 .cp-user-name {
   font-weight: 600;
   font-size: 0.95rem;
   margin-bottom: 0.25rem;
+  color: #0b1220;
 }
 
 .cp-user-email {
   font-size: 0.75rem;
-  opacity: 0.8;
+  color: #64748b;
 }
 
 .cp-nav {
@@ -91,7 +95,7 @@
   padding: 0.875rem 1rem;
   background: transparent;
   border: none;
-  color: rgba(255, 255, 255, 0.9);
+  color: #475569;
   font-size: 0.95rem;
   cursor: pointer;
   transition: all 0.2s ease;
@@ -100,56 +104,56 @@
 }
 
 .cp-nav-item:hover {
-  background: rgba(255, 255, 255, 0.1);
-  color: white;
+  background: #ecfdf5;
+  color: #0b1220;
 }
 
 .cp-nav-item.active {
-  background: rgba(255, 255, 255, 0.2);
-  color: white;
+  background: #dcfce7;
+  color: #15803d;
   font-weight: 600;
-  border-left: 3px solid white;
+  border-left: 3px solid #16a34a;
   padding-left: calc(1rem - 3px);
 }
 
 /* Strong, distinct green styles for Create, Redeem, Transfer */
 .cp-nav-item-create {
-  background: #047857; /* emerald-700 */
-  color: #ecfdf5;
-  border-left: 3px solid #a7f3d0;
+  background: #ecfdf5;
+  color: #047857;
+  border-left: 3px solid #34d399;
   padding-left: calc(1rem - 3px);
 }
 
 .cp-nav-item-create:hover,
 .cp-nav-item-create.active {
-  background: #059669; /* emerald-500 */
-  color: #ecfdf5;
+  background: #d1fae5;
+  color: #065f46;
 }
 
 .cp-nav-item-redeem {
-  background: #15803d; /* green-700 */
-  color: #ecfdf5;
-  border-left: 3px solid #bbf7d0;
+  background: #f0fdf4;
+  color: #15803d;
+  border-left: 3px solid #4ade80;
   padding-left: calc(1rem - 3px);
 }
 
 .cp-nav-item-redeem:hover,
 .cp-nav-item-redeem.active {
-  background: #16a34a; /* green-600 */
-  color: #ecfdf5;
+  background: #dcfce7;
+  color: #14532d;
 }
 
 .cp-nav-item-transfer {
-  background: #0f766e; /* teal-700 */
-  color: #ecfdf5;
-  border-left: 3px solid #99f6e4;
+  background: #f0fdfa;
+  color: #0f766e;
+  border-left: 3px solid #5eead4;
   padding-left: calc(1rem - 3px);
 }
 
 .cp-nav-item-transfer:hover,
 .cp-nav-item-transfer.active {
-  background: #14b8a6; /* teal-500 */
-  color: #ecfdf5;
+  background: #ccfbf1;
+  color: #134e4a;
 }
 
 .cp-nav-icon {
@@ -171,7 +175,7 @@
 
 .cp-sidebar-footer {
   padding: 1rem 1.5rem;
-  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  border-top: 1px solid rgba(15, 23, 42, 0.08);
 }
 
 .cp-logout-btn {
@@ -180,9 +184,9 @@
   align-items: center;
   gap: 0.75rem;
   padding: 0.875rem 1rem;
-  background: rgba(255, 255, 255, 0.1);
-  border: none;
-  color: white;
+  background: #ffffff;
+  border: 1px solid rgba(15, 23, 42, 0.10);
+  color: #0f172a;
   font-size: 0.95rem;
   cursor: pointer;
   transition: all 0.2s ease;
@@ -190,7 +194,9 @@
 }
 
 .cp-logout-btn:hover {
-  background: rgba(255, 255, 255, 0.2);
+  background: #fef2f2;
+  color: #b91c1c;
+  border-color: rgba(220, 38, 38, 0.30);
 }
 
 .cp-logout-btn svg {

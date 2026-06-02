@@ -113,8 +113,6 @@ import CSESectorIndicesPage from './components/ChartsAndInsights/CSESectorIndice
 import AssetRegister from './components/FixedAssets/AssetRegister';
 import AssetEntry from './components/FixedAssets/AssetEntry';
 import AssetCategories from './components/FixedAssets/AssetCategories';
-import PremiumModal from './components/PremiumModal/premiumModal';
-
 function App() {
   const [activeTab, setActiveTab] = useState('Dashboard');
   const [activeSidebarItem, setActiveSidebarItem] = useState(0);
@@ -126,8 +124,6 @@ function App() {
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [aiAssistantOpen, setAiAssistantOpen] = useState(false);
-  // Premium upsell when users try to switch to Sherwood Wealth (gated feature).
-  const [isWealthPremiumOpen, setIsWealthPremiumOpen] = useState(false);
   // Optional context payload passed across tabs (e.g. SOFP "View notes" → Financial Reporting Notes).
   // Cleared when the tab is changed without a payload.
   const [tabContext, setTabContext] = useState(null);
@@ -151,28 +147,12 @@ function App() {
     }
   }, [selectedManager]);
 
-  // Handle manager type change from Sidebar.
-  // Returning `false` tells the Sidebar to abort the switch (premium gate).
   const handleManagerChange = (managerType) => {
-    if (managerType === 'wealth') {
-      setIsWealthPremiumOpen(true);
-      return false;
-    }
-
     setSelectedManager(managerType);
     setActiveSidebarItem(0);
     setVisibleTabs(['Dashboard', 'Portfolio Overview', 'Market Summary', 'Recent Activity', 'Performance Metrics']);
     setActiveTab('Dashboard');
     return true;
-  };
-
-  const handleWealthPremiumClose = () => {
-    setIsWealthPremiumOpen(false);
-  };
-
-  const handleWealthPremiumContactSales = () => {
-    setIsWealthPremiumOpen(false);
-    window.location.href = 'mailto:sales@sherwoodequity.com?subject=Sherwood%20Wealth%20Premium%20Upgrade';
   };
 
   // Tab component mappings
@@ -459,13 +439,6 @@ function App() {
       <AIAssistantDock
         open={aiAssistantOpen}
         onClose={() => setAiAssistantOpen(false)}
-      />
-
-      <PremiumModal
-        isOpen={isWealthPremiumOpen}
-        onClose={handleWealthPremiumClose}
-        onContactSales={handleWealthPremiumContactSales}
-        variant="wealth"
       />
     </div>
   );

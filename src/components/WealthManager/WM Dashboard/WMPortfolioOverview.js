@@ -77,7 +77,7 @@ const WMPortfolioOverview = () => {
     return (
       <div className="wmp-allocation-chart">
         {portfolioData.allocations.map((item, index) => {
-          const colors = ['#14b8a6', '#0d9488', '#06b6d4', '#0891b2', '#5eead4'];
+          const colors = ['#0f766e', '#0d9488', '#14b8a6', '#2dd4bf', '#5eead4'];
           return (
             <div key={index} className="wmp-allocation-segment" style={{ width: `${item.percentage}%`, background: colors[index % colors.length] }}>
               <span className="wmp-segment-label">{item.percentage}%</span>

@@ -29,18 +29,18 @@ const WealthNavbar = ({ activeTab, visibleTabs = [], onTabChange, user, onOpenPr
       <div style={{ minWidth: 360, display: 'flex', justifyContent: 'flex-end', gap: 10, alignItems: 'center' }}>
         <div className="wm-kpi-chip">
           <div style={{ display: 'flex', flexDirection: 'column', lineHeight: 1.1 }}>
-            <div style={{ fontSize: '0.74rem', color: 'rgba(255,255,255,0.55)' }}>AUM</div>
-            <div style={{ fontSize: '0.92rem', color: 'rgba(255,255,255,0.88)', fontWeight: 700 }}>—</div>
+            <div style={{ fontSize: '0.74rem', color: '#64748b' }}>AUM</div>
+            <div style={{ fontSize: '0.92rem', color: '#0f172a', fontWeight: 700 }}>—</div>
           </div>
-          <div style={{ width: 1, height: 22, background: 'rgba(255,255,255,0.10)' }} />
+          <div style={{ width: 1, height: 22, background: 'rgba(15,23,42,0.10)' }} />
           <div style={{ display: 'flex', flexDirection: 'column', lineHeight: 1.1 }}>
-            <div style={{ fontSize: '0.74rem', color: 'rgba(255,255,255,0.55)' }}>Clients</div>
-            <div style={{ fontSize: '0.92rem', color: 'rgba(255,255,255,0.88)', fontWeight: 700 }}>—</div>
+            <div style={{ fontSize: '0.74rem', color: '#64748b' }}>Clients</div>
+            <div style={{ fontSize: '0.92rem', color: '#0f172a', fontWeight: 700 }}>—</div>
           </div>
-          <div style={{ width: 1, height: 22, background: 'rgba(255,255,255,0.10)' }} />
+          <div style={{ width: 1, height: 22, background: 'rgba(15,23,42,0.10)' }} />
           <div style={{ display: 'flex', flexDirection: 'column', lineHeight: 1.1 }}>
-            <div style={{ fontSize: '0.74rem', color: 'rgba(255,255,255,0.55)' }}>Funds</div>
-            <div style={{ fontSize: '0.92rem', color: 'rgba(255,255,255,0.88)', fontWeight: 700 }}>—</div>
+            <div style={{ fontSize: '0.74rem', color: '#64748b' }}>Funds</div>
+            <div style={{ fontSize: '0.92rem', color: '#0f172a', fontWeight: 700 }}>—</div>
           </div>
         </div>
 

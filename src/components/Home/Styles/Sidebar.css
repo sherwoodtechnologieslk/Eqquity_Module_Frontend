@@ -160,7 +160,7 @@ html, body {
 }
 
 .sherwood-mark--wealth .sherwood-mark__line2 {
-  color: #7dd3fc;
+  color: #5eead4;
 }
 
 /* Switcher row — slightly larger */
@@ -201,38 +201,36 @@ html, body {
   overflow: visible;
 }
 
-/* App Name Switcher */
+/* Trigger button — frosted glass on dark sidebar */
 .app-name-switcher {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
-  background: linear-gradient(135deg, rgba(59, 130, 246, 0.1) 0%, rgba(37, 99, 235, 0.08) 100%);
-  border: 1.5px solid rgba(59, 130, 246, 0.2);
-  padding: 0.5rem 0.75rem;
-  border-radius: 0.5rem;
+  gap: 0.625rem;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  padding: 0.55rem 0.75rem;
+  border-radius: 10px;
   cursor: pointer;
-  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: background 0.18s ease, border-color 0.18s ease;
   width: 100%;
   text-align: left;
   position: relative;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
 }
 
 .app-name-switcher:hover {
-  background: linear-gradient(135deg, rgba(59, 130, 246, 0.15) 0%, rgba(37, 99, 235, 0.12) 100%);
-  border-color: rgba(59, 130, 246, 0.35);
-  box-shadow: 0 4px 8px rgba(59, 130, 246, 0.15);
-  transform: translateY(-1px);
+  background: rgba(255, 255, 255, 0.07);
+  border-color: rgba(20, 184, 166, 0.35);
 }
 
 .app-name-switcher:active {
-  transform: translateY(0);
-  box-shadow: 0 2px 4px rgba(59, 130, 246, 0.1);
+  background: rgba(255, 255, 255, 0.05);
 }
 
-.app-name-switcher:focus {
-  outline: 2px solid rgba(59, 130, 246, 0.5);
-  outline-offset: 2px;
+.app-name-switcher:focus-visible {
+  outline: none;
+  border-color: rgba(20, 184, 166, 0.55);
+  box-shadow: 0 0 0 3px rgba(20, 184, 166, 0.18);
 }
 
 .app-name-switcher .app-name,
@@ -242,45 +240,45 @@ html, body {
 }
 
 .switch-icon {
-  width: 1rem;
-  height: 1rem;
-  color: rgba(59, 130, 246, 0.8);
-  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  width: 14px;
+  height: 14px;
+  color: rgba(255, 255, 255, 0.55);
+  transition: transform 0.22s cubic-bezier(0.4, 0, 0.2, 1), color 0.18s ease;
   flex-shrink: 0;
+  stroke-width: 2;
 }
 
 .switch-icon.open {
   transform: rotate(180deg);
-  color: #3b82f6;
+  color: #5eead4;
 }
 
 .app-name-switcher:hover .switch-icon {
-  color: #3b82f6;
+  color: #ffffff;
 }
 
-/* Dropdown Menu */
+/* Popup menu — refined dark card with soft teal undertone */
 .manager-dropdown-menu {
   position: fixed;
-  background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
-  border-radius: 0.75rem;
-  box-shadow: 
-    0 10px 25px -5px rgba(0, 0, 0, 0.4),
-    0 8px 10px -6px rgba(0, 0, 0, 0.3),
-    0 0 0 1px rgba(59, 130, 246, 0.1),
-    inset 0 1px 0 rgba(255, 255, 255, 0.05);
-  padding: 0.5rem;
+  background: #0b1220;
+  border-radius: 12px;
+  box-shadow:
+    0 20px 40px -12px rgba(0, 0, 0, 0.55),
+    0 4px 12px rgba(0, 0, 0, 0.25),
+    0 0 0 1px rgba(255, 255, 255, 0.06),
+    inset 0 1px 0 rgba(255, 255, 255, 0.04);
+  padding: 6px;
   z-index: 10000;
-  animation: dropdownFadeIn 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  animation: dropdownFadeIn 0.18s cubic-bezier(0.4, 0, 0.2, 1);
   overflow: hidden;
-  border: 1.5px solid rgba(59, 130, 246, 0.2);
+  border: none;
   min-width: 220px;
-  backdrop-filter: blur(10px);
 }
 
 @keyframes dropdownFadeIn {
   from {
     opacity: 0;
-    transform: translateY(-8px) scale(0.95);
+    transform: translateY(-6px) scale(0.98);
   }
   to {
     opacity: 1;
@@ -291,21 +289,20 @@ html, body {
 .dropdown-item {
   display: flex;
   align-items: center;
-  gap: 0.875rem;
+  gap: 0.75rem;
   width: 100%;
-  padding: 0.75rem 1rem;
+  padding: 0.6rem 0.75rem;
   background: transparent;
   border: none;
-  border-radius: 0.5rem;
-  color: rgba(255, 255, 255, 0.85);
-  font-size: 0.9375rem;
+  border-radius: 8px;
+  color: rgba(255, 255, 255, 0.78);
+  font-size: 0.9rem;
   font-weight: 500;
   cursor: pointer;
-  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: background 0.15s ease, color 0.15s ease;
   text-align: left;
   position: relative;
-  margin: 0.125rem 0;
-  border: 1px solid transparent;
+  margin: 2px 0;
 }
 
 .dropdown-item::before {
@@ -316,57 +313,53 @@ html, body {
   transform: translateY(-50%);
   width: 3px;
   height: 0;
-  background: linear-gradient(180deg, #3b82f6 0%, #1d4ed8 100%);
+  background: #14b8a6;
   border-radius: 0 2px 2px 0;
-  transition: height 0.2s ease;
+  transition: height 0.18s ease;
 }
 
 .dropdown-item:hover {
-  color: white;
-  background: linear-gradient(90deg, rgba(59, 130, 246, 0.12) 0%, rgba(59, 130, 246, 0.08) 100%);
-  border-color: rgba(59, 130, 246, 0.2);
-  transform: translateX(2px);
+  color: #ffffff;
+  background: rgba(255, 255, 255, 0.05);
 }
 
 .dropdown-item:hover::before {
-  height: 60%;
+  height: 50%;
 }
 
 .dropdown-item.active {
-  background: linear-gradient(90deg, rgba(59, 130, 246, 0.2) 0%, rgba(59, 130, 246, 0.15) 100%);
-  color: white;
+  background: rgba(20, 184, 166, 0.12);
+  color: #ffffff;
   font-weight: 600;
-  border-color: rgba(59, 130, 246, 0.3);
-  box-shadow: 0 2px 8px rgba(59, 130, 246, 0.15);
 }
 
 .dropdown-item.active::before {
-  height: 70%;
+  height: 65%;
 }
 
 .dropdown-icon {
-  width: 1.25rem;
-  height: 1.25rem;
-  color: rgba(255, 255, 255, 0.5);
+  width: 18px;
+  height: 18px;
+  color: rgba(255, 255, 255, 0.45);
   flex-shrink: 0;
-  transition: all 0.2s ease;
+  transition: color 0.15s ease;
   position: relative;
   z-index: 1;
-  padding: 0.125rem;
-  background: rgba(59, 130, 246, 0.1);
-  border-radius: 0.25rem;
+  padding: 0;
+  background: transparent;
+  border-radius: 0;
 }
 
 .dropdown-item:hover .dropdown-icon {
-  color: #3b82f6;
-  background: rgba(59, 130, 246, 0.2);
-  transform: scale(1.05);
+  color: rgba(255, 255, 255, 0.9);
+  background: transparent;
+  transform: none;
 }
 
 .dropdown-item.active .dropdown-icon {
-  color: white;
-  background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
-  box-shadow: 0 2px 4px rgba(59, 130, 246, 0.3);
+  color: #5eead4;
+  background: transparent;
+  box-shadow: none;
 }
 
 .dropdown-item span {
@@ -376,14 +369,14 @@ html, body {
 }
 
 .check-icon {
-  width: 1.125rem;
-  height: 1.125rem;
-  color: #3b82f6;
+  width: 16px;
+  height: 16px;
+  color: #14b8a6;
   flex-shrink: 0;
   position: relative;
   z-index: 1;
-  animation: checkFadeIn 0.2s ease;
-  filter: drop-shadow(0 1px 2px rgba(59, 130, 246, 0.3));
+  animation: checkFadeIn 0.18s ease;
+  filter: none;
 }
 
 @keyframes checkFadeIn {

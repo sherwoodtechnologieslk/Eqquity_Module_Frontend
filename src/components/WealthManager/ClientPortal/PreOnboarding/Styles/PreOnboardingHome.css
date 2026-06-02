@@ -39,9 +39,9 @@
   align-items: center;
   gap: 0.5rem;
   padding: 0.7rem 1.4rem;
-  background: transparent;
-  color: #f1f5f9;
-  border: 1.5px solid rgba(255, 255, 255, 0.35);
+  background: #ffffff;
+  color: #15803d;
+  border: 1.5px solid rgba(22, 163, 74, 0.45);
   border-radius: 0;
   font-size: 0.88rem;
   font-weight: 600;
@@ -51,16 +51,17 @@
 }
 
 .poh-btn-ghost:hover {
-  background: rgba(255, 255, 255, 0.08);
-  border-color: rgba(255, 255, 255, 0.6);
+  background: #ecfdf5;
+  border-color: #16a34a;
 }
 
 /* ══ HERO ══════════════════════════════════ */
 .poh-hero {
-  background: linear-gradient(135deg, #0f172a 0%, #134e4a 55%, #0f766e 100%);
+  background: linear-gradient(135deg, #ffffff 0%, #ecfdf5 55%, #dcfce7 100%);
   position: relative;
   overflow: hidden;
   padding: 3rem 2.5rem 3rem;
+  border-bottom: 1px solid rgba(22, 163, 74, 0.18);
 }
 
 .poh-hero::before {
@@ -71,7 +72,7 @@
   width: 320px;
   height: 320px;
   border-radius: 50%;
-  background: radial-gradient(circle, rgba(20,184,166,0.15) 0%, transparent 70%);
+  background: radial-gradient(circle, rgba(22,163,74,0.12) 0%, transparent 70%);
   pointer-events: none;
 }
 
@@ -83,7 +84,7 @@
   width: 220px;
   height: 220px;
   border-radius: 50%;
-  background: radial-gradient(circle, rgba(20,184,166,0.08) 0%, transparent 70%);
+  background: radial-gradient(circle, rgba(22,163,74,0.08) 0%, transparent 70%);
   pointer-events: none;
 }
 
@@ -115,21 +116,21 @@
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.16em;
-  color: #14b8a6;
+  color: #15803d;
 }
 
 .poh-hero-heading {
   margin: 0;
   font-size: 2.2rem;
   font-weight: 800;
-  color: #f8fafc;
+  color: #0b1220;
   line-height: 1.15;
 }
 
 .poh-hero-lead {
   margin: 0;
   font-size: 0.9rem;
-  color: #94a3b8;
+  color: #475569;
   line-height: 1.7;
   max-width: 400px;
 }
@@ -149,9 +150,9 @@
 }
 
 .poh-hero-card {
-  background: rgba(255, 255, 255, 0.06);
-  border: 1px solid rgba(20, 184, 166, 0.25);
-  backdrop-filter: blur(8px);
+  background: #ffffff;
+  border: 1px solid rgba(22, 163, 74, 0.25);
+  box-shadow: 0 4px 14px rgba(15, 23, 42, 0.06);
   padding: 1.5rem 1.75rem;
   display: flex;
   flex-direction: column;
@@ -165,13 +166,13 @@
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.1em;
-  color: #5eead4;
+  color: #15803d;
 }
 
 .poh-hero-card-amount {
   font-size: 1.5rem;
   font-weight: 800;
-  color: #f8fafc;
+  color: #0b1220;
   line-height: 1.1;
 }
 
@@ -190,7 +191,7 @@
 
 .poh-hero-bar {
   height: 28px;
-  background: rgba(20, 184, 166, 0.2);
+  background: #dcfce7;
   display: flex;
   align-items: center;
   padding: 0 0.6rem;
@@ -199,23 +200,28 @@
 }
 
 .poh-hero-bar--projected {
-  background: linear-gradient(90deg, #0f766e, #14b8a6);
+  background: linear-gradient(90deg, #16a34a, #15803d);
 }
 
 .poh-hero-bar span {
   font-size: 0.65rem;
   font-weight: 700;
-  color: #f8fafc;
+  color: #0b1220;
   letter-spacing: 0.05em;
   text-transform: uppercase;
+}
+
+.poh-hero-bar--projected span {
+  color: #ffffff;
 }
 
 /* ══ STATS BAR ══════════════════════════════ */
 .poh-stats-bar {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  background: #0f172a;
-  border-bottom: 2px solid #14b8a6;
+  background: #ffffff;
+  border-top: 1px solid rgba(15, 23, 42, 0.08);
+  border-bottom: 2px solid #16a34a;
 }
 
 @media (max-width: 600px) {
@@ -224,7 +230,7 @@
 
 .poh-stat {
   padding: 1.25rem 1.5rem;
-  border-right: 1px solid rgba(255, 255, 255, 0.06);
+  border-right: 1px solid rgba(15, 23, 42, 0.06);
   display: flex;
   flex-direction: column;
   gap: 0.2rem;
@@ -235,7 +241,7 @@
 .poh-stat-value {
   font-size: 1.25rem;
   font-weight: 800;
-  color: #14b8a6;
+  color: #15803d;
   line-height: 1;
 }
 
@@ -455,13 +461,14 @@
 
 /* ══ BOTTOM CTA BANNER ══════════════════════ */
 .poh-cta-banner {
-  background: linear-gradient(135deg, #0f172a 0%, #134e4a 60%, #0f766e 100%);
+  background: linear-gradient(135deg, #ffffff 0%, #ecfdf5 60%, #dcfce7 100%);
   padding: 2.5rem 2.5rem;
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 2rem;
   flex-wrap: wrap;
+  border-top: 1px solid rgba(22, 163, 74, 0.20);
 }
 
 .poh-cta-banner-text {
@@ -474,11 +481,11 @@
   margin: 0;
   font-size: 1.2rem;
   font-weight: 700;
-  color: #f8fafc;
+  color: #0b1220;
 }
 
 .poh-cta-banner-sub {
   margin: 0;
   font-size: 0.82rem;
-  color: #94a3b8;
+  color: #475569;
 }

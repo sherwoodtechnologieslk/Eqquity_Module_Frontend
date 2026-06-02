@@ -36,10 +36,11 @@
 
 /* ══ HERO ══════════════════════════════════ */
 .poa-hero {
-  background: linear-gradient(135deg, #0f172a 0%, #134e4a 55%, #0f766e 100%);
+  background: linear-gradient(135deg, #ffffff 0%, #ecfdf5 55%, #dcfce7 100%);
   padding: 3rem 2.5rem 0;
   position: relative;
   overflow: hidden;
+  border-bottom: 1px solid rgba(22, 163, 74, 0.18);
 }
 
 .poa-hero::before {
@@ -48,7 +49,7 @@
   top: -80px; right: -80px;
   width: 300px; height: 300px;
   border-radius: 50%;
-  background: radial-gradient(circle, rgba(20,184,166,0.14) 0%, transparent 70%);
+  background: radial-gradient(circle, rgba(22,163,74,0.12) 0%, transparent 70%);
   pointer-events: none;
 }
 
@@ -67,21 +68,21 @@
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.16em;
-  color: #14b8a6;
+  color: #15803d;
 }
 
 .poa-hero-heading {
   margin: 0;
   font-size: 2.1rem;
   font-weight: 800;
-  color: #f8fafc;
+  color: #0b1220;
   line-height: 1.15;
 }
 
 .poa-hero-lead {
   margin: 0;
   font-size: 0.9rem;
-  color: #94a3b8;
+  color: #475569;
   line-height: 1.7;
   max-width: 520px;
 }
@@ -90,8 +91,8 @@
 .poa-hero-stat-panel {
   display: flex;
   align-items: stretch;
-  background: rgba(255,255,255,0.05);
-  border-top: 1px solid rgba(20,184,166,0.2);
+  background: #ffffff;
+  border-top: 1px solid rgba(22, 163, 74, 0.20);
   position: relative;
   z-index: 1;
   margin: 0 -2.5rem;
@@ -108,14 +109,14 @@
 
 .poa-hero-stat-divider {
   width: 1px;
-  background: rgba(255,255,255,0.07);
+  background: rgba(15, 23, 42, 0.08);
   align-self: stretch;
 }
 
 .poa-hero-stat-val {
   font-size: 1.3rem;
   font-weight: 800;
-  color: #14b8a6;
+  color: #15803d;
   line-height: 1;
 }
 
@@ -182,15 +183,15 @@
 .poa-mission-block:last-child { border-right: none; }
 
 .poa-mission-block--dark {
-  background: #0f172a;
+  background: #ecfdf5;
 }
 
 .poa-mission-block--dark .poa-mission-label {
-  color: #14b8a6;
+  color: #15803d;
 }
 
 .poa-mission-block--dark .poa-mission-text {
-  color: #94a3b8;
+  color: #475569;
 }
 
 .poa-mission-label {
@@ -198,7 +199,7 @@
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.14em;
-  color: #14b8a6;
+  color: #15803d;
 }
 
 .poa-mission-text {
@@ -353,7 +354,7 @@
 .poa-team-card {
   background: #ffffff;
   border: 1px solid #e2e8f0;
-  border-top: 3px solid #0f172a;
+  border-top: 3px solid #16a34a;
   padding: 1.5rem 1.25rem 1.25rem;
   display: flex;
   flex-direction: column;
@@ -369,8 +370,8 @@
 .poa-team-avatar {
   width: 44px;
   height: 44px;
-  background: linear-gradient(135deg, #0f172a 0%, #134e4a 100%);
-  color: #14b8a6;
+  background: linear-gradient(135deg, #dcfce7 0%, #bbf7d0 100%);
+  color: #15803d;
   font-size: 0.82rem;
   font-weight: 800;
   letter-spacing: 0.05em;
@@ -403,24 +404,25 @@
 
 /* ══ CTA BANNER ══════════════════════════════ */
 .poa-cta-banner {
-  background: linear-gradient(135deg, #0f172a 0%, #134e4a 60%, #0f766e 100%);
+  background: linear-gradient(135deg, #ffffff 0%, #ecfdf5 60%, #dcfce7 100%);
   padding: 2.5rem 2.5rem;
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 2rem;
   flex-wrap: wrap;
+  border-top: 1px solid rgba(22, 163, 74, 0.20);
 }
 
 .poa-cta-heading {
   margin: 0;
   font-size: 1.15rem;
   font-weight: 700;
-  color: #f8fafc;
+  color: #0b1220;
 }
 
 .poa-cta-sub {
   margin: 0.25rem 0 0;
   font-size: 0.82rem;
-  color: #94a3b8;
+  color: #475569;
 }
