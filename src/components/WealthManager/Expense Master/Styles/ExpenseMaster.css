@@ -186,7 +186,7 @@
 }
 
 .wmwm-expense-master__mono {
-  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-family: 'Inter', sans-serif;
 }
 
 .wmwm-expense-master__statusPill {
@@ -201,7 +201,7 @@
 }
 
 .wmwm-expense-master__statusPill--active {
-  background: #ecfdf5;
+  background: #f0fdfa;
   color: #047857;
 }
 
@@ -250,12 +250,12 @@
   width: 56px;
   height: 56px;
   border-radius: 9999px;
-  background: radial-gradient(circle at 30% 20%, #d1fae5 0%, #0f766e 55%, #0f172a 100%);
-  color: #ecfdf5;
+  background: linear-gradient(135deg, #ccfbf1 0%, #14b8a6 55%, #06b6d4 100%);
+  color: #ffffff;
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 12px 30px rgba(15, 23, 42, 0.45);
+  box-shadow: 0 8px 22px rgba(15, 118, 110, 0.25);
 }
 
 .wmwm-expense-master__headerIcon svg {
@@ -332,7 +332,7 @@
   width: 8px;
   height: 8px;
   border-radius: 999px;
-  background: linear-gradient(135deg, #0f766e, #14b8a6);
+  background: linear-gradient(135deg, #0f766e 0%, #14b8a6 50%, #06b6d4 100%);
 }
 
 .wmwm-expense-master__cardHeaderRight {
@@ -345,8 +345,8 @@
   padding: 0.5rem 0.9rem;
   border-radius: 999px;
   border: 1px solid #0f766e;
-  background: linear-gradient(135deg, #0f766e 0%, #14b8a6 100%);
-  color: #ecfdf5;
+  background: linear-gradient(135deg, #0f766e 0%, #14b8a6 50%, #06b6d4 100%);
+  color: #f0fdfa;
   font-size: 0.8rem;
   font-weight: 700;
   letter-spacing: 0.08em;
