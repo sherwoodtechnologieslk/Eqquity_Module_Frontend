@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import './App.css';
 import Navbar from './components/Home/Navbar';
 import DynamicHeader from './components/Home/DynamicHeader';
@@ -71,6 +71,10 @@ import RecentActivity from './components/RecentActivity/RecentActivity';
 import PerformanceMetrics from './components/PerformanceMetrics/PerformanceMetrics';
 import MarketAnnouncements from './components/CSEAnnouncements/MarketAnnouncements';
 import CorporateNotices from './components/CSEAnnouncements/CorporateNotices';
+import NewsEvents from './components/CSEAnnouncements/NewsEvents';
+import FinancialReports from './components/CSEAnnouncements/FinancialReports';
+import TradingUpdates from './components/CSEAnnouncements/TradingUpdates';
+import RegulatoryUpdates from './components/CSEAnnouncements/RegulatoryUpdates';
 import FinancialPosition from './components/FinancialReporting/FinancialPosition';
 import StatementOfComprehensiveIncome from './components/FinancialReporting/StatementOfComprehensiveIncome';
 import CashFlow from './components/FinancialReporting/CashFlow';
@@ -82,11 +86,15 @@ import OtherReports from './components/FinancialReporting/OtherReports';
 import GsecEntries from './components/GsecEntries/GsecEntries';
 import GsecGeneralLedger from './components/GsecEntries/GsecGeneralLedger';
 import GsecBalanceSheet from './components/GsecEntries/GsecBalanceSheet';
+import GsecManualEntryPosting from './components/GsecEntries/GsecManualEntryPosting';
+import GsecMissingEntries from './components/GsecEntries/GsecMissingEntries';
 import CombinedGL from './components/AccountingEntries/CombinedGL';
 import CombinedTrialBalance from './components/AccountingEntries/CombinedTrialBalance';
+import AccountSummaries from './components/AccountingEntries/AccountSummaries';
 import HolidayCalendar from './components/HolidayCalendar/HolidayCalendar';
 import FundsCenters from './components/FundsCenters/FundsCenters';
 import ViewMap from './components/FundsCenters/ViewMap';
+import GlobalMarkets from './components/FundsCenters/GlobalMarkets';
 import CashFlowMapping from './components/SettlementAndAccounting/CashFlowMapping';
 import SettlementInstructions from './components/SettlementAndAccounting/SettlementInstructions';
 import GLMapping from './components/SettlementAndAccounting/GLMapping';
@@ -98,10 +106,13 @@ import RiskManagementChart from './components/PredictiveValuationModel/RiskManag
 import SharePricePrediction from './components/PredictiveValuationModel/SharePricePrediction';
 import PredictionIndicators from './components/PredictiveValuationModel/PredictionIndicators';
 import BlockAnalysisDashboard from './components/PredictiveValuationModel/BlockAnalysisDashboard';
+import MLStockPrediction from './components/PredictiveValuationModel/MLStockPrediction';
 import AIAssistantDock from './components/AIAssistant/AIAssistantDock';
 import CSEASPIPage from './components/ChartsAndInsights/CSEASPIPage';
 import CSESectorIndicesPage from './components/ChartsAndInsights/CSESectorIndicesPage';
-
+import AssetRegister from './components/FixedAssets/AssetRegister';
+import AssetEntry from './components/FixedAssets/AssetEntry';
+import AssetCategories from './components/FixedAssets/AssetCategories';
 function App() {
   const [activeTab, setActiveTab] = useState('Dashboard');
   const [activeSidebarItem, setActiveSidebarItem] = useState(0);
@@ -113,10 +124,14 @@ function App() {
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [aiAssistantOpen, setAiAssistantOpen] = useState(false);
+  // Optional context payload passed across tabs (e.g. SOFP "View notes" → Financial Reporting Notes).
+  // Cleared when the tab is changed without a payload.
+  const [tabContext, setTabContext] = useState(null);
   
   // Handle tab selection from Navbar - use Sidebar's menuItems as single source of truth for indices
-  const handleTabChange = (tabName) => {
+  const handleTabChange = useCallback((tabName, context = null) => {
     setActiveTab(tabName);
+    setTabContext(context ?? null);
 
     // Use the correct menu set based on selected manager
     const currentMenuItems =
@@ -130,26 +145,21 @@ function App() {
       setActiveSidebarItem(sectionIndex);
       setVisibleTabs(currentMenuItems[sectionIndex].subTopics || []);
     }
-  };
+  }, [selectedManager]);
 
-  // Handle manager type change from Sidebar
   const handleManagerChange = (managerType) => {
     setSelectedManager(managerType);
     setActiveSidebarItem(0);
-    if (managerType === 'wealth') {
-      setVisibleTabs(['Dashboard', 'Portfolio Overview', 'Fund Performance', 'Client Summary', 'AUM Overview']);
-      setActiveTab('Dashboard');
-    } else {
-      setVisibleTabs(['Dashboard', 'Portfolio Overview', 'Market Summary', 'Recent Activity', 'Performance Metrics']);
-      setActiveTab('Dashboard');
-    }
+    setVisibleTabs(['Dashboard', 'Portfolio Overview', 'Market Summary', 'Recent Activity', 'Performance Metrics']);
+    setActiveTab('Dashboard');
+    return true;
   };
 
   // Tab component mappings
   const tabToComponent = {
     'Dashboard': selectedManager === 'wealth' 
       ? <WealthManagerDashboard /> 
-      : <Dashboard onTabChange={handleTabChange} />,
+      : <Dashboard onTabChange={handleTabChange} onOpenAIAssistant={() => setAiAssistantOpen(true)} />,
     'Portfolio Overview': selectedManager === 'wealth'
       ? <WMPortfolioOverview />
       : <PortfolioOverview onTabChange={handleTabChange} />,
@@ -179,6 +189,7 @@ function App() {
     'Holiday Settings': <HolidayCalendar mode="settings" />,
     'Funds Centers': <FundsCenters />,
     'View Map': <ViewMap />,
+    'Global Markets': <GlobalMarkets />,
 
     'Buy': <BuyTransactionEntry />,
     'Sell': <SellTransactionEntry setActiveTab={setActiveTab} />,
@@ -196,6 +207,7 @@ function App() {
     'Share Price Prediction': <SharePricePrediction />,
     'Prediction Indicators': <PredictionIndicators />,
     'Block Analysis Dashboard': <BlockAnalysisDashboard />,
+    'ML Stock Predictor': <MLStockPrediction />,
 
     'Dividend': <DividendEntry/>,
     'Dividends': <DividendEntry/>, // Alias for Mandatory Corporate Actions
@@ -237,11 +249,14 @@ function App() {
     'Avg Cost Calculator': <AvgCostCalculator />,
     'Market Announcements': <MarketAnnouncements />,
     'Corporate Notices': <CorporateNotices />,
+    'Trading Updates': <TradingUpdates />,
+    'Regulatory Updates': <RegulatoryUpdates />,
+    'Financial Reports': <FinancialReports />,
+    'News & Events': <NewsEvents />,
     'TradeCore': <TradeCore />,
     'Statement of Financial Position': <FinancialPosition onTabChange={handleTabChange} />,
     'Statement of Comprehensive Income': <StatementOfComprehensiveIncome />,
     'Cash Flow': <CashFlow />,
-    'Financial Reporting Notes': <FinancialReportingNotes />,
     'Equity Portfolio Snapshot': <FinancialReportsExport />,
     'Financial Reports Export': <FinancialReportsDownloadCenter />,
     'Settlement Instructions': <SettlementInstructions />,
@@ -250,15 +265,22 @@ function App() {
     'Performance Report': <PerformanceReport />,
     'Other Reports': <OtherReports />,
     'GSEC ENTRIES': <GsecEntries />,
+    'Missing GSec Entries': <GsecMissingEntries />,
     'Balance Sheet': <GsecBalanceSheet />,
     'GSec General Ledger': <GsecGeneralLedger />,
+    'GSec Manual Entry Posting': <GsecManualEntryPosting />,
     'Combined General Ledger': <CombinedGL onTabChange={handleTabChange} />,
     'Combined Trial Balance': <CombinedTrialBalance onTabChange={handleTabChange} />,
+    'Account Summaries': <AccountSummaries onTabChange={handleTabChange} />,
+    'Asset Register': <AssetRegister onTabChange={handleTabChange} />,
+    'Add Asset': <AssetEntry onTabChange={handleTabChange} />,
+    'Asset Categories': <AssetCategories onTabChange={handleTabChange} />,
   };
 
   // Handle sidebar selection
   const handleSidebarSelect = (index, subTopics) => {
     setActiveSidebarItem(index);
+    setTabContext(null);
 
     if (Array.isArray(subTopics) && subTopics.length > 0) {
       setVisibleTabs(subTopics);
@@ -389,10 +411,19 @@ function App() {
         {selectedManager === 'equity' && <DynamicHeader />}
 
         <div className={selectedManager === 'wealth' ? 'wm-content' : 'dashboard-content'}>
-          {tabToComponent[activeTab] || (
-            <div style={{ padding: '2rem', textAlign: 'center', color: '#ef4444' }}>
-              <h3>Component Not Found</h3>
-              <p>The requested component is not available.</p>
+          {activeTab === 'Financial Reporting Notes' ? (
+            <FinancialReportingNotes
+              context={tabContext}
+              onTabChange={handleTabChange}
+            />
+          ) : (
+            <div key={activeTab}>
+              {tabToComponent[activeTab] || (
+                <div style={{ padding: '2rem', textAlign: 'center', color: '#ef4444' }}>
+                  <h3>Component Not Found</h3>
+                  <p>The requested component is not available.</p>
+                </div>
+              )}
             </div>
           )}
         </div>
@@ -407,7 +438,6 @@ function App() {
 
       <AIAssistantDock
         open={aiAssistantOpen}
-        onOpen={() => setAiAssistantOpen(true)}
         onClose={() => setAiAssistantOpen(false)}
       />
     </div>

@@ -1,6 +1,18 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
+import {
+  Chart as ChartJS,
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  LineElement,
+  Tooltip,
+  Filler,
+} from 'chart.js';
+import { Line } from 'react-chartjs-2';
 import './ViewPortfolio.css';
 import { portfolioAPI } from '../../services/api';
+
+ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Tooltip, Filler);
 
 const ALLOCATION_COLORS = ['#3b82f6', '#22c55e', '#eab308', '#6366f1', '#ec4899', '#0ea5e9', '#f97316', '#14b8a6'];
 
@@ -11,6 +23,12 @@ const formatNumber = (value) =>
   }).format(value || 0);
 
 const formatLkr = (value) => `LKR ${formatNumber(value || 0)}`;
+
+const formatChartAxisDate = (d) => {
+  const dt = d instanceof Date ? d : new Date(d);
+  if (Number.isNaN(dt.getTime())) return '';
+  return dt.toLocaleDateString('en-LK', { month: 'short', day: 'numeric', year: '2-digit' });
+};
 
 const escapeCsv = (v) => {
   const s = v === null || v === undefined ? '' : String(v);
@@ -51,15 +69,24 @@ const buildExportCsv = (summary, holdings) => {
 const ViewPortfolio = () => {
   const [summary, setSummary] = useState(null);
   const [holdings, setHoldings] = useState([]);
+  const [valueHistory, setValueHistory] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [historyLoading, setHistoryLoading] = useState(true);
   const [error, setError] = useState('');
+  const [historyError, setHistoryError] = useState('');
+  const hasLoadedOnce = useRef(false);
 
   const loadData = async () => {
-    try {
+    const useFullPageLoader = !hasLoadedOnce.current;
+    if (useFullPageLoader) {
       setLoading(true);
-      setError('');
+      setValueHistory([]);
+    }
+    setHistoryLoading(true);
+    setError('');
+    setHistoryError('');
 
-      // Use the same backend overview used by the main dashboard
+    try {
       const result = await portfolioAPI.getPortfolioOverview('all');
 
       if (result && result.success && result.data) {
@@ -76,7 +103,34 @@ const ViewPortfolio = () => {
       setHoldings([]);
       setError(e.message || 'Failed to load portfolio overview.');
     } finally {
-      setLoading(false);
+      if (useFullPageLoader) {
+        setLoading(false);
+      }
+    }
+
+    try {
+      const hist = await portfolioAPI.getPortfolioValueHistory('all', 'ALL');
+      if (hist && hist.success && Array.isArray(hist.data)) {
+        const points = hist.data
+          .map((row) => ({
+            date: row.date,
+            value: parseFloat(row.value) || 0,
+            t: new Date(row.date).getTime(),
+          }))
+          .filter((p) => !Number.isNaN(p.t))
+          .sort((a, b) => a.t - b.t);
+        setValueHistory(points);
+      } else {
+        if (useFullPageLoader) setValueHistory([]);
+        setHistoryError('Could not load portfolio growth history.');
+      }
+    } catch (e) {
+      console.error('Error loading portfolio value history:', e);
+      if (useFullPageLoader) setValueHistory([]);
+      setHistoryError(e.message || 'Failed to load portfolio growth history.');
+    } finally {
+      setHistoryLoading(false);
+      hasLoadedOnce.current = true;
     }
   };
 
@@ -140,6 +194,77 @@ const ViewPortfolio = () => {
     ];
   }, [summary, holdings, allocation]);
 
+  const growthChartData = useMemo(() => {
+    if (!valueHistory.length) return null;
+    return {
+      labels: valueHistory.map((p) => formatChartAxisDate(p.date)),
+      datasets: [
+        {
+          label: 'Total portfolio value',
+          data: valueHistory.map((p) => p.value),
+          borderColor: '#0284c7',
+          backgroundColor: 'rgba(14, 165, 233, 0.12)',
+          borderWidth: 2,
+          fill: true,
+          tension: 0.25,
+          pointRadius: 0,
+          pointHoverRadius: 5,
+          pointHoverBackgroundColor: '#0284c7',
+          pointHitRadius: 12,
+        },
+      ],
+    };
+  }, [valueHistory]);
+
+  const growthChartOptions = useMemo(
+    () => ({
+      responsive: true,
+      maintainAspectRatio: false,
+      interaction: { mode: 'index', intersect: false },
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          backgroundColor: 'rgba(15, 23, 42, 0.92)',
+          titleFont: { size: 12, weight: '600' },
+          bodyFont: { size: 12 },
+          padding: 10,
+          cornerRadius: 4,
+          callbacks: {
+            label: (ctx) => formatLkr(ctx.parsed.y),
+          },
+        },
+      },
+      scales: {
+        x: {
+          grid: { display: false, drawBorder: false },
+          ticks: {
+            maxRotation: 0,
+            autoSkip: true,
+            maxTicksLimit: 12,
+            color: '#64748b',
+            font: { size: 11 },
+          },
+        },
+        y: {
+          grid: { color: 'rgba(148, 163, 184, 0.2)' },
+          ticks: {
+            color: '#64748b',
+            font: { size: 11 },
+            callback: (v) => {
+              const n = Number(v);
+              if (!Number.isFinite(n)) return '';
+              if (Math.abs(n) >= 1e9) return `${(n / 1e9).toFixed(1)}B`;
+              if (Math.abs(n) >= 1e6) return `${(n / 1e6).toFixed(1)}M`;
+              if (Math.abs(n) >= 1e3) return `${(n / 1e3).toFixed(0)}K`;
+              return formatNumber(n);
+            },
+          },
+        },
+      },
+    }),
+    [],
+  );
+
   if (loading) {
     return (
       <div className="vp-root">
@@ -202,6 +327,28 @@ const ViewPortfolio = () => {
       )}
 
       <div className="vp-grid">
+        <section className="vp-card vp-card-growth" aria-label="Portfolio value over time">
+          <div className="vp-card-header vp-card-header--growth">
+            <div>
+              <h3 className="vp-card-title">Portfolio growth</h3>
+              <span className="vp-card-caption">
+                Total market value from your first recorded trade through today (based on available prices in trade summaries).
+              </span>
+            </div>
+          </div>
+          {historyLoading ? (
+            <div className="vp-growth-loading">Loading history…</div>
+          ) : historyError ? (
+            <p className="vp-growth-msg vp-growth-msg--error">{historyError}</p>
+          ) : !growthChartData ? (
+            <p className="vp-growth-msg">Not enough history to show growth yet.</p>
+          ) : (
+            <div className="vp-chart-wrap">
+              <Line data={growthChartData} options={growthChartOptions} />
+            </div>
+          )}
+        </section>
+
         <section className="vp-card vp-card-summary">
           <h3 className="vp-card-title">Key Portfolio Metrics</h3>
           <div className="vp-metrics">

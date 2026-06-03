@@ -73,7 +73,8 @@ export const equityManagerMenuItems = [
     name: "Funds Centers",
     subTopics: [
       "Funds Centers",
-      "View Map"
+      "View Map",
+      "Global Markets"
     ]
   },
   {
@@ -102,8 +103,10 @@ export const equityManagerMenuItems = [
     name: "GSec Entries",
     subTopics: [
       "GSEC ENTRIES",
+      "Missing GSec Entries",
       "Balance Sheet",
-      "GSec General Ledger"
+      "GSec General Ledger",
+      "GSec Manual Entry Posting"
     ]
   },
   {
@@ -115,7 +118,21 @@ export const equityManagerMenuItems = [
     name: "Accounting Entries",
     subTopics: [
       "Combined General Ledger",
-      "Combined Trial Balance"
+      "Combined Trial Balance",
+      "Account Summaries"
+    ]
+  },
+  {
+    icon: (
+      <svg fill="currentColor" viewBox="0 0 20 20">
+        <path fillRule="evenodd" d="M4 4a2 2 0 012-2h8a2 2 0 012 2v12a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm3 2a1 1 0 000 2h6a1 1 0 100-2H7zm0 4a1 1 0 100 2h6a1 1 0 100-2H7zm0 4a1 1 0 100 2h3a1 1 0 100-2H7z" clipRule="evenodd"/>
+      </svg>
+    ),
+    name: "Fixed Assets",
+    subTopics: [
+      "Asset Register",
+      "Add Asset",
+      "Asset Categories"
     ]
   },
   {
@@ -127,9 +144,9 @@ export const equityManagerMenuItems = [
     name: "Financial Reporting",
     subTopics: [
       "Statement of Financial Position",
+      "Financial Reporting Notes",
       "Statement of Comprehensive Income",
-      "Cash Flow",
-      "Financial Reporting Notes"
+      "Cash Flow"
     ]
   },
   {
@@ -257,7 +274,8 @@ export const equityManagerMenuItems = [
       "Risk Management Chart",
       "Share Price Prediction",
       "Prediction Indicators",
-      "Block Analysis Dashboard"
+      "Block Analysis Dashboard",
+      "ML Stock Predictor"
     ]
   },
   {
@@ -272,6 +290,7 @@ export const equityManagerMenuItems = [
       "Corporate Notices",
       "Trading Updates",
       "Regulatory Updates",
+      "Financial Reports",
       "News & Events"
     ]
   },

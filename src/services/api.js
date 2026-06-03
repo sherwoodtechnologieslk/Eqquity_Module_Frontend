@@ -1,5 +1,16 @@
 const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://98.91.201.168/api';
 
+/** YYYY-MM-DD in local calendar (avoids day shift from toISOString() in non-UTC timezones). */
+const toLocalYmd = (d) => {
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${y}-${m}-${day}`;
+};
+const defaultMonthStartYmd = () => toLocalYmd(new Date(new Date().getFullYear(), new Date().getMonth(), 1));
+const defaultTodayYmd = () => toLocalYmd(new Date());
+const defaultYearStartYmd = () => toLocalYmd(new Date(new Date().getFullYear(), 0, 1));
+
 // Helper function to get auth headers
 const getAuthHeaders = () => {
     const token = localStorage.getItem('token');
@@ -49,7 +60,15 @@ const makeAuthenticatedRequest = async (url, options = {}) => {
         let errorMessage = `HTTP error! status: ${response.status}`;
         try {
             const errorData = await response.json();
-            errorMessage = errorData.error || errorData.message || errorMessage;
+            // Prefer detail (FastAPI / ML proxy) over generic wrapper text
+            errorMessage =
+                errorData.detail ||
+                errorData.message ||
+                errorData.error ||
+                errorMessage;
+            if (typeof errorMessage === 'object') {
+                errorMessage = JSON.stringify(errorMessage);
+            }
         } catch (e) {
             // If response is not JSON, use default error message
         }
@@ -2038,8 +2057,8 @@ export const trialBalanceAPI = {
   getTrialBalance: async (filters = {}) => {
     try {
       const queryParams = new URLSearchParams({
-        startDate: filters.startDate || new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString().split('T')[0],
-        endDate: filters.endDate || new Date().toISOString().split('T')[0],
+        startDate: filters.startDate || defaultMonthStartYmd(),
+        endDate: filters.endDate || defaultTodayYmd(),
         _ts: Date.now().toString()
       });
       
@@ -2078,8 +2097,8 @@ export const trialBalanceAPI = {
   getTrialBalanceSummary: async (filters = {}) => {
     try {
       const queryParams = new URLSearchParams({
-        startDate: filters.startDate || new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString().split('T')[0],
-        endDate: filters.endDate || new Date().toISOString().split('T')[0],
+        startDate: filters.startDate || defaultMonthStartYmd(),
+        endDate: filters.endDate || defaultTodayYmd(),
         _ts: Date.now().toString()
       });
       
@@ -2118,8 +2137,8 @@ export const trialBalanceAPI = {
   getAccountDetails: async (accountCode, filters = {}) => {
     try {
       const queryParams = new URLSearchParams({
-        startDate: filters.startDate || new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString().split('T')[0],
-        endDate: filters.endDate || new Date().toISOString().split('T')[0],
+        startDate: filters.startDate || defaultMonthStartYmd(),
+        endDate: filters.endDate || defaultTodayYmd(),
         _ts: Date.now().toString()
       });
       
@@ -2202,15 +2221,17 @@ export const accountReconciliationAPI = {
     try {
       const queryParams = new URLSearchParams({
         accountCode: accountCode,
-        startDate: filters.startDate || new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString().split('T')[0],
-        endDate: filters.endDate || new Date().toISOString().split('T')[0]
+        startDate: filters.startDate || defaultMonthStartYmd(),
+        endDate: filters.endDate || defaultTodayYmd()
       });
       
       if (filters.portfolio) {
         queryParams.append('portfolio', filters.portfolio);
       }
       
-      const response = await fetch(`${API_BASE_URL}/account-reconciliation/transactions?${queryParams}`);
+      const response = await fetch(`${API_BASE_URL}/account-reconciliation/transactions?${queryParams}`, {
+        headers: getAuthHeaders()
+      });
       
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
@@ -2223,24 +2244,71 @@ export const accountReconciliationAPI = {
     }
   },
 
-  // Save reconciliation
+  // Save reconciliation (persists matched pairs for this account + period only)
   saveReconciliation: async (reconciliationData) => {
     try {
+      if (!localStorage.getItem('token')) {
+        clearAuthAndRedirectToLogin();
+        throw new Error('No token, authorization denied');
+      }
       const response = await fetch(`${API_BASE_URL}/account-reconciliation/save`, {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json',
+          ...getAuthHeaders(),
+          'Content-Type': 'application/json'
         },
         body: JSON.stringify(reconciliationData)
       });
-      
+
       if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+        let message = `HTTP error! status: ${response.status}`;
+        try {
+          const body = await response.json();
+          message = body?.error || message;
+        } catch {
+          // ignore
+        }
+        throw new Error(message);
       }
-      
+
       return await response.json();
     } catch (error) {
       console.error('Error saving reconciliation:', error);
+      throw error;
+    }
+  },
+
+  getReconciliationMatches: async (filters = {}) => {
+    try {
+      const queryParams = new URLSearchParams();
+      if (filters.accountCode) {
+        queryParams.append('accountCode', filters.accountCode);
+      }
+      if (filters.startDate) {
+        queryParams.append('startDate', filters.startDate);
+      }
+      if (filters.endDate) {
+        queryParams.append('endDate', filters.endDate);
+      }
+
+      const response = await fetch(`${API_BASE_URL}/account-reconciliation/matches?${queryParams}`, {
+        headers: getAuthHeaders()
+      });
+
+      if (!response.ok) {
+        let message = `HTTP error! status: ${response.status}`;
+        try {
+          const body = await response.json();
+          message = body?.error || message;
+        } catch {
+          // ignore
+        }
+        throw new Error(message);
+      }
+
+      return await response.json();
+    } catch (error) {
+      console.error('Error fetching reconciliation matches:', error);
       throw error;
     }
   },
@@ -2274,24 +2342,105 @@ export const accountReconciliationAPI = {
   },
 
   // Upload external statement
-  uploadExternalStatement: async (file, accountCode) => {
+  uploadExternalStatement: async (file, accountCode, password = '') => {
     try {
       const formData = new FormData();
       formData.append('file', file);
       formData.append('accountCode', accountCode);
+      if (password) {
+        formData.append('password', password);
+      }
       
       const response = await fetch(`${API_BASE_URL}/account-reconciliation/upload-statement`, {
         method: 'POST',
+        headers: getAuthHeaders(),
         body: formData
       });
       
       if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+        let message = `HTTP error! status: ${response.status}`;
+        try {
+          const body = await response.json();
+          message = body?.error || message;
+        } catch {
+          // Keep the status message if the server didn't return JSON.
+        }
+        throw new Error(message);
       }
       
       return await response.json();
     } catch (error) {
       console.error('Error uploading external statement:', error);
+      throw error;
+    }
+  },
+
+  // Save previewed statement entries to database
+  passStatementEntries: async ({ accountCode, sourceFileName, entries }) => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/account-reconciliation/pass-entries`, {
+        method: 'POST',
+        headers: {
+          ...getAuthHeaders(),
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          accountCode,
+          sourceFileName,
+          entries
+        })
+      });
+
+      if (!response.ok) {
+        let message = `HTTP error! status: ${response.status}`;
+        try {
+          const body = await response.json();
+          message = body?.error || message;
+        } catch {
+          // Keep the status message if the server didn't return JSON.
+        }
+        throw new Error(message);
+      }
+
+      return await response.json();
+    } catch (error) {
+      console.error('Error passing statement entries:', error);
+      throw error;
+    }
+  },
+
+  // Load saved statement entries from database
+  getStatementEntries: async (accountCode, filters = {}) => {
+    try {
+      const queryParams = new URLSearchParams();
+      if (accountCode) {
+        queryParams.append('accountCode', accountCode);
+      }
+      if (filters.startDate) {
+        queryParams.append('startDate', filters.startDate);
+      }
+      if (filters.endDate) {
+        queryParams.append('endDate', filters.endDate);
+      }
+
+      const response = await fetch(`${API_BASE_URL}/account-reconciliation/statement-entries?${queryParams}`, {
+        headers: getAuthHeaders()
+      });
+
+      if (!response.ok) {
+        let message = `HTTP error! status: ${response.status}`;
+        try {
+          const body = await response.json();
+          message = body?.error || message;
+        } catch {
+          // Keep the status message if the server didn't return JSON.
+        }
+        throw new Error(message);
+      }
+
+      return await response.json();
+    } catch (error) {
+      console.error('Error fetching statement entries:', error);
       throw error;
     }
   }
@@ -2303,8 +2452,8 @@ export const profitLossAPI = {
   getProfitLoss: async (filters = {}) => {
     try {
       const queryParams = new URLSearchParams({
-        startDate: filters.startDate || new Date(new Date().getFullYear(), 0, 1).toISOString().split('T')[0],
-        endDate: filters.endDate || new Date().toISOString().split('T')[0]
+        startDate: filters.startDate || defaultYearStartYmd(),
+        endDate: filters.endDate || defaultTodayYmd()
       });
       
       if (filters.portfolio) {
@@ -2330,8 +2479,8 @@ export const profitLossAPI = {
   getProfitLossSummary: async (filters = {}) => {
     try {
       const queryParams = new URLSearchParams({
-        startDate: filters.startDate || new Date(new Date().getFullYear(), 0, 1).toISOString().split('T')[0],
-        endDate: filters.endDate || new Date().toISOString().split('T')[0]
+        startDate: filters.startDate || defaultYearStartYmd(),
+        endDate: filters.endDate || defaultTodayYmd()
       });
       
       if (filters.portfolio) {
@@ -2359,11 +2508,17 @@ export const financialPositionAPI = {
   getFinancialPosition: async (filters = {}) => {
     try {
       const queryParams = new URLSearchParams({
-        asOfDate: filters.asOfDate || new Date().toISOString().split('T')[0]
+        asOfDate: filters.asOfDate || defaultTodayYmd()
       });
       
       if (filters.portfolio) {
         queryParams.append('portfolioId', filters.portfolio);
+      }
+      if (filters.withMtmData) {
+        queryParams.append('withMtmData', 'true');
+      }
+      if (filters.withNotes) {
+        queryParams.append('withNotes', 'true');
       }
       
       const response = await fetch(`${API_BASE_URL}/financial-position?${queryParams}`, {
@@ -2385,7 +2540,7 @@ export const financialPositionAPI = {
   getFinancialPositionSummary: async (filters = {}) => {
     try {
       const queryParams = new URLSearchParams({
-        asOfDate: filters.asOfDate || new Date().toISOString().split('T')[0]
+        asOfDate: filters.asOfDate || defaultTodayYmd()
       });
       
       if (filters.portfolio) {
@@ -2411,7 +2566,7 @@ export const financialPositionAPI = {
   getPortfolioExportTable: async (filters = {}) => {
     try {
       const queryParams = new URLSearchParams({
-        asOfDate: filters.asOfDate || new Date().toISOString().split('T')[0]
+        asOfDate: filters.asOfDate || defaultTodayYmd()
       });
 
       if (filters.portfolioId) {
@@ -2477,6 +2632,34 @@ export const gsecEntriesAPI = {
     } catch (error) {
       console.error('Error saving GSec entries to database:', error);
       const message = error.message || 'Failed to save GSec entries to database';
+      throw new Error(message);
+    }
+  },
+
+  /** GSec Manual Entry Posting only: duplicate-aware save with optional bypass */
+  manualPostEntries: async (entries, { passDuplicates = false } = {}) => {
+    try {
+      return await makeAuthenticatedRequest(`${API_BASE_URL}/gsec-entries/manual-post`, {
+        method: 'POST',
+        body: JSON.stringify({ entries, passDuplicates })
+      });
+    } catch (error) {
+      console.error('Error posting GSec manual entries:', error);
+      const message = error.message || 'Failed to post GSec manual entries';
+      throw new Error(message);
+    }
+  },
+
+  // Remote rows not in local gsec_entries (deal_number + entry date, time ignored)
+  getMissingFromRemote: async ({ force = false } = {}) => {
+    try {
+      const url = force
+        ? `${API_BASE_URL}/gsec-entries/missing-from-remote?force=1`
+        : `${API_BASE_URL}/gsec-entries/missing-from-remote`;
+      return await makeAuthenticatedRequest(url, { method: 'GET' });
+    } catch (error) {
+      console.error('Error fetching missing GSec entries:', error);
+      const message = error.message || 'Failed to fetch missing GSec entries';
       throw new Error(message);
     }
   },
@@ -2767,6 +2950,25 @@ export const dashboardAPI = {
       throw error;
     }
   }
+  ,
+  getGlobalMarketStatus: async () => {
+    try {
+      // Server-side proxy keeps Alpha Vantage API key off the browser
+      const response = await fetch(`${API_BASE_URL}/dashboard/global-market-status`, {
+        headers: getAuthHeaders()
+      });
+      if (!response.ok) {
+        const err = await response.json().catch(() => ({}));
+        throw new Error(err?.error || err?.message || `HTTP error! status: ${response.status}`);
+      }
+      const json = await response.json();
+      // route returns { success, data, ... }
+      return json?.data ?? json;
+    } catch (error) {
+      console.error('Error fetching global market status:', error);
+      throw error;
+    }
+  }
 };
 
 // API service for AI-powered analysis
@@ -2861,3 +3063,171 @@ export const aiChatAPI = {
     });
   },
 };
+
+/**
+ * CSE Stock ML predictions (Python FastAPI behind the Node.js backend).
+ * Proxied at /api/ml/* — see Equity_module_Backend/routes/mlPredictionRoutes.js
+ */
+export const mlPredictionAPI = {
+  /** Probe the ML service. Returns { ok, ml_service, ml_service_url }. */
+  health: async () => {
+    const res = await fetch(`${API_BASE_URL}/ml/health`);
+    if (!res.ok) throw new Error(`Health check failed (${res.status})`);
+    return res.json();
+  },
+
+  /** Model availability + most recent training summary. */
+  status: async () => {
+    return await makeAuthenticatedRequest(`${API_BASE_URL}/ml/status`, {
+      method: 'GET',
+    });
+  },
+
+  /**
+   * Re-train all models from one or many CSV / TSV files.
+   * @param {File|File[]} fileOrFiles Single file or array of File objects
+   * @returns {Promise<object>} { message, files_processed, summary }
+   */
+  train: async (fileOrFiles) => {
+    const token = localStorage.getItem('token');
+    if (!token) throw new Error('Not authenticated');
+
+    const list = Array.isArray(fileOrFiles) ? fileOrFiles : [fileOrFiles];
+    if (!list.length) throw new Error('Select at least one file to upload.');
+
+    const form = new FormData();
+    list.forEach((f) => form.append('files', f));
+
+    const res = await fetch(`${API_BASE_URL}/ml/train`, {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${token}` },
+      body: form,
+    });
+    if (!res.ok) {
+      const errBody = await res.json().catch(() => ({}));
+      throw new Error(errBody.detail || errBody.error || `Train failed (${res.status})`);
+    }
+    return res.json();
+  },
+
+  /**
+   * Predict for a single stock row.
+   * payload = { company?, symbol?, open, high, low, prev_close,
+   *             last_trade?, share_volume?, trade_volume? }
+   */
+  predict: async (payload) => {
+    return await makeAuthenticatedRequest(`${API_BASE_URL}/ml/predict`, {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    });
+  },
+
+  // Notebook reproduction endpoints (require trained models)
+  eda: async () =>
+    makeAuthenticatedRequest(`${API_BASE_URL}/ml/eda`, { method: 'GET' }),
+  correlation: async () =>
+    makeAuthenticatedRequest(`${API_BASE_URL}/ml/correlation`, { method: 'GET' }),
+  classificationDetails: async () =>
+    makeAuthenticatedRequest(`${API_BASE_URL}/ml/classification/details`, { method: 'GET' }),
+  regressionDetails: async () =>
+    makeAuthenticatedRequest(`${API_BASE_URL}/ml/regression/details`, { method: 'GET' }),
+  clusteringDetails: async () =>
+    makeAuthenticatedRequest(`${API_BASE_URL}/ml/clustering/details`, { method: 'GET' }),
+  anomalyDetails: async () =>
+    makeAuthenticatedRequest(`${API_BASE_URL}/ml/anomaly/details`, { method: 'GET' }),
+  volatilityDetails: async () =>
+    makeAuthenticatedRequest(`${API_BASE_URL}/ml/volatility/details`, { method: 'GET' }),
+
+  /** Paginated/filtered all-stocks results table. */
+  results: async ({ limit = 0, onlyAnomalies = false, clusterLabel = '', search = '' } = {}) => {
+    const qs = new URLSearchParams();
+    if (limit) qs.set('limit', limit);
+    if (onlyAnomalies) qs.set('only_anomalies', 'true');
+    if (clusterLabel) qs.set('cluster_label', clusterLabel);
+    if (search) qs.set('search', search);
+    const url = `${API_BASE_URL}/ml/results${qs.toString() ? `?${qs}` : ''}`;
+    return makeAuthenticatedRequest(url, { method: 'GET' });
+  },
+
+  /** Trigger CSV download of full enriched dataset. */
+  downloadResultsCsv: async () => {
+    await _downloadCsv(`${API_BASE_URL}/ml/results.csv`, 'cse_ml_results.csv');
+  },
+
+  /**
+   * Buy signals (Notebook Cell 13) — sorted by buy_score then gainer_probability.
+   * Filters: { limit, recommendation, minScore, clusterLabel, search }
+   */
+  recommendations: async ({
+    limit = 0,
+    recommendation = '',
+    minScore = null,
+    clusterLabel = '',
+    search = '',
+  } = {}) => {
+    const qs = new URLSearchParams();
+    if (limit) qs.set('limit', limit);
+    if (recommendation) qs.set('recommendation', recommendation);
+    if (minScore !== null && minScore !== '') qs.set('min_score', minScore);
+    if (clusterLabel) qs.set('cluster_label', clusterLabel);
+    if (search) qs.set('search', search);
+    const url = `${API_BASE_URL}/ml/recommendations${qs.toString() ? `?${qs}` : ''}`;
+    return makeAuthenticatedRequest(url, { method: 'GET' });
+  },
+
+  downloadRecommendationsCsv: async () => {
+    await _downloadCsv(
+      `${API_BASE_URL}/ml/recommendations.csv`,
+      'stock_buy_recommendations.csv'
+    );
+  },
+
+  /**
+   * Next-day buy signals — one row per company.
+   * Filters: { limit, recommendation, minProbability, search }
+   * recommendation is one of STRONG BUY | BUY | WATCH | AVOID.
+   * minProbability is between 0 and 1.
+   */
+  nextDay: async ({
+    limit = 0,
+    recommendation = '',
+    minProbability = null,
+    search = '',
+  } = {}) => {
+    const qs = new URLSearchParams();
+    if (limit) qs.set('limit', limit);
+    if (recommendation) qs.set('recommendation', recommendation);
+    if (minProbability !== null && minProbability !== '') {
+      qs.set('min_probability', minProbability);
+    }
+    if (search) qs.set('search', search);
+    const url = `${API_BASE_URL}/ml/next-day${qs.toString() ? `?${qs}` : ''}`;
+    return makeAuthenticatedRequest(url, { method: 'GET' });
+  },
+
+  downloadNextDayCsv: async () => {
+    await _downloadCsv(
+      `${API_BASE_URL}/ml/next-day.csv`,
+      'next_day_recommendations.csv'
+    );
+  },
+};
+
+async function _downloadCsv(url, filename) {
+  const token = localStorage.getItem('token');
+  if (!token) throw new Error('Not authenticated');
+  const res = await fetch(url, { headers: { Authorization: `Bearer ${token}` } });
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({}));
+    throw new Error(body.detail || body.error || `CSV download failed (${res.status})`);
+  }
+  const blob = await res.blob();
+  const objUrl = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = objUrl;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(objUrl);
+}

@@ -3,7 +3,7 @@
 .wmwm-define-expenses__root {
   min-height: 100vh;
   padding: 2.25rem 2.5rem;
-  background: radial-gradient(circle at top left, #ecfeff 0, #f8fafc 50%, #f1f5f9 100%);
+  background: radial-gradient(circle at top left, #f0fdfa 0, #f6faf7 50%, #f1f5f4 100%);
   box-sizing: border-box;
 }
 
@@ -153,7 +153,7 @@
   padding: 0 1.4rem;
   border-radius: 999px;
   border: none;
-  background: linear-gradient(135deg, #0f766e 0%, #14b8a6 50%, #22d3ee 100%);
+  background: linear-gradient(135deg, #0f766e 0%, #14b8a6 50%, #06b6d4 100%);
   color: #ffffff;
   cursor: pointer;
   font-size: 0.9rem;

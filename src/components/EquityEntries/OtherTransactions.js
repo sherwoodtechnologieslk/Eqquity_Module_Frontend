@@ -1,5 +1,7 @@
- import React, { useState, useEffect, useMemo } from 'react';
+  import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import { createPortal } from 'react-dom';
+import jsPDF from 'jspdf';
+import html2canvas from 'html2canvas';
 import './Styles/OtherTransactions.css';
 import { accountAPI, otherTransactionAPI, otherTransactionGLEntryAPI, glAccountMappingAPI, otherTransactionTypeAPI, chartOfAccountsAPI, accountCategoryAPI } from '../../services/api';
 import { authService } from '../../services/authService';
@@ -30,6 +32,736 @@ const generateLiabilitySettlementVoucherNumber = () => {
   const minute = String(date.getMinutes()).padStart(2, '0');
   const second = String(date.getSeconds()).padStart(2, '0');
   return `LS-${year}${month}${day}-${hour}${minute}${second}`;
+};
+
+// Letterhead used by all printable documents (Voucher / Invoice / Request Letter).
+// Replace these placeholder values (or wire to a company-settings API) when ready.
+const PRINT_LETTERHEAD = {
+  companyName: 'Company Name',
+  logoText: 'COMPANY',
+  registrationNo: '',
+  addressLine: '',
+  phone: '',
+  fax: '',
+  email: ''
+};
+
+const formatDateDdMmYyyy = (value) => {
+  if (!value) return '—';
+  const s = String(value).substring(0, 10);
+  const m = s.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  if (m) return `${m[3]}-${m[2]}-${m[1]}`;
+  return s;
+};
+
+const formatAmount = (value) => {
+  const n = parseFloat(value);
+  if (!Number.isFinite(n)) return '—';
+  return n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+};
+
+const numberToWords = (num) => {
+  const n = Math.floor(Math.abs(parseFloat(num) || 0));
+  if (n === 0) return 'Zero';
+  const ones = ['', 'One', 'Two', 'Three', 'Four', 'Five', 'Six', 'Seven', 'Eight', 'Nine',
+    'Ten', 'Eleven', 'Twelve', 'Thirteen', 'Fourteen', 'Fifteen', 'Sixteen', 'Seventeen', 'Eighteen', 'Nineteen'];
+  const tens = ['', '', 'Twenty', 'Thirty', 'Forty', 'Fifty', 'Sixty', 'Seventy', 'Eighty', 'Ninety'];
+  const chunk = (x) => {
+    let s = '';
+    if (x >= 100) { s += ones[Math.floor(x / 100)] + ' Hundred '; x %= 100; }
+    if (x >= 20) { s += tens[Math.floor(x / 10)] + (x % 10 ? '-' + ones[x % 10] : '') + ' '; }
+    else if (x > 0) { s += ones[x] + ' '; }
+    return s;
+  };
+  let result = '';
+  const scales = ['', 'Thousand', 'Million', 'Billion'];
+  let scaleIdx = 0;
+  let remaining = n;
+  while (remaining > 0) {
+    const part = remaining % 1000;
+    if (part) result = chunk(part) + (scales[scaleIdx] ? scales[scaleIdx] + ' ' : '') + result;
+    remaining = Math.floor(remaining / 1000);
+    scaleIdx++;
+  }
+  return result.trim();
+};
+
+// Reusable CSS shared between the in-modal renderer and the print iframe.
+// Layout is built with semantic tables so labels/values land on fixed columns,
+// like the Ambeon Capital sample voucher.
+const INLINE_DOC_STYLE = `
+  .inline-doc-print-wrap, .inline-doc-render {
+    font-family: Arial, Helvetica, sans-serif; color: #111; background: #fff;
+  }
+  .inline-doc-render { padding: 16px 22px; }
+  .inline-doc-print-wrap { padding: 22px 28px; max-width: 780px; margin: 0 auto; }
+
+  /* ---------- Letterhead ---------- */
+  .inline-doc-render .lh, .inline-doc-print-wrap .lh {
+    display: flex; justify-content: space-between; align-items: flex-start; gap: 16px;
+    padding-bottom: 8px; border-bottom: 1px solid #111;
+  }
+  .inline-doc-render .co-name, .inline-doc-print-wrap .co-name {
+    font-size: 13pt; font-weight: 700; margin-bottom: 4px;
+  }
+  .inline-doc-render .co-meta, .inline-doc-print-wrap .co-meta {
+    font-size: 8pt; color: #1f2937; line-height: 1.35;
+  }
+  .inline-doc-render .logo, .inline-doc-print-wrap .logo {
+    font-family: 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
+    font-size: 14pt; font-weight: 300; color: #6b7280; text-align: right;
+    letter-spacing: 0.4em; line-height: 1; align-self: center;
+    text-transform: uppercase; padding-right: 2px;
+  }
+
+  /* ---------- Section title ---------- */
+  .inline-doc-render .doc-title, .inline-doc-print-wrap .doc-title {
+    text-align: center; margin: 16px 0 10px; font-size: 11pt; font-weight: 700;
+    text-decoration: underline; text-underline-offset: 5px;
+  }
+
+  /* ---------- Header info table ---------- */
+  .inline-doc-render table.hdr, .inline-doc-print-wrap table.hdr {
+    width: 100%; border-collapse: collapse; font-size: 9pt; margin: 0;
+  }
+  .inline-doc-render table.hdr td, .inline-doc-print-wrap table.hdr td {
+    padding: 6px 6px; vertical-align: top;
+  }
+  .inline-doc-render table.hdr td.lbl, .inline-doc-print-wrap table.hdr td.lbl {
+    width: 110px; font-weight: 600; white-space: nowrap;
+  }
+  .inline-doc-render table.hdr td.lbl-r, .inline-doc-print-wrap table.hdr td.lbl-r {
+    width: 110px; font-weight: 600; text-align: right; white-space: nowrap;
+  }
+  .inline-doc-render table.hdr td.val, .inline-doc-print-wrap table.hdr td.val { width: auto; }
+  .inline-doc-render table.hdr tr.sep td, .inline-doc-print-wrap table.hdr tr.sep td {
+    border-bottom: 1px solid #111; padding-top: 4px; padding-bottom: 6px;
+  }
+
+  /* ---------- Journal table (minimal lines, like sample) ---------- */
+  .inline-doc-render table.jt, .inline-doc-print-wrap table.jt {
+    width: 100%; border-collapse: collapse; margin: 4px 0 0; font-size: 9pt;
+  }
+  .inline-doc-render table.jt th, .inline-doc-print-wrap table.jt th {
+    text-align: left; padding: 8px 6px 6px; border-bottom: 1px solid #111;
+    text-decoration: underline; text-underline-offset: 4px; font-weight: 700;
+  }
+  .inline-doc-render table.jt td, .inline-doc-print-wrap table.jt td {
+    padding: 5px 6px; vertical-align: top;
+  }
+  .inline-doc-render table.jt td.num, .inline-doc-render table.jt th.num,
+  .inline-doc-print-wrap table.jt td.num, .inline-doc-print-wrap table.jt th.num {
+    text-align: right; white-space: nowrap;
+  }
+  .inline-doc-render table.jt td.center, .inline-doc-render table.jt th.center,
+  .inline-doc-print-wrap table.jt td.center, .inline-doc-print-wrap table.jt th.center {
+    text-align: center;
+  }
+  .inline-doc-render table.jt tr.totals td, .inline-doc-print-wrap table.jt tr.totals td {
+    font-weight: 700;
+  }
+  .inline-doc-render table.jt tr.totals-first td, .inline-doc-print-wrap table.jt tr.totals-first td {
+    padding-top: 8px;
+  }
+  .inline-doc-render table.jt tr.section-end td, .inline-doc-print-wrap table.jt tr.section-end td {
+    border-bottom: 1px solid #111; padding-bottom: 8px;
+  }
+
+  /* ---------- Bank / branch strip ---------- */
+  .inline-doc-render table.bank, .inline-doc-print-wrap table.bank {
+    width: 100%; border-collapse: collapse; font-size: 9pt;
+    border-bottom: 1px solid #111; margin-top: 0;
+  }
+  .inline-doc-render table.bank td, .inline-doc-print-wrap table.bank td {
+    padding: 8px 6px 10px; vertical-align: top;
+  }
+  .inline-doc-render table.bank td.lbl, .inline-doc-print-wrap table.bank td.lbl {
+    font-weight: 600; white-space: nowrap;
+  }
+
+  /* ---------- Signature grid ---------- */
+  .inline-doc-render table.sigs, .inline-doc-print-wrap table.sigs {
+    width: 100%; border-collapse: collapse; margin-top: 18px; font-size: 9pt;
+  }
+  .inline-doc-render table.sigs td, .inline-doc-print-wrap table.sigs td {
+    padding: 16px 12px 4px; vertical-align: bottom; width: 33.33%;
+  }
+  .inline-doc-render table.sigs td .slabel, .inline-doc-print-wrap table.sigs td .slabel {
+    font-weight: 600; display: inline-block; min-width: 130px;
+  }
+  .inline-doc-render table.sigs td .sline, .inline-doc-print-wrap table.sigs td .sline {
+    display: inline-block; border-bottom: 1px solid #111; width: 130px; height: 1em; vertical-align: bottom;
+  }
+
+  /* ---------- Signoff (Yours faithfully / Authorised Signatory) ---------- */
+  .inline-doc-render .signoff, .inline-doc-print-wrap .signoff { margin-top: 24px; font-size: 9.5pt; }
+  .inline-doc-render .signoff .line, .inline-doc-print-wrap .signoff .line {
+    border-bottom: 1px solid #111; width: 200px; min-height: 16px; margin: 18px 0 4px;
+  }
+  .inline-doc-render .signoff .lbl, .inline-doc-print-wrap .signoff .lbl { font-weight: 700; }
+
+  /* ---------- Payment Advice value-on-right ---------- */
+  .inline-doc-render table.advice-bank, .inline-doc-print-wrap table.advice-bank {
+    width: 100%; border-collapse: collapse; font-size: 9pt; margin-top: 0;
+    border-bottom: 1px solid #111;
+  }
+  .inline-doc-render table.advice-bank td, .inline-doc-print-wrap table.advice-bank td {
+    padding: 8px 6px 10px; vertical-align: top;
+  }
+  .inline-doc-render table.advice-bank td.lbl, .inline-doc-print-wrap table.advice-bank td.lbl {
+    font-weight: 600; white-space: nowrap;
+  }
+  .inline-doc-render table.advice-bank td.value-cell, .inline-doc-print-wrap table.advice-bank td.value-cell {
+    text-align: right; vertical-align: bottom;
+  }
+  .inline-doc-render table.advice-bank td.value-cell .vl,
+  .inline-doc-print-wrap table.advice-bank td.value-cell .vl { font-weight: 600; }
+  .inline-doc-render table.advice-bank td.value-cell .va,
+  .inline-doc-print-wrap table.advice-bank td.value-cell .va {
+    font-weight: 700; font-size: 10.5pt; display: block; margin-top: 2px;
+  }
+
+  .inline-doc-render .advice-sep, .inline-doc-print-wrap .advice-sep {
+    border: none; border-top: 1px dashed #9ca3af; margin: 28px 0 18px;
+  }
+
+  /* ---------- Generic table for Invoice ---------- */
+  .inline-doc-render table.t, .inline-doc-print-wrap table.t { width: 100%; border-collapse: collapse; margin: 10px 0; font-size: 9pt; }
+  .inline-doc-render table.t th, .inline-doc-render table.t td,
+  .inline-doc-print-wrap table.t th, .inline-doc-print-wrap table.t td { border: 1px solid #333; padding: 5px 7px; vertical-align: top; text-align: left; }
+  .inline-doc-render table.t th, .inline-doc-print-wrap table.t th { background: #f3f4f6; font-weight: 700; }
+  .inline-doc-render table.t td.num, .inline-doc-render table.t th.num,
+  .inline-doc-print-wrap table.t td.num, .inline-doc-print-wrap table.t th.num { text-align: right; white-space: nowrap; }
+  .inline-doc-render table.t td.center, .inline-doc-render table.t th.center,
+  .inline-doc-print-wrap table.t td.center, .inline-doc-print-wrap table.t th.center { text-align: center; }
+  .inline-doc-render table.t tr.totals td, .inline-doc-print-wrap table.t tr.totals td { font-weight: 700; }
+
+  .inline-doc-render .body-text, .inline-doc-print-wrap .body-text { font-size: 10pt; line-height: 1.55; margin: 8px 0; text-align: justify; }
+  .inline-doc-render .body-text p, .inline-doc-print-wrap .body-text p { margin: 0 0 8px; }
+
+  /* ---------- Letter (Request Letter) ---------- */
+  .inline-doc-render .letter-date, .inline-doc-print-wrap .letter-date {
+    text-align: right; font-size: 9.5pt; margin: 16px 0 4px;
+  }
+  .inline-doc-render .letter-ref, .inline-doc-print-wrap .letter-ref {
+    text-align: right; font-size: 9pt; color: #374151; margin-bottom: 18px;
+  }
+  .inline-doc-render .letter-recipient, .inline-doc-print-wrap .letter-recipient {
+    font-size: 10pt; line-height: 1.5; margin: 0 0 18px;
+  }
+  .inline-doc-render .letter-recipient .rline,
+  .inline-doc-print-wrap .letter-recipient .rline { display: block; }
+  .inline-doc-render .letter-recipient .rname,
+  .inline-doc-print-wrap .letter-recipient .rname { font-weight: 700; }
+  .inline-doc-render .letter-subject, .inline-doc-print-wrap .letter-subject {
+    font-size: 10pt; font-weight: 700; text-decoration: underline; text-underline-offset: 3px;
+    margin: 6px 0 14px;
+  }
+  .inline-doc-render .letter-body, .inline-doc-print-wrap .letter-body {
+    font-size: 10pt; line-height: 1.65; text-align: justify;
+  }
+  .inline-doc-render .letter-body p, .inline-doc-print-wrap .letter-body p { margin: 0 0 10px; }
+  .inline-doc-render .letter-body .salutation, .inline-doc-print-wrap .letter-body .salutation { margin-bottom: 12px; }
+  .inline-doc-render table.req-details, .inline-doc-print-wrap table.req-details {
+    width: 90%; margin: 6px 0 12px 18px; border-collapse: collapse; font-size: 9.5pt;
+  }
+  .inline-doc-render table.req-details td, .inline-doc-print-wrap table.req-details td {
+    padding: 4px 8px; vertical-align: top;
+  }
+  .inline-doc-render table.req-details td.lbl, .inline-doc-print-wrap table.req-details td.lbl {
+    width: 160px; font-weight: 600; color: #1f2937;
+  }
+  .inline-doc-render table.req-details tr td, .inline-doc-print-wrap table.req-details tr td { border-bottom: 1px dotted #d1d5db; }
+  .inline-doc-render table.req-details tr:last-child td, .inline-doc-print-wrap table.req-details tr:last-child td { border-bottom: none; }
+  .inline-doc-render .letter-close, .inline-doc-print-wrap .letter-close { margin-top: 28px; font-size: 10pt; }
+  .inline-doc-render .letter-close .yours, .inline-doc-print-wrap .letter-close .yours { margin-bottom: 36px; }
+  .inline-doc-render .letter-close .sigline, .inline-doc-print-wrap .letter-close .sigline {
+    border-bottom: 1px solid #111; width: 220px; min-height: 14px; margin-bottom: 4px;
+  }
+  .inline-doc-render .letter-close .signer, .inline-doc-print-wrap .letter-close .signer { font-weight: 700; }
+  .inline-doc-render .letter-close .designation, .inline-doc-print-wrap .letter-close .designation { font-size: 9pt; color: #374151; }
+  .inline-doc-render .letter-cc, .inline-doc-print-wrap .letter-cc {
+    margin-top: 22px; font-size: 9pt; color: #374151;
+  }
+
+  @media print {
+    body.inline-doc-printing > *:not(.inline-doc-print-anchor) { display: none !important; }
+    body.inline-doc-printing .inline-doc-print-anchor { display: block !important; }
+  }
+`;
+
+const buildLetterheadHtml = () => {
+  const meta = [
+    PRINT_LETTERHEAD.registrationNo && `Company Registration No. ${PRINT_LETTERHEAD.registrationNo}`,
+    PRINT_LETTERHEAD.addressLine,
+    [
+      PRINT_LETTERHEAD.phone && `T: ${PRINT_LETTERHEAD.phone}`,
+      PRINT_LETTERHEAD.fax && `F: ${PRINT_LETTERHEAD.fax}`,
+      PRINT_LETTERHEAD.email && `E: ${PRINT_LETTERHEAD.email}`
+    ].filter(Boolean).join(' | ')
+  ].filter(Boolean).map((m) => `<div class="co-meta">${m}</div>`).join('');
+  const logoMark = PRINT_LETTERHEAD.logoText || (PRINT_LETTERHEAD.companyName.split(' ')[0] || '—');
+  return `<div class="lh">
+    <div>
+      <div class="co-name">${PRINT_LETTERHEAD.companyName}</div>
+      ${meta}
+    </div>
+    <div class="logo">${logoMark}</div>
+  </div>`;
+};
+
+const buildPaymentVoucherDoc = (form, glLines) => {
+  const lines = Array.isArray(glLines) && glLines.length
+    ? glLines.map((e) => {
+        const debit = parseFloat(e.debit) || 0;
+        const credit = parseFloat(e.credit) || 0;
+        if (debit > 0) return { desc: e.account_name || '—', no: e.account_code || '—', dc: 'DR', amt: debit };
+        if (credit > 0) return { desc: e.account_name || '—', no: e.account_code || '—', dc: 'CR', amt: credit };
+        return null;
+      }).filter(Boolean)
+    : [];
+  const totalDr = lines.filter((r) => r.dc === 'DR').reduce((s, r) => s + r.amt, 0);
+  const totalCr = lines.filter((r) => r.dc === 'CR').reduce((s, r) => s + r.amt, 0);
+
+  const linesHtml = lines.length
+    ? lines.map((r) => `<tr><td>${r.desc}</td><td>${r.no}</td><td class="center">${r.dc}</td><td class="num">${formatAmount(r.amt)}</td></tr>`).join('')
+    : `<tr><td colspan="4" class="center" style="color:#6b7280; padding: 12px 0;">No journal lines recorded.</td></tr>`;
+
+  const totalsHtml = lines.length ? `
+        <tr class="totals totals-first"><td colspan="3" style="text-align:right">Total Credit</td><td class="num">${formatAmount(totalCr)}</td></tr>
+        <tr class="totals section-end"><td colspan="3" style="text-align:right">Total Debit</td><td class="num">${formatAmount(totalDr)}</td></tr>
+      ` : '';
+
+  const branchCode = form.paymentBranchCode || form.branchCode || '—';
+  const branchAccount = form.paymentAccountNumber || '—';
+  const branchName = form.paymentBranchName || form.paymentBankName || '—';
+  const chequeNo = form.chequeNumber || form.chequeNo || '—';
+  const payee = form.counterparty || '—';
+  const paymentType = String(form.paymentMethod || '—').toUpperCase();
+  const narration = form.description || '—';
+  const docAttached = form.reference || '—';
+  const dateStr = formatDateDdMmYyyy(form.date);
+  const voucherNo = form.voucherNumber || '—';
+
+  // ---------- Payment Voucher (top) ----------
+  const voucherHeader = `
+    <table class="hdr">
+      <colgroup>
+        <col style="width: 110px;" />
+        <col />
+        <col style="width: 110px;" />
+        <col style="width: 200px;" />
+      </colgroup>
+      <tbody>
+        <tr class="sep">
+          <td class="lbl">Date</td>
+          <td class="val">${dateStr}</td>
+          <td class="lbl-r">Voucher No</td>
+          <td class="val" style="text-align:right;">${voucherNo}</td>
+        </tr>
+        <tr>
+          <td class="lbl">Payee</td>
+          <td class="val" colspan="3">${payee}</td>
+        </tr>
+        <tr>
+          <td class="lbl">Payment Type</td>
+          <td class="val" colspan="3">${paymentType}</td>
+        </tr>
+        <tr class="sep">
+          <td class="lbl">Narration</td>
+          <td class="val" colspan="3">${narration}</td>
+        </tr>
+        <tr class="sep">
+          <td class="lbl">Document Attached</td>
+          <td class="val" colspan="3">${docAttached}</td>
+        </tr>
+      </tbody>
+    </table>`;
+
+  const voucherJournal = `
+    <table class="jt">
+      <colgroup>
+        <col />
+        <col style="width: 160px;" />
+        <col style="width: 70px;" />
+        <col style="width: 130px;" />
+      </colgroup>
+      <thead>
+        <tr>
+          <th>Account Description</th>
+          <th>Account No</th>
+          <th class="center">DR/CR</th>
+          <th class="num">Amount</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${linesHtml}
+        ${totalsHtml}
+      </tbody>
+    </table>`;
+
+  const voucherBank = `
+    <table class="bank">
+      <colgroup>
+        <col style="width: 95px;" />
+        <col />
+        <col style="width: 110px;" />
+        <col />
+        <col style="width: 100px;" />
+        <col />
+        <col style="width: 90px;" />
+        <col />
+      </colgroup>
+      <tbody>
+        <tr>
+          <td class="lbl">Branch Code</td>
+          <td>${branchCode}</td>
+          <td class="lbl">Branch Account</td>
+          <td>${branchAccount}</td>
+          <td class="lbl">Branch Name</td>
+          <td>${branchName}</td>
+          <td class="lbl">Cheque No</td>
+          <td>${chequeNo}</td>
+        </tr>
+      </tbody>
+    </table>`;
+
+  const signatureGrid = `
+    <table class="sigs">
+      <tbody>
+        <tr>
+          <td><span class="slabel">Prepared by</span><span class="sline">&nbsp;</span></td>
+          <td><span class="slabel">Approved by</span><span class="sline">&nbsp;</span></td>
+          <td><span class="slabel">1st signatory</span><span class="sline">&nbsp;</span></td>
+        </tr>
+        <tr>
+          <td><span class="slabel">2nd signatory</span><span class="sline">&nbsp;</span></td>
+          <td><span class="slabel">Received with thanks</span><span class="sline">&nbsp;</span></td>
+          <td><span class="slabel">Date</span><span class="sline">&nbsp;</span></td>
+        </tr>
+      </tbody>
+    </table>`;
+
+  // ---------- Payment Advice (bottom) ----------
+  const adviceHeader = `
+    <table class="hdr">
+      <colgroup>
+        <col style="width: 110px;" />
+        <col />
+        <col style="width: 110px;" />
+        <col style="width: 200px;" />
+      </colgroup>
+      <tbody>
+        <tr class="sep">
+          <td class="lbl">Date</td>
+          <td class="val">${dateStr}</td>
+          <td class="lbl-r">Voucher No</td>
+          <td class="val" style="text-align:right;">${voucherNo}</td>
+        </tr>
+        <tr>
+          <td class="lbl">Payee</td>
+          <td class="val" colspan="3">${payee}</td>
+        </tr>
+        <tr>
+          <td class="lbl">Payment Type</td>
+          <td class="val" colspan="3">${paymentType}</td>
+        </tr>
+        <tr class="sep">
+          <td class="lbl">Narration</td>
+          <td class="val" colspan="3">${narration}</td>
+        </tr>
+        <tr class="sep">
+          <td class="lbl">Document Attached</td>
+          <td class="val" colspan="3">${docAttached}</td>
+        </tr>
+      </tbody>
+    </table>`;
+
+  const adviceBank = `
+    <table class="advice-bank">
+      <colgroup>
+        <col style="width: 95px;" />
+        <col />
+        <col style="width: 110px;" />
+        <col />
+        <col style="width: 90px;" />
+        <col />
+        <col style="width: 130px;" />
+      </colgroup>
+      <tbody>
+        <tr>
+          <td class="lbl">Branch Code</td>
+          <td>${branchCode}</td>
+          <td class="lbl">Branch Account</td>
+          <td>${branchAccount}</td>
+          <td class="lbl">Cheque No</td>
+          <td>${chequeNo}</td>
+          <td class="value-cell" rowspan="1">
+            <span class="vl">Value</span>
+            <span class="va">${formatAmount(form.amount)}</span>
+          </td>
+        </tr>
+      </tbody>
+    </table>`;
+
+  return `${buildLetterheadHtml()}
+  <div class="doc-title">Payment Voucher</div>
+  ${voucherHeader}
+  ${voucherJournal}
+  ${voucherBank}
+  ${signatureGrid}
+
+  <hr class="advice-sep" />
+
+  ${buildLetterheadHtml()}
+  <div class="doc-title">PAYMENT ADVICE</div>
+  ${adviceHeader}
+  ${adviceBank}
+  <div class="signoff">
+    <div>Yours faithfully</div>
+    <div class="line"></div>
+    <div class="lbl">Authorised Signatory</div>
+  </div>`;
+};
+
+const buildInvoiceDoc = (form) => {
+  const qty = 1;
+  const unit = parseFloat(form.amount) || 0;
+  const total = qty * unit;
+  const desc = form.description || form.transactionType || 'Service / Goods supplied';
+  const currency = form.currency || 'LKR';
+  const invoiceNo = form.reference || form.voucherNumber || '—';
+  const dateStr = formatDateDdMmYyyy(form.date);
+  const dueDateStr = dateStr; // No separate due-date field today
+  const billTo = form.counterparty || '—';
+  const ourRef = form.voucherNumber || '—';
+  const paymentTerms = form.paymentMethod ? String(form.paymentMethod).toUpperCase() : 'AS PER AGREEMENT';
+
+  // Top header block (4-column table for label/value pairs)
+  const headerBlock = `
+    <table class="hdr">
+      <colgroup>
+        <col style="width: 110px;" />
+        <col />
+        <col style="width: 110px;" />
+        <col style="width: 200px;" />
+      </colgroup>
+      <tbody>
+        <tr class="sep">
+          <td class="lbl">Invoice No</td>
+          <td class="val">${invoiceNo}</td>
+          <td class="lbl-r">Invoice Date</td>
+          <td class="val" style="text-align:right;">${dateStr}</td>
+        </tr>
+        <tr>
+          <td class="lbl">Bill To</td>
+          <td class="val" colspan="3">${billTo}</td>
+        </tr>
+        <tr>
+          <td class="lbl">Our Reference</td>
+          <td class="val">${ourRef}</td>
+          <td class="lbl-r">Due Date</td>
+          <td class="val" style="text-align:right;">${dueDateStr}</td>
+        </tr>
+        <tr class="sep">
+          <td class="lbl">Payment Terms</td>
+          <td class="val" colspan="3">${paymentTerms}</td>
+        </tr>
+      </tbody>
+    </table>`;
+
+  // Line items (minimal-border table to match Payment Voucher style)
+  const itemsTable = `
+    <table class="jt">
+      <colgroup>
+        <col style="width: 36px;" />
+        <col />
+        <col style="width: 56px;" />
+        <col style="width: 130px;" />
+        <col style="width: 140px;" />
+      </colgroup>
+      <thead>
+        <tr>
+          <th class="center">#</th>
+          <th>Description</th>
+          <th class="center">Qty</th>
+          <th class="num">Unit Price (${currency})</th>
+          <th class="num">Amount (${currency})</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td class="center">1</td>
+          <td>${desc}</td>
+          <td class="center">${qty}</td>
+          <td class="num">${formatAmount(unit)}</td>
+          <td class="num">${formatAmount(total)}</td>
+        </tr>
+        <tr class="totals totals-first">
+          <td colspan="4" style="text-align:right">Sub Total</td>
+          <td class="num">${formatAmount(total)}</td>
+        </tr>
+        <tr class="totals section-end">
+          <td colspan="4" style="text-align:right">Total Payable (${currency})</td>
+          <td class="num">${formatAmount(total)}</td>
+        </tr>
+      </tbody>
+    </table>`;
+
+  // Amount in words + notes section
+  const wordsBlock = `
+    <table class="hdr" style="margin-top: 10px;">
+      <colgroup>
+        <col style="width: 130px;" />
+        <col />
+      </colgroup>
+      <tbody>
+        <tr class="sep">
+          <td class="lbl">Amount in Words</td>
+          <td class="val" style="font-style: italic;">${numberToWords(total)} ${currency} Only.</td>
+        </tr>
+        ${form.notes ? `
+        <tr class="sep">
+          <td class="lbl">Notes</td>
+          <td class="val">${form.notes}</td>
+        </tr>` : ''}
+      </tbody>
+    </table>`;
+
+  // Optional bank-payment instructions row (only render if any bank fields exist)
+  const hasBankInfo = form.paymentBankName || form.paymentBranchName || form.paymentAccountNumber || form.paymentAccountName;
+  const bankBlock = hasBankInfo ? `
+    <div style="margin-top: 14px; font-size: 9pt; font-weight: 700; text-decoration: underline; text-underline-offset: 3px;">Payment Instructions</div>
+    <table class="bank">
+      <colgroup>
+        <col style="width: 110px;" />
+        <col />
+        <col style="width: 110px;" />
+        <col />
+      </colgroup>
+      <tbody>
+        <tr>
+          <td class="lbl">Bank Name</td>
+          <td>${form.paymentBankName || '—'}</td>
+          <td class="lbl">Branch</td>
+          <td>${form.paymentBranchName || '—'}</td>
+        </tr>
+        <tr>
+          <td class="lbl">Account Name</td>
+          <td>${form.paymentAccountName || '—'}</td>
+          <td class="lbl">Account No</td>
+          <td>${form.paymentAccountNumber || '—'}</td>
+        </tr>
+      </tbody>
+    </table>` : '';
+
+  return `${buildLetterheadHtml()}
+  <div class="doc-title">INVOICE</div>
+  ${headerBlock}
+  ${itemsTable}
+  ${wordsBlock}
+  ${bankBlock}
+  <div class="signoff">
+    <div>For ${PRINT_LETTERHEAD.companyName}</div>
+    <div class="line"></div>
+    <div class="lbl">Authorised Signatory</div>
+  </div>
+  <div style="margin-top: 22px; font-size: 8pt; color: #6b7280; text-align: center;">
+    This is a computer-generated invoice. No signature is required if generated electronically.
+  </div>`;
+};
+
+const buildRequestLetterDoc = (form) => {
+  const todayStr = formatDateDdMmYyyy(getToday());
+  const recipientName = form.counterparty || form.paymentBankName || 'The Manager';
+  const branchLine = form.paymentBranchName ? `${form.paymentBranchName} Branch` : '';
+  const bankNameLine = form.paymentBankName && form.paymentBankName !== recipientName ? form.paymentBankName : '';
+
+  const currency = form.currency || 'LKR';
+  const amtFigure = formatAmount(form.amount);
+  const amtWords = Number.isFinite(parseFloat(form.amount))
+    ? `${numberToWords(form.amount)} ${currency} Only`
+    : '';
+
+  const accountName = form.paymentAccountName || '';
+  const accountNumber = form.paymentAccountNumber || '';
+  const accountLine = [accountName, accountNumber].filter(Boolean).join(' / ');
+
+  const subjectRef = form.reference || form.voucherNumber || '';
+  const txnLabel = (form.transactionType || 'Transaction Processing').trim();
+  const subjectLine = `Request for ${txnLabel}${subjectRef ? ` — Ref: ${subjectRef}` : ''}`;
+
+  // Recipient block (To: ...)
+  const recipientBlock = `
+    <div class="letter-recipient">
+      <span class="rline rname">${recipientName}</span>
+      ${bankNameLine ? `<span class="rline">${bankNameLine}</span>` : ''}
+      ${branchLine ? `<span class="rline">${branchLine}</span>` : ''}
+    </div>`;
+
+  // Detail table inside body (Amount, Account, Purpose, Settlement Note)
+  const detailRows = [];
+  detailRows.push(`<tr><td class="lbl">Amount</td><td>${currency} ${amtFigure}${amtWords ? ` &nbsp;<em>(${amtWords})</em>` : ''}</td></tr>`);
+  if (accountLine) detailRows.push(`<tr><td class="lbl">Account</td><td>${accountLine}</td></tr>`);
+  if (form.description) detailRows.push(`<tr><td class="lbl">Purpose</td><td>${form.description}</td></tr>`);
+  if (form.cashFlowOnSettlement) detailRows.push(`<tr><td class="lbl">Settlement Note</td><td>${form.cashFlowOnSettlement}</td></tr>`);
+  if (subjectRef) detailRows.push(`<tr><td class="lbl">Our Reference</td><td>${subjectRef}</td></tr>`);
+  const detailsTable = `
+    <table class="req-details">
+      <colgroup>
+        <col style="width: 160px;" />
+        <col />
+      </colgroup>
+      <tbody>${detailRows.join('')}</tbody>
+    </table>`;
+
+  return `${buildLetterheadHtml()}
+  <div class="letter-date">Date: ${todayStr}</div>
+  ${subjectRef ? `<div class="letter-ref">Our Ref: ${subjectRef}</div>` : ''}
+
+  <div class="letter-recipient">
+    <span class="rline" style="font-weight: 600;">To,</span>
+  </div>
+  ${recipientBlock}
+
+  <div class="letter-subject">Subject: ${subjectLine}</div>
+
+  <div class="letter-body">
+    <p class="salutation">Dear Sir/Madam,</p>
+
+    <p>
+      We, <strong>${PRINT_LETTERHEAD.companyName}</strong>, hereby kindly request you to process
+      the following ${txnLabel.toLowerCase()} on our behalf as per the details set out below:
+    </p>
+
+    ${detailsTable}
+
+    <p>
+      We confirm that the necessary funds are available in the above account and that the
+      relevant internal approvals have been duly obtained for this instruction.
+      Kindly debit the said account and execute the settlement accordingly.
+    </p>
+
+    <p>
+      We would be grateful if you could acknowledge receipt of this letter and confirm completion
+      of the transaction at your earliest convenience. Should you require any further information
+      or supporting documentation, please do not hesitate to contact the undersigned.
+    </p>
+
+    <p>Thank you for your prompt attention and continued support.</p>
+  </div>
+
+  <div class="letter-close">
+    <div class="yours">Yours faithfully,</div>
+    <div>For and on behalf of <strong>${PRINT_LETTERHEAD.companyName}</strong></div>
+    <div class="sigline">&nbsp;</div>
+    <div class="signer">Authorised Signatory</div>
+    <div class="designation">Name &amp; Designation: ________________________</div>
+  </div>
+
+  <div class="letter-cc">
+    cc: File / Accounts Department
+  </div>`;
 };
 
 const OtherTransactions = () => {
@@ -97,6 +829,37 @@ const OtherTransactions = () => {
   const [accountsLoading, setAccountsLoading] = useState(true);
   const [showPreviewModal, setShowPreviewModal] = useState(false);
   const [accountsWithMapping, setAccountsWithMapping] = useState([]); // Accounts that have GL mappings
+
+  // Inline (in-modal) Voucher / Invoice / Request Letter document state
+  const [inlineDocType, setInlineDocType] = useState(null); // 'voucher' | 'invoice' | 'letter' | null
+  const [inlineDocHtml, setInlineDocHtml] = useState('');
+  const [inlineDocTitle, setInlineDocTitle] = useState('');
+  const [inlineDocEditing, setInlineDocEditing] = useState(false);
+  const [inlineDocPdfLoading, setInlineDocPdfLoading] = useState(false);
+  const [inlineDocFmtState, setInlineDocFmtState] = useState({ bold: false, italic: false, underline: false });
+  const inlineDocRef = useRef(null);
+
+  // Inject the shared inline-document stylesheet once
+  useEffect(() => {
+    const id = 'inline-doc-shared-style';
+    if (document.getElementById(id)) return;
+    const styleEl = document.createElement('style');
+    styleEl.id = id;
+    styleEl.innerHTML = INLINE_DOC_STYLE;
+    document.head.appendChild(styleEl);
+  }, []);
+
+  // Imperatively set the inline document HTML when a *new* document is generated.
+  // Using ref-based assignment (instead of dangerouslySetInnerHTML) so the contents
+  // are NOT overwritten on every re-render — that's what was wiping the user's edits.
+  useEffect(() => {
+    if (!inlineDocRef.current) return;
+    if (inlineDocType && inlineDocHtml) {
+      inlineDocRef.current.innerHTML = inlineDocHtml;
+    } else {
+      inlineDocRef.current.innerHTML = '';
+    }
+  }, [inlineDocType, inlineDocHtml]);
 
   // Holidays for date validation
   const [holidays, setHolidays] = useState([]);
@@ -201,6 +964,8 @@ const OtherTransactions = () => {
   const [generalLedgerEntries, setGeneralLedgerEntries] = useState([]);
   const [generalLedgerLoading, setGeneralLedgerLoading] = useState(false);
   const [generalLedgerVoucherSearch, setGeneralLedgerVoucherSearch] = useState('');
+  const [generalLedgerCurrentPage, setGeneralLedgerCurrentPage] = useState(1);
+  const [generalLedgerEntriesPerPage] = useState(50);
   // Reverse Transaction form state
   const [reverseForm, setReverseForm] = useState({ category: '', subCategory: '', transactionType: '', voucherId: '', voucherNumber: '', amount: '', cashFlowOnSettlement: '', date: new Date().toISOString().split('T')[0], notes: '' });
   const [reverseSubmitting, setReverseSubmitting] = useState(false);
@@ -778,25 +1543,43 @@ const OtherTransactions = () => {
     }
   };
 
+  useEffect(() => {
+    setGeneralLedgerCurrentPage(1);
+  }, [generalLedgerVoucherSearch, generalLedgerEntries]);
+
   /** GL tab: filter by voucher # (stored in `reference`; also checks `voucher_number` if present) */
   const displayGeneralLedgerEntries = useMemo(() => {
     const q = generalLedgerVoucherSearch.trim().toLowerCase();
-    let rows = generalLedgerEntries;
-    if (q) {
-      rows = generalLedgerEntries.filter((entry) => {
-        const voucher = String(entry.reference ?? entry.voucher_number ?? '').toLowerCase();
-        return voucher.includes(q);
-      });
-    } else {
-      rows = generalLedgerEntries.slice(0, 50);
-    }
+    const allRows = q
+      ? generalLedgerEntries.filter((entry) => {
+          const voucher = String(entry.reference ?? entry.voucher_number ?? '').toLowerCase();
+          return voucher.includes(q);
+        })
+      : generalLedgerEntries;
+
+    const totalCount = allRows.length;
+    const totalPages = Math.max(1, Math.ceil(totalCount / generalLedgerEntriesPerPage));
+    const safePage = Math.min(Math.max(1, generalLedgerCurrentPage), totalPages);
+    const indexOfLast = safePage * generalLedgerEntriesPerPage;
+    const indexOfFirst = indexOfLast - generalLedgerEntriesPerPage;
+    const rows = allRows.slice(indexOfFirst, indexOfLast);
+
     return {
       rows,
       isFiltered: Boolean(q),
-      matchCount: q ? rows.length : generalLedgerEntries.length,
-      totalCount: generalLedgerEntries.length,
+      matchCount: q ? totalCount : totalCount,
+      totalCount,
+      totalPages,
+      currentPage: safePage,
+      indexOfFirst,
+      indexOfLast: Math.min(indexOfLast, totalCount)
     };
-  }, [generalLedgerEntries, generalLedgerVoucherSearch]);
+  }, [
+    generalLedgerEntries,
+    generalLedgerVoucherSearch,
+    generalLedgerCurrentPage,
+    generalLedgerEntriesPerPage
+  ]);
 
   // Fetch vouchers based on category filter
   const fetchVouchers = async () => {
@@ -1079,6 +1862,7 @@ const OtherTransactions = () => {
     if (catLower === 'asset' || catLower.includes('asset')) return 'asset';
     if (catLower === 'liability' || catLower.includes('liability')) return 'liability';
     if (catLower === 'equity') return 'equity';
+    if (catLower === 'gl_to_gl' || catLower === 'gl to gl') return 'gl_to_gl';
     return null;
   };
 
@@ -2346,6 +3130,195 @@ const isVoucherSettled = (voucher) => {
     }
   };
 
+  const closePreviewModal = () => {
+    setShowPreviewModal(false);
+    setInlineDocType(null);
+    setInlineDocHtml('');
+    setInlineDocEditing(false);
+  };
+
+  const handleGenerateVoucher = async () => {
+    let glLines = [];
+    try {
+      const user = authService.getStoredUser();
+      const userEmail = user?.email || '';
+      if (form.voucherNumber && userEmail) {
+        const all = await otherTransactionAPI.getTransactionsByUser(userEmail);
+        const match = (all || []).find((t) => t.voucher_number === form.voucherNumber);
+        if (match?.id) {
+          glLines = await otherTransactionGLEntryAPI.getEntriesByTransactionId(match.id);
+        }
+      }
+    } catch (err) {
+      console.warn('Could not fetch GL entries for voucher print:', err);
+    }
+    setInlineDocTitle(`Payment Voucher - ${form.voucherNumber || ''}`);
+    setInlineDocHtml(buildPaymentVoucherDoc(form, glLines));
+    setInlineDocType('voucher');
+    setInlineDocEditing(false);
+  };
+
+  const handleGenerateInvoice = () => {
+    setInlineDocTitle(`Invoice - ${form.reference || form.voucherNumber || ''}`);
+    setInlineDocHtml(buildInvoiceDoc(form));
+    setInlineDocType('invoice');
+    setInlineDocEditing(false);
+  };
+
+  const handleGenerateRequestLetter = () => {
+    setInlineDocTitle(`Request Letter - ${form.voucherNumber || ''}`);
+    setInlineDocHtml(buildRequestLetterDoc(form));
+    setInlineDocType('letter');
+    setInlineDocEditing(false);
+  };
+
+  const handleInlineDocBack = () => {
+    setInlineDocType(null);
+    setInlineDocHtml('');
+    setInlineDocEditing(false);
+  };
+
+  const toggleInlineDocEdit = () => {
+    const next = !inlineDocEditing;
+    setInlineDocEditing(next);
+    if (next && inlineDocRef.current) {
+      setTimeout(() => inlineDocRef.current && inlineDocRef.current.focus(), 0);
+    }
+  };
+
+  const inlineDocFmt = useCallback((cmd) => {
+    if (!inlineDocEditing) return;
+    try { document.execCommand(cmd, false, null); } catch (e) {}
+    if (inlineDocRef.current) inlineDocRef.current.focus();
+    try {
+      setInlineDocFmtState({
+        bold: document.queryCommandState('bold'),
+        italic: document.queryCommandState('italic'),
+        underline: document.queryCommandState('underline')
+      });
+    } catch (e) {}
+  }, [inlineDocEditing]);
+
+  useEffect(() => {
+    if (!inlineDocEditing) return;
+    const handler = () => {
+      try {
+        setInlineDocFmtState({
+          bold: document.queryCommandState('bold'),
+          italic: document.queryCommandState('italic'),
+          underline: document.queryCommandState('underline')
+        });
+      } catch (e) {}
+    };
+    const keyHandler = (e) => {
+      if (!inlineDocRef.current) return;
+      const inside = inlineDocRef.current.contains(document.activeElement) || inlineDocRef.current === document.activeElement;
+      if (!inside) return;
+      const key = e.key && e.key.toLowerCase();
+      if ((e.ctrlKey || e.metaKey) && (key === 'b' || key === 'i' || key === 'u')) {
+        e.preventDefault();
+        inlineDocFmt(key === 'b' ? 'bold' : key === 'i' ? 'italic' : 'underline');
+      }
+    };
+    document.addEventListener('selectionchange', handler);
+    document.addEventListener('keyup', handler);
+    document.addEventListener('mouseup', handler);
+    document.addEventListener('keydown', keyHandler);
+    return () => {
+      document.removeEventListener('selectionchange', handler);
+      document.removeEventListener('keyup', handler);
+      document.removeEventListener('mouseup', handler);
+      document.removeEventListener('keydown', keyHandler);
+    };
+  }, [inlineDocEditing, inlineDocFmt]);
+
+  const handleInlineDocPrint = () => {
+    if (!inlineDocRef.current) return;
+    const printContents = inlineDocRef.current.innerHTML;
+    const iframe = document.createElement('iframe');
+    iframe.setAttribute('aria-hidden', 'true');
+    iframe.style.position = 'fixed';
+    iframe.style.right = '0';
+    iframe.style.bottom = '0';
+    iframe.style.width = '0';
+    iframe.style.height = '0';
+    iframe.style.border = '0';
+    iframe.style.opacity = '0';
+    document.body.appendChild(iframe);
+    const idoc = iframe.contentDocument || iframe.contentWindow.document;
+    idoc.open();
+    idoc.write(
+      '<!doctype html><html><head><meta charset="utf-8"/>' +
+      '<title>' + (inlineDocTitle || 'Document') + '</title>' +
+      '<style>' + INLINE_DOC_STYLE + '</style>' +
+      '</head><body><div class="inline-doc-print-wrap">' + printContents + '</div></body></html>'
+    );
+    idoc.close();
+    const doPrint = () => {
+      try {
+        iframe.contentWindow.focus();
+        iframe.contentWindow.print();
+      } catch (err) {
+        console.error('Print failed:', err);
+      }
+      setTimeout(() => {
+        if (iframe.parentNode) iframe.parentNode.removeChild(iframe);
+      }, 1500);
+    };
+    if (iframe.contentWindow && iframe.contentDocument && iframe.contentDocument.readyState === 'complete') {
+      setTimeout(doPrint, 120);
+    } else {
+      iframe.onload = () => setTimeout(doPrint, 120);
+    }
+  };
+
+  const handleInlineDocExportPdf = async () => {
+    if (!inlineDocRef.current) return;
+    setInlineDocPdfLoading(true);
+    const wasEditing = inlineDocEditing;
+    if (wasEditing) setInlineDocEditing(false);
+    try {
+      await new Promise((r) => setTimeout(r, 30));
+      const node = inlineDocRef.current;
+      const canvas = await html2canvas(node, { scale: 2, backgroundColor: '#ffffff', useCORS: true });
+      const pdf = new jsPDF({ orientation: 'p', unit: 'mm', format: 'a4' });
+      const pageW = pdf.internal.pageSize.getWidth();
+      const pageH = pdf.internal.pageSize.getHeight();
+      const margin = 10;
+      const imgW = pageW - margin * 2;
+      const imgH = (canvas.height * imgW) / canvas.width;
+      const imgData = canvas.toDataURL('image/png');
+      if (imgH <= pageH - margin * 2) {
+        pdf.addImage(imgData, 'PNG', margin, margin, imgW, imgH);
+      } else {
+        const pageContentH = pageH - margin * 2;
+        const pxPerMm = canvas.width / imgW;
+        const sliceHpx = pageContentH * pxPerMm;
+        let sY = 0;
+        while (sY < canvas.height) {
+          const sH = Math.min(sliceHpx, canvas.height - sY);
+          const slice = document.createElement('canvas');
+          slice.width = canvas.width;
+          slice.height = sH;
+          slice.getContext('2d').drawImage(canvas, 0, sY, canvas.width, sH, 0, 0, canvas.width, sH);
+          const sliceData = slice.toDataURL('image/png');
+          const sliceMm = sH / pxPerMm;
+          if (sY > 0) pdf.addPage();
+          pdf.addImage(sliceData, 'PNG', margin, margin, imgW, sliceMm);
+          sY += sH;
+        }
+      }
+      const safeTitle = (inlineDocTitle || 'document').replace(/[^a-z0-9\-_ ]/gi, '_');
+      pdf.save(`${safeTitle}.pdf`);
+    } catch (err) {
+      console.error('PDF export failed:', err);
+      alert(`Failed to export PDF: ${err.message || err}`);
+    } finally {
+      setInlineDocPdfLoading(false);
+      if (wasEditing) setInlineDocEditing(true);
+    }
+  };
+
   // Handle view voucher details - reuse the existing preview modal
   const handleViewVoucher = (voucher) => {
     // Determine main category from account_type
@@ -2359,6 +3332,7 @@ const isVoucherSettled = (voucher) => {
       voucherNumber: voucher.voucher_number,
       category: mainCategory,
       subCategory: subCategoryName,
+      selectedTransactionTypeId: '',
       transactionType: voucher.transaction_type || '',
       description: voucher.description || '',
       amount: voucher.amount || '',
@@ -2375,7 +3349,9 @@ const isVoucherSettled = (voucher) => {
       paymentAccountNumber: voucher.payment_account_number || '',
       paymentBankName: voucher.payment_bank_name || '',
       paymentBranchName: voucher.payment_branch_name || '',
-      paymentMethod: voucher.payment_method || ''
+      paymentMethod: voucher.payment_method || '',
+      glAccountCode: '',
+      coaDescription: ''
     });
     setShowPreviewModal(true);
   };
@@ -3200,7 +4176,9 @@ const isVoucherSettled = (voucher) => {
                   type="button"
                   className="other-trans-btn other-trans-btn-tertiary"
                   disabled={isSubmitting}
-                  onClick={() => setShowPreviewModal(true)}
+                  onClick={() => {
+                    setShowPreviewModal(true);
+                  }}
                 >
                   Preview Voucher
                 </button>
@@ -5484,81 +6462,39 @@ const isVoucherSettled = (voucher) => {
               marginBottom: '2rem',
               flexWrap: 'wrap'
             }}>
-              <button
-                onClick={() => setActiveCategory('all')}
-                style={{
-                  padding: '0.75rem 1.5rem',
-                  border: 'none',
-                  borderRadius: '0.375rem',
-                  background: activeCategory === 'all' ? '#3b82f6' : '#f3f4f6',
-                  color: activeCategory === 'all' ? 'white' : '#374151',
-                  fontWeight: activeCategory === 'all' ? '600' : '500',
-                  cursor: 'pointer',
-                  transition: 'all 0.2s ease'
-                }}
-              >
-                All
-              </button>
-              <button
-                onClick={() => setActiveCategory('income')}
-                style={{
-                  padding: '0.75rem 1.5rem',
-                  border: 'none',
-                  borderRadius: '0.375rem',
-                  background: activeCategory === 'income' ? '#10b981' : '#f3f4f6',
-                  color: activeCategory === 'income' ? 'white' : '#374151',
-                  fontWeight: activeCategory === 'income' ? '600' : '500',
-                  cursor: 'pointer',
-                  transition: 'all 0.2s ease'
-                }}
-              >
-                Income
-              </button>
-              <button
-                onClick={() => setActiveCategory('expense')}
-                style={{
-                  padding: '0.75rem 1.5rem',
-                  border: 'none',
-                  borderRadius: '0.375rem',
-                  background: activeCategory === 'expense' ? '#ef4444' : '#f3f4f6',
-                  color: activeCategory === 'expense' ? 'white' : '#374151',
-                  fontWeight: activeCategory === 'expense' ? '600' : '500',
-                  cursor: 'pointer',
-                  transition: 'all 0.2s ease'
-                }}
-              >
-                Expense
-              </button>
-              <button
-                onClick={() => setActiveCategory('asset')}
-                style={{
-                  padding: '0.75rem 1.5rem',
-                  border: 'none',
-                  borderRadius: '0.375rem',
-                  background: activeCategory === 'asset' ? '#8b5cf6' : '#f3f4f6',
-                  color: activeCategory === 'asset' ? 'white' : '#374151',
-                  fontWeight: activeCategory === 'asset' ? '600' : '500',
-                  cursor: 'pointer',
-                  transition: 'all 0.2s ease'
-                }}
-              >
-                Asset
-              </button>
-              <button
-                onClick={() => setActiveCategory('liability')}
-                style={{
-                  padding: '0.75rem 1.5rem',
-                  border: 'none',
-                  borderRadius: '0.375rem',
-                  background: activeCategory === 'liability' ? '#f59e0b' : '#f3f4f6',
-                  color: activeCategory === 'liability' ? 'white' : '#374151',
-                  fontWeight: activeCategory === 'liability' ? '600' : '500',
-                  cursor: 'pointer',
-                  transition: 'all 0.2s ease'
-                }}
-              >
-                Liability
-              </button>
+              {[
+                { key: 'all', label: 'All', color: '#3b82f6' },
+                { key: 'revenue', label: 'Revenue', color: '#10b981' },
+                { key: 'other income', label: 'Other Income', color: '#14b8a6' },
+                { key: 'provisions', label: 'Provisions', color: '#f97316' },
+                { key: 'expense', label: 'Expense', color: '#ef4444' },
+                { key: 'asset', label: 'Asset', color: '#8b5cf6' },
+                { key: 'liability', label: 'Liability', color: '#f59e0b' },
+                { key: 'equity', label: 'Equity', color: '#ec4899' },
+                { key: 'gl_to_gl', label: 'GL_TO_GL', color: '#0ea5e9' }
+              ].map((chip) => {
+                const isActive = activeCategory === chip.key;
+                return (
+                  <button
+                    key={chip.key}
+                    onClick={() => setActiveCategory(chip.key)}
+                    style={{
+                      padding: '0.6rem 1.15rem',
+                      border: 'none',
+                      borderRadius: '0.375rem',
+                      background: isActive ? chip.color : '#f3f4f6',
+                      color: isActive ? 'white' : '#374151',
+                      fontWeight: isActive ? '600' : '500',
+                      fontSize: '0.85rem',
+                      cursor: 'pointer',
+                      transition: 'all 0.2s ease',
+                      letterSpacing: chip.key === 'gl_to_gl' ? '0.04em' : 'normal'
+                    }}
+                  >
+                    {chip.label}
+                  </button>
+                );
+              })}
         </div>
 
             {/* Voucher Grid */}
@@ -5579,8 +6515,8 @@ const isVoucherSettled = (voucher) => {
             ) : (
               <div style={{
                 display: 'grid',
-                gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))',
-                gap: '1.5rem'
+                gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))',
+                gap: '1rem'
               }}>
                 {filteredVouchers.map((voucher) => (
                   <div 
@@ -5588,7 +6524,7 @@ const isVoucherSettled = (voucher) => {
                     style={{
                       background: 'white',
                       borderRadius: '0.375rem',
-                      padding: '1.5rem',
+                      padding: '1rem',
                       boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
                       border: '1px solid #e5e7eb',
                       transition: 'all 0.2s ease',
@@ -5608,7 +6544,7 @@ const isVoucherSettled = (voucher) => {
                       display: 'flex',
                       justifyContent: 'space-between',
                       alignItems: 'start',
-                      marginBottom: '1rem'
+                      marginBottom: '0.75rem'
                     }}>
                       <div>
                         <h3 style={{ 
@@ -5637,15 +6573,19 @@ const isVoucherSettled = (voucher) => {
                         textTransform: 'capitalize',
                         background: (() => {
                           const baseCat = getBaseCategory(voucher.account_type);
-                          return baseCat === 'income' ? '#d1fae5' : 
-                                 baseCat === 'expense' ? '#fee2e2' :
-                                 baseCat === 'asset' ? '#ede9fe' : '#fef3c7';
+                          return baseCat === 'income' || baseCat === 'revenue' || baseCat === 'otherIncome' ? '#d1fae5' : 
+                                 baseCat === 'expense' || baseCat === 'provisions' ? '#fee2e2' :
+                                 baseCat === 'asset' ? '#ede9fe' :
+                                 baseCat === 'gl_to_gl' ? '#e0f2fe' :
+                                 baseCat === 'equity' ? '#fce7f3' : '#fef3c7';
                         })(),
                         color: (() => {
                           const baseCat = getBaseCategory(voucher.account_type);
-                          return baseCat === 'income' ? '#065f46' : 
-                                 baseCat === 'expense' ? '#991b1b' :
-                                 baseCat === 'asset' ? '#6d28d9' : '#92400e';
+                          return baseCat === 'income' || baseCat === 'revenue' || baseCat === 'otherIncome' ? '#065f46' : 
+                                 baseCat === 'expense' || baseCat === 'provisions' ? '#991b1b' :
+                                 baseCat === 'asset' ? '#6d28d9' :
+                                 baseCat === 'gl_to_gl' ? '#075985' :
+                                 baseCat === 'equity' ? '#9d174d' : '#92400e';
                         })()
                       }}>
                         {voucher.account_type}
@@ -5653,24 +6593,24 @@ const isVoucherSettled = (voucher) => {
                     </div>
 
                     <h4 style={{
-                      fontSize: '1.125rem',
+                      fontSize: '1rem',
                       fontWeight: '700',
                       color: '#1f2937',
-                      margin: '0.5rem 0'
+                      margin: '0.35rem 0'
                     }}>
                       {voucher.transaction_type || 'N/A'}
                     </h4>
 
                     {voucher.amount && (
                       <div style={{
-                        margin: '0.75rem 0',
-                        padding: '0.75rem',
+                        margin: '0.5rem 0',
+                        padding: '0.5rem',
                         background: '#f9fafb',
                         borderRadius: '0.25rem'
                       }}>
-                        <div style={{ fontSize: '0.875rem', color: '#6b7280' }}>Amount</div>
+                        <div style={{ fontSize: '0.8125rem', color: '#6b7280' }}>Amount</div>
                         <div style={{ 
-                          fontSize: '1.25rem', 
+                          fontSize: '1.1rem', 
                           fontWeight: '700', 
                           color: '#1f2937' 
                         }}>
@@ -5695,8 +6635,8 @@ const isVoucherSettled = (voucher) => {
                     <div style={{
                       display: 'flex',
                       gap: '0.5rem',
-                      marginTop: '1rem',
-                      paddingTop: '1rem',
+                      marginTop: '0.75rem',
+                      paddingTop: '0.75rem',
                       borderTop: '1px solid #e5e7eb'
                     }}>
                       <button
@@ -5706,36 +6646,17 @@ const isVoucherSettled = (voucher) => {
                         }}
                         style={{
                           flex: 1,
-                          padding: '0.5rem',
+                          padding: '0.4rem',
                           border: '1px solid #3b82f6',
                           background: 'transparent',
                           color: '#3b82f6',
                           borderRadius: '0.25rem',
                           cursor: 'pointer',
                           fontWeight: '500',
-                          fontSize: '0.875rem'
+                          fontSize: '0.8125rem'
                         }}
                       >
                         View
-                      </button>
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleDeleteVoucher(voucher.id);
-                        }}
-                        style={{
-                          flex: 1,
-                          padding: '0.5rem',
-                          border: '1px solid #ef4444',
-                          background: 'transparent',
-                          color: '#ef4444',
-                          borderRadius: '0.25rem',
-                          cursor: 'pointer',
-                          fontWeight: '500',
-                          fontSize: '0.875rem'
-                        }}
-                      >
-                        Delete
                       </button>
                     </div>
                   </div>
@@ -5903,15 +6824,137 @@ const isVoucherSettled = (voucher) => {
                         </tbody>
                       </table>
                     </div>
-                    {!displayGeneralLedgerEntries.isFiltered && displayGeneralLedgerEntries.totalCount > 50 && (
-                      <div style={{ 
-                        padding: '1rem',
-                        textAlign: 'center',
-                        color: '#6b7280',
-                        fontSize: '0.875rem',
-                        borderTop: '1px solid #e5e7eb'
-                      }}>
-                        Showing first 50 entries of {displayGeneralLedgerEntries.totalCount} total entries. Use voucher search to find a specific transaction.
+                    {displayGeneralLedgerEntries.totalPages > 1 && (
+                      <div
+                        style={{
+                          padding: '1rem 1.25rem',
+                          borderTop: '1px solid #e5e7eb',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'space-between',
+                          gap: '0.75rem',
+                          flexWrap: 'wrap',
+                          background: '#fff'
+                        }}
+                      >
+                        <div style={{ color: '#6b7280', fontSize: '0.875rem' }}>
+                          Showing {displayGeneralLedgerEntries.indexOfFirst + 1}-{displayGeneralLedgerEntries.indexOfLast} of{' '}
+                          {displayGeneralLedgerEntries.totalCount}
+                        </div>
+
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
+                          <button
+                            type="button"
+                            onClick={() =>
+                              setGeneralLedgerCurrentPage((p) => Math.max(1, p - 1))
+                            }
+                            disabled={displayGeneralLedgerEntries.currentPage === 1}
+                            style={{
+                              padding: '0.4rem 0.75rem',
+                              border: '1px solid #cbd5e1',
+                              background: displayGeneralLedgerEntries.currentPage === 1 ? '#f1f5f9' : '#fff',
+                              color: '#334155',
+                              borderRadius: '0.375rem',
+                              cursor: displayGeneralLedgerEntries.currentPage === 1 ? 'not-allowed' : 'pointer',
+                              fontSize: '0.8125rem',
+                              fontWeight: 600
+                            }}
+                          >
+                            Previous
+                          </button>
+
+                          {(() => {
+                            const total = displayGeneralLedgerEntries.totalPages;
+                            const current = displayGeneralLedgerEntries.currentPage;
+                            const pages = [];
+
+                            const addPage = (n) => pages.push({ type: 'page', n });
+                            const addEllipsis = (key) => pages.push({ type: 'ellipsis', key });
+
+                            if (total <= 7) {
+                              for (let i = 1; i <= total; i++) addPage(i);
+                            } else {
+                              addPage(1);
+                              if (current > 4) addEllipsis('left');
+
+                              const start = Math.max(2, current - 1);
+                              const end = Math.min(total - 1, current + 1);
+                              for (let i = start; i <= end; i++) addPage(i);
+
+                              if (current < total - 3) addEllipsis('right');
+                              addPage(total);
+                            }
+
+                            return pages.map((item) => {
+                              if (item.type === 'ellipsis') {
+                                return (
+                                  <span key={item.key} style={{ padding: '0 0.25rem', color: '#94a3b8' }}>
+                                    …
+                                  </span>
+                                );
+                              }
+
+                              const isActive = item.n === current;
+                              return (
+                                <button
+                                  key={item.n}
+                                  type="button"
+                                  onClick={() => setGeneralLedgerCurrentPage(item.n)}
+                                  style={{
+                                    minWidth: 34,
+                                    padding: '0.4rem 0.6rem',
+                                    border: '1px solid ' + (isActive ? '#2563eb' : '#cbd5e1'),
+                                    background: isActive ? '#2563eb' : '#fff',
+                                    color: isActive ? '#fff' : '#334155',
+                                    borderRadius: '0.375rem',
+                                    cursor: 'pointer',
+                                    fontSize: '0.8125rem',
+                                    fontWeight: 700
+                                  }}
+                                >
+                                  {item.n}
+                                </button>
+                              );
+                            });
+                          })()}
+
+                          <button
+                            type="button"
+                            onClick={() =>
+                              setGeneralLedgerCurrentPage((p) =>
+                                Math.min(displayGeneralLedgerEntries.totalPages, p + 1)
+                              )
+                            }
+                            disabled={
+                              displayGeneralLedgerEntries.currentPage ===
+                              displayGeneralLedgerEntries.totalPages
+                            }
+                            style={{
+                              padding: '0.4rem 0.75rem',
+                              border: '1px solid #cbd5e1',
+                              background:
+                                displayGeneralLedgerEntries.currentPage ===
+                                displayGeneralLedgerEntries.totalPages
+                                  ? '#f1f5f9'
+                                  : '#fff',
+                              color: '#334155',
+                              borderRadius: '0.375rem',
+                              cursor:
+                                displayGeneralLedgerEntries.currentPage ===
+                                displayGeneralLedgerEntries.totalPages
+                                  ? 'not-allowed'
+                                  : 'pointer',
+                              fontSize: '0.8125rem',
+                              fontWeight: 600
+                            }}
+                          >
+                            Next
+                          </button>
+
+                          <div style={{ color: '#6b7280', fontSize: '0.8125rem', marginLeft: '0.25rem' }}>
+                            Page {displayGeneralLedgerEntries.currentPage} of {displayGeneralLedgerEntries.totalPages}
+                          </div>
+                        </div>
                       </div>
                     )}
                   </>
@@ -6196,7 +7239,7 @@ const isVoucherSettled = (voucher) => {
 
               {/* Footer */}
         <div className="other-trans-footer-section">
-          <p>SHERWOOD TECHNOLOGIES (PVT) LTD • Non-Trading Transactions Management • All data is encrypted and protected</p>
+          <p>Company Name • Non-Trading Transactions Management • All data is encrypted and protected</p>
         </div>
       </div>
 
@@ -6204,7 +7247,7 @@ const isVoucherSettled = (voucher) => {
       {showPreviewModal && typeof document !== 'undefined' && createPortal(
         <div 
           className="other-trans-preview-modal-overlay" 
-          onClick={() => setShowPreviewModal(false)}
+          onClick={closePreviewModal}
           style={{
             position: 'fixed',
             top: 0,
@@ -6226,32 +7269,119 @@ const isVoucherSettled = (voucher) => {
               background: 'white',
               borderRadius: '0.18rem',
               boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)',
-              maxWidth: '900px',
-              width: '90%',
-              maxHeight: '90vh',
+              maxWidth: '1040px',
+              width: '92%',
+              maxHeight: '92vh',
               overflow: 'hidden',
               position: 'relative'
             }}
           >
-            <div className="other-trans-preview-modal-header">
+            <div className="other-trans-preview-modal-header no-print">
               <h2 className="other-trans-preview-modal-title">
-                <svg style={{ width: '1.5rem', height: '1.5rem', marginRight: '0.75rem' }} fill="currentColor" viewBox="0 0 20 20">
+                <svg style={{ width: '1rem', height: '1rem', marginRight: '0.5rem' }} fill="currentColor" viewBox="0 0 20 20">
                   <path fillRule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clipRule="evenodd"/>
                 </svg>
                 Voucher Preview
               </h2>
-              <button 
-                className="other-trans-preview-close-btn"
-                onClick={() => setShowPreviewModal(false)}
-              >
-                <svg width="24" height="24" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd"/>
-                </svg>
-              </button>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                <button 
+                  className="other-trans-preview-close-btn"
+                  type="button"
+                  onClick={closePreviewModal}
+                >
+                  <svg width="16" height="16" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd"/>
+                  </svg>
+                </button>
+              </div>
             </div>
 
             <div className="other-trans-preview-modal-body">
-              <div className="other-trans-preview-section">
+              {inlineDocType ? (
+                <div className="other-trans-inline-doc-wrap">
+                  <div className="other-trans-inline-doc-toolbar no-print">
+                    <button
+                      type="button"
+                      className="other-trans-inline-doc-back"
+                      onClick={handleInlineDocBack}
+                    >
+                      Back to Details
+                    </button>
+                    <span className="other-trans-inline-doc-title">
+                      {inlineDocType === 'voucher' ? 'Payment Voucher' : inlineDocType === 'invoice' ? 'Invoice' : 'Request Letter'}
+                    </span>
+                    <div className="other-trans-inline-doc-actions">
+                      {inlineDocEditing && (
+                        <div className="other-trans-inline-doc-fmt" role="toolbar" aria-label="Text formatting">
+                          <button
+                            type="button"
+                            className={`fmt-btn fmt-b ${inlineDocFmtState.bold ? 'active' : ''}`}
+                            title="Bold (Ctrl+B)"
+                            onMouseDown={(e) => e.preventDefault()}
+                            onClick={() => inlineDocFmt('bold')}
+                          >B</button>
+                          <button
+                            type="button"
+                            className={`fmt-btn fmt-i ${inlineDocFmtState.italic ? 'active' : ''}`}
+                            title="Italic (Ctrl+I)"
+                            onMouseDown={(e) => e.preventDefault()}
+                            onClick={() => inlineDocFmt('italic')}
+                          >I</button>
+                          <button
+                            type="button"
+                            className={`fmt-btn fmt-u ${inlineDocFmtState.underline ? 'active' : ''}`}
+                            title="Underline (Ctrl+U)"
+                            onMouseDown={(e) => e.preventDefault()}
+                            onClick={() => inlineDocFmt('underline')}
+                          >U</button>
+                          <span className="fmt-sep" />
+                          <button
+                            type="button"
+                            className="fmt-btn fmt-clear"
+                            title="Remove formatting"
+                            onMouseDown={(e) => e.preventDefault()}
+                            onClick={() => inlineDocFmt('removeFormat')}
+                          >Normal</button>
+                        </div>
+                      )}
+                      <button
+                        type="button"
+                        className={`other-trans-inline-doc-btn edit ${inlineDocEditing ? 'active' : ''}`}
+                        onClick={toggleInlineDocEdit}
+                      >
+                        {inlineDocEditing ? 'Done Editing' : 'Edit'}
+                      </button>
+                      <button
+                        type="button"
+                        className="other-trans-inline-doc-btn print"
+                        onClick={handleInlineDocPrint}
+                      >Print</button>
+                      <button
+                        type="button"
+                        className="other-trans-inline-doc-btn pdf"
+                        onClick={handleInlineDocExportPdf}
+                        disabled={inlineDocPdfLoading}
+                      >
+                        {inlineDocPdfLoading ? 'Preparing…' : 'Export PDF'}
+                      </button>
+                    </div>
+                  </div>
+                  {inlineDocEditing && (
+                    <div className="other-trans-inline-doc-edit-hint no-print">
+                      Edit mode: click any text to change it. Use <strong>B</strong> / <strong>I</strong> / <strong>U</strong> to format, or <strong>Normal</strong> to clear styling.
+                    </div>
+                  )}
+                  <div
+                    ref={inlineDocRef}
+                    className={`inline-doc-render ${inlineDocEditing ? 'editing' : ''}`}
+                    contentEditable={inlineDocEditing}
+                    suppressContentEditableWarning
+                    spellCheck={false}
+                  />
+                </div>
+              ) : (
+                <>
+              <div className="other-trans-preview-section no-print">
                 <h3 className="other-trans-preview-section-title">Transaction Details</h3>
                 <div className="other-trans-preview-grid">
                   <div className="other-trans-preview-field">
@@ -6315,7 +7445,7 @@ const isVoucherSettled = (voucher) => {
                 </div>
               </div>
 
-              <div className="other-trans-preview-section">
+              <div className="other-trans-preview-section no-print">
                 <h3 className="other-trans-preview-section-title">Payment & Settlement Details</h3>
                 <div className="other-trans-preview-grid">
                   <div className="other-trans-preview-field">
@@ -6364,23 +7494,52 @@ const isVoucherSettled = (voucher) => {
               </div>
 
               {form.notes && (
-                <div className="other-trans-preview-section">
+                <div className="other-trans-preview-section no-print">
                   <h3 className="other-trans-preview-section-title">Notes</h3>
                   <div className="other-trans-preview-field">
                     <span className="other-trans-preview-value" style={{ paddingLeft: 0 }}>{form.notes}</span>
                   </div>
                 </div>
               )}
+                </>
+              )}
             </div>
 
-            <div className="other-trans-preview-modal-footer">
-              <button 
-                className="other-trans-btn other-trans-btn-secondary"
-                onClick={() => setShowPreviewModal(false)}
+            {!inlineDocType && (
+            <div className="other-trans-preview-modal-footer no-print">
+              <button
+                type="button"
+                className="other-trans-doc-btn other-trans-doc-btn-voucher"
+                onClick={handleGenerateVoucher}
               >
-                Close Preview
+                <svg width="14" height="14" fill="currentColor" viewBox="0 0 20 20" style={{ marginRight: '0.4rem' }}>
+                  <path fillRule="evenodd" d="M4 4a2 2 0 012-2h8a2 2 0 012 2v12a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm3 1h6v2H7V5zm0 4h6v2H7V9zm0 4h4v2H7v-2z" clipRule="evenodd" />
+                </svg>
+                Generate Voucher
+              </button>
+              <button
+                type="button"
+                className="other-trans-doc-btn other-trans-doc-btn-invoice"
+                onClick={handleGenerateInvoice}
+              >
+                <svg width="14" height="14" fill="currentColor" viewBox="0 0 20 20" style={{ marginRight: '0.4rem' }}>
+                  <path fillRule="evenodd" d="M5 2a2 2 0 00-2 2v12l3-1.5L9 16l3-1.5 3 1.5V4a2 2 0 00-2-2H5zm2.5 5a.5.5 0 000 1h5a.5.5 0 000-1h-5zm0 3a.5.5 0 000 1h5a.5.5 0 000-1h-5z" clipRule="evenodd" />
+                </svg>
+                Invoice
+              </button>
+              <button
+                type="button"
+                className="other-trans-doc-btn other-trans-doc-btn-letter"
+                onClick={handleGenerateRequestLetter}
+              >
+                <svg width="14" height="14" fill="currentColor" viewBox="0 0 20 20" style={{ marginRight: '0.4rem' }}>
+                  <path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z" />
+                  <path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z" />
+                </svg>
+                Request Letter
               </button>
             </div>
+            )}
           </div>
         </div>,
         document.body

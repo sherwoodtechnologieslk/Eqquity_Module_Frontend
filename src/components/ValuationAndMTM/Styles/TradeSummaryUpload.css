@@ -48,10 +48,10 @@
 }
 
 .upload-form-title {
-  font-size: 2rem;
+  font-size: 1.75rem;
   font-weight: 800;
   color: #1f2937;
-  margin: 0 0 0.5rem 0;
+  margin: 0 0 0.45rem 0;
   letter-spacing: -0.01em;
   line-height: 1.1;
   text-align: left ;
@@ -59,7 +59,7 @@
 
 .upload-subtitle {
   color: #475569;
-  font-size: 1.1rem;
+  font-size: 1.05rem;
   font-weight: 400;
   margin: 0;
   margin-bottom: 0.1rem;
@@ -499,7 +499,7 @@
   }
   
   .upload-form-title {
-    font-size: 2rem;
+    font-size: 1.5rem;
   }
   
   .file-drop-zone {

@@ -1,0 +1,269 @@
+.blux-wrapper {
+    display: inline-flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    user-select: none;
+    cursor: default;
+    outline: none;
+}
+
+.blux-wrapper.is-interactive {
+    cursor: pointer;
+}
+
+.blux-wrapper.is-interactive:focus-visible .blux-stage {
+    box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.35);
+    border-radius: 18px;
+}
+
+.blux-stage {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 680 / 520;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.blux-glow {
+    position: absolute;
+    inset: 12% 18% 6%;
+    background: radial-gradient(
+        ellipse at center,
+        rgba(14, 165, 233, 0.28) 0%,
+        rgba(14, 165, 233, 0.12) 35%,
+        transparent 70%
+    );
+    filter: blur(8px);
+    pointer-events: none;
+    animation: blux-glow-pulse 4.2s ease-in-out infinite;
+}
+
+.blux-stage.is-offline .blux-glow {
+    opacity: 0.25;
+    animation: none;
+}
+
+.blux-svg {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    overflow: visible;
+}
+
+/* Playful main float: vertical bob + slight horizontal sway. */
+.blux-float {
+    transform-origin: 340px 480px;
+    animation: blux-float 3.4s ease-in-out infinite;
+    will-change: transform;
+}
+
+/* Subtle secondary bob layered on top, gives a bouncier feel. */
+.blux-bob {
+    transform-origin: 340px 460px;
+    animation: blux-bob 1.7s ease-in-out infinite;
+    will-change: transform;
+}
+
+.blux-head-tilt {
+    transform-origin: 340px 235px;
+    animation: blux-head-tilt 5.8s ease-in-out infinite;
+}
+
+.blux-arm-left {
+    transform-origin: 250px 262px;
+    animation: blux-arm-left 3.1s ease-in-out infinite;
+}
+
+.blux-arm-right {
+    transform-origin: 430px 262px;
+    animation: blux-arm-right 3.1s ease-in-out infinite;
+}
+
+.blux-shadow {
+    transform-origin: 340px 490px;
+    animation: blux-shadow 3.4s ease-in-out infinite;
+}
+
+.blux-wrapper.is-interactive:hover .blux-float {
+    animation-duration: 2.2s;
+}
+
+.blux-wrapper.is-interactive:hover .blux-glow {
+    animation-duration: 2.4s;
+}
+
+.blux-pulse {
+    animation: blux-pulse 2.4s ease-in-out infinite;
+}
+
+.blux-wave {
+    animation: blux-wave 0.7s ease-in-out infinite alternate;
+    transform-box: fill-box;
+    transform-origin: center;
+}
+
+@keyframes blux-float {
+    0% {
+        transform: translate(0, 0) rotate(0deg);
+    }
+    25% {
+        transform: translate(-3px, -7px) rotate(-1.2deg);
+    }
+    50% {
+        transform: translate(0, -11px) rotate(0deg);
+    }
+    75% {
+        transform: translate(3px, -7px) rotate(1.2deg);
+    }
+    100% {
+        transform: translate(0, 0) rotate(0deg);
+    }
+}
+
+@keyframes blux-bob {
+    0%, 100% {
+        transform: translateY(0);
+    }
+    50% {
+        transform: translateY(-3px);
+    }
+}
+
+@keyframes blux-head-tilt {
+    0%, 100% {
+        transform: rotate(0deg);
+    }
+    50% {
+        transform: rotate(2.5deg);
+    }
+}
+
+@keyframes blux-arm-left {
+    0%, 100% {
+        transform: rotate(0deg);
+    }
+    50% {
+        transform: rotate(-6deg);
+    }
+}
+
+@keyframes blux-arm-right {
+    0%, 100% {
+        transform: rotate(0deg);
+    }
+    50% {
+        transform: rotate(6deg);
+    }
+}
+
+@keyframes blux-shadow {
+    0%, 100% {
+        transform: scaleX(1);
+        opacity: 0.18;
+    }
+    50% {
+        transform: scaleX(0.78);
+        opacity: 0.1;
+    }
+}
+
+@keyframes blux-pulse {
+    0%, 100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.35;
+    }
+}
+
+@keyframes blux-wave {
+    0% {
+        transform: translateY(0);
+    }
+    100% {
+        transform: translateY(-5px);
+    }
+}
+
+@keyframes blux-glow-pulse {
+    0%, 100% {
+        opacity: 0.85;
+        transform: scale(1);
+    }
+    50% {
+        opacity: 1;
+        transform: scale(1.05);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .blux-float,
+    .blux-bob,
+    .blux-head-tilt,
+    .blux-arm-left,
+    .blux-arm-right,
+    .blux-shadow,
+    .blux-glow,
+    .blux-pulse,
+    .blux-wave {
+        animation: none !important;
+    }
+}
+
+.blux-label {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    text-align: center;
+}
+
+.blux-name {
+    font-family: 'IBM Plex Mono', 'Roboto Mono', 'Courier New', monospace;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: #0369a1;
+}
+
+.blux-badge {
+    font-family: 'IBM Plex Mono', 'Roboto Mono', 'Courier New', monospace;
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    padding: 2px 10px;
+    border-radius: 99px;
+    line-height: 1.4;
+}
+
+.blux-badge-idle {
+    background: #e0f2fe;
+    color: #0369a1;
+}
+
+.blux-badge-thinking {
+    background: #ede9fe;
+    color: #4338ca;
+}
+
+.blux-badge-active {
+    background: #d1fae5;
+    color: #065f46;
+}
+
+.blux-badge-offline {
+    background: #f1f5f9;
+    color: #475569;
+}
+
+.blux-caption {
+    font-family: 'IBM Plex Mono', 'Roboto Mono', 'Courier New', monospace;
+    font-size: 10px;
+    color: #475569;
+    margin-top: 2px;
+    max-width: 18rem;
+}

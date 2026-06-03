@@ -5,54 +5,69 @@ import { trialBalanceAPI, gsecEntriesAPI } from '../../services/api';
 import AccountDetailsModal from '../EquityEntries/AccountDetailsModal';
 import './Styles/CombinedTrialBalance.css';
 
-/** Map GSec balance-sheet account API payload into AccountDetailsModal shape */
-const normalizeGsecDetailForModal = (data) => {
-  const rows = data?.entries || [];
-  const entries = rows.map((e) => ({
-    date: e.entry_date,
-    description: e.description || '—',
-    reference: e.deal_number != null && e.deal_number !== '' ? String(e.deal_number) : '—',
-    debit: Number(e.debit_amount) || 0,
-    credit: Number(e.credit_amount) || 0,
-    transaction_type: [e.account_category, e.currency].filter(Boolean).join(' · ') || 'GSec',
-  }));
-  const total_debit = entries.reduce((s, e) => s + e.debit, 0);
-  const total_credit = entries.reduce((s, e) => s + e.credit, 0);
-  const net_balance = total_debit - total_credit;
+/** Map a GSec balance-sheet account entry into the AccountDetailsModal entry shape. */
+const mapGsecEntry = (e) => ({
+  source: 'GSec',
+  date: e.entry_date,
+  description: e.description || '—',
+  reference: e.deal_number != null && e.deal_number !== '' ? String(e.deal_number) : '—',
+  debit: Number(e.debit_amount) || 0,
+  credit: Number(e.credit_amount) || 0,
+  transaction_type: [e.account_category, e.currency].filter(Boolean).join(' · ') || 'GSec',
+});
+
+/** Map an Equity (trial-balance) account entry into the AccountDetailsModal entry shape. */
+const mapEquityEntry = (e) => {
+  const isOpening =
+    e.entry_source === 'OpeningBalance' ||
+    (!!e.description && /opening/i.test(String(e.description)));
   return {
-    accountCode: data?.accountCode,
-    accountName: data?.accountName || rows[0]?.account_name || '',
-    period: {
-      startDate: data?.period?.startDate,
-      endDate: data?.period?.endDate,
-      portfolio: 'GSec',
-    },
-    entries,
-    totals: {
-      total_debit,
-      total_credit,
-      net_balance,
-      balance_type: net_balance > 0 ? 'DR' : net_balance < 0 ? 'CR' : 'ZERO',
-    },
+    ...e,
+    source: isOpening ? 'Opening Balance' : 'Equity',
+    transaction_type:
+      e.transaction_type ||
+      (isOpening ? 'Opening balance' : null) ||
+      e.status ||
+      '—',
   };
 };
 
-const enrichEquityAccountDetails = (data) => {
-  if (!data) return null;
-  return {
-    ...data,
-    entries: (data.entries || []).map((e) => ({
-      ...e,
-      transaction_type:
-        e.transaction_type ||
-        (e.description && /opening/i.test(String(e.description)) ? 'Opening balance' : null) ||
-        e.status ||
-        '—',
-    })),
-  };
+/** Comparable timestamp for sorting entries by date (newest first). */
+const entryDateValue = (e) => {
+  const t = new Date(e.date).getTime();
+  return Number.isNaN(t) ? 0 : t;
 };
 
-const CombinedTrialBalance = ({ onTabChange }) => {
+/** YYYY-MM-DD in local calendar (avoids day shift from toISOString() in non-UTC timezones). */
+const toLocalYmd = (d) => {
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${y}-${m}-${day}`;
+};
+
+/** Same default range as trialBalanceAPI.getTrialBalance (month start → today, ISO yyyy-mm-dd). */
+const getDefaultTrialBalanceDateRange = () => {
+  const now = new Date();
+  const startDate = toLocalYmd(new Date(now.getFullYear(), now.getMonth(), 1));
+  const endDate = toLocalYmd(now);
+  return { startDate, endDate };
+};
+
+const resolveTrialBalanceDates = (f) => {
+  const defaults = getDefaultTrialBalanceDateRange();
+  const s =
+    f?.startDate != null && String(f.startDate).trim() !== ''
+      ? String(f.startDate).trim()
+      : defaults.startDate;
+  const e =
+    f?.endDate != null && String(f.endDate).trim() !== ''
+      ? String(f.endDate).trim()
+      : defaults.endDate;
+  return { startDate: s, endDate: e };
+};
+
+const CombinedTrialBalance = () => {
   const [equityTB, setEquityTB] = useState(null);
   const [gsecBS, setGsecBS] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -60,10 +75,7 @@ const CombinedTrialBalance = ({ onTabChange }) => {
   const [exporting, setExporting] = useState(false);
   const hasLoadedOnceRef = useRef(false);
 
-  const [filters, setFilters] = useState({
-    startDate: '',
-    endDate: '',
-  });
+  const [filters, setFilters] = useState(() => getDefaultTrialBalanceDateRange());
   const [sourceFilter, setSourceFilter] = useState('all'); // all | equity | gsec
   const [searchTerm, setSearchTerm] = useState('');
 
@@ -72,6 +84,9 @@ const CombinedTrialBalance = ({ onTabChange }) => {
   const [accountModalData, setAccountModalData] = useState(null);
   const [accountModalError, setAccountModalError] = useState('');
   const [accountModalSourceLabel, setAccountModalSourceLabel] = useState('');
+
+  const filtersRef = useRef(filters);
+  filtersRef.current = filters;
 
   const handleCloseAccountModal = () => {
     setAccountModalOpen(false);
@@ -89,27 +104,83 @@ const CombinedTrialBalance = ({ onTabChange }) => {
 
     setAccountModalOpen(true);
     setAccountModalCode(acc.account_code);
-    setAccountModalSourceLabel(acc.source === 'Equity' ? 'Equity ledger' : 'GSec ledger');
     setAccountModalData(null);
     setAccountModalError('');
 
     try {
-      if (acc.source === 'Equity') {
-        const res = await trialBalanceAPI.getAccountDetails(acc.account_code, filters);
-        if (!res?.success) {
-          throw new Error(res?.error || 'Failed to load equity account details');
-        }
-        setAccountModalData(enrichEquityAccountDetails(res.data));
-      } else {
-        const res = await gsecEntriesAPI.getBalanceSheetAccountDetails(acc.account_code, {
-          startDate: filters.startDate || undefined,
-          endDate: filters.endDate || undefined,
-        });
-        if (!res?.success) {
-          throw new Error(res?.error || 'Failed to load GSec account details');
-        }
-        setAccountModalData(normalizeGsecDetailForModal(res.data));
+      const resolved = resolveTrialBalanceDates(filters);
+      const queryFilters = { ...filters, startDate: resolved.startDate, endDate: resolved.endDate };
+
+      const [equityRes, gsecRes] = await Promise.all([
+        trialBalanceAPI
+          .getAccountDetails(acc.account_code, queryFilters)
+          .catch((err) => ({ success: false, error: err?.message || 'Equity fetch failed' })),
+        gsecEntriesAPI
+          .getBalanceSheetAccountDetails(acc.account_code, {
+            startDate: resolved.startDate,
+            endDate: resolved.endDate,
+          })
+          .catch((err) => ({ success: false, error: err?.message || 'GSec fetch failed' })),
+      ]);
+
+      const equityEntries =
+        equityRes?.success && Array.isArray(equityRes?.data?.entries)
+          ? equityRes.data.entries.map(mapEquityEntry)
+          : [];
+      const gsecEntries =
+        gsecRes?.success && Array.isArray(gsecRes?.data?.entries)
+          ? gsecRes.data.entries.map(mapGsecEntry)
+          : [];
+
+      const mergedEntries = [...equityEntries, ...gsecEntries].sort(
+        (a, b) => entryDateValue(b) - entryDateValue(a)
+      );
+
+      if (
+        mergedEntries.length === 0 &&
+        equityRes?.success === false &&
+        gsecRes?.success === false
+      ) {
+        throw new Error(
+          equityRes?.error || gsecRes?.error || 'Failed to load account details'
+        );
       }
+
+      const total_debit = mergedEntries.reduce((s, e) => s + (Number(e.debit) || 0), 0);
+      const total_credit = mergedEntries.reduce((s, e) => s + (Number(e.credit) || 0), 0);
+      const net_balance = total_debit - total_credit;
+
+      const sources = [];
+      if (equityEntries.length > 0) sources.push('Equity');
+      if (gsecEntries.length > 0) sources.push('GSec');
+      const sourceLabel =
+        sources.length === 0
+          ? 'Combined ledger'
+          : `${sources.join(' + ')} ledger${sources.length > 1 ? 's' : ''}`;
+
+      setAccountModalSourceLabel(sourceLabel);
+      setAccountModalData({
+        accountCode: acc.account_code,
+        accountName:
+          equityRes?.data?.accountName ||
+          gsecRes?.data?.accountName ||
+          acc.account_name ||
+          '',
+        period: {
+          startDate: resolved.startDate,
+          endDate: resolved.endDate,
+          portfolio:
+            equityRes?.data?.period?.portfolio ||
+            (sources.length > 0 ? sources.join(' + ') : 'All Portfolios'),
+        },
+        entries: mergedEntries,
+        totals: {
+          total_debit,
+          total_credit,
+          net_balance,
+          balance_type: net_balance > 0 ? 'DR' : net_balance < 0 ? 'CR' : 'ZERO',
+        },
+      });
     } catch (err) {
       console.error('Combined TB account drill-down:', err);
       setAccountModalError(err.message || 'Failed to load account details');
@@ -117,7 +188,11 @@ const CombinedTrialBalance = ({ onTabChange }) => {
   };
 
   const fetchData = async (options = {}) => {
-    const { showLoader = true } = options;
+    const { showLoader = true, filtersOverride } = options;
+    const active = filtersOverride ?? filtersRef.current;
+    const resolved = resolveTrialBalanceDates(active);
+    const queryFilters = { ...active, startDate: resolved.startDate, endDate: resolved.endDate };
+
     try {
       if (showLoader || !hasLoadedOnceRef.current) {
         setLoading(true);
@@ -125,8 +200,11 @@ const CombinedTrialBalance = ({ onTabChange }) => {
       setError('');
 
       const [tbRes, gsecRes] = await Promise.all([
-        trialBalanceAPI.getTrialBalance(filters),
-        gsecEntriesAPI.getBalanceSheet(filters),
+        trialBalanceAPI.getTrialBalance(queryFilters),
+        gsecEntriesAPI.getBalanceSheet({
+          startDate: resolved.startDate,
+          endDate: resolved.endDate,
+        }),
       ]);
 
       if (!tbRes?.success) {
@@ -150,7 +228,7 @@ const CombinedTrialBalance = ({ onTabChange }) => {
   useEffect(() => {
     fetchData({ showLoader: true });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [filters.startDate, filters.endDate]);
 
   // Keep screen fresh when transactions update elsewhere (tab often stays mounted).
   useEffect(() => {
@@ -170,12 +248,20 @@ const CombinedTrialBalance = ({ onTabChange }) => {
       window.clearInterval(intervalId);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [filters]);
+  }, []);
 
   const handleDateChange = (field, value) => {
+    const defaults = getDefaultTrialBalanceDateRange();
+    const raw = value != null ? String(value).trim() : '';
+    const next =
+      raw !== ''
+        ? raw
+        : field === 'startDate'
+          ? defaults.startDate
+          : defaults.endDate;
     setFilters((prev) => ({
       ...prev,
-      [field]: value,
+      [field]: next,
     }));
   };
 
@@ -203,10 +289,10 @@ const CombinedTrialBalance = ({ onTabChange }) => {
       doc.setTextColor(15, 23, 42);
 
       const head = [
-        'Source',
         'Account Code',
         'Account Name',
         'Type / Category',
+        'Sources',
         'Debit',
         'Credit',
         'Net',
@@ -214,10 +300,10 @@ const CombinedTrialBalance = ({ onTabChange }) => {
       ];
 
       const body = filteredAccounts.map((acc) => [
-        acc.source,
         acc.account_code,
         acc.account_name,
         acc.account_type,
+        acc.sources_label,
         acc.total_debit > 0 ? formatCurrency(acc.total_debit) : '-',
         acc.total_credit > 0 ? formatCurrency(acc.total_credit) : '-',
         formatCurrency(acc.net_balance),
@@ -280,9 +366,10 @@ const CombinedTrialBalance = ({ onTabChange }) => {
     setError('');
 
     try {
+      const resolved = resolveTrialBalanceDates(filters);
       const blob = await trialBalanceAPI.exportCombinedTrialBalanceExcel({
-        startDate: filters.startDate || undefined,
-        endDate: filters.endDate || undefined,
+        startDate: resolved.startDate,
+        endDate: resolved.endDate,
         source: sourceFilter,
         search: searchTerm || undefined
       });
@@ -306,10 +393,8 @@ const CombinedTrialBalance = ({ onTabChange }) => {
   };
 
   const clearFilters = () => {
-    setFilters({
-      startDate: '',
-      endDate: '',
-    });
+    const defaults = getDefaultTrialBalanceDateRange();
+    setFilters(defaults);
     setSourceFilter('all');
     setSearchTerm('');
   };
@@ -324,49 +409,132 @@ const CombinedTrialBalance = ({ onTabChange }) => {
   };
 
   const formatDate = (dateString) => {
-    if (!dateString) return '';
-    const d = new Date(dateString);
-    if (Number.isNaN(d.getTime())) return dateString;
+    if (dateString == null || String(dateString).trim() === '') return '';
+    const s = String(dateString).trim();
+    const m = s.match(/^(\d{4})-(\d{2})-(\d{2})/);
+    if (m) {
+      const y = Number(m[1]);
+      const mo = Number(m[2]);
+      const d = Number(m[3]);
+      const local = new Date(y, mo - 1, d);
+      if (!Number.isNaN(local.getTime())) {
+        return local.toLocaleDateString('en-LK');
+      }
+    }
+    const d = new Date(s);
+    if (Number.isNaN(d.getTime())) return s;
     return d.toLocaleDateString('en-LK');
   };
 
-  const combinedAccounts = useMemo(() => {
-    const equityAccounts = (equityTB?.accounts || []).map((a) => ({
-      id: `equity-${a.account_code}`,
-      source: 'Equity',
-      account_code: a.account_code,
-      account_name: a.account_name,
-      account_type: a.account_type,
-      total_debit: Number(a.total_debit) || 0,
-      total_credit: Number(a.total_credit) || 0,
-      net_balance: Number(a.net_balance) || 0,
-      balance_type: a.balance_type,
-    }));
+  const filterDisplayDates = useMemo(() => resolveTrialBalanceDates(filters), [filters]);
 
-    const gsecAccounts = (gsecBS?.accounts || []).map((g) => {
-      const net = (Number(g.total_debit) || 0) - (Number(g.total_credit) || 0);
-      return {
-        id: `gsec-${g.account_code}`,
-        source: 'GSec',
-        account_code: g.account_code,
-        account_name: g.account_name,
-        account_type: g.account_category || 'GSec',
-        total_debit: Number(g.total_debit) || 0,
-        total_credit: Number(g.total_credit) || 0,
-        net_balance: net,
-        balance_type: net > 0 ? 'DR' : net < 0 ? 'CR' : 'ZERO',
-      };
+  const combinedAccounts = useMemo(() => {
+    const byCode = new Map();
+
+    const upsert = (key, init, merger) => {
+      const existing = byCode.get(key);
+      if (existing) {
+        merger(existing);
+      } else {
+        byCode.set(key, init());
+      }
+    };
+
+    (equityTB?.accounts || []).forEach((a) => {
+      const key = String(a.account_code || '').trim();
+      if (!key) return;
+      const openingDebit = Number(a.opening_debit) || 0;
+      const openingCredit = Number(a.opening_credit) || 0;
+      const hasOpening = openingDebit > 0.005 || openingCredit > 0.005;
+      // If everything for this account came from opening balances, don't show "Equity".
+      const totalDebit = Number(a.total_debit) || 0;
+      const totalCredit = Number(a.total_credit) || 0;
+      const hasEquityActivity =
+        totalDebit - openingDebit > 0.005 || totalCredit - openingCredit > 0.005;
+
+      upsert(
+        key,
+        () => ({
+          id: `acct-${key}`,
+          account_code: key,
+          account_name: a.account_name || '',
+          account_type: a.account_type || '',
+          total_debit: totalDebit,
+          total_credit: totalCredit,
+          sources: new Set([
+            ...(hasEquityActivity ? ['Equity'] : []),
+            ...(hasOpening ? ['Opening Balance'] : []),
+          ]),
+        }),
+        (row) => {
+          row.total_debit += totalDebit;
+          row.total_credit += totalCredit;
+          row.account_name = row.account_name || a.account_name || '';
+          row.account_type = row.account_type || a.account_type || '';
+          if (hasEquityActivity) row.sources.add('Equity');
+          if (hasOpening) row.sources.add('Opening Balance');
+        }
+      );
     });
 
-    return [...equityAccounts, ...gsecAccounts];
+    (gsecBS?.accounts || []).forEach((g) => {
+      const key = String(g.account_code || '').trim();
+      if (!key) return;
+      const gsecType = g.account_category || 'GSec';
+      upsert(
+        key,
+        () => ({
+          id: `acct-${key}`,
+          account_code: key,
+          account_name: g.account_name || '',
+          account_type: gsecType,
+          total_debit: Number(g.total_debit) || 0,
+          total_credit: Number(g.total_credit) || 0,
+          sources: new Set(['GSec']),
+        }),
+        (row) => {
+          row.total_debit += Number(g.total_debit) || 0;
+          row.total_credit += Number(g.total_credit) || 0;
+          row.account_name = row.account_name || g.account_name || '';
+          if (!row.account_type) {
+            row.account_type = gsecType;
+          } else if (row.account_type !== gsecType) {
+            row.account_type = `${row.account_type} / ${gsecType}`;
+          }
+          row.sources.add('GSec');
+        }
+      );
+    });
+
+    return Array.from(byCode.values())
+      .map((row) => {
+        const net = row.total_debit - row.total_credit;
+        return {
+          ...row,
+          net_balance: net,
+          balance_type: net > 0.005 ? 'DR' : net < -0.005 ? 'CR' : 'ZERO',
+          sources_label: Array.from(row.sources).sort().join(' + '),
+        };
+      })
+      .sort((a, b) =>
+        String(a.account_code).localeCompare(String(b.account_code), undefined, {
+          numeric: true,
+        })
+      );
   }, [equityTB, gsecBS]);
 
   const filteredAccounts = useMemo(() => {
     const search = searchTerm.toLowerCase();
 
     return combinedAccounts.filter((acc) => {
-      if (sourceFilter === 'equity' && acc.source !== 'Equity') return false;
-      if (sourceFilter === 'gsec' && acc.source !== 'GSec') return false;
+      if (
+        sourceFilter === 'equity' &&
+        !(acc.sources.has('Equity') || acc.sources.has('Opening Balance'))
+      ) {
+        return false;
+      }
+      if (sourceFilter === 'gsec' && !acc.sources.has('GSec')) return false;
+      if (sourceFilter === 'opening' && !acc.sources.has('Opening Balance')) return false;
 
       if (
         search &&
@@ -374,7 +542,7 @@ const CombinedTrialBalance = ({ onTabChange }) => {
           (acc.account_code && acc.account_code.toLowerCase().includes(search)) ||
           (acc.account_name && acc.account_name.toLowerCase().includes(search)) ||
           (acc.account_type && acc.account_type.toLowerCase().includes(search)) ||
-          (acc.source && acc.source.toLowerCase().includes(search))
+          (acc.sources_label && acc.sources_label.toLowerCase().includes(search))
         )
       ) {
         return false;
@@ -435,7 +603,8 @@ const CombinedTrialBalance = ({ onTabChange }) => {
           <div className="ctb-header-text-group">
             <h1 className="ctb-main-title">Combined Trial Balance</h1>
             <p className="ctb-subtitle">
-              Single trial balance view that combines equity and GSec ledgers, including both trading and non-trading transactions.
+              One unified row per account across the Equity and GSec ledgers. Click an account to
+              see every underlying entry, tagged with the ledger it came from.
             </p>
           </div>
           <div className="ctb-header-meta">
@@ -460,8 +629,9 @@ const CombinedTrialBalance = ({ onTabChange }) => {
                 <label className="ctb-filter-label">Start Date</label>
                 <input
                   type="date"
+                  lang="en-US"
                   className="ctb-filter-input"
-                  value={filters.startDate}
+                  value={filterDisplayDates.startDate}
                   onChange={(e) => handleDateChange('startDate', e.target.value)}
                 />
               </div>
@@ -469,21 +639,23 @@ const CombinedTrialBalance = ({ onTabChange }) => {
                 <label className="ctb-filter-label">End Date</label>
                 <input
                   type="date"
+                  lang="en-US"
                   className="ctb-filter-input"
-                  value={filters.endDate}
+                  value={filterDisplayDates.endDate}
                   onChange={(e) => handleDateChange('endDate', e.target.value)}
                 />
               </div>
               <div className="ctb-filter-group">
-                <label className="ctb-filter-label">Source</label>
+                <label className="ctb-filter-label">Activity In</label>
                 <select
                   className="ctb-filter-select"
                   value={sourceFilter}
                   onChange={(e) => setSourceFilter(e.target.value)}
                 >
-                  <option value="all">All</option>
-                  <option value="equity">Equity Only</option>
-                  <option value="gsec">GSec Only</option>
+                  <option value="all">All Ledgers</option>
+                  <option value="equity">With Equity Activity</option>
+                  <option value="gsec">With GSec Activity</option>
+                  <option value="opening">With Opening Balance</option>
                 </select>
               </div>
               <div className="ctb-filter-group">
@@ -491,7 +663,7 @@ const CombinedTrialBalance = ({ onTabChange }) => {
                 <input
                   type="text"
                   className="ctb-filter-input"
-                  placeholder="Account code, name, type, or source..."
+                  placeholder="Account code, name, type, or ledger..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                 />
@@ -534,8 +706,9 @@ const CombinedTrialBalance = ({ onTabChange }) => {
             </div>
           </div>
           <p className="ctb-table-hint">
-            Click an <strong>account code</strong> or <strong>account name</strong> to view transaction
-            details (including opening balances where applicable) for that account.
+            Click an <strong>account code</strong> or <strong>account name</strong> to view every
+            entry for that account (Equity GL, other transactions, opening balances and GSec
+            entries are interleaved and tagged with their source).
           </p>
           <div className="ctb-table-container">
             {filteredAccounts.length === 0 ? (
@@ -546,10 +719,10 @@ const CombinedTrialBalance = ({ onTabChange }) => {
               <table className="ctb-data-table">
                 <thead>
                   <tr>
-                    <th>Source</th>
                     <th>Account Code</th>
                     <th>Account Name</th>
                     <th>Type / Category</th>
+                    <th>Sources</th>
                     <th>Debit</th>
                     <th>Credit</th>
                     <th>Net</th>
@@ -559,21 +732,6 @@ const CombinedTrialBalance = ({ onTabChange }) => {
                 <tbody>
                   {filteredAccounts.map((acc) => (
                     <tr key={acc.id} className="ctb-row">
-                      <td
-                        className="ctb-source-cell"
-                        onClick={() => {
-                          if (!onTabChange) return;
-                          if (acc.source === 'Equity') {
-                            onTabChange('Trial Balance');
-                          } else if (acc.source === 'GSec') {
-                            onTabChange('Balance Sheet');
-                          }
-                        }}
-                      >
-                        <span className="ctb-source" data-source={acc.source}>
-                          {acc.source}
-                        </span>
-                      </td>
                       <td
                         className="ctb-account-code ctb-account-drilldown"
                         onClick={(e) => handleAccountDrillDown(acc, e)}
@@ -605,6 +763,13 @@ const CombinedTrialBalance = ({ onTabChange }) => {
                         {acc.account_name}
                       </td>
                       <td className="ctb-account-type">{acc.account_type}</td>
+                      <td className="ctb-sources-cell">
+                        {Array.from(acc.sources).sort().map((src) => (
+                          <span key={src} className="ctb-source" data-source={src}>
+                            {src}
+                          </span>
+                        ))}
+                      </td>
                       <td className="ctb-debit">
                         {acc.total_debit > 0 ? formatCurrency(acc.total_debit) : '-'}
                       </td>

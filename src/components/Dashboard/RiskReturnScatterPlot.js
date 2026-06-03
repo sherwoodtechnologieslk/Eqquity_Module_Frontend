@@ -189,11 +189,11 @@ const RiskReturnScatterPlot = ({ syncedPortfolioId }) => {
             })()
           })),
           pointBackgroundColor: (ctx) => ctx?.raw?.__color || '#94a3b8',
-          pointBorderColor: '#ffffff',
+          pointBorderColor: 'rgba(15, 23, 42, 0.9)',
           pointBorderWidth: 1,
           pointRadius: (ctx) => Number(ctx?.raw?.__radius) || 6,
           pointHoverRadius: (ctx) => (Number(ctx?.raw?.__radius) || 6) + 2,
-          pointHoverBorderColor: '#1E40AF',
+          pointHoverBorderColor: '#3b82f6',
           pointHoverBorderWidth: 2
         }
       ]
@@ -216,23 +216,23 @@ const RiskReturnScatterPlot = ({ syncedPortfolioId }) => {
         const sy = y.getPixelForValue(midY);
 
         ctx.save();
-        // Quadrant fills
-        ctx.fillStyle = 'rgba(34, 197, 94, 0.07)'; // lower vol, higher return
+        // Quadrant fills — system slate + emerald + blue + red, all very subtle
+        ctx.fillStyle = 'rgba(5, 150, 105, 0.05)'; // lower vol, higher return — ideal
         ctx.fillRect(chartArea.left, chartArea.top, sx - chartArea.left, sy - chartArea.top);
 
-        ctx.fillStyle = 'rgba(245, 158, 11, 0.08)'; // higher vol, higher return
+        ctx.fillStyle = 'rgba(59, 130, 246, 0.06)'; // higher vol, higher return — hot
         ctx.fillRect(sx, chartArea.top, chartArea.right - sx, sy - chartArea.top);
 
-        ctx.fillStyle = 'rgba(100, 116, 139, 0.07)'; // lower vol, lower return
+        ctx.fillStyle = 'rgba(100, 116, 139, 0.05)'; // lower vol, lower return — dull
         ctx.fillRect(chartArea.left, sy, sx - chartArea.left, chartArea.bottom - sy);
 
-        ctx.fillStyle = 'rgba(239, 68, 68, 0.08)'; // higher vol, lower return
+        ctx.fillStyle = 'rgba(220, 38, 38, 0.05)'; // higher vol, lower return — risk
         ctx.fillRect(sx, sy, chartArea.right - sx, chartArea.bottom - sy);
 
-        // Mid lines (dashed)
-        ctx.strokeStyle = 'rgba(148, 163, 184, 0.65)';
+        // Mid lines (dashed hairline — slate-900 @ low alpha)
+        ctx.strokeStyle = 'rgba(15, 23, 42, 0.3)';
         ctx.lineWidth = 1;
-        ctx.setLineDash([4, 4]);
+        ctx.setLineDash([3, 3]);
         ctx.beginPath();
         ctx.moveTo(sx, chartArea.top);
         ctx.lineTo(sx, chartArea.bottom);
@@ -251,11 +251,12 @@ const RiskReturnScatterPlot = ({ syncedPortfolioId }) => {
         if (!y) return;
         if (y.min > 0 || y.max < 0) return;
 
+        // Zero-return line — system blue accent
         const y0 = y.getPixelForValue(0);
         ctx.save();
-        ctx.strokeStyle = 'rgba(107, 114, 128, 0.7)';
-        ctx.lineWidth = 2;
-        ctx.setLineDash([4, 4]);
+        ctx.strokeStyle = 'rgba(59, 130, 246, 0.75)';
+        ctx.lineWidth = 1;
+        ctx.setLineDash([2, 3]);
         ctx.beginPath();
         ctx.moveTo(chartArea.left, y0);
         ctx.lineTo(chartArea.right, y0);
@@ -267,6 +268,8 @@ const RiskReturnScatterPlot = ({ syncedPortfolioId }) => {
   }, []);
 
   const chartJsOptions = useMemo(() => {
+    const monoFont =
+      "'IBM Plex Mono', 'Roboto Mono', 'SF Mono', Menlo, Consolas, 'Courier New', monospace";
     return {
       responsive: true,
       maintainAspectRatio: false,
@@ -274,17 +277,23 @@ const RiskReturnScatterPlot = ({ syncedPortfolioId }) => {
       plugins: {
         legend: { display: false },
         tooltip: {
-          backgroundColor: 'rgba(15, 23, 42, 0.92)',
-          titleFont: { size: 12, weight: '600' },
-          bodyFont: { size: 12 },
+          backgroundColor: '#ffffff',
+          titleColor: '#0f172a',
+          bodyColor: '#1e293b',
+          borderColor: '#0f172a',
+          borderWidth: 1,
+          titleFont: { size: 11, weight: '700', family: monoFont },
+          bodyFont: { size: 10, weight: '500', family: monoFont },
+          titleMarginBottom: 6,
           padding: 10,
-          cornerRadius: 4,
+          cornerRadius: 0,
+          displayColors: false,
           callbacks: {
             title: (items) => {
               const raw = items?.[0]?.raw;
-              const symbol = raw?.symbol || '';
-              const name = raw?.companyName || '';
-              return name ? `${symbol} — ${name}` : symbol;
+              const symbol = (raw?.symbol || '').toUpperCase();
+              const name = (raw?.companyName || '').toUpperCase();
+              return name ? `${symbol}  ·  ${name}` : symbol;
             },
             label: (ctx) => {
               const raw = ctx?.raw || {};
@@ -299,13 +308,14 @@ const RiskReturnScatterPlot = ({ syncedPortfolioId }) => {
               const qtyFmt = new Intl.NumberFormat('en-US', {
                 maximumFractionDigits: 0
               }).format(qty);
-              const sector = raw.sector || 'Unknown';
+              const sector = (raw.sector || 'UNKNOWN').toUpperCase();
+              const sign = ret >= 0 ? '+' : '';
               return [
-                `Volatility: ${vol.toFixed(2)}%`,
-                `Return: ${ret >= 0 ? '+' : ''}${ret.toFixed(2)}%`,
-                `Sector: ${sector}`,
-                `Market Value: LKR ${mvFmt}`,
-                `Quantity: ${qtyFmt}`
+                `VOL    ${vol.toFixed(2)}%`,
+                `RTN    ${sign}${ret.toFixed(2)}%`,
+                `SEC    ${sector}`,
+                `MV     LKR ${mvFmt}`,
+                `QTY    ${qtyFmt}`
               ];
             }
           }
@@ -316,33 +326,33 @@ const RiskReturnScatterPlot = ({ syncedPortfolioId }) => {
           type: 'linear',
           title: {
             display: true,
-            text: 'Risk (Volatility %)',
-            color: '#374151',
-            font: { size: 12, weight: '600' }
+            text: 'RISK · VOLATILITY (%)',
+            color: '#475569',
+            font: { size: 10, weight: '700', family: monoFont }
           },
           ticks: {
-            color: '#6B7280',
-            callback: (v) => `${Number(v).toFixed(1)}%`
+            color: '#1e293b',
+            font: { size: 10, family: monoFont },
+            callback: (v) => `${Number(v).toFixed(1)}`
           },
-          grid: {
-            color: 'rgba(229, 231, 235, 0.55)'
-          }
+          grid: { color: '#e2e8f0', drawTicks: false, drawBorder: false },
+          border: { color: '#0f172a' }
         },
         y: {
           type: 'linear',
           title: {
             display: true,
-            text: 'Return (%)',
-            color: '#374151',
-            font: { size: 12, weight: '600' }
+            text: 'RETURN (%)',
+            color: '#475569',
+            font: { size: 10, weight: '700', family: monoFont }
           },
           ticks: {
-            color: '#6B7280',
-            callback: (v) => `${Number(v).toFixed(1)}%`
+            color: '#1e293b',
+            font: { size: 10, family: monoFont },
+            callback: (v) => `${Number(v).toFixed(1)}`
           },
-          grid: {
-            color: 'rgba(229, 231, 235, 0.55)'
-          }
+          grid: { color: '#e2e8f0', drawTicks: false, drawBorder: false },
+          border: { color: '#0f172a' }
         }
       }
     };
@@ -378,7 +388,6 @@ const RiskReturnScatterPlot = ({ syncedPortfolioId }) => {
         </div>
         <div className="scatter-plot-controls__divider" aria-hidden="true" />
         <div className="scatter-plot-controls__segment" role="group" aria-label="Color by">
-          <span className="control-group-label control-group-label--inline">Color</span>
           <div className="color-mode-buttons">
             <button
               type="button"

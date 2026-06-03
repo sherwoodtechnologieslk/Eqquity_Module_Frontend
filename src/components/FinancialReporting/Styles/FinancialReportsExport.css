@@ -124,6 +124,113 @@
   cursor: not-allowed;
 }
 
+.other-reports-content {
+  margin-top: 12px;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 12px;
+  padding: 18px 20px;
+  background: #fff;
+  border: 1px solid var(--fre-border);
+  box-shadow: var(--fre-shadow);
+}
+
+.other-reports-content-label {
+  margin: 0;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #64748b;
+}
+
+.other-reports-content-label:not(:first-child) {
+  margin-top: 4px;
+  padding-top: 12px;
+  border-top: 1px solid var(--fre-border);
+}
+
+.other-reports-btn-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.or-btn {
+  border: 1px solid var(--fre-border-strong);
+  background: #fff;
+  color: var(--fre-ink);
+  padding: 11px 20px;
+  min-height: 42px;
+  cursor: pointer;
+  border-radius: 0;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0;
+  text-transform: none;
+  font-family: inherit;
+  line-height: 1.3;
+  transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease, box-shadow 0.15s ease;
+  box-shadow: none;
+}
+
+.or-btn:hover {
+  border-color: #2563eb;
+  background: #eff6ff;
+  color: #1d4ed8;
+  box-shadow: 0 2px 8px rgba(37, 99, 235, 0.12);
+}
+
+.or-btn:focus-visible {
+  outline: 2px solid #2563eb;
+  outline-offset: 2px;
+}
+
+.or-btn:active {
+  background: #dbeafe;
+}
+
+.or-btn--dashboard {
+  border-color: #93c5fd;
+  background: #f8fafc;
+  color: #1e3a8a;
+}
+
+.or-btn--dashboard:hover {
+  border-color: #2563eb;
+  background: #eff6ff;
+  color: #1d4ed8;
+}
+
+.or-btn--customize {
+  align-self: flex-start;
+  border: 1px dashed #64748b;
+  background: #f8fafc;
+  color: #334155;
+  padding-left: 24px;
+  padding-right: 24px;
+}
+
+.or-btn--customize:hover {
+  border-color: #2563eb;
+  border-style: dashed;
+  background: #eff6ff;
+  color: #1d4ed8;
+}
+
+@media (max-width: 640px) {
+  .or-btn {
+    flex: 1 1 calc(50% - 5px);
+    min-width: 0;
+  }
+
+  .or-btn--customize {
+    flex: 1 1 100%;
+    text-align: center;
+  }
+}
+
 .fre-filters {
   display: grid;
   grid-template-columns: 1.6fr 1fr;

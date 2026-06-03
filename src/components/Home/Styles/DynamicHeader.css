@@ -1,8 +1,8 @@
 /* Dynamic Header - Below Navbar (no bar chrome; only scrolling text) */
 .dynamic-header {
   position: fixed;
-  top: 110px; /* Below navbar (100px) with reduced spacing (10px) */
-  left: 320px; /* Start where sidebar ends */
+  top: 94px; /* Below navbar (84px) with reduced spacing (10px) */
+  left: 274px; /* Start where sidebar ends */
   right: 0;
   height: 38px;
   background: transparent;
@@ -228,7 +228,7 @@
 @media (max-width: 768px) {
   .dynamic-header {
     left: 0; /* Match navbar left position on mobile */
-    top: 110px;
+    top: 94px;
     height: 34px;
   }
   

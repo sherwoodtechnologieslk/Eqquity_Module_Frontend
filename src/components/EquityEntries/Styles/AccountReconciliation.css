@@ -180,39 +180,39 @@
 /* Balance Summary */
 .reconciliation-balance-summary {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-  gap: 20px;
-  margin-bottom: 24px;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 12px;
+  margin-bottom: 16px;
 }
 
 .reconciliation-balance-card {
   background: white;
-  padding: 20px;
+  padding: 12px 14px;
   border-radius: 0;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
   border: 1px solid #e2e8f0;
 }
 
 .reconciliation-balance-card h3 {
-  font-size: 18px;
+  font-size: 15px;
   font-weight: 600;
   color: #1e293b;
-  margin: 0 0 16px 0;
+  margin: 0 0 8px 0;
 }
 
 .reconciliation-balance-details {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 4px;
 }
 
 .reconciliation-balance-item {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 8px 0;
+  padding: 4px 0;
   border-bottom: 1px solid #f1f5f9;
-  font-size: 14px;
+  font-size: 12px;
 }
 
 .reconciliation-balance-item:last-child {
@@ -221,11 +221,11 @@
 
 .reconciliation-balance-item-total {
   font-weight: 700;
-  font-size: 16px;
-  padding-top: 12px;
+  font-size: 13px;
+  padding-top: 6px;
   border-top: 2px solid #e2e8f0;
   border-bottom: none;
-  margin-top: 8px;
+  margin-top: 4px;
 }
 
 .reconciliation-balance-positive {
@@ -262,14 +262,6 @@
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
   border: 1px solid #e2e8f0;
   overflow: hidden;
-}
-
-.reconciliation-panel-gl {
-  border-left: 4px solid #3b82f6;
-}
-
-.reconciliation-panel-external {
-  border-left: 4px solid #059669;
 }
 
 .reconciliation-panel-header {
@@ -364,19 +356,22 @@
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
   border: 1px solid #e2e8f0;
   margin-bottom: 24px;
-  border-left: 4px solid #8b5cf6;
 }
 
 .reconciliation-matched-section .reconciliation-panel-header {
-  background-color: #faf5ff;
+  background-color: #f8fafc;
+}
+
+.reconciliation-matched-section .reconciliation-panel-count {
+  background-color: #4b5563;
 }
 
 .reconciliation-matched-row {
-  background-color: #f0f9ff;
+  background-color: white;
 }
 
 .reconciliation-matched-row:hover {
-  background-color: #e0f2fe;
+  background-color: #f8fafc;
 }
 
 .reconciliation-match-type {
@@ -388,13 +383,13 @@
 }
 
 .reconciliation-match-type-manual {
-  background-color: #dbeafe;
-  color: #1e40af;
+  background-color: #e5e7eb;
+  color: #111827;
 }
 
 .reconciliation-match-type-auto {
-  background-color: #dcfce7;
-  color: #166534;
+  background-color: #e5e7eb;
+  color: #111827;
 }
 
 .reconciliation-amount-display {
@@ -432,7 +427,9 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 1000;
+  padding: 24px;
+  box-sizing: border-box;
+  z-index: 100000;
 }
 
 .reconciliation-modal-content {
@@ -443,6 +440,12 @@
   width: 90%;
   max-height: 90vh;
   overflow-y: auto;
+}
+
+.reconciliation-import-modal-content {
+  max-width: 1200px;
+  width: min(1200px, calc(100vw - 48px));
+  max-height: calc(100vh - 48px);
 }
 
 .reconciliation-modal-header {
@@ -478,6 +481,22 @@
 
 .reconciliation-modal-body {
   padding: 20px;
+}
+
+.reconciliation-preview-table {
+  border-collapse: collapse;
+  width: 100%;
+}
+
+.reconciliation-preview-table th,
+.reconciliation-preview-table td {
+  border-bottom: 1px solid #d1d5db;
+  padding: 10px 12px;
+  vertical-align: top;
+}
+
+.reconciliation-preview-table tbody tr:last-child td {
+  border-bottom: none;
 }
 
 .reconciliation-file-upload {

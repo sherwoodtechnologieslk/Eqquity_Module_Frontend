@@ -1,0 +1,365 @@
+.gfd-wrap {
+  margin-top: 20px;
+  padding: 20px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 0;
+}
+
+.gfd-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.gfd-header h3 {
+  margin: 0 0 4px;
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.gfd-header-meta {
+  margin: 0;
+  font-size: 13px;
+  color: #64748b;
+}
+
+.gfd-close {
+  width: 26px;
+  height: 26px;
+  padding: 0;
+  border: 1px solid #e2e8f0;
+  background: #fff;
+  color: #94a3b8;
+  border-radius: 0;
+  font-size: 16px;
+  line-height: 1;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  font-weight: 400;
+  transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+}
+
+.gfd-close:hover {
+  background: #f8fafc;
+  color: #475569;
+  border-color: #cbd5e1;
+}
+
+.gfd-kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 14px;
+  margin-bottom: 20px;
+}
+
+.gfd-kpi-card {
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 0;
+  padding: 16px;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+}
+
+.gfd-kpi-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  margin-bottom: 6px;
+}
+
+.gfd-kpi-value {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #0f172a;
+  line-height: 1.2;
+}
+
+.gfd-kpi-sub {
+  margin-top: 6px;
+  font-size: 12px;
+  color: #475569;
+}
+
+.gfd-kpi-value--positive {
+  color: #059669;
+}
+
+.gfd-kpi-value--negative {
+  color: #b45309;
+}
+
+.gfd-charts-row {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+@media (min-width: 960px) {
+  .gfd-charts-row--split {
+    grid-template-columns: 1.2fr 1fr;
+  }
+}
+
+.gfd-panel {
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 0;
+  padding: 16px;
+}
+
+.gfd-panel-title {
+  margin: 0 0 12px;
+  font-size: 14px;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.gfd-chart-canvas {
+  position: relative;
+  height: 280px;
+  width: 100%;
+}
+
+.gfd-chart-canvas--short {
+  height: 240px;
+}
+
+.gfd-pie-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.gfd-pie-card {
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 0;
+  padding: 14px;
+  text-align: center;
+}
+
+.gfd-pie-card h4 {
+  margin: 0 0 8px;
+  font-size: 13px;
+  font-weight: 700;
+  color: #334155;
+}
+
+.gfd-pie-canvas {
+  position: relative;
+  height: 200px;
+  max-width: 220px;
+  margin: 0 auto;
+}
+
+.gfd-insights {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.gfd-insight {
+  background: #eff6ff;
+  border: 1px solid #bfdbfe;
+  border-radius: 0;
+  padding: 12px 14px;
+  font-size: 13px;
+  color: #1e3a5f;
+  line-height: 1.45;
+}
+
+.gfd-insight strong {
+  color: #1d4ed8;
+}
+
+.gfd-table-wrap {
+  overflow-x: auto;
+}
+
+.gfd-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+.gfd-table th,
+.gfd-table td {
+  padding: 10px 12px;
+  border-bottom: 1px solid #e2e8f0;
+  text-align: right;
+}
+
+.gfd-table th:first-child,
+.gfd-table td:first-child {
+  text-align: left;
+  font-weight: 600;
+}
+
+.gfd-table thead th {
+  background: #1e3a8a;
+  color: #fff;
+  font-weight: 700;
+  font-size: 14px;
+  padding: 10px 12px;
+  letter-spacing: 0.01em;
+}
+
+.gfd-table tbody tr:hover {
+  background: #f8fafc;
+}
+
+.gfd-table .gfd-num {
+  font-variant-numeric: tabular-nums;
+}
+
+.gfd-table .gfd-positive {
+  color: #059669;
+  font-weight: 600;
+}
+
+.gfd-table .gfd-negative {
+  color: #b45309;
+  font-weight: 600;
+}
+
+.gfd-table tfoot td {
+  font-weight: 700;
+  background: #f8fafc;
+  border-top: 2px solid #cbd5e1;
+}
+
+.gfd-table-hint {
+  margin: 0 0 10px;
+  font-size: 12px;
+  color: #64748b;
+  line-height: 1.4;
+}
+
+.gfd-company-cell {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 200px;
+}
+
+.gfd-company-sep {
+  color: #94a3b8;
+  flex-shrink: 0;
+}
+
+.gfd-company-code-input,
+.gfd-company-name-input {
+  box-sizing: border-box;
+  border: 1px solid #cbd5e1;
+  padding: 6px 8px;
+  font: inherit;
+  font-size: 13px;
+  background: #fff;
+  color: #0f172a;
+}
+
+.gfd-company-code-input {
+  width: 4.5rem;
+  flex-shrink: 0;
+  font-weight: 700;
+  color: #1e3a8a;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.gfd-company-name-input {
+  flex: 1;
+  min-width: 120px;
+  font-weight: 600;
+}
+
+.gfd-company-code-input:focus,
+.gfd-company-name-input:focus {
+  outline: none;
+  border-color: #2563eb;
+  box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.12);
+}
+
+.gfd-table--editable .gfd-cell-input {
+  padding: 4px 6px;
+}
+
+.gfd-table--editable .gfd-cell-input input {
+  width: 100%;
+  min-width: 88px;
+  box-sizing: border-box;
+  border: 1px solid #cbd5e1;
+  padding: 6px 8px;
+  font: inherit;
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+  background: #fff;
+  color: #0f172a;
+}
+
+.gfd-table--editable .gfd-cell-input input:focus {
+  outline: none;
+  border-color: #2563eb;
+  box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.12);
+}
+
+.gfd-num--derived {
+  background: #f8fafc;
+  color: #475569;
+  font-weight: 600;
+}
+
+.gfd-wrap--saved .gfd-table--editable .gfd-cell-input input {
+  border-color: transparent;
+  background: transparent;
+  pointer-events: none;
+}
+
+.gfd-embedded-root {
+  padding: 0;
+  background: transparent;
+  border: none;
+}
+
+.gfd-embedded-root .gfd-wrap {
+  margin-top: 0;
+  border: none;
+  padding: 0;
+  background: transparent;
+}
+
+.gfd-wrap--saved {
+  pointer-events: auto;
+}
+
+.gdr-modal-shell.bfr-modal-shell {
+  max-width: 1280px;
+  width: 96vw;
+}
+
+.gdr-doc {
+  padding-top: 4px;
+}
+
+.gdr-footnote {
+  margin-top: 16px;
+}
+
+.bfr-embedded-root .gdr-modal-shell {
+  max-width: none;
+  width: 100%;
+}

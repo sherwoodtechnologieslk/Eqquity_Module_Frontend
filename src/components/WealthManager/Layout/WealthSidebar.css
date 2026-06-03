@@ -1,324 +1,551 @@
-/* Wealth sidebar — standalone (does not use Equity Sidebar.css) */
+/* =============================================================
+   Wealth Manager Sidebar
+   ---------------------------------------------------------------
+   Visual structure & behaviour mirror the Equity Sidebar
+   (.sidebar / .navbar-brand / .brand-icon / .app-name-switcher /
+    .manager-dropdown-menu / .client-view-toggle / .sidebar-content
+    / .menu-section / .menu-title / .sidebar-menu / .sidebar-item /
+    .sidebar-footer / .sidebar-logout-button) — recoloured to the
+   wealth teal palette.
+   ============================================================= */
 
 .wm-sidebar {
   position: fixed;
   top: 0;
   left: 0;
-  z-index: 130;
-  width: var(--wm-sidebar-width, 300px);
+  z-index: 3000;
+  width: var(--wm-sidebar-width, 280px);
   height: 100vh;
   display: flex;
   flex-direction: column;
+  /* Deeper signature gradient — premium dark teal with cyan undertone */
   background: linear-gradient(
     180deg,
-    rgba(24, 32, 50, 0.98) 0%,
-    rgba(18, 26, 42, 0.96) 45%,
-    rgba(16, 22, 38, 0.98) 100%
+    #134e4a 0%,
+    #115e59 50%,
+    #155e75 100%
   );
-  border-right: 1px solid var(--wm-border, rgba(255, 255, 255, 0.14));
-  box-shadow: 8px 0 36px rgba(0, 0, 0, 0.24);
-  backdrop-filter: blur(16px);
-  font-family: 'DM Sans', system-ui, sans-serif;
-}
-
-.wm-sidebar::before {
-  content: '';
-  position: absolute;
-  inset: 0 0 0 0;
-  background: linear-gradient(
-    180deg,
-    rgba(34, 197, 94, 0.06) 0%,
-    transparent 28%
-  );
-  pointer-events: none;
-}
-
-.wm-sidebar__brand {
-  position: relative;
-  padding: 1.35rem 1.15rem 1.1rem;
-  border-bottom: 1px solid var(--wm-border, rgba(255, 255, 255, 0.12));
-}
-
-.wm-sidebar__brandRow {
-  position: relative;
-}
-
-.wm-sidebar__brandTrigger {
-  width: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.55rem;
-  padding: 0.2rem 0.5rem 0.75rem;
-  border-radius: 14px;
-  border: 1px solid transparent;
-  background: transparent;
-  cursor: pointer;
-  color: inherit;
-  transition: background 0.15s ease, border-color 0.15s ease;
-}
-
-.wm-sidebar__brandTrigger:hover {
-  background: rgba(255, 255, 255, 0.05);
-  border-color: rgba(255, 255, 255, 0.14);
-}
-
-.wm-sidebar__caret {
-  display: inline-block;
-  width: auto;
-  height: auto;
-  color: rgba(255, 255, 255, 0.92);
-  font-size: 1.3rem;
-  line-height: 1;
-  padding-bottom: 0.08rem;
-}
-
-.wm-sidebar__brandMenu {
-  position: relative;
-  margin-top: 0.45rem;
-  padding: 0.35rem;
-  border-radius: 14px;
-  border: 1px solid rgba(255, 255, 255, 0.14);
-  background: rgba(18, 26, 42, 0.96);
-  box-shadow: 0 18px 50px rgba(0, 0, 0, 0.28);
-  backdrop-filter: blur(14px);
-}
-
-.wm-sidebar__brandItem {
-  width: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: flex-start;
-  gap: 0.6rem;
-  padding: 0.6rem 0.75rem;
-  border-radius: 12px;
-  border: 1px solid transparent;
-  background: transparent;
-  color: rgba(255, 255, 255, 0.82);
-  cursor: pointer;
-  font: inherit;
-  font-size: 0.85rem;
-  font-weight: 650;
-  text-align: left;
-  transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
-}
-
-.wm-sidebar__brandItem:hover {
-  background: rgba(255, 255, 255, 0.06);
-  border-color: rgba(255, 255, 255, 0.14);
-  color: rgba(255, 255, 255, 0.92);
-}
-
-.wm-sidebar__brandItem.is-active {
-  background: rgba(34, 197, 94, 0.14);
-  border-color: rgba(34, 197, 94, 0.28);
-  color: rgba(255, 255, 255, 0.94);
-}
-
-.wm-sidebar__logo {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0.15rem;
-  margin-bottom: 0;
-  text-align: center;
-}
-
-.wm-sidebar__logo-line1 {
-  font-family: 'Fraunces', serif;
-  font-size: 0.95rem;
-  font-weight: 700;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  color: rgba(255, 255, 255, 0.88);
-}
-
-.wm-sidebar__logo-line2 {
-  font-family: 'Fraunces', serif;
-  font-size: 1.05rem;
-  font-weight: 700;
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
-  color: rgba(134, 239, 172, 0.95);
-}
-
-.wm-sidebar__actions {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-}
-
-.wm-sidebar__btn {
-  width: 100%;
-  padding: 0.6rem 0.85rem;
-  border-radius: 12px;
-  font-size: 0.8rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
-}
-
-.wm-sidebar__btn--ghost {
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid var(--wm-border, rgba(255, 255, 255, 0.12));
-  color: rgba(255, 255, 255, 0.82);
-}
-
-.wm-sidebar__btn--ghost:hover {
-  background: rgba(255, 255, 255, 0.08);
-  border-color: rgba(255, 255, 255, 0.18);
-}
-
-.wm-sidebar__btn--accent {
-  background: rgba(34, 197, 94, 0.12);
-  border: 1px solid rgba(34, 197, 94, 0.35);
-  color: rgba(134, 239, 172, 0.95);
-}
-
-.wm-sidebar__btn--accent:hover {
-  background: rgba(34, 197, 94, 0.18);
-}
-
-.wm-sidebar__nav {
-  position: relative;
-  flex: 1;
-  min-height: 0;
-  display: flex;
-  flex-direction: column;
-  padding: 0.85rem 0.65rem 1rem;
+  border-right: 1px solid rgba(255, 255, 255, 0.10);
+  box-shadow:
+    4px 0 28px rgba(0, 0, 0, 0.28),
+    0 0 0 1px rgba(255, 255, 255, 0.04);
+  font-family: 'Inter', sans-serif;
+  color: #ffffff;
   overflow-y: auto;
   overflow-x: hidden;
 }
 
-.wm-sidebar__nav::-webkit-scrollbar {
-  width: 6px;
+/* Atmospheric radial glow — teal + cyan accents */
+.wm-sidebar::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background:
+    radial-gradient(circle at 10% 15%, rgba(94, 234, 212, 0.16) 0%, transparent 50%),
+    radial-gradient(circle at 90% 85%, rgba(6, 182, 212, 0.18) 0%, transparent 50%),
+    radial-gradient(circle at 50% 50%, rgba(255, 255, 255, 0.04) 0%, transparent 60%);
+  pointer-events: none;
 }
 
-.wm-sidebar__nav::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.12);
-  border-radius: 999px;
+/* =============================================================
+   Brand section — mirrors equity .sidebar-brand
+   ============================================================= */
+.wm-sidebar .wm-sidebar__brand,
+.wm-sidebar .sidebar-brand {
+  position: relative;
+  z-index: 10;
+  padding: 1.25rem 1rem 1rem 1rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.10);
+  background: rgba(255, 255, 255, 0.02);
+  backdrop-filter: blur(10px);
+  overflow: visible;
 }
 
-.wm-sidebar__section-label {
-  padding: 0.35rem 0.55rem 0.65rem;
-  font-size: 0.68rem;
-  font-weight: 700;
-  letter-spacing: 0.16em;
+.wm-sidebar .navbar-brand {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+/* Brand icon — signature 3-stop gradient (matches onboarding submit) */
+.wm-sidebar .brand-icon {
+  width: 2.5rem;
+  height: 2.5rem;
+  background: linear-gradient(135deg, #0f766e 0%, #14b8a6 50%, #06b6d4 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow:
+    0 4px 20px rgba(6, 182, 212, 0.35),
+    inset 0 1px 0 rgba(255, 255, 255, 0.25);
+  position: relative;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.wm-sidebar .brand-icon::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(
+    45deg,
+    transparent 30%,
+    rgba(255, 255, 255, 0.10) 50%,
+    transparent 70%
+  );
+  transform: translateX(-100%);
+  animation: wmShimmer 3s infinite;
+}
+
+@keyframes wmShimmer {
+  0%   { transform: translateX(-100%); }
+  50%  { transform: translateX(100%); }
+  100% { transform: translateX(100%); }
+}
+
+.wm-sidebar .brand-logo {
+  width: 1.375rem;
+  height: 1.375rem;
+  color: #ffffff;
+  position: relative;
+  z-index: 1;
+}
+
+.wm-sidebar .brand-text-container {
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+  overflow: visible;
+  position: relative;
+  flex: 1;
+  min-width: 0;
+}
+
+/* Dropdown trigger (.app-name-switcher) — frosted glass on teal */
+.wm-sidebar .manager-dropdown-container {
+  position: relative;
+  width: 100%;
+  z-index: 100;
+  overflow: visible;
+}
+
+.wm-sidebar .app-name-switcher {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  padding: 0.55rem 0.75rem;
+  cursor: pointer;
+  transition: background 0.18s ease, border-color 0.18s ease;
+  width: 100%;
+  text-align: left;
+  position: relative;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  color: #ffffff;
+  font-family: 'Inter', sans-serif;
+}
+
+.wm-sidebar .app-name-switcher:hover {
+  background: rgba(255, 255, 255, 0.10);
+  border-color: rgba(94, 234, 212, 0.45);
+}
+
+.wm-sidebar .app-name-switcher:active {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.wm-sidebar .app-name-switcher:focus-visible {
+  outline: none;
+  border-color: rgba(94, 234, 212, 0.65);
+  box-shadow: 0 0 0 3px rgba(94, 234, 212, 0.22);
+}
+
+.wm-sidebar .app-name-switcher .sherwood-mark {
+  margin: 0;
+  flex: 1;
+}
+
+/* The "WEALTH" sublabel renders white on the teal sidebar for contrast */
+.wm-sidebar .app-name-switcher .sherwood-mark--wealth .sherwood-mark__line2 {
+  color: #ffffff;
+}
+
+.wm-sidebar .switch-icon {
+  width: 14px;
+  height: 14px;
+  color: rgba(255, 255, 255, 0.65);
+  transition: transform 0.22s cubic-bezier(0.4, 0, 0.2, 1), color 0.18s ease;
+  flex-shrink: 0;
+  stroke-width: 2;
+}
+
+.wm-sidebar .switch-icon.open {
+  transform: rotate(180deg);
+  color: #5eead4;
+}
+
+.wm-sidebar .app-name-switcher:hover .switch-icon {
+  color: #ffffff;
+}
+
+/* Client view toggle wrapper — inline-styled in JSX, this just ensures
+   the toggle is properly contained on the teal background */
+.wm-sidebar .client-view-toggle button:hover {
+  background: rgba(255, 255, 255, 0.18) !important;
+  border-color: rgba(94, 234, 212, 0.55) !important;
+}
+
+/* =============================================================
+   Navigation — mirrors equity .sidebar-content / .menu-* / .sidebar-item
+   ============================================================= */
+.wm-sidebar .wm-sidebar__nav,
+.wm-sidebar .sidebar-content {
+  flex: 1 1 0;
+  min-height: 0;
+  padding: 1rem 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  position: relative;
+  z-index: 1;
+}
+
+.wm-sidebar .sidebar-content::-webkit-scrollbar,
+.wm-sidebar .wm-sidebar__nav::-webkit-scrollbar {
+  width: 8px;
+}
+
+.wm-sidebar .sidebar-content::-webkit-scrollbar-track,
+.wm-sidebar .wm-sidebar__nav::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.wm-sidebar .sidebar-content::-webkit-scrollbar-thumb,
+.wm-sidebar .wm-sidebar__nav::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.20);
+  border-radius: 4px;
+}
+
+.wm-sidebar .sidebar-content::-webkit-scrollbar-thumb:hover,
+.wm-sidebar .wm-sidebar__nav::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.30);
+}
+
+.wm-sidebar .menu-section {
+  padding: 0 0.625rem;
+}
+
+/* Section title — mirrors .menu-title */
+.wm-sidebar .menu-title,
+.wm-sidebar .wm-sidebar__section-label {
+  font-family: 'Inter', sans-serif;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.60);
   text-transform: uppercase;
-  color: rgba(255, 255, 255, 0.45);
+  letter-spacing: 0.1em;
+  margin: 0 0 0.75rem 0.75rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.12);
 }
 
-.wm-sidebar__list {
+/* Menu list */
+.wm-sidebar .sidebar-menu,
+.wm-sidebar .wm-sidebar__list {
   list-style: none;
   margin: 0;
   padding: 0;
   display: flex;
   flex-direction: column;
-  gap: 0.2rem;
+  gap: 0.25rem;
 }
 
-.wm-sidebar__list > li {
+.wm-sidebar .wm-sidebar__list > li,
+.wm-sidebar .sidebar-menu > li {
   margin: 0;
   padding: 0;
 }
 
-.wm-sidebar__item {
-  width: 100%;
+/* Menu item — mirrors .sidebar-item (with rounded corners like equity).
+   box-sizing: border-box is critical: equity uses <li> (auto width = parent
+   width), but the wealth tab is a <button> with width: 100%. Without
+   border-box the padding + border would push the tab ~30px wider than the
+   equity tab. Keeping border-box matches the equity item dimensions 1:1. */
+.wm-sidebar .wm-sidebar__item {
+  box-sizing: border-box;
+  width: calc(100% - 0.75rem); /* leave room for the 0.375rem side margins */
   display: flex;
   align-items: center;
-  gap: 0.65rem;
-  padding: 0.62rem 0.65rem;
-  border-radius: 12px;
-  border: 1px solid transparent;
-  background: transparent;
-  color: rgba(255, 255, 255, 0.78);
-  font: inherit;
+  gap: 0.625rem;
+  padding: 0.8125rem 0.875rem;
+  margin: 0 0.375rem;
+  font-family: 'Inter', sans-serif;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  line-height: 1.4;
+  color: rgba(255, 255, 255, 0.92);
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  /* Override the global .wm-root border-radius: 0 just for sidebar tabs,
+     matching the equity .sidebar-item (10px) */
+  border-radius: 0.625rem !important;
   cursor: pointer;
   text-align: left;
-  transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+  position: relative;
+  overflow: hidden;
+  outline: none;
+  z-index: 1;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1), z-index 0s;
 }
 
-.wm-sidebar__item:hover {
-  background: rgba(255, 255, 255, 0.05);
-  color: rgba(255, 255, 255, 0.92);
-}
-
-.wm-sidebar__item.is-active {
-  background: rgba(34, 197, 94, 0.12);
-  border-color: rgba(34, 197, 94, 0.28);
-  color: rgba(255, 255, 255, 0.95);
-}
-
-.wm-sidebar__item.is-active .wm-sidebar__icon-wrap {
-  background: rgba(34, 197, 94, 0.18);
-  color: rgba(134, 239, 172, 0.95);
-}
-
-.wm-sidebar__icon-wrap {
-  flex-shrink: 0;
-  width: 2rem;
-  height: 2rem;
-  display: grid;
-  place-items: center;
-  border-radius: 10px;
-  background: rgba(255, 255, 255, 0.06);
-  color: rgba(134, 239, 172, 0.85);
-  font-size: 1rem;
-}
-
-.wm-sidebar__item:not(.is-active) .wm-sidebar__icon-wrap {
-  color: rgba(255, 255, 255, 0.55);
-  background: rgba(255, 255, 255, 0.04);
-}
-
-.wm-sidebar__label {
-  flex: 1;
-  min-width: 0;
-  font-size: 0.84rem;
-  font-weight: 600;
-  line-height: 1.25;
-}
-
-.wm-sidebar__active-dot {
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: rgba(34, 197, 94, 0.9);
-  box-shadow: 0 0 10px rgba(34, 197, 94, 0.45);
+.wm-sidebar .wm-sidebar__item::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(20, 184, 166, 0.12);
   opacity: 0;
-  transition: opacity 0.15s ease;
+  transition: opacity 0.3s ease;
+  pointer-events: none;
+  border-radius: 0.625rem !important;
 }
 
-.wm-sidebar__item.is-active .wm-sidebar__active-dot {
+.wm-sidebar .wm-sidebar__item:hover::before {
   opacity: 1;
 }
 
-.wm-sidebar__footer {
-  position: relative;
-  padding: 0.85rem 1rem 1.1rem;
-  border-top: 1px solid var(--wm-border, rgba(255, 255, 255, 0.12));
-  background: rgba(0, 0, 0, 0.08);
+.wm-sidebar .wm-sidebar__item:hover,
+.wm-sidebar .wm-sidebar__item:focus {
+  color: #ffffff;
+  transform: translateX(4px);
+  border-color: rgba(94, 234, 212, 0.55);
+  background: linear-gradient(135deg, #0f766e 0%, #14b8a6 50%, #06b6d4 100%);
+  box-shadow:
+    0 4px 24px rgba(6, 182, 212, 0.30),
+    0 1.5px 8px rgba(15, 118, 110, 0.22);
+  z-index: 10;
 }
 
-.wm-sidebar__logout {
-  width: 100%;
-  display: inline-flex;
+.wm-sidebar .wm-sidebar__item:focus {
+  outline: 2px solid rgba(94, 234, 212, 0.55);
+  outline-offset: 2px;
+}
+
+.wm-sidebar .wm-sidebar__item.is-active,
+.wm-sidebar .wm-sidebar__item.active {
+  color: #ffffff;
+  background: linear-gradient(135deg, #0f766e 0%, #14b8a6 50%, #06b6d4 100%);
+  font-weight: 600;
+  transform: translateX(4px);
+  border-color: rgba(94, 234, 212, 0.60);
+  box-shadow:
+    0 4px 20px rgba(6, 182, 212, 0.35),
+    inset 0 1px 0 rgba(255, 255, 255, 0.28);
+}
+
+.wm-sidebar .wm-sidebar__item.is-active::before,
+.wm-sidebar .wm-sidebar__item.active::before {
+  display: none;
+}
+
+/* Icon */
+.wm-sidebar .wm-sidebar__icon-wrap {
+  width: 1.125rem;
+  height: 1.125rem;
+  display: flex;
   align-items: center;
   justify-content: center;
-  gap: 0.45rem;
-  padding: 0.65rem 0.85rem;
-  border-radius: 12px;
-  font: inherit;
-  font-size: 0.82rem;
-  font-weight: 600;
-  cursor: pointer;
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid var(--wm-border, rgba(255, 255, 255, 0.12));
-  color: rgba(255, 255, 255, 0.82);
-  transition: background 0.15s ease, border-color 0.15s ease;
+  flex-shrink: 0;
+  background: transparent;
+  color: inherit;
+  transition: transform 0.2s ease;
 }
 
-.wm-sidebar__logout:hover {
-  background: rgba(255, 255, 255, 0.08);
-  border-color: rgba(255, 255, 255, 0.2);
+.wm-sidebar .wm-sidebar__icon-wrap svg {
+  width: 100%;
+  height: 100%;
+}
+
+.wm-sidebar .wm-sidebar__item:hover .wm-sidebar__icon-wrap {
+  transform: scale(1.1);
+}
+
+.wm-sidebar .wm-sidebar__item.is-active .wm-sidebar__icon-wrap,
+.wm-sidebar .wm-sidebar__item.active .wm-sidebar__icon-wrap {
+  background: transparent;
+  color: inherit;
+  transform: scale(1.05);
+}
+
+/* Label */
+.wm-sidebar .wm-sidebar__label {
+  flex: 1;
+  min-width: 0;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  line-height: 1.4;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  transition: color 0.2s, font-weight 0.2s;
+}
+
+.wm-sidebar .wm-sidebar__item.is-active .wm-sidebar__label,
+.wm-sidebar .wm-sidebar__item.active .wm-sidebar__label {
+  font-weight: 600;
+}
+
+/* Right-side indicator dot — mirrors .item-indicator */
+.wm-sidebar .wm-sidebar__active-dot {
+  width: 0.5rem;
+  height: 0.5rem;
+  background: rgba(255, 255, 255, 0.85);
+  border-radius: 50%;
+  opacity: 0;
+  transform: scale(0);
+  transition: all 0.3s ease;
+  flex-shrink: 0;
+  box-shadow: none;
+}
+
+.wm-sidebar .wm-sidebar__item.is-active .wm-sidebar__active-dot,
+.wm-sidebar .wm-sidebar__item.active .wm-sidebar__active-dot {
+  opacity: 1;
+  transform: scale(1);
+}
+
+/* Empty state */
+.wm-sidebar .sidebar-empty-state {
+  padding: 2rem 1.25rem;
+  text-align: center;
+  color: rgba(255, 255, 255, 0.50);
+}
+
+.wm-sidebar .empty-state-text {
+  font-size: 0.875rem;
+  font-style: italic;
+}
+
+/* =============================================================
+   Footer — mirrors equity .sidebar-footer / .sidebar-logout-button
+   ============================================================= */
+.wm-sidebar .wm-sidebar__footer,
+.wm-sidebar .sidebar-footer {
+  position: relative;
+  z-index: 1;
+  padding: 1rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.10);
+  background: rgba(255, 255, 255, 0.02);
+  backdrop-filter: blur(10px);
+}
+
+.wm-sidebar .footer-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0;
+  width: 100%;
+}
+
+/* Logout pill — signature 3-stop gradient (matches onboarding submit button) */
+.wm-sidebar .sidebar-logout-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.625rem;
+  padding: 0.625rem 1rem;
+  background: linear-gradient(135deg, #0f766e 0%, #14b8a6 50%, #06b6d4 100%);
+  border: none;
+  color: #ffffff;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  margin: 0.5rem auto 0 auto;
+  font-family: 'Inter', sans-serif;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  width: fit-content;
+  min-width: 120px;
+  box-shadow: 0 4px 12px rgba(15, 118, 110, 0.30);
+  position: relative;
+  overflow: hidden;
+}
+
+.wm-sidebar .sidebar-logout-button::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  transition: left 0.5s;
+}
+
+.wm-sidebar .sidebar-logout-button:hover {
+  filter: brightness(1.05);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(6, 182, 212, 0.40);
+}
+
+.wm-sidebar .sidebar-logout-button:hover::before {
+  left: 100%;
+}
+
+.wm-sidebar .sidebar-logout-button:active {
+  transform: translateY(0);
+}
+
+.wm-sidebar .sidebar-logout-button .logout-icon {
+  width: 1rem;
+  height: 1rem;
+  color: #ffffff;
+}
+
+.wm-sidebar .sidebar-logout-button .logout-text {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: #ffffff;
+}
+
+/* =============================================================
+   Responsive — mirrors equity sidebar breakpoints
+   ============================================================= */
+@media (max-width: 900px) {
+  .wm-sidebar .wm-sidebar__item {
+    padding: 0.875rem 1rem;
+    font-size: 0.8125rem;
+  }
+  .wm-sidebar .wm-sidebar__icon-wrap {
+    width: 1.125rem;
+    height: 1.125rem;
+  }
+}
+
+@media (max-width: 640px) {
+  .wm-sidebar .wm-sidebar__item {
+    padding: 1rem;
+    margin: 0 0.25rem;
+  }
+  .wm-sidebar .wm-sidebar__label {
+    font-size: 0.875rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .wm-sidebar .wm-sidebar__item,
+  .wm-sidebar .brand-icon::before {
+    animation: none;
+    transition: none;
+  }
 }

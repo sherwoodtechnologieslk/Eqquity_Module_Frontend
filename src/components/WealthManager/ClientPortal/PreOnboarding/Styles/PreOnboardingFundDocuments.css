@@ -35,10 +35,11 @@
 
 /* ══ HERO ══════════════════════════════════ */
 .pofd-hero {
-  background: linear-gradient(135deg, #0f172a 0%, #134e4a 55%, #0f766e 100%);
+  background: linear-gradient(135deg, #ffffff 0%, #ecfdf5 55%, #dcfce7 100%);
   padding: 3rem 2.5rem;
   position: relative;
   overflow: hidden;
+  border-bottom: 1px solid rgba(22, 163, 74, 0.18);
 }
 
 .pofd-hero::before {
@@ -47,7 +48,7 @@
   top: -80px; right: -80px;
   width: 280px; height: 280px;
   border-radius: 50%;
-  background: radial-gradient(circle, rgba(20,184,166,0.14) 0%, transparent 70%);
+  background: radial-gradient(circle, rgba(22,163,74,0.12) 0%, transparent 70%);
   pointer-events: none;
 }
 
@@ -65,21 +66,21 @@
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.16em;
-  color: #14b8a6;
+  color: #15803d;
 }
 
 .pofd-hero-heading {
   margin: 0;
   font-size: 2rem;
   font-weight: 800;
-  color: #f8fafc;
+  color: #0b1220;
   line-height: 1.2;
 }
 
 .pofd-hero-lead {
   margin: 0;
   font-size: 0.9rem;
-  color: #94a3b8;
+  color: #475569;
   line-height: 1.7;
 }
 
@@ -222,24 +223,25 @@
 
 /* ══ CTA BANNER ══════════════════════════════ */
 .pofd-cta-banner {
-  background: linear-gradient(135deg, #0f172a 0%, #134e4a 60%, #0f766e 100%);
+  background: linear-gradient(135deg, #ffffff 0%, #ecfdf5 60%, #dcfce7 100%);
   padding: 2.5rem 2.5rem;
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 2rem;
   flex-wrap: wrap;
+  border-top: 1px solid rgba(22, 163, 74, 0.20);
 }
 
 .pofd-cta-heading {
   margin: 0;
   font-size: 1.15rem;
   font-weight: 700;
-  color: #f8fafc;
+  color: #0b1220;
 }
 
 .pofd-cta-sub {
   margin: 0.25rem 0 0;
   font-size: 0.82rem;
-  color: #94a3b8;
+  color: #475569;
 }

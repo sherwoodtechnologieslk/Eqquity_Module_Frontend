@@ -313,15 +313,6 @@ const JournalEntries = ({ onTabChange }) => {
     }).format(amount || 0);
   };
 
-  const getStatusColor = (status) => {
-    switch (status) {
-      case 'Posted': return 'success';
-      case 'Draft': return 'warning';
-      case 'Cancelled': return 'error';
-      default: return 'neutral';
-    }
-  };
-
   if (isLoading) {
     return (
       <div className="journal-entries-loading">
@@ -434,13 +425,12 @@ const JournalEntries = ({ onTabChange }) => {
               <th>Credit</th>
               <th>Balance</th>
               <th>Type</th>
-              <th>Status</th>
             </tr>
           </thead>
           <tbody>
             {filteredEntries.length === 0 ? (
               <tr>
-                <td colSpan="11" className="no-data">
+                <td colSpan="10" className="no-data">
                   No journal entries found
                 </td>
               </tr>
@@ -448,7 +438,7 @@ const JournalEntries = ({ onTabChange }) => {
               filteredEntries.map((entry) => (
                 <tr key={entry.id}>
                   <td>{new Date(entry.date).toLocaleDateString()}</td>
-                  <td>{entry.account_code}</td>
+                  <td title={entry.account_code || undefined}>{entry.account_code}</td>
                   <td>{entry.account_name}</td>
                   <td>{entry.description}</td>
                   <td>{entry.reference}</td>
@@ -466,11 +456,6 @@ const JournalEntries = ({ onTabChange }) => {
                   <td className="amount">{formatCurrency(entry.credit)}</td>
                   <td className="amount">{formatCurrency(entry.balance)}</td>
                   <td>{entry.transaction_type}</td>
-                  <td>
-                    <span className={`status-badge ${getStatusColor(entry.status)}`}>
-                      {entry.status}
-                    </span>
-                  </td>
                 </tr>
               ))
             )}

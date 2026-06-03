@@ -17,6 +17,8 @@ const FinancialPosition = ({ onTabChange }) => {
   const [error, setError] = useState('');
   const [netProfit, setNetProfit] = useState(null); // from P&L -> used for retained earnings display
   const [selectedAccount, setSelectedAccount] = useState(null);
+  const [showMtmData, setShowMtmData] = useState(false);
+  const [showNotes, setShowNotes] = useState(false);
   const [filters, setFilters] = useState({
     asOfDate: new Date().toISOString().split('T')[0],
     portfolio: ''
@@ -84,7 +86,11 @@ const FinancialPosition = ({ onTabChange }) => {
       };
 
       const [fpResp, plResp] = await Promise.all([
-        financialPositionAPI.getFinancialPosition(filters),
+        financialPositionAPI.getFinancialPosition({
+          ...filters,
+          withMtmData: showMtmData,
+          withNotes: showNotes
+        }),
         profitLossAPI
           .getProfitLoss(profitLossFilters)
           .catch((err) => {
@@ -113,7 +119,7 @@ const FinancialPosition = ({ onTabChange }) => {
     } finally {
       setIsLoading(false);
     }
-  }, [filters]);
+  }, [filters, showMtmData, showNotes]);
 
   useEffect(() => {
     fetchFinancialPosition();
@@ -334,6 +340,18 @@ const FinancialPosition = ({ onTabChange }) => {
           <button className="fp-export-button" onClick={exportSofpExcel}>
             Export to Excel
           </button>
+          <button
+            className={`fp-export-button ${showMtmData ? 'active' : ''}`}
+            onClick={() => setShowMtmData((prev) => !prev)}
+          >
+            With MTM data
+          </button>
+          <button
+            className={`fp-export-button ${showNotes ? 'active' : ''}`}
+            onClick={() => setShowNotes((prev) => !prev)}
+          >
+            With notes
+          </button>
         </div>
       </div>
 
@@ -441,14 +459,7 @@ const FinancialPosition = ({ onTabChange }) => {
                     </thead>
                     <tbody>
                       {(displayedAssetBuckets.nonCurrentAssets || []).map((account, index) =>
-                        renderAccountRow(
-                          {
-                            ...account,
-                            accountName: account.accountCategory || account.accountName
-                          },
-                          index,
-                          'DR'
-                        )
+                        renderAccountRow(account, index, 'DR')
                       )}
                       {displayedAssetBuckets.nonCurrentAssets.length > 0 &&
                         renderSubtotalRow(
@@ -646,8 +657,22 @@ const FinancialPosition = ({ onTabChange }) => {
                   type="button"
                   className="fp-modal-view-notes"
                   onClick={() => {
+                    const ctx = {
+                      source: 'SOFP',
+                      accountCode: selectedAccount?.accountCode || '',
+                      accountName: selectedAccount?.accountName || '',
+                      transactionTypeName: selectedAccount?.transactionTypeName || '',
+                      accountCategory: selectedAccount?.accountCategory || '',
+                      balance: Number(selectedAccount?.balance) || 0,
+                      balanceType: selectedAccount?.balanceType || '',
+                      asOfDate: financialPositionData?.asOfDate || filters.asOfDate,
+                      portfolioId: filters.portfolio || '',
+                      portfolioLabel:
+                        financialPositionData?.portfolio || 'All Portfolios',
+                      displayLabel: getSofpRowLabel(selectedAccount)
+                    };
                     setSelectedAccount(null);
-                    onTabChange?.('Financial Reporting Notes');
+                    onTabChange?.('Financial Reporting Notes', ctx);
                   }}
                 >
                   View notes

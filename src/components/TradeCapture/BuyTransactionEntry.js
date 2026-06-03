@@ -983,22 +983,9 @@ const BuyTransactionEntry = () => {
     <div className="buy-page-container">
       <div className="buy-content-wrapper">
 
-        {/* Header */}
-        <div className="buy-header-section">
-          <div className="buy-header-icon">
-            <svg className="buy-icon" fill="currentColor" viewBox="0 0 20 20">
-              <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-11a1 1 0 10-2 0v2H7a1 1 0 100 2h2v2a1 1 0 102 0v-2h2a1 1 0 100-2h-2V7z" clipRule="evenodd"/>
-            </svg>
-          </div>
-          <div className="buy-header-text-group">
-            <h1 className="buy-main-title">Buy Transaction Entry</h1>
-            <p className="buy-subtitle">Record equity purchase transactions with automatic calculations</p>
-          </div>
-        </div>
-
         <div className="buy-container">
           <div className="buy-card-header">
-            <h2 className="buy-card-title">Transaction Details</h2>
+            <h2 className="buy-card-title">Buy Transaction Entry- Record equity purchase transactions with automatic calculations</h2>
           </div>
           <div className="buy-form-content">
             <form onSubmit={handleSubmit}>
@@ -1484,9 +1471,7 @@ const BuyTransactionEntry = () => {
                     Daily cost calculated as (Net Value × Cost of Funds (After-Tax) %) ÷ 365
                   </small>
                 </div>
-              </div>
-
-              <div className="buy-field-group">
+                <div className="buy-field-group buy-field-span-full">
                   <label className="buy-field-label">Generate Payment</label>
                   <div className="buy-toggle-container">
                     <label className="buy-toggle-wrapper">
@@ -1511,6 +1496,8 @@ const BuyTransactionEntry = () => {
                     </span>
                   </div>
                 </div>
+              </div>
+
               {/* Buttons */}
               <div className="buy-button-section">
                 <button
