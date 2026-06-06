@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { accountCategoryAPI, accountReconciliationAPI, trialBalanceAPI } from '../../services/api';
+import { accountCategoryAPI, accountReconciliationAPI, trialBalanceAPI, gsecEntriesAPI } from '../../services/api';
 import AccountDetailsModal from '../EquityEntries/AccountDetailsModal';
 import './Styles/CombinedTrialBalance.css';
 import './Styles/AccountSummaries.css';
@@ -70,6 +70,7 @@ const mapReconciliationToModalData = (accountCode, accountName, startDate, endDa
       reference: t.reference != null && String(t.reference).trim() !== '' ? String(t.reference) : '—',
       debit: Number(t.debit) || 0,
       credit: Number(t.credit) || 0,
+      source: glSourceLabel(t.gl_source),
       transaction_type: glSourceLabel(t.gl_source)
     })),
     totals: {
@@ -79,6 +80,68 @@ const mapReconciliationToModalData = (accountCode, accountName, startDate, endDa
       balance_type: net_balance > 0.005 ? 'DR' : net_balance < -0.005 ? 'CR' : 'ZERO'
     }
   };
+};
+
+/**
+ * Merge equity trial-balance accounts (which already cover general ledger, other
+ * transactions and opening balances) with GSec balance-sheet accounts, keyed by
+ * account_code. This makes GSec-only accounts appear in the list so they can be
+ * selected and drilled into. GSec account_category is used as the type when the
+ * code is GSec-only; overlapping codes keep both labels.
+ */
+const mergeEquityAndGsecAccounts = (equityAccounts, gsecAccounts) => {
+  const byCode = new Map();
+
+  const ensure = (code) => {
+    const key = String(code ?? '').trim();
+    if (!key) return null;
+    if (!byCode.has(key)) {
+      byCode.set(key, {
+        account_code: key,
+        account_name: '',
+        account_type: '',
+        total_debit: 0,
+        total_credit: 0
+      });
+    }
+    return byCode.get(key);
+  };
+
+  (Array.isArray(equityAccounts) ? equityAccounts : []).forEach((a) => {
+    const row = ensure(a?.account_code);
+    if (!row) return;
+    row.total_debit += Number(a?.total_debit) || 0;
+    row.total_credit += Number(a?.total_credit) || 0;
+    row.account_name = row.account_name || a?.account_name || '';
+    if (!row.account_type) row.account_type = a?.account_type || '';
+  });
+
+  (Array.isArray(gsecAccounts) ? gsecAccounts : []).forEach((g) => {
+    const row = ensure(g?.account_code);
+    if (!row) return;
+    row.total_debit += Number(g?.total_debit) || 0;
+    row.total_credit += Number(g?.total_credit) || 0;
+    row.account_name = row.account_name || g?.account_name || '';
+    const gsecType = g?.account_category || 'GSec';
+    if (!row.account_type) {
+      row.account_type = gsecType;
+    } else if (toKey(row.account_type) !== toKey(gsecType)) {
+      row.account_type = `${row.account_type} / ${gsecType}`;
+    }
+  });
+
+  return Array.from(byCode.values())
+    .map((row) => {
+      const net = row.total_debit - row.total_credit;
+      return {
+        ...row,
+        net_balance: net,
+        balance_type: net > 0.005 ? 'DR' : net < -0.005 ? 'CR' : 'ZERO'
+      };
+    })
+    .sort((a, b) =>
+      String(a.account_code).localeCompare(String(b.account_code), undefined, { numeric: true })
+    );
 };
 
 const AccountSummaries = () => {
@@ -158,27 +221,21 @@ const AccountSummaries = () => {
     });
   }, [categoryTypes]);
 
+  // Metrics are derived from the merged accounts (equity GL + other + opening
+  // balances + GSec) so the cards always match the visible table, including GSec.
   const activeRow = useMemo(() => {
-    const rows = summary?.summary || [];
-    if (toKey(activeCategory) === 'all') {
-      const debit = rows.reduce((s, r) => s + (Number(r?.total_debit) || 0), 0);
-      const credit = rows.reduce((s, r) => s + (Number(r?.total_credit) || 0), 0);
-      return { label: 'All', debit, credit, net: debit - credit };
-    }
     const key = toKey(activeCategory);
-    const r = rows.find((x) => toKey(x?.account_type) === key);
-    const debit = Number(r?.total_debit) || 0;
-    const credit = Number(r?.total_credit) || 0;
-    const net = Number(r?.net_balance);
+    const rows = (Array.isArray(accounts) ? accounts : []).filter(
+      (a) => key === 'all' || toKey(a?.account_type) === key
+    );
+    const debit = rows.reduce((s, r) => s + (Number(r?.total_debit) || 0), 0);
+    const credit = rows.reduce((s, r) => s + (Number(r?.total_credit) || 0), 0);
     const label =
-      categories.find((c) => toKey(c?.key) === key)?.label || toLabel(activeCategory) || '—';
-    return {
-      label,
-      debit,
-      credit,
-      net: Number.isFinite(net) ? net : debit - credit
-    };
-  }, [summary, activeCategory, categories]);
+      key === 'all'
+        ? 'All'
+        : categories.find((c) => toKey(c?.key) === key)?.label || toLabel(activeCategory) || '—';
+    return { label, debit, credit, net: debit - credit };
+  }, [accounts, activeCategory, categories]);
 
   const filteredAccounts = useMemo(() => {
     const key = toKey(activeCategory);
@@ -221,7 +278,7 @@ const AccountSummaries = () => {
     try {
       setLoading(true);
       setError('');
-      const [summaryRes, tbRes, catsRes, ttRes] = await Promise.all([
+      const [summaryRes, tbRes, gsecBsRes, catsRes, ttRes] = await Promise.all([
         trialBalanceAPI.getTrialBalanceSummary({
           startDate: resolved.startDate,
           endDate: resolved.endDate
@@ -230,6 +287,10 @@ const AccountSummaries = () => {
           startDate: resolved.startDate,
           endDate: resolved.endDate
         }),
+        // GSec failure must not break the screen — equity data still shows.
+        gsecEntriesAPI
+          .getBalanceSheet({ startDate: resolved.startDate, endDate: resolved.endDate })
+          .catch((err) => ({ success: false, error: err?.message })),
         accountCategoryAPI.getAll().catch(() => []),
         accountCategoryAPI.getAllTransactionTypes().catch(() => [])
       ]);
@@ -243,7 +304,12 @@ const AccountSummaries = () => {
 
       const tbData = tbRes?.data || null;
       const tbAccounts = Array.isArray(tbData?.accounts) ? tbData.accounts : [];
-      setAccounts(tbAccounts);
+      const gsecAccounts =
+        gsecBsRes?.success && Array.isArray(gsecBsRes?.data?.accounts)
+          ? gsecBsRes.data.accounts
+          : [];
+      const mergedAccounts = mergeEquityAndGsecAccounts(tbAccounts, gsecAccounts);
+      setAccounts(mergedAccounts);
 
       let nextTabs = buildCategoryTypesFromAccountCategoryRows(
         Array.isArray(catsRes) ? catsRes : [],
@@ -255,8 +321,19 @@ const AccountSummaries = () => {
           key: k,
           label: toLabel(k)
         }));
-        nextTabs.sort((a, b) => String(a.label).localeCompare(String(b.label)));
       }
+      // Ensure every account_type present in the merged accounts (including GSec
+      // categories) is reachable as a tab, so no account is hidden.
+      const existingTabKeys = new Set(nextTabs.map((t) => toKey(t.key)));
+      Array.from(new Set(mergedAccounts.map((a) => toKey(a?.account_type)).filter(Boolean))).forEach(
+        (k) => {
+          if (!existingTabKeys.has(k)) {
+            nextTabs.push({ key: k, label: toLabel(k) });
+            existingTabKeys.add(k);
+          }
+        }
+      );
+      nextTabs.sort((a, b) => String(a.label).localeCompare(String(b.label)));
       setCategoryTypes(nextTabs);
 
       setSummary(summaryRes.data || null);
