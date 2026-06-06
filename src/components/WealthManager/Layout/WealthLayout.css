@@ -176,6 +176,17 @@
   color: var(--wm-accent-strong);
 }
 
+/* Round the navbar tabs + their track. The global `.wm-root *` rule forces
+   border-radius: 0 !important everywhere, so we re-enable the pill shape here
+   with matching !important specificity (same approach as the sidebar tabs). */
+.wm-root .wm-navbar-pills {
+  border-radius: 999px !important;
+}
+
+.wm-root .wm-pill {
+  border-radius: 999px !important;
+}
+
 .wm-kpi-chip {
   display: inline-flex;
   gap: 10px;

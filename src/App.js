@@ -88,6 +88,7 @@ import GsecGeneralLedger from './components/GsecEntries/GsecGeneralLedger';
 import GsecBalanceSheet from './components/GsecEntries/GsecBalanceSheet';
 import GsecManualEntryPosting from './components/GsecEntries/GsecManualEntryPosting';
 import GsecMissingEntries from './components/GsecEntries/GsecMissingEntries';
+import GsecBulkEntryGrid from './components/GsecEntries/GsecBulkEntryGrid';
 import CombinedGL from './components/AccountingEntries/CombinedGL';
 import CombinedTrialBalance from './components/AccountingEntries/CombinedTrialBalance';
 import AccountSummaries from './components/AccountingEntries/AccountSummaries';
@@ -266,9 +267,10 @@ function App() {
     'Other Reports': <OtherReports />,
     'GSEC ENTRIES': <GsecEntries />,
     'Missing GSec Entries': <GsecMissingEntries />,
-    'Balance Sheet': <GsecBalanceSheet />,
+    'Gsec Trial Balance': <GsecBalanceSheet />,
     'GSec General Ledger': <GsecGeneralLedger />,
     'GSec Manual Entry Posting': <GsecManualEntryPosting />,
+    'GSec Bulk Entry Grid': <GsecBulkEntryGrid />,
     'Combined General Ledger': <CombinedGL onTabChange={handleTabChange} />,
     'Combined Trial Balance': <CombinedTrialBalance onTabChange={handleTabChange} />,
     'Account Summaries': <AccountSummaries onTabChange={handleTabChange} />,
