@@ -299,7 +299,7 @@ const AccountDetailsModal = ({ isOpen, onClose, accountCode, accountData, loadEr
                     <div className="entries-section">
                       <h3 className="section-title">Transaction Entries</h3>
                       <div className="entries-table-container">
-                        <table className="entries-table">
+                        <table className={`entries-table ${showSourceColumn ? 'has-source' : ''}`}>
                           <thead>
                             <tr>
                               {showSourceColumn && <th>Source</th>}
