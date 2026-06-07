@@ -1,0 +1,33 @@
+/* Always-on floating Agent Blux — pinned to the bottom-right of the viewport,
+   above all other content, on every screen. */
+.global-blux {
+  position: fixed;
+  right: 24px;
+  bottom: 24px;
+  z-index: 1200;
+  display: flex;
+  align-items: flex-end;
+  justify-content: flex-end;
+  margin: 0;
+  padding: 0;
+  background: transparent;
+  border: none;
+  box-shadow: none;
+  overflow: visible;
+  /* Let clicks pass through everywhere except the mascot itself. */
+  pointer-events: none;
+}
+
+.global-blux__avatar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 0;
+  margin: 0;
+  pointer-events: auto;
+}
+
+/* Hide the name + status label on the floating mascot. */
+.global-blux .blux-label {
+  display: none;
+}

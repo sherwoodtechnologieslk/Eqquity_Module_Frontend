@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import cseApi from '../../services/cseApi';
+import { equityAPI } from '../../services/api';
 import {
     itemMatchesHoldings,
     itemMatchesWatchlist
@@ -7,42 +8,55 @@ import {
 import './DashboardMarketMovers.css';
 
 const REFRESH_MS = 3 * 60 * 1000;
-// Show all rows the CSE returns; column lists scroll internally.
+// How often the board auto-advances to the next tab.
+const CYCLE_MS = 6000;
+// Auto-scroll the list once it has more rows than comfortably fit.
+const AUTOSCROLL_MIN_ROWS = 5;
+// Show all rows the CSE returns; the list scrolls internally.
 const COLUMN_LIMIT = 200;
 
-const COLUMNS = [
+// Normalize a ticker to its base form (e.g. "SEMB.N0000" -> "SEMB") so CSE
+// feed symbols can be matched against the local equity master.
+const normalizeSym = (s) =>
+    String(s || '')
+        .toUpperCase()
+        .split('.')[0]
+        .replace(/[^A-Z0-9]/g, '')
+        .trim();
+
+const TABS = [
     {
         id: 'gainers',
-        label: 'Top Gainers',
+        label: 'Gainers',
+        featureTag: 'Top Gainer',
         accent: 'up',
         icon: (
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                 <polyline points="6 15 12 9 18 15" />
             </svg>
-        ),
-        valueKey: 'percentageChange'
+        )
     },
     {
         id: 'losers',
-        label: 'Top Losers',
+        label: 'Losers',
+        featureTag: 'Top Loser',
         accent: 'down',
         icon: (
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                 <polyline points="6 9 12 15 18 9" />
             </svg>
-        ),
-        valueKey: 'percentageChange'
+        )
     },
     {
         id: 'active',
         label: 'Most Active',
+        featureTag: 'Most Active',
         accent: 'neutral',
         icon: (
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M22 12h-4l-3 9L9 3l-3 9H2" />
             </svg>
-        ),
-        valueKey: 'turnover'
+        )
     }
 ];
 
@@ -131,6 +145,32 @@ const DashboardMarketMovers = ({
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState(null);
     const [note, setNote] = useState('');
+    const [activeTab, setActiveTab] = useState('gainers');
+    const [symbolMeta, setSymbolMeta] = useState({});
+    const [isPaused, setIsPaused] = useState(false);
+
+    // Load the local equity master once to resolve company names + sectors that
+    // the CSE movers feed often omits.
+    useEffect(() => {
+        let cancelled = false;
+        equityAPI
+            .getAllEquities()
+            .then((rows) => {
+                if (cancelled || !Array.isArray(rows)) return;
+                const map = {};
+                rows.forEach((r) => {
+                    const key = normalizeSym(r.symbol);
+                    if (key && !map[key]) {
+                        map[key] = { name: r.name || '', sector: r.sector || '' };
+                    }
+                });
+                setSymbolMeta(map);
+            })
+            .catch(() => {});
+        return () => {
+            cancelled = true;
+        };
+    }, []);
 
     const load = useCallback(async (silent = false) => {
         if (!silent) setIsLoading(true);
@@ -162,6 +202,19 @@ const DashboardMarketMovers = ({
         return () => clearInterval(id);
     }, [load]);
 
+    // Auto-advance through the tabs on a timer (paused while hovered).
+    useEffect(() => {
+        if (isPaused) return undefined;
+        const id = setInterval(() => {
+            setActiveTab((current) => {
+                const idx = TABS.findIndex((t) => t.id === current);
+                const next = TABS[(idx + 1) % TABS.length];
+                return next.id;
+            });
+        }, CYCLE_MS);
+        return () => clearInterval(id);
+    }, [isPaused]);
+
     const ranked = useMemo(
         () => ({
             gainers: rankMovers(feeds.gainers, {
@@ -183,104 +236,130 @@ const DashboardMarketMovers = ({
         [feeds, holdingSymbols, holdingNames, watchlistSymbols]
     );
 
-    const topMover = ranked.gainers[0];
-    const worstMover = ranked.losers[0];
-    const heroMover = topMover && worstMover
-        ? Math.abs(Number(topMover.percentageChange) || 0) >=
-          Math.abs(Number(worstMover.percentageChange) || 0)
-            ? topMover
-            : worstMover
-        : topMover || worstMover;
+    const counts = {
+        gainers: ranked.gainers.length,
+        losers: ranked.losers.length,
+        active: ranked.active.length
+    };
 
+    const tabMeta = TABS.find((t) => t.id === activeTab) || TABS[0];
+    const items = ranked[activeTab] || [];
+    const isActiveTab = activeTab === 'active';
     const statusKey = marketStatus.status || 'unknown';
 
-    const renderRow = (item, columnId, ariaHidden = false) => {
-        const pct = item.percentageChange;
-        const showPct = columnId !== 'active';
-        const valueDisplay = showPct
-            ? formatPct(pct)
-            : formatCompact(item.turnover);
-        const subtitle = showPct
-            ? `Rs. ${formatPrice(item.price)}`
-            : `Vol ${formatCompact(item.shareVolume)}`;
+    // Magnitude used for the relative bars in each row.
+    const magnitudeOf = useCallback(
+        (item) =>
+            isActiveTab
+                ? Math.abs(Number(item.turnover) || 0)
+                : Math.abs(Number(item.percentageChange) || 0),
+        [isActiveTab]
+    );
 
+    const maxMagnitude = useMemo(() => {
+        let max = 0;
+        items.forEach((item) => {
+            const m = magnitudeOf(item);
+            if (m > max) max = m;
+        });
+        return max;
+    }, [items, magnitudeOf]);
+
+    const feature = items[0];
+    const restItems = items.slice(1);
+
+    const valueOf = (item) =>
+        isActiveTab ? formatCompact(item.turnover) : formatPct(item.percentageChange);
+    const subtitleOf = (item) =>
+        isActiveTab
+            ? `Vol ${formatCompact(item.shareVolume)}`
+            : `Rs. ${formatPrice(item.price)}`;
+    const valueClassOf = (item) =>
+        isActiveTab ? 'is-active' : pctClass(item.percentageChange);
+    const metaOf = (item) => symbolMeta[normalizeSym(item.symbol)] || null;
+    const companyOf = (item) => item.company || metaOf(item)?.name || '';
+    const sectorOf = (item) => metaOf(item)?.sector || '';
+
+    const renderBadge = (item) => {
+        if (item.isHolding) {
+            return <span className="mm2-badge is-holding" title="In your holdings">★</span>;
+        }
+        if (item.isWatchlist) {
+            return <span className="mm2-badge is-watchlist" title="On your watchlist">●</span>;
+        }
+        return null;
+    };
+
+    const renderRow = (item, index, dup = false) => {
+        const magnitude = magnitudeOf(item);
+        const barWidth = maxMagnitude > 0 ? Math.max((magnitude / maxMagnitude) * 100, 4) : 0;
         return (
             <div
-                key={`${columnId}-${item.id || item.symbol}${ariaHidden ? '-dup' : ''}`}
-                className={`mmb-row ${item.isHolding ? 'is-holding' : ''} ${
+                key={`${activeTab}-${item.id || item.symbol}${dup ? '-dup' : ''}`}
+                className={`mm2-row ${item.isHolding ? 'is-holding' : ''} ${
                     item.isWatchlist ? 'is-watchlist' : ''
                 }`}
-                aria-hidden={ariaHidden || undefined}
+                aria-hidden={dup || undefined}
             >
-                <div className="mmb-row__main">
-                    <div className="mmb-row__symbol-line">
-                        <span className="mmb-row__symbol">{item.symbol || '—'}</span>
-                        {item.isHolding && (
-                            <span className="mmb-row__badge is-holding" title="In your holdings">★</span>
-                        )}
-                        {!item.isHolding && item.isWatchlist && (
-                            <span className="mmb-row__badge is-watchlist" title="On your watchlist">●</span>
-                        )}
+                <span className="mm2-row__rank">{index + 2}</span>
+                <div className="mm2-row__info">
+                    <div className="mm2-row__symline">
+                        <span className="mm2-row__symbol">{item.symbol || '—'}</span>
+                        {renderBadge(item)}
+                        {sectorOf(item) ? (
+                            <span className="mm2-row__sector" title={sectorOf(item)}>
+                                {sectorOf(item)}
+                            </span>
+                        ) : null}
                     </div>
-                    <span className="mmb-row__subtitle">{subtitle}</span>
+                    {companyOf(item) ? (
+                        <span className="mm2-row__company" title={companyOf(item)}>
+                            {companyOf(item)}
+                        </span>
+                    ) : null}
+                    <span className="mm2-row__sub">{subtitleOf(item)}</span>
                 </div>
-                <span
-                    className={`mmb-row__value ${
-                        showPct ? pctClass(pct) : 'is-active'
-                    }`}
-                >
-                    {valueDisplay}
-                </span>
+                <div className={`mm2-row__bar mm2-row__bar--${tabMeta.accent}`} aria-hidden>
+                    <span style={{ width: `${barWidth}%` }} />
+                </div>
+                <span className={`mm2-row__value ${valueClassOf(item)}`}>{valueOf(item)}</span>
             </div>
         );
     };
 
     return (
-        <div className="market-movers-board">
-            <div className="mmb-header">
-                <div className="mmb-heading">
-                    <span className="mmb-icon" aria-hidden>
+        <div
+            className={`market-movers-board mm2 mm2--${tabMeta.accent}`}
+            onMouseEnter={() => setIsPaused(true)}
+            onMouseLeave={() => setIsPaused(false)}
+        >
+            <div className="mm2-header">
+                <div className="mm2-heading">
+                    <span className="mm2-heading__icon" aria-hidden>
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                             <polyline points="22 7 13.5 15.5 8.5 10.5 2 17" />
                             <polyline points="16 7 22 7 22 13" />
                         </svg>
                     </span>
-                    <div className="mmb-heading-text">
-                        <h3 className="mmb-title">Market Movers</h3>
-                        <span className="mmb-subtitle">
-                            {heroMover ? (
-                                <>
-                                    <span className="mmb-hero-inline">
-                                        {Number(heroMover.percentageChange) >= 0 ? '▲' : '▼'}{' '}
-                                        <strong>{heroMover.symbol || '—'}</strong>
-                                        <span
-                                            className={`mmb-hero-inline__pct ${pctClass(
-                                                heroMover.percentageChange
-                                            )}`}
-                                        >
-                                            {formatPct(heroMover.percentageChange)}
-                                        </span>
-                                    </span>
-                                    {lastUpdated ? ` · ${formatAsOf(lastUpdated)}` : ''}
-                                </>
-                            ) : (
-                                <>Live CSE board{lastUpdated ? ` · ${formatAsOf(lastUpdated)}` : ''}</>
-                            )}
+                    <div className="mm2-heading__text">
+                        <h3 className="mm2-title">Market Movers</h3>
+                        <span className="mm2-subtitle">
+                            Live CSE board{lastUpdated ? ` · ${formatAsOf(lastUpdated)}` : ''}
                         </span>
                     </div>
                 </div>
 
-                <div className="mmb-header-actions">
+                <div className="mm2-header__actions">
                     <span
-                        className={`mmb-status mmb-status--${statusKey}`}
+                        className={`mm2-status mm2-status--${statusKey}`}
                         title={marketStatus.label}
                     >
-                        <span className="mmb-status-dot" />
+                        <span className="mm2-status__dot" />
                         {marketStatus.label}
                     </span>
                     <button
                         type="button"
-                        className="mmb-refresh"
+                        className="mm2-refresh"
                         onClick={() => load(false)}
                         disabled={isLoading}
                         aria-label="Refresh market movers"
@@ -296,69 +375,94 @@ const DashboardMarketMovers = ({
                 </div>
             </div>
 
+            <div className="mm2-tabs" role="tablist" aria-label="Market mover categories">
+                {TABS.map((tab) => (
+                    <button
+                        key={tab.id}
+                        type="button"
+                        role="tab"
+                        aria-selected={activeTab === tab.id}
+                        className={`mm2-tab mm2-tab--${tab.accent} ${
+                            activeTab === tab.id ? 'is-active' : ''
+                        }`}
+                        onClick={() => setActiveTab(tab.id)}
+                    >
+                        <span className="mm2-tab__icon" aria-hidden>{tab.icon}</span>
+                        <span className="mm2-tab__label">{tab.label}</span>
+                        <span className="mm2-tab__count">{counts[tab.id]}</span>
+                    </button>
+                ))}
+            </div>
+
             {isLoading && (
-                <div className="mmb-state">
+                <div className="mm2-state">
                     <div className="loading-spinner" />
                     <span>Loading market data…</span>
                 </div>
             )}
 
             {!isLoading && error && (
-                <div className="mmb-state is-error">
+                <div className="mm2-state is-error">
                     <span>{error}</span>
                     <button type="button" onClick={() => load(false)}>Retry</button>
                 </div>
             )}
 
             {!isLoading && !error && (
-                <div className="mmb-grid">
-                    {COLUMNS.map((col) => {
-                        const items = ranked[col.id] || [];
-                        // Auto-scroll only when there are more rows than fit (~4).
-                        const shouldAutoscroll = items.length > 4;
-                        const animationDuration = `${Math.max(items.length * 3.2, 18)}s`;
+                <div className="mm2-body">
+                    {feature ? (
+                        <div className={`mm2-feature mm2-feature--${tabMeta.accent}`}>
+                            <div className="mm2-feature__left">
+                                <span className="mm2-feature__tag">
+                                    <span className="mm2-feature__tag-icon" aria-hidden>
+                                        {tabMeta.icon}
+                                    </span>
+                                    {tabMeta.featureTag}
+                                </span>
+                                <div className="mm2-feature__symline">
+                                    <span className="mm2-feature__symbol">
+                                        {feature.symbol || '—'}
+                                    </span>
+                                    {renderBadge(feature)}
+                                    {sectorOf(feature) ? (
+                                        <span className="mm2-feature__sector" title={sectorOf(feature)}>
+                                            {sectorOf(feature)}
+                                        </span>
+                                    ) : null}
+                                </div>
+                                {companyOf(feature) ? (
+                                    <span className="mm2-feature__company" title={companyOf(feature)}>
+                                        {companyOf(feature)}
+                                    </span>
+                                ) : null}
+                                <span className="mm2-feature__sub">{subtitleOf(feature)}</span>
+                            </div>
+                            <span className={`mm2-feature__value ${valueClassOf(feature)}`}>
+                                {valueOf(feature)}
+                            </span>
+                        </div>
+                    ) : (
+                        <div className="mm2-empty">{note || 'No data available'}</div>
+                    )}
+
+                    {restItems.length > 0 && (() => {
+                        const autoscroll = restItems.length > AUTOSCROLL_MIN_ROWS;
+                        const trackDuration = `${Math.max(restItems.length * 2.4, 12)}s`;
                         return (
-                            <section
-                                key={col.id}
-                                className={`mmb-col mmb-col--${col.accent}`}
-                                aria-label={col.label}
-                            >
-                                <header className="mmb-col__header">
-                                    <span className="mmb-col__icon" aria-hidden>{col.icon}</span>
-                                    <span className="mmb-col__label">{col.label}</span>
-                                    <span className="mmb-col__count">{items.length}</span>
-                                </header>
-                                {items.length === 0 ? (
-                                    <div className="mmb-col__empty">
-                                        {note || 'No data'}
-                                    </div>
-                                ) : (
-                                    <div
-                                        className={`mmb-col__viewport${
-                                            shouldAutoscroll ? ' is-autoscrolling' : ''
-                                        }`}
-                                    >
-                                        <div
-                                            className="mmb-col__list"
-                                            style={
-                                                shouldAutoscroll
-                                                    ? { animationDuration }
-                                                    : undefined
-                                            }
-                                        >
-                                            {items.map((item) =>
-                                                renderRow(item, col.id, false)
-                                            )}
-                                            {shouldAutoscroll &&
-                                                items.map((item) =>
-                                                    renderRow(item, col.id, true)
-                                                )}
-                                        </div>
-                                    </div>
-                                )}
-                            </section>
+                            <div className={`mm2-list${autoscroll ? ' is-autoscrolling' : ''}`}>
+                                <div
+                                    className="mm2-list__track"
+                                    style={autoscroll ? { animationDuration: trackDuration } : undefined}
+                                >
+                                    {restItems.map((item, index) => renderRow(item, index))}
+                                    {autoscroll &&
+                                        restItems.map((item, index) =>
+                                            renderRow(item, index, true)
+                                        )}
+                                </div>
+                            </div>
                         );
-                    })}
+                    })()}
                 </div>
             )}
         </div>
