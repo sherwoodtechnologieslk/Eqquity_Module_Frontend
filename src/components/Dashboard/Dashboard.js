@@ -16,9 +16,6 @@ import DashboardSectorMixChart from './DashboardSectorMixChart';
 import MarketNewsWidget from './MarketNewsWidget';
 import DashboardMarketPulse from './DashboardMarketPulse';
 import DashboardMarketMovers from './DashboardMarketMovers';
-import AgentBlux from '../AgentBlux/AgentBlux';
-import { useAgentStatus } from '../../hooks/useAgentStatus';
-import { useBluxSignal } from '../../hooks/useBluxSignal';
 import './Dashboard.css';
 import './LatestActivityCard.css';
 
@@ -129,7 +126,7 @@ const MOCK_WATCHLIST = [
   }
 ];
 
-const Dashboard = ({ onTabChange, onOpenAIAssistant }) => {
+const Dashboard = ({ onTabChange }) => {
   const [dashboardData, setDashboardData] = useState({
     activePortfolios: 0,
     recentTransactions: [],
@@ -846,26 +843,6 @@ const Dashboard = ({ onTabChange, onOpenAIAssistant }) => {
     ? selectedPortfolio.portfolioName || selectedPortfolio.name || `Portfolio ${selectedPortfolio.id}`
     : '';
 
-  const {
-    name: bluxName,
-    status: bluxStatus,
-    patchStatus: patchBluxStatus
-  } = useAgentStatus({ pollMs: 4000 });
-
-  useBluxSignal({
-    holdingSymbols: dashboardData.holdingSymbols,
-    patchStatus: patchBluxStatus,
-    enabled: !isLoading
-  });
-
-  const handleBluxClick = useCallback(() => {
-    if (typeof onOpenAIAssistant === 'function') {
-      onOpenAIAssistant();
-    }
-  }, [onOpenAIAssistant]);
-
-  const bluxInteractive = typeof onOpenAIAssistant === 'function';
-
   const marketPulseEl = (
     <DashboardMarketPulse
       holdingSymbols={dashboardData.holdingSymbols || []}
@@ -882,21 +859,6 @@ const Dashboard = ({ onTabChange, onOpenAIAssistant }) => {
       holdingNames={dashboardData.holdingNames || []}
       watchlistSymbols={watchlistSymbols}
     />
-  );
-
-  const bluxPanelEl = (
-    <div className="dashboard-blux-panel">
-      <div className="dashboard-blux-panel__stage">
-        <div className="dashboard-blux-panel__avatar">
-          <AgentBlux
-            name={bluxName}
-            status={bluxStatus}
-            size={480}
-            onChat={bluxInteractive ? handleBluxClick : undefined}
-          />
-        </div>
-      </div>
-    </div>
   );
 
   const portfolioHeroEl = (
@@ -966,32 +928,6 @@ const Dashboard = ({ onTabChange, onOpenAIAssistant }) => {
           {marketPulseEl}
           {portfolioHeroEl}
           <div className="left-column">
-          {/* Market status — single horizontal exchange strip */}
-          <div
-            className={`market-strip ${marketStatus.isLive ? 'market-strip--open' : 'market-strip--closed'}`}
-            role="status"
-            aria-label={`Market ${marketStatus.status.toLowerCase()}`}
-          >
-            <div className="market-strip__exchange">
-              <span className="market-strip__pill">
-                <span className="market-strip__dot" aria-hidden />
-                {marketStatus.status}
-              </span>
-              <div className="market-strip__exchange-text">
-                <span className="market-strip__exchange-name">
-                  {userRegion || 'Colombo Stock Exchange'}
-                </span>
-                <span className="market-strip__hours">
-                  Opens 9:30 AM · Closes 2:30 PM
-                </span>
-              </div>
-            </div>
-            <div className="market-strip__clock">
-              <span className="market-strip__time">{formatTime(currentTime)}</span>
-              <span className="market-strip__date">{formatDate(currentTime)}</span>
-            </div>
-          </div>
-
         {/* Risk-return scatter (was Sector Activity mock) */}
         <div className="content-card heatmap-card dashboard-chart-lead">
           <RiskReturnScatterPlot syncedPortfolioId={selectedPortfolioKey} />
@@ -1141,8 +1077,28 @@ const Dashboard = ({ onTabChange, onOpenAIAssistant }) => {
         </div>
 
         <div className="dashboard-body__right">
+          {/* Market status — single horizontal exchange strip */}
+          <div
+            className={`market-strip ${marketStatus.isLive ? 'market-strip--open' : 'market-strip--closed'}`}
+            role="status"
+            aria-label={`Market ${marketStatus.status.toLowerCase()}`}
+          >
+            <div className="market-strip__exchange">
+              <div className="market-strip__exchange-text">
+                <span className="market-strip__exchange-name">
+                  {userRegion || 'Colombo Stock Exchange'}
+                </span>
+                <span className="market-strip__hours">
+                  Opens 9:30 AM · Closes 2:30 PM
+                </span>
+              </div>
+            </div>
+            <div className="market-strip__clock">
+              <span className="market-strip__time">{formatTime(currentTime)}</span>
+              <span className="market-strip__date">{formatDate(currentTime)}</span>
+            </div>
+          </div>
           {marketMoversEl}
-          {bluxPanelEl}
           <div className="right-column">
           {/* P&L Metrics */}
           <div className="pnl-stats">

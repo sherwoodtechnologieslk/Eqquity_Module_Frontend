@@ -88,6 +88,7 @@ import GsecGeneralLedger from './components/GsecEntries/GsecGeneralLedger';
 import GsecBalanceSheet from './components/GsecEntries/GsecBalanceSheet';
 import GsecManualEntryPosting from './components/GsecEntries/GsecManualEntryPosting';
 import GsecMissingEntries from './components/GsecEntries/GsecMissingEntries';
+import GsecBulkEntryGrid from './components/GsecEntries/GsecBulkEntryGrid';
 import CombinedGL from './components/AccountingEntries/CombinedGL';
 import CombinedTrialBalance from './components/AccountingEntries/CombinedTrialBalance';
 import AccountSummaries from './components/AccountingEntries/AccountSummaries';
@@ -108,6 +109,7 @@ import PredictionIndicators from './components/PredictiveValuationModel/Predicti
 import BlockAnalysisDashboard from './components/PredictiveValuationModel/BlockAnalysisDashboard';
 import MLStockPrediction from './components/PredictiveValuationModel/MLStockPrediction';
 import AIAssistantDock from './components/AIAssistant/AIAssistantDock';
+import GlobalBlux from './components/AgentBlux/GlobalBlux';
 import CSEASPIPage from './components/ChartsAndInsights/CSEASPIPage';
 import CSESectorIndicesPage from './components/ChartsAndInsights/CSESectorIndicesPage';
 import AssetRegister from './components/FixedAssets/AssetRegister';
@@ -159,7 +161,7 @@ function App() {
   const tabToComponent = {
     'Dashboard': selectedManager === 'wealth' 
       ? <WealthManagerDashboard /> 
-      : <Dashboard onTabChange={handleTabChange} onOpenAIAssistant={() => setAiAssistantOpen(true)} />,
+      : <Dashboard onTabChange={handleTabChange} />,
     'Portfolio Overview': selectedManager === 'wealth'
       ? <WMPortfolioOverview />
       : <PortfolioOverview onTabChange={handleTabChange} />,
@@ -266,9 +268,10 @@ function App() {
     'Other Reports': <OtherReports />,
     'GSEC ENTRIES': <GsecEntries />,
     'Missing GSec Entries': <GsecMissingEntries />,
-    'Balance Sheet': <GsecBalanceSheet />,
+    'Gsec Trial Balance': <GsecBalanceSheet />,
     'GSec General Ledger': <GsecGeneralLedger />,
     'GSec Manual Entry Posting': <GsecManualEntryPosting />,
+    'GSec Bulk Entry Grid': <GsecBulkEntryGrid />,
     'Combined General Ledger': <CombinedGL onTabChange={handleTabChange} />,
     'Combined Trial Balance': <CombinedTrialBalance onTabChange={handleTabChange} />,
     'Account Summaries': <AccountSummaries onTabChange={handleTabChange} />,
@@ -440,6 +443,8 @@ function App() {
         open={aiAssistantOpen}
         onClose={() => setAiAssistantOpen(false)}
       />
+
+      <GlobalBlux onOpenAIAssistant={() => setAiAssistantOpen(true)} />
     </div>
   );
 }

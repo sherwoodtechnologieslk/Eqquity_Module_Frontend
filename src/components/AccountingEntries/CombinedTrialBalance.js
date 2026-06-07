@@ -38,32 +38,23 @@ const entryDateValue = (e) => {
   return Number.isNaN(t) ? 0 : t;
 };
 
-/** YYYY-MM-DD in local calendar (avoids day shift from toISOString() in non-UTC timezones). */
-const toLocalYmd = (d) => {
-  const y = d.getFullYear();
-  const m = String(d.getMonth() + 1).padStart(2, '0');
-  const day = String(d.getDate()).padStart(2, '0');
-  return `${y}-${m}-${day}`;
-};
-
-/** Same default range as trialBalanceAPI.getTrialBalance (month start → today, ISO yyyy-mm-dd). */
-const getDefaultTrialBalanceDateRange = () => {
-  const now = new Date();
-  const startDate = toLocalYmd(new Date(now.getFullYear(), now.getMonth(), 1));
-  const endDate = toLocalYmd(now);
-  return { startDate, endDate };
-};
+/**
+ * Open-ended bounds used when the user leaves a date field blank, so the screen
+ * shows ALL data instead of a current-month default. Each side falls back
+ * independently (e.g. start filled + end blank => "from start onwards").
+ */
+const FULL_RANGE_START = '1900-01-01';
+const FULL_RANGE_END = '2999-12-31';
 
 const resolveTrialBalanceDates = (f) => {
-  const defaults = getDefaultTrialBalanceDateRange();
   const s =
     f?.startDate != null && String(f.startDate).trim() !== ''
       ? String(f.startDate).trim()
-      : defaults.startDate;
+      : FULL_RANGE_START;
   const e =
     f?.endDate != null && String(f.endDate).trim() !== ''
       ? String(f.endDate).trim()
-      : defaults.endDate;
+      : FULL_RANGE_END;
   return { startDate: s, endDate: e };
 };
 
@@ -75,7 +66,7 @@ const CombinedTrialBalance = () => {
   const [exporting, setExporting] = useState(false);
   const hasLoadedOnceRef = useRef(false);
 
-  const [filters, setFilters] = useState(() => getDefaultTrialBalanceDateRange());
+  const [filters, setFilters] = useState({ startDate: '', endDate: '' });
   const [sourceFilter, setSourceFilter] = useState('all'); // all | equity | gsec
   const [searchTerm, setSearchTerm] = useState('');
 
@@ -251,17 +242,10 @@ const CombinedTrialBalance = () => {
   }, []);
 
   const handleDateChange = (field, value) => {
-    const defaults = getDefaultTrialBalanceDateRange();
     const raw = value != null ? String(value).trim() : '';
-    const next =
-      raw !== ''
-        ? raw
-        : field === 'startDate'
-          ? defaults.startDate
-          : defaults.endDate;
     setFilters((prev) => ({
       ...prev,
-      [field]: next,
+      [field]: raw,
     }));
   };
 
@@ -279,9 +263,12 @@ const CombinedTrialBalance = () => {
       doc.setFontSize(11);
       doc.text('Combined Trial Balance', 40, 34);
 
-      const periodLabel = `Period: ${formatDate(
-        equityTB?.period?.startDate || gsecBS?.period?.startDate
-      )} - ${formatDate(equityTB?.period?.endDate || gsecBS?.period?.endDate)}`;
+      const periodLabel =
+        !filters.startDate && !filters.endDate
+          ? 'Period: All dates'
+          : `Period: ${
+              filters.startDate ? formatDate(filters.startDate) : 'Earliest'
+            } - ${filters.endDate ? formatDate(filters.endDate) : 'Latest'}`;
 
       doc.setFontSize(9);
       doc.setTextColor(71, 85, 105);
@@ -393,8 +380,7 @@ const CombinedTrialBalance = () => {
   };
 
   const clearFilters = () => {
-    const defaults = getDefaultTrialBalanceDateRange();
-    setFilters(defaults);
+    setFilters({ startDate: '', endDate: '' });
     setSourceFilter('all');
     setSearchTerm('');
   };
@@ -425,8 +411,6 @@ const CombinedTrialBalance = () => {
     if (Number.isNaN(d.getTime())) return s;
     return d.toLocaleDateString('en-LK');
   };
-
-  const filterDisplayDates = useMemo(() => resolveTrialBalanceDates(filters), [filters]);
 
   const combinedAccounts = useMemo(() => {
     const byCode = new Map();
@@ -611,8 +595,11 @@ const CombinedTrialBalance = () => {
             <div className="ctb-period">
               Period:&nbsp;
               <span>
-                {formatDate(equityTB?.period?.startDate || gsecBS?.period?.startDate)} -{' '}
-                {formatDate(equityTB?.period?.endDate || gsecBS?.period?.endDate)}
+                {!filters.startDate && !filters.endDate
+                  ? 'All dates'
+                  : `${filters.startDate ? formatDate(filters.startDate) : 'Earliest'} - ${
+                      filters.endDate ? formatDate(filters.endDate) : 'Latest'
+                    }`}
               </span>
             </div>
           </div>
@@ -631,7 +618,7 @@ const CombinedTrialBalance = () => {
                   type="date"
                   lang="en-US"
                   className="ctb-filter-input"
-                  value={filterDisplayDates.startDate}
+                  value={filters.startDate}
                   onChange={(e) => handleDateChange('startDate', e.target.value)}
                 />
               </div>
@@ -641,7 +628,7 @@ const CombinedTrialBalance = () => {
                   type="date"
                   lang="en-US"
                   className="ctb-filter-input"
-                  value={filterDisplayDates.endDate}
+                  value={filters.endDate}
                   onChange={(e) => handleDateChange('endDate', e.target.value)}
                 />
               </div>

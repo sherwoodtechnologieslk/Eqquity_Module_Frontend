@@ -190,10 +190,10 @@
 .buy-form-select,
 .buy-form-textarea {
   width: 100%;
-  padding: 0.42rem 0.55rem;
+  padding: 0.55rem 0.7rem;
   border: 1px solid #d1fae5;
   border-radius: 0.18rem; /* LESS ROUND */
-  font-size: 0.8125rem;
+  font-size: 0.875rem;
   background-color: #f0fdf4;
   transition: all 0.25s cubic-bezier(0.23, 1, 0.32, 1);
   box-sizing: border-box;

@@ -42,40 +42,6 @@
   min-width: 0;
 }
 
-/* Agent Blux panel — fills the remaining vertical space below Market Movers */
-.dashboard-blux-panel {
-  position: relative;
-  flex: 0 0 auto;
-  min-height: 0;
-  display: flex;
-  align-items: flex-start;
-  justify-content: flex-start;
-  padding: 0 0 72px;
-  margin-top: -32px;
-  background: transparent;
-  border: none;
-  box-shadow: none;
-  overflow: visible;
-}
-
-.dashboard-blux-panel__stage {
-  display: flex;
-  align-items: center;
-  justify-content: flex-start;
-  width: 100%;
-  position: relative;
-  z-index: 1;
-  padding: 0;
-}
-
-.dashboard-blux-panel__avatar {
-  display: flex;
-  align-items: center;
-  justify-content: flex-start;
-  min-width: 0;
-  margin-left: -120px;
-}
-
 .dashboard-body .market-pulse-widget__featured-thumb-wrap {
   aspect-ratio: 16 / 6;
 }
@@ -598,7 +564,7 @@
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 0.5rem;
-  margin-top: -3.5rem;
+  margin-top: 0;
   margin-bottom: 0.125rem;
 }
 

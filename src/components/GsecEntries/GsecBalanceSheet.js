@@ -189,7 +189,7 @@ const GsecBalanceSheet = () => {
             </svg>
           </div>
           <div className="gsec-bs-header-text-group">
-            <h1 className="gsec-bs-main-title">GSec Balance Sheet</h1>
+            <h1 className="gsec-bs-main-title">Gsec Trial Balance</h1>
             <p className="gsec-bs-subtitle">
               Snapshot of GSec assets and related accounts based on imported GSec entries.
             </p>
