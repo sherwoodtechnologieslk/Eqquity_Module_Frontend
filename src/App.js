@@ -109,6 +109,7 @@ import PredictionIndicators from './components/PredictiveValuationModel/Predicti
 import BlockAnalysisDashboard from './components/PredictiveValuationModel/BlockAnalysisDashboard';
 import MLStockPrediction from './components/PredictiveValuationModel/MLStockPrediction';
 import AIAssistantDock from './components/AIAssistant/AIAssistantDock';
+import GlobalBlux from './components/AgentBlux/GlobalBlux';
 import CSEASPIPage from './components/ChartsAndInsights/CSEASPIPage';
 import CSESectorIndicesPage from './components/ChartsAndInsights/CSESectorIndicesPage';
 import AssetRegister from './components/FixedAssets/AssetRegister';
@@ -160,7 +161,7 @@ function App() {
   const tabToComponent = {
     'Dashboard': selectedManager === 'wealth' 
       ? <WealthManagerDashboard /> 
-      : <Dashboard onTabChange={handleTabChange} onOpenAIAssistant={() => setAiAssistantOpen(true)} />,
+      : <Dashboard onTabChange={handleTabChange} />,
     'Portfolio Overview': selectedManager === 'wealth'
       ? <WMPortfolioOverview />
       : <PortfolioOverview onTabChange={handleTabChange} />,
@@ -442,6 +443,8 @@ function App() {
         open={aiAssistantOpen}
         onClose={() => setAiAssistantOpen(false)}
       />
+
+      <GlobalBlux onOpenAIAssistant={() => setAiAssistantOpen(true)} />
     </div>
   );
 }
