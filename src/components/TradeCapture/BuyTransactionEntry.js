@@ -12,6 +12,15 @@ const STORAGE_KEY = 'buy_transactions';
 
 const getToday = () => new Date().toISOString().slice(0, 10);
 
+const formatDisplayMoney = (value) => {
+  const n = parseFloat(value);
+  if (!Number.isFinite(n)) return '0.00';
+  return n.toLocaleString('en-US', {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2
+  });
+};
+
 // Function to add business days (excluding weekends)
 const addBusinessDays = (dateString, businessDays) => {
   const date = new Date(dateString);
@@ -982,14 +991,64 @@ const BuyTransactionEntry = () => {
   return (
     <div className="buy-page-container">
       <div className="buy-content-wrapper">
-
-        <div className="buy-container">
-          <div className="buy-card-header">
-            <h2 className="buy-card-title">Buy Transaction Entry- Record equity purchase transactions with automatic calculations</h2>
+        <header className="buy-toolbar">
+          <div className="buy-toolbar__left">
+            <span className="buy-toolbar__badge">BUY</span>
+            <div className="buy-toolbar__heading">
+              <h1 className="buy-toolbar__title">Buy Transaction Entry</h1>
+              <p className="buy-toolbar__subtitle">
+                Record equity purchases with automatic fee and settlement calculations
+              </p>
+            </div>
           </div>
-          <div className="buy-form-content">
-            <form onSubmit={handleSubmit}>
-              {/* Transaction Information Section */}
+          <div className="buy-toolbar__actions">
+            {form.dealNumber ? (
+              <span className="buy-deal-chip" title="Deal number">{form.dealNumber}</span>
+            ) : null}
+            <button
+              type="button"
+              className="buy-btn buy-btn-outline"
+              onClick={() => setShowListView(true)}
+            >
+              View Submitted
+            </button>
+          </div>
+        </header>
+
+        {(form.grossValue || form.netValue) ? (
+          <section className="buy-live-summary" aria-label="Live calculation summary">
+            <div className="buy-live-kpi">
+              <span className="buy-live-kpi__label">Gross Value</span>
+              <span className="buy-live-kpi__value">
+                <span className="buy-live-kpi__ccy">LKR</span> {formatDisplayMoney(form.grossValue)}
+              </span>
+            </div>
+            <div className="buy-live-kpi">
+              <span className="buy-live-kpi__label">Total Fees</span>
+              <span className="buy-live-kpi__value">
+                <span className="buy-live-kpi__ccy">LKR</span>{' '}
+                {formatDisplayMoney(
+                  (parseFloat(form.brokerage) || 0) +
+                  (parseFloat(form.cseFees) || 0) +
+                  (parseFloat(form.cdsFees) || 0) +
+                  (parseFloat(form.clearingFees) || 0) +
+                  (parseFloat(form.sec) || 0) +
+                  (parseFloat(form.stl) || 0)
+                )}
+              </span>
+            </div>
+            <div className="buy-live-kpi buy-live-kpi--accent">
+              <span className="buy-live-kpi__label">Net Value</span>
+              <span className="buy-live-kpi__value">
+                <span className="buy-live-kpi__ccy">LKR</span> {formatDisplayMoney(form.netValue)}
+              </span>
+            </div>
+          </section>
+        ) : null}
+
+        <div className="buy-form-shell">
+          <form onSubmit={handleSubmit} className="buy-form">
+            <section className="buy-section-card">
               <div className="buy-section-header">
                 <div className="buy-section-icon">
                   <svg className="buy-section-icon-svg" fill="currentColor" viewBox="0 0 20 20">
@@ -1180,7 +1239,9 @@ const BuyTransactionEntry = () => {
                   )}
                 </div>
               </div>
-              {/* Cost Breakdown Section */}
+            </section>
+
+            <section className="buy-section-card">
               <div className="buy-section-header">
                 <div className="buy-section-icon calculation">
                   <svg className="buy-section-icon-svg" fill="currentColor" viewBox="0 0 20 20">
@@ -1312,10 +1373,15 @@ const BuyTransactionEntry = () => {
               <div className="buy-net-value-section left-align">
                 <div className="buy-net-value-card small">
                   <label className="buy-net-value-label">Total Net Value</label>
-                  <div className="buy-net-value-amount">Rs. {form.netValue || '0.00'}</div>
+                  <div className="buy-net-value-amount">
+                    <span className="buy-net-value-currency">LKR</span>
+                    {formatDisplayMoney(form.netValue)}
+                  </div>
                 </div>
               </div>
-              {/* Payment Information Section */}
+            </section>
+
+            <section className="buy-section-card">
               <div className="buy-section-header">
                 <div className="buy-section-icon payment">
                   <svg className="buy-section-icon-svg" fill="currentColor" viewBox="0 0 20 20">
@@ -1497,32 +1563,24 @@ const BuyTransactionEntry = () => {
                   </div>
                 </div>
               </div>
+            </section>
 
-              {/* Buttons */}
-              <div className="buy-button-section">
-                <button
-                  type="button"
-                  onClick={handleReset}
-                  className="buy-btn buy-btn-secondary"
-                >
-                  Reset Form
-                </button>
-                <button
-                  type="button"
-                  className="buy-btn buy-btn-tertiary"
-                  onClick={() => setShowListView(true)}
-                >
-                  View Transactions
-                </button>
-                <button
-                  type="submit"
-                  className="buy-btn buy-btn-primary"
-                >
-                  Save Transaction
-                </button>
-              </div>
-            </form>
-          </div>
+            <div className="buy-button-section">
+              <button
+                type="button"
+                onClick={handleReset}
+                className="buy-btn buy-btn-secondary"
+              >
+                Reset Form
+              </button>
+              <button
+                type="submit"
+                className="buy-btn buy-btn-primary"
+              >
+                Save Transaction
+              </button>
+            </div>
+          </form>
         </div>
 
         {showModal && (

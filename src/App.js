@@ -444,7 +444,9 @@ function App() {
         onClose={() => setAiAssistantOpen(false)}
       />
 
-      <GlobalBlux onOpenAIAssistant={() => setAiAssistantOpen(true)} />
+      {selectedManager === 'equity' && (
+        <GlobalBlux onOpenAIAssistant={() => setAiAssistantOpen(true)} />
+      )}
     </div>
   );
 }
