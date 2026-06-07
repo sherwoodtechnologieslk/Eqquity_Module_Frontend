@@ -36,7 +36,10 @@ const AIAssistant = ({ variant = 'page', onClose }) => {
         },
       ]);
     } catch (e) {
-      setError(e.message || 'Request failed');
+      // Log the technical error for debugging, but never surface raw backend
+      // errors (which may contain secrets like API keys) in the UI.
+      console.error('AI assistant request failed:', e);
+      setError('Agent Blux is temporarily unavailable. Please try again later.');
       setMessages((prev) => [
         ...prev,
         {

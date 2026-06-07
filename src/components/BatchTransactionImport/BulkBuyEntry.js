@@ -8,6 +8,15 @@ import holidayService from '../../services/holidayService';
 
 const getToday = () => new Date().toISOString().slice(0, 10);
 
+const formatDisplayMoney = (value) => {
+  const n = parseFloat(value);
+  if (!Number.isFinite(n)) return '0.00';
+  return n.toLocaleString('en-US', {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2
+  });
+};
+
 // Function to add business days (excluding weekends)
 const addBusinessDays = (dateString, businessDays) => {
   const date = new Date(dateString);
@@ -697,26 +706,57 @@ const BulkBuyEntry = () => {
   return (
     <div className="bulk-buy-page-container">
       <div className="bulk-buy-content-wrapper">
-        {/* Header */}
-        <div className="bulk-buy-header-section">
-          <div className="bulk-buy-header-icon">
-            <svg className="bulk-buy-icon" fill="currentColor" viewBox="0 0 20 20">
-              <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-11a1 1 0 10-2 0v2H7a1 1 0 100 2h2v2a1 1 0 102 0v-2h2a1 1 0 100-2h-2V7z" clipRule="evenodd"/>
-            </svg>
+        <header className="bulk-buy-toolbar">
+          <div className="bulk-buy-toolbar__left">
+            <span className="bulk-buy-toolbar__badge">BULK BUY</span>
+            <div className="bulk-buy-toolbar__heading">
+              <h1 className="bulk-buy-toolbar__title">Bulk Buy Transaction Entry</h1>
+              <p className="bulk-buy-toolbar__subtitle">
+                Record bulk equity purchases with automatic fee and settlement calculations
+              </p>
+            </div>
           </div>
-          <div className="bulk-buy-header-text-group">
-            <h1 className="bulk-buy-main-title">Bulk Buy Transaction Entry</h1>
-            <p className="bulk-buy-subtitle">Record bulk equity purchase transactions with automatic calculations</p>
+          <div className="bulk-buy-toolbar__actions">
+            {form.dealNumber ? (
+              <span className="bulk-buy-deal-chip" title="Deal number">{form.dealNumber}</span>
+            ) : null}
           </div>
-        </div>
+        </header>
 
-        <div className="bulk-buy-container">
-          <div className="bulk-buy-card-header">
-            <h2 className="bulk-buy-card-title">Transaction Details</h2>
-          </div>
-          <div className="bulk-buy-form-content">
+        {(form.grossValue || form.netValue) ? (
+          <section className="bulk-buy-live-summary" aria-label="Live calculation summary">
+            <div className="bulk-buy-live-kpi">
+              <span className="bulk-buy-live-kpi__label">Gross Value</span>
+              <span className="bulk-buy-live-kpi__value">
+                <span className="bulk-buy-live-kpi__ccy">LKR</span> {formatDisplayMoney(form.grossValue)}
+              </span>
+            </div>
+            <div className="bulk-buy-live-kpi">
+              <span className="bulk-buy-live-kpi__label">Total Fees</span>
+              <span className="bulk-buy-live-kpi__value">
+                <span className="bulk-buy-live-kpi__ccy">LKR</span>{' '}
+                {formatDisplayMoney(
+                  (parseFloat(form.brokerage) || 0) +
+                  (parseFloat(form.cseFees) || 0) +
+                  (parseFloat(form.cdsFees) || 0) +
+                  (parseFloat(form.clearingFees) || 0) +
+                  (parseFloat(form.sec) || 0) +
+                  (parseFloat(form.stl) || 0)
+                )}
+              </span>
+            </div>
+            <div className="bulk-buy-live-kpi bulk-buy-live-kpi--accent">
+              <span className="bulk-buy-live-kpi__label">Net Value</span>
+              <span className="bulk-buy-live-kpi__value">
+                <span className="bulk-buy-live-kpi__ccy">LKR</span> {formatDisplayMoney(form.netValue)}
+              </span>
+            </div>
+          </section>
+        ) : null}
+
+        <div className="bulk-buy-form-shell">
             <form onSubmit={handleSubmit} className="bulk-buy-form">
-              <div className="bulk-buy-form-grid">
+              <section className="bulk-buy-section-card">
           {/* Security & Trade Information */}
           <div className="bulk-buy-section-header">
             <div className="bulk-buy-section-icon">
@@ -801,6 +841,9 @@ const BulkBuyEntry = () => {
             </div>
           </div>
 
+            </section>
+
+            <section className="bulk-buy-section-card">
           {/* Transaction Details */}
           <div className="bulk-buy-section-header">
             <div className="bulk-buy-section-icon">
@@ -930,6 +973,9 @@ const BulkBuyEntry = () => {
           </div>
 
 
+            </section>
+
+            <section className="bulk-buy-section-card">
           {/* Cost Breakdown & Calculations */}
           <div className="bulk-buy-section-header">
             <div className="bulk-buy-section-icon calculation">
@@ -1086,11 +1132,17 @@ const BulkBuyEntry = () => {
             <div className="bulk-buy-net-value-section left-align">
               <div className="bulk-buy-net-value-card small">
                 <label className="bulk-buy-net-value-label">Total Net Value</label>
-                <div className="bulk-buy-net-value-amount">Rs. {form.netValue ? parseFloat(form.netValue).toFixed(4) : '0.0000'}</div>
+                <div className="bulk-buy-net-value-amount">
+                  <span className="bulk-buy-net-value-currency">LKR</span>
+                  {formatDisplayMoney(form.netValue)}
+                </div>
               </div>
             </div>
           </div>
 
+            </section>
+
+            <section className="bulk-buy-section-card">
           {/* Settlement Information */}
           <div className="bulk-buy-section-header">
             <div className="bulk-buy-section-icon payment">
@@ -1236,8 +1288,7 @@ const BulkBuyEntry = () => {
               </div>
             </div>
           </div>
-
-        </div>
+            </section>
 
               {/* Form Actions */}
               <div className="bulk-buy-button-section">
@@ -1256,7 +1307,6 @@ const BulkBuyEntry = () => {
                 </button>
               </div>
             </form>
-          </div>
         </div>
       </div>
 

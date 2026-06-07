@@ -6,6 +6,15 @@ import holidayService from '../../services/holidayService';
 
 const getToday = () => new Date().toISOString().slice(0, 10);
 
+const formatDisplayMoney = (value) => {
+  const n = parseFloat(value);
+  if (!Number.isFinite(n)) return '0.00';
+  return n.toLocaleString('en-US', {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2
+  });
+};
+
 // Function to add business days (excluding weekends)
 const addBusinessDays = (dateString, businessDays) => {
   const date = new Date(dateString);
@@ -932,32 +941,59 @@ const BulkSellEntry = () => {
   return (
     <div className="bulk-sell-page-container">
       <div className="bulk-sell-content-wrapper">
-        {/* Header */}
-        <div className="bulk-sell-header-section">
-          <div className="bulk-sell-header-icon">
-            <svg className="bulk-sell-icon" fill="currentColor" viewBox="0 0 24 24">
-              <path d="M12 2L13.09 8.26L22 9L13.09 9.74L12 16L10.91 9.74L2 9L10.91 8.26L12 2Z"/>
-            </svg>
+        <header className="bulk-sell-toolbar">
+          <div className="bulk-sell-toolbar__left">
+            <span className="bulk-sell-toolbar__badge">BULK SELL</span>
+            <div className="bulk-sell-toolbar__heading">
+              <h1 className="bulk-sell-toolbar__title">Bulk Sell Transaction Entry</h1>
+              <p className="bulk-sell-toolbar__subtitle">
+                Record multiple stock sales with automatic fee, gain and settlement calculations
+              </p>
+            </div>
           </div>
-          <div className="bulk-sell-header-text-group">
-            <h1 className="bulk-sell-main-title">Bulk Sell Transaction Entry</h1>
-            <p className="bulk-sell-subtitle">Record multiple stock sale transactions with automatic calculations</p>
-          </div>
-        </div>
+        </header>
 
-        <div className="bulk-sell-container">
-          <div className="bulk-sell-card-header">
-            <h2 className="bulk-sell-card-title">Transaction Details</h2>
+        {showSuccess && (
+          <div className="bulk-sell-success-banner">
+            <div className="bulk-sell-success-icon">✓</div>
+            <span>Bulk sell transactions recorded successfully!</span>
           </div>
-          <div className="bulk-sell-form-content">
-            {showSuccess && (
-              <div className="bulk-sell-success-banner">
-                <div className="bulk-sell-success-icon">✓</div>
-                <span>Bulk sell transactions recorded successfully!</span>
-              </div>
-            )}
+        )}
 
+        {(form.grossValue || form.netValue) ? (
+          <section className="bulk-sell-live-summary" aria-label="Live calculation summary">
+            <div className="bulk-sell-live-kpi">
+              <span className="bulk-sell-live-kpi__label">Gross Value</span>
+              <span className="bulk-sell-live-kpi__value">
+                <span className="bulk-sell-live-kpi__ccy">LKR</span> {formatDisplayMoney(form.grossValue)}
+              </span>
+            </div>
+            <div className="bulk-sell-live-kpi">
+              <span className="bulk-sell-live-kpi__label">Capital Gain</span>
+              <span
+                className={`bulk-sell-live-kpi__value${
+                  (parseFloat(form.capitalGain) || 0) > 0
+                    ? ' is-positive'
+                    : (parseFloat(form.capitalGain) || 0) < 0
+                    ? ' is-negative'
+                    : ''
+                }`}
+              >
+                <span className="bulk-sell-live-kpi__ccy">LKR</span> {formatDisplayMoney(form.capitalGain)}
+              </span>
+            </div>
+            <div className="bulk-sell-live-kpi bulk-sell-live-kpi--accent">
+              <span className="bulk-sell-live-kpi__label">Net Proceeds</span>
+              <span className="bulk-sell-live-kpi__value">
+                <span className="bulk-sell-live-kpi__ccy">LKR</span> {formatDisplayMoney(form.netValue)}
+              </span>
+            </div>
+          </section>
+        ) : null}
+
+        <div className="bulk-sell-form-shell">
             <form onSubmit={handleSubmit} className="bulk-sell-form">
+              <section className="bulk-sell-section-card">
               {/* Section 1 - Basic Information */}
               <div className="bulk-sell-section-header">
                 <div className="bulk-sell-section-icon">
@@ -1107,6 +1143,9 @@ const BulkSellEntry = () => {
 
               </div>
 
+            </section>
+
+            <section className="bulk-sell-section-card">
               {/* Section 2 - Transaction Details */}
               <div className="bulk-sell-section-header">
                 <div className="bulk-sell-section-icon">
@@ -1193,6 +1232,9 @@ const BulkSellEntry = () => {
                 </div>
               </div>
 
+            </section>
+
+            <section className="bulk-sell-section-card">
               {/* Cost Breakdown & Calculations Section */}
               <div className="bulk-sell-section-header">
                 <div className="bulk-sell-section-icon calculation">
@@ -1325,11 +1367,17 @@ const BulkSellEntry = () => {
               <div className="bulk-sell-net-value-section left-align">
                 <div className="bulk-sell-net-value-card small">
                   <label className="bulk-sell-net-value-label">Net Proceeds (After Fees)</label>
-                  <div className="bulk-sell-net-value-amount">Rs. {form.netValue || '0.00'}</div>
+                  <div className="bulk-sell-net-value-amount">
+                    <span className="bulk-sell-net-value-currency">LKR</span>
+                    {formatDisplayMoney(form.netValue)}
+                  </div>
                   <small className="bulk-sell-net-value-note">Amount you will receive</small>
                 </div>
               </div>
 
+            </section>
+
+            <section className="bulk-sell-section-card">
               {/* Section 3 - Dates & References */}
               <div className="bulk-sell-section-header">
                 <div className="bulk-sell-section-icon">
@@ -1487,6 +1535,9 @@ const BulkSellEntry = () => {
                 </div>
               </div>
 
+            </section>
+
+            <section className="bulk-sell-section-card">
               {/* Section 4 - Financial Calculations */}
               <div className="bulk-sell-section-header">
                 <div className="bulk-sell-section-icon calculation">
@@ -1549,6 +1600,8 @@ const BulkSellEntry = () => {
                 </div>
               </div>
 
+            </section>
+
               {/* Submit Button */}
               <div className="bulk-sell-form-actions">
                 <button
@@ -1560,7 +1613,6 @@ const BulkSellEntry = () => {
                 </button>
               </div>
             </form>
-          </div>
         </div>
       </div>
 
