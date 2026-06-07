@@ -12,6 +12,15 @@ import holidayService from '../../services/holidayService';
 
 const getToday = () => new Date().toISOString().slice(0, 10);
 
+const formatDisplayMoney = (value) => {
+  const n = parseFloat(value);
+  if (!Number.isFinite(n)) return '0.00';
+  return n.toLocaleString('en-US', {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2
+  });
+};
+
 // Function to add business days (excluding weekends)
 const addBusinessDays = (dateString, businessDays) => {
   const date = new Date(dateString);
@@ -1268,19 +1277,71 @@ const SellTransactionEntry = ({ setFifoParams, setActiveTab }) => {
 
 
       <div className="sell-content-wrapper">
-        <div className="sell-container">
-          <div className="sell-card-header">
-            <h2 className="sell-card-title">Sell Transaction Entry- Record your stock sale transaction details</h2>
+        <header className="sell-toolbar">
+          <div className="sell-toolbar__left">
+            <span className="sell-toolbar__badge">SELL</span>
+            <div className="sell-toolbar__heading">
+              <h1 className="sell-toolbar__title">Sell Transaction Entry</h1>
+              <p className="sell-toolbar__subtitle">
+                Record stock sales with automatic fee, gain and settlement calculations
+              </p>
+            </div>
           </div>
-          <div className="sell-form-content">
-            {showSuccess && (
-              <div className="sell-success-banner">
-                <div className="sell-success-icon">✓</div>
-                <span>Transaction recorded successfully!</span>
-              </div>
-            )}
+          <div className="sell-toolbar__actions">
+            {form.dealNumber ? (
+              <span className="sell-deal-chip" title="Deal number">{form.dealNumber}</span>
+            ) : null}
+            <button
+              type="button"
+              className="sell-btn sell-btn-outline"
+              onClick={() => setShowListView(true)}
+            >
+              View Submitted
+            </button>
+          </div>
+        </header>
 
+        {showSuccess && (
+          <div className="sell-success-banner">
+            <div className="sell-success-icon">✓</div>
+            <span>Transaction recorded successfully!</span>
+          </div>
+        )}
+
+        {(form.grossValue || form.netValue) ? (
+          <section className="sell-live-summary" aria-label="Live calculation summary">
+            <div className="sell-live-kpi">
+              <span className="sell-live-kpi__label">Gross Value</span>
+              <span className="sell-live-kpi__value">
+                <span className="sell-live-kpi__ccy">LKR</span> {formatDisplayMoney(form.grossValue)}
+              </span>
+            </div>
+            <div className="sell-live-kpi">
+              <span className="sell-live-kpi__label">Capital Gain</span>
+              <span
+                className={`sell-live-kpi__value${
+                  (parseFloat(form.capitalGain) || 0) > 0
+                    ? ' is-positive'
+                    : (parseFloat(form.capitalGain) || 0) < 0
+                    ? ' is-negative'
+                    : ''
+                }`}
+              >
+                <span className="sell-live-kpi__ccy">LKR</span> {formatDisplayMoney(form.capitalGain)}
+              </span>
+            </div>
+            <div className="sell-live-kpi sell-live-kpi--accent">
+              <span className="sell-live-kpi__label">Net Proceeds</span>
+              <span className="sell-live-kpi__value">
+                <span className="sell-live-kpi__ccy">LKR</span> {formatDisplayMoney(form.netValue)}
+              </span>
+            </div>
+          </section>
+        ) : null}
+
+        <div className="sell-form-shell">
             <form onSubmit={handleSubmit} className="sell-form">
+              <section className="sell-section-card">
               {/* Section 1 */}
               <div className="sell-section-header">
                 <div className="sell-section-icon">
@@ -1447,6 +1508,9 @@ const SellTransactionEntry = ({ setFifoParams, setActiveTab }) => {
                 </div>
 
               </div>
+            </section>
+
+            <section className="sell-section-card">
               {/* Section 2 */}
               <div className="sell-section-header">
                 <div className="sell-section-icon">
@@ -1574,6 +1638,9 @@ const SellTransactionEntry = ({ setFifoParams, setActiveTab }) => {
                 </div>
               </div>
               
+            </section>
+
+            <section className="sell-section-card">
               {/* Cost Breakdown & Calculations Section */}
               <div className="sell-section-header">
                 <div className="sell-section-icon calculation">
@@ -1706,11 +1773,17 @@ const SellTransactionEntry = ({ setFifoParams, setActiveTab }) => {
               <div className="sell-net-value-section left-align">
                 <div className="sell-net-value-card small">
                   <label className="sell-net-value-label">Net Proceeds (After Fees)</label>
-                  <div className="sell-net-value-amount">Rs. {form.netValue || '0.00'}</div>
+                  <div className="sell-net-value-amount">
+                    <span className="sell-net-value-currency">LKR</span>
+                    {formatDisplayMoney(form.netValue)}
+                  </div>
                   <small className="sell-net-value-note">Amount you will receive</small>
                 </div>
               </div>
               
+            </section>
+
+            <section className="sell-section-card">
               {/* Section 3 */}
               <div className="sell-section-header">
                 <div className="sell-section-icon">
@@ -1887,6 +1960,9 @@ const SellTransactionEntry = ({ setFifoParams, setActiveTab }) => {
                   <small className="sell-field-note">Automatically calculated</small>
                 </div>
               </div>
+            </section>
+
+            <section className="sell-section-card">
               {/* Section 4 */}
               <div className="sell-section-header">
                 <div className="sell-section-icon calculation">
@@ -1951,6 +2027,8 @@ const SellTransactionEntry = ({ setFifoParams, setActiveTab }) => {
                 </div>
               </div>
 
+            </section>
+
               {/* Actions */}
               <div className="sell-form-actions">
                 <button
@@ -1961,14 +2039,6 @@ const SellTransactionEntry = ({ setFifoParams, setActiveTab }) => {
                 >
                   <span className="sell-btn-icon">↻</span>
                   Reset Form
-                </button>
-                <button
-                  type="button"
-                  className="sell-btn sell-btn-tertiary"
-                  onClick={() => setShowListView(true)}
-                  disabled={isSubmitting}
-                >
-                  View Transactions
                 </button>
                 <button
                   type="submit"
@@ -1989,7 +2059,6 @@ const SellTransactionEntry = ({ setFifoParams, setActiveTab }) => {
                 </button>
               </div>
             </form>
-          </div>
         </div>
         <div className="eqt-footer-section">
           <p>  SHERWOOD TECHNOLOGIES (PVT) LTD • Secure transaction recording • All calculations are automated and verified</p>
