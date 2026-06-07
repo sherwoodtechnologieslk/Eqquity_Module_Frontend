@@ -195,46 +195,14 @@ const ImportHistory = () => {
     });
   };
 
-  const getStatusColor = (status) => {
-    switch (status) {
-      case 'success': return '#10b981';
-      case 'failed': return '#ef4444';
-      case 'pending': return '#f59e0b';
-      default: return '#6b7280';
-    }
-  };
-
-  const getStatusIcon = (status) => {
-    switch (status) {
-      case 'success':
-        return (
-          <svg className="status-icon" fill="currentColor" viewBox="0 0 20 20">
-            <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd"/>
-          </svg>
-        );
-      case 'failed':
-        return (
-          <svg className="status-icon" fill="currentColor" viewBox="0 0 20 20">
-            <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd"/>
-          </svg>
-        );
-      case 'pending':
-        return (
-          <svg className="status-icon" fill="currentColor" viewBox="0 0 20 20">
-            <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clipRule="evenodd"/>
-          </svg>
-        );
-      default:
-        return null;
-    }
-  };
-
   if (isLoading) {
     return (
       <div className="import-history-container">
-        <div className="loading-container">
-          <div className="loading-spinner"></div>
-          <p className="loading-text">Loading Import History...</p>
+        <div className="ih-content-wrapper">
+          <div className="ih-loading-container">
+            <div className="ih-loading-spinner"></div>
+            <p className="ih-loading-text">Loading Import History...</p>
+          </div>
         </div>
       </div>
     );
@@ -243,166 +211,191 @@ const ImportHistory = () => {
   if (error) {
     return (
       <div className="import-history-container">
-        <div className="error-container">
-          <h3 className="error-title">Error Loading Import History</h3>
-          <p className="error-message">{error}</p>
-          <button onClick={fetchImportHistory} className="retry-button">
-            Retry
-          </button>
+        <div className="ih-content-wrapper">
+          <div className="ih-error-container">
+            <h3 className="ih-error-title">Error Loading Import History</h3>
+            <p className="ih-error-message">{error}</p>
+            <button onClick={fetchImportHistory} className="ih-retry-button">
+              Retry
+            </button>
+          </div>
         </div>
       </div>
     );
   }
 
+  const totalTransactions = importHistory.reduce((sum, item) => sum + item.totalTransactions, 0);
+  const totalBuy = importHistory.reduce((sum, item) => sum + (item.buyCount || 0), 0);
+  const totalSell = importHistory.reduce((sum, item) => sum + (item.sellCount || 0), 0);
+  const grandTotalValue = importHistory.reduce((sum, item) => sum + (item.totalValue || 0), 0);
+
   return (
     <div className="import-history-container">
-      {/* Header */}
-      <div className="ih-header-section">
-        <div className="ih-header-icon">
-          <svg className="ih-icon" fill="currentColor" viewBox="0 0 20 20">
-            <path fillRule="evenodd" d="M3 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" clipRule="evenodd"/>
-          </svg>
-        </div>
-        <div className="ih-header-text-group">
-          <h1 className="ih-main-title">Import History</h1>
-          <p className="ih-subtitle">View and manage bulk transaction import history</p>
-        </div>
-      </div>
-
-      {/* Filters */}
-      <div className="ih-filters-section">
-        <div className="ih-filters-row">
-          <div className="ih-filter-group">
-            <label className="ih-filter-label">Start Date:</label>
-            <input
-              type="date"
-              className="ih-filter-input"
-              value={filters.startDate}
-              onChange={(e) => handleFilterChange('startDate', e.target.value)}
-            />
+      <div className="ih-content-wrapper">
+        {/* Toolbar */}
+        <header className="ih-toolbar">
+          <div className="ih-toolbar__left">
+            <span className="ih-toolbar__badge">IMPORT HISTORY</span>
+            <div className="ih-toolbar__heading">
+              <h1 className="ih-toolbar__title">Import History</h1>
+              <p className="ih-toolbar__subtitle">Review and audit bulk transaction imports</p>
+            </div>
           </div>
-          <div className="ih-filter-group">
-            <label className="ih-filter-label">End Date:</label>
-            <input
-              type="date"
-              className="ih-filter-input"
-              value={filters.endDate}
-              onChange={(e) => handleFilterChange('endDate', e.target.value)}
-            />
-          </div>
-          <div className="ih-filter-group">
-            <label className="ih-filter-label">Type:</label>
-            <select
-              className="ih-filter-select"
-              value={filters.transactionType}
-              onChange={(e) => handleFilterChange('transactionType', e.target.value)}
-            >
-              <option value="all">All Types</option>
-              <option value="bulk-buy">Buy</option>
-              <option value="bulk-sell">Sell</option>
-            </select>
-          </div>
-          <div className="ih-filter-group">
-            <label className="ih-filter-label">Status:</label>
-            <select
-              className="ih-filter-select"
-              value={filters.status}
-              onChange={(e) => handleFilterChange('status', e.target.value)}
-            >
-              <option value="all">All Status</option>
-              <option value="success">Success</option>
-              <option value="failed">Failed</option>
-              <option value="pending">Pending</option>
-            </select>
-          </div>
-          <div className="ih-filter-group">
-            <label className="ih-filter-label">Search:</label>
-            <input
-              type="text"
-              className="ih-filter-input"
-              placeholder="Search by ID, file, or user..."
-              value={searchTerm}
-              onChange={handleSearchChange}
-            />
-          </div>
-          <div className="ih-filter-actions">
+          <div className="ih-toolbar__actions">
             <button onClick={fetchImportHistory} className="ih-refresh-button">
+              <svg className="ih-refresh-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+              </svg>
               Refresh
             </button>
           </div>
-        </div>
-      </div>
+        </header>
 
-      {/* Summary Stats */}
-      <div className="ih-summary-stats">
-        <div className="ih-stat-card">
-          <div className="ih-stat-value">{importHistory.length}</div>
-          <div className="ih-stat-label">Total Imports</div>
-        </div>
-        <div className="ih-stat-card">
-          <div className="ih-stat-value">
-            {importHistory.filter(item => item.status === 'success').length}
+        {/* KPI Summary */}
+        <section className="ih-summary-stats" aria-label="Import summary">
+          <div className="ih-stat-card ih-stat-card--accent">
+            <div className="ih-stat-value">{importHistory.length}</div>
+            <div className="ih-stat-label">Total Imports</div>
           </div>
-          <div className="ih-stat-label">Successful</div>
-        </div>
-        <div className="ih-stat-card">
-          <div className="ih-stat-value">
-            {importHistory.filter(item => item.status === 'failed').length}
+          <div className="ih-stat-card">
+            <div className="ih-stat-value">{totalTransactions}</div>
+            <div className="ih-stat-label">Total Transactions</div>
           </div>
-          <div className="ih-stat-label">Failed</div>
-        </div>
-        <div className="ih-stat-card">
-          <div className="ih-stat-value">
-            {importHistory.reduce((sum, item) => sum + item.totalTransactions, 0)}
+          <div className="ih-stat-card">
+            <div className="ih-stat-value ih-stat-value--buy">{totalBuy}</div>
+            <div className="ih-stat-label">Buy Records</div>
           </div>
-          <div className="ih-stat-label">Total Transactions</div>
-        </div>
-      </div>
+          <div className="ih-stat-card">
+            <div className="ih-stat-value ih-stat-value--sell">{totalSell}</div>
+            <div className="ih-stat-label">Sell Records</div>
+          </div>
+          <div className="ih-stat-card">
+            <div className="ih-stat-value ih-stat-value--money">{formatCurrency(grandTotalValue)}</div>
+            <div className="ih-stat-label">Total Value</div>
+          </div>
+        </section>
 
-      {/* Import History Table */}
-      <div className="ih-main-content">
-        <div className="ih-table-container">
-          <table className="ih-data-table">
-            <thead>
-              <tr className="ih-table-header">
-                <th className="ih-th-transactions-count">No. of Transactions</th>
-                <th className="ih-th-trade-report-id">Trade Report ID</th>
-                <th className="ih-th-transactions">Transactions</th>
-                <th className="ih-th-value">Total Value</th>
-                <th className="ih-th-user">Imported By</th>
-                <th className="ih-th-date">Imported At</th>
-                <th className="ih-th-actions">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {importHistory.map((item, index) => (
-                <tr key={item.id} className="ih-import-row">
-                  <td className="ih-transactions-count">{index + 1}</td>
-                  <td className="ih-trade-report-id">{item.trade_report_id || 'N/A'}</td>
-                  <td className="ih-transactions">
-                    <div className="ih-transaction-stats">
-                      <span className="ih-success-count">B: {item.buyCount || 0}</span>
-                      <span className="ih-separator"> | </span>
-                      <span className="ih-failed-count">S: {item.sellCount || 0}</span>
-                      <span className="ih-separator"> | </span>
-                      <span className="ih-total-count">Total: {item.totalTransactions}</span>
-                    </div>
-                  </td>
-                  <td className="ih-total-value">{formatCurrency(item.totalValue)}</td>
-                  <td className="ih-imported-by">{item.importedBy}</td>
-                  <td className="ih-imported-at">{formatDate(item.importedAt)}</td>
-                  <td className="ih-actions">
-                    <button 
-                      className="ih-view-details-button"
-                      onClick={() => handleViewDetails(item)}
-                    >
-                      View Details
-                    </button>
-                  </td>
+        {/* Filters */}
+        <div className="ih-filters-section">
+          <div className="ih-filters-row">
+            <div className="ih-filter-group">
+              <label className="ih-filter-label">Start Date</label>
+              <input
+                type="date"
+                className="ih-filter-input"
+                value={filters.startDate}
+                onChange={(e) => handleFilterChange('startDate', e.target.value)}
+              />
+            </div>
+            <div className="ih-filter-group">
+              <label className="ih-filter-label">End Date</label>
+              <input
+                type="date"
+                className="ih-filter-input"
+                value={filters.endDate}
+                onChange={(e) => handleFilterChange('endDate', e.target.value)}
+              />
+            </div>
+            <div className="ih-filter-group">
+              <label className="ih-filter-label">Type</label>
+              <select
+                className="ih-filter-select"
+                value={filters.transactionType}
+                onChange={(e) => handleFilterChange('transactionType', e.target.value)}
+              >
+                <option value="all">All Types</option>
+                <option value="bulk-buy">Buy</option>
+                <option value="bulk-sell">Sell</option>
+              </select>
+            </div>
+            <div className="ih-filter-group">
+              <label className="ih-filter-label">Status</label>
+              <select
+                className="ih-filter-select"
+                value={filters.status}
+                onChange={(e) => handleFilterChange('status', e.target.value)}
+              >
+                <option value="all">All Status</option>
+                <option value="success">Success</option>
+                <option value="failed">Failed</option>
+                <option value="pending">Pending</option>
+              </select>
+            </div>
+            <div className="ih-filter-group ih-filter-group--search">
+              <label className="ih-filter-label">Search</label>
+              <div className="ih-search-wrapper">
+                <svg className="ih-search-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                </svg>
+                <input
+                  type="text"
+                  className="ih-filter-input ih-search-input"
+                  placeholder="Search by report ID, file, or user..."
+                  value={searchTerm}
+                  onChange={handleSearchChange}
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Import History Table */}
+        <div className="ih-main-content">
+          <div className="ih-table-container">
+            <table className="ih-data-table">
+              <thead>
+                <tr className="ih-table-header">
+                  <th className="ih-th-transactions-count">#</th>
+                  <th className="ih-th-trade-report-id">Trade Report ID</th>
+                  <th className="ih-th-transactions">Transactions</th>
+                  <th className="ih-th-value">Total Value</th>
+                  <th className="ih-th-user">Imported By</th>
+                  <th className="ih-th-date">Imported At</th>
+                  <th className="ih-th-actions">Actions</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {importHistory.length === 0 ? (
+                  <tr>
+                    <td colSpan="7" className="ih-empty-cell">
+                      <div className="ih-empty-state">
+                        <svg className="ih-empty-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
+                        </svg>
+                        <p className="ih-empty-title">No imports found</p>
+                        <p className="ih-empty-sub">Try adjusting your filters or date range.</p>
+                      </div>
+                    </td>
+                  </tr>
+                ) : (
+                  importHistory.map((item, index) => (
+                    <tr key={item.id} className="ih-import-row">
+                      <td className="ih-transactions-count">{index + 1}</td>
+                      <td className="ih-trade-report-id">{item.trade_report_id || 'N/A'}</td>
+                      <td className="ih-transactions">
+                        <div className="ih-transaction-stats">
+                          <span className="ih-chip ih-chip--buy">B {item.buyCount || 0}</span>
+                          <span className="ih-chip ih-chip--sell">S {item.sellCount || 0}</span>
+                          <span className="ih-chip ih-chip--total">{item.totalTransactions} total</span>
+                        </div>
+                      </td>
+                      <td className="ih-total-value">{formatCurrency(item.totalValue)}</td>
+                      <td className="ih-imported-by">{item.importedBy}</td>
+                      <td className="ih-imported-at">{formatDate(item.importedAt)}</td>
+                      <td className="ih-actions">
+                        <button
+                          className="ih-view-details-button"
+                          onClick={() => handleViewDetails(item)}
+                        >
+                          View Details
+                        </button>
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
         </div>
       </div>
 
