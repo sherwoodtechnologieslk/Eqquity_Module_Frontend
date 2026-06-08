@@ -85,31 +85,91 @@ const FundsCenters = () => {
     return name.includes(query) || flag.includes(query);
   });
 
-  if (loading) {
-    return (
-      <div className="fc-container">
-        <div className="fc-loading">
-          <div className="fc-loading-spinner"></div>
-          <p>Loading funds centers...</p>
-        </div>
-      </div>
-    );
-  }
+  const totalCount = fundsCenters.length;
+  const customCount = fundsCenters.filter(c => c.isCustom).length;
+  const defaultCount = totalCount - customCount;
+  const withFlagCount = fundsCenters.filter(c => c.flag && c.flag !== '0' && c.flag !== 0).length;
 
   return (
     <div className="fc-container">
-      <div className="fc-header">
-        <h1 className="fc-title">Funds Centers</h1>
-        <button
-          className="fc-add-btn"
-          onClick={() => setShowAddModal(true)}
-        >
-          <svg className="fc-add-icon" fill="currentColor" viewBox="0 0 20 20">
-            <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-11a1 1 0 10-2 0v2H7a1 1 0 100 2h2v2a1 1 0 102 0v-2h2a1 1 0 100-2h-2V7z" clipRule="evenodd"/>
-          </svg>
-          Add Funds Center
-        </button>
-      </div>
+      <div className="fc-content-wrapper">
+      {/* Toolbar */}
+      <header className="fc-header">
+        <div className="fc-header-left">
+          <h1 className="fc-title">Funds Centers</h1>
+          <p className="fc-subtitle">Manage portfolio funds centers and their regional flags</p>
+        </div>
+        <div className="fc-header-actions">
+          <button
+            type="button"
+            className="fc-refresh-btn"
+            onClick={loadFundsCenters}
+            disabled={loading}
+          >
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+            </svg>
+            Refresh
+          </button>
+          <button
+            className="fc-add-btn"
+            onClick={() => setShowAddModal(true)}
+          >
+            <svg className="fc-add-icon" fill="currentColor" viewBox="0 0 20 20">
+              <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-11a1 1 0 10-2 0v2H7a1 1 0 100 2h2v2a1 1 0 102 0v-2h2a1 1 0 100-2h-2V7z" clipRule="evenodd"/>
+            </svg>
+            Add Funds Center
+          </button>
+        </div>
+      </header>
+
+      {/* KPI Summary */}
+      <section className="fc-kpis" aria-label="Funds centers summary">
+        <div className="fc-kpi fc-kpi--total">
+          <div className="fc-kpi__icon">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0H5m14 0h2M5 21H3m4-12h10M7 13h10" />
+            </svg>
+          </div>
+          <div className="fc-kpi__body">
+            <span className="fc-kpi__value">{totalCount}</span>
+            <span className="fc-kpi__label">Total Centers</span>
+          </div>
+        </div>
+        <div className="fc-kpi fc-kpi--default">
+          <div className="fc-kpi__icon">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+          </div>
+          <div className="fc-kpi__body">
+            <span className="fc-kpi__value">{defaultCount}</span>
+            <span className="fc-kpi__label">Default</span>
+          </div>
+        </div>
+        <div className="fc-kpi fc-kpi--custom">
+          <div className="fc-kpi__icon">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.196-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
+            </svg>
+          </div>
+          <div className="fc-kpi__body">
+            <span className="fc-kpi__value">{customCount}</span>
+            <span className="fc-kpi__label">Custom</span>
+          </div>
+        </div>
+        <div className="fc-kpi fc-kpi--flag">
+          <div className="fc-kpi__icon">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 21v-4m0 0V5a2 2 0 012-2h6.5l1 1H21l-3 6 3 6h-8.5l-1-1H5a2 2 0 00-2 2zm9-13.5V9" />
+            </svg>
+          </div>
+          <div className="fc-kpi__body">
+            <span className="fc-kpi__value">{withFlagCount}</span>
+            <span className="fc-kpi__label">With Flag</span>
+          </div>
+        </div>
+      </section>
 
       {successMessage && (
         <div className="fc-success-message">
@@ -139,6 +199,13 @@ const FundsCenters = () => {
       </div>
 
       <div className="fc-table-container">
+        {loading ? (
+          <div className="fc-loading">
+            <div className="fc-loading-spinner"></div>
+            <p>Loading funds centers...</p>
+          </div>
+        ) : (
+          <>
         {filteredFundsCenters.length === 0 ? (
           <div className="fc-empty-state">
             <p>No funds centers found</p>
@@ -192,6 +259,8 @@ const FundsCenters = () => {
               ))}
             </tbody>
           </table>
+        )}
+          </>
         )}
       </div>
 
@@ -258,6 +327,7 @@ const FundsCenters = () => {
           </div>
         </div>
       )}
+      </div>
     </div>
   );
 };
