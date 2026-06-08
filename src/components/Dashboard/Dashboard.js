@@ -50,81 +50,188 @@ function formatLkrCompact(value) {
   return `${sign}LKR ${abs.toLocaleString('en-US', { maximumFractionDigits: 0 })}`;
 }
 
-// Mock portfolio health / insights data for right column (frontend only)
-const MOCK_PORTFOLIO_HEALTH = {
-  score: 82,
-  status: 'Healthy',
-  diversification: 'Good',
-  maxDrawdown: '-6.3%',
-  concentration: 'Moderate (top position 14.2%)'
-};
+// Compute live Portfolio Health & Risk metrics from real holdings + P&L data.
+function computePortfolioHealth(holdings, sectorData) {
+  const list = Array.isArray(holdings) ? holdings : [];
+  const sectors = Array.isArray(sectorData) ? sectorData : [];
 
-const MOCK_DASHBOARD_ALERTS = [
-  {
-    type: 'risk',
-    severity: 'high',
-    title: 'High single-name exposure',
-    message: 'SIRA.N is at 14.2% of portfolio value'
-  },
-  {
-    type: 'rebalance',
-    severity: 'medium',
-    title: 'Rebalance suggestion',
-    message: 'Trim Manufacturing by 5% and add to Consumer Goods'
-  },
-  {
-    type: 'event',
-    severity: 'low',
-    title: 'Dividend ex-date tomorrow',
-    message: 'AGAL.N – LKR 1.25 per share'
+  const totalMarketValue = list.reduce((s, h) => s + (Number(h.marketValue) || 0), 0);
+  const totalCost = list.reduce((s, h) => {
+    const mv = Number(h.marketValue) || 0;
+    const pnl = Number(h.pnl) || 0;
+    const qty = Number(h.quantity) || 0;
+    const avg = Number(h.avgPrice) || 0;
+    return s + (h.marketValue != null && h.pnl != null ? mv - pnl : qty * avg);
+  }, 0);
+
+  if (list.length === 0 || totalMarketValue <= 0) {
+    return {
+      hasData: false,
+      score: 0,
+      status: 'No data',
+      diversification: '—',
+      holdingsCount: 0,
+      sectorCount: 0,
+      unrealizedReturnPct: 0,
+      concentration: '—',
+      concentrationDetail: '',
+      alerts: [],
+      valuation: { marketValue: 0, cost: 0, unrealized: 0, unrealizedPct: 0 }
+    };
   }
-];
 
-const MOCK_LIQUIDITY = {
-  cashAvailable: 1250000,
-  cashPct: 8.4,
-  t2Inflows: 430000,
-  t2Outflows: 275000,
-  liquidWithin3d: 18250000
-};
+  const holdingsCount = list.length;
+  const sectorCount = sectors.length;
 
-const MOCK_BENCHMARK = {
-  name: 'CSE All-Share Index',
-  portfolioYTD: 12.4,
-  benchmarkYTD: 9.1,
-  alpha: 3.3,
-  beta: 0.92
-};
+  // Holding weights → Herfindahl index → effective number of holdings.
+  const hhi = list.reduce((s, h) => {
+    const w = (Number(h.marketValue) || 0) / totalMarketValue;
+    return s + w * w;
+  }, 0);
+  const effectiveN = hhi > 0 ? 1 / hhi : 0;
 
-const MOCK_EVENTS = [
-  { date: '2026-03-01', type: 'Dividend', symbol: 'AGAL.N', note: 'Dividend payment date' },
-  { date: '2026-03-05', type: 'AGM', symbol: 'TJL.N', note: 'Annual General Meeting – Colombo' },
-  { date: '2026-03-10', type: 'Rights Issue', symbol: 'AEL.N', note: 'Rights subscription closes' }
-];
+  const sortedByMv = [...list].sort(
+    (a, b) => (Number(b.marketValue) || 0) - (Number(a.marketValue) || 0)
+  );
+  const topHolding = sortedByMv[0] || {};
+  const topWeightPct = ((Number(topHolding.marketValue) || 0) / totalMarketValue) * 100;
+  const topSymbol = topHolding.symbol || '—';
 
-const MOCK_WATCHLIST = [
-  {
-    symbol: 'JKH.N',
-    name: 'JOHN KEELLS HOLDINGS PLC',
-    lastPrice: 195.5,
-    changePct: 1.8,
-    status: 'Watch for entry'
-  },
-  {
-    symbol: 'COMB.N',
-    name: 'COMMERCIAL BANK PLC',
-    lastPrice: 92.3,
-    changePct: -0.6,
-    status: 'Oversold zone'
-  },
-  {
-    symbol: 'DIAL.N',
-    name: 'DIALOG AXIATA PLC',
-    lastPrice: 14.2,
-    changePct: 0.0,
-    status: 'Sideways'
+  const topSector = sectors[0] || null;
+  const topSectorPct = topSector ? Number(topSector.percentage) || 0 : 0;
+  const topSectorName = topSector ? topSector.name : '—';
+
+  const unrealizedReturnPct = totalCost > 0 ? ((totalMarketValue - totalCost) / totalCost) * 100 : 0;
+
+  // Score components: diversification (0-40), concentration (0-30), performance (0-30).
+  const divScore = Math.max(0, Math.min(40, (effectiveN / 10) * 40));
+  const concScore = Math.max(0, Math.min(30, 30 - Math.max(0, topWeightPct - 10) * 1.2));
+  const perfScore = Math.max(0, Math.min(30, 15 + unrealizedReturnPct));
+  const score = Math.round(divScore + concScore + perfScore);
+
+  const status = score >= 75 ? 'Healthy' : score >= 50 ? 'Moderate' : 'At risk';
+  const diversification = effectiveN >= 8 ? 'Good' : effectiveN >= 4 ? 'Moderate' : 'Low';
+  const concentration = topWeightPct <= 10 ? 'Low' : topWeightPct <= 20 ? 'Moderate' : 'High';
+
+  // Dynamic alerts derived from real positions.
+  const alerts = [];
+  if (topWeightPct > 15) {
+    alerts.push({
+      severity: topWeightPct > 25 ? 'high' : 'medium',
+      title: 'High single-name exposure',
+      message: `${topSymbol} is ${topWeightPct.toFixed(1)}% of portfolio value`
+    });
   }
-];
+  if (topSectorPct > 40) {
+    alerts.push({
+      severity: 'medium',
+      title: 'Sector concentration',
+      message: `${topSectorName} makes up ${topSectorPct.toFixed(1)}% of holdings`
+    });
+  }
+  const losers = list
+    .filter((h) => (Number(h.pnl) || 0) < 0)
+    .sort((a, b) => (Number(a.pnl) || 0) - (Number(b.pnl) || 0));
+  if (losers.length > 0) {
+    const worst = losers[0];
+    alerts.push({
+      severity: losers.length > holdingsCount / 2 ? 'medium' : 'low',
+      title: `${losers.length} position${losers.length > 1 ? 's' : ''} in loss`,
+      message: `${worst.symbol || 'A position'} down ${formatLkrCompact(Math.abs(Number(worst.pnl) || 0))} unrealized`
+    });
+  }
+  if (unrealizedReturnPct > 0) {
+    alerts.push({
+      severity: 'low',
+      title: 'Portfolio in profit',
+      message: `Unrealized return of ${unrealizedReturnPct.toFixed(1)}% across ${holdingsCount} holdings`
+    });
+  }
+  if (alerts.length === 0) {
+    alerts.push({
+      severity: 'low',
+      title: 'No risk flags',
+      message: 'Well balanced — no major concentration or losses'
+    });
+  }
+
+  return {
+    hasData: true,
+    score,
+    status,
+    diversification,
+    holdingsCount,
+    sectorCount,
+    unrealizedReturnPct,
+    concentration,
+    concentrationDetail: `Top ${topSymbol} · ${topWeightPct.toFixed(1)}%`,
+    alerts: alerts.slice(0, 4),
+    valuation: {
+      marketValue: totalMarketValue,
+      cost: totalCost,
+      unrealized: totalMarketValue - totalCost,
+      unrealizedPct: unrealizedReturnPct
+    }
+  };
+}
+
+// Compute live portfolio insights (P&L summary, top holdings, movers) from real holdings.
+function computePortfolioInsights(holdings, pnlMetrics) {
+  const list = Array.isArray(holdings) ? holdings : [];
+  const totalMarketValue = list.reduce((s, h) => s + (Number(h.marketValue) || 0), 0);
+
+  if (list.length === 0 || totalMarketValue <= 0) {
+    return {
+      hasData: false,
+      realizedPnL: 0,
+      unrealizedPnL: 0,
+      totalPnL: 0,
+      totalMarketValue: 0,
+      topHoldings: [],
+      movers: []
+    };
+  }
+
+  const realizedPnL = Number(pnlMetrics?.realizedPnL) || 0;
+  const unrealizedPnL = list.reduce((s, h) => s + (Number(h.pnl) || 0), 0);
+
+  const enriched = list.map((h) => {
+    const mv = Number(h.marketValue) || 0;
+    const pnl = Number(h.pnl) || 0;
+    const cost = mv - pnl;
+    return {
+      symbol: h.symbol || '—',
+      name: h.companyName || h.company_name || h.name || h.symbol || '—',
+      marketValue: mv,
+      pnl,
+      weightPct: totalMarketValue > 0 ? (mv / totalMarketValue) * 100 : 0,
+      returnPct: cost > 0 ? (pnl / cost) * 100 : 0
+    };
+  });
+
+  const topHoldings = [...enriched]
+    .sort((a, b) => b.marketValue - a.marketValue)
+    .slice(0, 5);
+
+  const gainers = [...enriched]
+    .filter((h) => h.pnl > 0)
+    .sort((a, b) => b.returnPct - a.returnPct)
+    .slice(0, 3);
+  const losers = [...enriched]
+    .filter((h) => h.pnl < 0)
+    .sort((a, b) => a.returnPct - b.returnPct)
+    .slice(0, 3);
+
+  return {
+    hasData: true,
+    realizedPnL,
+    unrealizedPnL,
+    totalPnL: realizedPnL + unrealizedPnL,
+    totalMarketValue,
+    topHoldings,
+    movers: [...gainers, ...losers]
+  };
+}
 
 const Dashboard = ({ onTabChange }) => {
   const [dashboardData, setDashboardData] = useState({
@@ -144,7 +251,9 @@ const Dashboard = ({ onTabChange }) => {
       realizedPnL: 0,
       totalUnrealizedCapitalGain: 0,
       unrealizedPnL: 0
-    }
+    },
+    portfolioHealth: computePortfolioHealth([], []),
+    portfolioInsights: computePortfolioInsights([], {})
   });
 
   const [isLoading, setIsLoading] = useState(true);
@@ -300,6 +409,8 @@ const Dashboard = ({ onTabChange }) => {
         totalUnrealizedCapitalGain: 0,
         unrealizedPnL: 0
       };
+      let portfolioHealth = computePortfolioHealth([], []);
+      let portfolioInsights = computePortfolioInsights([], {});
 
       let portfolios = [];
       let effectiveKey = null;
@@ -629,6 +740,10 @@ const Dashboard = ({ onTabChange }) => {
           console.log('Using real holdings data for sector chart:', sectorData);
         }
 
+        // Live Portfolio Health & Risk metrics from real holdings + sectors.
+        portfolioHealth = computePortfolioHealth(holdingsData, sectorData);
+        portfolioInsights = computePortfolioInsights(holdingsData, pnlMetrics);
+
       } catch (transactionError) {
         console.error('Error fetching transactions:', transactionError);
         
@@ -643,6 +758,8 @@ const Dashboard = ({ onTabChange }) => {
         totalCompanies = 0;
         holdingSymbols = [];
         holdingNames = [];
+        portfolioHealth = computePortfolioHealth([], []);
+        portfolioInsights = computePortfolioInsights([], {});
       }
 
       console.log('🔍 DASHBOARD DEBUG - Final pnlMetrics before setting state:', pnlMetrics);
@@ -664,7 +781,9 @@ const Dashboard = ({ onTabChange }) => {
         costVsMvBySector,
         holdingSymbols,
         holdingNames,
-        pnlMetrics: pnlMetrics
+        pnlMetrics: pnlMetrics,
+        portfolioHealth,
+        portfolioInsights
       });
       
       setIsLoading(false);
@@ -691,7 +810,9 @@ const Dashboard = ({ onTabChange }) => {
           realizedPnL: 0,
           totalUnrealizedCapitalGain: 0,
           unrealizedPnL: 0
-        }
+        },
+        portfolioHealth: computePortfolioHealth([], []),
+        portfolioInsights: computePortfolioInsights([], {})
       });
       setIsLoading(false);
     }
@@ -831,8 +952,8 @@ const Dashboard = ({ onTabChange }) => {
   }, [costVsMvSectors]);
 
   const watchlistSymbols = useMemo(
-    () => MOCK_WATCHLIST.map((w) => w.symbol).filter(Boolean),
-    []
+    () => (dashboardData.holdingSymbols || []).filter(Boolean),
+    [dashboardData.holdingSymbols]
   );
 
   const selectedPortfolio =
@@ -1200,197 +1321,243 @@ const Dashboard = ({ onTabChange }) => {
           </div>
         </div>
 
-          {/* Portfolio Health, Alerts & Liquidity (Mock Data) */}
+          {/* Portfolio Health & Risk (live data from holdings + P&L) */}
           <div className="content-card health-card">
             <div className="card-header">
               <div className="header-left">
                 <h3>Portfolio Health & Risk</h3>
               </div>
+              {dashboardData.sectorChartPortfolioName && (
+                <span className="card-subtitle">{dashboardData.sectorChartPortfolioName}</span>
+              )}
             </div>
 
-            <div className="health-layout">
-              <div className="health-top">
-                <div className="health-score">
-                  <div className="health-score__label">Overall health</div>
-                  <div className="health-score__value">
-                    {MOCK_PORTFOLIO_HEALTH.score}
-                    <span className="health-score__outof">/100</span>
+            {(() => {
+              const ph = dashboardData.portfolioHealth || {};
+              if (!ph.hasData) {
+                return (
+                  <div className="health-empty">
+                    No holdings data available for the selected portfolio yet.
                   </div>
-                  <div className="health-score__status">
-                    <span className="health-status-pill">{MOCK_PORTFOLIO_HEALTH.status}</span>
-                  </div>
-                </div>
-
-                <div className="health-kpis" aria-label="Key risk indicators">
-                  <div className="health-kpi">
-                    <div className="health-kpi__label">Diversification</div>
-                    <div className="health-kpi__value">{MOCK_PORTFOLIO_HEALTH.diversification}</div>
-                  </div>
-                  <div className="health-kpi">
-                    <div className="health-kpi__label">Max drawdown</div>
-                    <div className="health-kpi__value health-kpi__value--negative">
-                      {MOCK_PORTFOLIO_HEALTH.maxDrawdown}
-                    </div>
-                  </div>
-                  <div className="health-kpi">
-                    <div className="health-kpi__label">Concentration</div>
-                    <div className="health-kpi__value">{MOCK_PORTFOLIO_HEALTH.concentration}</div>
-                  </div>
-                </div>
-              </div>
-
-              <div className="health-bottom">
-                <div className="health-block">
-                  <div className="health-block__title">Alerts & tasks</div>
-                  <ul className="health-alerts">
-                    {MOCK_DASHBOARD_ALERTS.map((alert, index) => (
-                      <li
-                        key={index}
-                        className={`health-alert health-alert--${alert.severity}`}
-                      >
-                        <div className="health-alert__title">{alert.title}</div>
-                        <div className="health-alert__text">{alert.message}</div>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-
-                <div className="health-block">
-                  <div className="health-block__title">Cash & liquidity</div>
-                  <div className="health-liquidity">
-                    <div className="health-liquidity__row">
-                      <div className="health-liquidity__label">Available cash</div>
-                      <div className="health-liquidity__value">
-                        {formatLkrCompact(MOCK_LIQUIDITY.cashAvailable)}{' '}
-                        <span className="health-liquidity__muted">({MOCK_LIQUIDITY.cashPct}%)</span>
+                );
+              }
+              const val = ph.valuation || {};
+              const up = (ph.unrealizedReturnPct || 0) >= 0;
+              const statusKey = (ph.status || '').toLowerCase().replace(/\s+/g, '-');
+              return (
+                <div className="health-layout">
+                <div className="health-top">
+                  <div className={`health-score health-score--${statusKey}`}>
+                    <div className="health-gauge">
+                      <svg className="health-gauge__svg" viewBox="0 0 120 120">
+                        <circle className="health-gauge__bg" cx="60" cy="60" r="52" />
+                        <circle
+                          className="health-gauge__bar"
+                          cx="60"
+                          cy="60"
+                          r="52"
+                          style={{
+                            strokeDasharray: 326.726,
+                            strokeDashoffset:
+                              326.726 * (1 - Math.max(0, Math.min(100, ph.score)) / 100)
+                          }}
+                        />
+                      </svg>
+                      <div className="health-gauge__center">
+                        <div className="health-gauge__score">{ph.score}</div>
+                        <div className="health-gauge__outof">/ 100</div>
                       </div>
                     </div>
-                    <div className="health-liquidity__row">
-                      <div className="health-liquidity__label">T+2 net</div>
-                      <div className="health-liquidity__value">
-                        {formatLkrCompact(MOCK_LIQUIDITY.t2Inflows - MOCK_LIQUIDITY.t2Outflows)}
-                        <div className="health-liquidity__muted">
-                          in {formatLkrCompact(MOCK_LIQUIDITY.t2Inflows)} / out{' '}
-                          {formatLkrCompact(MOCK_LIQUIDITY.t2Outflows)}
+                    <div className="health-score__meta">
+                      <div className="health-score__label">Overall health</div>
+                      <span className={`health-status-pill health-status-pill--${statusKey}`}>
+                        {ph.status}
+                      </span>
+                    </div>
+                  </div>
+
+                    <div className="health-kpis" aria-label="Key risk indicators">
+                      <div className="health-kpi">
+                        <div className="health-kpi__label">Diversification</div>
+                        <div className="health-kpi__value">{ph.diversification}</div>
+                        <div className="health-kpi__sub">
+                          {ph.holdingsCount} holdings · {ph.sectorCount} sectors
+                        </div>
+                      </div>
+                      <div className="health-kpi">
+                        <div className="health-kpi__label">Unrealized return</div>
+                        <div
+                          className={`health-kpi__value ${
+                            up ? 'health-kpi__value--positive' : 'health-kpi__value--negative'
+                          }`}
+                        >
+                          {up ? '+' : ''}
+                          {(ph.unrealizedReturnPct || 0).toFixed(1)}%
+                        </div>
+                      </div>
+                      <div className="health-kpi">
+                        <div className="health-kpi__label">Concentration</div>
+                        <div className="health-kpi__value">{ph.concentration}</div>
+                        <div className="health-kpi__sub">{ph.concentrationDetail}</div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="health-bottom">
+                    <div className="health-block">
+                      <div className="health-block__title">Alerts & tasks</div>
+                      <ul className="health-alerts">
+                        {ph.alerts.map((alert, index) => (
+                          <li
+                            key={index}
+                            className={`health-alert health-alert--${alert.severity}`}
+                          >
+                            <div className="health-alert__title">{alert.title}</div>
+                            <div className="health-alert__text">{alert.message}</div>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+
+                    <div className="health-block">
+                      <div className="health-block__title">Valuation</div>
+                      <div className="health-liquidity">
+                        <div className="health-liquidity__row">
+                          <div className="health-liquidity__label">Market value</div>
+                          <div className="health-liquidity__value">
+                            {formatLkrCompact(val.marketValue)}
+                          </div>
+                        </div>
+                        <div className="health-liquidity__row">
+                          <div className="health-liquidity__label">Invested (cost)</div>
+                          <div className="health-liquidity__value">
+                            {formatLkrCompact(val.cost)}
+                          </div>
+                        </div>
+                        <div className="health-liquidity__row">
+                          <div className="health-liquidity__label">Unrealized P&amp;L</div>
+                          <div
+                            className={`health-liquidity__value ${
+                              up ? 'health-kpi__value--positive' : 'health-kpi__value--negative'
+                            }`}
+                          >
+                            {up ? '+' : ''}
+                            {formatLkrCompact(val.unrealized)}
+                            <span className="health-liquidity__muted">
+                              {' '}
+                              ({up ? '+' : ''}
+                              {(val.unrealizedPct || 0).toFixed(1)}%)
+                            </span>
+                          </div>
                         </div>
                       </div>
                     </div>
-                    <div className="health-liquidity__row">
-                      <div className="health-liquidity__label">Liquid ≤ 3 days</div>
-                      <div className="health-liquidity__value">
-                        {formatLkrCompact(MOCK_LIQUIDITY.liquidWithin3d)}
-                      </div>
-                    </div>
                   </div>
                 </div>
-              </div>
-            </div>
+              );
+            })()}
           </div>
 
-          {/* Benchmark, Events & Watchlist (Mock Data) */}
-          <div className="content-card">
+          {/* Portfolio Insights — live P&L, top holdings & movers */}
+          <div className="content-card insights-card">
             <div className="card-header">
               <div className="header-left">
-                <span className="card-subtitle">
-                  Sample view for benchmark, events and watchlist
-                </span>
+                <h3>Portfolio Insights</h3>
               </div>
+              {dashboardData.sectorChartPortfolioName && (
+                <span className="card-subtitle">{dashboardData.sectorChartPortfolioName}</span>
+              )}
             </div>
-            <div className="insights-grid insights-grid-compact">
-              <div className="insight-column">
-                <div className="insight-section-title">
-                  Performance vs {MOCK_BENCHMARK.name}
-                </div>
-                <div className="insight-row">
-                  <span className="insight-label">Portfolio YTD</span>
-                  <span className="insight-value">
-                    {MOCK_BENCHMARK.portfolioYTD}%
-                  </span>
-                </div>
-                <div className="insight-row">
-                  <span className="insight-label">Benchmark YTD</span>
-                  <span className="insight-value">
-                    {MOCK_BENCHMARK.benchmarkYTD}%
-                  </span>
-                </div>
-                <div className="insight-row">
-                  <span className="insight-label">Alpha</span>
-                  <span className="insight-value">
-                    {MOCK_BENCHMARK.alpha}%
-                  </span>
-                </div>
-                <div className="insight-row">
-                  <span className="insight-label">Beta</span>
-                  <span className="insight-value">
-                    {MOCK_BENCHMARK.beta}
-                  </span>
-                </div>
-              </div>
 
-              <div className="insight-column">
-                <div className="insight-section-title">Upcoming events</div>
-                <ul className="insight-list">
-                  {MOCK_EVENTS.map((event, index) => (
-                    <li key={index} className="insight-event">
-                      <div className="insight-row">
-                        <span className="insight-label">
-                          {new Date(event.date).toLocaleDateString('en-US', {
-                            month: 'short',
-                            day: 'numeric'
-                          })}
-                        </span>
-                        <span className="insight-value">
-                          {event.type}
-                        </span>
+            {(() => {
+              const pi = dashboardData.portfolioInsights || {};
+              if (!pi.hasData) {
+                return (
+                  <div className="health-empty">
+                    No holdings data available for the selected portfolio yet.
+                  </div>
+                );
+              }
+              const totalUp = (pi.totalPnL || 0) >= 0;
+              const realUp = (pi.realizedPnL || 0) >= 0;
+              const unrUp = (pi.unrealizedPnL || 0) >= 0;
+              return (
+                <div className="pi-grid">
+                  {/* Performance */}
+                  <div className="pi-col">
+                    <div className="pi-col__title">Performance</div>
+                    <div className="pi-hero">
+                      <div className="pi-hero__label">Total P&amp;L</div>
+                      <div className={`pi-hero__value ${totalUp ? 'pi-pos' : 'pi-neg'}`}>
+                        {totalUp ? '+' : ''}
+                        {formatLkrCompact(pi.totalPnL)}
                       </div>
-                      <div className="insight-row">
-                        <span className="insight-label">{event.symbol}</span>
-                        <span className="insight-value">
-                          {event.note}
-                        </span>
-                      </div>
-                    </li>
-                  ))}
-                </ul>
-              </div>
+                    </div>
+                    <div className="pi-stat">
+                      <span className="pi-stat__label">Realized</span>
+                      <span className={`pi-stat__value ${realUp ? 'pi-pos' : 'pi-neg'}`}>
+                        {realUp ? '+' : ''}
+                        {formatLkrCompact(pi.realizedPnL)}
+                      </span>
+                    </div>
+                    <div className="pi-stat">
+                      <span className="pi-stat__label">Unrealized</span>
+                      <span className={`pi-stat__value ${unrUp ? 'pi-pos' : 'pi-neg'}`}>
+                        {unrUp ? '+' : ''}
+                        {formatLkrCompact(pi.unrealizedPnL)}
+                      </span>
+                    </div>
+                    <div className="pi-stat">
+                      <span className="pi-stat__label">Market value</span>
+                      <span className="pi-stat__value">{formatLkrCompact(pi.totalMarketValue)}</span>
+                    </div>
+                  </div>
 
-              <div className="insight-column">
-                <div className="insight-section-title">Focus watchlist</div>
-                <ul className="insight-list">
-                  {MOCK_WATCHLIST.map((item, index) => (
-                    <li key={index} className="insight-watch">
-                      <div className="insight-row">
-                        <span className="insight-label">{item.symbol}</span>
-                        <span className="insight-value">
-                          LKR {item.lastPrice.toFixed(2)}
-                        </span>
-                      </div>
-                      <div className="insight-row">
-                        <span className="insight-label">{item.name}</span>
-                        <span
-                          className="insight-value"
-                          style={{
-                            color:
-                              item.changePct > 0
-                                ? '#16a34a'
-                                : item.changePct < 0
-                                ? '#dc2626'
-                                : '#6b7280'
-                          }}
-                        >
-                          {item.changePct > 0 ? '+' : ''}
-                          {item.changePct}%
-                        </span>
-                      </div>
-                      <div className="insight-row">
-                        <span className="insight-label">Status</span>
-                        <span className="insight-value">{item.status}</span>
-                      </div>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            </div>
+                  {/* Top holdings */}
+                  <div className="pi-col">
+                    <div className="pi-col__title">Top holdings</div>
+                    <ul className="pi-list">
+                      {pi.topHoldings.map((h, index) => (
+                        <li key={index} className="pi-holding">
+                          <div className="pi-holding__head">
+                            <span className="pi-holding__sym" title={h.name}>{h.symbol}</span>
+                            <span className="pi-holding__wt">{h.weightPct.toFixed(1)}%</span>
+                          </div>
+                          <div className="pi-bar">
+                            <div
+                              className="pi-bar__fill"
+                              style={{ width: `${Math.min(100, h.weightPct)}%` }}
+                            />
+                          </div>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+
+                  {/* Movers */}
+                  <div className="pi-col">
+                    <div className="pi-col__title">Movers</div>
+                    <ul className="pi-list">
+                      {pi.movers.map((m, index) => {
+                        const moverUp = (m.returnPct || 0) >= 0;
+                        return (
+                          <li key={index} className="pi-mover">
+                            <div className="pi-mover__info">
+                              <span className="pi-mover__sym">{m.symbol}</span>
+                              <span className="pi-mover__name">{m.name}</span>
+                            </div>
+                            <span className={`pi-mover__chg ${moverUp ? 'pi-pos' : 'pi-neg'}`}>
+                              {moverUp ? '+' : ''}
+                              {m.returnPct.toFixed(1)}%
+                            </span>
+                          </li>
+                        );
+                      })}
+                    </ul>
+                  </div>
+                </div>
+              );
+            })()}
           </div>
 
         {/* Quick Actions */}
