@@ -125,21 +125,83 @@ const DoubleEntries = () => {
     return { totalDebit, totalCredit, isBalanced: totalDebit === totalCredit };
   };
 
+  const balancedCount = entries.filter(g => calculateTotals(g).isBalanced).length;
+  const unbalancedCount = entries.length - balancedCount;
+  const totalDebitValue = entries.reduce((sum, g) => sum + calculateTotals(g).totalDebit, 0);
+
   return (
     <div className="double-entries-container">
-      {/* Header Section */}
-      <div className="double-entries-header-section">
-        <div className="double-entries-header-icon">
-          <svg className="double-entries-icon" fill="currentColor" viewBox="0 0 20 20">
-            <path fillRule="evenodd" d="M4 4a2 2 0 00-2 2v8a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2H4zm2 2v8h8V6H6z" clipRule="evenodd"/>
-            <path d="M8 8a1 1 0 011-1h2a1 1 0 110 2H9a1 1 0 01-1-1zm0 2a1 1 0 011-1h2a1 1 0 110 2H9a1 1 0 01-1-1zm1 1a1 1 0 100 2h2a1 1 0 100-2H9z"/>
-          </svg>
+      <div className="double-entries-content-wrapper">
+      {/* Toolbar */}
+      <header className="double-entries-header-section">
+        <div className="double-entries-header-left">
+          <div className="double-entries-header-text-group">
+            <h1 className="double-entries-main-title">Double Entries</h1>
+            <p className="double-entries-subtitle">View all double-entry accounting transactions with matching debits and credits</p>
+          </div>
         </div>
-        <div className="double-entries-header-text-group">
-          <h1 className="double-entries-main-title">Double Entries</h1>
-          <p className="double-entries-subtitle">View all double-entry accounting transactions with matching debits and credits</p>
+        <div className="double-entries-header-actions">
+          <button
+            type="button"
+            className="double-entries-refresh-btn"
+            onClick={loadDoubleEntries}
+            disabled={loading}
+          >
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+            </svg>
+            Refresh
+          </button>
         </div>
-      </div>
+      </header>
+
+      {/* KPI Summary */}
+      <section className="double-entries-kpis" aria-label="Double entries summary">
+        <div className="de-kpi de-kpi--total">
+          <div className="de-kpi__icon">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 17v-6h4v6m-7 4h10a2 2 0 002-2V7a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+            </svg>
+          </div>
+          <div className="de-kpi__body">
+            <span className="de-kpi__value">{entries.length}</span>
+            <span className="de-kpi__label">Transactions</span>
+          </div>
+        </div>
+        <div className="de-kpi de-kpi--balanced">
+          <div className="de-kpi__icon">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+          </div>
+          <div className="de-kpi__body">
+            <span className="de-kpi__value">{balancedCount}</span>
+            <span className="de-kpi__label">Balanced</span>
+          </div>
+        </div>
+        <div className="de-kpi de-kpi--unbalanced">
+          <div className="de-kpi__icon">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+          </div>
+          <div className="de-kpi__body">
+            <span className="de-kpi__value">{unbalancedCount}</span>
+            <span className="de-kpi__label">Unbalanced</span>
+          </div>
+        </div>
+        <div className="de-kpi de-kpi--value">
+          <div className="de-kpi__icon">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+            </svg>
+          </div>
+          <div className="de-kpi__body">
+            <span className="de-kpi__value">{formatCurrency(totalDebitValue)}</span>
+            <span className="de-kpi__label">Total Value</span>
+          </div>
+        </div>
+      </section>
 
       {/* Error Message */}
       {error && (
@@ -316,6 +378,7 @@ const DoubleEntries = () => {
             </p>
           </div>
         )}
+      </div>
       </div>
     </div>
   );

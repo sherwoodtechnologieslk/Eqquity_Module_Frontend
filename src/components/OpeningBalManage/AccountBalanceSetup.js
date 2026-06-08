@@ -146,20 +146,83 @@ const AccountBalanceSetup = () => {
     );
   };
 
+  const debitCount = accounts.filter(a => a.normal_balance?.toLowerCase() === 'debit').length;
+  const creditCount = accounts.filter(a => a.normal_balance?.toLowerCase() === 'credit').length;
+  const activeCount = accounts.filter(a => a.active_status === 'Yes').length;
+
   return (
     <div className="account-balance-setup-container">
-      {/* Header Section */}
-      <div className="account-balance-setup-header-section">
-        <div className="account-balance-setup-header-icon">
-          <svg className="account-balance-setup-icon" fill="currentColor" viewBox="0 0 20 20">
-            <path fillRule="evenodd" d="M11.49 3.17c-.38-1.56-2.6-1.56-2.98 0a1.532 1.532 0 01-2.286.948c-1.372-.836-2.942.734-2.106 2.106.54.886.061 2.042-.947 2.287-1.561.379-1.561 2.6 0 2.978a1.532 1.532 0 01.947 2.287c-.836 1.372.734 2.942 2.106 2.106a1.532 1.532 0 012.287.947c.379 1.561 2.6 1.561 2.978 0a1.533 1.533 0 012.287-.947c1.372.836 2.942-.734 2.106-2.106a1.533 1.533 0 01.947-2.287c1.561-.379 1.561-2.6 0-2.978a1.532 1.532 0 01-.947-2.287c.836-1.372-.734-2.942-2.106-2.106a1.532 1.532 0 01-2.287-.947zM10 13a3 3 0 100-6 3 3 0 000 6z" clipRule="evenodd"/>
-          </svg>
+      <div className="account-balance-setup-content-wrapper">
+      {/* Toolbar */}
+      <header className="account-balance-setup-header-section">
+        <div className="account-balance-setup-header-left">
+          <div className="account-balance-setup-header-text-group">
+            <h1 className="account-balance-setup-main-title">Account Balance Setup</h1>
+            <p className="account-balance-setup-subtitle">Configure debit/credit balance types for your GL accounts</p>
+          </div>
         </div>
-        <div className="account-balance-setup-header-text-group">
-          <h1 className="account-balance-setup-main-title">Account Balance Setup</h1>
-          <p className="account-balance-setup-subtitle">Configure debit/credit balance types for your GL accounts</p>
+        <div className="account-balance-setup-header-actions">
+          <button
+            type="button"
+            className="account-balance-setup-refresh-btn"
+            onClick={loadAccounts}
+            disabled={loading}
+          >
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+            </svg>
+            Refresh
+          </button>
         </div>
-      </div>
+      </header>
+
+      {/* KPI Summary */}
+      <section className="account-balance-setup-kpis" aria-label="Account summary">
+        <div className="abs-kpi abs-kpi--total">
+          <div className="abs-kpi__icon">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 17v-6h4v6m-7 4h10a2 2 0 002-2V7a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+            </svg>
+          </div>
+          <div className="abs-kpi__body">
+            <span className="abs-kpi__value">{accounts.length}</span>
+            <span className="abs-kpi__label">Total Accounts</span>
+          </div>
+        </div>
+        <div className="abs-kpi abs-kpi--debit">
+          <div className="abs-kpi__icon">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 11l5-5m0 0l5 5m-5-5v12" />
+            </svg>
+          </div>
+          <div className="abs-kpi__body">
+            <span className="abs-kpi__value">{debitCount}</span>
+            <span className="abs-kpi__label">Debit Accounts</span>
+          </div>
+        </div>
+        <div className="abs-kpi abs-kpi--credit">
+          <div className="abs-kpi__icon">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 13l-5 5m0 0l-5-5m5 5V6" />
+            </svg>
+          </div>
+          <div className="abs-kpi__body">
+            <span className="abs-kpi__value">{creditCount}</span>
+            <span className="abs-kpi__label">Credit Accounts</span>
+          </div>
+        </div>
+        <div className="abs-kpi abs-kpi--active">
+          <div className="abs-kpi__icon">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+          </div>
+          <div className="abs-kpi__body">
+            <span className="abs-kpi__value">{activeCount}</span>
+            <span className="abs-kpi__label">Active Accounts</span>
+          </div>
+        </div>
+      </section>
 
       {/* Success Message */}
       {success && (
@@ -390,6 +453,7 @@ const AccountBalanceSetup = () => {
             </>
           )}
         </div>
+      </div>
       </div>
     </div>
   );
