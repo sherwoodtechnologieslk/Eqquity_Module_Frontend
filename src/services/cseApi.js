@@ -2,6 +2,8 @@
 // The browser cannot call https://www.cse.lk/api/* directly because of CORS
 // and required headers, so all calls go through our backend.
 
+import { itemMatchesHoldings } from '../utils/cseAnnouncementRank';
+
 const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8080/api';
 
 const emptyEnvelope = (note) => ({
@@ -93,6 +95,85 @@ const cseApi = {
     topLosers: () => request('/top-losers'),
     mostActiveTrades: () => request('/most-active'),
     marketStatus: () => request('/market-status'),
+
+    // Market-wide indices (ASPI + S&P SL20) for the Global Events factor.
+    marketIndices: async () => {
+        const url = `${API_BASE_URL}/cse-announcements/market-indices`;
+        try {
+            const response = await fetch(url, {
+                method: 'GET',
+                headers: { 'Content-Type': 'application/json' }
+            });
+            const body = await response.json().catch(() => null);
+            if (!response.ok || !body) {
+                return { success: true, aspi: null, snp: null, note: 'CSE index data unavailable.' };
+            }
+            return {
+                success: true,
+                lastUpdated: body.lastUpdated,
+                aspi: body.aspi || null,
+                snp: body.snp || null,
+                note: body.note || ''
+            };
+        } catch (e) {
+            return { success: true, aspi: null, snp: null, note: 'Cannot reach the server.' };
+        }
+    },
+
+    // Live per-company snapshot (companyInfoSummery).
+    companyInfo: async (symbol) => {
+        if (!symbol) return { success: false, info: null, note: 'No symbol provided.' };
+        const url = `${API_BASE_URL}/cse-announcements/company-info?symbol=${encodeURIComponent(
+            symbol
+        )}`;
+        try {
+            const response = await fetch(url, {
+                method: 'GET',
+                headers: { 'Content-Type': 'application/json' }
+            });
+            const body = await response.json().catch(() => null);
+            if (!response.ok || !body) {
+                return {
+                    success: true,
+                    info: null,
+                    note: (body && (body.message || body.note)) || 'CSE company data unavailable.'
+                };
+            }
+            return {
+                success: true,
+                lastUpdated: body.lastUpdated,
+                info: body.info || null,
+                note: body.note || ''
+            };
+        } catch (e) {
+            return {
+                success: true,
+                info: null,
+                note: 'Cannot reach the server. Check your connection and try again.'
+            };
+        }
+    },
+
+    // Announcements filtered to a single company (symbol + name match).
+    companyAnnouncements: async (symbol, companyName) => {
+        const paths = ['/financial', '/approved', '/new-listings', '/circular'];
+        const results = await Promise.all(paths.map((p) => request(p)));
+        const items = results.flatMap((r) => (Array.isArray(r?.items) ? r.items : []));
+        const symbols = symbol ? [symbol] : [];
+        const names = companyName ? [companyName] : [];
+        const matched = items.filter((item) => itemMatchesHoldings(item, symbols, names));
+        matched.sort((a, b) => {
+            const ta = a?.date ? Date.parse(a.date) : 0;
+            const tb = b?.date ? Date.parse(b.date) : 0;
+            return tb - ta;
+        });
+        return {
+            success: true,
+            lastUpdated: new Date().toISOString(),
+            items: matched,
+            note: results.find((r) => r?.note)?.note || ''
+        };
+    },
 
     // Dashboard Market Movers — gainers, losers, most active + status in one call.
     dashboardMovers: async () => {

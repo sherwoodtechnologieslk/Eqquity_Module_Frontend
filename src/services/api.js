@@ -418,14 +418,7 @@ export const tradeSummaryAPI = {
       if (tradeDate) {
         url += `?tradeDate=${tradeDate}`;
       }
-      
-      const response = await fetch(url, {
-        headers: getAuthHeaders()
-      });
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-      return await response.json();
+      return await makeAuthenticatedRequest(url);
     } catch (error) {
       console.error('Error fetching trade summaries:', error);
       throw error;
@@ -435,13 +428,7 @@ export const tradeSummaryAPI = {
   // Get unique company names and symbols for dropdown
   getCompanyList: async () => {
     try {
-      const response = await fetch(`${API_BASE_URL}/trade-summary/companies`, {
-        headers: getAuthHeaders()
-      });
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-      return await response.json();
+      return await makeAuthenticatedRequest(`${API_BASE_URL}/trade-summary/companies`);
     } catch (error) {
       console.error('Error fetching company list:', error);
       throw error;

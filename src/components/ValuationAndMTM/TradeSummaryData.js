@@ -43,7 +43,12 @@ const TradeSummaryData = () => {
       setTradeSummaries(transformedData);
       setFilteredData(transformedData);
     } catch (err) {
-      setError('Failed to fetch trade summary data');
+      const msg = err?.message || '';
+      setError(
+        msg.includes('401') || /session expired|authorization denied|not valid/i.test(msg)
+          ? 'Your session has expired. Please log out and sign in again.'
+          : 'Failed to fetch trade summary data'
+      );
       console.error('Error fetching trade summaries:', err);
     } finally {
       setLoading(false);
