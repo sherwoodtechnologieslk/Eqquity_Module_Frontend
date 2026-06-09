@@ -311,19 +311,6 @@ function App() {
     };
     
     checkAuth();
-
-    // Add event listener to clear auth data only when browser is closed
-    const handleBeforeUnload = () => {
-      authService.logout();
-    };
-
-    // Add event listener for browser close only
-    window.addEventListener('beforeunload', handleBeforeUnload);
-
-    // Cleanup function
-    return () => {
-      window.removeEventListener('beforeunload', handleBeforeUnload);
-    };
   }, []);
 
   // Optional: Set default visible tabs on first load
