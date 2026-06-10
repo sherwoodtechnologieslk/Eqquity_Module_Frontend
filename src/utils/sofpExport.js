@@ -106,18 +106,71 @@ export const computeEquityDisplayRows = (financialPositionData, netProfit) => {
 };
 
 /**
+ * Collapses SOFP accounts into one entry per transaction type, preserving first-seen
+ * order. Accounts with no transaction type stay individual (keyed by account code/name).
+ * Balances are summed (signed, mirroring the backend); consumers derive DR/CR from sign.
+ * Shared by the SOFP screen and the PDF/Excel exports so both stay in sync.
+ * @returns {Array<{ key: string, label: string, transactionTypeName: string,
+ *   accountCategory: string, balance: number, accounts: object[] }>}
+ */
+export const groupByTransactionType = (accounts) => {
+  const groups = [];
+  const indexByKey = new Map();
+
+  (accounts || []).forEach((account, i) => {
+    const ttName = String(account?.transactionTypeName || '').trim();
+    const fallbackLabel = String(account?.accountName || account?.accountCategory || '').trim();
+    const hasType = ttName.length > 0;
+    const key = hasType
+      ? `tt:${ttName.toLowerCase()}`
+      : `acc:${account?.accountCode || fallbackLabel || i}`;
+
+    let group = indexByKey.get(key);
+    if (!group) {
+      group = {
+        key,
+        label: hasType ? ttName : fallbackLabel || 'Account',
+        transactionTypeName: ttName,
+        accountCategory: account?.accountCategory || '',
+        balance: 0,
+        accounts: []
+      };
+      indexByKey.set(key, group);
+      groups.push(group);
+    }
+    group.balance += Number(account?.balance) || 0;
+    group.accounts.push(account);
+  });
+
+  return groups;
+};
+
+/** Normal-balance-aware DR/CR for a signed (summed) balance. */
+export const deriveBalanceTypeFromBalance = (balance, normalBalanceType) => {
+  const b = Number(balance) || 0;
+  if (Math.abs(b) < 0.005) return 'ZERO';
+  if (b > 0) return normalBalanceType;
+  return normalBalanceType === 'DR' ? 'CR' : 'DR';
+};
+
+/**
  * @param {{ financialPositionData: object, netProfit?: number | null }} params
  * @returns {string[][]} rows for PDF body / CSV
  */
 export const buildSofpExportRows = ({ financialPositionData, netProfit }) => {
   const rows = [];
   const sum = (list) => (list || []).reduce((acc, a) => acc + (Number(a?.balance) || 0), 0);
-  const label = (a) => String(a?.transactionTypeName || a?.accountName || a?.accountCategory || '').trim();
-  const amount = (a) => formatCurrency(Math.abs(Number(a?.balance) || 0));
-  const drcr = (a, normal) => String(a?.balanceType || normal || '');
 
   const pushGroup = (section, list, normal, subtotalLabel) => {
-    (list || []).forEach((a) => rows.push([section, label(a), amount(a), drcr(a, normal)]));
+    groupByTransactionType(list).forEach((g) => {
+      const drcr = deriveBalanceTypeFromBalance(g.balance, normal);
+      rows.push([
+        section,
+        g.label,
+        formatCurrency(Math.abs(Number(g.balance) || 0)),
+        drcr === 'ZERO' ? normal : drcr
+      ]);
+    });
     if (subtotalLabel && (list || []).length > 0) {
       rows.push([section, subtotalLabel, formatCurrency(Math.abs(sum(list))), normal]);
     }

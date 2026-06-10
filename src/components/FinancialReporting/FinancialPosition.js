@@ -8,6 +8,8 @@ import {
   SOFP_EXPORT_HEADERS,
   computeDisplayedAssetBuckets,
   computeEquityDisplayRows,
+  groupByTransactionType,
+  deriveBalanceTypeFromBalance,
   parseNetProfit
 } from '../../utils/sofpExport';
 
@@ -16,7 +18,7 @@ const FinancialPosition = ({ onTabChange }) => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
   const [netProfit, setNetProfit] = useState(null); // from P&L -> used for retained earnings display
-  const [selectedAccount, setSelectedAccount] = useState(null);
+  const [selectedGroup, setSelectedGroup] = useState(null);
   const [showMtmData, setShowMtmData] = useState(false);
   const [showNotes, setShowNotes] = useState(false);
   const [filters, setFilters] = useState({
@@ -135,8 +137,28 @@ const FinancialPosition = ({ onTabChange }) => {
     }
   };
 
-  const handleAccountNameClick = (account) => {
-    setSelectedAccount(account);
+  const handleGroupClick = (group, normalBalanceType) => {
+    setSelectedGroup({ ...group, normalBalanceType });
+  };
+
+  const goToNotes = (account) => {
+    if (!account) return;
+    const ctx = {
+      source: 'SOFP',
+      accountCode: account.accountCode || '',
+      accountName: account.accountName || '',
+      transactionTypeName:
+        account.transactionTypeName || selectedGroup?.transactionTypeName || '',
+      accountCategory: account.accountCategory || selectedGroup?.accountCategory || '',
+      balance: Number(account.balance) || 0,
+      balanceType: account.balanceType || '',
+      asOfDate: financialPositionData?.asOfDate || filters.asOfDate,
+      portfolioId: filters.portfolio || '',
+      portfolioLabel: financialPositionData?.portfolio || 'All Portfolios',
+      displayLabel: getSofpRowLabel(account) || selectedGroup?.label || ''
+    };
+    setSelectedGroup(null);
+    onTabChange?.('Financial Reporting Notes', ctx);
   };
 
   const handleFilterChange = (field, value) => {
@@ -248,35 +270,63 @@ const FinancialPosition = ({ onTabChange }) => {
     [financialPositionData]
   );
 
+  // One row per transaction type for each statement bucket.
+  const nonCurrentAssetGroups = useMemo(
+    () => groupByTransactionType(displayedAssetBuckets.nonCurrentAssets),
+    [displayedAssetBuckets]
+  );
+  const currentAssetGroups = useMemo(
+    () => groupByTransactionType(displayedAssetBuckets.currentAssets),
+    [displayedAssetBuckets]
+  );
+  const equityGroups = useMemo(
+    () => groupByTransactionType(equityDisplayRows),
+    [equityDisplayRows]
+  );
+  const nonCurrentLiabilityGroups = useMemo(
+    () => groupByTransactionType(financialPositionData?.liabilities?.nonCurrentLiabilities),
+    [financialPositionData]
+  );
+  const currentLiabilityGroups = useMemo(
+    () => groupByTransactionType(financialPositionData?.liabilities?.currentLiabilities),
+    [financialPositionData]
+  );
+
   /** SOFP first column: chart_of_accounts.transaction_type when set, else GL account name */
   const getSofpRowLabel = (account) => {
     const t = String(account?.transactionTypeName || '').trim();
     return t || account?.accountName || '';
   };
 
-  const renderAccountRow = (account, index, normalBalanceType) => (
-    <tr key={account.accountCode || index} className="fp-account-row">
-      <td className="fp-account-name">
-        <button
-          type="button"
-          className="fp-account-link"
-          onClick={() => handleAccountNameClick(account)}
-        >
-          {getSofpRowLabel(account)}
-        </button>
-      </td>
-      <td className="fp-amount-cell">
-        <div className="fp-balance-cell">
-          <span className={`fp-account-balance ${getLineState(account.balanceType, normalBalanceType)}`}>
-            {formatCurrency(Number(account.balance) || 0)}
-          </span>
-          <span className={`fp-drcr-badge ${getLineState(account.balanceType, normalBalanceType)}`}>
-            {account.balanceType || ''}
-          </span>
-        </div>
-      </td>
-    </tr>
-  );
+  const renderGroupRow = (group, index, normalBalanceType) => {
+    const balanceType = deriveBalanceTypeFromBalance(group.balance, normalBalanceType);
+    const state = getLineState(balanceType, normalBalanceType);
+    const count = group.accounts.length;
+    return (
+      <tr key={group.key || index} className="fp-account-row">
+        <td className="fp-account-name">
+          <button
+            type="button"
+            className="fp-account-link"
+            onClick={() => handleGroupClick(group, normalBalanceType)}
+          >
+            {group.label}
+            {count > 1 && <span className="fp-account-count">{count} accounts</span>}
+          </button>
+        </td>
+        <td className="fp-amount-cell">
+          <div className="fp-balance-cell">
+            <span className={`fp-account-balance ${state}`}>
+              {formatCurrency(Number(group.balance) || 0)}
+            </span>
+            <span className={`fp-drcr-badge ${state}`}>
+              {balanceType === 'ZERO' ? '' : balanceType}
+            </span>
+          </div>
+        </td>
+      </tr>
+    );
+  };
 
   const renderSubtotalRow = (label, amount) => (
     <tr key={`subtotal-${label}`} className="fp-subtotal-row">
@@ -458,10 +508,10 @@ const FinancialPosition = ({ onTabChange }) => {
                       </tr>
                     </thead>
                     <tbody>
-                      {(displayedAssetBuckets.nonCurrentAssets || []).map((account, index) =>
-                        renderAccountRow(account, index, 'DR')
+                      {nonCurrentAssetGroups.map((group, index) =>
+                        renderGroupRow(group, index, 'DR')
                       )}
-                      {displayedAssetBuckets.nonCurrentAssets.length > 0 &&
+                      {nonCurrentAssetGroups.length > 0 &&
                         renderSubtotalRow(
                           'Total Non-current assets',
                           displayedAssetBuckets.totalNonCurrentAssets || 0
@@ -485,10 +535,10 @@ const FinancialPosition = ({ onTabChange }) => {
                       </tr>
                     </thead>
                     <tbody>
-                      {(displayedAssetBuckets.currentAssets || []).map((account, index) =>
-                        renderAccountRow(account, index, 'DR')
+                      {currentAssetGroups.map((group, index) =>
+                        renderGroupRow(group, index, 'DR')
                       )}
-                      {displayedAssetBuckets.currentAssets.length > 0 &&
+                      {currentAssetGroups.length > 0 &&
                         renderSubtotalRow(
                           'Total Current assets',
                           displayedAssetBuckets.totalCurrentAssets || 0
@@ -529,8 +579,8 @@ const FinancialPosition = ({ onTabChange }) => {
                       </tr>
                     </thead>
                     <tbody>
-                      {equityDisplayRows.map((account, index) => renderAccountRow(account, index, 'CR'))}
-                      {equityDisplayRows && equityDisplayRows.length > 0 &&
+                      {equityGroups.map((group, index) => renderGroupRow(group, index, 'CR'))}
+                      {equityGroups.length > 0 &&
                       renderSubtotalRow('Total Equity', equityTotalsForDisplay?.totalEquity || 0)
                       }
                     </tbody>
@@ -552,10 +602,10 @@ const FinancialPosition = ({ onTabChange }) => {
                       </tr>
                     </thead>
                     <tbody>
-                      {(financialPositionData?.liabilities?.nonCurrentLiabilities || []).map((account, index) =>
-                        renderAccountRow(account, index, 'CR')
+                      {nonCurrentLiabilityGroups.map((group, index) =>
+                        renderGroupRow(group, index, 'CR')
                       )}
-                      {financialPositionData?.liabilities?.nonCurrentLiabilities?.length > 0 &&
+                      {nonCurrentLiabilityGroups.length > 0 &&
                         renderSubtotalRow(
                           'Total Non-current liabilities',
                           financialPositionData?.totals?.totalNonCurrentLiabilities || 0
@@ -578,10 +628,10 @@ const FinancialPosition = ({ onTabChange }) => {
                       </tr>
                     </thead>
                     <tbody>
-                      {(financialPositionData?.liabilities?.currentLiabilities || []).map((account, index) =>
-                        renderAccountRow(account, index, 'CR')
+                      {currentLiabilityGroups.map((group, index) =>
+                        renderGroupRow(group, index, 'CR')
                       )}
-                      {financialPositionData?.liabilities?.currentLiabilities?.length > 0 &&
+                      {currentLiabilityGroups.length > 0 &&
                         renderSubtotalRow(
                           'Total Current liabilities',
                           financialPositionData?.totals?.totalCurrentLiabilities || 0
@@ -602,28 +652,30 @@ const FinancialPosition = ({ onTabChange }) => {
         </div>
       </div>
 
-      {/* Footer */}
-      {selectedAccount && (
+      {/* Transaction type drill-down modal */}
+      {selectedGroup && (
         <div
           className="fp-modal-overlay"
           role="dialog"
           aria-modal="true"
-          onClick={() => setSelectedAccount(null)}
+          onClick={() => setSelectedGroup(null)}
         >
           <div className="fp-modal" onClick={(e) => e.stopPropagation()}>
             <div className="fp-modal-header">
-              <div className="fp-modal-title">{getSofpRowLabel(selectedAccount) || 'Account'}</div>
+              <div className="fp-modal-title">{selectedGroup.label || 'Transaction type'}</div>
               <button
                 type="button"
                 className="fp-modal-close"
-                onClick={() => setSelectedAccount(null)}
+                onClick={() => setSelectedGroup(null)}
               >
                 Close
               </button>
             </div>
             <div className="fp-modal-body">
               <p className="fp-modal-table-intro">
-                GL accounts for this line (amount shown on the statement):
+                {selectedGroup.accounts.length > 1
+                  ? 'GL accounts under this transaction type. Choose an account to view its notes.'
+                  : 'GL account for this transaction type. Choose View notes to see its entries.'}
               </p>
               <div className="fp-modal-table-wrap">
                 <table className="fp-modal-table">
@@ -634,49 +686,56 @@ const FinancialPosition = ({ onTabChange }) => {
                       <th scope="col" className="fp-modal-table-amount">
                         Amount
                       </th>
+                      <th scope="col" className="fp-modal-table-action" aria-label="Actions" />
                     </tr>
                   </thead>
                   <tbody>
-                    <tr>
-                      <td>{selectedAccount.accountCode?.trim() ? selectedAccount.accountCode : '—'}</td>
-                      <td>{selectedAccount.accountName?.trim() ? selectedAccount.accountName : '—'}</td>
-                      <td className="fp-modal-table-amount">
-                        <span className="fp-modal-table-amount-num">
-                          {formatCurrency(Number(selectedAccount.balance) || 0)}
-                        </span>
-                        {selectedAccount.balanceType && selectedAccount.balanceType !== 'ZERO' ? (
-                          <span className="fp-modal-table-drcr">{selectedAccount.balanceType}</span>
-                        ) : null}
-                      </td>
-                    </tr>
+                    {selectedGroup.accounts.map((acc, i) => (
+                      <tr key={acc.accountCode || i}>
+                        <td>{acc.accountCode?.trim() ? acc.accountCode : '—'}</td>
+                        <td>{acc.accountName?.trim() ? acc.accountName : '—'}</td>
+                        <td className="fp-modal-table-amount">
+                          <span className="fp-modal-table-amount-num">
+                            {formatCurrency(Number(acc.balance) || 0)}
+                          </span>
+                          {acc.balanceType && acc.balanceType !== 'ZERO' ? (
+                            <span className="fp-modal-table-drcr">{acc.balanceType}</span>
+                          ) : null}
+                        </td>
+                        <td className="fp-modal-table-action">
+                          <button
+                            type="button"
+                            className="fp-modal-row-notes"
+                            onClick={() => goToNotes(acc)}
+                            disabled={!acc.accountCode?.trim()}
+                            title={
+                              acc.accountCode?.trim()
+                                ? 'View notes for this account'
+                                : 'No GL account behind this line'
+                            }
+                          >
+                            View notes
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
                   </tbody>
+                  {selectedGroup.accounts.length > 1 && (
+                    <tfoot>
+                      <tr>
+                        <td colSpan="2" className="fp-modal-total-label">
+                          Total
+                        </td>
+                        <td className="fp-modal-table-amount">
+                          <span className="fp-modal-table-amount-num">
+                            {formatCurrency(Number(selectedGroup.balance) || 0)}
+                          </span>
+                        </td>
+                        <td className="fp-modal-table-action" />
+                      </tr>
+                    </tfoot>
+                  )}
                 </table>
-              </div>
-              <div className="fp-modal-actions">
-                <button
-                  type="button"
-                  className="fp-modal-view-notes"
-                  onClick={() => {
-                    const ctx = {
-                      source: 'SOFP',
-                      accountCode: selectedAccount?.accountCode || '',
-                      accountName: selectedAccount?.accountName || '',
-                      transactionTypeName: selectedAccount?.transactionTypeName || '',
-                      accountCategory: selectedAccount?.accountCategory || '',
-                      balance: Number(selectedAccount?.balance) || 0,
-                      balanceType: selectedAccount?.balanceType || '',
-                      asOfDate: financialPositionData?.asOfDate || filters.asOfDate,
-                      portfolioId: filters.portfolio || '',
-                      portfolioLabel:
-                        financialPositionData?.portfolio || 'All Portfolios',
-                      displayLabel: getSofpRowLabel(selectedAccount)
-                    };
-                    setSelectedAccount(null);
-                    onTabChange?.('Financial Reporting Notes', ctx);
-                  }}
-                >
-                  View notes
-                </button>
               </div>
             </div>
           </div>

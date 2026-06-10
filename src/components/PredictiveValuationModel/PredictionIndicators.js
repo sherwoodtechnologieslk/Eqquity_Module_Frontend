@@ -75,6 +75,126 @@ const FACTOR_ICONS = {
   technical: ICON(<><path d="M3 3v18h18" /><path d="M7 14l3-4 3 3 4-6" /></>)
 };
 
+// ---- Portfolio analysis helpers (pure, module-level) ----
+const toNum = (v) => {
+  const n = parseFloat(v);
+  return Number.isFinite(n) ? n : 0;
+};
+
+// Compute a lightweight composite signal (0-100) from 3-month trade history.
+// Mirrors the per-stock engine but omits the sector term so it can run quickly
+// for every holding without extra peer lookups.
+const analyzeHistory = (rows) => {
+  const data = Array.isArray(rows)
+    ? [...rows].sort((a, b) => new Date(a.trade_date) - new Date(b.trade_date))
+    : [];
+  const prices = data.map((d) => toNum(d.last_trade)).filter((n) => n > 0);
+  if (prices.length < 8) return null;
+
+  const current = prices[prices.length - 1];
+  const first = prices[0];
+  const high = Math.max(...prices);
+  const low = Math.min(...prices);
+  const periodReturn = first > 0 ? (current - first) / first : 0;
+  const rangePos = high > low ? (current - low) / (high - low) : 0.5;
+
+  const mom = (days) => {
+    if (prices.length < days + 1) return 0;
+    const past = prices[prices.length - 1 - days];
+    return past > 0 ? (current - past) / past : 0;
+  };
+  const momentum7d = mom(7);
+  const momentum30d = mom(30);
+
+  // RSI (14)
+  let rsi = 50;
+  if (prices.length >= 15) {
+    const changes = [];
+    for (let i = 1; i < prices.length; i++) changes.push(prices[i] - prices[i - 1]);
+    const recent = changes.slice(-14);
+    const gains = recent.filter((c) => c > 0).reduce((a, b) => a + b, 0) / 14;
+    const losses = Math.abs(recent.filter((c) => c < 0).reduce((a, b) => a + b, 0)) / 14;
+    rsi = losses === 0 ? 100 : 100 - 100 / (1 + gains / losses);
+  }
+
+  // Volatility (20)
+  let volatility = 0;
+  if (prices.length >= 21) {
+    const recent = prices.slice(-20);
+    const rets = [];
+    for (let i = 1; i < recent.length; i++) {
+      if (recent[i - 1] > 0) rets.push((recent[i] - recent[i - 1]) / recent[i - 1]);
+    }
+    if (rets.length) {
+      const mean = rets.reduce((a, b) => a + b, 0) / rets.length;
+      const variance = rets.reduce((a, r) => a + (r - mean) ** 2, 0) / rets.length;
+      volatility = Math.sqrt(variance) * 100;
+    }
+  }
+
+  // Volume ratio (latest vs 30d avg)
+  const volumes = data.map((d) => toNum(d.trade_volume));
+  const volDays = Math.min(30, volumes.length);
+  const avgVol = volDays > 0 ? volumes.slice(-volDays).reduce((a, b) => a + b, 0) / volDays : 0;
+  const volumeRatio = avgVol > 0 ? volumes[volumes.length - 1] / avgVol : 1;
+
+  const ma7 = prices.length >= 7 ? prices.slice(-7).reduce((a, b) => a + b, 0) / 7 : null;
+  const ma30 = prices.length >= 30 ? prices.slice(-30).reduce((a, b) => a + b, 0) / 30 : null;
+
+  const clamp = (n) => Math.min(100, Math.max(0, n));
+  const technicalScore = clamp(
+    rsi * 0.4 +
+    (momentum7d * 100 + 50) * 0.3 +
+    (ma7 && ma30 && current > ma7 && ma7 > ma30 ? 70 : 50) * 0.3
+  );
+  const sentimentScore = clamp(rsi * 0.75 + (50 + momentum7d * 250) * 0.25);
+  const supplyDemandScore = clamp((volumeRatio - 0.5) * 66.67 + 50);
+  const fundamentalsScore = clamp(40 + rangePos * 40 + periodReturn * 150);
+
+  // Composite reweighted (no sector term): technical 0.35, sentiment 0.28,
+  // supply/demand 0.22, performance 0.15.
+  const score = Math.round(
+    technicalScore * 0.35 +
+    sentimentScore * 0.28 +
+    supplyDemandScore * 0.22 +
+    fundamentalsScore * 0.15
+  );
+  const color = score >= 58 ? 'positive' : score <= 42 ? 'negative' : 'neutral';
+  const verdict =
+    score >= 70 ? 'Strong Bullish'
+      : score >= 58 ? 'Bullish'
+      : score >= 43 ? 'Neutral'
+      : score >= 30 ? 'Bearish'
+      : 'Strong Bearish';
+
+  return {
+    score, color, verdict,
+    periodReturn, momentum30d, rsi, rangePos, volatility,
+    current, points: prices.length
+  };
+};
+
+// Turn a signal score + P&L into an actionable recommendation.
+const recommendAction = (score, pnlPct) => {
+  if (score == null) {
+    return { action: 'No Signal', tone: 'muted', note: 'Not enough recent trading history to score.' };
+  }
+  if (score >= 66) {
+    return { action: 'Accumulate', tone: 'positive', note: 'Strong bullish signals — momentum and demand favour adding to this position.' };
+  }
+  if (score >= 56) {
+    return { action: 'Add on Dips', tone: 'positive', note: 'Constructive trend. Consider topping up on pullbacks.' };
+  }
+  if (score >= 45) {
+    const tilt = pnlPct != null && pnlPct < -8 ? ' Position is underwater — review your thesis.' : '';
+    return { action: 'Hold', tone: 'neutral', note: `Balanced signals. Maintain the current position.${tilt}` };
+  }
+  if (score >= 34) {
+    return { action: 'Trim', tone: 'caution', note: 'Weakening signals. Consider reducing exposure into strength.' };
+  }
+  return { action: 'Reduce', tone: 'negative', note: 'Bearish signals dominate — consider cutting or exiting the position.' };
+};
+
 const PredictionIndicators = () => {
   const [equities, setEquities] = useState([]);
   const [selectedSymbol, setSelectedSymbol] = useState('');
@@ -92,7 +212,19 @@ const PredictionIndicators = () => {
   const [liveQuoteNote, setLiveQuoteNote] = useState('');
   const [companyNews, setCompanyNews] = useState([]);
   const [companyNewsLoading, setCompanyNewsLoading] = useState(false);
+  const [companyReports, setCompanyReports] = useState([]);
+  const [companyReportsLoading, setCompanyReportsLoading] = useState(false);
   const [allHoldings, setAllHoldings] = useState([]);
+  const [portfolioAnalysis, setPortfolioAnalysis] = useState([]);
+  const [portfolioLoading, setPortfolioLoading] = useState(false);
+  // Which view is active: 'stock' (single-stock analysis) or 'portfolio'.
+  const [view, setView] = useState('stock');
+
+  // Jump straight into a stock's full analysis from the portfolio view.
+  const openStock = useCallback((symbol) => {
+    setSelectedSymbol(symbol);
+    setView('stock');
+  }, []);
 
   // Real-time inputs for the Global Events factor.
   const [marketIndices, setMarketIndices] = useState(null);
@@ -424,15 +556,108 @@ const PredictionIndicators = () => {
       try {
         const overview = await portfolioAPI.getPortfolioOverview();
         const holdings = overview?.data?.holdings || overview?.holdings || [];
-        if (!cancelled) setAllHoldings(Array.isArray(holdings) ? holdings : []);
+        if (!cancelled) {
+          setAllHoldings(Array.isArray(holdings) ? holdings : []);
+        }
       } catch (e) {
-        if (!cancelled) setAllHoldings([]);
+        if (!cancelled) {
+          setAllHoldings([]);
+        }
       }
     })();
     return () => {
       cancelled = true;
     };
   }, []);
+
+  // Analyze every holding: pull 3-month history, score the signal and build a
+  // recommendation. Runs whenever the holdings list changes.
+  useEffect(() => {
+    let cancelled = false;
+    const run = async () => {
+      const holdings = allHoldings.filter((h) => h.symbol);
+      if (holdings.length === 0) {
+        setPortfolioAnalysis([]);
+        return;
+      }
+      setPortfolioLoading(true);
+
+      const endDate = new Date().toISOString().split('T')[0];
+      const start = new Date();
+      start.setMonth(start.getMonth() - 3);
+      const startDate = start.toISOString().split('T')[0];
+
+      const results = await Promise.all(
+        holdings.map(async (h) => {
+          let analysis = null;
+          try {
+            const rows = await tradeSummaryAPI.getCompanyData(h.symbol, startDate, endDate);
+            analysis = analyzeHistory(rows);
+          } catch (e) {
+            analysis = null;
+          }
+          const qty = toNum(h.quantity);
+          const avg = toNum(h.avgPrice);
+          const current = h.currentPrice != null ? toNum(h.currentPrice) : (analysis?.current ?? null);
+          const cost = qty * avg;
+          const marketValue = current != null ? qty * current : (h.marketValue != null ? toNum(h.marketValue) : null);
+          const pnl = marketValue != null ? marketValue - cost : (h.pnl != null ? toNum(h.pnl) : null);
+          const pnlPct = cost > 0 && pnl != null ? (pnl / cost) * 100 : null;
+          const rec = recommendAction(analysis ? analysis.score : null, pnlPct);
+          return {
+            symbol: h.symbol,
+            companyName: h.companyName || h.symbol,
+            sector: h.sector || '',
+            quantity: qty,
+            avgPrice: avg,
+            currentPrice: current,
+            marketValue,
+            pnl,
+            pnlPct,
+            analysis,
+            rec
+          };
+        })
+      );
+
+      if (!cancelled) {
+        setPortfolioAnalysis(results);
+        setPortfolioLoading(false);
+      }
+    };
+    run();
+    return () => {
+      cancelled = true;
+    };
+  }, [allHoldings]);
+
+  // Aggregate portfolio insights for the summary + recommendation banners.
+  const portfolioInsights = useMemo(() => {
+    if (portfolioAnalysis.length === 0) return null;
+    const scored = portfolioAnalysis.filter((p) => p.analysis);
+    const totalValue = portfolioAnalysis.reduce((s, p) => s + (p.marketValue || 0), 0);
+    const totalPnl = portfolioAnalysis.reduce((s, p) => s + (p.pnl || 0), 0);
+    const totalCost = portfolioAnalysis.reduce((s, p) => s + p.quantity * p.avgPrice, 0);
+    const avgScore = scored.length
+      ? Math.round(scored.reduce((s, p) => s + p.analysis.score, 0) / scored.length)
+      : null;
+    const sorted = [...scored].sort((a, b) => b.analysis.score - a.analysis.score);
+    const accumulate = sorted.filter((p) => ['Accumulate', 'Add on Dips'].includes(p.rec.action));
+    const reduce = [...sorted].reverse().filter((p) => ['Reduce', 'Trim'].includes(p.rec.action));
+    const health =
+      avgScore == null ? { label: 'Unknown', color: 'neutral' }
+        : avgScore >= 58 ? { label: 'Bullish', color: 'positive' }
+        : avgScore <= 42 ? { label: 'Bearish', color: 'negative' }
+        : { label: 'Balanced', color: 'neutral' };
+    return {
+      totalValue, totalPnl, totalCost,
+      totalPnlPct: totalCost > 0 ? (totalPnl / totalCost) * 100 : null,
+      avgScore, health,
+      positions: portfolioAnalysis.length,
+      topPicks: accumulate.slice(0, 3),
+      watchList: reduce.slice(0, 3)
+    };
+  }, [portfolioAnalysis]);
 
   // Live CSE quote (companyInfoSummery) for the selected symbol.
   useEffect(() => {
@@ -483,6 +708,31 @@ const PredictionIndicators = () => {
         if (!cancelled) setCompanyNews([]);
       } finally {
         if (!cancelled) setCompanyNewsLoading(false);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [selectedSymbol, equities]);
+
+  // Company financial-statement filings (interim/annual report PDFs from CSE).
+  useEffect(() => {
+    if (!selectedSymbol) {
+      setCompanyReports([]);
+      return undefined;
+    }
+    let cancelled = false;
+    setCompanyReportsLoading(true);
+    const equity = equities.find((e) => e.symbol === selectedSymbol);
+    const companyName = equity?.name || '';
+    (async () => {
+      try {
+        const res = await cseApi.companyFinancialReports(selectedSymbol, companyName);
+        if (!cancelled) setCompanyReports(Array.isArray(res?.items) ? res.items.slice(0, 8) : []);
+      } catch (e) {
+        if (!cancelled) setCompanyReports([]);
+      } finally {
+        if (!cancelled) setCompanyReportsLoading(false);
       }
     })();
     return () => {
@@ -1013,7 +1263,214 @@ const PredictionIndicators = () => {
       </header>
 
       <div className="pi-body">
-        {!selectedSymbol ? (
+        {/* View switcher */}
+        <div className="pi-tabs" role="tablist">
+          <button
+            type="button"
+            role="tab"
+            className={`pi-tab ${view === 'stock' ? 'pi-tab--active' : ''}`}
+            onClick={() => setView('stock')}
+          >
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M3 3v18h18" /><path d="M7 14l3-4 3 3 4-6" />
+            </svg>
+            Single Stock
+          </button>
+          <button
+            type="button"
+            role="tab"
+            className={`pi-tab ${view === 'portfolio' ? 'pi-tab--active' : ''}`}
+            onClick={() => setView('portfolio')}
+          >
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z" />
+              <path d="M3.27 6.96 12 12.01l8.73-5.05M12 22.08V12" />
+            </svg>
+            My Portfolio
+            {portfolioAnalysis.length > 0 && (
+              <span className="pi-tab__count">{portfolioAnalysis.length}</span>
+            )}
+          </button>
+        </div>
+
+        {/* ===== Portfolio analysis & recommendations ===== */}
+        {view === 'portfolio' && (
+          (portfolioLoading || portfolioAnalysis.length > 0) ? (
+          <section className="pi-pf">
+            <div className="pi-pf__head">
+              <div className="pi-pf__title">
+                <span className="pi-pf__title-icon">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M3 3v18h18" /><path d="M7 13l3 3 4-6 4 4" />
+                  </svg>
+                </span>
+                <div>
+                  <h2>Your Portfolio Analysis</h2>
+                  <p>Signal-based recommendations across the stocks you hold</p>
+                </div>
+              </div>
+              {portfolioInsights?.health && (
+                <span className={`pi-pf__health pi-pf__health--${portfolioInsights.health.color}`}>
+                  <span className="pi-pf__health-dot" />
+                  Portfolio Outlook · {portfolioInsights.health.label}
+                </span>
+              )}
+            </div>
+
+            {portfolioLoading ? (
+              <div className="pi-pf__loading">
+                <div className="pi-spinner" />
+                <span>Analyzing your holdings…</span>
+              </div>
+            ) : (
+              <>
+                {/* Summary KPIs */}
+                <div className="pi-pf__kpis">
+                  <div className="pi-pf__kpi">
+                    <span className="pi-pf__kpi-lbl">Market Value</span>
+                    <span className="pi-pf__kpi-val"><i>LKR</i> {fmt(portfolioInsights?.totalValue || 0)}</span>
+                    <span className="pi-pf__kpi-sub">{portfolioInsights?.positions || 0} positions</span>
+                  </div>
+                  <div className="pi-pf__kpi">
+                    <span className="pi-pf__kpi-lbl">Unrealized P&amp;L</span>
+                    <span className={`pi-pf__kpi-val ${(portfolioInsights?.totalPnl || 0) >= 0 ? 'pi-pos' : 'pi-neg'}`}>
+                      {(portfolioInsights?.totalPnl || 0) >= 0 ? '+' : '-'}LKR {fmt(Math.abs(portfolioInsights?.totalPnl || 0))}
+                    </span>
+                    <span className={`pi-pf__kpi-sub ${(portfolioInsights?.totalPnlPct || 0) >= 0 ? 'pi-pos' : 'pi-neg'}`}>
+                      {portfolioInsights?.totalPnlPct != null
+                        ? `${portfolioInsights.totalPnlPct >= 0 ? '+' : ''}${portfolioInsights.totalPnlPct.toFixed(2)}% on cost`
+                        : '—'}
+                    </span>
+                  </div>
+                  <div className="pi-pf__kpi">
+                    <span className="pi-pf__kpi-lbl">Avg Signal Score</span>
+                    <span className={`pi-pf__kpi-val pi-pf__kpi-val--${portfolioInsights?.health?.color || 'neutral'}`}>
+                      {portfolioInsights?.avgScore != null ? portfolioInsights.avgScore : '—'}<i>/100</i>
+                    </span>
+                    <span className="pi-pf__kpi-sub">blended across holdings</span>
+                  </div>
+                  <div className="pi-pf__kpi">
+                    <span className="pi-pf__kpi-lbl">Action Needed</span>
+                    <span className="pi-pf__kpi-val">{(portfolioInsights?.watchList?.length || 0)}</span>
+                    <span className="pi-pf__kpi-sub">positions to review</span>
+                  </div>
+                </div>
+
+                {/* Recommendation banners */}
+                {(portfolioInsights?.topPicks?.length > 0 || portfolioInsights?.watchList?.length > 0) && (
+                  <div className="pi-pf__recos">
+                    {portfolioInsights.topPicks.length > 0 && (
+                      <div className="pi-pf__reco pi-pf__reco--positive">
+                        <span className="pi-pf__reco-cap">
+                          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M7 17L17 7M17 7H8M17 7v9" /></svg>
+                          Consider Accumulating
+                        </span>
+                        <div className="pi-pf__reco-chips">
+                          {portfolioInsights.topPicks.map((p) => (
+                            <button key={p.symbol} className="pi-pf__reco-chip" onClick={() => openStock(p.symbol)}>
+                              <strong>{p.symbol}</strong>
+                              <span>{p.analysis.score}</span>
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                    {portfolioInsights.watchList.length > 0 && (
+                      <div className="pi-pf__reco pi-pf__reco--negative">
+                        <span className="pi-pf__reco-cap">
+                          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M7 7l10 10M17 17H8M17 17V8" /></svg>
+                          Review / Reduce
+                        </span>
+                        <div className="pi-pf__reco-chips">
+                          {portfolioInsights.watchList.map((p) => (
+                            <button key={p.symbol} className="pi-pf__reco-chip" onClick={() => openStock(p.symbol)}>
+                              <strong>{p.symbol}</strong>
+                              <span>{p.analysis.score}</span>
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* Holdings analysis table */}
+                <div className="pi-pf__table" role="table">
+                  <div className="pi-pf__row pi-pf__row--head" role="row">
+                    <span>Stock</span>
+                    <span className="pi-pf__c-num">Qty</span>
+                    <span className="pi-pf__c-num">Avg / Current</span>
+                    <span className="pi-pf__c-num">P&amp;L</span>
+                    <span className="pi-pf__c-sig">Signal</span>
+                    <span className="pi-pf__c-rec">Recommendation</span>
+                  </div>
+                  {[...portfolioAnalysis]
+                    .sort((a, b) => (b.analysis?.score ?? -1) - (a.analysis?.score ?? -1))
+                    .map((p) => (
+                      <div
+                        key={p.symbol}
+                        className="pi-pf__row pi-pf__row--clickable"
+                        role="row"
+                        onClick={() => openStock(p.symbol)}
+                      >
+                        <span className="pi-pf__stock">
+                          <span className="pi-pf__sym">{p.symbol}</span>
+                          <span className="pi-pf__co">{p.companyName}</span>
+                        </span>
+                        <span className="pi-pf__c-num">{p.quantity.toLocaleString('en-US')}</span>
+                        <span className="pi-pf__c-num">
+                          <span className="pi-pf__muted">{fmt(p.avgPrice)}</span>
+                          <span className="pi-pf__cur">{p.currentPrice != null ? fmt(p.currentPrice) : '—'}</span>
+                        </span>
+                        <span className={`pi-pf__c-num ${(p.pnl || 0) >= 0 ? 'pi-pos' : 'pi-neg'}`}>
+                          {p.pnlPct != null ? `${p.pnlPct >= 0 ? '+' : ''}${p.pnlPct.toFixed(1)}%` : '—'}
+                          <span className="pi-pf__pnl-abs">
+                            {p.pnl != null ? `${p.pnl >= 0 ? '+' : '-'}${fmtCompact(Math.abs(p.pnl))}` : ''}
+                          </span>
+                        </span>
+                        <span className="pi-pf__c-sig">
+                          {p.analysis ? (
+                            <>
+                              <span className="pi-pf__bar">
+                                <span
+                                  className={`pi-pf__bar-fill pi-pf__bar-fill--${p.analysis.color}`}
+                                  style={{ width: `${p.analysis.score}%` }}
+                                />
+                              </span>
+                              <span className={`pi-pf__score pi-pf__score--${p.analysis.color}`}>{p.analysis.score}</span>
+                            </>
+                          ) : (
+                            <span className="pi-pf__muted">No data</span>
+                          )}
+                        </span>
+                        <span className="pi-pf__c-rec">
+                          <span className={`pi-pf__rec pi-pf__rec--${p.rec.tone}`} title={p.rec.note}>
+                            {p.rec.action}
+                          </span>
+                        </span>
+                      </div>
+                    ))}
+                </div>
+                <p className="pi-pf__disclaimer">
+                  Recommendations are generated from 3-month price, momentum &amp; volume signals — not financial advice. Click any row to open the full multi-factor breakdown.
+                </p>
+              </>
+            )}
+          </section>
+          ) : (
+            <div className="pi-placeholder">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z" />
+                <path d="M3.27 6.96 12 12.01l8.73-5.05M12 22.08V12" />
+              </svg>
+              <h3>No holdings found</h3>
+              <p>We couldn't find any open positions in your portfolio yet. Once you record buy transactions, your holdings analysis and recommendations will appear here.</p>
+            </div>
+          )
+        )}
+
+        {view === 'stock' && (
+          !selectedSymbol ? (
           <div className="pi-placeholder">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M3 13h2l2-5 3 9 3-13 3 9h5" />
@@ -1390,6 +1847,43 @@ const PredictionIndicators = () => {
                   </section>
                 )}
 
+                {/* Financial reports (interim / annual statement PDFs) */}
+                <section className="pi-card">
+                  <div className="pi-card__head">
+                    <div>
+                      <h3 className="pi-card__title">Financial Reports</h3>
+                      <span className="pi-card__hint">CSE statement filings for {selectedSymbol}</span>
+                    </div>
+                  </div>
+                  {companyReportsLoading ? (
+                    <div className="pi-news__empty">Loading financial reports…</div>
+                  ) : companyReports.length === 0 ? (
+                    <div className="pi-news__empty">No recent financial statements filed for this company.</div>
+                  ) : (
+                    <ul className="pi-news pi-reports">
+                      {companyReports.map((item, i) => {
+                        const dateStr = item.date
+                          ? new Date(item.date).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })
+                          : '';
+                        const Row = item.pdfUrl ? 'a' : 'div';
+                        const rowProps = item.pdfUrl ? { href: item.pdfUrl, target: '_blank', rel: 'noreferrer' } : {};
+                        return (
+                          <li key={item.id || i} className="pi-news__item">
+                            <Row className="pi-news__link" {...rowProps}>
+                              <span className="pi-news__type pi-news__type--report">Report</span>
+                              <span className="pi-news__title">{item.title || 'Financial statement'}</span>
+                              <span className="pi-news__meta">
+                                {dateStr}
+                                {item.pdfUrl && <span className="pi-news__pdf">PDF ↗</span>}
+                              </span>
+                            </Row>
+                          </li>
+                        );
+                      })}
+                    </ul>
+                  )}
+                </section>
+
                 {/* Company announcements */}
                 <section className="pi-card">
                   <div className="pi-card__head">
@@ -1429,6 +1923,7 @@ const PredictionIndicators = () => {
               </aside>
             </div>
           </>
+        )
         )}
       </div>
 

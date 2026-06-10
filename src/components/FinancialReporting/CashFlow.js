@@ -85,9 +85,14 @@ const CashFlow = () => {
     <div className="cash-flow-container">
       {/* Header */}
       <div className="cf-header">
-        <h1 className="cf-main-title">STATEMENT OF CASH FLOWS</h1>
+        <div className="cf-header-left">
+          <div className="cf-header-text-group">
+            <h1 className="cf-main-title">Statement of Cash Flows</h1>
+            <p className="cf-subtitle">Operating, investing &amp; financing cash movements for the period</p>
+          </div>
+        </div>
         <div className="cf-period-info">
-          <span className="cf-period-label">For the period ended:</span>
+          <span className="cf-period-label">Period ended</span>
           <span className="cf-period-date">
             {new Date().toLocaleDateString('en-US', {
               year: 'numeric',
@@ -135,12 +140,6 @@ const CashFlow = () => {
                 <h2 className="cf-section-title" style={{ marginBottom: '0.25rem' }}>Operating Activities</h2>
                 <p className="cf-op-subtitle">Cash flows generated from core business operations</p>
               </div>
-              <div className={`cf-op-net-badge ${getAmountClass(operatingCashFlowData.netCashFromOperatingActivities)}`}>
-                <span className="cf-op-net-badge-label">Net Operating Cash</span>
-                <span className="cf-op-net-badge-value">
-                  LKR {formatNumber(operatingCashFlowData.netCashFromOperatingActivities)}
-                </span>
-              </div>
             </div>
 
             <div className="cf-op-layout">
@@ -150,7 +149,6 @@ const CashFlow = () => {
                 {/* Starting Point */}
                 <div className="cf-op-group cf-op-group--base">
                   <div className="cf-op-group-header">
-                    <div className="cf-op-group-dot cf-op-group-dot--base"></div>
                     <span className="cf-op-group-title">Starting Point</span>
                   </div>
                   <div className="cf-op-row cf-op-row--highlight">
@@ -164,7 +162,6 @@ const CashFlow = () => {
                 {/* Non-cash Adjustments */}
                 <div className="cf-op-group cf-op-group--adjustments">
                   <div className="cf-op-group-header">
-                    <div className="cf-op-group-dot cf-op-group-dot--adjustments"></div>
                     <span className="cf-op-group-title">Non-cash Adjustments</span>
                   </div>
                   <div className="cf-op-rows">
@@ -195,7 +192,6 @@ const CashFlow = () => {
                 {/* Working Capital Changes */}
                 <div className="cf-op-group cf-op-group--working-capital">
                   <div className="cf-op-group-header">
-                    <div className="cf-op-group-dot cf-op-group-dot--working-capital"></div>
                     <span className="cf-op-group-title">Changes in Working Capital</span>
                   </div>
                   <div className="cf-op-rows">
@@ -220,7 +216,6 @@ const CashFlow = () => {
                 {/* Tax & Interest */}
                 <div className="cf-op-group cf-op-group--tax">
                   <div className="cf-op-group-header">
-                    <div className="cf-op-group-dot cf-op-group-dot--tax"></div>
                     <span className="cf-op-group-title">Tax &amp; Interest Payments</span>
                   </div>
                   <div className="cf-op-rows">
@@ -255,7 +250,6 @@ const CashFlow = () => {
 
                 <div className="cf-op-flow">
                   <div className="cf-op-flow-step">
-                    <div className="cf-op-flow-dot cf-op-flow-dot--base"></div>
                     <div className="cf-op-flow-body">
                       <div className="cf-op-flow-label">Profit before tax</div>
                       <div className={`cf-op-flow-value ${getAmountClass(operatingCashFlowData.profitBeforeTax)}`}>
@@ -266,7 +260,6 @@ const CashFlow = () => {
                   <div className="cf-op-flow-connector"></div>
 
                   <div className="cf-op-flow-step">
-                    <div className="cf-op-flow-dot cf-op-flow-dot--adjustments"></div>
                     <div className="cf-op-flow-body">
                       <div className="cf-op-flow-label">After non-cash adjustments</div>
                       <div className={`cf-op-flow-value ${getAmountClass(operatingCashFlowData.cashFromOperations)}`}>
@@ -277,7 +270,6 @@ const CashFlow = () => {
                   <div className="cf-op-flow-connector"></div>
 
                   <div className="cf-op-flow-step">
-                    <div className="cf-op-flow-dot cf-op-flow-dot--working-capital"></div>
                     <div className="cf-op-flow-body">
                       <div className="cf-op-flow-label">After working capital</div>
                       <div className="cf-op-flow-value">
@@ -291,7 +283,6 @@ const CashFlow = () => {
                   <div className="cf-op-flow-connector"></div>
 
                   <div className="cf-op-flow-step cf-op-flow-step--final">
-                    <div className="cf-op-flow-dot cf-op-flow-dot--final"></div>
                     <div className="cf-op-flow-body">
                       <div className="cf-op-flow-label">Net operating cash</div>
                       <div className={`cf-op-flow-value cf-op-flow-value--final ${getAmountClass(operatingCashFlowData.netCashFromOperatingActivities)}`}>
@@ -306,27 +297,22 @@ const CashFlow = () => {
                   {[
                     {
                       label: 'Profit before tax',
-                      value: operatingCashFlowData.profitBeforeTax,
-                      color: '#3b82f6'
+                      value: operatingCashFlowData.profitBeforeTax
                     },
                     {
                       label: 'Adjustments',
-                      value: Object.values(operatingCashFlowData.adjustments).reduce((a, b) => a + b, 0),
-                      color: '#8b5cf6'
+                      value: Object.values(operatingCashFlowData.adjustments).reduce((a, b) => a + b, 0)
                     },
                     {
                       label: 'Working capital',
-                      value: Object.values(operatingCashFlowData.workingCapitalChanges).reduce((a, b) => a + b, 0),
-                      color: '#f59e0b'
+                      value: Object.values(operatingCashFlowData.workingCapitalChanges).reduce((a, b) => a + b, 0)
                     },
                     {
                       label: 'Tax & interest',
-                      value: operatingCashFlowData.interestPaid + operatingCashFlowData.incomeTaxPaid,
-                      color: '#ef4444'
+                      value: operatingCashFlowData.interestPaid + operatingCashFlowData.incomeTaxPaid
                     },
                   ].map((item, i) => (
                     <div key={i} className="cf-op-breakdown-row">
-                      <div className="cf-op-breakdown-dot" style={{ background: item.color }}></div>
                       <div className="cf-op-breakdown-label">{item.label}</div>
                       <div className={`cf-op-breakdown-value ${getAmountClass(item.value)}`}>
                         {item.value >= 0 ? '+' : '−'}{formatNumber(Math.abs(item.value))}
