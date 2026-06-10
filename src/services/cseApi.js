@@ -175,6 +175,29 @@ const cseApi = {
         };
     },
 
+    // Financial-statement filings (interim/annual reports) for a single company.
+    // Sourced from CSE getFinancialAnnouncement (PDF reports). The upstream
+    // feed only carries the most recent market-wide filings, so a company may
+    // have no entries if it hasn't filed recently.
+    companyFinancialReports: async (symbol, companyName) => {
+        const res = await request('/financial');
+        const items = Array.isArray(res?.items) ? res.items : [];
+        const symbols = symbol ? [symbol] : [];
+        const names = companyName ? [companyName] : [];
+        const matched = items.filter((item) => itemMatchesHoldings(item, symbols, names));
+        matched.sort((a, b) => {
+            const ta = a?.date ? Date.parse(a.date) : 0;
+            const tb = b?.date ? Date.parse(b.date) : 0;
+            return tb - ta;
+        });
+        return {
+            success: true,
+            lastUpdated: new Date().toISOString(),
+            items: matched,
+            note: res?.note || ''
+        };
+    },
+
     // Dashboard Market Movers — gainers, losers, most active + status in one call.
     dashboardMovers: async () => {
         let body = null;

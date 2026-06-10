@@ -5,14 +5,18 @@
 .market-movers-board.mm2 {
     --mm-up: #059669;
     --mm-up-soft: #d1fae5;
+    --mm-up-bg: #f0fdf6;
     --mm-down: #dc2626;
     --mm-down-soft: #fee2e2;
+    --mm-down-bg: #fef5f5;
     --mm-neutral: #d97706;
     --mm-neutral-soft: #fef3c7;
+    --mm-neutral-bg: #fffbf0;
     --mm-accent: var(--mm-up);
     --mm-accent-soft: var(--mm-up-soft);
+    --mm-accent-bg: var(--mm-up-bg);
 
-    background: #ffffff;
+    background: var(--mm-accent-bg);
     border: 1px solid #e2e8f0;
     border-radius: 0;
     box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04),
@@ -25,30 +29,23 @@
     box-sizing: border-box;
     display: flex;
     flex-direction: column;
+    transition: background 0.35s ease;
 }
 
 .market-movers-board.mm2--up {
     --mm-accent: var(--mm-up);
     --mm-accent-soft: var(--mm-up-soft);
+    --mm-accent-bg: var(--mm-up-bg);
 }
 .market-movers-board.mm2--down {
     --mm-accent: var(--mm-down);
     --mm-accent-soft: var(--mm-down-soft);
+    --mm-accent-bg: var(--mm-down-bg);
 }
 .market-movers-board.mm2--neutral {
     --mm-accent: var(--mm-neutral);
     --mm-accent-soft: var(--mm-neutral-soft);
-}
-
-.market-movers-board.mm2::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    height: 3px;
-    background: var(--mm-accent);
-    transition: background 0.25s ease;
+    --mm-accent-bg: var(--mm-neutral-bg);
 }
 
 /* ---------- Header ---------- */
@@ -71,13 +68,9 @@
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: 30px;
-    height: 30px;
-    border-radius: 8px;
-    background: var(--mm-accent-soft);
     color: var(--mm-accent);
     flex-shrink: 0;
-    transition: background 0.25s ease, color 0.25s ease;
+    transition: color 0.25s ease;
 }
 
 .mm2-heading__text {
