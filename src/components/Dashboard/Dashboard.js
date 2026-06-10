@@ -1261,28 +1261,6 @@ const Dashboard = ({ onTabChange }) => {
             })}
           </div>
 
-          {/* Cost vs Market Value by Company */}
-          <div className="content-card dashboard-cost-vs-mv-card">
-            <div className="card-header">
-              <div className="header-left">
-                <span className="card-subtitle">
-                  {costVsMvSectors.length > 0
-                    ? 'Cost vs market value by sector'
-                    : 'No position data available'}
-                </span>
-              </div>
-            </div>
-            <div className="cost-vs-mv-chart-container">
-              {costVsMvSectors.length > 0 ? (
-                <Bar data={costVsMvChartData} options={costVsMvChartOptions} />
-              ) : (
-                <div className="no-data-message">
-                  <p>No position data available for this portfolio.</p>
-                </div>
-              )}
-            </div>
-          </div>
-
           {/* Sector Pie Chart */}
           <div className="content-card dashboard-sector-mix-card">
             <div className="card-header">
@@ -1320,6 +1298,28 @@ const Dashboard = ({ onTabChange }) => {
               </div>
           </div>
         </div>
+
+          {/* Cost vs Market Value by Company */}
+          <div className="content-card dashboard-cost-vs-mv-card">
+            <div className="card-header">
+              <div className="header-left">
+                <span className="card-subtitle">
+                  {costVsMvSectors.length > 0
+                    ? 'Cost vs market value by sector'
+                    : 'No position data available'}
+                </span>
+              </div>
+            </div>
+            <div className="cost-vs-mv-chart-container">
+              {costVsMvSectors.length > 0 ? (
+                <Bar data={costVsMvChartData} options={costVsMvChartOptions} />
+              ) : (
+                <div className="no-data-message">
+                  <p>No position data available for this portfolio.</p>
+                </div>
+              )}
+            </div>
+          </div>
 
           {/* Portfolio Health & Risk (live data from holdings + P&L) */}
           <div className="content-card health-card">
