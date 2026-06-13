@@ -4,7 +4,9 @@ import {
   parseGlobalMarketPayload,
   isGlobalVenueOpen,
   groupMarketsByType,
-  normalizeMarketType
+  normalizeMarketType,
+  getSessionProgress,
+  formatDurationShort
 } from '../../utils/globalMarketStatus';
 import './GlobalMarkets.css';
 
@@ -36,6 +38,9 @@ const GlobalMarkets = () => {
   const [statusFilter, setStatusFilter] = useState('All'); // All / Open / Closed
   const [searchQuery, setSearchQuery] = useState('');
   const [refreshing, setRefreshing] = useState(false);
+  // Ticks once a minute so the live session-progress bars advance between the
+  // 5-minute data refreshes (getSessionProgress reads the wall clock).
+  const [, setClockTick] = useState(0);
 
   const loadStatus = useCallback(async ({ silent = false } = {}) => {
     if (!silent) setRefreshing(true);
@@ -70,6 +75,11 @@ const GlobalMarkets = () => {
       clearInterval(interval);
     };
   }, [loadStatus]);
+
+  useEffect(() => {
+    const interval = setInterval(() => setClockTick((t) => t + 1), 60 * 1000);
+    return () => clearInterval(interval);
+  }, []);
 
   const parsed = useMemo(() => parseGlobalMarketPayload(status.data), [status.data]);
   const allMarkets = parsed.markets;
@@ -194,6 +204,10 @@ const GlobalMarkets = () => {
                 <tbody>
                   {group.rows.map((m, idx) => {
                     const open = isGlobalVenueOpen(m);
+                    const progress = getSessionProgress(m);
+                    const pct = progress
+                      ? Math.round(progress.fraction * 100)
+                      : null;
                     return (
                       <tr
                         key={`${group.heading}-${m.primary_exchanges || idx}-${idx}`}
@@ -209,6 +223,24 @@ const GlobalMarkets = () => {
                             <span className="gm-pill-dot" aria-hidden />
                             {open ? 'Open' : 'Closed'}
                           </span>
+                          {progress && (
+                            <div
+                              className="gm-session"
+                              title={`Session ${pct}% complete · ${formatDurationShort(
+                                progress.remainingMinutes
+                              )} to close`}
+                            >
+                              <div className="gm-session__bar">
+                                <div
+                                  className="gm-session__fill"
+                                  style={{ width: `${pct}%` }}
+                                />
+                              </div>
+                              <span className="gm-session__text">
+                                {pct}% · {formatDurationShort(progress.remainingMinutes)} left
+                              </span>
+                            </div>
+                          )}
                         </td>
                         <td className="gm-table__time">{m.local_open || '—'}</td>
                         <td className="gm-table__time">{m.local_close || '—'}</td>

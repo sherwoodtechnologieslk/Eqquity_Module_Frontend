@@ -3,7 +3,7 @@
 /* Page Layout */
 .profit-loss-main-container {
   min-height: 100vh;
-  padding: 2rem 1rem;
+  padding: 1rem;
   background-color: #f8fafc;
 }
 
@@ -17,8 +17,8 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 32px;
-  padding-bottom: 16px;
+  margin-bottom: 14px;
+  padding-bottom: 10px;
   border-bottom: 2px solid #e2e8f0;
 }
 
@@ -84,8 +84,8 @@
 .profit-loss-filters-section {
   background: white;
   border-radius: 0;
-  padding: 24px;
-  margin-bottom: 24px;
+  padding: 14px 16px;
+  margin-bottom: 14px;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
   border: 1px solid #e2e8f0;
 }
@@ -93,7 +93,7 @@
 .profit-loss-filters-row {
   display: flex;
   align-items: end;
-  gap: 24px;
+  gap: 14px;
   flex-wrap: wrap;
 }
 
@@ -156,14 +156,14 @@
 .profit-loss-summary-cards {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
-  gap: 14px;
-  margin-bottom: 24px;
+  gap: 12px;
+  margin-bottom: 14px;
 }
 
 .profit-loss-summary-card {
   background: white;
   border-radius: 0;
-  padding: 16px;
+  padding: 12px 14px;
   box-shadow: 0 4px 12px rgba(15, 23, 42, 0.10), 0 2px 4px rgba(15, 23, 42, 0.08);
   border: none;
   border-left: none;
@@ -220,8 +220,8 @@
 .profit-loss-mtm-cards {
   display: grid;
   grid-template-columns: repeat(2, minmax(220px, 1fr));
-  gap: 14px;
-  margin-bottom: 24px;
+  gap: 12px;
+  margin-bottom: 14px;
 }
 
 
@@ -317,7 +317,7 @@
 }
 
 .profit-loss-section {
-  margin-bottom: 32px;
+  margin-bottom: 18px;
 }
 
 .profit-loss-section:last-child {
@@ -329,7 +329,7 @@
   font-weight: 700;
   color: white;
   background: linear-gradient(135deg, #64748b 0%, #475569 100%);
-  margin: 0 0 16px 0;
+  margin: 0 0 10px 0;
   padding: 8px 16px;
   border-radius: 0;
   text-transform: uppercase;
@@ -353,7 +353,7 @@
 }
 
 .profit-loss-table-header th {
-  padding: 16px 12px;
+  padding: 10px 12px;
   text-align: left;
   font-weight: 700;
   color: #374151;
@@ -390,7 +390,7 @@
 }
 
 .profit-loss-account-row td {
-  padding: 16px 12px;
+  padding: 9px 12px;
   vertical-align: top;
 }
 
@@ -513,11 +513,11 @@
 
 /* Net Summary (simple, no boxed rows) */
 .profit-loss-net-summary-simple {
-  margin-top: 30px;
+  margin-top: 18px;
   max-width: 760px;
   margin-left: auto;
   margin-right: auto;
-  padding: 16px 16px;
+  padding: 14px 16px;
   box-sizing: border-box;
 }
 
@@ -605,20 +605,20 @@
 
 /* Summary View */
 .profit-loss-summary-view {
-  padding: 24px;
+  padding: 14px;
 }
 
 .profit-loss-summary-cards-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-  gap: 20px;
+  gap: 14px;
 }
 
 .profit-loss-summary-card-title {
-  font-size: 18px;
+  font-size: 17px;
   font-weight: 700;
   color: #1e293b;
-  margin: 0 0 16px 0;
+  margin: 0 0 10px 0;
   text-transform: uppercase;
   letter-spacing: 0.5px;
 }
@@ -626,7 +626,7 @@
 .profit-loss-summary-details {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 8px;
 }
 
 .profit-loss-summary-item {
@@ -667,7 +667,7 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 4rem 2rem;
+  padding: 2.5rem 2rem;
   text-align: center;
 }
 
@@ -697,7 +697,7 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 4rem 2rem;
+  padding: 2.5rem 2rem;
   text-align: center;
   background: white;
   border-radius: 0;

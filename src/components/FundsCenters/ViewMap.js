@@ -95,19 +95,6 @@ const ViewMap = () => {
     };
   };
 
-  // Prepare points data for the globe (dots for each fund center)
-  const pointsData = fundsCenters.map((center) => {
-    const coords = getCenterCoordinates(center.name);
-    const isSelected = selectedCenter?.id === center.id;
-    return {
-      ...center,
-      lat: coords.lat,
-      lng: coords.lng,
-      color: isSelected ? '#eab308' : '#14b8a6',
-      radius: isSelected ? 0.6 : 0.45,
-    };
-  });
-
   if (loading) {
     return (
       <div className="vm-container">
@@ -149,14 +136,6 @@ const ViewMap = () => {
             atmosphereAltitude={0.15}
             enablePointerInteraction={true}
             animateIn={true}
-            pointsData={pointsData}
-            pointLat="lat"
-            pointLng="lng"
-            pointColor={(d) => d.color}
-            pointRadius={(d) => d.radius}
-            pointAltitude={0.01}
-            pointResolution={12}
-            onPointClick={(point) => setSelectedCenter(point)}
           />
         </div>
       </div>

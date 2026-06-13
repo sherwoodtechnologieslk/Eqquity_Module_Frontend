@@ -13,16 +13,6 @@
     transition: box-shadow 0.2s ease, transform 0.2s ease;
 }
 
-.market-news-widget::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    height: 3px;
-    background: linear-gradient(90deg, #3b82f6 0%, #1e40af 60%, #4f46e5 100%);
-}
-
 /* ---------- Header ---------- */
 .market-news-widget__header {
     display: flex;

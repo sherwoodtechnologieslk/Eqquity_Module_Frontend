@@ -39,7 +39,7 @@ const AIAssistant = ({ variant = 'page', onClose }) => {
       // Log the technical error for debugging, but never surface raw backend
       // errors (which may contain secrets like API keys) in the UI.
       console.error('AI assistant request failed:', e);
-      setError('Agent Blux is temporarily unavailable. Please try again later.');
+      setError('Blux AI is temporarily unavailable. Please try again later.');
       setMessages((prev) => [
         ...prev,
         {
@@ -63,13 +63,13 @@ const AIAssistant = ({ variant = 'page', onClose }) => {
     <div className={`ai-assistant ${isPanel ? 'ai-assistant--panel' : ''}`}>
       <header className="ai-assistant-header">
         <div className="ai-assistant-header-row">
-          <h2 id={isPanel ? 'ai-assistant-dock-title' : undefined}>Agent Blux</h2>
+          <h2 id={isPanel ? 'ai-assistant-dock-title' : undefined}>Blux AI</h2>
           {isPanel && onClose && (
             <button
               type="button"
               className="ai-assistant-close"
               onClick={onClose}
-              aria-label="Close Agent Blux"
+              aria-label="Close Blux AI"
             >
               ×
             </button>

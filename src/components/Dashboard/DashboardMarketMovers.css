@@ -16,7 +16,7 @@
     --mm-accent-soft: var(--mm-up-soft);
     --mm-accent-bg: var(--mm-up-bg);
 
-    background: var(--mm-accent-bg);
+    background: #ffffff;
     border: 1px solid #e2e8f0;
     border-radius: 0;
     box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04),
