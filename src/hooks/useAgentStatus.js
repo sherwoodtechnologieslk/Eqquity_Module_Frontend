@@ -20,7 +20,7 @@ const buildHeaders = () => {
  */
 export function useAgentStatus({ pollMs = 4000, enabled = true } = {}) {
     const [data, setData] = useState({
-        name: 'Agent Blux',
+        name: 'Blux AI',
         status: 'idle',
         last_signal_summary: null
     });
@@ -40,7 +40,7 @@ export function useAgentStatus({ pollMs = 4000, enabled = true } = {}) {
             const json = await response.json();
             if (!isMountedRef.current) return;
             setData((prev) => ({
-                name: json.name || prev.name || 'Agent Blux',
+                name: json.name || prev.name || 'Blux AI',
                 status: json.status || 'idle',
                 last_signal_summary: json.last_signal_summary ?? null
             }));

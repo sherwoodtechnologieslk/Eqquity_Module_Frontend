@@ -9,7 +9,7 @@ const STATUS_COLORS = {
 };
 
 const AgentBlux = ({
-    name = 'Agent Blux',
+    name = 'Blux AI',
     status = 'idle',
     size = 180,
     onChat,
