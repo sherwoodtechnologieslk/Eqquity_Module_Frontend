@@ -1,8 +1,8 @@
 /* Modern Dashboard Styles - Equity Dashboard only */
 .equity-dashboard {
-  --dash-space-1: 8px;
-  --dash-space-2: 16px;
-  --dash-space-3: 24px;
+  --dash-space-1: 6px;
+  --dash-space-2: 10px;
+  --dash-space-3: 14px;
   --dash-card-border: rgba(15, 23, 42, 0.08);
   --dash-card-shadow: 0 4px 14px rgba(15, 23, 42, 0.06);
   --dash-card-shadow-hover: 0 10px 28px rgba(15, 23, 42, 0.1);
@@ -23,7 +23,7 @@
   width: 100%;
   max-width: 1600px;
   margin: 0 auto;
-  padding: var(--dash-space-2) var(--dash-space-3) 3rem;
+  padding: var(--dash-space-2) var(--dash-space-3) 1.25rem;
   box-sizing: border-box;
 }
 
@@ -36,10 +36,12 @@
 }
 
 .dashboard-body .market-pulse-widget,
-.dashboard-body .market-movers-widget {
+.dashboard-body .market-movers-widget,
+.dashboard-body .market-movers-board {
   margin: 0;
   max-width: none;
   min-width: 0;
+  width: 100%;
 }
 
 .dashboard-body .market-pulse-widget__featured-thumb-wrap {
@@ -907,7 +909,7 @@
   border: 1px solid #e2e8f0;
   border-radius: 0;
   box-shadow: none;
-  margin: 0 0 0 1.25rem;
+  margin: 0;
 }
 
 .market-strip--open {
@@ -1316,25 +1318,25 @@
   border: 1px solid #e5e7eb;
   box-shadow: 0 1px 3px rgba(15, 23, 42, 0.06), 0 8px 24px rgba(15, 23, 42, 0.05);
   overflow: hidden;
-  padding: 1.1rem 1.2rem;
+  padding: 0.85rem 0.95rem;
 }
 
 .health-card .card-header {
-  margin-bottom: 0.75rem;
+  margin-bottom: 0.55rem;
 }
 
 .health-card .header-left h3 {
   color: #0f172a;
-  font-size: 1.05rem;
+  font-size: 0.92rem;
   font-weight: 700;
   letter-spacing: -0.01em;
-  margin-bottom: 0.2rem;
+  margin-bottom: 0.15rem;
 }
 
 .health-card .card-subtitle {
   color: #2563eb;
   font-weight: 600;
-  font-size: 0.78rem;
+  font-size: 0.72rem;
 }
 
 .health-card .insights-grid {
@@ -1367,13 +1369,13 @@
   position: relative;
   z-index: 1;
   display: grid;
-  gap: 0.6rem;
+  gap: 0.5rem;
 }
 
 .health-top {
   display: grid;
-  grid-template-columns: 200px minmax(0, 1fr);
-  gap: 0.6rem;
+  grid-template-columns: 168px minmax(0, 1fr);
+  gap: 0.5rem;
   align-items: stretch;
 }
 
@@ -1382,19 +1384,19 @@
   border: 1px solid #e5e7eb;
   background: #ffffff;
   border-radius: 12px;
-  padding: 0.7rem 0.7rem;
+  padding: 0.55rem 0.55rem;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 0.5rem;
+  gap: 0.4rem;
   box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
 }
 
 .health-gauge {
   position: relative;
-  width: 96px;
-  height: 96px;
+  width: 78px;
+  height: 78px;
 }
 
 .health-gauge__svg {
@@ -1406,13 +1408,13 @@
 .health-gauge__bg {
   fill: none;
   stroke: #eef2f7;
-  stroke-width: 8;
+  stroke-width: 9;
 }
 
 .health-gauge__bar {
   fill: none;
   stroke: #059669;
-  stroke-width: 8;
+  stroke-width: 9;
   stroke-linecap: round;
   transition: stroke-dashoffset 0.7s cubic-bezier(0.22, 1, 0.36, 1), stroke 0.3s ease;
 }
@@ -1432,7 +1434,7 @@
 }
 
 .health-gauge__score {
-  font-size: 1.6rem;
+  font-size: 1.35rem;
   font-weight: 800;
   letter-spacing: -0.04em;
   color: #0f172a;
@@ -1441,7 +1443,7 @@
 }
 
 .health-gauge__outof {
-  font-size: 0.6rem;
+  font-size: 0.55rem;
   font-weight: 600;
   letter-spacing: 0.04em;
   color: #94a3b8;
@@ -1451,11 +1453,11 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 0.35rem;
+  gap: 0.28rem;
 }
 
 .health-score__label {
-  font-size: 0.62rem;
+  font-size: 0.56rem;
   font-weight: 700;
   letter-spacing: 0.1em;
   text-transform: uppercase;
@@ -1465,10 +1467,10 @@
 .health-status-pill {
   display: inline-flex;
   align-items: center;
-  gap: 0.35rem;
-  padding: 0.24rem 0.6rem;
+  gap: 0.3rem;
+  padding: 0.2rem 0.52rem;
   border-radius: 999px;
-  font-size: 0.68rem;
+  font-size: 0.62rem;
   font-weight: 700;
   background: #ecfdf5;
   color: #047857;
@@ -1502,12 +1504,12 @@
   padding: 0;
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 0.55rem;
+  gap: 0.45rem;
 }
 
 .health-kpi {
   min-width: 0;
-  padding: 0.55rem 0.7rem;
+  padding: 0.45rem 0.55rem;
   border-radius: 10px;
   border: 1px solid #e5e7eb;
   background: #ffffff;
@@ -1517,16 +1519,16 @@
 }
 
 .health-kpi__label {
-  font-size: 0.6rem;
+  font-size: 0.55rem;
   font-weight: 700;
   letter-spacing: 0.06em;
   text-transform: uppercase;
   color: #94a3b8;
-  margin-bottom: 0.3rem;
+  margin-bottom: 0.25rem;
 }
 
 .health-kpi__value {
-  font-size: 1.02rem;
+  font-size: 0.92rem;
   font-weight: 800;
   color: #0f172a;
   line-height: 1.15;
@@ -1543,8 +1545,8 @@
 }
 
 .health-kpi__sub {
-  margin-top: 0.25rem;
-  font-size: 0.66rem;
+  margin-top: 0.2rem;
+  font-size: 0.6rem;
   font-weight: 500;
   color: #94a3b8;
   line-height: 1.3;
@@ -1564,24 +1566,24 @@
 .health-bottom {
   display: grid;
   grid-template-columns: 1.2fr 1fr;
-  gap: 0.6rem;
+  gap: 0.5rem;
 }
 
 .health-block {
   border: 1px solid #e5e7eb;
   background: #ffffff;
   border-radius: 14px;
-  padding: 0.8rem 0.9rem;
+  padding: 0.65rem 0.75rem;
   box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
 }
 
 .health-block__title {
-  font-size: 0.66rem;
+  font-size: 0.6rem;
   font-weight: 700;
   letter-spacing: 0.07em;
   text-transform: uppercase;
   color: #94a3b8;
-  margin-bottom: 0.6rem;
+  margin-bottom: 0.45rem;
 }
 
 .health-alerts {
@@ -1590,25 +1592,25 @@
   margin: 0;
   display: flex;
   flex-direction: column;
-  gap: 0.4rem;
+  gap: 0.32rem;
 }
 
 .health-alert {
   border-radius: 9px;
-  padding: 0.5rem 0.65rem;
+  padding: 0.4rem 0.55rem;
   border: 1px solid #e5e7eb;
   background: #f8fafc;
 }
 
 .health-alert__title {
-  font-size: 0.76rem;
+  font-size: 0.7rem;
   font-weight: 700;
   color: #0f172a;
-  margin-bottom: 0.1rem;
+  margin-bottom: 0.08rem;
 }
 
 .health-alert__text {
-  font-size: 0.72rem;
+  font-size: 0.66rem;
   font-weight: 500;
   color: #64748b;
   line-height: 1.3;
@@ -1637,7 +1639,7 @@
   grid-template-columns: 1fr auto;
   gap: 0.75rem;
   align-items: center;
-  padding: 0.42rem 0;
+  padding: 0.32rem 0;
   border-bottom: 1px solid #f1f5f9;
 }
 
@@ -1646,7 +1648,7 @@
 }
 
 .health-liquidity__label {
-  font-size: 0.74rem;
+  font-size: 0.68rem;
   font-weight: 500;
   color: #64748b;
 }
@@ -1654,13 +1656,13 @@
 .health-liquidity__value {
   text-align: right;
   font-variant-numeric: tabular-nums;
-  font-size: 0.84rem;
+  font-size: 0.76rem;
   font-weight: 700;
   color: #0f172a;
 }
 
 .health-liquidity__muted {
-  font-size: 0.74rem;
+  font-size: 0.68rem;
   font-weight: 600;
   color: #94a3b8;
 }
@@ -2893,7 +2895,7 @@
   
   .status-card,
   .content-card {
-    padding: 1.5rem;
+    padding: 1rem;
   }
   
   .actions-grid {
@@ -3022,8 +3024,8 @@
 /* Footer */
 .dashboard-footer-section {
   text-align: center;
-  margin-top: 2rem;
-  padding: 1.5rem 2rem;
+  margin-top: 0.75rem;
+  padding: 0.85rem 2rem;
   color: #64748b;
   font-size: 0.8125rem;
   border-top: 1px solid var(--dash-card-border, rgba(15, 23, 42, 0.08));
