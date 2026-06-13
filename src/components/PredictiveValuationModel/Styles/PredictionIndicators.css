@@ -1081,6 +1081,125 @@ a.pi-news__link:hover { background: var(--pi-surface); }
 .pi-fmodal__row-label { font-size: 0.85rem; color: var(--pi-muted); }
 .pi-fmodal__row-val { font-size: 0.9rem; font-weight: 700; color: var(--pi-slate); }
 
+.pi-fmodal__formula {
+  margin-top: 1rem;
+  border: 1px solid var(--pi-border);
+  background: var(--pi-surface);
+}
+
+.pi-fmodal__formula-head {
+  font-size: 0.66rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--pi-muted);
+  padding: 0.6rem 0.85rem;
+  border-bottom: 1px solid var(--pi-border);
+}
+
+.pi-fmodal__formula-row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.55rem 0.85rem;
+  border-bottom: 1px solid var(--pi-line);
+}
+
+.pi-fmodal__formula-label {
+  flex: 1;
+  font-size: 0.84rem;
+  color: var(--pi-slate);
+  font-weight: 600;
+}
+
+.pi-fmodal__formula-weight {
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: var(--pi-muted);
+  background: var(--pi-chip-bg, #eef2f7);
+  padding: 0.1rem 0.5rem;
+  border-radius: 999px;
+}
+
+.pi-fmodal__formula-pts {
+  font-size: 0.85rem;
+  font-weight: 800;
+  color: var(--pi-slate);
+  font-variant-numeric: tabular-nums;
+  min-width: 64px;
+  text-align: right;
+}
+
+.pi-fmodal__formula-total {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.6rem 0.85rem;
+  font-size: 0.85rem;
+  font-weight: 800;
+  color: var(--pi-slate);
+  background: #fff;
+}
+
+.pi-fmodal__insight {
+  margin-top: 1rem;
+  padding: 0.75rem 0.9rem;
+  border: 1px solid var(--pi-border);
+  background: var(--pi-surface);
+}
+
+.pi-fmodal__insight-head {
+  font-size: 0.66rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--pi-muted);
+  margin-bottom: 0.35rem;
+}
+
+.pi-fmodal__insight p {
+  margin: 0;
+  font-size: 0.84rem;
+  line-height: 1.55;
+  color: var(--pi-slate);
+}
+
+.pi-fmodal__sections {
+  margin-top: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.pi-fmodal__sections .pi-fmodal__formula,
+.pi-fmodal__sections .pi-fmodal__insight {
+  margin-top: 0;
+}
+
+/* Wide variant — used by content-rich factor modals (e.g. Market Sentiment) */
+.pi-fmodal--wide { max-width: 760px; }
+
+.pi-fmodal--wide .pi-fmodal__rows {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  column-gap: 1.5rem;
+  row-gap: 0;
+  align-items: start;
+}
+
+.pi-fmodal--wide .pi-fmodal__sections {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  align-items: start;
+}
+
+@media (max-width: 640px) {
+  .pi-fmodal--wide .pi-fmodal__rows,
+  .pi-fmodal--wide .pi-fmodal__sections {
+    grid-template-columns: 1fr;
+  }
+}
+
 .pi-fmodal__news {
   margin-top: 1rem;
   border: 1px solid var(--pi-border);
@@ -1163,6 +1282,8 @@ a.pi-news__link:hover { background: var(--pi-surface); }
   max-height: 92vh;
   overflow-y: auto;
 }
+
+.pi-emodal { max-width: 1240px; }
 
 .pi-gmodal__close {
   position: absolute;
@@ -1315,6 +1436,13 @@ a.pi-news__link:hover { background: var(--pi-surface); }
   padding: 0.15rem 0.5rem;
 }
 
+.pi-gmodal__section-note {
+  margin: -0.35rem 0 0.65rem;
+  font-size: 0.68rem;
+  line-height: 1.45;
+  color: var(--pi-faint);
+}
+
 /* Index cards */
 .pi-gmodal__indices {
   display: grid;
@@ -1332,12 +1460,39 @@ a.pi-news__link:hover { background: var(--pi-surface); }
 .pi-idx__top { display: flex; align-items: center; justify-content: space-between; gap: 0.5rem; margin-bottom: 0.45rem; }
 
 .pi-idx__name {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
   font-size: 0.72rem;
   font-weight: 700;
   color: var(--pi-muted);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  min-width: 0;
+  line-height: 1.25;
+}
+
+.pi-idx__rank {
+  flex-shrink: 0;
+  font-size: 0.58rem;
+  font-weight: 800;
+  color: var(--pi-slate);
+  background: #e2e8f0;
+  padding: 0.08rem 0.35rem;
+  border-radius: 4px;
+}
+
+.pi-idx__sub {
+  font-size: 0.64rem;
+  font-weight: 600;
+  color: var(--pi-faint);
+  margin-bottom: 0.15rem;
+}
+
+.pi-idx__proxy {
+  font-size: 0.6rem;
+  font-weight: 600;
+  color: var(--pi-faint);
+  margin-bottom: 0.25rem;
+  opacity: 0.9;
 }
 
 .pi-idx__chg { font-size: 0.74rem; font-weight: 800; padding: 0.1rem 0.4rem; white-space: nowrap; }
@@ -1631,11 +1786,384 @@ a.pi-news__link:hover { background: var(--pi-surface); }
   color: var(--pi-muted) !important;
 }
 
+/* Economic Conditions modal — World Bank indicator grid (Sri Lanka / World) */
+.pi-emodal__flag { font-size: 0.95rem; margin-right: 0.1rem; }
+
+.pi-econ {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.45rem;
+}
+
+.pi-econ__card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  background: var(--pi-surface);
+  border: 1px solid var(--pi-border);
+  border-left: 2px solid var(--pi-border);
+  padding: 0.5rem 0.6rem;
+  min-width: 0;
+}
+
+.pi-econ__card--positive { border-left-color: var(--pi-green); }
+.pi-econ__card--negative { border-left-color: var(--pi-red); }
+
+.pi-econ__top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.4rem;
+}
+
+.pi-econ__label {
+  font-size: 0.6rem;
+  font-weight: 700;
+  line-height: 1.2;
+  color: var(--pi-muted);
+}
+
+.pi-econ__trend { font-size: 0.62rem; font-weight: 800; line-height: 1; }
+.pi-econ__trend--positive { color: var(--pi-green); }
+.pi-econ__trend--negative { color: var(--pi-red); }
+.pi-econ__trend--neutral { color: var(--pi-faint); }
+
+.pi-econ__val {
+  font-size: 0.95rem;
+  font-weight: 800;
+  color: var(--pi-slate);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.pi-econ__meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.4rem;
+}
+
+.pi-econ__cat {
+  font-size: 0.52rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  color: var(--pi-faint);
+}
+
+.pi-econ__year {
+  font-size: 0.56rem;
+  font-weight: 700;
+  color: var(--pi-slate);
+  background: var(--pi-bg, rgba(0, 0, 0, 0.03));
+  border: 1px solid var(--pi-line);
+  padding: 0.04rem 0.3rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.pi-econ__spark { margin: 0.05rem 0 0; height: 22px; }
+
+/* Featured KPI tiles with sparklines */
+.pi-econ-feat {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 0.45rem;
+  margin-bottom: 1rem;
+}
+
+.pi-econ-feat__card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  background: var(--pi-surface);
+  border: 1px solid var(--pi-border);
+  border-top: 2px solid var(--pi-slate);
+  padding: 0.5rem 0.6rem 0.45rem;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.pi-econ-feat__card--positive { border-top-color: var(--pi-green); }
+.pi-econ-feat__card--negative { border-top-color: var(--pi-red); }
+.pi-econ-feat__card--fx { border-top-color: #7c3aed; }
+
+.pi-econ-feat__name {
+  font-size: 0.54rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--pi-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.pi-econ-feat__val {
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: var(--pi-slate);
+  font-variant-numeric: tabular-nums;
+  line-height: 1.1;
+}
+
+.pi-econ-feat__spark { height: 28px; margin: 0.05rem 0; }
+
+.pi-econ-feat__foot,
+.pi-econ-feat__fxmeta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.3rem;
+}
+
+.pi-econ-feat__fxmeta { min-height: 28px; }
+
+.pi-econ-feat__chg {
+  font-size: 0.58rem;
+  font-weight: 800;
+  color: var(--pi-muted);
+  white-space: nowrap;
+}
+
+.pi-econ-feat__chg--positive { color: var(--pi-green); }
+.pi-econ-feat__chg--negative { color: var(--pi-red); }
+
+.pi-econ-feat__yr {
+  font-size: 0.54rem;
+  font-weight: 700;
+  color: var(--pi-faint);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Sparkline svg */
+.pi-spark { display: block; width: 100%; height: 100%; }
+.pi-spark--empty { width: 100%; height: 100%; }
+
+/* Interactive comparison chart */
+.pi-econ-chart {
+  border: 1px solid var(--pi-border);
+  border-radius: 12px;
+  background: linear-gradient(180deg, var(--pi-card) 0%, var(--pi-surface) 100%);
+  padding: 0.85rem 0.95rem 0.7rem;
+  margin-bottom: 1rem;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+}
+
+.pi-econ-chart__tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  padding-bottom: 0.7rem;
+  margin-bottom: 0.75rem;
+  border-bottom: 1px solid var(--pi-line);
+}
+
+.pi-econ-chart__tab {
+  font-size: 0.62rem;
+  font-weight: 700;
+  color: var(--pi-muted);
+  background: var(--pi-surface);
+  border: 1px solid var(--pi-border);
+  border-radius: 999px;
+  padding: 0.26rem 0.7rem;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  white-space: nowrap;
+}
+
+.pi-econ-chart__tab:hover {
+  color: #2563eb;
+  border-color: #93c5fd;
+  background: #eff6ff;
+}
+
+.pi-econ-chart__tab--on {
+  color: #fff;
+  background: #2563eb;
+  border-color: #2563eb;
+  box-shadow: 0 2px 6px rgba(37, 99, 235, 0.3);
+}
+
+.pi-econ-chart__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.6rem;
+  margin-bottom: 0.55rem;
+  flex-wrap: wrap;
+}
+
+.pi-econ-chart__title {
+  font-size: 0.92rem;
+  font-weight: 800;
+  color: var(--pi-slate);
+  margin-right: 0.5rem;
+}
+
+.pi-econ-chart__unit {
+  font-size: 0.5rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #2563eb;
+  background: #eff6ff;
+  border: 1px solid #dbeafe;
+  border-radius: 999px;
+  padding: 0.15rem 0.5rem;
+  vertical-align: middle;
+}
+
+.pi-econ-chart__legend { display: flex; gap: 0.45rem; flex-wrap: wrap; }
+
+.pi-econ-chart__lg {
+  position: relative;
+  font-size: 0.62rem;
+  font-weight: 700;
+  color: var(--pi-slate);
+  background: var(--pi-surface);
+  border: 1px solid var(--pi-border);
+  border-radius: 999px;
+  padding: 0.2rem 0.6rem 0.2rem 1.25rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.pi-econ-chart__lg::before {
+  content: '';
+  position: absolute;
+  left: 0.55rem;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 0.55rem;
+  height: 0.55rem;
+  border-radius: 50%;
+}
+
+.pi-econ-chart__lg--a::before { background: #2563eb; }
+.pi-econ-chart__lg--b::before { background: #94a3b8; }
+
+.pi-cc { display: block; width: 100%; max-width: 720px; height: auto; margin: 0 auto; }
+.pi-cc--empty {
+  padding: 2rem;
+  text-align: center;
+  font-size: 0.78rem;
+  color: var(--pi-faint);
+}
+
+/* Global Markets — denser index grid for many world markets */
+.pi-gmodal__indices--dense { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+
+@media (max-width: 900px) {
+  .pi-gmodal__indices--dense { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+@media (max-width: 560px) {
+  .pi-gmodal__indices--dense { grid-template-columns: 1fr; }
+}
+
+/* Global Markets — RSI gauge */
+.pi-rsi {
+  border: 1px solid var(--pi-border);
+  border-radius: 12px;
+  background: var(--pi-surface);
+  padding: 0.85rem 1rem 0.7rem;
+}
+
+.pi-rsi__head {
+  display: flex;
+  align-items: baseline;
+  gap: 0.6rem;
+  margin-bottom: 0.7rem;
+}
+
+.pi-rsi__val {
+  font-size: 1.6rem;
+  font-weight: 800;
+  color: var(--pi-slate);
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+}
+
+.pi-rsi--positive .pi-rsi__val { color: var(--pi-green); }
+.pi-rsi--negative .pi-rsi__val { color: var(--pi-red); }
+
+.pi-rsi__zone {
+  font-size: 0.66rem;
+  font-weight: 700;
+  color: var(--pi-muted);
+}
+
+.pi-rsi__track {
+  position: relative;
+  height: 0.5rem;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #16a34a 0%, #e2e8f0 35%, #e2e8f0 65%, #dc2626 100%);
+  margin-bottom: 0.4rem;
+}
+
+.pi-rsi__band {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 30%;
+  opacity: 0.0;
+}
+.pi-rsi__band--os { left: 0; }
+.pi-rsi__band--ob { right: 0; }
+
+.pi-rsi__marker {
+  position: absolute;
+  top: 50%;
+  width: 0.85rem;
+  height: 0.85rem;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  background: #fff;
+  border: 3px solid var(--pi-slate);
+  box-shadow: 0 1px 4px rgba(15, 23, 42, 0.3);
+}
+
+.pi-rsi__ends {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.58rem;
+  font-weight: 700;
+  color: var(--pi-faint);
+}
+
+.pi-rsi__spark { height: 40px; margin-top: 0.6rem; }
+
+.pi-cc__grid { stroke: var(--pi-line); stroke-width: 1; }
+.pi-cc__ylabel,
+.pi-cc__xlabel {
+  fill: var(--pi-faint);
+  font-size: 9px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+@media (max-width: 900px) {
+  .pi-econ { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+
 @media (max-width: 720px) {
   .pi-feed { grid-template-columns: 1fr; }
   .pi-cstat { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .pi-cstat__cell:nth-child(4n) { border-right: 1px solid var(--pi-border); }
   .pi-cstat__cell:nth-child(2n) { border-right: none; }
+  .pi-econ { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .pi-econ-feat { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+@media (max-width: 460px) {
+  .pi-econ { grid-template-columns: 1fr; }
+  .pi-econ-feat { grid-template-columns: 1fr; }
 }
 
 @media (max-width: 520px) {
@@ -1776,17 +2304,27 @@ a.pi-news__link:hover { background: var(--pi-surface); }
 }
 
 .pi-pf__kpi {
+  position: relative;
   display: flex;
   flex-direction: column;
-  gap: 0.25rem;
-  padding: 0.95rem 1.05rem;
+  gap: 0.22rem;
+  padding: 0.8rem 0.9rem;
   border: 1px solid var(--pi-border);
-  border-radius: 13px;
-  background: #f8fafc;
+  border-radius: 12px;
+  background: linear-gradient(160deg, #ffffff 0%, #f6f8fb 100%);
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+  overflow: hidden;
+  transition: transform 0.16s ease, box-shadow 0.16s ease, border-color 0.16s ease;
+}
+
+.pi-pf__kpi:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(15, 23, 42, 0.09);
+  border-color: #cdd7e3;
 }
 
 .pi-pf__kpi-lbl {
-  font-size: 0.68rem;
+  font-size: 0.64rem;
   font-weight: 700;
   letter-spacing: 0.05em;
   text-transform: uppercase;
@@ -1794,18 +2332,21 @@ a.pi-news__link:hover { background: var(--pi-surface); }
 }
 
 .pi-pf__kpi-val {
-  font-size: 1.3rem;
+  font-size: 1.2rem;
   font-weight: 800;
   color: var(--pi-slate);
   line-height: 1.1;
   font-variant-numeric: tabular-nums;
+  letter-spacing: -0.01em;
 }
-.pi-pf__kpi-val i { font-style: normal; font-size: 0.78rem; font-weight: 700; color: #94a3b8; }
+.pi-pf__kpi-val i { font-style: normal; font-size: 0.72rem; font-weight: 700; color: #94a3b8; }
 .pi-pf__kpi-val--positive { color: var(--pi-green); }
 .pi-pf__kpi-val--negative { color: var(--pi-red); }
 .pi-pf__kpi-val--neutral { color: #b45309; }
 
-.pi-pf__kpi-sub { font-size: 0.74rem; font-weight: 600; color: #94a3b8; }
+.pi-pf__kpi-sub { font-size: 0.7rem; font-weight: 600; color: #94a3b8; }
+.pi-pf__kpi-sub.pi-pos { color: var(--pi-green); }
+.pi-pf__kpi-sub.pi-neg { color: var(--pi-red); }
 
 /* Recommendation banners */
 .pi-pf__recos {
@@ -1816,16 +2357,20 @@ a.pi-news__link:hover { background: var(--pi-surface); }
 }
 
 .pi-pf__reco {
+  position: relative;
   display: flex;
   align-items: center;
-  gap: 0.85rem;
+  gap: 0.7rem;
   flex-wrap: wrap;
-  padding: 0.85rem 1rem;
-  border-radius: 13px;
+  padding: 0.7rem 0.85rem;
+  border-radius: 12px;
   border: 1px solid transparent;
+  overflow: hidden;
+  transition: box-shadow 0.16s ease, transform 0.16s ease;
 }
-.pi-pf__reco--positive { background: var(--pi-green-bg); border-color: rgba(5, 150, 105, 0.18); }
-.pi-pf__reco--negative { background: var(--pi-red-bg); border-color: rgba(220, 38, 38, 0.18); }
+.pi-pf__reco:hover { transform: translateY(-1px); box-shadow: 0 6px 16px rgba(15, 23, 42, 0.08); }
+.pi-pf__reco--positive { background: linear-gradient(135deg, var(--pi-green-bg) 0%, #ffffff 130%); border-color: rgba(5, 150, 105, 0.22); }
+.pi-pf__reco--negative { background: linear-gradient(135deg, var(--pi-red-bg) 0%, #ffffff 130%); border-color: rgba(220, 38, 38, 0.22); }
 
 .pi-pf__reco-cap {
   display: inline-flex;
@@ -1846,17 +2391,17 @@ a.pi-news__link:hover { background: var(--pi-surface); }
   display: inline-flex;
   align-items: center;
   gap: 0.4rem;
-  padding: 0.3rem 0.55rem;
-  border-radius: 8px;
-  border: none;
+  padding: 0.32rem 0.6rem;
+  border-radius: 9px;
+  border: 1px solid rgba(15, 23, 42, 0.06);
   cursor: pointer;
-  background: rgba(255, 255, 255, 0.75);
+  background: rgba(255, 255, 255, 0.9);
   font-size: 0.78rem;
   font-weight: 700;
   color: var(--pi-slate);
-  transition: transform 0.12s ease, box-shadow 0.12s ease;
+  transition: transform 0.12s ease, box-shadow 0.12s ease, border-color 0.12s ease;
 }
-.pi-pf__reco-chip:hover { transform: translateY(-1px); box-shadow: 0 4px 10px rgba(15, 23, 42, 0.12); }
+.pi-pf__reco-chip:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(15, 23, 42, 0.14); border-color: rgba(15, 23, 42, 0.12); }
 .pi-pf__reco-chip span {
   font-size: 0.68rem;
   font-weight: 800;

@@ -4,6 +4,8 @@ import './Styles/PredictionIndicators.css';
 import { equityAPI, tradeSummaryAPI, portfolioAPI } from '../../services/api';
 import cseApi from '../../services/cseApi';
 import newsApi from '../../services/newsApi';
+import economicApi from '../../services/economicApi';
+import globalMarketsApi from '../../services/globalMarketsApi';
 
 // Modern factor card with a colored score ring.
 const FactorCard = ({ value, label, signalLabel, signalColor, icon, onClick }) => {
@@ -70,9 +72,149 @@ const FACTOR_ICONS = {
   sector: ICON(<><rect x="3" y="3" width="7" height="7" rx="1" /><rect x="14" y="3" width="7" height="7" rx="1" /><rect x="3" y="14" width="7" height="7" rx="1" /><rect x="14" y="14" width="7" height="7" rx="1" /></>),
   supplyDemand: ICON(<><path d="M12 3v18" /><path d="M5 8l-2 5h6l-2-5z" /><path d="M19 8l-2 5h6l-2-5z" /><path d="M5 8h14" /></>),
   global: ICON(<><circle cx="12" cy="12" r="9" /><path d="M2 12h20" /><path d="M12 2a15 15 0 0 1 0 20 15 15 0 0 1 0-20z" /></>),
+  globalMarkets: ICON(<><circle cx="12" cy="12" r="9" /><path d="M7 13l2.5-3 2.5 2.5L16 8" /><path d="M2 12h3M19 12h3" /></>),
   policy: ICON(<><path d="M3 21h18" /><path d="M5 21V10M19 21V10M9 21V10M15 21V10" /><path d="M12 3 4 8h16l-8-5z" /></>),
   news: ICON(<><path d="M4 5h13v14H6a2 2 0 0 1-2-2V5z" /><path d="M17 8h3v9a2 2 0 0 1-2 2" /><path d="M8 9h6M8 13h6" /></>),
   technical: ICON(<><path d="M3 3v18h18" /><path d="M7 14l3-4 3 3 4-6" /></>)
+};
+
+// World Bank codes used for the Government Policies factor modal.
+const POLICY_INDICATOR_CODES = new Set([
+  'FR.INR.RINR',
+  'FR.INR.LEND',
+  'GC.DOD.TOTL.GD.ZS',
+  'BN.CAB.XOKA.GD.ZS',
+  'FI.RES.TOTL.MO'
+]);
+
+const fmt = (n) =>
+  Number.isFinite(n)
+    ? n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+    : '—';
+
+const fmtCompact = (n) =>
+  Number.isFinite(n)
+    ? Math.abs(n) >= 1e9 ? `${(n / 1e9).toFixed(2)}B`
+      : Math.abs(n) >= 1e6 ? `${(n / 1e6).toFixed(2)}M`
+      : Math.abs(n) >= 1e3 ? `${(n / 1e3).toFixed(1)}K`
+      : n.toLocaleString('en-US')
+    : '—';
+
+const pct = (n) => `${(n * 100).toFixed(2)}%`;
+const signedPct = (n) => `${n >= 0 ? '+' : ''}${(n * 100).toFixed(2)}%`;
+
+// Format a World Bank indicator value according to its unit.
+const formatIndicatorValue = (value, unit) => {
+  if (value == null || !Number.isFinite(value)) return '—';
+  switch (unit) {
+    case 'percent':
+      return `${value.toFixed(2)}%`;
+    case 'usd':
+      return Math.abs(value) >= 1000 ? `$${fmtCompact(value)}` : `$${value.toFixed(2)}`;
+    case 'lcu':
+      return value.toFixed(2);
+    case 'months':
+      return `${value.toFixed(1)} mo`;
+    case 'count':
+      return fmtCompact(value);
+    default:
+      return fmt(value);
+  }
+};
+
+// ---- Lightweight SVG charts for the Economic Conditions modal ----
+
+// Compact area sparkline rendered from a [{ year, value }] series.
+const Sparkline = ({ data, color = '#2563eb', width = 132, height = 38 }) => {
+  const pts = (Array.isArray(data) ? data : []).filter((d) => Number.isFinite(d.value));
+  if (pts.length < 2) return <div className="pi-spark pi-spark--empty" />;
+  const xs = pts.map((d) => d.year);
+  const ys = pts.map((d) => d.value);
+  const minX = Math.min(...xs);
+  const maxX = Math.max(...xs);
+  const minY = Math.min(...ys);
+  const maxY = Math.max(...ys);
+  const spanX = maxX - minX || 1;
+  const spanY = maxY - minY || 1;
+  const pad = 3;
+  const sx = (x) => pad + ((x - minX) / spanX) * (width - pad * 2);
+  const sy = (y) => height - pad - ((y - minY) / spanY) * (height - pad * 2);
+  const line = pts.map((d, i) => `${i === 0 ? 'M' : 'L'}${sx(d.year).toFixed(1)},${sy(d.value).toFixed(1)}`).join(' ');
+  const area = `${line} L${sx(maxX).toFixed(1)},${height - pad} L${sx(minX).toFixed(1)},${height - pad} Z`;
+  const last = pts[pts.length - 1];
+  const gid = `sg-${Math.round(sx(maxX))}-${color.replace('#', '')}-${pts.length}`;
+  return (
+    <svg className="pi-spark" viewBox={`0 0 ${width} ${height}`} preserveAspectRatio="none" aria-hidden="true">
+      <defs>
+        <linearGradient id={gid} x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor={color} stopOpacity="0.28" />
+          <stop offset="100%" stopColor={color} stopOpacity="0" />
+        </linearGradient>
+      </defs>
+      <path d={area} fill={`url(#${gid})`} />
+      <path d={line} fill="none" stroke={color} strokeWidth="1.6" strokeLinejoin="round" strokeLinecap="round" />
+      <circle cx={sx(last.year)} cy={sy(last.value)} r="2.2" fill={color} />
+    </svg>
+  );
+};
+
+// Two-series comparison line chart (Sri Lanka vs World) with grid + axes.
+const CompareChart = ({ seriesA, seriesB, labelA, labelB, colorA = '#2563eb', colorB = '#94a3b8', unit, height = 140 }) => {
+  const a = (Array.isArray(seriesA) ? seriesA : []).filter((d) => Number.isFinite(d.value));
+  const b = (Array.isArray(seriesB) ? seriesB : []).filter((d) => Number.isFinite(d.value));
+  const all = [...a, ...b];
+  if (all.length < 2) {
+    return <div className="pi-cc pi-cc--empty">Not enough history to chart.</div>;
+  }
+  const width = 560;
+  const padL = 48;
+  const padR = 14;
+  const padT = 14;
+  const padB = 26;
+  const xs = all.map((d) => d.year);
+  const ys = all.map((d) => d.value);
+  const minX = Math.min(...xs);
+  const maxX = Math.max(...xs);
+  let minY = Math.min(...ys);
+  let maxY = Math.max(...ys);
+  if (minY === maxY) { minY -= 1; maxY += 1; }
+  const yPad = (maxY - minY) * 0.1;
+  minY -= yPad;
+  maxY += yPad;
+  const spanX = maxX - minX || 1;
+  const spanY = maxY - minY || 1;
+  const sx = (x) => padL + ((x - minX) / spanX) * (width - padL - padR);
+  const sy = (y) => padT + (1 - (y - minY) / spanY) * (height - padT - padB);
+  const toPath = (s) => s
+    .slice()
+    .sort((p, q) => p.year - q.year)
+    .map((d, i) => `${i === 0 ? 'M' : 'L'}${sx(d.year).toFixed(1)},${sy(d.value).toFixed(1)}`)
+    .join(' ');
+  const yTicks = 4;
+  const tickVals = Array.from({ length: yTicks + 1 }, (_, i) => minY + (spanY * i) / yTicks);
+  const xTickYears = [minX, Math.round((minX + maxX) / 2), maxX];
+  const fmtTick = (v) => {
+    if (unit === 'percent') return `${v.toFixed(0)}%`;
+    if (unit === 'usd' || unit === 'count') return fmtCompact(v);
+    if (unit === 'lcu') return v.toFixed(0);
+    return v.toFixed(1);
+  };
+  return (
+    <svg className="pi-cc" viewBox={`0 0 ${width} ${height}`} role="img" aria-label={`${labelA} vs ${labelB}`}>
+      {tickVals.map((v, i) => (
+        <g key={i}>
+          <line className="pi-cc__grid" x1={padL} y1={sy(v)} x2={width - padR} y2={sy(v)} />
+          <text className="pi-cc__ylabel" x={padL - 6} y={sy(v) + 3} textAnchor="end">{fmtTick(v)}</text>
+        </g>
+      ))}
+      {xTickYears.map((yr, i) => (
+        <text key={i} className="pi-cc__xlabel" x={sx(yr)} y={height - 8} textAnchor="middle">{yr}</text>
+      ))}
+      {b.length >= 2 && <path d={toPath(b)} fill="none" stroke={colorB} strokeWidth="2" strokeDasharray="4 3" strokeLinejoin="round" />}
+      {a.length >= 2 && <path d={toPath(a)} fill="none" stroke={colorA} strokeWidth="2.4" strokeLinejoin="round" strokeLinecap="round" />}
+      {a.length >= 1 && (() => { const last = a.slice().sort((p, q) => p.year - q.year)[a.length - 1]; return <circle cx={sx(last.year)} cy={sy(last.value)} r="3" fill={colorA} />; })()}
+    </svg>
+  );
 };
 
 // ---- Portfolio analysis helpers (pure, module-level) ----
@@ -206,6 +348,9 @@ const PredictionIndicators = () => {
   const [activeFactor, setActiveFactor] = useState(null);
   const overlayDownRef = useRef(false);
 
+  // Which indicator the Economic Conditions comparison chart is showing.
+  const [econMetric, setEconMetric] = useState('FP.CPI.TOTL.ZG');
+
   // Extra per-company data sources surfaced when a stock is selected.
   const [liveQuote, setLiveQuote] = useState(null);
   const [liveQuoteLoading, setLiveQuoteLoading] = useState(false);
@@ -230,6 +375,12 @@ const PredictionIndicators = () => {
   const [marketIndices, setMarketIndices] = useState(null);
   const [globalNews, setGlobalNews] = useState([]);
 
+  // Macroeconomic indicators (World Bank) for the Economic Conditions factor.
+  const [economicIndicators, setEconomicIndicators] = useState(null);
+
+  // Global market data (CSE indices + Alpha Vantage world indices/RSI).
+  const [globalMarkets, setGlobalMarkets] = useState(null);
+
   // Prevent body scroll when a factor modal is open
   useEffect(() => {
     document.body.style.overflow = activeFactor ? 'hidden' : 'unset';
@@ -249,6 +400,39 @@ const PredictionIndicators = () => {
       }
     };
     loadEquities();
+  }, []);
+
+  // Load World Bank macro indicators once (country-level data, not per-stock).
+  // Cached server-side, so this is a cheap call shared across all stocks.
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const data = await economicApi.getIndicators();
+        if (!cancelled) setEconomicIndicators(data);
+      } catch (e) {
+        if (!cancelled) setEconomicIndicators(null);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  // Load Global Markets data once (market-wide, not per-stock). Cached server-side.
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const data = await globalMarketsApi.getMarkets();
+        if (!cancelled) setGlobalMarkets(data);
+      } catch (e) {
+        if (!cancelled) setGlobalMarkets(null);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   // Calculate technical indicators
@@ -806,6 +990,186 @@ const PredictionIndicators = () => {
     return { score, color, direction, aspi, snp, sentiment: newsSentiment };
   }, [marketIndices, globalNews, newsSentiment]);
 
+  // Real-data Economic Conditions factor — World Bank macro indicators for
+  // Sri Lanka and the World aggregate, displayed separately. A handful of
+  // headline metrics (inflation, GDP growth, real rate) also nudge the score.
+  const economicData = useMemo(() => {
+    const lk = Array.isArray(economicIndicators?.sriLanka) ? economicIndicators.sriLanka : [];
+    const wld = Array.isArray(economicIndicators?.world) ? economicIndicators.world : [];
+    if (lk.length === 0 && wld.length === 0) return null;
+
+    // Trend vs the prior observation, coloured by whether the move is healthy.
+    const decorate = (item) => {
+      let trend = 'flat';
+      let changePct = null;
+      if (item.previousValue != null && Number.isFinite(item.previousValue)) {
+        if (item.value > item.previousValue) trend = 'up';
+        else if (item.value < item.previousValue) trend = 'down';
+        if (item.previousValue !== 0) {
+          changePct = ((item.value - item.previousValue) / Math.abs(item.previousValue)) * 100;
+        }
+      }
+      let tone = 'neutral';
+      if (trend !== 'flat' && item.better && item.better !== 'neutral') {
+        const goodUp = item.better === 'high';
+        tone = (trend === 'up') === goodUp ? 'positive' : 'negative';
+      }
+      return { ...item, display: formatIndicatorValue(item.value, item.unit), changePct, trend, tone };
+    };
+
+    const sriLanka = lk.map(decorate);
+    const world = wld.map(decorate);
+
+    // Macro overlay score from Sri Lankan headline indicators (0-100).
+    const find = (code) => lk.find((i) => i.code === code);
+    const inflation = find('FP.CPI.TOTL.ZG');
+    const growth = find('NY.GDP.MKTP.KD.ZG');
+    const realRate = find('FR.INR.RINR');
+    let macroScore = null;
+    if (inflation || growth || realRate) {
+      let s = 50;
+      if (inflation?.value != null) s += Math.max(-25, Math.min(15, (5 - inflation.value) * 3));
+      if (growth?.value != null) s += Math.max(-20, Math.min(25, growth.value * 4));
+      if (realRate?.value != null) s += Math.max(-10, Math.min(10, (8 - realRate.value)));
+      macroScore = Math.round(Math.max(0, Math.min(100, s)));
+    }
+
+    const asOfYear = Math.max(
+      0,
+      ...[...sriLanka, ...world].map((i) => i.year || 0)
+    ) || null;
+
+    return {
+      sriLanka,
+      world,
+      macroScore,
+      asOfYear,
+      exchangeRate: economicIndicators?.exchangeRate || null,
+      updatedAt: economicIndicators?.lastUpdated || null,
+      note: economicIndicators?.note || '',
+      headline: { inflation, growth, realRate }
+    };
+  }, [economicIndicators]);
+
+  // Policy-focused slice of World Bank data — rates, fiscal balance and reserves.
+  const policyData = useMemo(() => {
+    if (!economicData) return null;
+    const sriLanka = economicData.sriLanka.filter((i) => POLICY_INDICATOR_CODES.has(i.code));
+    const world = economicData.world.filter((i) => POLICY_INDICATOR_CODES.has(i.code));
+    if (sriLanka.length === 0 && world.length === 0) return null;
+
+    const find = (code) =>
+      (Array.isArray(economicIndicators?.sriLanka) ? economicIndicators.sriLanka : [])
+        .find((i) => i.code === code);
+    const realRate = find('FR.INR.RINR');
+    const lending = find('FR.INR.LEND');
+    const debt = find('GC.DOD.TOTL.GD.ZS');
+    const cab = find('BN.CAB.XOKA.GD.ZS');
+    const reserves = find('FI.RES.TOTL.MO');
+
+    let policyScore = null;
+    if (realRate || lending || debt || cab || reserves) {
+      let s = 50;
+      if (debt?.value != null) s += Math.max(-25, Math.min(15, (70 - debt.value) * 0.5));
+      if (realRate?.value != null) s += Math.max(-15, Math.min(15, (5 - Math.abs(realRate.value)) * 2));
+      if (cab?.value != null) s += Math.max(-15, Math.min(15, cab.value * 2));
+      if (reserves?.value != null) s += Math.max(-10, Math.min(15, (reserves.value - 3) * 3));
+      if (lending?.value != null) s += Math.max(-10, Math.min(10, (15 - lending.value) * 0.8));
+      policyScore = Math.round(Math.max(0, Math.min(100, s)));
+    }
+
+    const asOfYear = Math.max(
+      0,
+      ...[...sriLanka, ...world].map((i) => i.year || 0)
+    ) || null;
+
+    return {
+      sriLanka,
+      world,
+      policyScore,
+      asOfYear,
+      updatedAt: economicData.updatedAt,
+      headline: { realRate, lending, debt, cab, reserves }
+    };
+  }, [economicData, economicIndicators]);
+
+  // Blend the macro overlay with the existing market-stability proxy so the
+  // factor card/gauge reflect real macro data when it is available.
+  const economicConditions = useMemo(() => {
+    if (!indicators) return null;
+    const proxy = indicators.economic;
+    if (!economicData || economicData.macroScore == null) return proxy;
+    const score = Math.round(proxy.score * 0.4 + economicData.macroScore * 0.6);
+    const color = score > 58 ? 'positive' : score < 42 ? 'negative' : 'neutral';
+    const direction = score > 55 ? 'up' : score < 45 ? 'down' : 'neutral';
+    return { score, color, direction };
+  }, [indicators, economicData]);
+
+  const governmentPolicies = useMemo(() => {
+    if (!indicators) return null;
+    const proxy = indicators.policy;
+    if (!policyData || policyData.policyScore == null) return proxy;
+    const score = Math.round(proxy.score * 0.35 + policyData.policyScore * 0.65);
+    const color = score > 58 ? 'positive' : score < 42 ? 'negative' : 'neutral';
+    const direction = score > 55 ? 'up' : score < 45 ? 'down' : 'neutral';
+    return { score, color, direction };
+  }, [indicators, policyData]);
+
+  // Global Markets factor — live CSE indices/breadth + Alpha Vantage world
+  // indices and an RSI reading, blended into a 0-100 market-health score.
+  const globalMarketsData = useMemo(() => {
+    const sl = globalMarkets?.sriLanka || null;
+    const wd = globalMarkets?.world || null;
+    const hasSL = sl && (sl.aspi || sl.snp);
+    const dailyIndices = wd?.dailyIndices || wd?.indices;
+    const hasWorld = wd && (
+      (Array.isArray(wd.exchanges) && wd.exchanges.length > 0) ||
+      (Array.isArray(dailyIndices) && dailyIndices.length > 0)
+    );
+    if (!hasSL && !hasWorld) return null;
+
+    const aspiPct = sl?.aspi?.percentage ?? null;
+    const snpPct = sl?.snp?.percentage ?? null;
+    const worldIndices = Array.isArray(dailyIndices) && dailyIndices.length ? dailyIndices : [];
+    const worldAvgPct = worldIndices.length
+      ? worldIndices.reduce((s, i) => s + (i.percentage || 0), 0) / worldIndices.length
+      : null;
+    const rsi = wd?.rsi || null;
+
+    // Market breadth ratio (advancers vs decliners).
+    let breadthRatio = null;
+    if (sl?.breadth && (sl.breadth.advancers || sl.breadth.decliners)) {
+      const a = sl.breadth.advancers || 0;
+      const d = sl.breadth.decliners || 0;
+      breadthRatio = a + d > 0 ? a / (a + d) : null;
+    }
+
+    // Score: blend index moves, breadth and RSI positioning.
+    let s = 50;
+    let parts = 0;
+    if (aspiPct != null) { s += Math.max(-18, Math.min(18, aspiPct * 7)); parts += 1; }
+    if (snpPct != null) { s += Math.max(-12, Math.min(12, snpPct * 5)); parts += 1; }
+    if (worldAvgPct != null) { s += Math.max(-15, Math.min(15, worldAvgPct * 6)); parts += 1; }
+    if (breadthRatio != null) { s += (breadthRatio - 0.5) * 24; parts += 1; }
+    if (rsi?.value != null) { s += Math.max(-10, Math.min(10, (rsi.value - 50) * 0.25)); parts += 1; }
+    const score = parts > 0 ? Math.round(Math.max(0, Math.min(100, s))) : 50;
+    const color = score > 58 ? 'positive' : score < 42 ? 'negative' : 'neutral';
+    const direction = score > 55 ? 'up' : score < 45 ? 'down' : 'neutral';
+
+    return {
+      score,
+      color,
+      direction,
+      sriLanka: sl,
+      world: wd,
+      worldAvgPct,
+      breadthRatio,
+      rsi,
+      updatedAt: globalMarkets?.lastUpdated || null,
+      note: globalMarkets?.note || ''
+    };
+  }, [globalMarkets]);
+
   // Price statistics over the loaded window.
   const priceStats = useMemo(() => {
     if (!historicalData || historicalData.length === 0) return null;
@@ -998,22 +1362,6 @@ const PredictionIndicators = () => {
     };
   }, [historicalData]);
 
-  const fmt = (n) =>
-    Number.isFinite(n)
-      ? n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
-      : '—';
-
-  const fmtCompact = (n) =>
-    Number.isFinite(n)
-      ? Math.abs(n) >= 1e9 ? `${(n / 1e9).toFixed(2)}B`
-        : Math.abs(n) >= 1e6 ? `${(n / 1e6).toFixed(2)}M`
-        : Math.abs(n) >= 1e3 ? `${(n / 1e3).toFixed(1)}K`
-        : n.toLocaleString('en-US')
-      : '—';
-
-  const pct = (n) => `${(n * 100).toFixed(2)}%`;
-  const signedPct = (n) => `${n >= 0 ? '+' : ''}${(n * 100).toFixed(2)}%`;
-
   const timeAgo = (iso) => {
     if (!iso) return '';
     const then = Date.parse(iso);
@@ -1065,25 +1413,82 @@ const PredictionIndicators = () => {
         {
           key: 'sentiment',
           label: 'Market Sentiment',
+          wide: true,
           data: indicators.sentiment,
           icon: FACTOR_ICONS.sentiment,
-          description: 'Reflects investor psychology by blending the Relative Strength Index with short-term price momentum.',
+          description: 'Reflects investor psychology by blending the Relative Strength Index with short-term price momentum. RSI carries 75% of the weight, recent momentum the remaining 25%.',
           rows: [
-            { label: 'RSI (14-Day)', value: indicators.rsi.value.toFixed(2) },
-            { label: '7-Day Momentum', value: signedPct(indicators.momentum['7-day'].value) }
-          ]
+            { label: 'RSI (14-Day)', value: `${indicators.rsi.value.toFixed(2)} · ${indicators.rsi.signal.signal}` },
+            { label: '7-Day Momentum', value: `${signedPct(indicators.momentum['7-day'].value)} · ${indicators.momentum['7-day'].signal.signal}` },
+            { label: '30-Day Momentum', value: `${signedPct(indicators.momentum['30-day'].value)} · ${indicators.momentum['30-day'].signal.signal}` },
+            { label: 'Sentiment Bias', value: indicators.sentiment.direction === 'up' ? 'Bullish tilt' : indicators.sentiment.direction === 'down' ? 'Bearish tilt' : 'Balanced' }
+          ],
+          formula: {
+            parts: [
+              {
+                label: 'RSI (14-Day)',
+                weight: '75%',
+                contribution: indicators.rsi.value * 0.75
+              },
+              {
+                label: '7-Day Momentum',
+                weight: '25%',
+                contribution: (50 + indicators.momentum['7-day'].value * 250) * 0.25
+              }
+            ],
+            total: indicators.sentiment.score
+          },
+          insight: (() => {
+            const rsiVal = indicators.rsi.value;
+            const mom = indicators.momentum['7-day'].value;
+            const parts = [];
+            if (rsiVal < 30) parts.push(`RSI at ${rsiVal.toFixed(1)} is in oversold territory (below 30) — the recent sell-off looks overextended and can precede a relief bounce.`);
+            else if (rsiVal > 70) parts.push(`RSI at ${rsiVal.toFixed(1)} is overbought (above 70) — the advance may be stretched and prone to a pullback.`);
+            else parts.push(`RSI at ${rsiVal.toFixed(1)} sits in the neutral 30–70 band, so momentum is neither extreme.`);
+            if (mom < -0.02) parts.push(`7-day momentum of ${signedPct(mom)} confirms active short-term selling pressure.`);
+            else if (mom > 0.02) parts.push(`7-day momentum of ${signedPct(mom)} shows buyers gaining the upper hand near term.`);
+            else parts.push(`7-day momentum is roughly flat at ${signedPct(mom)}.`);
+            parts.push(indicators.sentiment.score >= 58
+              ? 'Net effect: sentiment leans positive.'
+              : indicators.sentiment.score <= 42
+                ? 'Net effect: sentiment leans negative.'
+                : 'Net effect: sentiment is broadly balanced.');
+            return parts.join(' ');
+          })(),
+          note: 'RSI and momentum are derived from the last 3 months of closing prices. A low score reflects weak RSI and/or negative momentum, not a direct survey of investors.'
         },
         {
           key: 'economic',
           label: 'Economic Conditions',
-          data: indicators.economic,
+          data: economicConditions || indicators.economic,
           icon: FACTOR_ICONS.economic,
-          description: 'A stability proxy: calmer price volatility and a healthy sector trend indicate a more supportive economic backdrop.',
-          rows: [
-            { label: '20-Day Volatility', value: pct(indicators.volatility.value / 100) },
-            { label: 'Sector Avg Return', value: signedPct(indicators.sectorTrend.trend) }
-          ],
-          note: 'Proxy derived from market data — direct macroeconomic feeds are not yet wired in.'
+          description: economicData
+            ? 'Live macroeconomic backdrop from the World Bank — Sri Lankan and global figures (inflation, GDP growth, rates and more), blended with local market stability.'
+            : 'A stability proxy: calmer price volatility and a healthy sector trend indicate a more supportive economic backdrop.',
+          rows: economicData
+            ? [
+                {
+                  label: 'Sri Lanka Inflation',
+                  value: economicData.headline.inflation
+                    ? `${economicData.headline.inflation.value.toFixed(2)}% (${economicData.headline.inflation.year})`
+                    : '—'
+                },
+                {
+                  label: 'Sri Lanka GDP Growth',
+                  value: economicData.headline.growth
+                    ? `${economicData.headline.growth.value >= 0 ? '+' : ''}${economicData.headline.growth.value.toFixed(2)}% (${economicData.headline.growth.year})`
+                    : '—'
+                },
+                { label: '20-Day Volatility', value: pct(indicators.volatility.value / 100) }
+              ]
+            : [
+                { label: '20-Day Volatility', value: pct(indicators.volatility.value / 100) },
+                { label: 'Sector Avg Return', value: signedPct(indicators.sectorTrend.trend) }
+              ],
+          note: economicData
+            ? (economicData.note || 'Macro figures from the World Bank Open Data API. Click to compare Sri Lanka and the world.')
+            : 'Proxy derived from market data — direct macroeconomic feeds are not yet wired in.',
+          economicData: economicData || null
         },
         {
           key: 'sector',
@@ -1146,17 +1551,65 @@ const PredictionIndicators = () => {
             ? { ...globalEvents, articles: globalNews.slice(0, 6), updatedAt: marketIndices?.lastUpdated }
             : null
         },
+        ...(globalMarketsData ? [{
+          key: 'globalMarkets',
+          label: 'Global Markets',
+          data: globalMarketsData,
+          icon: FACTOR_ICONS.globalMarkets,
+          description: 'CSE ASPI & S&P SL20 plus the world’s top exchanges (NYSE, NASDAQ, Tokyo, etc.) and daily benchmarks — S&P 500, Nikkei 225, NIFTY 50 — with S&P 500 RSI.',
+          rows: [
+            {
+              label: 'ASPI (All Share)',
+              value: globalMarketsData.sriLanka?.aspi && Number.isFinite(globalMarketsData.sriLanka.aspi.percentage)
+                ? `${fmt(globalMarketsData.sriLanka.aspi.value)} (${globalMarketsData.sriLanka.aspi.percentage >= 0 ? '+' : ''}${globalMarketsData.sriLanka.aspi.percentage.toFixed(2)}%)`
+                : '—'
+            },
+            {
+              label: 'Daily Indices Avg',
+              value: globalMarketsData.worldAvgPct != null
+                ? `${globalMarketsData.worldAvgPct >= 0 ? '+' : ''}${globalMarketsData.worldAvgPct.toFixed(2)}%`
+                : '—'
+            },
+            {
+              label: 'S&P 500 RSI (14)',
+              value: globalMarketsData.rsi?.value != null ? globalMarketsData.rsi.value.toFixed(1) : '—'
+            }
+          ],
+          note: globalMarketsData.note || 'Live CSE indices + major global exchanges & daily indices. Click for the full market dashboard.',
+          marketsData: globalMarketsData
+        }] : []),
         {
           key: 'policy',
           label: 'Government Policies',
-          data: indicators.policy,
+          data: governmentPolicies || indicators.policy,
           icon: FACTOR_ICONS.policy,
-          description: 'A policy-environment proxy built from the medium-term trend and the direction of the broader sector.',
-          rows: [
-            { label: '30-Day Momentum', value: signedPct(indicators.momentum['30-day'].value) },
-            { label: 'Sector Avg Return', value: signedPct(indicators.sectorTrend.trend) }
-          ],
-          note: 'Proxy derived from market data — direct policy feeds are not yet wired in.'
+          description: policyData
+            ? 'Fiscal and monetary backdrop from the World Bank — Sri Lankan real & lending rates, government debt, current account and reserves, compared with global benchmarks.'
+            : 'A policy-environment proxy built from the medium-term trend and the direction of the broader sector.',
+          rows: policyData
+            ? [
+                {
+                  label: 'Real Interest Rate',
+                  value: policyData.headline.realRate
+                    ? `${policyData.headline.realRate.value.toFixed(2)}% (${policyData.headline.realRate.year})`
+                    : '—'
+                },
+                {
+                  label: 'Govt Debt (% GDP)',
+                  value: policyData.headline.debt
+                    ? `${policyData.headline.debt.value.toFixed(1)}% (${policyData.headline.debt.year})`
+                    : '—'
+                },
+                { label: '30-Day Momentum', value: signedPct(indicators.momentum['30-day'].value) }
+              ]
+            : [
+                { label: '30-Day Momentum', value: signedPct(indicators.momentum['30-day'].value) },
+                { label: 'Sector Avg Return', value: signedPct(indicators.sectorTrend.trend) }
+              ],
+          note: policyData
+            ? 'Annual policy & fiscal figures from the World Bank. Click to compare Sri Lanka and the world.'
+            : 'Proxy derived from market data — direct policy feeds are not yet wired in.',
+          policyData: policyData || null
         },
         {
           key: 'news',
@@ -1656,7 +2109,7 @@ const PredictionIndicators = () => {
                   <div className="pi-card__head">
                     <div>
                       <h3 className="pi-card__title">Factor Indicators</h3>
-                      <span className="pi-card__hint">9 market-driving factors · click any for detail</span>
+                      <span className="pi-card__hint">{factorList.length} market-driving factors · click any for detail</span>
                     </div>
                   </div>
                   <div className="pi-factors">
@@ -1941,7 +2394,529 @@ const PredictionIndicators = () => {
             overlayDownRef.current = false;
           }}
         >
-          {activeFactor.key === 'global' && activeFactor.globalData ? (
+          {activeFactor.key === 'globalMarkets' && activeFactor.marketsData ? (
+            <div
+              className={`pi-gmodal pi-emodal pi-gmodal--${activeFactor.data.color}`}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <button
+                className="pi-gmodal__close"
+                type="button"
+                onClick={() => setActiveFactor(null)}
+                aria-label="Close"
+              >
+                ×
+              </button>
+
+              <div className="pi-gmodal__hero">
+                <div className="pi-gmodal__hero-bg" aria-hidden="true" />
+                <div className="pi-gmodal__hero-row">
+                  <div className="pi-gmodal__hero-id">
+                    <span className="pi-gmodal__badge">
+                      <span className="pi-gmodal__badge-dot" />LIVE MARKETS
+                    </span>
+                    <h2 className="pi-gmodal__title">Global Markets</h2>
+                    <span className="pi-gmodal__sub">
+                      CSE &amp; world indices
+                      {activeFactor.marketsData.updatedAt ? ` · updated ${timeAgo(activeFactor.marketsData.updatedAt)}` : ''}
+                    </span>
+                  </div>
+                  <div className="pi-gmodal__gauge">
+                    <svg viewBox="0 0 96 96">
+                      <circle className="pi-gmodal__gauge-bg" cx="48" cy="48" r="40" />
+                      <circle
+                        className="pi-gmodal__gauge-bar"
+                        cx="48" cy="48" r="40"
+                        style={{
+                          strokeDasharray: 2 * Math.PI * 40,
+                          strokeDashoffset: 2 * Math.PI * 40 * (1 - Math.max(0, Math.min(100, activeFactor.data.score)) / 100)
+                        }}
+                      />
+                    </svg>
+                    <div className="pi-gmodal__gauge-c">
+                      <span className="pi-gmodal__gauge-num">{Math.round(activeFactor.data.score)}</span>
+                      <span className="pi-gmodal__gauge-out">/100</span>
+                    </div>
+                  </div>
+                </div>
+                <span className={`pi-gmodal__verdict pi-gmodal__verdict--${activeFactor.data.color}`}>
+                  {signalFromColor(activeFactor.data.color)} market backdrop
+                </span>
+              </div>
+
+              <div className="pi-gmodal__body">
+                {(() => {
+                  const md = activeFactor.marketsData;
+                  const sl = md.sriLanka || {};
+                  const wd = md.world || {};
+                  const slIdx = [sl.aspi, sl.snp].filter(Boolean);
+                  const exchanges = Array.isArray(wd.exchanges) ? wd.exchanges : [];
+                  const dailyIdx = Array.isArray(wd.dailyIndices) ? wd.dailyIndices : (Array.isArray(wd.indices) ? wd.indices : []);
+                  const rsi = md.rsi;
+                  const breadth = sl.breadth;
+                  const rsiZone = rsi ? (rsi.value >= 70 ? 'Overbought' : rsi.value <= 30 ? 'Oversold' : 'Neutral') : null;
+                  const rsiTone = rsi ? (rsi.value >= 70 ? 'negative' : rsi.value <= 30 ? 'positive' : 'neutral') : 'neutral';
+
+                  const IndexCard = ({ idx, suffix, rank }) => {
+                    const up = (idx.percentage ?? 0) >= 0;
+                    const span = (idx.high ?? 0) - (idx.low ?? 0);
+                    const posPct = span > 0 ? Math.max(0, Math.min(100, ((idx.value - idx.low) / span) * 100)) : 50;
+                    return (
+                      <div className={`pi-idx pi-idx--${up ? 'pos' : 'neg'}`}>
+                        <div className="pi-idx__top">
+                          <span className="pi-idx__name">
+                            {rank != null ? <span className="pi-idx__rank">#{rank}</span> : null}
+                            {idx.name}{suffix ? ` · ${suffix}` : ''}
+                          </span>
+                          <span className={`pi-idx__chg pi-idx__chg--${up ? 'pos' : 'neg'}`}>
+                            {up ? '▲' : '▼'} {idx.percentage != null ? `${up ? '+' : ''}${idx.percentage.toFixed(2)}%` : '—'}
+                          </span>
+                        </div>
+                        {idx.subtitle ? <div className="pi-idx__sub">{idx.subtitle}</div> : null}
+                        {idx.proxy ? <div className="pi-idx__proxy">{idx.proxy} ({idx.symbol})</div> : null}
+                        <div className="pi-idx__val">{fmt(idx.value ?? idx.price)}</div>
+                        <div className="pi-idx__delta">
+                          {idx.change != null ? `${up ? '+' : ''}${fmt(idx.change)} pts` : ''}
+                        </div>
+                        {span > 0 && (
+                          <div className="pi-idx__range">
+                            <div className="pi-idx__range-track">
+                              <div className={`pi-idx__range-fill pi-idx__range-fill--${up ? 'pos' : 'neg'}`} style={{ width: `${posPct}%` }} />
+                              <div className="pi-idx__range-dot" style={{ left: `${posPct}%` }} />
+                            </div>
+                            <div className="pi-idx__range-ends">
+                              <span>L {fmt(idx.low)}</span>
+                              <span>H {fmt(idx.high)}</span>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    );
+                  };
+
+                  return (
+                    <>
+                      {/* Sri Lanka indices */}
+                      {slIdx.length > 0 && (
+                        <>
+                          <div className="pi-gmodal__section-h">
+                            <span className="pi-emodal__flag" aria-hidden="true">🇱🇰</span>
+                            Sri Lanka · CSE
+                            {sl.marketStatus ? <span className="pi-gmodal__section-tag">{sl.marketStatus}</span> : null}
+                          </div>
+                          <div className="pi-gmodal__indices">
+                            {slIdx.map((idx, i) => <IndexCard key={i} idx={idx} />)}
+                          </div>
+                          {breadth && (breadth.advancers || breadth.decliners) ? (() => {
+                            const a = breadth.advancers || 0;
+                            const d = breadth.decliners || 0;
+                            const tot = a + d || 1;
+                            const aw = (a / tot) * 100;
+                            return (
+                              <>
+                                <div className="pi-gmodal__section-h">
+                                  Market Breadth
+                                  <span className="pi-gmodal__section-tag">{a} up · {d} down</span>
+                                </div>
+                                <div className="pi-senti">
+                                  <div className="pi-senti__bar">
+                                    <div className="pi-senti__pos" style={{ width: `${aw}%` }} />
+                                    <div className="pi-senti__neg" style={{ width: `${100 - aw}%` }} />
+                                  </div>
+                                </div>
+                              </>
+                            );
+                          })() : null}
+                        </>
+                      )}
+
+                      {/* Major global exchanges (ranked) */}
+                      {exchanges.length > 0 && (
+                        <>
+                          <div className="pi-gmodal__section-h">
+                            <span className="pi-emodal__flag" aria-hidden="true">🌐</span>
+                            Major Global Exchanges
+                            <span className="pi-gmodal__section-tag">Top {exchanges.length} by market cap</span>
+                          </div>
+                          <p className="pi-gmodal__section-note">
+                            Movements in these venues often lead smaller markets such as the Colombo Stock Exchange.
+                          </p>
+                          <div className="pi-gmodal__indices pi-gmodal__indices--dense">
+                            {exchanges.map((idx, i) => (
+                              <IndexCard key={`ex-${i}`} idx={idx} rank={idx.rank} />
+                            ))}
+                          </div>
+                        </>
+                      )}
+
+                      {/* Daily-watch indices */}
+                      {dailyIdx.length > 0 && (
+                        <>
+                          <div className="pi-gmodal__section-h">
+                            <span className="pi-emodal__flag" aria-hidden="true">📈</span>
+                            Indices Investors Watch Daily
+                            <span className="pi-gmodal__section-tag">{dailyIdx.length} benchmarks</span>
+                          </div>
+                          <p className="pi-gmodal__section-note">
+                            S&amp;P 500, NASDAQ, Nikkei 225 and peers are common inputs for cross-market prediction models.
+                          </p>
+                          <div className="pi-gmodal__indices pi-gmodal__indices--dense">
+                            {dailyIdx.map((idx, i) => (
+                              <IndexCard key={`di-${i}`} idx={idx} suffix={idx.symbol} />
+                            ))}
+                          </div>
+                        </>
+                      )}
+
+                      {/* RSI gauge */}
+                      {rsi && (
+                        <>
+                          <div className="pi-gmodal__section-h">
+                            S&amp;P 500 Momentum · RSI(14)
+                            <span className={`pi-gmodal__section-tag`}>{rsiZone}</span>
+                          </div>
+                          <div className={`pi-rsi pi-rsi--${rsiTone}`}>
+                            <div className="pi-rsi__head">
+                              <span className="pi-rsi__val">{rsi.value.toFixed(1)}</span>
+                              <span className="pi-rsi__zone">{rsiZone}{rsi.date ? ` · ${rsi.date}` : ''}</span>
+                            </div>
+                            <div className="pi-rsi__track">
+                              <span className="pi-rsi__band pi-rsi__band--os" />
+                              <span className="pi-rsi__band pi-rsi__band--ob" />
+                              <span className="pi-rsi__marker" style={{ left: `${Math.max(0, Math.min(100, rsi.value))}%` }} />
+                            </div>
+                            <div className="pi-rsi__ends"><span>0 · Oversold</span><span>50</span><span>Overbought · 100</span></div>
+                            {Array.isArray(rsi.history) && rsi.history.length >= 2 && (
+                              <div className="pi-rsi__spark">
+                                <Sparkline
+                                  data={rsi.history.map((h) => ({ year: Date.parse(h.date), value: h.value }))}
+                                  color={rsiTone === 'negative' ? '#dc2626' : rsiTone === 'positive' ? '#16a34a' : '#2563eb'}
+                                  width={300}
+                                  height={40}
+                                />
+                              </div>
+                            )}
+                          </div>
+                        </>
+                      )}
+
+                      <div className="pi-gmodal__foot">
+                        <svg viewBox="0 0 20 20" fill="currentColor">
+                          <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+                        </svg>
+                        <span>Sri Lanka data from the live CSE feed; world indices &amp; RSI from Alpha Vantage. Score blends index moves, market breadth and RSI positioning.</span>
+                      </div>
+                    </>
+                  );
+                })()}
+              </div>
+            </div>
+          ) : activeFactor.key === 'economic' && activeFactor.economicData ? (
+            <div
+              className={`pi-gmodal pi-emodal pi-gmodal--${activeFactor.data.color}`}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <button
+                className="pi-gmodal__close"
+                type="button"
+                onClick={() => setActiveFactor(null)}
+                aria-label="Close"
+              >
+                ×
+              </button>
+
+              {/* Gradient hero */}
+              <div className="pi-gmodal__hero">
+                <div className="pi-gmodal__hero-bg" aria-hidden="true" />
+                <div className="pi-gmodal__hero-row">
+                  <div className="pi-gmodal__hero-id">
+                    <span className="pi-gmodal__badge">
+                      <span className="pi-gmodal__badge-dot" />WORLD BANK
+                    </span>
+                    <h2 className="pi-gmodal__title">Economic Conditions</h2>
+                    <span className="pi-gmodal__sub">
+                      Macroeconomic backdrop
+                      {activeFactor.economicData.asOfYear ? ` · figures as of ${activeFactor.economicData.asOfYear}` : ''}
+                      {activeFactor.economicData.updatedAt ? ` · fetched ${timeAgo(activeFactor.economicData.updatedAt)}` : ''}
+                    </span>
+                  </div>
+                  <div className="pi-gmodal__gauge">
+                    <svg viewBox="0 0 96 96">
+                      <circle className="pi-gmodal__gauge-bg" cx="48" cy="48" r="40" />
+                      <circle
+                        className="pi-gmodal__gauge-bar"
+                        cx="48" cy="48" r="40"
+                        style={{
+                          strokeDasharray: 2 * Math.PI * 40,
+                          strokeDashoffset: 2 * Math.PI * 40 * (1 - Math.max(0, Math.min(100, activeFactor.data.score)) / 100)
+                        }}
+                      />
+                    </svg>
+                    <div className="pi-gmodal__gauge-c">
+                      <span className="pi-gmodal__gauge-num">{Math.round(activeFactor.data.score)}</span>
+                      <span className="pi-gmodal__gauge-out">/100</span>
+                    </div>
+                  </div>
+                </div>
+                <span className={`pi-gmodal__verdict pi-gmodal__verdict--${activeFactor.data.color}`}>
+                  {signalFromColor(activeFactor.data.color)} backdrop
+                </span>
+              </div>
+
+              <div className="pi-gmodal__body">
+                {(() => {
+                  const ed = activeFactor.economicData;
+                  const lkBy = (code) => ed.sriLanka.find((i) => i.code === code) || null;
+                  const fx = ed.exchangeRate;
+                  // Featured headline tiles (with sparklines).
+                  const featured = [
+                    { code: 'FP.CPI.TOTL.ZG', name: 'Inflation' },
+                    { code: 'NY.GDP.MKTP.KD.ZG', name: 'GDP Growth' },
+                    { code: 'FR.INR.RINR', name: 'Real Rate' },
+                    { code: 'GC.DOD.TOTL.GD.ZS', name: 'Govt Debt' }
+                  ].map((f) => ({ ...f, item: lkBy(f.code) })).filter((f) => f.item);
+
+                  // Metrics offered in the interactive comparison chart.
+                  const chartable = ed.sriLanka.filter((i) => Array.isArray(i.history) && i.history.length >= 2);
+                  const activeMetric = chartable.find((i) => i.code === econMetric) || chartable[0] || null;
+                  const worldMetric = activeMetric ? ed.world.find((i) => i.code === activeMetric.code) : null;
+
+                  return (
+                    <>
+                      {/* Featured KPI tiles with sparklines */}
+                      {featured.length > 0 && (
+                        <div className="pi-econ-feat">
+                          {featured.map((f) => (
+                            <div key={f.code} className={`pi-econ-feat__card pi-econ-feat__card--${f.item.tone}`}>
+                              <span className="pi-econ-feat__name">{f.name}</span>
+                              <span className="pi-econ-feat__val">{f.item.display}</span>
+                              <span className="pi-econ-feat__spark">
+                                <Sparkline
+                                  data={f.item.history}
+                                  color={f.item.tone === 'negative' ? '#dc2626' : f.item.tone === 'positive' ? '#16a34a' : '#2563eb'}
+                                />
+                              </span>
+                              <span className="pi-econ-feat__foot">
+                                {f.item.changePct != null && (
+                                  <span className={`pi-econ-feat__chg pi-econ-feat__chg--${f.item.tone}`}>
+                                    {f.item.changePct >= 0 ? '▲' : '▼'} {Math.abs(f.item.changePct).toFixed(1)}% YoY
+                                  </span>
+                                )}
+                                <span className="pi-econ-feat__yr">{f.item.year}</span>
+                              </span>
+                            </div>
+                          ))}
+                          {fx && (
+                            <div className="pi-econ-feat__card pi-econ-feat__card--fx">
+                              <span className="pi-econ-feat__name">USD / LKR · live</span>
+                              <span className="pi-econ-feat__val">{fx.rate.toFixed(2)}</span>
+                              <span className="pi-econ-feat__fxmeta">
+                                {fx.changeFromAnnualPct != null ? (
+                                  <span className={`pi-econ-feat__chg pi-econ-feat__chg--${fx.changeFromAnnualPct > 0 ? 'negative' : 'positive'}`}>
+                                    {fx.changeFromAnnualPct >= 0 ? '▲' : '▼'} {Math.abs(fx.changeFromAnnualPct).toFixed(1)}% vs {fx.annualYear} avg
+                                  </span>
+                                ) : <span className="pi-econ-feat__chg">Rupee per US dollar</span>}
+                              </span>
+                              <span className="pi-econ-feat__foot">
+                                <span className="pi-econ-feat__yr">{fx.updated ? `as of ${fx.updated.replace(' 00:00:01 +0000', '').replace(/ \+0000$/, '')}` : 'live'}</span>
+                              </span>
+                            </div>
+                          )}
+                        </div>
+                      )}
+
+                      {/* Interactive Sri Lanka vs World comparison chart */}
+                      {activeMetric && (
+                        <>
+                          <div className="pi-gmodal__section-h">
+                            Sri Lanka vs World · trend
+                            <span className="pi-gmodal__section-tag">{activeMetric.history.length} yrs</span>
+                          </div>
+                          <div className="pi-econ-chart">
+                            <div className="pi-econ-chart__tabs">
+                              {chartable.slice(0, 8).map((m) => (
+                                <button
+                                  key={m.code}
+                                  type="button"
+                                  className={`pi-econ-chart__tab${m.code === activeMetric.code ? ' pi-econ-chart__tab--on' : ''}`}
+                                  onClick={() => setEconMetric(m.code)}
+                                >
+                                  {m.label}
+                                </button>
+                              ))}
+                            </div>
+                            <div className="pi-econ-chart__head">
+                              <div>
+                                <span className="pi-econ-chart__title">{activeMetric.label}</span>
+                                <span className="pi-econ-chart__unit">{activeMetric.category}</span>
+                              </div>
+                              <div className="pi-econ-chart__legend">
+                                <span className="pi-econ-chart__lg pi-econ-chart__lg--a">Sri Lanka · {activeMetric.display}</span>
+                                {worldMetric && <span className="pi-econ-chart__lg pi-econ-chart__lg--b">World · {worldMetric.display}</span>}
+                              </div>
+                            </div>
+                            <CompareChart
+                              seriesA={activeMetric.history}
+                              seriesB={worldMetric ? worldMetric.history : []}
+                              labelA="Sri Lanka"
+                              labelB="World"
+                              unit={activeMetric.unit}
+                            />
+                          </div>
+                        </>
+                      )}
+
+                      {/* Full indicator grids with mini sparklines */}
+                      {[
+                        { key: 'lk', title: 'Sri Lanka', flag: '🇱🇰', items: ed.sriLanka, color: '#2563eb' },
+                        { key: 'wld', title: 'World', flag: '🌐', items: ed.world, color: '#64748b' }
+                      ].map((grp) => (
+                        grp.items && grp.items.length > 0 ? (
+                          <React.Fragment key={grp.key}>
+                            <div className="pi-gmodal__section-h">
+                              <span className="pi-emodal__flag" aria-hidden="true">{grp.flag}</span>
+                              {grp.title}
+                              <span className="pi-gmodal__section-tag">{grp.items.length} indicators</span>
+                            </div>
+                            <div className="pi-econ">
+                              {grp.items.map((it) => (
+                                <div key={it.code} className={`pi-econ__card pi-econ__card--${it.tone}`}>
+                                  <div className="pi-econ__top">
+                                    <span className="pi-econ__label">{it.label}</span>
+                                    {it.trend !== 'flat' && (
+                                      <span className={`pi-econ__trend pi-econ__trend--${it.tone}`}>
+                                        {it.trend === 'up' ? '▲' : '▼'}
+                                      </span>
+                                    )}
+                                  </div>
+                                  <div className="pi-econ__val">{it.display}</div>
+                                  {Array.isArray(it.history) && it.history.length >= 2 && (
+                                    <div className="pi-econ__spark">
+                                      <Sparkline
+                                        data={it.history}
+                                        color={it.tone === 'negative' ? '#dc2626' : it.tone === 'positive' ? '#16a34a' : grp.color}
+                                        width={150}
+                                        height={30}
+                                      />
+                                    </div>
+                                  )}
+                                  <div className="pi-econ__meta">
+                                    <span className="pi-econ__cat">{it.category}</span>
+                                    {it.year ? <span className="pi-econ__year">{it.year}</span> : null}
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          </React.Fragment>
+                        ) : null
+                      ))}
+                    </>
+                  );
+                })()}
+
+                <div className="pi-gmodal__foot">
+                  <svg viewBox="0 0 20 20" fill="currentColor">
+                    <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+                  </svg>
+                  <span>Annual macro figures from the World Bank Open Data API{activeFactor.economicData.asOfYear ? ` (history through ${activeFactor.economicData.asOfYear})` : ''} plus live USD/LKR. Score blends Sri Lankan inflation, GDP growth and real rates with local market stability.</span>
+                </div>
+              </div>
+            </div>
+          ) : activeFactor.key === 'policy' && activeFactor.policyData ? (
+            <div
+              className={`pi-gmodal pi-emodal pi-gmodal--${activeFactor.data.color}`}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <button
+                className="pi-gmodal__close"
+                type="button"
+                onClick={() => setActiveFactor(null)}
+                aria-label="Close"
+              >
+                ×
+              </button>
+
+              <div className="pi-gmodal__hero">
+                <div className="pi-gmodal__hero-bg" aria-hidden="true" />
+                <div className="pi-gmodal__hero-row">
+                  <div className="pi-gmodal__hero-id">
+                    <span className="pi-gmodal__badge">
+                      <span className="pi-gmodal__badge-dot" />WORLD BANK
+                    </span>
+                    <h2 className="pi-gmodal__title">Government Policies</h2>
+                    <span className="pi-gmodal__sub">
+                      Fiscal &amp; monetary backdrop
+                      {activeFactor.policyData.asOfYear ? ` · figures as of ${activeFactor.policyData.asOfYear}` : ''}
+                      {activeFactor.policyData.updatedAt ? ` · fetched ${timeAgo(activeFactor.policyData.updatedAt)}` : ''}
+                    </span>
+                  </div>
+                  <div className="pi-gmodal__gauge">
+                    <svg viewBox="0 0 96 96">
+                      <circle className="pi-gmodal__gauge-bg" cx="48" cy="48" r="40" />
+                      <circle
+                        className="pi-gmodal__gauge-bar"
+                        cx="48" cy="48" r="40"
+                        style={{
+                          strokeDasharray: 2 * Math.PI * 40,
+                          strokeDashoffset: 2 * Math.PI * 40 * (1 - Math.max(0, Math.min(100, activeFactor.data.score)) / 100)
+                        }}
+                      />
+                    </svg>
+                    <div className="pi-gmodal__gauge-c">
+                      <span className="pi-gmodal__gauge-num">{Math.round(activeFactor.data.score)}</span>
+                      <span className="pi-gmodal__gauge-out">/100</span>
+                    </div>
+                  </div>
+                </div>
+                <span className={`pi-gmodal__verdict pi-gmodal__verdict--${activeFactor.data.color}`}>
+                  {signalFromColor(activeFactor.data.color)} policy environment
+                </span>
+              </div>
+
+              <div className="pi-gmodal__body">
+                {[
+                  { key: 'lk', title: 'Sri Lanka', flag: '🇱🇰', items: activeFactor.policyData.sriLanka },
+                  { key: 'wld', title: 'World', flag: '🌐', items: activeFactor.policyData.world }
+                ].map((grp) => (
+                  grp.items && grp.items.length > 0 ? (
+                    <React.Fragment key={grp.key}>
+                      <div className="pi-gmodal__section-h">
+                        <span className="pi-emodal__flag" aria-hidden="true">{grp.flag}</span>
+                        {grp.title}
+                        <span className="pi-gmodal__section-tag">{grp.items.length} indicators</span>
+                      </div>
+                      <div className="pi-econ">
+                        {grp.items.map((it) => (
+                          <div key={it.code} className={`pi-econ__card pi-econ__card--${it.tone}`}>
+                            <div className="pi-econ__top">
+                              <span className="pi-econ__label">{it.label}</span>
+                              {it.trend !== 'flat' && (
+                                <span className={`pi-econ__trend pi-econ__trend--${it.tone}`}>
+                                  {it.trend === 'up' ? '▲' : '▼'}
+                                </span>
+                              )}
+                            </div>
+                            <div className="pi-econ__val">{it.display}</div>
+                            <div className="pi-econ__meta">
+                              <span className="pi-econ__cat">{it.category}</span>
+                              {it.year ? <span className="pi-econ__year">{it.year}</span> : null}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </React.Fragment>
+                  ) : null
+                ))}
+
+                <div className="pi-gmodal__foot">
+                  <svg viewBox="0 0 20 20" fill="currentColor">
+                    <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+                  </svg>
+                  <span>Annual fiscal &amp; monetary figures from the World Bank{activeFactor.policyData.asOfYear ? ` (latest through ${activeFactor.policyData.asOfYear})` : ''}. Score blends government debt, interest rates, current account and reserves with local market momentum.</span>
+                </div>
+              </div>
+            </div>
+          ) : activeFactor.key === 'global' && activeFactor.globalData ? (
             <div
               className={`pi-gmodal pi-gmodal--${activeFactor.data.color}`}
               onClick={(e) => e.stopPropagation()}
@@ -2269,7 +3244,7 @@ const PredictionIndicators = () => {
               );
             })()
           ) : (
-            <div className={`pi-fmodal pi-fmodal--${activeFactor.data.color}`} onClick={(e) => e.stopPropagation()}>
+            <div className={`pi-fmodal pi-fmodal--${activeFactor.data.color}${activeFactor.wide ? ' pi-fmodal--wide' : ''}`} onClick={(e) => e.stopPropagation()}>
             <button
               className="pi-fmodal__close"
               type="button"
@@ -2316,6 +3291,36 @@ const PredictionIndicators = () => {
                 </div>
               ))}
             </div>
+
+            {(activeFactor.formula || activeFactor.insight) && (
+              <div className="pi-fmodal__sections">
+                {activeFactor.formula && (
+                  <div className="pi-fmodal__formula">
+                    <div className="pi-fmodal__formula-head">How this score is built</div>
+                    {activeFactor.formula.parts.map((p, i) => (
+                      <div key={i} className="pi-fmodal__formula-row">
+                        <span className="pi-fmodal__formula-label">{p.label}</span>
+                        <span className="pi-fmodal__formula-weight">{p.weight}</span>
+                        <span className="pi-fmodal__formula-pts">
+                          +{Math.max(0, p.contribution).toFixed(1)} pts
+                        </span>
+                      </div>
+                    ))}
+                    <div className="pi-fmodal__formula-total">
+                      <span>Blended score</span>
+                      <span>{Math.round(activeFactor.formula.total)} / 100</span>
+                    </div>
+                  </div>
+                )}
+
+                {activeFactor.insight && (
+                  <div className="pi-fmodal__insight">
+                    <div className="pi-fmodal__insight-head">What it means</div>
+                    <p>{activeFactor.insight}</p>
+                  </div>
+                )}
+              </div>
+            )}
 
             {Array.isArray(activeFactor.news) && activeFactor.news.length > 0 && (
               <div className="pi-fmodal__news">

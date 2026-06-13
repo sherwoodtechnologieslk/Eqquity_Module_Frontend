@@ -1,7 +1,7 @@
 /* Page Layout */
 .gl-page-container {
   min-height: 100vh;
-  padding: 1.25rem 1rem;
+  padding: 1rem 1rem 1.25rem;
   box-sizing: border-box;
 
 }
@@ -15,11 +15,11 @@
 .gl-header-section {
   display: flex;
   align-items: center;
-  gap: 2rem;
-  margin-bottom: 1rem;
+  gap: 1.25rem;
+  margin-bottom: 0.75rem;
   text-align: left;
-  padding-top: 0.75rem;
-  padding-bottom: 1rem;
+  padding-top: 0.25rem;
+  padding-bottom: 0.6rem;
 }
 
 .gl-header-icon {
@@ -73,12 +73,12 @@
   box-shadow: 0 25px 50px -12px rgba(0,0,0,0.22);
   border: 1px solid #dbeafe;
   overflow: hidden;
-  margin-bottom: 2rem;
+  margin-bottom: 1rem;
 }
 
 .gl-card-header {
   background: linear-gradient(90deg, #3b82f6 0%, #2563eb 100%);
-  padding: 1.5rem 2rem;
+  padding: 0.85rem 1.25rem;
   border-radius: 0.18rem 0.18rem 0 0;
   display: flex;
   justify-content: space-between;
@@ -93,16 +93,16 @@
 }
 
 .gl-filters-content {
-  padding: 2rem;
+  padding: 1.1rem 1.25rem;
 }
 
 .gl-search-section {
-  margin-bottom: 2rem;
+  margin-bottom: 1rem;
 }
 
 .gl-search-input {
   width: 100%;
-  padding: 1rem 1.5rem;
+  padding: 0.65rem 1rem;
   border: 2px solid #e5e7eb;
   border-radius: 0.5rem;
   font-size: 1rem;
@@ -121,7 +121,7 @@
 .gl-filters-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 1.5rem;
+  gap: 0.85rem;
   align-items: end;
 }
 
@@ -139,7 +139,7 @@
 
 .gl-filter-input,
 .gl-filter-select {
-  padding: 0.75rem 1rem;
+  padding: 0.55rem 0.75rem;
   border: 1px solid #d1d5db;
   border-radius: 0.375rem;
   font-size: 0.875rem;
@@ -176,8 +176,8 @@
   border-radius: 0.18rem;
   box-shadow: 0 25px 50px -12px rgba(0,0,0,0.22);
   border: 1px solid #dbeafe;
-  margin-bottom: 2rem;
-  padding: 1.5rem 2rem;
+  margin-bottom: 1rem;
+  padding: 0.85rem 1.25rem;
   position: relative;
   overflow: hidden;
 }
@@ -245,13 +245,13 @@
 .gl-summary-stats {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 1.5rem;
-  margin-bottom: 2rem;
+  gap: 0.85rem;
+  margin-bottom: 1rem;
 }
 
 .gl-stat-card {
   background: white;
-  padding: 1.5rem;
+  padding: 0.9rem 1rem;
   border-radius: 0.5rem;
   box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
   border: 1px solid #e5e7eb;
@@ -264,10 +264,10 @@
 }
 
 .gl-stat-value {
-  font-size: 1.25rem;
+  font-size: 1.15rem;
   font-weight: 700;
   color: #1f2937;
-  margin-bottom: 0.5rem;
+  margin-bottom: 0.3rem;
 }
 
 .gl-stat-value.debit {
@@ -301,7 +301,7 @@
   box-shadow: 0 25px 50px -12px rgba(0,0,0,0.22);
   border: 1px solid #dbeafe;
   overflow: hidden;
-  margin-bottom: 2rem;
+  margin-bottom: 1rem;
 }
 
 .gl-table-actions {
@@ -557,7 +557,7 @@
   justify-content: center;
   align-items: center;
   gap: 1rem;
-  padding: 1.5rem;
+  padding: 0.85rem 1.5rem;
   background: #f9fafb;
   border-top: 1px solid #e5e7eb;
 }
@@ -594,7 +594,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 3rem;
+  padding: 2rem;
   color: #6b7280;
   font-size: 1rem;
   background: #f9fafb;
@@ -617,7 +617,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 3rem;
+  padding: 2rem;
   color: #6b7280;
   font-size: 1rem;
   background: #f9fafb;
@@ -627,7 +627,7 @@
 /* Footer */
 .gl-footer-section {
   text-align: center;
-  margin-top: 2rem;
+  margin-top: 1rem;
   color: #6b7280;
   font-size: 0.875rem;
 }
