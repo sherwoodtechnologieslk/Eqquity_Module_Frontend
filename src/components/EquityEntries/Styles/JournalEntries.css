@@ -409,6 +409,61 @@
   border-top: 1px solid #e2e8f0;
 }
 
+/* Payment Details Styles */
+.payment-details {
+  font-size: 0.85rem;
+  line-height: 1.4;
+  color: #4b5563;
+}
+
+.payment-details div {
+  margin-bottom: 2px;
+}
+
+.payment-details div:last-child {
+  margin-bottom: 0;
+}
+
+.payment-details strong {
+  color: #1f2937;
+  font-weight: 600;
+}
+
+.journal-entries-summary {
+  margin-bottom: 12px;
+  font-size: 14px;
+  color: #64748b;
+}
+
+.journal-entries-loading-inline {
+  color: #3b82f6;
+  font-weight: 500;
+}
+
+.entries-table-container.is-loading {
+  opacity: 0.6;
+  pointer-events: none;
+}
+
+.journal-entries-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  margin-top: 20px;
+  padding: 16px;
+  background: white;
+  border: 1px solid #e2e8f0;
+}
+
+.journal-entries-page-info {
+  font-size: 14px;
+  color: #475569;
+  font-weight: 500;
+  min-width: 120px;
+  text-align: center;
+}
+
 /* Loading State */
 .journal-entries-loading {
   display: flex;
@@ -495,24 +550,4 @@
     font-size: 11px;
     padding: 4px 8px;
   }
-}
-
-/* Payment Details Styles */
-.payment-details {
-  font-size: 0.85rem;
-  line-height: 1.4;
-  color: #4b5563;
-}
-
-.payment-details div {
-  margin-bottom: 2px;
-}
-
-.payment-details div:last-child {
-  margin-bottom: 0;
-}
-
-.payment-details strong {
-  color: #1f2937;
-  font-weight: 600;
 }

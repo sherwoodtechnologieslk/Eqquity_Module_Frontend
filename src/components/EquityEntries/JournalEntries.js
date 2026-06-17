@@ -1,10 +1,13 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import './Styles/JournalEntries.css';
+
+const PAGE_SIZE = 250;
 
 const JournalEntries = ({ onTabChange }) => {
   const [entries, setEntries] = useState([]);
-  const [filteredEntries, setFilteredEntries] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalEntries, setTotalEntries] = useState(0);
   const [showModal, setShowModal] = useState(false);
   const [editingEntry, setEditingEntry] = useState(null);
   const [accounts, setAccounts] = useState([]);
@@ -30,30 +33,39 @@ const JournalEntries = ({ onTabChange }) => {
   });
 
   useEffect(() => {
-    loadJournalEntries();
     loadAccounts();
     loadPortfolios();
   }, []);
 
-  useEffect(() => {
-    loadJournalEntries();
-  }, [filters.portfolio]);
-
-  useEffect(() => {
-    filterEntries();
-  }, [entries, filters]);
-
-  const loadJournalEntries = async () => {
+  const loadJournalEntries = useCallback(async () => {
     try {
       setIsLoading(true);
-      console.log('📋 Loading journal entries...', filters.portfolio !== 'all' ? `(portfolio: ${filters.portfolio})` : '');
       const token = localStorage.getItem('token');
-      
-      let url = `${process.env.REACT_APP_API_URL || 'http://98.91.201.168/api'}/journal-entries`;
+      const offset = (currentPage - 1) * PAGE_SIZE;
+
+      const params = new URLSearchParams({
+        limit: String(PAGE_SIZE),
+        offset: String(offset)
+      });
+
       if (filters.portfolio && filters.portfolio !== 'all') {
-        url += `?portfolio=${encodeURIComponent(filters.portfolio)}`;
+        params.set('portfolio', filters.portfolio);
       }
-      
+      if (filters.status && filters.status !== 'all') {
+        params.set('status', filters.status);
+      }
+      if (filters.transactionType && filters.transactionType !== 'all') {
+        params.set('transaction_type', filters.transactionType);
+      }
+      if (filters.dateFrom) {
+        params.set('dateFrom', filters.dateFrom);
+      }
+      if (filters.dateTo) {
+        params.set('dateTo', filters.dateTo);
+      }
+
+      const url = `${process.env.REACT_APP_API_URL || 'http://98.91.201.168/api'}/journal-entries?${params.toString()}`;
+
       const response = await fetch(url, {
         method: 'GET',
         headers: {
@@ -65,20 +77,37 @@ const JournalEntries = ({ onTabChange }) => {
       if (response.ok) {
         const result = await response.json();
         if (result.success) {
-          setEntries(result.data);
-          console.log(`📊 Loaded ${result.data.length} journal entries`);
+          setEntries(result.data || []);
+          setTotalEntries(result.pagination?.total ?? result.data?.length ?? 0);
         } else {
           console.error('API error:', result.error);
+          setEntries([]);
+          setTotalEntries(0);
         }
       } else {
         console.error('Failed to fetch journal entries:', response.status);
+        setEntries([]);
+        setTotalEntries(0);
       }
     } catch (error) {
       console.error('Error loading journal entries:', error);
+      setEntries([]);
+      setTotalEntries(0);
     } finally {
       setIsLoading(false);
     }
+  }, [currentPage, filters]);
+
+  useEffect(() => {
+    loadJournalEntries();
+  }, [loadJournalEntries]);
+
+  const handleFilterChange = (updates) => {
+    setCurrentPage(1);
+    setFilters(prev => ({ ...prev, ...updates }));
   };
+
+  const totalPages = Math.max(1, Math.ceil(totalEntries / PAGE_SIZE));
 
   const loadPortfolios = async () => {
     try {
@@ -151,30 +180,6 @@ const JournalEntries = ({ onTabChange }) => {
       console.error('❌ Error loading accounts:', error);
       console.error('Error details:', error.message);
     }
-  };
-
-  const filterEntries = () => {
-    let filtered = [...entries];
-
-    // Filter by status
-    if (filters.status !== 'all') {
-      filtered = filtered.filter(entry => entry.status === filters.status);
-    }
-
-    // Filter by transaction type
-    if (filters.transactionType !== 'all') {
-      filtered = filtered.filter(entry => entry.transaction_type === filters.transactionType);
-    }
-
-    // Filter by date range
-    if (filters.dateFrom) {
-      filtered = filtered.filter(entry => entry.date >= filters.dateFrom);
-    }
-    if (filters.dateTo) {
-      filtered = filtered.filter(entry => entry.date <= filters.dateTo);
-    }
-
-    setFilteredEntries(filtered);
   };
 
   const handleInputChange = (e) => {
@@ -313,15 +318,6 @@ const JournalEntries = ({ onTabChange }) => {
     }).format(amount || 0);
   };
 
-  if (isLoading) {
-    return (
-      <div className="journal-entries-loading">
-        <div className="loading-spinner"></div>
-        <p>Loading journal entries...</p>
-      </div>
-    );
-  }
-
   return (
     <div className="journal-entries">
       <div className="journal-entries-header">
@@ -340,7 +336,7 @@ const JournalEntries = ({ onTabChange }) => {
           <label>Portfolio:</label>
           <select 
             value={filters.portfolio} 
-            onChange={(e) => setFilters(prev => ({ ...prev, portfolio: e.target.value }))}
+            onChange={(e) => handleFilterChange({ portfolio: e.target.value })}
           >
             <option value="all">All Portfolios</option>
             {availablePortfolios.map((portfolio) => (
@@ -355,7 +351,7 @@ const JournalEntries = ({ onTabChange }) => {
           <label>Status:</label>
           <select 
             value={filters.status} 
-            onChange={(e) => setFilters(prev => ({ ...prev, status: e.target.value }))}
+            onChange={(e) => handleFilterChange({ status: e.target.value })}
           >
             <option value="all">All</option>
             <option value="Draft">Draft</option>
@@ -368,7 +364,7 @@ const JournalEntries = ({ onTabChange }) => {
           <label>Transaction Type:</label>
           <select 
             value={filters.transactionType} 
-            onChange={(e) => setFilters(prev => ({ ...prev, transactionType: e.target.value }))}
+            onChange={(e) => handleFilterChange({ transactionType: e.target.value })}
           >
             <option value="all">All</option>
             <option value="Trade">Trade</option>
@@ -383,7 +379,7 @@ const JournalEntries = ({ onTabChange }) => {
           <input 
             type="date" 
             value={filters.dateFrom}
-            onChange={(e) => setFilters(prev => ({ ...prev, dateFrom: e.target.value }))}
+            onChange={(e) => handleFilterChange({ dateFrom: e.target.value })}
           />
         </div>
 
@@ -392,26 +388,35 @@ const JournalEntries = ({ onTabChange }) => {
           <input 
             type="date" 
             value={filters.dateTo}
-            onChange={(e) => setFilters(prev => ({ ...prev, dateTo: e.target.value }))}
+            onChange={(e) => handleFilterChange({ dateTo: e.target.value })}
           />
         </div>
 
         <button 
           className="btn-secondary"
-          onClick={() => setFilters({
-            status: 'all',
-            transactionType: 'all',
-            dateFrom: '',
-            dateTo: '',
-            portfolio: 'all'
-          })}
+          onClick={() => {
+            setCurrentPage(1);
+            setFilters({
+              status: 'all',
+              transactionType: 'all',
+              dateFrom: '',
+              dateTo: '',
+              portfolio: 'all'
+            });
+          }}
         >
           Clear Filters
         </button>
       </div>
 
+      <div className="journal-entries-summary">
+        Showing {entries.length === 0 ? 0 : (currentPage - 1) * PAGE_SIZE + 1}
+        –{(currentPage - 1) * PAGE_SIZE + entries.length} of {totalEntries} entries
+        {isLoading && <span className="journal-entries-loading-inline"> · Loading...</span>}
+      </div>
+
       {/* Entries Table */}
-      <div className="entries-table-container">
+      <div className={`entries-table-container${isLoading ? ' is-loading' : ''}`}>
         <table className="entries-table">
           <thead>
             <tr>
@@ -428,14 +433,14 @@ const JournalEntries = ({ onTabChange }) => {
             </tr>
           </thead>
           <tbody>
-            {filteredEntries.length === 0 ? (
+            {!isLoading && entries.length === 0 ? (
               <tr>
                 <td colSpan="10" className="no-data">
                   No journal entries found
                 </td>
               </tr>
             ) : (
-              filteredEntries.map((entry) => (
+              entries.map((entry) => (
                 <tr key={entry.id}>
                   <td>{new Date(entry.date).toLocaleDateString()}</td>
                   <td title={entry.account_code || undefined}>{entry.account_code}</td>
@@ -462,6 +467,30 @@ const JournalEntries = ({ onTabChange }) => {
           </tbody>
         </table>
       </div>
+
+      {totalPages > 1 && (
+        <div className="journal-entries-pagination">
+          <button
+            type="button"
+            className="btn-secondary"
+            onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+            disabled={currentPage === 1 || isLoading}
+          >
+            Previous
+          </button>
+          <span className="journal-entries-page-info">
+            Page {currentPage} of {totalPages}
+          </span>
+          <button
+            type="button"
+            className="btn-secondary"
+            onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+            disabled={currentPage === totalPages || isLoading}
+          >
+            Next
+          </button>
+        </div>
+      )}
 
       {/* Modal */}
       {showModal && (
