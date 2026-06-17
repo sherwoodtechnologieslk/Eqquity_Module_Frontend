@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { gsecEntriesAPI } from '../../services/api';
 import './Styles/GsecEntries.css';
 
@@ -14,16 +14,27 @@ const GsecEntries = () => {
   const [rawResponse, setRawResponse] = useState(null);
   const [total, setTotal] = useState(0);
   const [saving, setSaving] = useState(false);
+  // Single-day quick filter handled in a separate modal
+  const [showDateModal, setShowDateModal] = useState(false);
+  const [specificDate, setSpecificDate] = useState('');
+  const dateInputRef = useRef(null);
+  // When set, the table is showing remote rows missing locally for one date
+  const [missingInfo, setMissingInfo] = useState(null);
 
-  const loadData = async (overridePage) => {
+  // overrideDates lets callers force a date range (e.g. single-day load) without
+  // waiting for startDate/endDate state to settle.
+  const loadData = async (overridePage, overrideDates) => {
     setLoading(true);
     setError('');
+    setMissingInfo(null);
 
     try {
       const targetPage = overridePage || page;
+      const effectiveStart = overrideDates ? overrideDates.startDate : startDate;
+      const effectiveEnd = overrideDates ? overrideDates.endDate : endDate;
       const data = await gsecEntriesAPI.getSellTransactionReport({
-        startDate,
-        endDate,
+        startDate: effectiveStart,
+        endDate: effectiveEnd,
         page: targetPage,
         pageSize
       });
@@ -78,6 +89,65 @@ const GsecEntries = () => {
 
   const handleNextPage = () => {
     loadData(page + 1);
+  };
+
+  // Open the date modal and focus/open the native calendar inside it.
+  const openDateModal = () => {
+    setShowDateModal(true);
+    setTimeout(() => {
+      const input = dateInputRef.current;
+      if (input && typeof input.showPicker === 'function') {
+        input.showPicker();
+      } else if (input) {
+        input.focus();
+      }
+    }, 0);
+  };
+
+  const closeDateModal = () => {
+    setShowDateModal(false);
+  };
+
+  // For the selected day only, compare the remote ledger against the local
+  // table and show the rows that exist remotely but are missing locally.
+  // Only that date is fetched/compared on the server (fast), then close modal.
+  const handleApplyDate = async () => {
+    if (!specificDate) return;
+
+    setShowDateModal(false);
+    setLoading(true);
+    setError('');
+    setPage(1);
+
+    try {
+      const data = await gsecEntriesAPI.getMissingByDate(specificDate);
+      const missing = Array.isArray(data?.missing) ? data.missing : [];
+
+      setRows(missing);
+      setTotal(missing.length);
+      setRawResponse(data);
+      setMissingInfo({
+        date: data?.date || specificDate,
+        totalRemote: data?.totalRemote ?? 0,
+        totalLocal: data?.totalLocal ?? 0,
+        totalMissing: data?.totalMissing ?? missing.length
+      });
+    } catch (err) {
+      console.error('Failed to load missing GSec entries by date:', err);
+      setError(err.message || 'Failed to load missing GSec entries for the selected date');
+      setMissingInfo(null);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Exit "missing entries" view and reload the default list.
+  const clearMissingView = () => {
+    setMissingInfo(null);
+    setSpecificDate('');
+    setStartDate('');
+    setEndDate('');
+    loadData(1, { startDate: '', endDate: '' });
   };
 
   const handleSaveToDatabase = async () => {
@@ -185,11 +255,42 @@ const GsecEntries = () => {
 
       {error && <div className="gsec-error">{error}</div>}
 
+      {missingInfo && (
+        <div className="gsec-missing-banner">
+          <span>
+            <strong>{missingInfo.totalMissing}</strong>{' '}
+            {missingInfo.totalMissing === 1 ? 'entry' : 'entries'} in the remote
+            ledger {missingInfo.totalMissing === 1 ? 'is' : 'are'} missing from
+            your database for <strong>{missingInfo.date}</strong>{' '}
+            (remote: {missingInfo.totalRemote}, local: {missingInfo.totalLocal}).
+            {missingInfo.totalMissing > 0 && ' Use “Save to DB” to import them.'}
+          </span>
+          <button
+            type="button"
+            className="gsec-button-ghost"
+            onClick={clearMissingView}
+            disabled={loading}
+          >
+            Clear
+          </button>
+        </div>
+      )}
+
       <div className="gsec-toolbar">
         <span className="gsec-toolbar-text">
-          Page {page} • {rows.length} row(s) on this page • Total {total}
+          {missingInfo
+            ? `Missing entries for ${missingInfo.date} • ${rows.length} row(s)`
+            : `Page ${page} • ${rows.length} row(s) on this page • Total ${total}`}
         </span>
         <div className="gsec-toolbar-actions">
+          <button
+            type="button"
+            className="gsec-refresh-button"
+            onClick={openDateModal}
+            disabled={loading}
+          >
+            Load by Date
+          </button>
           <button
             type="button"
             className="gsec-refresh-button"
@@ -203,7 +304,7 @@ const GsecEntries = () => {
               type="button"
               onClick={handlePrevPage}
               className="gsec-button-ghost"
-              disabled={loading || page <= 1}
+              disabled={loading || page <= 1 || !!missingInfo}
             >
               Previous
             </button>
@@ -211,7 +312,7 @@ const GsecEntries = () => {
               type="button"
               onClick={handleNextPage}
               className="gsec-button-ghost"
-              disabled={loading}
+              disabled={loading || !!missingInfo}
             >
               Next
             </button>
@@ -262,6 +363,74 @@ const GsecEntries = () => {
           <summary>Show raw API response (debug)</summary>
           <pre>{JSON.stringify(rawResponse, null, 2)}</pre>
         </details>
+      )}
+
+      {showDateModal && (
+        <div
+          className="gsec-modal-overlay"
+          onClick={closeDateModal}
+          role="presentation"
+        >
+          <div
+            className="gsec-modal"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="gsec-date-modal-title"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="gsec-modal-header">
+              <h3 id="gsec-date-modal-title" className="gsec-modal-title">
+                Load Entries by Date
+              </h3>
+              <button
+                type="button"
+                className="gsec-modal-close"
+                onClick={closeDateModal}
+                aria-label="Close"
+              >
+                ×
+              </button>
+            </div>
+
+            <div className="gsec-modal-body">
+              <label className="gsec-filter-label" htmlFor="gsec-specific-date">
+                Select a date
+              </label>
+              <input
+                id="gsec-specific-date"
+                ref={dateInputRef}
+                type="date"
+                value={specificDate}
+                onChange={(e) => setSpecificDate(e.target.value)}
+                className="gsec-filter-input"
+                aria-label="Select a date to load GSec entries"
+              />
+              <p className="gsec-modal-hint">
+                For the selected date only, we compare the remote ledger with
+                your database and show the entries that exist remotely but are
+                missing locally.
+              </p>
+            </div>
+
+            <div className="gsec-modal-footer">
+              <button
+                type="button"
+                className="gsec-button-ghost"
+                onClick={closeDateModal}
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                className="gsec-refresh-button"
+                onClick={handleApplyDate}
+                disabled={!specificDate || loading}
+              >
+                {loading ? 'Checking…' : 'Find Missing'}
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );

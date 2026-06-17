@@ -2651,6 +2651,19 @@ export const gsecEntriesAPI = {
     }
   },
 
+  // Get remote rows for a single date that are missing from the local table.
+  // Only the selected entry date is fetched/compared (fast).
+  getMissingByDate: async (date) => {
+    try {
+      const url = `${API_BASE_URL}/gsec-entries/missing-by-date?date=${encodeURIComponent(date)}`;
+      return await makeAuthenticatedRequest(url, { method: 'GET' });
+    } catch (error) {
+      console.error('Error fetching missing GSec entries by date:', error);
+      const message = error.message || 'Failed to fetch missing GSec entries for the selected date';
+      throw new Error(message);
+    }
+  },
+
   // Get saved GSec ledger entries (optional filter by deal_number)
   getSavedLedgerEntries: async (dealNumber = null) => {
     try {
