@@ -6,6 +6,14 @@ import {
 } from '../../utils/gsecBalanceSheetExport';
 import './Styles/GsecBalanceSheet.css';
 
+const getNetBalance = (debit, credit) => (Number(debit) || 0) - (Number(credit) || 0);
+
+const getBalanceType = (net) => {
+  if (net > 0.005) return 'DR';
+  if (net < -0.005) return 'CR';
+  return '—';
+};
+
 const GsecBalanceSheet = () => {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -112,10 +120,17 @@ const GsecBalanceSheet = () => {
     return d.toLocaleDateString('en-LK');
   };
 
+  const formatNetBalanceDisplay = (debit, credit) => {
+    const net = getNetBalance(debit, credit);
+    if (Math.abs(net) < 0.005) return '—';
+    return `${formatCurrency(Math.abs(net))} ${getBalanceType(net)}`;
+  };
+
   const grouped = useMemo(() => {
     if (!data || !Array.isArray(data.accounts)) return { byCategory: {}, totals: { debit: 0, credit: 0 } };
 
     const byCategory = {};
+    const categorySortKeys = {};
     let totalDebit = 0;
     let totalCredit = 0;
 
@@ -125,6 +140,10 @@ const GsecBalanceSheet = () => {
         byCategory[category] = [];
       }
       byCategory[category].push(acc);
+
+      if (categorySortKeys[category] == null) {
+        categorySortKeys[category] = acc.category_sort_key || category;
+      }
 
       totalDebit += Number(acc.total_debit) || 0;
       totalCredit += Number(acc.total_credit) || 0;
@@ -144,9 +163,16 @@ const GsecBalanceSheet = () => {
       subtotals[cat] = sub;
     });
 
+    const sortedCategoryKeys = Object.keys(byCategory).sort((a, b) =>
+      String(categorySortKeys[a] || a).localeCompare(String(categorySortKeys[b] || b), undefined, {
+        numeric: true
+      })
+    );
+
     return {
       byCategory,
       subtotals,
+      sortedCategoryKeys,
       totals: { debit: totalDebit, credit: totalCredit }
     };
   }, [data]);
@@ -264,9 +290,9 @@ const GsecBalanceSheet = () => {
             </div>
           </div>
           <div className="gsec-bs-summary-card">
-            <div className="gsec-bs-summary-label">Net (Debits - Credits)</div>
+            <div className="gsec-bs-summary-label">Net Balance</div>
             <div className="gsec-bs-summary-value net">
-              {formatCurrency(grouped.totals.debit - grouped.totals.credit)}
+              {formatNetBalanceDisplay(grouped.totals.debit, grouped.totals.credit)}
             </div>
           </div>
         </div>
@@ -303,7 +329,7 @@ const GsecBalanceSheet = () => {
                 No GSec entries found for the selected period.
               </div>
             ) : (
-              Object.keys(grouped.byCategory).map((cat) => {
+              (grouped.sortedCategoryKeys || Object.keys(grouped.byCategory)).map((cat) => {
                 const rows = grouped.byCategory[cat];
                 const sub = grouped.subtotals[cat] || { debit: 0, credit: 0 };
                 return (
@@ -324,7 +350,7 @@ const GsecBalanceSheet = () => {
                           <th>Account Name</th>
                           <th>Debit (LKR)</th>
                           <th>Credit (LKR)</th>
-                          <th>Net (Debits - Credits)</th>
+                          <th>Net Balance</th>
                           <th>Actions</th>
                         </tr>
                       </thead>
@@ -340,10 +366,7 @@ const GsecBalanceSheet = () => {
                               {formatCurrency(row.total_credit)}
                             </td>
                             <td className="gsec-bs-net">
-                              {formatCurrency(
-                                (Number(row.total_debit) || 0) -
-                                  (Number(row.total_credit) || 0)
-                              )}
+                              {formatNetBalanceDisplay(row.total_debit, row.total_credit)}
                             </td>
                             <td className="gsec-bs-actions">
                               <button

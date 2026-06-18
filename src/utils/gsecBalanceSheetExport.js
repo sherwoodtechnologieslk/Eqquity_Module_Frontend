@@ -11,10 +11,12 @@ const HEADERS = [
   'Account Name',
   'Debit (LKR)',
   'Credit (LKR)',
-  'Net (Dr - Cr)'
+  'Net Balance'
 ];
 
 const stamp = () => new Date().toISOString().split('T')[0];
+
+const toNumber = (value) => Number(value) || 0;
 
 const formatCurrency = (amount) => {
   const n = Number(amount) || 0;
@@ -25,7 +27,20 @@ const formatCurrency = (amount) => {
   }).format(n);
 };
 
-const toNumber = (value) => Number(value) || 0;
+const getNetBalance = (debit, credit) => toNumber(debit) - toNumber(credit);
+
+const getBalanceType = (net) => {
+  if (net > 0.005) return 'DR';
+  if (net < -0.005) return 'CR';
+  return '—';
+};
+
+const formatNetBalanceExport = (debit, credit, asCurrency = true) => {
+  const net = getNetBalance(debit, credit);
+  if (Math.abs(net) < 0.005) return '—';
+  const amount = asCurrency ? formatCurrency(Math.abs(net)) : Math.abs(net);
+  return `${amount} ${getBalanceType(net)}`;
+};
 
 const rowPdf = (acc) => {
   const dr = toNumber(acc.total_debit);
@@ -36,7 +51,7 @@ const rowPdf = (acc) => {
     acc.account_name ?? '',
     formatCurrency(dr),
     formatCurrency(cr),
-    formatCurrency(dr - cr)
+    formatNetBalanceExport(dr, cr, true)
   ];
 };
 
@@ -49,7 +64,7 @@ const rowExcel = (acc) => {
     acc.account_name ?? '',
     dr,
     cr,
-    dr - cr
+    formatNetBalanceExport(dr, cr, false)
   ];
 };
 
@@ -83,10 +98,16 @@ export function exportGsecBalanceSheetToPdf({ accounts, period, totals, filename
 
   const totalDebit = toNumber(totals?.debit);
   const totalCredit = toNumber(totals?.credit);
-  const totalNet = totalDebit - totalCredit;
 
   const foot = [
-    ['Totals', `${list.length} accounts`, '', formatCurrency(totalDebit), formatCurrency(totalCredit), formatCurrency(totalNet)]
+    [
+      'Totals',
+      `${list.length} accounts`,
+      '',
+      formatCurrency(totalDebit),
+      formatCurrency(totalCredit),
+      formatNetBalanceExport(totalDebit, totalCredit, true)
+    ]
   ];
 
   const doc = new jsPDF({ orientation: 'landscape', unit: 'pt', format: 'a4' });
@@ -157,7 +178,6 @@ export function exportGsecBalanceSheetToExcel({ accounts, period, totals, filena
 
   const totalDebit = toNumber(totals?.debit);
   const totalCredit = toNumber(totals?.credit);
-  const totalNet = totalDebit - totalCredit;
 
   const periodLine =
     period?.startDate || period?.endDate
@@ -172,7 +192,14 @@ export function exportGsecBalanceSheetToExcel({ accounts, period, totals, filena
     HEADERS,
     ...rows,
     [],
-    ['Totals', `${list.length} accounts`, '', totalDebit, totalCredit, totalNet]
+    [
+      'Totals',
+      `${list.length} accounts`,
+      '',
+      totalDebit,
+      totalCredit,
+      formatNetBalanceExport(totalDebit, totalCredit, false)
+    ]
   ];
 
   const ws = XLSX.utils.aoa_to_sheet(sheetData);

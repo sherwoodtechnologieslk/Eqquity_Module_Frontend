@@ -1,13 +1,12 @@
-/* Page Layout */
+/* Page Layout — aligned with Chart of Accounts / New GL Account */
 .other-trans-page-container {
   min-height: 100vh;
-  /* Tight top: sit closer to fixed DynamicHeader (same idea as Mark-to-Market) */
-  padding: 0.5rem 1rem 2rem;
+  padding: 0.35rem 1rem 2rem;
   box-sizing: border-box;
 }
 
 .other-trans-content-wrapper {
-  max-width: 1200px;
+  max-width: 1280px;
   margin: 0 auto;
 }
 
@@ -15,7 +14,7 @@
 .other-trans-header-section {
   display: flex;
   align-items: center;
-  gap: 1.25rem;
+  gap: 2rem;
   margin-bottom: 1rem;
   text-align: left;
   padding-top: 0.25rem;
@@ -49,12 +48,12 @@
 }
 
 .other-trans-main-title {
-  font-size: 1.5rem;
+  font-size: 1.625rem;
   font-weight: 800;
   color: #1f2937;
-  margin: 0 0 0.35rem 0;
+  margin: 0 0 0.5rem 0;
   letter-spacing: -0.01em;
-  line-height: 1.2;
+  line-height: 1.1;
 }
 
 .other-trans-subtitle {
@@ -67,30 +66,186 @@
   line-height: 1.45;
 }
 
-/* Form Card */
-.other-trans-form-card {
+/* Main tab navigation — segmented pill bar */
+.other-trans-tab-navigation {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 0.4rem;
+  margin-bottom: 1.25rem;
+  padding: 0.4rem;
+  background: linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%);
+  border: 1px solid #e2e8f0;
+  border-radius: 0.625rem;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.05);
+  overflow: visible;
+}
+
+.other-trans-tab-btn {
+  min-width: 0;
+  padding: 0.7rem 0.85rem;
+  border: 1px solid transparent;
+  border-radius: 0.5rem;
+  background: transparent;
+  color: #475569;
+  font-weight: 500;
+  font-size: 0.8125rem;
+  line-height: 1.3;
+  letter-spacing: 0.01em;
+  cursor: pointer;
+  transition:
+    color 0.18s ease,
+    background-color 0.18s ease,
+    border-color 0.18s ease,
+    box-shadow 0.18s ease,
+    transform 0.18s ease;
+  white-space: nowrap;
+  text-align: center;
+}
+
+.other-trans-tab-btn:hover:not(.active) {
+  color: #1d4ed8;
+  background: rgba(255, 255, 255, 0.72);
+  border-color: #e2e8f0;
+}
+
+.other-trans-tab-btn.active {
+  color: #ffffff;
+  font-weight: 600;
+  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+  border-color: #2563eb;
+  box-shadow:
+    0 2px 6px rgba(37, 99, 235, 0.28),
+    inset 0 1px 0 rgba(255, 255, 255, 0.18);
+}
+
+.other-trans-tab-btn.active:hover {
+  background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+}
+
+.other-trans-tab-btn:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.28);
+}
+
+.other-trans-tab-btn.active:focus-visible {
+  box-shadow:
+    0 2px 6px rgba(37, 99, 235, 0.28),
+    0 0 0 3px rgba(59, 130, 246, 0.28);
+}
+
+/* Form type sub-tabs (Create Voucher) — same pill system */
+.other-trans-form-type-nav {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(9.5rem, 1fr));
+  gap: 0.4rem;
+  margin: 0;
+  padding: 0.85rem 1.25rem 1rem;
+  border-bottom: none;
+  overflow: visible;
+  flex-wrap: wrap;
+  background: #f8fafc;
+  border-top: 1px solid #e2e8f0;
+}
+
+.other-trans-form-type-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.45rem;
+  min-width: 0;
+  padding: 0.6rem 0.75rem;
+  border: 1px solid transparent;
+  border-radius: 0.5rem;
+  background: #ffffff;
+  color: #64748b;
+  font-weight: 500;
+  font-size: 0.75rem;
+  line-height: 1.25;
+  cursor: pointer;
+  transition:
+    color 0.18s ease,
+    background-color 0.18s ease,
+    border-color 0.18s ease,
+    box-shadow 0.18s ease;
+  white-space: nowrap;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+}
+
+.other-trans-form-type-btn:hover:not(.active) {
+  color: #2563eb;
+  border-color: #bfdbfe;
+  background: #f8fbff;
+}
+
+.other-trans-form-type-btn.active {
+  color: #1d4ed8;
+  font-weight: 600;
+  background: #eff6ff;
+  border-color: #93c5fd;
+  box-shadow:
+    0 1px 3px rgba(59, 130, 246, 0.14),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.65);
+}
+
+.other-trans-form-type-btn.active svg {
+  color: #2563eb;
+}
+
+.other-trans-form-type-btn svg {
+  flex-shrink: 0;
+  width: 1rem;
+  height: 1rem;
+  color: #94a3b8;
+  transition: color 0.18s ease;
+}
+
+.other-trans-form-type-btn:hover:not(.active) svg {
+  color: #3b82f6;
+}
+
+.other-trans-form-type-btn:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.22);
+}
+
+/* Data / form cards — aligned with coa-data-card */
+.other-trans-form-card,
+.other-trans-data-card {
   background: #fff;
   border-radius: 0.18rem;
-  box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25);
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.22);
+  border: 1px solid #dbeafe;
   overflow: hidden;
+  margin-bottom: 1.5rem;
 }
 
 .other-trans-card-header {
   background: linear-gradient(90deg, #3b82f6 0%, #2563eb 100%);
-  padding: 1.5rem 2rem;
+  padding: 1.25rem 1.75rem;
   border-radius: 0.18rem 0.18rem 0 0;
 }
 
 .other-trans-card-title {
-  font-size: 1.25rem;
+  font-size: 1.125rem;
   font-weight: 600;
   color: white;
   margin: 0;
 }
 
+.other-trans-card-subtitle {
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 0.8125rem;
+  margin: 0.35rem 0 0;
+  font-weight: 400;
+  line-height: 1.4;
+}
+
 .other-trans-form-content {
   padding: 2rem;
+}
+
+.other-trans-form-content--view {
+  padding: 1.25rem 1.75rem 1.75rem;
 }
 
 /* Transaction Information card (Create Voucher): tighter field spacing */
@@ -157,66 +312,46 @@
   color: #bbb !important;
 }
 
-/* Input styling with glassy effect */
 .other-trans-form-input,
 .other-trans-form-select,
 .other-trans-form-textarea {
   width: 100%;
-  padding: 0.72rem 0.9rem;
-  border: 1px solid #dbeafe;
-  border-radius: 0.15rem;
-  font-size: 1rem;
-  background-color: #f4faff;
-  transition: all 0.25s cubic-bezier(0.23, 1, 0.32, 1);
+  padding: 0.625rem 0.875rem;
+  border: 1px solid #e2e8f0;
+  border-radius: 0.375rem;
+  font-size: 0.9375rem;
+  background-color: #fafafa;
+  color: #1f2937;
+  transition: border-color 0.2s ease, background-color 0.2s ease, box-shadow 0.2s ease;
   box-sizing: border-box;
-  box-shadow:
-    inset 0 2px 8px 0 rgba(59, 130, 246, 0.18),
-    inset 0 1.5px 12px 1px rgba(190, 220, 255, 0.28),
-    inset 0 -3px 12px 1px rgba(37, 99, 235, 0.06),
-    0 0.5px 2px 0 rgba(37, 99, 235, 0.04);
 }
 
 .other-trans-form-input:hover,
 .other-trans-form-select:hover,
 .other-trans-form-textarea:hover {
-  border-color: #60a5fa;
-  background: #f2f8fd;
-  box-shadow:
-    inset 0 3px 16px 0 rgba(59, 130, 246, 0.27),
-    inset 0 4px 20px 2px rgba(160, 200, 255, 0.21),
-    inset 0 -6px 20px 2px rgba(37, 99, 235, 0.13),
-    0 0.5px 2px 0 rgba(37, 99, 235, 0.05);
+  border-color: #cbd5e1;
+  background: #fff;
 }
 
 .other-trans-form-input:focus,
 .other-trans-form-select:focus,
 .other-trans-form-textarea:focus {
   outline: none;
-  border-color: #2563eb;
-  background-color: #f9fbfe;
-  box-shadow:
-    0 0 0 2.5px rgba(59, 130, 246, 0.10),
-    inset 0 4px 20px 2px rgba(59, 130, 246, 0.32),
-    inset 0 8px 32px 4px rgba(190, 220, 255, 0.27),
-    inset 0 -8px 28px 2px rgba(37, 99, 235, 0.21),
-    0 0.5px 2px 0 rgba(37, 99, 235, 0.09);
+  border-color: #3b82f6;
+  background-color: #fff;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
 }
 
 .other-trans-form-input.calculated {
-  background: linear-gradient(135deg, #dbeafe, #bae6fd);
-  border-color: #3b82f6;
+  background: #eff6ff;
+  border-color: #93c5fd;
   color: #1e40af;
   font-weight: 600;
   cursor: not-allowed;
-  border-radius: 0.15rem;
 }
 
 .other-trans-form-input.calculated:focus {
-  box-shadow:
-    0 0 0 2.5px rgba(59, 130, 246, 0.14),
-    inset 0 4px 24px 2px rgba(59, 130, 246, 0.39),
-    inset 0 12px 38px 6px rgba(190, 220, 255, 0.30),
-    inset 0 -10px 32px 4px rgba(37, 99, 235, 0.16);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
 }
 
 .other-trans-form-input.disabled {
@@ -311,6 +446,367 @@
   width: 100%;
 }
 
+/* Section blocks (no accent borders) */
+.other-trans-section-block {
+  margin: 1.25rem 0;
+  padding: 0;
+  background: transparent;
+}
+
+.other-trans-section-block--grid {
+  grid-column: 1 / -1;
+  margin: 2rem 0 1rem 0;
+}
+
+.other-trans-section-block--spaced {
+  margin: 2.5rem 0 1.5rem 0;
+}
+.other-trans-field-hint {
+  color: #6b7280;
+  font-size: 0.75rem;
+}
+
+.other-trans-btn-regenerate {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.4rem 0.85rem;
+  background: #ffffff;
+  color: #2563eb;
+  border: 1px solid #bfdbfe;
+  border-radius: 0.5rem;
+  cursor: pointer;
+  font-size: 0.75rem;
+  font-weight: 600;
+  transition: background-color 0.18s ease, border-color 0.18s ease, color 0.18s ease;
+}
+
+.other-trans-btn-regenerate:hover {
+  background: #eff6ff;
+  border-color: #93c5fd;
+  color: #1d4ed8;
+  transform: none;
+}
+
+/* View vouchers — category chips */
+.other-trans-category-bar {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1.25rem;
+  flex-wrap: wrap;
+  padding: 0.75rem 1rem;
+  background: #fff;
+  border: 1px solid #dbeafe;
+  border-radius: 0.18rem;
+}
+
+.other-trans-category-chip {
+  padding: 0.5rem 1rem;
+  border: 1px solid #e5e7eb;
+  border-radius: 0.375rem;
+  background: #f9fafb;
+  color: #374151;
+  font-weight: 500;
+  font-size: 0.8125rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.other-trans-category-chip:hover {
+  border-color: var(--chip-color, #3b82f6);
+  color: var(--chip-color, #3b82f6);
+}
+
+.other-trans-category-chip.active {
+  background: var(--chip-color, #3b82f6);
+  border-color: var(--chip-color, #3b82f6);
+  color: #fff;
+  font-weight: 600;
+}
+
+/* Voucher cards */
+.other-trans-voucher-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 1rem;
+}
+
+.other-trans-voucher-card {
+  background: #fff;
+  border-radius: 0.18rem;
+  padding: 1rem 1.125rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+  border: 1px solid #e5e7eb;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  cursor: pointer;
+}
+
+.other-trans-voucher-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(59, 130, 246, 0.12);
+  border-color: #bfdbfe;
+}
+
+.other-trans-voucher-number {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: #64748b;
+  margin: 0;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.other-trans-voucher-date {
+  font-size: 0.75rem;
+  color: #94a3b8;
+  margin: 0.25rem 0 0;
+}
+
+.other-trans-voucher-meta {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 0.75rem;
+  gap: 0.5rem;
+}
+
+.other-trans-voucher-type {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #1f2937;
+  margin: 0.35rem 0;
+}
+
+.other-trans-voucher-amount-box {
+  margin: 0.5rem 0;
+  padding: 0.5rem 0.65rem;
+  background: #f8fafc;
+  border-radius: 0.375rem;
+  border: 1px solid #e2e8f0;
+}
+
+.other-trans-voucher-amount-label {
+  font-size: 0.8125rem;
+  color: #64748b;
+}
+
+.other-trans-voucher-amount-value {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: #1e293b;
+}
+
+.other-trans-voucher-counterparty {
+  font-size: 0.875rem;
+  color: #64748b;
+  margin: 0.5rem 0;
+}
+
+.other-trans-voucher-actions {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid #e5e7eb;
+}
+
+.other-trans-empty-state,
+.other-trans-loading-state {
+  text-align: center;
+  padding: 3rem 1.5rem;
+  background: #fff;
+  border-radius: 0.18rem;
+  border: 1px solid #dbeafe;
+  color: #64748b;
+}
+
+/* General Ledger table — coa-data-table pattern */
+.other-trans-gl-toolbar {
+  padding: 1rem 1.5rem;
+  border-bottom: 1px solid #e5e7eb;
+  background: #f8fafc;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.other-trans-gl-toolbar label {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: #374151;
+}
+
+.other-trans-gl-search {
+  flex: 1 1 16rem;
+  max-width: 24rem;
+  padding: 0.5rem 0.75rem;
+  font-size: 0.875rem;
+  border: 1px solid #e2e8f0;
+  border-radius: 0.375rem;
+  background: #fff;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.other-trans-gl-search:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.other-trans-gl-clear-btn {
+  padding: 0.5rem 0.9rem;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: #475569;
+  background: #e2e8f0;
+  border: none;
+  border-radius: 0.375rem;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.other-trans-gl-clear-btn:hover {
+  background: #cbd5e1;
+}
+
+.other-trans-table-wrap {
+  overflow-x: auto;
+}
+
+.other-trans-data-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.875rem;
+}
+
+.other-trans-data-table th {
+  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+  color: white;
+  padding: 0.875rem 1rem;
+  text-align: left;
+  font-weight: 600;
+  font-size: 0.8125rem;
+  border-bottom: 2px solid #1d4ed8;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.other-trans-data-table th.text-right {
+  text-align: right;
+}
+
+.other-trans-data-table td {
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid #f1f5f9;
+  color: #374151;
+  vertical-align: middle;
+}
+
+.other-trans-data-table tr:hover td {
+  background: #f8fafc;
+}
+
+.other-trans-data-table tr:nth-child(even) td {
+  background: #fafbfc;
+}
+
+.other-trans-data-table tr:nth-child(even):hover td {
+  background: #f1f5f9;
+}
+
+.other-trans-cell-voucher {
+  font-weight: 600;
+  color: #2563eb;
+}
+
+.other-trans-cell-debit {
+  text-align: right;
+  color: #059669;
+  font-weight: 600;
+}
+
+.other-trans-cell-credit {
+  text-align: right;
+  color: #dc2626;
+  font-weight: 600;
+}
+
+.other-trans-cell-muted {
+  text-align: right;
+  color: #94a3b8;
+  font-weight: 400;
+}
+
+.other-trans-status-badge {
+  padding: 0.2rem 0.65rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.other-trans-status-badge.posted {
+  background: #d1fae5;
+  color: #065f46;
+}
+
+.other-trans-status-badge.other {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+.other-trans-pagination {
+  padding: 1rem 1.25rem;
+  border-top: 1px solid #e5e7eb;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  background: #fff;
+}
+
+.other-trans-pagination-info {
+  color: #64748b;
+  font-size: 0.875rem;
+}
+
+.other-trans-pagination-controls {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.other-trans-page-btn {
+  padding: 0.4rem 0.75rem;
+  border: 1px solid #cbd5e1;
+  background: #fff;
+  color: #334155;
+  border-radius: 0.375rem;
+  cursor: pointer;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  transition: all 0.2s ease;
+}
+
+.other-trans-page-btn:hover:not(:disabled) {
+  border-color: #3b82f6;
+  color: #2563eb;
+}
+
+.other-trans-page-btn:disabled {
+  background: #f1f5f9;
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
+.other-trans-page-btn.active {
+  background: #3b82f6;
+  border-color: #2563eb;
+  color: #fff;
+}
+
 /* Button Section */
 .other-trans-button-section {
   display: flex;
@@ -318,49 +814,60 @@
   gap: 1rem;
   justify-content: flex-end;
   padding-top: 1.5rem;
-  border-top: 1px solid #dbeafe;
+  border-top: 1px solid #e5e7eb;
 }
 
 .other-trans-btn {
-  padding: 0.7rem 1.3rem;
-  font-size: 1rem;
-  font-weight: 500;
-  border-radius: 0.15rem;
-  border: none;
+  padding: 0.625rem 1.25rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  border-radius: 0.5rem;
+  border: 1px solid transparent;
   cursor: pointer;
-  transition: all 0.2s ease-in-out;
+  transition:
+    background-color 0.18s ease,
+    border-color 0.18s ease,
+    color 0.18s ease,
+    box-shadow 0.18s ease,
+    transform 0.18s ease;
   text-decoration: none;
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  gap: 0.4rem;
   min-width: auto;
+  line-height: 1.25;
 }
 
-.other-trans-btn:focus {
+.other-trans-btn:focus-visible {
   outline: none;
-  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.23);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.22);
 }
 
 .other-trans-btn-secondary {
-  background-color: #f3f4f6;
-  color: #374151;
+  background-color: #ffffff;
+  color: #475569;
+  border-color: #cbd5e1;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
 }
 
-.other-trans-btn-secondary:hover {
-  background-color: #e5e7eb;
+.other-trans-btn-secondary:hover:not(:disabled) {
+  background-color: #f8fafc;
+  border-color: #94a3b8;
+  color: #334155;
 }
 
 .other-trans-btn-primary {
-  background: linear-gradient(90deg, #3b82f6 0%, #2563eb 100%);
-  color: white;
-  padding: 0.75rem 2rem;
-  box-shadow: 0 4px 6px -1px rgba(59,130,246,0.12), 0 2px 4px -1px rgba(37,99,235,0.09);
-  border-radius: 0.15rem;
+  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+  color: #ffffff;
+  border-color: #2563eb;
+  padding: 0.65rem 1.5rem;
+  box-shadow: 0 2px 6px rgba(37, 99, 235, 0.22);
 }
 
-.other-trans-btn-primary:hover {
-  background: linear-gradient(90deg, #2563eb 0%, #1e40af 100%);
-  box-shadow: 0 10px 15px -30px rgba(59,130,246,0.12), 0 4px 6px -2px rgba(59,130,246,0.08);
+.other-trans-btn-primary:hover:not(:disabled) {
+  background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+  box-shadow: 0 4px 10px rgba(37, 99, 235, 0.26);
   transform: translateY(-1px);
 }
 
@@ -427,18 +934,65 @@
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%23991b1b'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M6 18L18 6M6 6l12 12'%3E%3C/path%3E%3C/svg%3E");
 }
 
-/* GL to GL helpers (match Other Transactions styling) */
+/* GL to GL — tighter layout */
+.other-trans-form-content--gl2gl {
+  padding: 0.85rem 1.15rem 1rem;
+}
+
+.other-trans-form-content--gl2gl .other-trans-form-grid {
+  gap: 0.65rem;
+  margin-bottom: 0.65rem;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+}
+
+.other-trans-form-content--gl2gl .other-trans-field-group {
+  gap: 0.3rem;
+}
+
+.other-trans-form-content--gl2gl .other-trans-button-section {
+  padding-top: 0.75rem;
+  margin-top: 0;
+}
+
+.other-trans-form-content--gl2gl .other-trans-message {
+  margin-bottom: 0.75rem;
+}
+
+.other-trans-field-group--full {
+  grid-column: 1 / -1;
+}
+
+.other-trans-voucher-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin-bottom: 0.35rem;
+}
+
+.other-trans-field-label--inline {
+  margin-bottom: 0;
+}
+
+.other-trans-form-grid--compact {
+  margin: 0;
+  gap: 0.5rem;
+  margin-bottom: 0;
+}
+
+/* GL to GL helpers */
 .other-trans-gl2gl-balance-card {
-  padding: 0.75rem 1rem;
-  background: #f4faff;
-  border-radius: 0.15rem;
-  font-size: 0.875rem;
+  padding: 0.5rem 0.7rem;
+  background: #f8fafc;
+  border-radius: 0.375rem;
+  font-size: 0.8125rem;
+  line-height: 1.4;
   color: #374151;
-  border: 1px solid #dbeafe;
-  box-shadow:
-    inset 0 2px 8px 0 rgba(59, 130, 246, 0.12),
-    inset 0 1.5px 12px 1px rgba(190, 220, 255, 0.20),
-    0 0.5px 2px 0 rgba(37, 99, 235, 0.04);
+  border: 1px solid #e2e8f0;
+}
+
+.other-trans-gl2gl-balance-outcome {
+  margin-top: 0.25rem;
 }
 
 .other-trans-gl2gl-balance-ok {
@@ -453,62 +1007,83 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 0.75rem;
-  margin-bottom: 0.75rem;
+  gap: 0.5rem;
+  margin-bottom: 0.45rem;
   flex-wrap: wrap;
+}
+
+.other-trans-gl2gl-section-header .other-trans-btn {
+  padding: 0.4rem 0.75rem;
+  font-size: 0.75rem;
 }
 
 .other-trans-gl2gl-lines {
   display: flex;
   flex-direction: column;
-  gap: 0.85rem;
+  gap: 0.5rem;
 }
 
 .other-trans-gl2gl-line-card {
-  border: 1px solid #dbeafe;
-  border-radius: 0.18rem;
-  padding: 1rem;
+  border: 1px solid #e2e8f0;
+  border-radius: 0.375rem;
+  padding: 0.65rem 0.75rem;
   background: #ffffff;
-  box-shadow: 0 1px 2px rgba(0,0,0,0.06);
+  box-shadow: none;
 }
 
 .other-trans-gl2gl-line-card-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 0.75rem;
-  gap: 0.75rem;
+  margin-bottom: 0.4rem;
+  gap: 0.5rem;
 }
 
 .other-trans-gl2gl-line-title {
-  font-size: 0.8125rem;
+  font-size: 0.75rem;
   font-weight: 700;
-  color: #374151;
-  letter-spacing: 0.02em;
+  color: #475569;
+  letter-spacing: 0.03em;
   text-transform: uppercase;
 }
 
 .other-trans-gl2gl-remove-btn {
-  padding: 0.35rem 0.65rem;
-  font-size: 0.75rem;
-  border-radius: 0.15rem;
+  padding: 0.25rem 0.55rem;
+  font-size: 0.6875rem;
+  border-radius: 0.375rem;
   border: 1px solid #fecaca;
   background: #fef2f2;
   color: #b91c1c;
   cursor: pointer;
-  transition: all 0.15s ease;
+  transition: background-color 0.15s ease;
 }
 
 .other-trans-gl2gl-remove-btn:hover {
   background: #fee2e2;
-  transform: translateY(-1px);
+  transform: none;
 }
 
 .other-trans-gl2gl-helper {
   grid-column: 1 / -1;
-  font-size: 0.8125rem;
-  color: #6b7280;
-  margin: 0;
+  font-size: 0.75rem;
+  line-height: 1.35;
+  color: #64748b;
+  margin: -0.15rem 0 0;
+}
+
+.other-trans-form-content--gl2gl .other-trans-form-textarea {
+  min-height: 4.25rem;
+}
+
+.other-trans-form-content--gl2gl .other-trans-form-input::placeholder,
+.other-trans-form-content--gl2gl .other-trans-form-textarea::placeholder {
+  font-size: 0.75rem;
+  color: #94a3b8;
+  opacity: 1;
+}
+
+.other-trans-form-content--gl2gl .other-trans-field-hint {
+  font-size: 0.6875rem;
 }
 
 /* Responsive Design */
@@ -517,6 +1092,10 @@
     gap: 1rem;
     padding-top: 0.25rem;
     padding-bottom: 0.65rem;
+  }
+
+  .other-trans-tab-navigation {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
   }
   
   .other-trans-main-title {
@@ -548,6 +1127,28 @@
     gap: 1rem;
     text-align: center;
     padding: 0.35rem 1rem 0.75rem;
+  }
+
+  .other-trans-tab-navigation {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    padding: 0.35rem;
+    gap: 0.35rem;
+  }
+
+  .other-trans-tab-btn {
+    padding: 0.55rem 0.5rem;
+    font-size: 0.72rem;
+  }
+
+  .other-trans-form-type-nav {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    padding: 0.75rem 1rem 0.85rem;
+    gap: 0.35rem;
+  }
+
+  .other-trans-form-type-btn {
+    font-size: 0.7rem;
+    padding: 0.5rem 0.55rem;
   }
   
   .other-trans-header-icon {
@@ -807,10 +1408,18 @@
 }
 
 .other-trans-btn-tertiary {
-  background: linear-gradient(90deg, #14b8a6 0%, #0d9488 100%);
-  color: white;
-  padding: 0.75rem 1.5rem;
-  box-shadow: 0 4px 6px -1px rgba(20, 184, 166, 0.12), 0 2px 4px -1px rgba(13, 148, 136, 0.09);
+  background: #ffffff;
+  color: #0f766e;
+  border: 1px solid #99f6e4;
+  padding: 0.65rem 1.35rem;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+}
+
+.other-trans-btn-tertiary:hover:not(:disabled) {
+  background: #f0fdfa;
+  border-color: #5eead4;
+  color: #0d9488;
+  transform: translateY(-1px);
 }
 
 /* Voucher Preview modal footer + document buttons */
@@ -1051,12 +1660,6 @@
 
 .inline-doc-render.editing:focus {
   outline: 2px solid #f59e0b;
-}
-
-.other-trans-btn-tertiary:hover {
-  background: linear-gradient(90deg, #0d9488 0%, #0f766e 100%);
-  box-shadow: 0 10px 15px -3px rgba(20, 184, 166, 0.12), 0 4px 6px -2px rgba(13, 148, 136, 0.08);
-  transform: translateY(-1px);
 }
 
 /* Submit and Cancel Buttons for Define Transaction */

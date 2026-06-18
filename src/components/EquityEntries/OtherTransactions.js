@@ -3390,92 +3390,23 @@ const isVoucherSettled = (voucher) => {
         </div>
 
         {/* Tab Navigation */}
-        <div className="other-trans-tab-navigation" style={{
-          display: 'flex',
-          gap: '1rem',
-          marginBottom: '2rem',
-          borderBottom: '2px solid #e5e7eb'
-        }}>
-          <button
-            onClick={() => setActiveTab('create')}
-            style={{
-              padding: '1rem 2rem',
-              border: 'none',
-              background: 'transparent',
-              borderBottom: activeTab === 'create' ? '3px solid #3b82f6' : '3px solid transparent',
-              color: activeTab === 'create' ? '#3b82f6' : '#6b7280',
-              fontWeight: activeTab === 'create' ? '600' : '500',
-              cursor: 'pointer',
-              fontSize: '1rem',
-              transition: 'all 0.2s ease'
-            }}
-          >
-            Create Voucher
-          </button>
-          <button
-            onClick={() => setActiveTab('defineTransaction')}
-            style={{
-              padding: '1rem 2rem',
-              border: 'none',
-              background: 'transparent',
-              borderBottom: activeTab === 'defineTransaction' ? '3px solid #3b82f6' : '3px solid transparent',
-              color: activeTab === 'defineTransaction' ? '#3b82f6' : '#6b7280',
-              fontWeight: activeTab === 'defineTransaction' ? '600' : '500',
-              cursor: 'pointer',
-              fontSize: '1rem',
-              transition: 'all 0.2s ease'
-            }}
-          >
-            Define Transaction
-          </button>
-          <button
-            onClick={() => setActiveTab('view')}
-            style={{
-              padding: '1rem 2rem',
-              border: 'none',
-              background: 'transparent',
-              borderBottom: activeTab === 'view' ? '3px solid #3b82f6' : '3px solid transparent',
-              color: activeTab === 'view' ? '#3b82f6' : '#6b7280',
-              fontWeight: activeTab === 'view' ? '600' : '500',
-              cursor: 'pointer',
-              fontSize: '1rem',
-              transition: 'all 0.2s ease'
-            }}
-          >
-            View Vouchers
-          </button>
-          <button
-            onClick={() => setActiveTab('generalLedger')}
-            style={{
-              padding: '1rem 2rem',
-              border: 'none',
-              background: 'transparent',
-              borderBottom: activeTab === 'generalLedger' ? '3px solid #3b82f6' : '3px solid transparent',
-              color: activeTab === 'generalLedger' ? '#3b82f6' : '#6b7280',
-              fontWeight: activeTab === 'generalLedger' ? '600' : '500',
-              cursor: 'pointer',
-              fontSize: '1rem',
-              transition: 'all 0.2s ease'
-            }}
-          >
-            General Ledger
-          </button>
-          <button
-            onClick={() => setActiveTab('reverseTransaction')}
-            style={{
-              padding: '1rem 2rem',
-              border: 'none',
-              background: 'transparent',
-              borderBottom: activeTab === 'reverseTransaction' ? '3px solid #3b82f6' : '3px solid transparent',
-              color: activeTab === 'reverseTransaction' ? '#3b82f6' : '#6b7280',
-              fontWeight: activeTab === 'reverseTransaction' ? '600' : '500',
-              cursor: 'pointer',
-              fontSize: '1rem',
-              transition: 'all 0.2s ease'
-            }}
-          >
-            Reverse Transaction
-          </button>
+        <div className="other-trans-tab-navigation">
+          {[
+            { id: 'create', label: 'Create Voucher' },
+            { id: 'defineTransaction', label: 'Define Transaction' },
+            { id: 'view', label: 'View Vouchers' },
+            { id: 'generalLedger', label: 'General Ledger' },
+            { id: 'reverseTransaction', label: 'Reverse Transaction' }
+          ].map((tab) => (
+            <button
+              key={tab.id}
+              type="button"
+              className={`other-trans-tab-btn${activeTab === tab.id ? ' active' : ''}`}
+              onClick={() => setActiveTab(tab.id)}
+            >
+              {tab.label}
+            </button>
+          ))}
         </div>
 
         {/* Conditional Render: Create Form or View List */}
@@ -3487,32 +3418,11 @@ const isVoucherSettled = (voucher) => {
           </div>
 
           {/* Form Type Selection Buttons */}
-          <div style={{
-            display: 'flex',
-            gap: '1rem',
-            marginTop: '0.75rem',
-            marginBottom: '1rem',
-            padding: '0 1.5rem',
-            borderBottom: '2px solid #e5e7eb'
-          }}>
+          <div className="other-trans-form-type-nav">
             <button
               type="button"
+              className={`other-trans-form-type-btn${activeFormType === 'voucher' ? ' active' : ''}`}
               onClick={() => setActiveFormType('voucher')}
-              style={{
-                padding: '0.75rem 1.5rem',
-                border: 'none',
-                background: activeFormType === 'voucher' ? 'linear-gradient(135deg, #3b82f6, #2563eb)' : 'transparent',
-                color: activeFormType === 'voucher' ? 'white' : '#6b7280',
-                fontWeight: activeFormType === 'voucher' ? '600' : '500',
-                cursor: 'pointer',
-                fontSize: '0.9375rem',
-                borderRadius: '0.5rem 0.5rem 0 0',
-                borderBottom: activeFormType === 'voucher' ? '3px solid #3b82f6' : '3px solid transparent',
-                transition: 'all 0.2s ease',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '0.5rem'
-              }}
             >
               <svg width="18" height="18" fill="currentColor" viewBox="0 0 20 20">
                 <path fillRule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z" clipRule="evenodd"/>
@@ -3521,22 +3431,8 @@ const isVoucherSettled = (voucher) => {
             </button>
             <button
               type="button"
+              className={`other-trans-form-type-btn${activeFormType === 'assetDepreciation' ? ' active' : ''}`}
               onClick={() => setActiveFormType('assetDepreciation')}
-              style={{
-                padding: '0.75rem 1.5rem',
-                border: 'none',
-                background: activeFormType === 'assetDepreciation' ? 'linear-gradient(135deg, #3b82f6, #2563eb)' : 'transparent',
-                color: activeFormType === 'assetDepreciation' ? 'white' : '#6b7280',
-                fontWeight: activeFormType === 'assetDepreciation' ? '600' : '500',
-                cursor: 'pointer',
-                fontSize: '0.9375rem',
-                borderRadius: '0.5rem 0.5rem 0 0',
-                borderBottom: activeFormType === 'assetDepreciation' ? '3px solid #3b82f6' : '3px solid transparent',
-                transition: 'all 0.2s ease',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '0.5rem'
-              }}
             >
               <svg width="18" height="18" fill="currentColor" viewBox="0 0 20 20">
                 <path fillRule="evenodd" d="M11.49 3.17c-.38-1.56-2.6-1.56-2.98 0a1.532 1.532 0 01-2.286.948c-1.372-.836-2.942.734-2.106 2.106.54.886.061 2.042-.947 2.287-1.561.379-1.561 2.6 0 2.978a1.532 1.532 0 01.947 2.287c-.836 1.372.734 2.942 2.106 2.106a1.532 1.532 0 012.287.947c.379 1.561 2.6 1.561 2.978 0a1.533 1.533 0 012.287-.947c1.372.836 2.942-.734 2.106-2.106a1.533 1.533 0 01.947-2.287c1.561-.379 1.561-2.6 0-2.978a1.532 1.532 0 01-.947-2.287c.836-1.372-.734-2.942-2.106-2.106a1.532 1.532 0 01-2.287-.947zM10 13a3 3 0 100-6 3 3 0 000 6z" clipRule="evenodd"/>
@@ -3545,22 +3441,8 @@ const isVoucherSettled = (voucher) => {
             </button>
             <button
               type="button"
+              className={`other-trans-form-type-btn${activeFormType === 'assetDerecognition' ? ' active' : ''}`}
               onClick={() => setActiveFormType('assetDerecognition')}
-              style={{
-                padding: '0.75rem 1.5rem',
-                border: 'none',
-                background: activeFormType === 'assetDerecognition' ? 'linear-gradient(135deg, #3b82f6, #2563eb)' : 'transparent',
-                color: activeFormType === 'assetDerecognition' ? 'white' : '#6b7280',
-                fontWeight: activeFormType === 'assetDerecognition' ? '600' : '500',
-                cursor: 'pointer',
-                fontSize: '0.9375rem',
-                borderRadius: '0.5rem 0.5rem 0 0',
-                borderBottom: activeFormType === 'assetDerecognition' ? '3px solid #3b82f6' : '3px solid transparent',
-                transition: 'all 0.2s ease',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '0.5rem'
-              }}
             >
               <svg width="18" height="18" fill="currentColor" viewBox="0 0 20 20">
                 <path fillRule="evenodd" d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01.61-1.276z" clipRule="evenodd"/>
@@ -3569,22 +3451,8 @@ const isVoucherSettled = (voucher) => {
             </button>
             <button
               type="button"
+              className={`other-trans-form-type-btn${activeFormType === 'liabilitySettlement' ? ' active' : ''}`}
               onClick={() => setActiveFormType('liabilitySettlement')}
-              style={{
-                padding: '0.75rem 1.5rem',
-                border: 'none',
-                background: activeFormType === 'liabilitySettlement' ? 'linear-gradient(135deg, #3b82f6, #2563eb)' : 'transparent',
-                color: activeFormType === 'liabilitySettlement' ? 'white' : '#6b7280',
-                fontWeight: activeFormType === 'liabilitySettlement' ? '600' : '500',
-                cursor: 'pointer',
-                fontSize: '0.9375rem',
-                borderRadius: '0.5rem 0.5rem 0 0',
-                borderBottom: activeFormType === 'liabilitySettlement' ? '3px solid #3b82f6' : '3px solid transparent',
-                transition: 'all 0.2s ease',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '0.5rem'
-              }}
             >
               <svg width="18" height="18" fill="currentColor" viewBox="0 0 20 20">
                 <path fillRule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm9.707 4.707a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd"/>
@@ -3593,22 +3461,8 @@ const isVoucherSettled = (voucher) => {
             </button>
             <button
               type="button"
+              className={`other-trans-form-type-btn${activeFormType === 'glToGl' ? ' active' : ''}`}
               onClick={() => setActiveFormType('glToGl')}
-              style={{
-                padding: '0.75rem 1.5rem',
-                border: 'none',
-                background: activeFormType === 'glToGl' ? 'linear-gradient(135deg, #3b82f6, #2563eb)' : 'transparent',
-                color: activeFormType === 'glToGl' ? 'white' : '#6b7280',
-                fontWeight: activeFormType === 'glToGl' ? '600' : '500',
-                cursor: 'pointer',
-                fontSize: '0.9375rem',
-                borderRadius: '0.5rem 0.5rem 0 0',
-                borderBottom: activeFormType === 'glToGl' ? '3px solid #3b82f6' : '3px solid transparent',
-                transition: 'all 0.2s ease',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '0.5rem'
-              }}
             >
               <svg width="18" height="18" fill="currentColor" viewBox="0 0 20 20">
                 <path fillRule="evenodd" d="M10 2a1 1 0 011 1v1h3a2 2 0 012 2v1a1 1 0 11-2 0V6H6v8h8v-1a1 1 0 112 0v1a2 2 0 01-2 2h-3v1a1 1 0 11-2 0v-1H7a2 2 0 01-2-2V6a2 2 0 012-2h3V3a1 1 0 011-1zm-2.707 6.293a1 1 0 010 1.414L6.414 10l.879.879a1 1 0 11-1.414 1.414l-1.586-1.586a1 1 0 010-1.414l1.586-1.586a1 1 0 011.414 0zm5.414 0a1 1 0 011.414 0l1.586 1.586a1 1 0 010 1.414l-1.586 1.586a1 1 0 11-1.414-1.414L13.586 10l-.879-.879a1 1 0 010-1.414z" clipRule="evenodd"/>
@@ -3617,7 +3471,7 @@ const isVoucherSettled = (voucher) => {
             </button>
           </div>
 
-          <div className="other-trans-form-content other-trans-form-content--transaction-info">
+          <div className={`other-trans-form-content other-trans-form-content--transaction-info${activeFormType === 'glToGl' ? ' other-trans-form-content--gl2gl' : ''}`}>
             {activeFormType === 'voucher' ? (
             <form onSubmit={handleSubmit}>
               <div className="other-trans-form-grid">
@@ -3628,29 +3482,8 @@ const isVoucherSettled = (voucher) => {
                     <label className="other-trans-field-label" style={{ marginBottom: 0 }}>Voucher Number</label>
                     <button
                       type="button"
+                      className="other-trans-btn-regenerate"
                       onClick={() => setForm(prev => ({ ...prev, voucherNumber: generateVoucherNumber() }))}
-                      style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '0.5rem',
-                        padding: '0.5rem 1rem',
-                        background: 'linear-gradient(90deg, #3b82f6 0%, #2563eb 100%)',
-                        color: 'white',
-                        border: 'none',
-                        borderRadius: '0.15rem',
-                        cursor: 'pointer',
-                        fontSize: '0.875rem',
-                        fontWeight: '500',
-                        transition: 'all 0.2s ease'
-                      }}
-                      onMouseOver={(e) => {
-                        e.currentTarget.style.background = 'linear-gradient(90deg, #2563eb 0%, #1e40af 100%)';
-                        e.currentTarget.style.transform = 'translateY(-1px)';
-                      }}
-                      onMouseOut={(e) => {
-                        e.currentTarget.style.background = 'linear-gradient(90deg, #3b82f6 0%, #2563eb 100%)';
-                        e.currentTarget.style.transform = 'translateY(0)';
-                      }}
                     >
                       <svg width="16" height="16" fill="currentColor" viewBox="0 0 20 20">
                         <path fillRule="evenodd" d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01.61-1.276z" clipRule="evenodd"/>
@@ -3664,7 +3497,7 @@ const isVoucherSettled = (voucher) => {
                     onChange={handleChange}
                     className="other-trans-form-input"
                   />
-                  <small style={{ color: '#6b7280', fontSize: '0.75rem' }}>
+                  <small className="other-trans-field-hint">
                     Auto-generated voucher number
                   </small>
                 </div>
@@ -3986,11 +3819,7 @@ const isVoucherSettled = (voucher) => {
               </div>
 
               {/* Payment & Settlement Details Section */}
-              <div className="other-trans-section-divider" style={{ 
-                margin: '2.5rem 0 1.5rem 0',
-                borderTop: '2px solid #e5e7eb',
-                paddingTop: '2rem'
-              }}>
+              <div className="other-trans-section-block other-trans-section-block--spaced">
                 <div style={{ 
                   display: 'flex',
                   alignItems: 'center',
@@ -4196,26 +4025,13 @@ const isVoucherSettled = (voucher) => {
             <form onSubmit={handleGlToGlSubmit}>
               <div className="other-trans-form-grid">
                 {/* Voucher Number */}
-                <div className="other-trans-field-group" style={{ gridColumn: '1 / -1' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
-                    <label className="other-trans-field-label" style={{ marginBottom: 0 }}>Voucher Number</label>
+                <div className="other-trans-field-group other-trans-field-group--full">
+                  <div className="other-trans-voucher-row">
+                    <label className="other-trans-field-label other-trans-field-label--inline">Voucher Number</label>
                     <button
                       type="button"
+                      className="other-trans-btn-regenerate"
                       onClick={() => setGlToGlForm(prev => ({ ...prev, voucherNumber: generateVoucherNumber() }))}
-                      style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '0.5rem',
-                        padding: '0.5rem 1rem',
-                        background: 'linear-gradient(90deg, #3b82f6 0%, #2563eb 100%)',
-                        color: 'white',
-                        border: 'none',
-                        borderRadius: '0.15rem',
-                        cursor: 'pointer',
-                        fontSize: '0.875rem',
-                        fontWeight: '500',
-                        transition: 'all 0.2s ease'
-                      }}
                     >
                       <svg width="16" height="16" fill="currentColor" viewBox="0 0 20 20">
                         <path fillRule="evenodd" d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01.61-1.276z" clipRule="evenodd"/>
@@ -4229,7 +4045,7 @@ const isVoucherSettled = (voucher) => {
                     onChange={handleGlToGlHeaderChange}
                     className="other-trans-form-input"
                   />
-                  <small style={{ color: '#6b7280', fontSize: '0.75rem' }}>
+                  <small className="other-trans-field-hint">
                     Same voucher number applies to every debit/credit line below
                   </small>
                 </div>
@@ -4270,8 +4086,7 @@ const isVoucherSettled = (voucher) => {
                           <div><strong>Debits:</strong> {dr.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
                           <div><strong>Credits:</strong> {cr.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
                           <div
-                            style={{ marginTop: '0.35rem' }}
-                            className={Math.abs(bal) < 0.01 ? 'other-trans-gl2gl-balance-ok' : 'other-trans-gl2gl-balance-warn'}
+                            className={`other-trans-gl2gl-balance-outcome ${Math.abs(bal) < 0.01 ? 'other-trans-gl2gl-balance-ok' : 'other-trans-gl2gl-balance-warn'}`}
                           >
                             <strong>Out of balance:</strong> {bal.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                           </div>
@@ -4318,7 +4133,7 @@ const isVoucherSettled = (voucher) => {
                             </button>
                           )}
                         </div>
-                        <div className="other-trans-form-grid" style={{ margin: 0 }}>
+                        <div className="other-trans-form-grid other-trans-form-grid--compact">
                           <div className="other-trans-field-group">
                             <label className="other-trans-field-label">GL code *</label>
                             <input
@@ -4393,7 +4208,7 @@ const isVoucherSettled = (voucher) => {
                             </button>
                           )}
                         </div>
-                        <div className="other-trans-form-grid" style={{ margin: 0 }}>
+                        <div className="other-trans-form-grid other-trans-form-grid--compact">
                           <div className="other-trans-field-group">
                             <label className="other-trans-field-label">GL code *</label>
                             <input
@@ -4466,7 +4281,7 @@ const isVoucherSettled = (voucher) => {
                     name="notes"
                     value={glToGlForm.notes}
                     onChange={handleGlToGlHeaderChange}
-                    rows="3"
+                    rows="2"
                     className="other-trans-form-textarea"
                     placeholder="Optional notes"
                   />
@@ -4569,12 +4384,7 @@ const isVoucherSettled = (voucher) => {
                 </div>
 
                 {/* Asset Account Section */}
-                <div className="other-trans-section-divider" style={{ 
-                  gridColumn: '1 / -1',
-                  margin: '2rem 0 1rem 0',
-                  borderTop: '2px solid #e5e7eb',
-                  paddingTop: '1.5rem'
-                }}>
+                <div className="other-trans-section-block other-trans-section-block--grid">
                   <div style={{ 
                     display: 'flex',
                     alignItems: 'center',
@@ -4628,12 +4438,7 @@ const isVoucherSettled = (voucher) => {
                 </div>
 
                 {/* Depreciation Expense Account Section */}
-                <div className="other-trans-section-divider" style={{ 
-                  gridColumn: '1 / -1',
-                  margin: '2rem 0 1rem 0',
-                  borderTop: '2px solid #e5e7eb',
-                  paddingTop: '1.5rem'
-                }}>
+                <div className="other-trans-section-block other-trans-section-block--grid">
                   <div style={{ 
                     display: 'flex',
                     alignItems: 'center',
@@ -4687,12 +4492,7 @@ const isVoucherSettled = (voucher) => {
                 </div>
 
                 {/* Accumulated Depreciation Account Section */}
-                <div className="other-trans-section-divider" style={{ 
-                  gridColumn: '1 / -1',
-                  margin: '2rem 0 1rem 0',
-                  borderTop: '2px solid #e5e7eb',
-                  paddingTop: '1.5rem'
-                }}>
+                <div className="other-trans-section-block other-trans-section-block--grid">
                   <div style={{ 
                     display: 'flex',
                     alignItems: 'center',
@@ -4886,12 +4686,7 @@ const isVoucherSettled = (voucher) => {
                 </div>
 
                 {/* Asset Account Section */}
-                <div className="other-trans-section-divider" style={{ 
-                  gridColumn: '1 / -1',
-                  margin: '2rem 0 1rem 0',
-                  borderTop: '2px solid #e5e7eb',
-                  paddingTop: '1.5rem'
-                }}>
+                <div className="other-trans-section-block other-trans-section-block--grid">
                   <div style={{ 
                     display: 'flex',
                     alignItems: 'center',
@@ -4971,12 +4766,7 @@ const isVoucherSettled = (voucher) => {
                 </div>
 
                 {/* Financial Details Section */}
-                <div className="other-trans-section-divider" style={{ 
-                  gridColumn: '1 / -1',
-                  margin: '2rem 0 1rem 0',
-                  borderTop: '2px solid #e5e7eb',
-                  paddingTop: '1.5rem'
-                }}>
+                <div className="other-trans-section-block other-trans-section-block--grid">
                   <div style={{ 
                     display: 'flex',
                     alignItems: 'center',
@@ -5060,12 +4850,7 @@ const isVoucherSettled = (voucher) => {
                 </div>
 
                 {/* Proceeds Account Section */}
-                <div className="other-trans-section-divider" style={{ 
-                  gridColumn: '1 / -1',
-                  margin: '2rem 0 1rem 0',
-                  borderTop: '2px solid #e5e7eb',
-                  paddingTop: '1.5rem'
-                }}>
+                <div className="other-trans-section-block other-trans-section-block--grid">
                   <div style={{ 
                     display: 'flex',
                     alignItems: 'center',
@@ -5120,12 +4905,7 @@ const isVoucherSettled = (voucher) => {
                 </div>
 
                 {/* Gain/Loss Account Section */}
-                <div className="other-trans-section-divider" style={{ 
-                  gridColumn: '1 / -1',
-                  margin: '2rem 0 1rem 0',
-                  borderTop: '2px solid #e5e7eb',
-                  paddingTop: '1.5rem'
-                }}>
+                <div className="other-trans-section-block other-trans-section-block--grid">
                   <div style={{ 
                     display: 'flex',
                     alignItems: 'center',
@@ -5337,12 +5117,7 @@ const isVoucherSettled = (voucher) => {
                 </div>
 
                 {/* Liability Account Section */}
-                <div className="other-trans-section-divider" style={{ 
-                  gridColumn: '1 / -1',
-                  margin: '2rem 0 1rem 0',
-                  borderTop: '2px solid #e5e7eb',
-                  paddingTop: '1.5rem'
-                }}>
+                <div className="other-trans-section-block other-trans-section-block--grid">
                   <div style={{ 
                     display: 'flex',
                     alignItems: 'center',
@@ -5574,12 +5349,7 @@ const isVoucherSettled = (voucher) => {
                 </div>
 
                 {/* Payment Account Section */}
-                <div className="other-trans-section-divider" style={{ 
-                  gridColumn: '1 / -1',
-                  margin: '2rem 0 1rem 0',
-                  borderTop: '2px solid #e5e7eb',
-                  paddingTop: '1.5rem'
-                }}>
+                <div className="other-trans-section-block other-trans-section-block--grid">
                   <div style={{ 
                     display: 'flex',
                     alignItems: 'center',
@@ -5860,7 +5630,7 @@ const isVoucherSettled = (voucher) => {
           <div className="other-trans-form-card">
             <div className="other-trans-card-header">
               <h2 className="other-trans-card-title">Define Transaction Types</h2>
-              <p style={{ color: '#ffffff', fontSize: '0.875rem', marginTop: '0.5rem', textAlign: 'center' }}>
+              <p className="other-trans-card-subtitle">
                 Define custom transaction types for Income, Expense, and Asset categories
               </p>
             </div>
@@ -6455,13 +6225,13 @@ const isVoucherSettled = (voucher) => {
           </div>
         ) : activeTab === 'view' ? (
           /* Voucher List View */
-          <div>
-            <div style={{
-              display: 'flex',
-              gap: '0.5rem',
-              marginBottom: '2rem',
-              flexWrap: 'wrap'
-            }}>
+          <div className="other-trans-data-card">
+            <div className="other-trans-card-header">
+              <h2 className="other-trans-card-title">View Vouchers</h2>
+              <p className="other-trans-card-subtitle">Browse and filter vouchers by account category</p>
+            </div>
+            <div className="other-trans-form-content other-trans-form-content--view">
+            <div className="other-trans-category-bar">
               {[
                 { key: 'all', label: 'All', color: '#3b82f6' },
                 { key: 'revenue', label: 'Revenue', color: '#10b981' },
@@ -6477,91 +6247,39 @@ const isVoucherSettled = (voucher) => {
                 return (
                   <button
                     key={chip.key}
+                    type="button"
+                    className={`other-trans-category-chip${isActive ? ' active' : ''}`}
+                    style={{ '--chip-color': chip.color }}
                     onClick={() => setActiveCategory(chip.key)}
-                    style={{
-                      padding: '0.6rem 1.15rem',
-                      border: 'none',
-                      borderRadius: '0.375rem',
-                      background: isActive ? chip.color : '#f3f4f6',
-                      color: isActive ? 'white' : '#374151',
-                      fontWeight: isActive ? '600' : '500',
-                      fontSize: '0.85rem',
-                      cursor: 'pointer',
-                      transition: 'all 0.2s ease',
-                      letterSpacing: chip.key === 'gl_to_gl' ? '0.04em' : 'normal'
-                    }}
                   >
                     {chip.label}
                   </button>
                 );
               })}
-        </div>
+            </div>
 
-            {/* Voucher Grid */}
             {vouchersLoading ? (
-              <div style={{ textAlign: 'center', padding: '3rem' }}>
+              <div className="other-trans-loading-state">
                 <p>Loading vouchers...</p>
               </div>
             ) : filteredVouchers.length === 0 ? (
-              <div style={{ 
-                textAlign: 'center', 
-                padding: '3rem',
-                background: 'white',
-                borderRadius: '0.375rem',
-                color: '#6b7280'
-              }}>
-                <p>No vouchers found. Create one using the "Create Voucher" tab.</p>
+              <div className="other-trans-empty-state">
+                <p>No vouchers found. Create one using the &quot;Create Voucher&quot; tab.</p>
               </div>
             ) : (
-              <div style={{
-                display: 'grid',
-                gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))',
-                gap: '1rem'
-              }}>
+              <div className="other-trans-voucher-grid">
                 {filteredVouchers.map((voucher) => (
-                  <div 
+                  <div
                     key={voucher.id}
-                    style={{
-                      background: 'white',
-                      borderRadius: '0.375rem',
-                      padding: '1rem',
-                      boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
-                      border: '1px solid #e5e7eb',
-                      transition: 'all 0.2s ease',
-                      cursor: 'pointer'
-                    }}
-                    onMouseEnter={(e) => {
-                      e.currentTarget.style.transform = 'translateY(-2px)';
-                      e.currentTarget.style.boxShadow = '0 4px 12px rgba(0,0,0,0.15)';
-                    }}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.style.transform = 'translateY(0)';
-                      e.currentTarget.style.boxShadow = '0 1px 3px rgba(0,0,0,0.1)';
-                    }}
+                    className="other-trans-voucher-card"
                     onClick={() => handleViewVoucher(voucher)}
                   >
-                    <div style={{
-                      display: 'flex',
-                      justifyContent: 'space-between',
-                      alignItems: 'start',
-                      marginBottom: '0.75rem'
-                    }}>
+                    <div className="other-trans-voucher-meta">
                       <div>
-                        <h3 style={{ 
-                          fontSize: '0.875rem',
-                          fontWeight: '600',
-                          color: '#6b7280',
-                          margin: 0,
-                          textTransform: 'uppercase',
-                          letterSpacing: '0.5px'
-                        }}>
+                        <h3 className="other-trans-voucher-number">
                           {voucher.voucher_number}
                         </h3>
-                        <p style={{ 
-                          fontSize: '0.75rem',
-                          color: '#9ca3af',
-                          margin: '0.25rem 0 0 0'
-                        }}>
+                        <p className="other-trans-voucher-date">
                           {voucher.transaction_date ? voucher.transaction_date.substring(0, 10) : 'N/A'}
                         </p>
                       </div>
@@ -6592,28 +6310,14 @@ const isVoucherSettled = (voucher) => {
                       </span>
                     </div>
 
-                    <h4 style={{
-                      fontSize: '1rem',
-                      fontWeight: '700',
-                      color: '#1f2937',
-                      margin: '0.35rem 0'
-                    }}>
+                    <h4 className="other-trans-voucher-type">
                       {voucher.transaction_type || 'N/A'}
                     </h4>
 
                     {voucher.amount && (
-                      <div style={{
-                        margin: '0.5rem 0',
-                        padding: '0.5rem',
-                        background: '#f9fafb',
-                        borderRadius: '0.25rem'
-                      }}>
-                        <div style={{ fontSize: '0.8125rem', color: '#6b7280' }}>Amount</div>
-                        <div style={{ 
-                          fontSize: '1.1rem', 
-                          fontWeight: '700', 
-                          color: '#1f2937' 
-                        }}>
+                      <div className="other-trans-voucher-amount-box">
+                        <div className="other-trans-voucher-amount-label">Amount</div>
+                        <div className="other-trans-voucher-amount-value">
                           {parseFloat(voucher.amount).toLocaleString('en-US', {
                             minimumFractionDigits: 2,
                             maximumFractionDigits: 2
@@ -6623,37 +6327,19 @@ const isVoucherSettled = (voucher) => {
                     )}
 
                     {voucher.counterparty && (
-                      <p style={{ 
-                        fontSize: '0.875rem',
-                        color: '#6b7280',
-                        margin: '0.5rem 0'
-                      }}>
+                      <p className="other-trans-voucher-counterparty">
                         Counterparty: {voucher.counterparty}
                       </p>
                     )}
 
-                    <div style={{
-                      display: 'flex',
-                      gap: '0.5rem',
-                      marginTop: '0.75rem',
-                      paddingTop: '0.75rem',
-                      borderTop: '1px solid #e5e7eb'
-                    }}>
+                    <div className="other-trans-voucher-actions">
                       <button
+                        type="button"
+                        className="other-trans-btn other-trans-btn-secondary"
+                        style={{ flex: 1, padding: '0.4rem', fontSize: '0.8125rem' }}
                         onClick={(e) => {
                           e.stopPropagation();
                           handleViewVoucher(voucher);
-                        }}
-                        style={{
-                          flex: 1,
-                          padding: '0.4rem',
-                          border: '1px solid #3b82f6',
-                          background: 'transparent',
-                          color: '#3b82f6',
-                          borderRadius: '0.25rem',
-                          cursor: 'pointer',
-                          fontWeight: '500',
-                          fontSize: '0.8125rem'
                         }}
                       >
                         View
@@ -6663,159 +6349,97 @@ const isVoucherSettled = (voucher) => {
                 ))}
               </div>
             )}
+            </div>
           </div>
         ) : activeTab === 'generalLedger' ? (
           <div>
             {generalLedgerLoading ? (
-              <div style={{ textAlign: 'center', padding: '3rem' }}>
+              <div className="other-trans-loading-state">
                 <p>Loading general ledger entries...</p>
               </div>
             ) : generalLedgerEntries.length === 0 ? (
-              <div style={{ 
-                textAlign: 'center', 
-                padding: '3rem',
-                background: 'white',
-                borderRadius: '0.375rem',
-                color: '#6b7280'
-              }}>
+              <div className="other-trans-empty-state">
                 <p>No general ledger entries found.</p>
               </div>
             ) : (
-              <div style={{
-                background: 'white',
-                borderRadius: '0.375rem',
-                overflow: 'hidden',
-                boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
-              }}>
-                <div style={{
-                  padding: '1.5rem',
-                  background: 'linear-gradient(90deg, #3b82f6 0%, #2563eb 100%)',
-                  color: 'white',
-                  fontWeight: '600',
-                  fontSize: '1.125rem'
-                }}>
-                  General Ledger Entries ({displayGeneralLedgerEntries.totalCount}
-                  {displayGeneralLedgerEntries.isFiltered
-                    ? ` · ${displayGeneralLedgerEntries.matchCount} matching line${displayGeneralLedgerEntries.matchCount === 1 ? '' : 's'}`
-                    : ''}
-                  )
+              <div className="other-trans-data-card">
+                <div className="other-trans-card-header">
+                  <h2 className="other-trans-card-title">
+                    General Ledger Entries ({displayGeneralLedgerEntries.totalCount}
+                    {displayGeneralLedgerEntries.isFiltered
+                      ? ` · ${displayGeneralLedgerEntries.matchCount} matching line${displayGeneralLedgerEntries.matchCount === 1 ? '' : 's'}`
+                      : ''}
+                    )
+                  </h2>
                 </div>
-                <div
-                  style={{
-                    padding: '1rem 1.5rem',
-                    borderBottom: '1px solid #e5e7eb',
-                    background: '#f8fafc',
-                    display: 'flex',
-                    flexWrap: 'wrap',
-                    alignItems: 'center',
-                    gap: '0.75rem'
-                  }}
-                >
-                  <label htmlFor="other-trans-gl-voucher-search" style={{ fontSize: '0.8125rem', fontWeight: '600', color: '#374151' }}>
+                <div className="other-trans-gl-toolbar">
+                  <label htmlFor="other-trans-gl-voucher-search">
                     Search by voucher number
                   </label>
                   <input
                     id="other-trans-gl-voucher-search"
+                    className="other-trans-gl-search"
                     type="search"
                     placeholder="Type voucher # (partial match)…"
                     value={generalLedgerVoucherSearch}
                     onChange={(e) => setGeneralLedgerVoucherSearch(e.target.value)}
                     autoComplete="off"
-                    style={{
-                      flex: '1 1 16rem',
-                      maxWidth: '24rem',
-                      padding: '0.5rem 0.75rem',
-                      fontSize: '0.875rem',
-                      border: '1px solid #cbd5e1',
-                      borderRadius: '0.375rem',
-                      background: '#fff'
-                    }}
                   />
                   {generalLedgerVoucherSearch.trim() ? (
                     <button
                       type="button"
+                      className="other-trans-gl-clear-btn"
                       onClick={() => setGeneralLedgerVoucherSearch('')}
-                      style={{
-                        padding: '0.5rem 0.9rem',
-                        fontSize: '0.8125rem',
-                        fontWeight: '600',
-                        color: '#475569',
-                        background: '#e2e8f0',
-                        border: 'none',
-                        borderRadius: '0.375rem',
-                        cursor: 'pointer'
-                      }}
                     >
                       Clear
                     </button>
                   ) : null}
                 </div>
                 {displayGeneralLedgerEntries.isFiltered && displayGeneralLedgerEntries.rows.length === 0 ? (
-                  <div style={{ padding: '2rem 1.5rem', textAlign: 'center', color: '#6b7280', fontSize: '0.9375rem' }}>
+                  <div className="other-trans-empty-state" style={{ border: 'none', boxShadow: 'none', borderRadius: 0 }}>
                     No general ledger lines match voucher &quot;{generalLedgerVoucherSearch.trim()}&quot;.
                   </div>
                 ) : (
                   <>
-                    <div style={{ overflowX: 'auto' }}>
-                      <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                    <div className="other-trans-table-wrap">
+                      <table className="other-trans-data-table">
                         <thead>
-                          <tr style={{ background: '#f9fafb' }}>
-                            <th style={{ padding: '0.75rem 1rem', textAlign: 'left', fontSize: '0.875rem', fontWeight: '600', color: '#374151', borderBottom: '1px solid #e5e7eb' }}>Date</th>
-                            <th style={{ padding: '0.75rem 1rem', textAlign: 'left', fontSize: '0.875rem', fontWeight: '600', color: '#374151', borderBottom: '1px solid #e5e7eb' }}>Voucher #</th>
-                            <th style={{ padding: '0.75rem 1rem', textAlign: 'left', fontSize: '0.875rem', fontWeight: '600', color: '#374151', borderBottom: '1px solid #e5e7eb' }}>Account Code</th>
-                            <th style={{ padding: '0.75rem 1rem', textAlign: 'left', fontSize: '0.875rem', fontWeight: '600', color: '#374151', borderBottom: '1px solid #e5e7eb' }}>Account Name</th>
-                            <th style={{ padding: '0.75rem 1rem', textAlign: 'right', fontSize: '0.875rem', fontWeight: '600', color: '#374151', borderBottom: '1px solid #e5e7eb' }}>Debit</th>
-                            <th style={{ padding: '0.75rem 1rem', textAlign: 'right', fontSize: '0.875rem', fontWeight: '600', color: '#374151', borderBottom: '1px solid #e5e7eb' }}>Credit</th>
-                            <th style={{ padding: '0.75rem 1rem', textAlign: 'left', fontSize: '0.875rem', fontWeight: '600', color: '#374151', borderBottom: '1px solid #e5e7eb' }}>Description</th>
-                            <th style={{ padding: '0.75rem 1rem', textAlign: 'left', fontSize: '0.875rem', fontWeight: '600', color: '#374151', borderBottom: '1px solid #e5e7eb' }}>Status</th>
+                          <tr>
+                            <th>Date</th>
+                            <th>Voucher #</th>
+                            <th>Account Code</th>
+                            <th>Account Name</th>
+                            <th className="text-right">Debit</th>
+                            <th className="text-right">Credit</th>
+                            <th>Description</th>
+                            <th>Status</th>
                           </tr>
                         </thead>
                         <tbody>
                           {displayGeneralLedgerEntries.rows.map((entry, index) => (
-                            <tr key={entry.id || index} style={{ 
-                              borderBottom: '1px solid #e5e7eb',
-                              transition: 'all 0.2s ease'
-                            }}
-                            onMouseEnter={(e) => {
-                              e.currentTarget.style.background = '#f9fafb';
-                            }}
-                            onMouseLeave={(e) => {
-                              e.currentTarget.style.background = 'white';
-                            }}
-                            >
-                              <td style={{ padding: '0.75rem 1rem', fontSize: '0.875rem', color: '#6b7280' }}>
+                            <tr key={entry.id || index}>
+                              <td style={{ color: '#64748b' }}>
                                 {(() => {
                                   const dateToDisplay = entry.transaction_date || entry.date || null;
                                   return dateToDisplay ? dateToDisplay.substring(0, 10) : 'N/A';
                                 })()}
                               </td>
-                              <td style={{ padding: '0.75rem 1rem', fontSize: '0.875rem', fontWeight: '600', color: '#3b82f6' }}>
+                              <td className="other-trans-cell-voucher">
                                 {entry.reference || entry.voucher_number || 'N/A'}
                               </td>
-                              <td style={{ padding: '0.75rem 1rem', fontSize: '0.875rem', fontWeight: '600', color: '#1f2937' }}>
+                              <td style={{ fontWeight: 600, color: '#1f2937' }}>
                                 {entry.account_code || 'N/A'}
                               </td>
-                              <td style={{ padding: '0.75rem 1rem', fontSize: '0.875rem', color: '#374151' }}>
-                                {entry.account_name || 'N/A'}
-                              </td>
-                              <td style={{ padding: '0.75rem 1rem', fontSize: '0.875rem', textAlign: 'right', color: entry.debit > 0 ? '#059669' : '#6b7280', fontWeight: entry.debit > 0 ? '600' : '400' }}>
+                              <td>{entry.account_name || 'N/A'}</td>
+                              <td className={entry.debit > 0 ? 'other-trans-cell-debit' : 'other-trans-cell-muted'}>
                                 {entry.debit && entry.debit > 0 ? parseFloat(entry.debit).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : '0.00'}
                               </td>
-                              <td style={{ padding: '0.75rem 1rem', fontSize: '0.875rem', textAlign: 'right', color: entry.credit > 0 ? '#dc2626' : '#6b7280', fontWeight: entry.credit > 0 ? '600' : '400' }}>
+                              <td className={entry.credit > 0 ? 'other-trans-cell-credit' : 'other-trans-cell-muted'}>
                                 {entry.credit && entry.credit > 0 ? parseFloat(entry.credit).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : '0.00'}
                               </td>
-                              <td style={{ padding: '0.75rem 1rem', fontSize: '0.875rem', color: '#6b7280' }}>
-                                {entry.description || 'N/A'}
-                              </td>
-                              <td style={{ padding: '0.75rem 1rem' }}>
-                                <span style={{
-                                  padding: '0.25rem 0.75rem',
-                                  borderRadius: '9999px',
-                                  fontSize: '0.75rem',
-                                  fontWeight: '600',
-                                  background: entry.status === 'Posted' ? '#d1fae5' : '#fee2e2',
-                                  color: entry.status === 'Posted' ? '#065f46' : '#991b1b'
-                                }}>
+                              <td style={{ color: '#64748b' }}>{entry.description || 'N/A'}</td>
+                              <td>
+                                <span className={`other-trans-status-badge ${entry.status === 'Posted' ? 'posted' : 'other'}`}>
                                   {entry.status || 'Unknown'}
                                 </span>
                               </td>
@@ -6825,40 +6449,20 @@ const isVoucherSettled = (voucher) => {
                       </table>
                     </div>
                     {displayGeneralLedgerEntries.totalPages > 1 && (
-                      <div
-                        style={{
-                          padding: '1rem 1.25rem',
-                          borderTop: '1px solid #e5e7eb',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'space-between',
-                          gap: '0.75rem',
-                          flexWrap: 'wrap',
-                          background: '#fff'
-                        }}
-                      >
-                        <div style={{ color: '#6b7280', fontSize: '0.875rem' }}>
+                      <div className="other-trans-pagination">
+                        <div className="other-trans-pagination-info">
                           Showing {displayGeneralLedgerEntries.indexOfFirst + 1}-{displayGeneralLedgerEntries.indexOfLast} of{' '}
                           {displayGeneralLedgerEntries.totalCount}
                         </div>
 
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
+                        <div className="other-trans-pagination-controls">
                           <button
                             type="button"
+                            className="other-trans-page-btn"
                             onClick={() =>
                               setGeneralLedgerCurrentPage((p) => Math.max(1, p - 1))
                             }
                             disabled={displayGeneralLedgerEntries.currentPage === 1}
-                            style={{
-                              padding: '0.4rem 0.75rem',
-                              border: '1px solid #cbd5e1',
-                              background: displayGeneralLedgerEntries.currentPage === 1 ? '#f1f5f9' : '#fff',
-                              color: '#334155',
-                              borderRadius: '0.375rem',
-                              cursor: displayGeneralLedgerEntries.currentPage === 1 ? 'not-allowed' : 'pointer',
-                              fontSize: '0.8125rem',
-                              fontWeight: 600
-                            }}
                           >
                             Previous
                           </button>
@@ -6899,18 +6503,8 @@ const isVoucherSettled = (voucher) => {
                                 <button
                                   key={item.n}
                                   type="button"
+                                  className={`other-trans-page-btn${isActive ? ' active' : ''}`}
                                   onClick={() => setGeneralLedgerCurrentPage(item.n)}
-                                  style={{
-                                    minWidth: 34,
-                                    padding: '0.4rem 0.6rem',
-                                    border: '1px solid ' + (isActive ? '#2563eb' : '#cbd5e1'),
-                                    background: isActive ? '#2563eb' : '#fff',
-                                    color: isActive ? '#fff' : '#334155',
-                                    borderRadius: '0.375rem',
-                                    cursor: 'pointer',
-                                    fontSize: '0.8125rem',
-                                    fontWeight: 700
-                                  }}
                                 >
                                   {item.n}
                                 </button>
@@ -6920,6 +6514,7 @@ const isVoucherSettled = (voucher) => {
 
                           <button
                             type="button"
+                            className="other-trans-page-btn"
                             onClick={() =>
                               setGeneralLedgerCurrentPage((p) =>
                                 Math.min(displayGeneralLedgerEntries.totalPages, p + 1)
@@ -6929,29 +6524,11 @@ const isVoucherSettled = (voucher) => {
                               displayGeneralLedgerEntries.currentPage ===
                               displayGeneralLedgerEntries.totalPages
                             }
-                            style={{
-                              padding: '0.4rem 0.75rem',
-                              border: '1px solid #cbd5e1',
-                              background:
-                                displayGeneralLedgerEntries.currentPage ===
-                                displayGeneralLedgerEntries.totalPages
-                                  ? '#f1f5f9'
-                                  : '#fff',
-                              color: '#334155',
-                              borderRadius: '0.375rem',
-                              cursor:
-                                displayGeneralLedgerEntries.currentPage ===
-                                displayGeneralLedgerEntries.totalPages
-                                  ? 'not-allowed'
-                                  : 'pointer',
-                              fontSize: '0.8125rem',
-                              fontWeight: 600
-                            }}
                           >
                             Next
                           </button>
 
-                          <div style={{ color: '#6b7280', fontSize: '0.8125rem', marginLeft: '0.25rem' }}>
+                          <div className="other-trans-pagination-info" style={{ marginLeft: '0.25rem' }}>
                             Page {displayGeneralLedgerEntries.currentPage} of {displayGeneralLedgerEntries.totalPages}
                           </div>
                         </div>
@@ -6967,7 +6544,7 @@ const isVoucherSettled = (voucher) => {
           <div className="other-trans-form-card">
             <div className="other-trans-card-header">
               <h2 className="other-trans-card-title">Reverse Transaction</h2>
-              <p style={{ color: '#ffffff', fontSize: '0.875rem', marginTop: '0.5rem', textAlign: 'center' }}>
+              <p className="other-trans-card-subtitle">
                 Reverse or cancel an existing transaction by creating an opposite entry
               </p>
             </div>
