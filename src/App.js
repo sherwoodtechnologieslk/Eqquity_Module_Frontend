@@ -115,6 +115,10 @@ import CSESectorIndicesPage from './components/ChartsAndInsights/CSESectorIndice
 import AssetRegister from './components/FixedAssets/AssetRegister';
 import AssetEntry from './components/FixedAssets/AssetEntry';
 import AssetCategories from './components/FixedAssets/AssetCategories';
+
+// TODO: re-enable when Agent Blux is ready for production
+const BLUX_ENABLED = false;
+
 function App() {
   const [activeTab, setActiveTab] = useState('Dashboard');
   const [activeSidebarItem, setActiveSidebarItem] = useState(0);
@@ -426,13 +430,17 @@ function App() {
         onClose={() => setIsProfileModalOpen(false)}
       />
 
-      <AIAssistantDock
-        open={aiAssistantOpen}
-        onClose={() => setAiAssistantOpen(false)}
-      />
+      {BLUX_ENABLED && (
+        <>
+          <AIAssistantDock
+            open={aiAssistantOpen}
+            onClose={() => setAiAssistantOpen(false)}
+          />
 
-      {selectedManager === 'equity' && (
-        <GlobalBlux onOpenAIAssistant={() => setAiAssistantOpen(true)} />
+          {selectedManager === 'equity' && (
+            <GlobalBlux onOpenAIAssistant={() => setAiAssistantOpen(true)} />
+          )}
+        </>
       )}
     </div>
   );
