@@ -954,6 +954,10 @@ const OtherTransactions = () => {
   const [glToGlCreditLines, setGlToGlCreditLines] = useState(() => [
     { id: newGlJournalLineId(), accountCode: '', accountName: '', amount: '' }
   ]);
+  const [glToGlDebitFixed, setGlToGlDebitFixed] = useState(false);
+  const [glToGlCreditFixed, setGlToGlCreditFixed] = useState(false);
+  const [glToGlDebitFixMessage, setGlToGlDebitFixMessage] = useState('');
+  const [glToGlCreditFixMessage, setGlToGlCreditFixMessage] = useState('');
   
   // Transaction types for Liability Settlement form
   const [transactionTypesForLiabilitySettlement, setTransactionTypesForLiabilitySettlement] = useState([]);
@@ -2351,12 +2355,157 @@ const OtherTransactions = () => {
     setSubmitMessage('');
   };
 
+  const parseGlToGlLineAmount = (raw) => {
+    const n = parseFloat(String(raw || '').replace(/,/g, ''));
+    return Number.isFinite(n) ? n : NaN;
+  };
+
+  const glToGlLineIsFilled = (line) => {
+    const code = (line.accountCode || '').trim();
+    const amt = parseGlToGlLineAmount(line.amount);
+    return code && Number.isFinite(amt) && amt > 0;
+  };
+
+  const validateGlToGlJournalLines = (debitLines, creditLines) => {
+    const debitTotals = debitLines.map((line) => ({
+      code: (line.accountCode || '').trim(),
+      amt: parseGlToGlLineAmount(line.amount)
+    }));
+    const creditTotals = creditLines.map((line) => ({
+      code: (line.accountCode || '').trim(),
+      amt: parseGlToGlLineAmount(line.amount)
+    }));
+
+    const incompleteDebit = debitTotals.some(
+      (d) =>
+        (d.code && (!Number.isFinite(d.amt) || d.amt <= 0)) ||
+        (Number.isFinite(d.amt) && d.amt > 0 && !d.code)
+    );
+    const incompleteCredit = creditTotals.some(
+      (c) =>
+        (c.code && (!Number.isFinite(c.amt) || c.amt <= 0)) ||
+        (Number.isFinite(c.amt) && c.amt > 0 && !c.code)
+    );
+
+    if (incompleteDebit || incompleteCredit) {
+      return {
+        valid: false,
+        error: 'Each debit/credit line with an account must have a positive amount, and amounts require an account code.'
+      };
+    }
+
+    const filledDebitCount = debitLines.filter(glToGlLineIsFilled).length;
+    const filledCreditCount = creditLines.filter(glToGlLineIsFilled).length;
+    const sumDr = debitTotals.reduce(
+      (s, d) => s + (d.code && Number.isFinite(d.amt) ? d.amt : 0),
+      0
+    );
+    const sumCr = creditTotals.reduce(
+      (s, c) => s + (c.code && Number.isFinite(c.amt) ? c.amt : 0),
+      0
+    );
+
+    if (filledDebitCount === 0 || filledCreditCount === 0) {
+      return {
+        valid: false,
+        error: 'Add at least one debit line and one credit line with account codes and amounts.'
+      };
+    }
+
+    if (Math.abs(sumDr - sumCr) > 0.009) {
+      return {
+        valid: false,
+        error: `Total debits (${sumDr.toFixed(2)}) must equal total credits (${sumCr.toFixed(2)}).`
+      };
+    }
+
+    if (sumDr <= 0) {
+      return { valid: false, error: 'Total debit amount must be greater than zero.' };
+    }
+
+    return { valid: true, sumDr, sumCr };
+  };
+
+  const validateGlToGlSideLines = (lines, sideLabel) => {
+    const totals = lines.map((line) => ({
+      code: (line.accountCode || '').trim(),
+      amt: parseGlToGlLineAmount(line.amount)
+    }));
+
+    const incomplete = totals.some(
+      (row) =>
+        (row.code && (!Number.isFinite(row.amt) || row.amt <= 0)) ||
+        (Number.isFinite(row.amt) && row.amt > 0 && !row.code)
+    );
+
+    if (incomplete) {
+      return {
+        valid: false,
+        error: `Each ${sideLabel} line needs an account code and a positive amount.`
+      };
+    }
+
+    const filledCount = lines.filter(glToGlLineIsFilled).length;
+    if (filledCount === 0) {
+      return {
+        valid: false,
+        error: `Add at least one ${sideLabel} line with an account code and amount.`
+      };
+    }
+
+    const sum = totals.reduce(
+      (s, row) => s + (row.code && Number.isFinite(row.amt) ? row.amt : 0),
+      0
+    );
+
+    if (sum <= 0) {
+      return { valid: false, error: `${sideLabel} total must be greater than zero.` };
+    }
+
+    return { valid: true, sum };
+  };
+
   const handleGlToGlHeaderChange = (e) => {
     const { name, value } = e.target;
     setGlToGlForm(prev => ({ ...prev, [name]: value }));
   };
 
+  const handleGlToGlFixDebitLines = () => {
+    const result = validateGlToGlSideLines(glToGlDebitLines, 'debit');
+    if (!result.valid) {
+      setGlToGlDebitFixMessage(result.error);
+      setGlToGlDebitFixed(false);
+      return;
+    }
+    setGlToGlDebitFixed(true);
+    setGlToGlDebitFixMessage('Debit lines saved.');
+    setSubmitMessage('');
+  };
+
+  const handleGlToGlFixCreditLines = () => {
+    const result = validateGlToGlSideLines(glToGlCreditLines, 'credit');
+    if (!result.valid) {
+      setGlToGlCreditFixMessage(result.error);
+      setGlToGlCreditFixed(false);
+      return;
+    }
+    setGlToGlCreditFixed(true);
+    setGlToGlCreditFixMessage('Credit lines saved.');
+    setSubmitMessage('');
+  };
+
+  const handleGlToGlUnlockDebitLines = () => {
+    setGlToGlDebitFixed(false);
+    setGlToGlDebitFixMessage('');
+  };
+
+  const handleGlToGlUnlockCreditLines = () => {
+    setGlToGlCreditFixed(false);
+    setGlToGlCreditFixMessage('');
+  };
+
   const handleGlToGlDebitLineChange = (lineId, field, value) => {
+    if (glToGlDebitFixed) return;
     setGlToGlDebitLines(prev =>
       prev.map(line => {
         if (line.id !== lineId) return line;
@@ -2375,6 +2524,7 @@ const OtherTransactions = () => {
   };
 
   const handleGlToGlCreditLineChange = (lineId, field, value) => {
+    if (glToGlCreditFixed) return;
     setGlToGlCreditLines(prev =>
       prev.map(line => {
         if (line.id !== lineId) return line;
@@ -2393,6 +2543,7 @@ const OtherTransactions = () => {
   };
 
   const addGlToGlDebitLine = () => {
+    if (glToGlDebitFixed) return;
     setGlToGlDebitLines(prev => [
       ...prev,
       { id: newGlJournalLineId(), accountCode: '', accountName: '', amount: '' }
@@ -2400,6 +2551,7 @@ const OtherTransactions = () => {
   };
 
   const addGlToGlCreditLine = () => {
+    if (glToGlCreditFixed) return;
     setGlToGlCreditLines(prev => [
       ...prev,
       { id: newGlJournalLineId(), accountCode: '', accountName: '', amount: '' }
@@ -2407,10 +2559,12 @@ const OtherTransactions = () => {
   };
 
   const removeGlToGlDebitLine = (lineId) => {
+    if (glToGlDebitFixed) return;
     setGlToGlDebitLines(prev => (prev.length <= 1 ? prev : prev.filter(l => l.id !== lineId)));
   };
 
   const removeGlToGlCreditLine = (lineId) => {
+    if (glToGlCreditFixed) return;
     setGlToGlCreditLines(prev => (prev.length <= 1 ? prev : prev.filter(l => l.id !== lineId)));
   };
 
@@ -2424,87 +2578,46 @@ const OtherTransactions = () => {
     });
     setGlToGlDebitLines([{ id: newGlJournalLineId(), accountCode: '', accountName: '', amount: '' }]);
     setGlToGlCreditLines([{ id: newGlJournalLineId(), accountCode: '', accountName: '', amount: '' }]);
+    setGlToGlDebitFixed(false);
+    setGlToGlCreditFixed(false);
+    setGlToGlDebitFixMessage('');
+    setGlToGlCreditFixMessage('');
     setSubmitMessage('');
   };
 
   const handleGlToGlSubmit = async (e) => {
     e.preventDefault();
 
-    const parseLineAmount = (raw) => {
-      const n = parseFloat(String(raw || '').replace(/,/g, ''));
-      return Number.isFinite(n) ? n : NaN;
-    };
-
-    const debitTotals = glToGlDebitLines.map((line, idx) => ({
-      idx,
-      code: (line.accountCode || '').trim(),
-      name: (line.accountName || '').trim(),
-      amt: parseLineAmount(line.amount)
-    }));
-    const creditTotals = glToGlCreditLines.map((line, idx) => ({
-      idx,
-      code: (line.accountCode || '').trim(),
-      name: (line.accountName || '').trim(),
-      amt: parseLineAmount(line.amount)
-    }));
-
-    const incompleteDebit = debitTotals.some(
-      d =>
-        (d.code && (!Number.isFinite(d.amt) || d.amt <= 0)) ||
-        (Number.isFinite(d.amt) && d.amt > 0 && !d.code)
-    );
-    const incompleteCredit = creditTotals.some(
-      c =>
-        (c.code && (!Number.isFinite(c.amt) || c.amt <= 0)) ||
-        (Number.isFinite(c.amt) && c.amt > 0 && !c.code)
-    );
-
-    if (incompleteDebit || incompleteCredit) {
-      setSubmitMessage('Error: Each debit/credit line with an account must have a positive amount, and amounts require an account code.');
+    if (!glToGlDebitFixed || !glToGlCreditFixed) {
+      setSubmitMessage('Error: Save both debit and credit lines before posting.');
       return;
     }
 
-    const lineIsFilled = (line) => {
-      const code = (line.accountCode || '').trim();
-      const amt = parseLineAmount(line.amount);
-      return code && Number.isFinite(amt) && amt > 0;
-    };
-    const filledDebitCount = glToGlDebitLines.filter(lineIsFilled).length;
-    const filledCreditCount = glToGlCreditLines.filter(lineIsFilled).length;
-
-    const sumDr = debitTotals.reduce((s, d) => s + (d.code && Number.isFinite(d.amt) ? d.amt : 0), 0);
-    const sumCr = creditTotals.reduce((s, c) => s + (c.code && Number.isFinite(c.amt) ? c.amt : 0), 0);
-
-    if (filledDebitCount === 0 || filledCreditCount === 0) {
-      setSubmitMessage('Error: Add at least one debit line and one credit line with account codes and amounts.');
+    const journalCheck = validateGlToGlJournalLines(glToGlDebitLines, glToGlCreditLines);
+    if (!journalCheck.valid) {
+      setSubmitMessage(`Error: ${journalCheck.error}`);
+      setGlToGlDebitFixed(false);
+      setGlToGlCreditFixed(false);
+      setGlToGlDebitFixMessage('');
+      setGlToGlCreditFixMessage('');
       return;
     }
 
-    if (Math.abs(sumDr - sumCr) > 0.009) {
-      setSubmitMessage(
-        `Error: Total debits (${sumDr.toFixed(2)}) must equal total credits (${sumCr.toFixed(2)}).`
-      );
-      return;
-    }
-
-    if (sumDr <= 0) {
-      setSubmitMessage('Error: Total debit amount must be greater than zero.');
-      return;
-    }
+    const sumDr = journalCheck.sumDr;
 
     const glDebitLinesPayload = glToGlDebitLines
-      .filter(lineIsFilled)
+      .filter(glToGlLineIsFilled)
       .map((line) => ({
         accountCode: (line.accountCode || '').trim(),
         accountName: (line.accountName || '').trim() || null,
-        amount: parseLineAmount(line.amount)
+        amount: parseGlToGlLineAmount(line.amount)
       }));
     const glCreditLinesPayload = glToGlCreditLines
-      .filter(lineIsFilled)
+      .filter(glToGlLineIsFilled)
       .map((line) => ({
         accountCode: (line.accountCode || '').trim(),
         accountName: (line.accountName || '').trim() || null,
-        amount: parseLineAmount(line.amount)
+        amount: parseGlToGlLineAmount(line.amount)
       }));
 
     const d0 = glDebitLinesPayload[0];
@@ -4099,7 +4212,30 @@ const isVoucherSettled = (voucher) => {
                 {/* Debit lines */}
                 <div className="other-trans-field-group" style={{ gridColumn: '1 / -1' }}>
                   <div className="other-trans-gl2gl-section-header">
-                    <label className="other-trans-field-label" style={{ marginBottom: 0 }}>Debit lines</label>
+                    <div className="other-trans-gl2gl-section-title-row">
+                      <label className="other-trans-field-label other-trans-gl2gl-section-label">Debit lines</label>
+                      {glToGlDebitFixed ? (
+                        <>
+                          <span className="other-trans-gl2gl-fixed-badge">Saved</span>
+                          <button
+                            type="button"
+                            className="other-trans-gl2gl-edit-lines-btn"
+                            onClick={handleGlToGlUnlockDebitLines}
+                          >
+                            Edit
+                          </button>
+                        </>
+                      ) : (
+                        <button
+                          type="button"
+                          className="other-trans-gl2gl-save-lines-btn"
+                          onClick={handleGlToGlFixDebitLines}
+                        >
+                          Save
+                        </button>
+                      )}
+                    </div>
+                    {!glToGlDebitFixed && (
                     <button
                       type="button"
                       onClick={addGlToGlDebitLine}
@@ -4107,7 +4243,17 @@ const isVoucherSettled = (voucher) => {
                     >
                       + Add debit line
                     </button>
+                    )}
                   </div>
+                  {glToGlDebitFixMessage && (
+                    <p
+                      className={`other-trans-gl2gl-side-fix-message${
+                        glToGlDebitFixed ? ' other-trans-gl2gl-fix-message--ok' : ' other-trans-gl2gl-fix-message--err'
+                      }`}
+                    >
+                      {glToGlDebitFixMessage}
+                    </p>
+                  )}
                   <datalist id="glToGlDebitAccounts">
                     {chartAccounts.map((a) => (
                       <option key={`dr-${a.account_code}`} value={a.account_code}>
@@ -4119,11 +4265,11 @@ const isVoucherSettled = (voucher) => {
                     {glToGlDebitLines.map((line, idx) => (
                       <div
                         key={line.id}
-                        className="other-trans-gl2gl-line-card"
+                        className={`other-trans-gl2gl-line-card${glToGlDebitFixed ? ' other-trans-gl2gl-line-card--locked' : ''}`}
                       >
                         <div className="other-trans-gl2gl-line-card-header">
                           <span className="other-trans-gl2gl-line-title">Debit line {idx + 1}</span>
-                          {glToGlDebitLines.length > 1 && (
+                          {!glToGlDebitFixed && glToGlDebitLines.length > 1 && (
                             <button
                               type="button"
                               onClick={() => removeGlToGlDebitLine(line.id)}
@@ -4140,8 +4286,9 @@ const isVoucherSettled = (voucher) => {
                               value={line.accountCode}
                               onChange={(e) => handleGlToGlDebitLineChange(line.id, 'accountCode', e.target.value)}
                               className="other-trans-form-input"
-                              list="glToGlDebitAccounts"
+                              list={glToGlDebitFixed ? undefined : 'glToGlDebitAccounts'}
                               placeholder={chartAccountsLoading ? 'Loading…' : 'Account code'}
+                              readOnly={glToGlDebitFixed}
                             />
                           </div>
                           <div className="other-trans-field-group">
@@ -4154,6 +4301,7 @@ const isVoucherSettled = (voucher) => {
                               step="0.01"
                               min="0"
                               placeholder="0.00"
+                              readOnly={glToGlDebitFixed}
                             />
                           </div>
                           <div className="other-trans-field-group" style={{ gridColumn: '1 / -1' }}>
@@ -4163,6 +4311,7 @@ const isVoucherSettled = (voucher) => {
                               onChange={(e) => handleGlToGlDebitLineChange(line.id, 'accountName', e.target.value)}
                               className="other-trans-form-input"
                               placeholder="Defaults from Chart of Accounts when code matches"
+                              readOnly={glToGlDebitFixed}
                             />
                           </div>
                         </div>
@@ -4174,7 +4323,30 @@ const isVoucherSettled = (voucher) => {
                 {/* Credit lines */}
                 <div className="other-trans-field-group" style={{ gridColumn: '1 / -1' }}>
                   <div className="other-trans-gl2gl-section-header">
-                    <label className="other-trans-field-label" style={{ marginBottom: 0 }}>Credit lines</label>
+                    <div className="other-trans-gl2gl-section-title-row">
+                      <label className="other-trans-field-label other-trans-gl2gl-section-label">Credit lines</label>
+                      {glToGlCreditFixed ? (
+                        <>
+                          <span className="other-trans-gl2gl-fixed-badge">Saved</span>
+                          <button
+                            type="button"
+                            className="other-trans-gl2gl-edit-lines-btn"
+                            onClick={handleGlToGlUnlockCreditLines}
+                          >
+                            Edit
+                          </button>
+                        </>
+                      ) : (
+                        <button
+                          type="button"
+                          className="other-trans-gl2gl-save-lines-btn"
+                          onClick={handleGlToGlFixCreditLines}
+                        >
+                          Save
+                        </button>
+                      )}
+                    </div>
+                    {!glToGlCreditFixed && (
                     <button
                       type="button"
                       onClick={addGlToGlCreditLine}
@@ -4182,7 +4354,17 @@ const isVoucherSettled = (voucher) => {
                     >
                       + Add credit line
                     </button>
+                    )}
                   </div>
+                  {glToGlCreditFixMessage && (
+                    <p
+                      className={`other-trans-gl2gl-side-fix-message${
+                        glToGlCreditFixed ? ' other-trans-gl2gl-fix-message--ok' : ' other-trans-gl2gl-fix-message--err'
+                      }`}
+                    >
+                      {glToGlCreditFixMessage}
+                    </p>
+                  )}
                   <datalist id="glToGlCreditAccounts">
                     {chartAccounts.map((a) => (
                       <option key={`cr-${a.account_code}`} value={a.account_code}>
@@ -4194,11 +4376,11 @@ const isVoucherSettled = (voucher) => {
                     {glToGlCreditLines.map((line, idx) => (
                       <div
                         key={line.id}
-                        className="other-trans-gl2gl-line-card"
+                        className={`other-trans-gl2gl-line-card${glToGlCreditFixed ? ' other-trans-gl2gl-line-card--locked' : ''}`}
                       >
                         <div className="other-trans-gl2gl-line-card-header">
                           <span className="other-trans-gl2gl-line-title">Credit line {idx + 1}</span>
-                          {glToGlCreditLines.length > 1 && (
+                          {!glToGlCreditFixed && glToGlCreditLines.length > 1 && (
                             <button
                               type="button"
                               onClick={() => removeGlToGlCreditLine(line.id)}
@@ -4215,8 +4397,9 @@ const isVoucherSettled = (voucher) => {
                               value={line.accountCode}
                               onChange={(e) => handleGlToGlCreditLineChange(line.id, 'accountCode', e.target.value)}
                               className="other-trans-form-input"
-                              list="glToGlCreditAccounts"
+                              list={glToGlCreditFixed ? undefined : 'glToGlCreditAccounts'}
                               placeholder={chartAccountsLoading ? 'Loading…' : 'Account code'}
+                              readOnly={glToGlCreditFixed}
                             />
                           </div>
                           <div className="other-trans-field-group">
@@ -4229,6 +4412,7 @@ const isVoucherSettled = (voucher) => {
                               step="0.01"
                               min="0"
                               placeholder="0.00"
+                              readOnly={glToGlCreditFixed}
                             />
                           </div>
                           <div className="other-trans-field-group" style={{ gridColumn: '1 / -1' }}>
@@ -4238,6 +4422,7 @@ const isVoucherSettled = (voucher) => {
                               onChange={(e) => handleGlToGlCreditLineChange(line.id, 'accountName', e.target.value)}
                               className="other-trans-form-input"
                               placeholder="Defaults from Chart of Accounts when code matches"
+                              readOnly={glToGlCreditFixed}
                             />
                           </div>
                         </div>
@@ -4247,7 +4432,7 @@ const isVoucherSettled = (voucher) => {
                 </div>
 
                 <p className="other-trans-gl2gl-helper">
-                  Totals must match before posting. Extra blank rows are ignored. All filled debit and credit lines are saved as one voucher with multiple GL lines.
+                  Use <strong>Save</strong> beside Debit lines and Credit lines to lock each side locally. Totals must match before posting.
                 </p>
 
                 {/* Description */}
