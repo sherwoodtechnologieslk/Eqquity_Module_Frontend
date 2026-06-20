@@ -3,7 +3,15 @@ import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import './Styles/AccountDetailsModal.css';
 
-const AccountDetailsModal = ({ isOpen, onClose, accountCode, accountData, loadError, detailSource }) => {
+const AccountDetailsModal = ({
+  isOpen,
+  onClose,
+  accountCode,
+  accountData,
+  loadError,
+  detailSource,
+  softHeader = false,
+}) => {
   const [isVisible, setIsVisible] = useState(false);
 
   useEffect(() => {
@@ -28,9 +36,61 @@ const AccountDetailsModal = ({ isOpen, onClose, accountCode, accountData, loadEr
     }).format(amount || 0);
   };
 
-  const formatDate = (dateString) => {
-    return new Date(dateString).toLocaleDateString('en-US');
+  const FULL_RANGE_START = '1900-01-01';
+  const FULL_RANGE_END = '2999-12-31';
+
+  const isOpenPeriodStart = (value) => {
+    const s = value != null ? String(value).trim() : '';
+    return !s || s <= FULL_RANGE_START;
   };
+
+  const isOpenPeriodEnd = (value) => {
+    const s = value != null ? String(value).trim() : '';
+    return !s || s >= '2999-01-01';
+  };
+
+  const formatLocalDate = (dateString) => {
+    if (dateString == null || String(dateString).trim() === '') return '';
+    const s = String(dateString).trim();
+    const m = s.match(/^(\d{4})-(\d{2})-(\d{2})/);
+    if (m) {
+      const y = Number(m[1]);
+      const mo = Number(m[2]);
+      const d = Number(m[3]);
+      const local = new Date(y, mo - 1, d);
+      if (!Number.isNaN(local.getTime())) {
+        return local.toLocaleDateString('en-US');
+      }
+    }
+    const parsed = new Date(s);
+    if (Number.isNaN(parsed.getTime())) return s;
+    return parsed.toLocaleDateString('en-US');
+  };
+
+  const formatPeriodStartDisplay = (startDate, endDate) => {
+    const start = startDate != null ? String(startDate).trim() : '';
+    const end = endDate != null ? String(endDate).trim() : '';
+    if (!start && !end) return 'All dates';
+    if (isOpenPeriodStart(start)) return 'Earliest';
+    return formatLocalDate(start);
+  };
+
+  const formatPeriodEndDisplay = (startDate, endDate) => {
+    const start = startDate != null ? String(startDate).trim() : '';
+    const end = endDate != null ? String(endDate).trim() : '';
+    if (!start && !end) return 'All dates';
+    if (isOpenPeriodEnd(end)) return 'Latest';
+    return formatLocalDate(end);
+  };
+
+  const formatPeriodRangeLabel = (startDate, endDate) => {
+    const startLabel = formatPeriodStartDisplay(startDate, endDate);
+    const endLabel = formatPeriodEndDisplay(startDate, endDate);
+    if (startLabel === 'All dates' && endLabel === 'All dates') return 'All dates';
+    return `${startLabel} - ${endLabel}`;
+  };
+
+  const formatDate = (dateString) => formatLocalDate(dateString);
 
   const csvEscape = (value) => {
     const s = value == null ? '' : String(value);
@@ -52,8 +112,11 @@ const AccountDetailsModal = ({ isOpen, onClose, accountCode, accountData, loadEr
     const subtitle = [
       detailSource ? String(detailSource) : null,
       code ? `Account: ${code}${name ? ` — ${name}` : ''}` : null,
-      accountData.period?.startDate && accountData.period?.endDate
-        ? `Period: ${formatDate(accountData.period.startDate)} - ${formatDate(accountData.period.endDate)}`
+      accountData.period?.startDate != null || accountData.period?.endDate != null
+        ? `Period: ${formatPeriodRangeLabel(
+            accountData.period?.startDate,
+            accountData.period?.endDate
+          )}`
         : null
     ]
       .filter(Boolean)
@@ -150,7 +213,9 @@ const AccountDetailsModal = ({ isOpen, onClose, accountCode, accountData, loadEr
     <div className={`account-modal-overlay ${isVisible ? 'visible' : ''}`} onClick={handleClose}>
       <div className={`account-modal-content ${isVisible ? 'visible' : ''}`} onClick={e => e.stopPropagation()}>
         <div className="account-modal-form-card">
-          <div className="account-modal-header">
+          <div
+            className={`account-modal-header${softHeader ? ' account-modal-header--soft' : ''}`}
+          >
             <div className="account-modal-header-icon">
               <svg viewBox="0 0 24 24" fill="currentColor" className="account-modal-icon">
                 <path d="M12 2C13.1 2 14 2.9 14 4C14 5.1 13.1 6 12 6C10.9 6 10 5.1 10 4C10 2.9 10.9 2 12 2ZM21 9V7L15 1H5C3.89 1 3 1.89 3 3V21C3 22.11 3.89 23 5 23H11V21H5V3H13V9H21ZM20.05 19L18.64 17.59L17.23 19L18.64 20.41L20.05 19ZM22.88 17.58L20.07 14.77C19.68 14.38 19.05 14.38 18.66 14.77L16.95 16.48L20.17 19.7L21.88 17.99C22.27 17.6 22.27 16.97 21.88 16.58Z"/>
@@ -281,11 +346,21 @@ const AccountDetailsModal = ({ isOpen, onClose, accountCode, accountData, loadEr
                     <div className="period-grid">
                       <div className="period-item">
                         <span className="period-label">Start Date:</span>
-                        <span className="period-value">{formatDate(accountData.period?.startDate)}</span>
+                        <span className="period-value">
+                          {formatPeriodStartDisplay(
+                            accountData.period?.startDate,
+                            accountData.period?.endDate
+                          )}
+                        </span>
                       </div>
                       <div className="period-item">
                         <span className="period-label">End Date:</span>
-                        <span className="period-value">{formatDate(accountData.period?.endDate)}</span>
+                        <span className="period-value">
+                          {formatPeriodEndDisplay(
+                            accountData.period?.startDate,
+                            accountData.period?.endDate
+                          )}
+                        </span>
                       </div>
                       <div className="period-item">
                         <span className="period-label">Portfolio:</span>

@@ -193,7 +193,6 @@ const CombinedGL = ({ onTabChange }) => {
       }
 
       const rows = filteredEntries.map((e) => ([
-        e.source || '',
         formatDateDisplay(e.date) || '',
         e.account_code || '',
         e.account_name || '',
@@ -203,13 +202,13 @@ const CombinedGL = ({ onTabChange }) => {
         formatNumber(e.credit),
         formatNumber(e.balance),
         e.transaction_type || '',
-        e.status || ''
+        e.status || '',
+        e.source || '',
       ]));
 
       autoTable(doc, {
         startY: filterSummary ? 92 : 80,
         head: [[
-          'Source',
           'Date',
           'Account Code',
           'Account Name',
@@ -219,7 +218,8 @@ const CombinedGL = ({ onTabChange }) => {
           'Credit',
           'Balance',
           'Type',
-          'Status'
+          'Status',
+          'Sources',
         ]],
         body: rows,
         styles: { fontSize: 8, cellPadding: 3, valign: 'middle' },
@@ -244,7 +244,6 @@ const CombinedGL = ({ onTabChange }) => {
       const stamp = new Date().toISOString().slice(0, 10);
 
       const data = filteredEntries.map((e) => ({
-        Source: e.source || '',
         Date: formatDateDisplay(e.date) || '',
         AccountCode: e.account_code || '',
         AccountName: e.account_name || '',
@@ -254,13 +253,13 @@ const CombinedGL = ({ onTabChange }) => {
         Credit: Number(e.credit) || 0,
         Balance: Number(e.balance) || 0,
         Type: e.transaction_type || '',
-        Status: e.status || ''
+        Status: e.status || '',
+        Sources: e.source || '',
       }));
 
       const ws = XLSX.utils.json_to_sheet(data);
       // Optional: set column widths for readability
       ws['!cols'] = [
-        { wch: 10 }, // Source
         { wch: 12 }, // Date
         { wch: 18 }, // AccountCode
         { wch: 28 }, // AccountName
@@ -270,7 +269,8 @@ const CombinedGL = ({ onTabChange }) => {
         { wch: 14 }, // Credit
         { wch: 14 }, // Balance
         { wch: 16 }, // Type
-        { wch: 12 }  // Status
+        { wch: 12 }, // Status
+        { wch: 10 }, // Sources
       ];
 
       const wb = XLSX.utils.book_new();
@@ -311,15 +311,6 @@ const CombinedGL = ({ onTabChange }) => {
       <div className="cgl-content-wrapper">
         {/* Header */}
         <div className="cgl-header-section">
-          <div className="cgl-header-icon">
-            <svg className="cgl-icon" fill="currentColor" viewBox="0 0 20 20">
-              <path
-                fillRule="evenodd"
-                d="M4 4a2 2 0 012-2h3a1 1 0 01.707.293l2 2A1 1 0 0112 5v1h4a1 1 0 011 1v9a1 1 0 01-1 1H4a1 1 0 01-1-1V5a1 1 0 011-1h1z"
-                clipRule="evenodd"
-              />
-            </svg>
-          </div>
           <div className="cgl-header-text-group">
             <h1 className="cgl-main-title">Combined General Ledger</h1>
             <p className="cgl-subtitle">
@@ -465,7 +456,6 @@ const CombinedGL = ({ onTabChange }) => {
                 <table className="cgl-ledger-table">
                   <thead>
                     <tr>
-                      <th>Source</th>
                       <th>Date</th>
                       <th>Account Code</th>
                       <th>Account Name</th>
@@ -476,26 +466,12 @@ const CombinedGL = ({ onTabChange }) => {
                       <th>Balance (LKR)</th>
                       <th>Type</th>
                       <th>Status</th>
+                      <th className="cgl-sources-header">Sources</th>
                     </tr>
                   </thead>
                   <tbody>
                     {currentEntries.map((entry) => (
                       <tr key={entry.id}>
-                        <td
-                          className="cgl-source-cell"
-                          onClick={() => {
-                            if (!onTabChange) return;
-                            if (entry.source === 'Equity') {
-                              onTabChange('General Ledger');
-                            } else if (entry.source === 'GSec') {
-                              onTabChange('GSec General Ledger');
-                            }
-                          }}
-                        >
-                          <span className="cgl-source" data-source={entry.source}>
-                            {entry.source}
-                          </span>
-                        </td>
                         <td className="cgl-date">{formatDateDisplay(entry.date)}</td>
                         <td className="cgl-account-code">{entry.account_code}</td>
                         <td className="cgl-account-name">{entry.account_name}</td>
@@ -517,6 +493,23 @@ const CombinedGL = ({ onTabChange }) => {
                         <td className="cgl-type">{entry.transaction_type}</td>
                         <td className="cgl-status">
                           {entry.source === 'Equity' ? entry.status || '-' : 'GSec'}
+                        </td>
+                        <td
+                          className="cgl-sources-cell"
+                          onClick={() => {
+                            if (!onTabChange) return;
+                            if (entry.source === 'Equity') {
+                              onTabChange('General Ledger');
+                            } else if (entry.source === 'GSec') {
+                              onTabChange('GSec General Ledger');
+                            }
+                          }}
+                        >
+                          <div className="cgl-sources-pills">
+                            <span className="cgl-source" data-source={entry.source}>
+                              {entry.source}
+                            </span>
+                          </div>
                         </td>
                       </tr>
                     ))}

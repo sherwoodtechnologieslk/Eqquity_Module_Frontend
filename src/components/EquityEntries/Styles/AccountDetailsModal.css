@@ -34,7 +34,7 @@
 /* Modal Content */
 .account-modal-content {
   background: #f8fafc;
-  border-radius: 18px;
+  border-radius: 0;
   box-shadow: 0 30px 70px -20px rgba(15, 23, 42, 0.45), 0 8px 24px rgba(15, 23, 42, 0.12);
   border: 1px solid rgba(226, 232, 240, 0.9);
   /* Width uses remaining space beside sidebar */
@@ -66,8 +66,8 @@
   display: flex;
   justify-content: flex-start;
   align-items: center;
-  gap: 14px;
-  padding: 18px 22px;
+  gap: 10px;
+  padding: 10px 18px;
   background: linear-gradient(135deg, #1e293b 0%, #1d4ed8 60%, #2563eb 100%);
   position: relative;
   color: #ffffff;
@@ -79,6 +79,19 @@
   inset: 0;
   background: radial-gradient(circle at top right, rgba(255, 255, 255, 0.18), transparent 55%);
   pointer-events: none;
+}
+
+.account-modal-header--soft {
+  background: linear-gradient(135deg, #1e40af 0%, #2563eb 50%, #3b82f6 100%);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.18);
+}
+
+.account-modal-header--soft::after {
+  background:
+    radial-gradient(circle at 15% 30%, rgba(255, 255, 255, 0.08) 0%, transparent 60%),
+    radial-gradient(circle at 85% 70%, rgba(59, 130, 246, 0.14) 0%, transparent 50%),
+    radial-gradient(circle at 50% 50%, rgba(255, 255, 255, 0.03) 0%, transparent 70%);
 }
 
 .account-modal-header-icon {
@@ -99,20 +112,20 @@
 }
 
 .account-modal-title {
-  font-size: 1.2rem;
+  font-size: 1.05rem;
   font-weight: 800;
   color: #ffffff;
-  margin: 0 0 4px 0;
-  line-height: 1.2;
+  margin: 0 0 2px 0;
+  line-height: 1.15;
   letter-spacing: -0.01em;
 }
 
 .account-modal-subtitle {
-  font-size: 0.78rem;
+  font-size: 0.72rem;
   color: rgba(255, 255, 255, 0.88);
   margin: 0;
   font-weight: 500;
-  line-height: 1.35;
+  line-height: 1.25;
   display: flex;
   align-items: center;
   gap: 0.6rem;
@@ -134,11 +147,11 @@
 
 .account-modal-header-link {
   font-weight: 700;
-  font-size: 0.72rem;
+  font-size: 0.68rem;
   color: #ffffff;
   cursor: pointer;
   user-select: none;
-  padding: 4px 10px;
+  padding: 3px 8px;
   border-radius: 999px;
   background: rgba(255, 255, 255, 0.14);
   border: 1px solid rgba(255, 255, 255, 0.25);
@@ -180,8 +193,8 @@
   overflow-x: hidden;
   min-height: 0;
   min-width: 0;
-  max-height: 62vh;
-  padding: 18px 20px;
+  max-height: 65vh;
+  padding: 10px 14px;
 }
 
 .account-modal-scroll-container::-webkit-scrollbar {
@@ -194,7 +207,7 @@
 
 .account-modal-scroll-container::-webkit-scrollbar-thumb {
   background: #cbd5e1;
-  border-radius: 999px;
+  border-radius: 0;
   border: 2px solid #f8fafc;
 }
 
@@ -206,18 +219,18 @@
 .account-details-content {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 10px;
   min-width: 0;
 }
 
 .section-title {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
   font-size: 0.72rem;
   font-weight: 700;
   color: #475569;
-  margin: 0 0 12px 0;
+  margin: 0 0 8px 0;
   padding: 0;
   border: none;
   text-transform: uppercase;
@@ -228,7 +241,7 @@
   content: '';
   width: 3px;
   height: 14px;
-  border-radius: 999px;
+  border-radius: 0;
   background: linear-gradient(180deg, #3b82f6, #2563eb);
 }
 
@@ -238,8 +251,8 @@
 .period-section,
 .entries-section {
   background: #ffffff;
-  border-radius: 14px;
-  padding: 16px 18px;
+  border-radius: 0;
+  padding: 10px 12px;
   border: 1px solid #e7ecf3;
   box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04), 0 8px 24px -16px rgba(15, 23, 42, 0.25);
 }
@@ -248,13 +261,13 @@
 .summary-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-  gap: 14px;
+  gap: 10px;
 }
 
 .summary-item {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 2px;
 }
 
 .summary-label,
@@ -269,10 +282,10 @@
 
 .summary-value,
 .period-value {
-  font-size: 0.9rem;
+  font-size: 0.85rem;
   font-weight: 600;
   color: #0f172a;
-  line-height: 1.3;
+  line-height: 1.25;
 }
 
 .balance-type {
@@ -280,7 +293,7 @@
   align-items: center;
   align-self: flex-start;
   padding: 2px 10px;
-  border-radius: 999px;
+  border-radius: 0;
   font-size: 0.75rem;
   font-weight: 800;
   letter-spacing: 0.03em;
@@ -305,23 +318,23 @@
 .balance-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-  gap: 14px;
+  gap: 10px;
 }
 
 .balance-item {
   display: flex;
   flex-direction: column;
-  gap: 6px;
-  padding: 14px 16px;
+  gap: 4px;
+  padding: 10px 12px;
   background: linear-gradient(180deg, #ffffff, #f8fafc);
-  border-radius: 12px;
+  border-radius: 0;
   border: 1px solid #e7ecf3;
   position: relative;
   overflow: hidden;
 }
 
 .balance-value {
-  font-size: 1.05rem;
+  font-size: 0.98rem;
   font-weight: 800;
   font-variant-numeric: tabular-nums;
   letter-spacing: -0.01em;
@@ -353,19 +366,19 @@
 .period-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-  gap: 14px;
+  gap: 10px;
 }
 
 .period-item {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 2px;
 }
 
 /* Entries Section */
 .entries-table-container {
   overflow-x: hidden;
-  border-radius: 12px;
+  border-radius: 0;
   border: 1px solid #e7ecf3;
   min-width: 0;
 }
@@ -383,7 +396,7 @@
   top: 0;
   z-index: 1;
   background: #f1f5f9;
-  padding: 10px 10px;
+  padding: 7px 8px;
   text-align: left;
   font-weight: 700;
   color: #475569;
@@ -395,30 +408,30 @@
 }
 
 .entries-table td {
-  padding: 9px 10px;
+  padding: 6px 8px;
   border-bottom: 1px solid #eef2f7;
   vertical-align: top;
-  line-height: 1.4;
+  line-height: 1.35;
   color: #1e293b;
 }
 
 /* ===== Column widths (no Source column): Date, Description, Reference, Debit, Credit, Type ===== */
-.entries-table th:nth-child(1),
-.entries-table td:nth-child(1) {
+.entries-table:not(.has-source) th:nth-child(1),
+.entries-table:not(.has-source) td:nth-child(1) {
   width: 7%;
   white-space: nowrap;
 }
 
-.entries-table th:nth-child(2),
-.entries-table td:nth-child(2) {
+.entries-table:not(.has-source) th:nth-child(2),
+.entries-table:not(.has-source) td:nth-child(2) {
   width: 49%;
   word-break: break-word;
   overflow-wrap: anywhere;
   hyphens: auto;
 }
 
-.entries-table th:nth-child(3),
-.entries-table td:nth-child(3) {
+.entries-table:not(.has-source) th:nth-child(3),
+.entries-table:not(.has-source) td:nth-child(3) {
   width: 12%;
   word-break: break-word;
   overflow-wrap: anywhere;
@@ -427,18 +440,15 @@
   color: #64748b;
 }
 
-.entries-table th:nth-child(4),
-.entries-table td:nth-child(4) {
+.entries-table:not(.has-source) th:nth-child(4),
+.entries-table:not(.has-source) td:nth-child(4),
+.entries-table:not(.has-source) th:nth-child(5),
+.entries-table:not(.has-source) td:nth-child(5) {
   width: 12%;
 }
 
-.entries-table th:nth-child(5),
-.entries-table td:nth-child(5) {
-  width: 12%;
-}
-
-.entries-table th:nth-child(6),
-.entries-table td:nth-child(6) {
+.entries-table:not(.has-source) th:nth-child(6),
+.entries-table:not(.has-source) td:nth-child(6) {
   width: 8%;
   max-width: 8.5rem;
   font-size: 0.7rem;
@@ -448,8 +458,8 @@
   color: #64748b;
 }
 
-.entries-table td:nth-child(4),
-.entries-table td:nth-child(5) {
+.entries-table:not(.has-source) td:nth-child(4),
+.entries-table:not(.has-source) td:nth-child(5) {
   white-space: nowrap;
 }
 
@@ -526,8 +536,8 @@
 
 .entry-source-badge {
   display: inline-block;
-  padding: 3px 9px;
-  border-radius: 999px;
+  padding: 2px 7px;
+  border-radius: 0;
   font-size: 0.64rem;
   font-weight: 700;
   letter-spacing: 0.02em;
@@ -568,24 +578,31 @@
   border-color: #fecdd3;
 }
 
-.debit-amount {
-  color: #059669;
+.debit-amount,
+.credit-amount,
+.entries-table td.debit-amount,
+.entries-table td.credit-amount {
+  color: #1e293b;
+  font-size: 0.78rem;
   font-weight: 700;
   font-variant-numeric: tabular-nums;
   text-align: right;
+  white-space: nowrap;
 }
 
-.credit-amount {
-  color: #dc2626;
-  font-weight: 700;
-  font-variant-numeric: tabular-nums;
+.entries-table:not(.has-source) th:nth-child(4),
+.entries-table:not(.has-source) th:nth-child(5),
+.entries-table.has-source th:nth-child(5),
+.entries-table.has-source th:nth-child(6),
+.entries-table td.debit-amount,
+.entries-table td.credit-amount {
   text-align: right;
 }
 
 /* No Entries State */
 .no-entries {
   text-align: center;
-  padding: 2rem 1rem;
+  padding: 1.25rem 0.75rem;
   color: #64748b;
 }
 
@@ -596,7 +613,7 @@
   width: 3rem;
   height: 3rem;
   background: #f1f5f9;
-  border-radius: 999px;
+  border-radius: 0;
   margin-bottom: 0.75rem;
 }
 
@@ -620,12 +637,12 @@
 }
 
 .account-modal-error {
-  padding: 1.25rem 1.25rem;
+  padding: 0.85rem 1rem;
   text-align: center;
   color: #b91c1c;
   background: #fef2f2;
   border: 1px solid #fecaca;
-  border-radius: 12px;
+  border-radius: 0;
   font-size: 0.82rem;
   font-weight: 500;
 }
@@ -640,7 +657,7 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 2.5rem 1rem;
+  padding: 1.5rem 0.75rem;
   color: #64748b;
 }
 
@@ -649,7 +666,7 @@
   height: 2rem;
   border: 3px solid #e2e8f0;
   border-top: 3px solid #2563eb;
-  border-radius: 50%;
+  border-radius: 0;
   animation: spin 0.8s linear infinite;
   margin-bottom: 0.75rem;
 }
@@ -668,11 +685,11 @@
 
 /* Footer */
 .account-modal-footer {
-  padding: 14px 20px;
+  padding: 8px 14px;
   border-top: 1px solid #e7ecf3;
   display: flex;
   justify-content: flex-end;
-  gap: 8px;
+  gap: 6px;
   background: #ffffff;
 }
 
@@ -701,9 +718,9 @@
 }
 
 .account-modal-btn {
-  padding: 9px 18px;
-  border-radius: 10px;
-  font-size: 0.8rem;
+  padding: 7px 14px;
+  border-radius: 0;
+  font-size: 0.78rem;
   font-weight: 600;
   cursor: pointer;
   transition: transform 0.18s ease, box-shadow 0.18s ease, background 0.18s ease;
@@ -771,18 +788,18 @@
   }
 
   .account-modal-header {
-    padding: 14px 16px;
+    padding: 9px 14px;
   }
 
   .account-modal-scroll-container {
-    padding: 14px 14px;
+    padding: 8px 10px;
   }
 
   .summary-grid,
   .balance-grid,
   .period-grid {
     grid-template-columns: 1fr;
-    gap: 10px;
+    gap: 8px;
   }
 
   .account-modal-subtitle-actions {
@@ -790,11 +807,11 @@
   }
 
   .account-modal-footer {
-    padding: 12px 14px;
+    padding: 8px 10px;
   }
 
   .account-modal-title {
-    font-size: 1.05rem;
+    font-size: 0.98rem;
   }
 }
 
@@ -802,28 +819,28 @@
   .account-modal-content {
     width: 96%;
     max-height: 95vh;
-    border-radius: 14px;
+    border-radius: 0;
   }
 
   .account-modal-header {
-    gap: 10px;
-    padding: 12px 14px;
+    gap: 8px;
+    padding: 8px 12px;
   }
 
   .account-modal-scroll-container {
-    padding: 12px 12px;
+    padding: 8px;
   }
 
   .account-modal-footer {
-    padding: 12px 12px;
+    padding: 8px;
   }
 
   .account-modal-title {
-    font-size: 1rem;
+    font-size: 0.92rem;
   }
 
   .account-modal-subtitle {
-    font-size: 0.7rem;
+    font-size: 0.68rem;
   }
 
   .entries-table {

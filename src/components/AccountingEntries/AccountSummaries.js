@@ -417,11 +417,6 @@ const AccountSummaries = () => {
     <div className="ctb-page-container">
       <div className="ctb-content-wrapper">
         <div className="ctb-header-section cas-header-wrap">
-          <div className="ctb-header-icon">
-            <svg className="ctb-icon" fill="currentColor" viewBox="0 0 20 20">
-              <path d="M7 3a1 1 0 000 2h6a1 1 0 100-2H7zM4 7a1 1 0 011-1h10a1 1 0 110 2H5a1 1 0 01-1-1zM2 11a2 2 0 012-2h12a2 2 0 012 2v4a2 2 0 01-2 2H4a2 2 0 01-2-2v-4zm8 1h2v2h-2v-2z" />
-            </svg>
-          </div>
           <div className="ctb-header-text-group">
             <h1 className="ctb-main-title">Account Summaries</h1>
             <p className="ctb-subtitle">
