@@ -158,8 +158,8 @@ const CombinedTrialBalance = () => {
           acc.account_name ||
           '',
         period: {
-          startDate: resolved.startDate,
-          endDate: resolved.endDate,
+          startDate: filters.startDate || '',
+          endDate: filters.endDate || '',
           portfolio:
             equityRes?.data?.period?.portfolio ||
             (sources.length > 0 ? sources.join(' + ') : 'All Portfolios'),
@@ -279,7 +279,6 @@ const CombinedTrialBalance = () => {
         'Account Code',
         'Account Name',
         'Type / Category',
-        'Sources',
         'Debit',
         'Credit',
         'Net',
@@ -290,7 +289,6 @@ const CombinedTrialBalance = () => {
         acc.account_code,
         acc.account_name,
         acc.account_type,
-        acc.sources_label,
         acc.total_debit > 0 ? formatCurrency(acc.total_debit) : '-',
         acc.total_credit > 0 ? formatCurrency(acc.total_credit) : '-',
         formatCurrency(acc.net_balance),
@@ -299,7 +297,6 @@ const CombinedTrialBalance = () => {
 
       const foot = [
         'Totals',
-        '',
         '',
         '',
         formatCurrency(totals.debit),
@@ -575,15 +572,6 @@ const CombinedTrialBalance = () => {
       <div className="ctb-content-wrapper">
         {/* Header */}
         <div className="ctb-header-section">
-          <div className="ctb-header-icon">
-            <svg className="ctb-icon" fill="currentColor" viewBox="0 0 20 20">
-              <path
-                fillRule="evenodd"
-                d="M4 3a2 2 0 00-2 2v10a1 1 0 001.447.894L8 14.118l4.553 1.776A1 1 0 0014 15V5a2 2 0 00-2-2H4z"
-                clipRule="evenodd"
-              />
-            </svg>
-          </div>
           <div className="ctb-header-text-group">
             <h1 className="ctb-main-title">Combined Trial Balance</h1>
             <p className="ctb-subtitle">
@@ -607,9 +595,6 @@ const CombinedTrialBalance = () => {
 
         {/* Filters */}
         <div className="ctb-filters-card">
-          <div className="ctb-card-header">
-            <h2 className="ctb-card-title">Filters</h2>
-          </div>
           <div className="ctb-filters-content">
             <div className="ctb-filters-grid">
               <div className="ctb-filter-group">
@@ -709,11 +694,11 @@ const CombinedTrialBalance = () => {
                     <th>Account Code</th>
                     <th>Account Name</th>
                     <th>Type / Category</th>
-                    <th>Sources</th>
                     <th>Debit</th>
                     <th>Credit</th>
                     <th>Net</th>
                     <th>DR / CR</th>
+                    <th className="ctb-sources-header">Sources</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -750,13 +735,6 @@ const CombinedTrialBalance = () => {
                         {acc.account_name}
                       </td>
                       <td className="ctb-account-type">{acc.account_type}</td>
-                      <td className="ctb-sources-cell">
-                        {Array.from(acc.sources).sort().map((src) => (
-                          <span key={src} className="ctb-source" data-source={src}>
-                            {src}
-                          </span>
-                        ))}
-                      </td>
                       <td className="ctb-debit">
                         {acc.total_debit > 0 ? formatCurrency(acc.total_debit) : '-'}
                       </td>
@@ -779,12 +757,21 @@ const CombinedTrialBalance = () => {
                       <td className="ctb-balance-type-cell">
                         {acc.balance_type || '—'}
                       </td>
+                      <td className="ctb-sources-cell">
+                        <div className="ctb-sources-pills">
+                          {Array.from(acc.sources).sort().map((src) => (
+                            <span key={src} className="ctb-source" data-source={src}>
+                              {src}
+                            </span>
+                          ))}
+                        </div>
+                      </td>
                     </tr>
                   ))}
                 </tbody>
                 <tfoot>
                   <tr className="ctb-totals-row">
-                    <td colSpan={4} className="ctb-totals-label">
+                    <td colSpan={3} className="ctb-totals-label">
                       Totals
                     </td>
                     <td className="ctb-debit">{formatCurrency(totals.debit)}</td>
@@ -803,6 +790,7 @@ const CombinedTrialBalance = () => {
                     <td className="ctb-balance-type-cell">
                       {isBalanced ? 'BALANCED' : 'OUT OF BALANCE'}
                     </td>
+                    <td className="ctb-sources-cell" />
                   </tr>
                 </tfoot>
               </table>
@@ -818,6 +806,7 @@ const CombinedTrialBalance = () => {
         accountData={accountModalData}
         loadError={accountModalError}
         detailSource={accountModalSourceLabel}
+        softHeader
       />
     </div>
   );

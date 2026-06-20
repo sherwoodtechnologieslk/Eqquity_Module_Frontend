@@ -19,24 +19,6 @@
   padding-bottom: 0.75rem;
 }
 
-.ctb-header-icon {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 3rem;
-  height: 3rem;
-  background: linear-gradient(135deg, #0f172a, #2563eb);
-  border-radius: 0.18rem;
-  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.4);
-  flex-shrink: 0;
-}
-
-.ctb-icon {
-  width: 1.5rem;
-  height: 1.5rem;
-  color: #ffffff;
-}
-
 .ctb-header-text-group {
   display: flex;
   flex-direction: column;
@@ -71,11 +53,25 @@
 
 .ctb-filters-card {
   background: #ffffff;
-  border-radius: 0.25rem;
-  box-shadow: 0 16px 40px rgba(15, 23, 42, 0.12);
-  border: 1px solid #e2e8f0;
-  margin-bottom: 1.5rem;
+  border-radius: 0;
+  box-shadow: none;
+  border: 1px solid #dbeafe;
+  margin-bottom: 1rem;
   overflow: hidden;
+}
+
+.ctb-filters-card .ctb-card-header {
+  padding: 0.65rem 1rem;
+  background: linear-gradient(90deg, #eff6ff 0%, #f8fafc 100%);
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.ctb-filters-card .ctb-card-title {
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: #1e40af;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
 }
 
 .ctb-card-header {
@@ -94,72 +90,96 @@
 }
 
 .ctb-filters-content {
-  padding: 1.5rem 1.5rem 1.75rem;
+  padding: 0.85rem 1rem 1rem;
+  background: #ffffff;
 }
 
 .ctb-filters-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 1.1rem;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 0.75rem;
   align-items: end;
 }
 
 .ctb-filter-group {
   display: flex;
   flex-direction: column;
-  gap: 0.35rem;
+  gap: 0.25rem;
+  min-width: 0;
 }
 
 .ctb-filter-label {
-  font-size: 0.8rem;
-  font-weight: 600;
-  color: #374151;
+  font-size: 0.68rem;
+  font-weight: 700;
+  color: #64748b;
   text-transform: uppercase;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.06em;
 }
 
 .ctb-filter-input,
 .ctb-filter-select {
-  padding: 0.65rem 0.9rem;
-  border-radius: 0.4rem;
-  border: 1px solid #d1d5db;
-  font-size: 0.85rem;
+  width: 100%;
+  box-sizing: border-box;
+  padding: 0.5rem 0.65rem;
+  border-radius: 0;
+  border: 1px solid #cbd5e1;
+  font-size: 0.8125rem;
+  color: #0f172a;
+  background: #f8fafc;
+  transition: border-color 0.15s ease, background 0.15s ease, box-shadow 0.15s ease;
+}
+
+.ctb-filter-input:hover,
+.ctb-filter-select:hover {
+  border-color: #94a3b8;
   background: #ffffff;
-  transition: all 0.15s ease;
 }
 
 .ctb-filter-input:focus,
 .ctb-filter-select:focus {
   outline: none;
   border-color: #2563eb;
-  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.16);
+  background: #ffffff;
+  box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.12);
 }
 
 .ctb-filter-actions {
   display: flex;
-  gap: 0.5rem;
+  gap: 0.45rem;
   justify-content: flex-end;
 }
 
-.ctb-apply-btn,
-.ctb-clear-btn {
-  padding: 0.6rem 1.2rem;
-  border-radius: 999px;
-  font-size: 0.8rem;
+.ctb-filters-card .ctb-apply-btn,
+.ctb-filters-card .ctb-clear-btn {
+  padding: 0.5rem 0.9rem;
+  border-radius: 0;
+  font-size: 0.78rem;
   font-weight: 600;
   cursor: pointer;
-  border: none;
-  transition: all 0.15s ease;
+  transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
 }
 
-.ctb-apply-btn {
-  background: #22c55e;
+.ctb-filters-card .ctb-apply-btn {
+  background: linear-gradient(90deg, #2563eb 0%, #22c55e 100%);
   color: #ffffff;
-  box-shadow: 0 4px 10px rgba(34, 197, 94, 0.4);
+  border: 1px solid #2563eb;
+  box-shadow: none;
 }
 
-.ctb-apply-btn:hover {
-  background: #16a34a;
+.ctb-filters-card .ctb-apply-btn:hover {
+  background: linear-gradient(90deg, #1d4ed8 0%, #16a34a 100%);
+}
+
+.ctb-filters-card .ctb-clear-btn {
+  background: #ffffff;
+  color: #475569;
+  border: 1px solid #cbd5e1;
+}
+
+.ctb-filters-card .ctb-clear-btn:hover {
+  background: #f8fafc;
+  border-color: #94a3b8;
+  color: #0f172a;
 }
 
 .ctb-export-btn {
@@ -183,16 +203,6 @@
 .ctb-export-btn:disabled {
   opacity: 0.65;
   cursor: not-allowed;
-}
-
-.ctb-clear-btn {
-  background: #f3f4f6;
-  color: #374151;
-  border: 1px solid #d1d5db;
-}
-
-.ctb-clear-btn:hover {
-  background: #e5e7eb;
 }
 
 .ctb-balance-status {
@@ -241,16 +251,46 @@
 .ctb-table-card {
   background: #ffffff;
   border-radius: 0.25rem;
-  border: 1px solid #e2e8f0;
+  border: 1px solid #dbeafe;
   box-shadow: 0 10px 32px rgba(15, 23, 42, 0.12);
   overflow: hidden;
 }
 
 .ctb-table-header {
-  background: linear-gradient(90deg, #0f172a 0%, #1f2937 100%);
+  padding: 0.55rem 1rem;
+  background: linear-gradient(90deg, #2563eb 0%, #22c55e 100%);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.12);
   display: flex;
   align-items: center;
   justify-content: space-between;
+}
+
+.ctb-table-header .ctb-card-title {
+  font-size: 0.85rem;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.ctb-table-header .ctb-export-btn {
+  padding: 0.42rem 0.85rem;
+  font-size: 0.74rem;
+  background: rgba(255, 255, 255, 0.15);
+  color: #ffffff;
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  box-shadow: none;
+  backdrop-filter: blur(8px);
+}
+
+.ctb-table-header .ctb-export-btn:hover {
+  background: rgba(255, 255, 255, 0.22);
+  color: #ffffff;
+  box-shadow: none;
+}
+
+.ctb-table-header .ctb-export-btn:disabled {
+  background: rgba(255, 255, 255, 0.1);
+  color: rgba(255, 255, 255, 0.55);
+  cursor: not-allowed;
 }
 
 .ctb-export-actions {
@@ -295,25 +335,34 @@
   vertical-align: middle;
 }
 
-/* Give the Source column extra room and center the pill */
-.ctb-data-table th:first-child,
-.ctb-data-table td:first-child {
-  width: 4.5rem;
-  text-align: center;
-  vertical-align: middle;
+.ctb-data-table thead th {
+  padding: 0.42rem 0.65rem;
 }
 
-.ctb-source-cell {
-  text-align: center;
-}
-
+.ctb-sources-header,
 .ctb-sources-cell {
-  text-align: center;
+  text-align: right;
+  vertical-align: middle;
+  width: 1%;
   white-space: nowrap;
 }
 
-.ctb-sources-cell .ctb-source + .ctb-source {
-  margin-left: 0.35rem;
+.ctb-sources-pills {
+  display: inline-flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 0.2rem;
+  max-width: 100%;
+}
+
+.ctb-sources-cell .ctb-source {
+  margin: 0;
+  font-size: 0.58rem;
+  font-weight: 500;
+  padding: 0.06rem 0.35rem;
+  letter-spacing: 0.04em;
+  border-radius: 999px;
 }
 
 .ctb-data-table th {
@@ -331,27 +380,24 @@
   margin: 0.25rem auto 0.1rem;
   text-transform: uppercase;
   letter-spacing: 0.06em;
-  border: none;
-  transition: transform 0.12s ease, box-shadow 0.12s ease, background 0.12s ease;
+  border: 1px solid #d1d5db;
+  background: #ffffff;
+  color: #374151;
   line-height: 1;
 }
 
 .ctb-source[data-source='Equity'] {
   background: linear-gradient(135deg, #2563eb 0%, #38bdf8 100%);
   color: #0b1120;
+  border: none;
   box-shadow: 0 3px 10px rgba(37, 99, 235, 0.35);
 }
 
 .ctb-source[data-source='GSec'] {
   background: linear-gradient(135deg, #16a34a 0%, #4ade80 100%);
   color: #022c22;
+  border: none;
   box-shadow: 0 3px 10px rgba(22, 163, 74, 0.35);
-}
-
-.ctb-source[data-source='Opening Balance'] {
-  background: linear-gradient(135deg, #d97706 0%, #fbbf24 100%);
-  color: #422006;
-  box-shadow: 0 3px 10px rgba(217, 119, 6, 0.35);
 }
 
 .ctb-account-code {
@@ -486,15 +532,15 @@
   .ctb-main-title {
     font-size: 1.5rem;
   }
+}
 
-  .ctb-header-icon {
-    width: 3rem;
-    height: 3rem;
+@media (max-width: 1100px) {
+  .ctb-filters-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 
-  .ctb-icon {
-    width: 1.5rem;
-    height: 1.5rem;
+  .ctb-filter-actions {
+    grid-column: 1 / -1;
   }
 }
 
@@ -517,16 +563,6 @@
     text-align: center;
   }
 
-  .ctb-header-icon {
-    width: 2.875rem;
-    height: 2.875rem;
-  }
-
-  .ctb-icon {
-    width: 1.4rem;
-    height: 1.4rem;
-  }
-
   .ctb-main-title {
     font-size: 1.4rem;
   }
@@ -536,7 +572,26 @@
   }
 
   .ctb-filters-content {
-    padding: 1.25rem 1.25rem 1.5rem;
+    padding: 0.75rem;
+  }
+
+  .ctb-filters-grid {
+    grid-template-columns: 1fr 1fr;
+    gap: 0.65rem;
+  }
+
+  .ctb-filter-actions {
+    grid-column: 1 / -1;
+    justify-content: stretch;
+  }
+
+  .ctb-filters-card .ctb-apply-btn,
+  .ctb-filters-card .ctb-clear-btn {
+    flex: 1;
+  }
+
+  .ctb-filters-card .ctb-card-header {
+    padding: 0.6rem 0.75rem;
   }
 
   .ctb-card-header {
@@ -544,17 +599,13 @@
   }
 }
 
+@media (max-width: 560px) {
+  .ctb-filters-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
 @media (max-width: 480px) {
-  .ctb-header-icon {
-    width: 2.5rem;
-    height: 2.5rem;
-  }
-
-  .ctb-icon {
-    width: 1.25rem;
-    height: 1.25rem;
-  }
-
   .ctb-main-title {
     font-size: 1.25rem;
   }
