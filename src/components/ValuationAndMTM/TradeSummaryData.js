@@ -1,47 +1,75 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { tradeSummaryAPI } from '../../services/api';
 import './Styles/TradeSummaryData.css';
 
+const ITEMS_PER_PAGE = 500;
+
+const transformRow = (item) => ({
+  ...item,
+  share_volume: parseFloat(item.share_volume) || 0,
+  trade_volume: parseFloat(item.trade_volume) || 0,
+  previous_close: parseFloat(item.previous_close) || 0,
+  open: parseFloat(item.open) || 0,
+  high: parseFloat(item.high) || 0,
+  low: parseFloat(item.low) || 0,
+  last_trade: parseFloat(item.last_trade) || 0,
+  change_rs: parseFloat(item.change_rs) || 0,
+  change_percent: parseFloat(item.change_percent) || 0
+});
+
 const TradeSummaryData = () => {
-  const [tradeSummaries, setTradeSummaries] = useState([]);
+  const [paginatedData, setPaginatedData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const [selectedDate, setSelectedDate] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
-  const [filteredData, setFilteredData] = useState([]);
-  
-  // Pagination state
-  const [currentPage, setCurrentPage] = useState(1);
-  const [itemsPerPage] = useState(500);
+  const [selectedDate, setSelectedDate] = useState('');
+  const [query, setQuery] = useState({ page: 1, tradeDate: '', search: '' });
+
   const [totalPages, setTotalPages] = useState(1);
-  const [paginatedData, setPaginatedData] = useState([]);
+  const [totalRecords, setTotalRecords] = useState(0);
+  const [stats, setStats] = useState({
+    uniqueCompanies: 0,
+    minDate: null,
+    maxDate: null
+  });
 
   useEffect(() => {
-    fetchTradeSummaries();
-  }, []);
+    const timer = setTimeout(() => {
+      setQuery((prev) => {
+        if (prev.search === searchTerm) return prev;
+        return { ...prev, search: searchTerm, page: 1 };
+      });
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [searchTerm]);
 
-  const fetchTradeSummaries = async () => {
+  const fetchTradeSummaries = useCallback(async () => {
     try {
       setLoading(true);
       setError('');
-      const data = await tradeSummaryAPI.getTradeSummaries();
-      
-      // Convert numeric strings to numbers for proper formatting
-      const transformedData = data.map(item => ({
-        ...item,
-        share_volume: parseFloat(item.share_volume) || 0,
-        trade_volume: parseFloat(item.trade_volume) || 0,
-        previous_close: parseFloat(item.previous_close) || 0,
-        open: parseFloat(item.open) || 0,
-        high: parseFloat(item.high) || 0,
-        low: parseFloat(item.low) || 0,
-        last_trade: parseFloat(item.last_trade) || 0,
-        change_rs: parseFloat(item.change_rs) || 0,
-        change_percent: parseFloat(item.change_percent) || 0
-      }));
-      
-      setTradeSummaries(transformedData);
-      setFilteredData(transformedData);
+
+      const result = await tradeSummaryAPI.getTradeSummariesPaginated({
+        page: query.page,
+        limit: ITEMS_PER_PAGE,
+        tradeDate: query.tradeDate || null,
+        search: query.search || null
+      });
+
+      const { data, pagination, stats: responseStats } = result;
+
+      setPaginatedData((data || []).map(transformRow));
+      setTotalPages(pagination?.totalPages || 0);
+      setTotalRecords(pagination?.total || 0);
+
+      if (pagination?.page && pagination.page !== query.page) {
+        setQuery((prev) => ({ ...prev, page: pagination.page }));
+      }
+
+      setStats({
+        uniqueCompanies: responseStats?.uniqueCompanies || 0,
+        minDate: responseStats?.minDate || null,
+        maxDate: responseStats?.maxDate || null
+      });
     } catch (err) {
       const msg = err?.message || '';
       setError(
@@ -53,97 +81,66 @@ const TradeSummaryData = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [query]);
+
+  useEffect(() => {
+    fetchTradeSummaries();
+  }, [fetchTradeSummaries]);
 
   const handleDateFilter = (date) => {
     setSelectedDate(date);
-    applyFilters(date, searchTerm);
+    setQuery((prev) => ({ ...prev, tradeDate: date, page: 1 }));
   };
 
   const handleSearch = (term) => {
     setSearchTerm(term);
-    // Small delay to prevent excessive filtering on every keystroke
-    setTimeout(() => {
-      applyFilters(selectedDate, term);
-    }, 300);
   };
 
-  const applyFilters = (date, search) => {
-    let filtered = tradeSummaries;
-    
-    // Apply date filter
-    if (date) {
-      filtered = filtered.filter(item => item.trade_date === date);
-    }
-    
-    // Apply search filter
-    if (search) {
-      const searchLower = search.toLowerCase();
-      filtered = filtered.filter(item => 
-        item.company_name?.toLowerCase().includes(searchLower) ||
-        item.symbol?.toLowerCase().includes(searchLower)
-      );
-    }
-    
-    setFilteredData(filtered);
-    setCurrentPage(1); // Reset to first page when filtering
-  };
-
-  // Pagination logic
-  useEffect(() => {
-    const totalPagesCount = Math.ceil(filteredData.length / itemsPerPage);
-    setTotalPages(totalPagesCount);
-    
-    const startIndex = (currentPage - 1) * itemsPerPage;
-    const endIndex = startIndex + itemsPerPage;
-    const paginated = filteredData.slice(startIndex, endIndex);
-    
-    setPaginatedData(paginated);
-  }, [filteredData, currentPage, itemsPerPage]);
-
-  // Pagination handlers
   const goToPage = (page) => {
     if (page >= 1 && page <= totalPages) {
-      setCurrentPage(page);
+      setQuery((prev) => ({ ...prev, page }));
     }
   };
 
   const goToFirstPage = () => goToPage(1);
   const goToLastPage = () => goToPage(totalPages);
-  const goToPreviousPage = () => goToPage(currentPage - 1);
-  const goToNextPage = () => goToPage(currentPage + 1);
+  const goToPreviousPage = () => goToPage(query.page - 1);
+  const goToNextPage = () => goToPage(query.page + 1);
 
-  // Generate page numbers for display
   const getPageNumbers = () => {
     const pages = [];
     const maxVisiblePages = 5;
-    
+
     if (totalPages <= maxVisiblePages) {
-      // Show all pages if total is less than max visible
       for (let i = 1; i <= totalPages; i++) {
         pages.push(i);
       }
     } else {
-      // Show pages around current page
-      const startPage = Math.max(1, currentPage - 2);
+      const startPage = Math.max(1, query.page - 2);
       const endPage = Math.min(totalPages, startPage + maxVisiblePages - 1);
-      
+
       for (let i = startPage; i <= endPage; i++) {
         pages.push(i);
       }
     }
-    
+
     return pages;
   };
 
   const clearFilters = () => {
     setSelectedDate('');
     setSearchTerm('');
-    setFilteredData(tradeSummaries);
-    setCurrentPage(1); // Reset to first page when clearing filters
+    setQuery({ page: 1, tradeDate: '', search: '' });
   };
 
-  if (loading) {
+  const formatDateRange = () => {
+    if (!stats.minDate || !stats.maxDate) return 'No data available';
+    const min = new Date(stats.minDate).toLocaleDateString();
+    const max = new Date(stats.maxDate).toLocaleDateString();
+    return min === max ? min : `${min} - ${max}`;
+  };
+
+  if (loading && paginatedData.length === 0 && !error) {
     return (
       <div className="tsd-equity-module-main-container">
         <div className="tsd-loading-state-wrapper">
@@ -154,7 +151,7 @@ const TradeSummaryData = () => {
     );
   }
 
-  if (error) {
+  if (error && paginatedData.length === 0) {
     return (
       <div className="tsd-equity-module-main-container">
         <div className="tsd-error-state-container">
@@ -215,7 +212,7 @@ const TradeSummaryData = () => {
           </button>
         </div>
         <div className="tsd-refresh-controls-wrapper">
-          <button onClick={fetchTradeSummaries} className="tsd-refresh-data-button">
+          <button onClick={fetchTradeSummaries} className="tsd-refresh-data-button" disabled={loading}>
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <path d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
             </svg>
@@ -236,7 +233,7 @@ const TradeSummaryData = () => {
           </div>
           <div className="tsd-summary-content-wrapper">
             <h3>Total Records</h3>
-            <p className="tsd-summary-number-display">{filteredData.length}</p>
+            <p className="tsd-summary-number-display">{totalRecords}</p>
           </div>
         </div>
         <div className="tsd-summary-card-item">
@@ -250,12 +247,7 @@ const TradeSummaryData = () => {
           </div>
           <div className="tsd-summary-content-wrapper">
             <h3>Date Range</h3>
-            <p className="tsd-summary-text-display">
-              {filteredData.length > 0 
-                ? `${new Date(Math.min(...filteredData.map(d => new Date(d.trade_date)))).toLocaleDateString()} - ${new Date(Math.max(...filteredData.map(d => new Date(d.trade_date)))).toLocaleDateString()}`
-                : 'No data available'
-              }
-            </p>
+            <p className="tsd-summary-text-display">{formatDateRange()}</p>
           </div>
         </div>
         <div className="tsd-summary-card-item">
@@ -270,18 +262,13 @@ const TradeSummaryData = () => {
           </div>
           <div className="tsd-summary-content-wrapper">
             <h3>Unique Companies</h3>
-            <p className="tsd-summary-number-display">
-              {filteredData.length > 0 
-                ? new Set(filteredData.map(d => d.company_name)).size
-                : 0
-              }
-            </p>
+            <p className="tsd-summary-number-display">{stats.uniqueCompanies}</p>
           </div>
         </div>
       </div>
 
       <div className="tsd-table-container-section">
-        {filteredData.length === 0 ? (
+        {totalRecords === 0 ? (
           <div className="tsd-no-data-state">
             <div className="tsd-no-data-icon-svg">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -291,71 +278,70 @@ const TradeSummaryData = () => {
             </div>
             <h3>No Data Found</h3>
             <p>
-              {selectedDate 
-                ? `No trade summaries found for ${new Date(selectedDate).toLocaleDateString()}`
-                : 'No trade summary data available. Try uploading some data first.'
-              }
+              {query.tradeDate
+                ? `No trade summaries found for ${new Date(query.tradeDate).toLocaleDateString()}`
+                : 'No trade summary data available. Try uploading some data first.'}
             </p>
           </div>
         ) : (
           <>
-            {/* Pagination Controls - Moved to top */}
             {totalPages > 1 && (
               <div className="tsd-pagination-container">
                 <div className="tsd-pagination-info">
-                  Showing {((currentPage - 1) * itemsPerPage) + 1} to {Math.min(currentPage * itemsPerPage, filteredData.length)} of {filteredData.length} records
+                  Showing {((query.page - 1) * ITEMS_PER_PAGE) + 1} to {Math.min(query.page * ITEMS_PER_PAGE, totalRecords)} of {totalRecords} records
                 </div>
                 <div className="tsd-pagination-controls">
-                  <button 
+                  <button
                     className="tsd-pagination-btn tsd-pagination-first"
                     onClick={goToFirstPage}
-                    disabled={currentPage === 1}
+                    disabled={query.page === 1 || loading}
                     title="First Page"
                   >
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                       <path d="M11 19l-7-7 7-7M21 19l-7-7 7-7"/>
                     </svg>
                   </button>
-                  
-                  <button 
+
+                  <button
                     className="tsd-pagination-btn tsd-pagination-prev"
                     onClick={goToPreviousPage}
-                    disabled={currentPage === 1}
+                    disabled={query.page === 1 || loading}
                     title="Previous Page"
                   >
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                       <path d="M15 18l-6-6 6-6"/>
                     </svg>
                   </button>
-                  
+
                   <div className="tsd-pagination-numbers">
                     {getPageNumbers().map(pageNum => (
                       <button
                         key={pageNum}
-                        className={`tsd-pagination-btn tsd-pagination-number ${currentPage === pageNum ? 'active' : ''}`}
+                        className={`tsd-pagination-btn tsd-pagination-number ${query.page === pageNum ? 'active' : ''}`}
                         onClick={() => goToPage(pageNum)}
+                        disabled={loading}
                         title={`Page ${pageNum}`}
                       >
                         {pageNum}
                       </button>
                     ))}
                   </div>
-                  
-                  <button 
+
+                  <button
                     className="tsd-pagination-btn tsd-pagination-next"
                     onClick={goToNextPage}
-                    disabled={currentPage === totalPages}
+                    disabled={query.page === totalPages || loading}
                     title="Next Page"
                   >
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                       <path d="M9 18l6-6-6-6"/>
                     </svg>
                   </button>
-                  
-                  <button 
+
+                  <button
                     className="tsd-pagination-btn tsd-pagination-last"
                     onClick={goToLastPage}
-                    disabled={currentPage === totalPages}
+                    disabled={query.page === totalPages || loading}
                     title="Last Page"
                   >
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -365,8 +351,8 @@ const TradeSummaryData = () => {
                 </div>
               </div>
             )}
-            
-            <div className="tsd-table-wrapper-container">
+
+            <div className={`tsd-table-wrapper-container${loading ? ' tsd-table-loading' : ''}`}>
               <table className="tsd-trade-summary-data-table">
                 <thead>
                   <tr>
@@ -385,8 +371,8 @@ const TradeSummaryData = () => {
                   </tr>
                 </thead>
                 <tbody>
-                  {paginatedData.map((item, index) => (
-                    <tr key={index}>
+                  {paginatedData.map((item) => (
+                    <tr key={item.id ?? `${item.trade_date}-${item.symbol}`}>
                       <td>{new Date(item.trade_date).toLocaleDateString()}</td>
                       <td>{item.company_name || 'N/A'}</td>
                       <td>{item.symbol || 'N/A'}</td>

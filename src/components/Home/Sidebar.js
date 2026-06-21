@@ -120,7 +120,8 @@ export const equityManagerMenuItems = [
     subTopics: [
       "Combined General Ledger",
       "Combined Trial Balance",
-      "Account Summaries"
+      "Account Summaries",
+      "Double Entries"
     ]
   },
   {
@@ -199,8 +200,7 @@ export const equityManagerMenuItems = [
     subTopics: [
       "Opening Balance Entry",
       "Opening Balance List",
-      "Account Balance Setup",
-      "Double Entries"
+      "Account Balance Setup"
     ]
   },
   {

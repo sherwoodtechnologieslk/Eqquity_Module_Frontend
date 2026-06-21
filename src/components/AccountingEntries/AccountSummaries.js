@@ -434,10 +434,7 @@ const AccountSummaries = () => {
           </div>
         </div>
 
-        <div className="ctb-filters-card">
-          <div className="ctb-card-header">
-            <h2 className="ctb-card-title">Period</h2>
-          </div>
+        <div className="ctb-filters-card cas-filters-card">
           <div className="ctb-filters-content">
             <div className="ctb-filters-grid">
               <div className="ctb-filter-group">
