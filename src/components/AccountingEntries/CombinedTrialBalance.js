@@ -32,6 +32,12 @@ const mapEquityEntry = (e) => {
   };
 };
 
+/** Sources shown in the table — Opening Balance is never displayed in this column. */
+const getDisplaySources = (sources) =>
+  Array.from(sources)
+    .filter((src) => src !== 'Opening Balance')
+    .sort();
+
 /** Comparable timestamp for sorting entries by date (newest first). */
 const entryDateValue = (e) => {
   const t = new Date(e.date).getTime();
@@ -759,7 +765,7 @@ const CombinedTrialBalance = () => {
                       </td>
                       <td className="ctb-sources-cell">
                         <div className="ctb-sources-pills">
-                          {Array.from(acc.sources).sort().map((src) => (
+                          {getDisplaySources(acc.sources).map((src) => (
                             <span key={src} className="ctb-source" data-source={src}>
                               {src}
                             </span>

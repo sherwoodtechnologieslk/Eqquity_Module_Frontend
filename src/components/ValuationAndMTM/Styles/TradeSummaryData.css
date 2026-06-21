@@ -272,6 +272,12 @@
   border-radius: 0;
   background: #fff;
   border: 1px solid #e2e8f0;
+  transition: opacity 0.15s ease;
+}
+
+.tsd-table-wrapper-container.tsd-table-loading {
+  opacity: 0.55;
+  pointer-events: none;
 }
 
 .tsd-table-wrapper-container::-webkit-scrollbar {
