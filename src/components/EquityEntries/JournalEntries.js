@@ -114,7 +114,7 @@ const JournalEntries = ({ onTabChange }) => {
     try {
       const token = localStorage.getItem('token');
       const response = await fetch(
-        `${process.env.REACT_APP_API_URL || 'http://localhost:8080/api'}/journal-entries/portfolios`,
+        `${process.env.REACT_APP_API_URL || 'http://98.91.201.168/api'}/journal-entries/portfolios`,
         {
           method: 'GET',
           headers: {
@@ -139,7 +139,7 @@ const JournalEntries = ({ onTabChange }) => {
     try {
       const token = localStorage.getItem('token');
       const response = await fetch(
-        `${process.env.REACT_APP_API_URL || 'http://localhost:8080/api'}/journal-entries/accounts/list`,
+        `${process.env.REACT_APP_API_URL || 'http://98.91.201.168/api'}/journal-entries/accounts/list`,
         {
           method: 'GET',
           headers: {
@@ -194,8 +194,8 @@ const JournalEntries = ({ onTabChange }) => {
 
     try {
       const url = editingEntry
-        ? `${process.env.REACT_APP_API_URL || 'http://localhost:8080/api'}/journal-entries/${editingEntry.id}`
-        : `${process.env.REACT_APP_API_URL || 'http://localhost:8080/api'}/journal-entries`;
+        ? `${process.env.REACT_APP_API_URL || 'http://98.91.201.168/api'}/journal-entries/${editingEntry.id}`
+        : `${process.env.REACT_APP_API_URL || 'http://98.91.201.168/api'}/journal-entries`;
 
       const method = editingEntry ? 'PUT' : 'POST';
 
