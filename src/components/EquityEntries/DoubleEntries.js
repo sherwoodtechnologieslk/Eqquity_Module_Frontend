@@ -1,4 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react';
+import { createPortal } from 'react-dom';
+import '../AccountingEntries/Styles/CombinedTrialBalance.css';
+import '../AccountingEntries/Styles/AccountSummaries.css';
 import './Styles/DoubleEntries.css';
 
 const DoubleEntries = () => {
@@ -9,9 +12,86 @@ const DoubleEntries = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [filterDate, setFilterDate] = useState('');
   const [filterAccount, setFilterAccount] = useState('');
+  const [accountDropdownOpen, setAccountDropdownOpen] = useState(false);
+  const [accountList, setAccountList] = useState([]);
+  const [dropdownRect, setDropdownRect] = useState(null);
+  const accountComboRef = useRef(null);
+  const accountInputRef = useRef(null);
+  const accountDropdownRef = useRef(null);
 
   useEffect(() => {
     loadDoubleEntries();
+    loadAccountList();
+  }, []);
+
+  const loadAccountList = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      const response = await fetch(
+        `${process.env.REACT_APP_API_URL || 'http://localhost:8080/api'}/journal-entries/accounts/list`,
+        {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+            ...(token && { Authorization: `Bearer ${token}` })
+          }
+        }
+      );
+
+      if (!response.ok) return;
+
+      const result = await response.json();
+      if (result.success && Array.isArray(result.data)) {
+        setAccountList(
+          result.data
+            .map((row) => ({
+              code: String(row.account_code || '').trim(),
+              name: String(row.description || '').trim()
+            }))
+            .filter((row) => row.code)
+        );
+      }
+    } catch (err) {
+      console.error('Error loading accounts for filter:', err);
+    }
+  };
+
+  const updateDropdownRect = useCallback(() => {
+    if (!accountInputRef.current) return;
+    const rect = accountInputRef.current.getBoundingClientRect();
+    setDropdownRect({
+      top: rect.bottom + 4,
+      left: rect.left,
+      width: rect.width
+    });
+  }, []);
+
+  useEffect(() => {
+    if (!accountDropdownOpen) {
+      setDropdownRect(null);
+      return undefined;
+    }
+
+    updateDropdownRect();
+    window.addEventListener('scroll', updateDropdownRect, true);
+    window.addEventListener('resize', updateDropdownRect);
+
+    return () => {
+      window.removeEventListener('scroll', updateDropdownRect, true);
+      window.removeEventListener('resize', updateDropdownRect);
+    };
+  }, [accountDropdownOpen, updateDropdownRect]);
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      const inCombo = accountComboRef.current?.contains(event.target);
+      const inDropdown = accountDropdownRef.current?.contains(event.target);
+      if (!inCombo && !inDropdown) {
+        setAccountDropdownOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
   useEffect(() => {
@@ -34,7 +114,6 @@ const DoubleEntries = () => {
       if (response.ok) {
         const result = await response.json();
         if (result.success && result.data) {
-          // Group entries by transaction/reference to show double entries
           const groupedEntries = groupByTransaction(result.data);
           setEntries(groupedEntries);
         } else {
@@ -52,9 +131,16 @@ const DoubleEntries = () => {
     }
   };
 
-  const groupByTransaction = (entries) => {
+  const groupByTransaction = (entryRows) => {
     const grouped = {};
-    entries.forEach(entry => {
+    const seenEntryIds = new Set();
+
+    entryRows.forEach((entry) => {
+      if (entry.id != null) {
+        if (seenEntryIds.has(entry.id)) return;
+        seenEntryIds.add(entry.id);
+      }
+
       const key = entry.reference || entry.transaction_id || entry.id;
       if (!grouped[key]) {
         grouped[key] = {
@@ -75,10 +161,10 @@ const DoubleEntries = () => {
 
     if (searchTerm.trim()) {
       const searchLower = searchTerm.toLowerCase();
-      filtered = filtered.filter(group =>
+      filtered = filtered.filter((group) =>
         group.reference?.toLowerCase().includes(searchLower) ||
         group.description?.toLowerCase().includes(searchLower) ||
-        group.entries.some(e => 
+        group.entries.some((e) =>
           e.account_code?.toLowerCase().includes(searchLower) ||
           e.account_name?.toLowerCase().includes(searchLower)
         )
@@ -86,13 +172,13 @@ const DoubleEntries = () => {
     }
 
     if (filterDate) {
-      filtered = filtered.filter(group => group.date === filterDate);
+      filtered = filtered.filter((group) => group.date === filterDate);
     }
 
     if (filterAccount.trim()) {
       const accountLower = filterAccount.toLowerCase();
-      filtered = filtered.filter(group =>
-        group.entries.some(e =>
+      filtered = filtered.filter((group) =>
+        group.entries.some((e) =>
           e.account_code?.toLowerCase().includes(accountLower) ||
           e.account_name?.toLowerCase().includes(accountLower)
         )
@@ -125,264 +211,364 @@ const DoubleEntries = () => {
     return { totalDebit, totalCredit, isBalanced: totalDebit === totalCredit };
   };
 
-  const balancedCount = entries.filter(g => calculateTotals(g).isBalanced).length;
+  const balancedCount = entries.filter((g) => calculateTotals(g).isBalanced).length;
   const unbalancedCount = entries.length - balancedCount;
   const totalDebitValue = entries.reduce((sum, g) => sum + calculateTotals(g).totalDebit, 0);
 
-  return (
-    <div className="double-entries-container">
-      <div className="double-entries-content-wrapper">
-      {/* Toolbar */}
-      <header className="double-entries-header-section">
-        <div className="double-entries-header-left">
-          <div className="double-entries-header-text-group">
-            <h1 className="double-entries-main-title">Double Entries</h1>
-            <p className="double-entries-subtitle">View all double-entry accounting transactions with matching debits and credits</p>
-          </div>
-        </div>
-        <div className="double-entries-header-actions">
-          <button
-            type="button"
-            className="double-entries-refresh-btn"
-            onClick={loadDoubleEntries}
-            disabled={loading}
-          >
-            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-            </svg>
-            Refresh
+  const accountOptions = useMemo(() => {
+    const byCode = new Map();
+
+    accountList.forEach((account) => {
+      byCode.set(account.code, account);
+    });
+
+    entries.forEach((group) => {
+      group.entries.forEach((entry) => {
+        const code = String(entry.account_code || '').trim();
+        if (!code) return;
+        if (!byCode.has(code)) {
+          byCode.set(code, {
+            code,
+            name: String(entry.account_name || '').trim()
+          });
+        }
+      });
+    });
+
+    return Array.from(byCode.values()).sort((a, b) => a.code.localeCompare(b.code));
+  }, [entries, accountList]);
+
+  const filteredAccountOptions = useMemo(() => {
+    const query = filterAccount.trim().toLowerCase();
+    if (!query) return accountOptions.slice(0, 50);
+    return accountOptions
+      .filter(
+        (account) =>
+          account.code.toLowerCase().includes(query) ||
+          account.name.toLowerCase().includes(query)
+      )
+      .slice(0, 50);
+  }, [accountOptions, filterAccount]);
+
+  const handleAccountSelect = (account) => {
+    setFilterAccount(account.code);
+    setAccountDropdownOpen(false);
+  };
+
+  const clearFilters = () => {
+    setSearchTerm('');
+    setFilterDate('');
+    setFilterAccount('');
+    setAccountDropdownOpen(false);
+  };
+
+  if (loading && entries.length === 0 && !error) {
+    return (
+      <div className="ctb-page-container">
+        <div className="ctb-loading">Loading Double Entries...</div>
+      </div>
+    );
+  }
+
+  if (error && entries.length === 0) {
+    return (
+      <div className="ctb-page-container">
+        <div className="ctb-error">
+          <div className="ctb-error-title">Error loading Double Entries</div>
+          <div className="ctb-error-message">{error}</div>
+          <button type="button" className="ctb-retry-btn" onClick={loadDoubleEntries}>
+            Retry
           </button>
         </div>
-      </header>
+      </div>
+    );
+  }
 
-      {/* KPI Summary */}
-      <section className="double-entries-kpis" aria-label="Double entries summary">
-        <div className="de-kpi de-kpi--total">
-          <div className="de-kpi__icon">
-            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 17v-6h4v6m-7 4h10a2 2 0 002-2V7a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-            </svg>
-          </div>
-          <div className="de-kpi__body">
-            <span className="de-kpi__value">{entries.length}</span>
-            <span className="de-kpi__label">Transactions</span>
-          </div>
-        </div>
-        <div className="de-kpi de-kpi--balanced">
-          <div className="de-kpi__icon">
-            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-          </div>
-          <div className="de-kpi__body">
-            <span className="de-kpi__value">{balancedCount}</span>
-            <span className="de-kpi__label">Balanced</span>
-          </div>
-        </div>
-        <div className="de-kpi de-kpi--unbalanced">
-          <div className="de-kpi__icon">
-            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-          </div>
-          <div className="de-kpi__body">
-            <span className="de-kpi__value">{unbalancedCount}</span>
-            <span className="de-kpi__label">Unbalanced</span>
-          </div>
-        </div>
-        <div className="de-kpi de-kpi--value">
-          <div className="de-kpi__icon">
-            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-            </svg>
-          </div>
-          <div className="de-kpi__body">
-            <span className="de-kpi__value">{formatCurrency(totalDebitValue)}</span>
-            <span className="de-kpi__label">Total Value</span>
-          </div>
-        </div>
-      </section>
-
-      {/* Error Message */}
-      {error && (
-        <div className="double-entries-error-message">
-          <svg className="error-icon" fill="currentColor" viewBox="0 0 20 20">
-            <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd"/>
-          </svg>
-          <span>{error}</span>
-          <button className="error-close-btn" onClick={() => setError('')}>×</button>
-        </div>
-      )}
-
-      {/* Data Card */}
-      <div className="double-entries-data-card">
-        {/* Search and Filter Section */}
-        <div className="double-entries-search-container">
-          <div className="double-entries-search-wrapper">
-            <input
-              type="text"
-              className="double-entries-search-input"
-              placeholder="Search by reference, description, or account..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-            />
-          </div>
-          
-          <div className="double-entries-filters">
-            <div className="filter-group">
-              <label htmlFor="filterDate" className="filter-label">Date:</label>
-              <input
-                type="date"
-                id="filterDate"
-                className="filter-input"
-                value={filterDate}
-                onChange={(e) => setFilterDate(e.target.value)}
-              />
-            </div>
-            
-            <div className="filter-group">
-              <label htmlFor="filterAccount" className="filter-label">Account:</label>
-              <input
-                type="text"
-                id="filterAccount"
-                className="filter-input"
-                placeholder="Account code or name"
-                value={filterAccount}
-                onChange={(e) => setFilterAccount(e.target.value)}
-              />
-            </div>
-            
-            <button
-              className="filter-clear-btn"
-              onClick={() => {
-                setSearchTerm('');
-                setFilterDate('');
-                setFilterAccount('');
-              }}
-            >
-              Clear Filters
-            </button>
-          </div>
-        </div>
-
-        {/* Entries Section */}
-        <div className="double-entries-content">
-          {loading ? (
-            <div className="loading-container">
-              <div className="loading-spinner"></div>
-              <p>Loading double entries...</p>
-            </div>
-          ) : filteredEntries.length === 0 ? (
-            <div className="empty-state">
-              <svg className="empty-icon" fill="currentColor" viewBox="0 0 20 20">
-                <path fillRule="evenodd" d="M4 4a2 2 0 00-2 2v8a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2H4zm2 2v8h8V6H6z" clipRule="evenodd"/>
-              </svg>
-              <h3>No Double Entries Found</h3>
-              <p>{searchTerm || filterDate || filterAccount
-                ? 'Try adjusting your search or filters.' 
-                : 'No double entries have been recorded yet.'}</p>
-            </div>
-          ) : (
-            <div className="double-entries-list">
-              {filteredEntries.map((group) => {
-                const totals = calculateTotals(group);
-                return (
-                  <div key={group.id} className="double-entry-group">
-                    <div className="entry-group-header">
-                      <div className="entry-group-info">
-                        <div className="entry-group-date">{formatDate(group.date)}</div>
-                        <div className="entry-group-reference">
-                          <strong>Reference:</strong> {group.reference || 'N/A'}
-                        </div>
-                        <div className="entry-group-description">{group.description || 'No description'}</div>
-                      </div>
-                      <div className="entry-group-totals">
-                        <div className={`balance-indicator ${totals.isBalanced ? 'balanced' : 'unbalanced'}`}>
-                          {totals.isBalanced ? (
-                            <svg fill="currentColor" viewBox="0 0 20 20">
-                              <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd"/>
-                            </svg>
-                          ) : (
-                            <svg fill="currentColor" viewBox="0 0 20 20">
-                              <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd"/>
-                            </svg>
-                          )}
-                          <span>{totals.isBalanced ? 'Balanced' : 'Unbalanced'}</span>
-                        </div>
-                        <div className="total-amounts">
-                          <div className="total-debit">
-                            <span className="total-label">Total Debit:</span>
-                            <span className="total-value">{formatCurrency(totals.totalDebit)}</span>
-                          </div>
-                          <div className="total-credit">
-                            <span className="total-label">Total Credit:</span>
-                            <span className="total-value">{formatCurrency(totals.totalCredit)}</span>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                    
-                    <div className="entry-group-table">
-                      <table className="double-entry-table">
-                        <thead>
-                          <tr>
-                            <th>Account Code</th>
-                            <th>Account Name</th>
-                            <th>Description</th>
-                            <th>Debit</th>
-                            <th>Credit</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {group.entries.map((entry, idx) => (
-                            <tr key={entry.id || idx}>
-                              <td className="account-code-cell">
-                                <span className="code-text">{entry.account_code || '-'}</span>
-                              </td>
-                              <td>{entry.account_name || '-'}</td>
-                              <td className="description-cell">{entry.description || '-'}</td>
-                              <td className={parseFloat(entry.debit) > 0 ? 'debit-amount' : ''}>
-                                {parseFloat(entry.debit) > 0 ? formatCurrency(entry.debit) : '-'}
-                              </td>
-                              <td className={parseFloat(entry.credit) > 0 ? 'credit-amount' : ''}>
-                                {parseFloat(entry.credit) > 0 ? formatCurrency(entry.credit) : '-'}
-                              </td>
-                            </tr>
-                          ))}
-                        </tbody>
-                        <tfoot>
-                          <tr className="totals-row">
-                            <td colSpan="3" className="totals-label">Total</td>
-                            <td className="debit-amount total-amount">
-                              {formatCurrency(totals.totalDebit)}
-                            </td>
-                            <td className="credit-amount total-amount">
-                              {formatCurrency(totals.totalCredit)}
-                            </td>
-                          </tr>
-                        </tfoot>
-                      </table>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          )}
-        </div>
-
-        {/* Summary */}
-        {!loading && filteredEntries.length > 0 && (
-          <div className="double-entries-summary">
-            <p>
-              Showing <strong>{filteredEntries.length}</strong> of <strong>{entries.length}</strong> transaction{entries.length !== 1 ? 's' : ''}
+  return (
+    <div className="ctb-page-container">
+      <div className="ctb-content-wrapper">
+        <div className="ctb-header-section">
+          <div className="ctb-header-text-group">
+            <h1 className="ctb-main-title">Double Entries</h1>
+            <p className="ctb-subtitle">
+              View journal transactions grouped by reference, with matching debits and credits for
+              each double-entry posting.
             </p>
           </div>
+          <div className="ctb-header-meta">
+            <div className="ctb-period">
+              Transactions:&nbsp;
+              <span>{entries.length}</span>
+            </div>
+          </div>
+        </div>
+
+        <div className="ctb-filters-card de-filters-card">
+          <div className="ctb-filters-content">
+            <div className="ctb-filters-grid de-filters-grid">
+              <div className="ctb-filter-group de-filter-search">
+                <label className="ctb-filter-label" htmlFor="deSearch">
+                  Search
+                </label>
+                <input
+                  id="deSearch"
+                  type="text"
+                  className="ctb-filter-input"
+                  placeholder="Reference, description, or account..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                />
+              </div>
+
+              <div className="ctb-filter-group">
+                <label className="ctb-filter-label" htmlFor="filterDate">
+                  Date
+                </label>
+                <input
+                  type="date"
+                  id="filterDate"
+                  lang="en-US"
+                  className="ctb-filter-input"
+                  value={filterDate}
+                  onChange={(e) => setFilterDate(e.target.value)}
+                />
+              </div>
+
+              <div
+                className={`ctb-filter-group de-account-combo-wrap${
+                  accountDropdownOpen ? ' de-account-combo-wrap--open' : ''
+                }`}
+                ref={accountComboRef}
+              >
+                <label className="ctb-filter-label" htmlFor="filterAccount">
+                  Account
+                </label>
+                <div className="de-account-combo">
+                  <input
+                    ref={accountInputRef}
+                    type="text"
+                    id="filterAccount"
+                    className="ctb-filter-input de-account-input"
+                    placeholder="Search or select account..."
+                    value={filterAccount}
+                    onChange={(e) => {
+                      setFilterAccount(e.target.value);
+                      setAccountDropdownOpen(true);
+                    }}
+                    onFocus={() => setAccountDropdownOpen(true)}
+                    autoComplete="off"
+                    role="combobox"
+                    aria-expanded={accountDropdownOpen}
+                    aria-controls="deAccountDropdown"
+                    aria-autocomplete="list"
+                  />
+                  {filterAccount && (
+                    <button
+                      type="button"
+                      className="de-account-clear"
+                      onClick={() => {
+                        setFilterAccount('');
+                        setAccountDropdownOpen(true);
+                        accountInputRef.current?.focus();
+                      }}
+                      aria-label="Clear account filter"
+                    >
+                      ×
+                    </button>
+                  )}
+                </div>
+              </div>
+
+              <div className="ctb-filter-group ctb-filter-actions">
+                <button type="button" className="ctb-clear-btn" onClick={clearFilters}>
+                  Clear
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {error && (
+          <div className="de-inline-error">{error}</div>
         )}
+
+        <div className="cas-metrics de-metrics">
+          <div className="cas-metric-card">
+            <div className="cas-metric-label">Transactions</div>
+            <div className="cas-metric-value">{entries.length}</div>
+          </div>
+          <div className="cas-metric-card">
+            <div className="cas-metric-label">Balanced</div>
+            <div className="cas-metric-value positive">{balancedCount}</div>
+          </div>
+          <div className="cas-metric-card">
+            <div className="cas-metric-label">Unbalanced</div>
+            <div className="cas-metric-value negative">{unbalancedCount}</div>
+          </div>
+          <div className="cas-metric-card">
+            <div className="cas-metric-label">Total Value (DR)</div>
+            <div className="cas-metric-value debit">{formatCurrency(totalDebitValue)}</div>
+          </div>
+        </div>
+
+        <div className="ctb-table-card">
+          <div className="ctb-card-header ctb-table-header">
+            <h2 className="ctb-card-title">
+              Double Entry Transactions ({filteredEntries.length})
+            </h2>
+            <div className="ctb-export-actions">
+              <button
+                type="button"
+                className="ctb-export-btn"
+                onClick={loadDoubleEntries}
+                disabled={loading}
+              >
+                {loading ? 'Refreshing…' : 'Refresh'}
+              </button>
+            </div>
+          </div>
+          <p className="ctb-table-hint">
+            Each group below represents one journal transaction. Debits and credits within a group
+            should balance; unbalanced groups are highlighted.
+          </p>
+
+          <div className="de-transactions-container">
+            {loading ? (
+              <div className="ctb-loading">Loading double entries...</div>
+            ) : filteredEntries.length === 0 ? (
+              <div className="ctb-no-data">
+                {searchTerm || filterDate || filterAccount
+                  ? 'No double entries match the selected filters.'
+                  : 'No double entries have been recorded yet.'}
+              </div>
+            ) : (
+              <div className="de-transaction-list">
+                {filteredEntries.map((group) => {
+                  const totals = calculateTotals(group);
+                  return (
+                    <div key={group.id} className="de-transaction-group">
+                      <div className="de-group-header">
+                        <div className="de-group-info">
+                          <div className="de-group-date">{formatDate(group.date)}</div>
+                          <div className="de-group-reference">
+                            <strong>Reference:</strong> {group.reference || 'N/A'}
+                          </div>
+                          <div className="de-group-description">
+                            {group.description || 'No description'}
+                          </div>
+                        </div>
+                        <div className="de-group-meta">
+                          <span
+                            className={`de-balance-badge ${
+                              totals.isBalanced ? 'de-balance-badge--ok' : 'de-balance-badge--bad'
+                            }`}
+                          >
+                            {totals.isBalanced ? 'Balanced' : 'Unbalanced'}
+                          </span>
+                          <div className="de-group-totals">
+                            <span className="de-total-item">
+                              <span className="de-total-label">Debit</span>
+                              <span className="de-total-value de-total-value--debit">
+                                {formatCurrency(totals.totalDebit)}
+                              </span>
+                            </span>
+                            <span className="de-total-item">
+                              <span className="de-total-label">Credit</span>
+                              <span className="de-total-value de-total-value--credit">
+                                {formatCurrency(totals.totalCredit)}
+                              </span>
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="de-group-table-wrap">
+                        <table className="ctb-data-table de-nested-table">
+                          <thead>
+                            <tr>
+                              <th>Account Code</th>
+                              <th>Account Name</th>
+                              <th>Description</th>
+                              <th>Debit</th>
+                              <th>Credit</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {group.entries.map((entry, idx) => (
+                              <tr key={entry.id || idx}>
+                                <td className="ctb-account-code">{entry.account_code || '-'}</td>
+                                <td>{entry.account_name || '-'}</td>
+                                <td className="de-description-cell">{entry.description || '-'}</td>
+                                <td className="ctb-debit">
+                                  {parseFloat(entry.debit) > 0 ? formatCurrency(entry.debit) : '-'}
+                                </td>
+                                <td className="ctb-credit">
+                                  {parseFloat(entry.credit) > 0 ? formatCurrency(entry.credit) : '-'}
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                          <tfoot>
+                            <tr className="de-totals-row">
+                              <td colSpan="3" className="de-totals-label">
+                                Total
+                              </td>
+                              <td className="ctb-debit">{formatCurrency(totals.totalDebit)}</td>
+                              <td className="ctb-credit">{formatCurrency(totals.totalCredit)}</td>
+                            </tr>
+                          </tfoot>
+                        </table>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        </div>
       </div>
-      </div>
+
+      {accountDropdownOpen &&
+        dropdownRect &&
+        createPortal(
+          <div
+            id="deAccountDropdown"
+            ref={accountDropdownRef}
+            className="de-account-dropdown de-account-dropdown--portal"
+            role="listbox"
+            style={{
+              top: dropdownRect.top,
+              left: dropdownRect.left,
+              width: dropdownRect.width
+            }}
+          >
+            {filteredAccountOptions.length === 0 ? (
+              <div className="de-account-option de-account-option--empty">
+                No matching accounts
+              </div>
+            ) : (
+              filteredAccountOptions.map((account) => (
+                <button
+                  key={account.code}
+                  type="button"
+                  role="option"
+                  aria-selected="false"
+                  className="de-account-option"
+                  onMouseDown={(e) => e.preventDefault()}
+                  onClick={() => handleAccountSelect(account)}
+                >
+                  <div className="de-account-option-code">{account.code}</div>
+                  {account.name ? (
+                    <div className="de-account-option-name">{account.name}</div>
+                  ) : null}
+                </button>
+              ))
+            )}
+          </div>,
+          document.body
+        )}
     </div>
   );
 };
 
 export default DoubleEntries;
-

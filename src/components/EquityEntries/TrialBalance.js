@@ -8,8 +8,8 @@ const TrialBalance = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
   const [filters, setFilters] = useState({
-    startDate: new Date(new Date().getFullYear(), 0, 1).toISOString().split('T')[0],
-    endDate: new Date().toISOString().split('T')[0],
+    startDate: '',
+    endDate: '',
     portfolio: ''
   });
   const [availablePortfolios, setAvailablePortfolios] = useState([]);
@@ -181,7 +181,16 @@ const TrialBalance = () => {
   };
 
   const formatDate = (dateString) => {
+    if (!dateString) return '';
     return new Date(dateString).toLocaleDateString('en-IN');
+  };
+
+  const formatPeriodRange = () => {
+    const { startDate, endDate } = filters;
+    if (!startDate && !endDate) return null;
+    if (startDate && endDate) return `${formatDate(startDate)} – ${formatDate(endDate)}`;
+    if (startDate) return `From ${formatDate(startDate)}`;
+    return `Through ${formatDate(endDate)}`;
   };
 
 
@@ -310,20 +319,25 @@ const TrialBalance = () => {
 
   const renderAccountRow = (account, index) => (
     <tr key={account.account_code} className="tb-account-row">
-      <td className="tb-account-code">{account.account_code}</td>
-      <td className="tb-account-name">{account.account_name}</td>
-      <td className="tb-account-type">{account.account_type}</td>
-      <td className="tb-debit-balance">
-        {account.total_debit > 0 ? formatCurrency(account.total_debit) : '-'}
+      <td className="tb-col-code tb-account-code" title={account.account_code || ''}>
+        {account.account_code}
       </td>
-      <td className="tb-credit-balance">
-        {account.total_credit > 0 ? formatCurrency(account.total_credit) : '-'}
+      <td className="tb-col-name tb-account-name" title={account.account_name || ''}>
+        {account.account_name}
       </td>
-      <td className={`tb-net-balance ${getBalanceColor(account.net_balance, account.balance_type)}`}>
+      <td className="tb-col-type tb-account-type">{account.account_type}</td>
+      <td className="tb-col-amount tb-debit-balance">
+        {account.total_debit > 0 ? formatCurrency(account.total_debit) : '—'}
+      </td>
+      <td className="tb-col-amount tb-credit-balance">
+        {account.total_credit > 0 ? formatCurrency(account.total_credit) : '—'}
+      </td>
+      <td className={`tb-col-amount tb-net-balance ${getBalanceColor(account.net_balance, account.balance_type)}`}>
         {formatCurrency(Math.abs(account.net_balance))} {account.balance_type}
       </td>
-      <td className="tb-account-actions">
-        <button 
+      <td className="tb-col-actions tb-account-actions">
+        <button
+          type="button"
           className="tb-view-details-button"
           onClick={() => handleViewDetails(account.account_code)}
           title="View account details"
@@ -339,18 +353,16 @@ const TrialBalance = () => {
       <td colSpan="3" className="tb-subtotal-label">
         <strong>{type} Subtotal</strong>
       </td>
-      <td className="tb-subtotal-debit">
-        {subtotal.debit > 0 ? formatCurrency(subtotal.debit) : '-'}
+      <td className="tb-col-amount tb-subtotal-debit">
+        {subtotal.debit > 0 ? formatCurrency(subtotal.debit) : '—'}
       </td>
-      <td className="tb-subtotal-credit">
-        {subtotal.credit > 0 ? formatCurrency(subtotal.credit) : '-'}
+      <td className="tb-col-amount tb-subtotal-credit">
+        {subtotal.credit > 0 ? formatCurrency(subtotal.credit) : '—'}
       </td>
-      <td className={`tb-subtotal-net ${getBalanceColor(subtotal.net, 'DR')}`}>
+      <td className={`tb-col-amount tb-subtotal-net ${getBalanceColor(subtotal.net, 'DR')}`}>
         {formatCurrency(Math.abs(subtotal.net))} {subtotal.net > 0 ? 'DR' : 'CR'}
       </td>
-      <td className="tb-subtotal-actions">
-        {/* Empty cell for subtotal row */}
-      </td>
+      <td className="tb-col-actions tb-subtotal-actions" />
     </tr>
   );
 
@@ -377,19 +389,23 @@ const TrialBalance = () => {
 
   return (
     <div className="tb-main-container">
+      <div className="tb-content-wrapper">
       {/* Header */}
       <div className="tb-header-section">
         <div className="tb-header-left">
           <h1 className="tb-main-title">Trial Balance</h1>
-          <div className="tb-period-info">
-            <span className="tb-period-label">Period:</span>
-            <span className="tb-period-dates">
-              {formatDate(trialBalanceData?.period.startDate)} - {formatDate(trialBalanceData?.period.endDate)}
-            </span>
-            <span className="tb-portfolio-info">
-              ({trialBalanceData?.period.portfolio})
-            </span>
-          </div>
+          <p className="tb-subtitle">
+            Account-level debit and credit totals. Select dates to filter by period.
+          </p>
+          {formatPeriodRange() && (
+            <div className="tb-period-info">
+              <span className="tb-period-label">Period:</span>
+              <span className="tb-period-dates">{formatPeriodRange()}</span>
+              {trialBalanceData?.period?.portfolio && (
+                <span className="tb-portfolio-info">({trialBalanceData.period.portfolio})</span>
+              )}
+            </div>
+          )}
         </div>
         <div className="tb-header-right">
           <div className="tb-generated-info">
@@ -471,24 +487,24 @@ const TrialBalance = () => {
       <div className="tb-main-content">
         {viewMode === 'detailed' ? (
           <div className="tb-detailed-view">
-            <div className="tb-table-container">
+            <div className="tb-table-scroll">
               <table className="tb-data-table">
                 <thead>
                   <tr className="tb-table-header">
-                    <th className="tb-th-account-code">Account Code</th>
-                    <th className="tb-th-account-name">Account Name</th>
-                    <th className="tb-th-type">Type</th>
-                    <th className="tb-th-debit">Debit Balance</th>
-                    <th className="tb-th-credit">Credit Balance</th>
-                    <th className="tb-th-net">Net Balance</th>
-                    <th className="tb-th-actions">Actions</th>
+                    <th className="tb-col-code">Account Code</th>
+                    <th className="tb-col-name">Account Name</th>
+                    <th className="tb-col-type">Type</th>
+                    <th className="tb-col-amount">Debit Balance</th>
+                    <th className="tb-col-amount">Credit Balance</th>
+                    <th className="tb-col-amount">Net Balance</th>
+                    <th className="tb-col-actions">Actions</th>
                   </tr>
                 </thead>
                 <tbody>
                   {enhancedTrialBalanceData?.accountsByType && Object.entries(enhancedTrialBalanceData.accountsByType).map(([type, accounts]) => (
                     <React.Fragment key={type}>
                       {accounts.map((account, index) => renderAccountRow(account, index))}
-                      {enhancedTrialBalanceData.typeSubtotals && enhancedTrialBalanceData.typeSubtotals[type] && 
+                      {enhancedTrialBalanceData.typeSubtotals && enhancedTrialBalanceData.typeSubtotals[type] &&
                         renderTypeSubtotal(type, enhancedTrialBalanceData.typeSubtotals[type])
                       }
                     </React.Fragment>
@@ -497,18 +513,16 @@ const TrialBalance = () => {
                 <tfoot>
                   <tr className="tb-grand-total-row">
                     <td colSpan="3" className="tb-grand-total-label"><strong>GRAND TOTAL</strong></td>
-                    <td className="tb-grand-total-debit">
+                    <td className="tb-col-amount tb-grand-total-debit">
                       <strong>{formatCurrency(enhancedTrialBalanceData?.totals?.total_debits || trialBalanceData?.totals?.total_debits || 0)}</strong>
                     </td>
-                    <td className="tb-grand-total-credit">
+                    <td className="tb-col-amount tb-grand-total-credit">
                       <strong>{formatCurrency(enhancedTrialBalanceData?.totals?.total_credits || trialBalanceData?.totals?.total_credits || 0)}</strong>
                     </td>
-                    <td className="tb-grand-total-net">
+                    <td className="tb-col-amount tb-grand-total-net">
                       <strong>{formatCurrency((enhancedTrialBalanceData?.totals?.total_debits || trialBalanceData?.totals?.total_debits || 0) - (enhancedTrialBalanceData?.totals?.total_credits || trialBalanceData?.totals?.total_credits || 0))}</strong>
                     </td>
-                    <td className="tb-grand-total-actions">
-                      {/* Empty cell for grand total row */}
-                    </td>
+                    <td className="tb-col-actions tb-grand-total-actions" />
                   </tr>
                 </tfoot>
               </table>
@@ -516,6 +530,9 @@ const TrialBalance = () => {
           </div>
         ) : (
           <div className="tb-summary-view">
+            <div className="tb-table-card-header">
+              <h2 className="tb-table-card-title">Trial Balance — Summary</h2>
+            </div>
             <div className="tb-summary-cards">
               {enhancedTrialBalanceData?.summary && enhancedTrialBalanceData.summary.map((typeSummary, index) => (
                 <div key={index} className="tb-summary-card">
@@ -545,7 +562,6 @@ const TrialBalance = () => {
 
       </div>
 
-
       {/* Account Details Modal */}
       <AccountDetailsModal
         isOpen={showAccountModal}
@@ -553,6 +569,7 @@ const TrialBalance = () => {
         accountCode={selectedAccountData?.accountCode}
         accountData={selectedAccountData}
       />
+      </div>
     </div>
   );
 };

@@ -354,7 +354,7 @@ const GeneralLedger = () => {
             </div>
           </div>
 
-          <div className="gl-table-container">
+          <div className="gl-table-scroll">
             {error && (
               <div className="gl-error">{error}</div>
             )}
@@ -366,44 +366,58 @@ const GeneralLedger = () => {
                 <table className="gl-ledger-table">
                   <thead>
                     <tr>
-                      <th>Date</th>
-                      <th>Account Code</th>
-                      <th>Account Name</th>
-                      <th>Description</th>
-                      <th>Reference</th>
-                      <th>Payment Details</th>
-                      <th>Debit (LKR)</th>
-                      <th>Credit (LKR)</th>
-                      <th>Balance (LKR)</th>
-                      <th>Type</th>
-                      <th>Status</th>
+                      <th className="gl-col-date">Date</th>
+                      <th className="gl-col-code">Account Code</th>
+                      <th className="gl-col-name">Account Name</th>
+                      <th className="gl-col-desc">Description</th>
+                      <th className="gl-col-ref">Reference</th>
+                      <th className="gl-col-payment">Payment Details</th>
+                      <th className="gl-col-amount">Debit (LKR)</th>
+                      <th className="gl-col-amount">Credit (LKR)</th>
+                      <th className="gl-col-amount">Balance (LKR)</th>
+                      <th className="gl-col-type">Type</th>
+                      <th className="gl-col-status">Status</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {currentEntries.map(entry => (
+                    {currentEntries.map((entry) => (
                       <tr key={entry.id} className="gl-table-row">
-                        <td className="gl-date">{formatDate(entry.date)}</td>
-                        <td className="gl-account-code">{entry.account_code}</td>
-                        <td className="gl-account-name">{entry.account_name}</td>
-                        <td className="gl-description">{entry.description}</td>
-                        <td className="gl-reference">{entry.reference}</td>
-                        <td>
-                          {entry.transaction_account_name && (
+                        <td className="gl-col-date gl-date">{formatDate(entry.date)}</td>
+                        <td className="gl-col-code gl-account-code" title={entry.account_code || ''}>
+                          {entry.account_code}
+                        </td>
+                        <td className="gl-col-name gl-account-name" title={entry.account_name || ''}>
+                          {entry.account_name}
+                        </td>
+                        <td className="gl-col-desc gl-description" title={entry.description || ''}>
+                          {entry.description}
+                        </td>
+                        <td className="gl-col-ref gl-reference" title={entry.reference || ''}>
+                          {entry.reference}
+                        </td>
+                        <td className="gl-col-payment">
+                          {entry.transaction_account_name ? (
                             <div className="payment-details">
                               <div><strong>{entry.transaction_account_name}</strong></div>
                               {entry.account_number && <div>Acc: {entry.account_number}</div>}
                               {entry.bank_name && <div>Bank: {entry.bank_name}</div>}
                               {entry.payment_method && <div>Method: {entry.payment_method}</div>}
                             </div>
+                          ) : (
+                            '—'
                           )}
                         </td>
-                        <td className="gl-debit">{entry.debit > 0 ? formatCurrency(entry.debit) : '-'}</td>
-                        <td className="gl-credit">{entry.credit > 0 ? formatCurrency(entry.credit) : '-'}</td>
-                        <td className={`gl-balance ${entry.balance >= 0 ? 'positive' : 'negative'}`}>
+                        <td className="gl-col-amount gl-debit">
+                          {entry.debit > 0 ? formatCurrency(entry.debit) : '—'}
+                        </td>
+                        <td className="gl-col-amount gl-credit">
+                          {entry.credit > 0 ? formatCurrency(entry.credit) : '—'}
+                        </td>
+                        <td className={`gl-col-amount gl-balance ${entry.balance >= 0 ? 'positive' : 'negative'}`}>
                           {formatCurrency(Math.abs(entry.balance))}
                         </td>
-                        <td className="gl-type">{entry.transaction_type}</td>
-                        <td>
+                        <td className="gl-col-type gl-type">{entry.transaction_type}</td>
+                        <td className="gl-col-status">
                           <span className={`gl-status ${entry.status.toLowerCase()}`}>
                             {entry.status}
                           </span>
@@ -413,23 +427,24 @@ const GeneralLedger = () => {
                   </tbody>
                 </table>
 
-                {/* Pagination */}
                 {totalPages > 1 && (
                   <div className="gl-pagination">
                     <button
-                      onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                      type="button"
+                      onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
                       disabled={currentPage === 1}
                       className="gl-pagination-btn"
                     >
                       Previous
                     </button>
-                    
+
                     <div className="gl-page-info">
                       Page {currentPage} of {totalPages}
                     </div>
-                    
+
                     <button
-                      onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                      type="button"
+                      onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
                       disabled={currentPage === totalPages}
                       className="gl-pagination-btn"
                     >

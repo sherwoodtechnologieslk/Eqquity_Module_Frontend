@@ -425,6 +425,21 @@ export const tradeSummaryAPI = {
     }
   },
 
+  // Paginated trade summaries (Trade Summary Data screen only)
+  getTradeSummariesPaginated: async ({ page = 1, limit = 500, tradeDate = null, search = null } = {}) => {
+    try {
+      const params = new URLSearchParams();
+      params.set('page', String(page));
+      params.set('limit', String(limit));
+      if (tradeDate) params.set('tradeDate', tradeDate);
+      if (search && String(search).trim()) params.set('search', String(search).trim());
+      return await makeAuthenticatedRequest(`${API_BASE_URL}/trade-summary/paginated?${params.toString()}`);
+    } catch (error) {
+      console.error('Error fetching paginated trade summaries:', error);
+      throw error;
+    }
+  },
+
   // Get unique company names and symbols for dropdown
   getCompanyList: async () => {
     try {
@@ -2044,10 +2059,15 @@ export const trialBalanceAPI = {
   getTrialBalance: async (filters = {}) => {
     try {
       const queryParams = new URLSearchParams({
-        startDate: filters.startDate || defaultMonthStartYmd(),
-        endDate: filters.endDate || defaultTodayYmd(),
         _ts: Date.now().toString()
       });
+
+      if (filters.startDate) {
+        queryParams.append('startDate', filters.startDate);
+      }
+      if (filters.endDate) {
+        queryParams.append('endDate', filters.endDate);
+      }
       
       if (filters.portfolio) {
         queryParams.append('portfolio', filters.portfolio);
@@ -2124,10 +2144,15 @@ export const trialBalanceAPI = {
   getAccountDetails: async (accountCode, filters = {}) => {
     try {
       const queryParams = new URLSearchParams({
-        startDate: filters.startDate || defaultMonthStartYmd(),
-        endDate: filters.endDate || defaultTodayYmd(),
         _ts: Date.now().toString()
       });
+
+      if (filters.startDate) {
+        queryParams.append('startDate', filters.startDate);
+      }
+      if (filters.endDate) {
+        queryParams.append('endDate', filters.endDate);
+      }
       
       if (filters.portfolio) {
         queryParams.append('portfolio', filters.portfolio);

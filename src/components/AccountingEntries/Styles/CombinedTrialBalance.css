@@ -341,7 +341,7 @@
 
 .ctb-sources-header,
 .ctb-sources-cell {
-  text-align: right;
+  text-align: left;
   vertical-align: middle;
   width: 1%;
   white-space: nowrap;
@@ -350,7 +350,7 @@
 .ctb-sources-pills {
   display: inline-flex;
   flex-wrap: wrap;
-  justify-content: flex-end;
+  justify-content: flex-start;
   align-items: center;
   gap: 0.2rem;
   max-width: 100%;
