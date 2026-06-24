@@ -1,6 +1,11 @@
 import React, { useState, useEffect, useRef } from 'react';
 import './Styles/StatementOfComprehensiveIncome.css';
+import './Styles/FinancialNoteLinks.css';
 import { profitLossAPI } from '../../services/api';
+import {
+  enrichNotesContext,
+  resolveNoteForSociLine
+} from '../../utils/financialNotesRegistry';
 
 const SECTIONS = [
   {
@@ -268,7 +273,7 @@ const mapProfitLossToSoci = (data) => {
   };
 };
 
-const StatementOfComprehensiveIncome = () => {
+const StatementOfComprehensiveIncome = ({ onTabChange }) => {
   const [asOfDate, setAsOfDate] = useState(() => todayYmd());
   const [columnData, setColumnData] = useState(() => [
     { ...EMPTY_SOCI },
@@ -364,6 +369,38 @@ const StatementOfComprehensiveIncome = () => {
     if (amount > 0) return 'positive';
     if (amount < 0) return 'negative';
     return 'neutral';
+  };
+
+  const goToNote = (line) => {
+    const note = resolveNoteForSociLine(line.key);
+    if (!note || typeof onTabChange !== 'function') return;
+    const ctx = enrichNotesContext({
+      source: 'SOCI',
+      lineKey: line.key,
+      lineLabel: line.label,
+      asOfDate,
+      note
+    });
+    onTabChange('Financial Reporting Notes', ctx);
+  };
+
+  const renderLineLabel = (line) => {
+    const note = resolveNoteForSociLine(line.key);
+    return (
+      <span className="ci-label-with-note">
+        <span>{line.label}</span>
+        {note ? (
+          <button
+            type="button"
+            className="fr-note-link"
+            onClick={() => goToNote(line)}
+            title={`View ${note.title} (Note ${note.number})`}
+          >
+            Note {note.number}
+          </button>
+        ) : null}
+      </span>
+    );
   };
 
   const renderAmountCells = (key, { bold = false } = {}) =>
@@ -504,7 +541,7 @@ const StatementOfComprehensiveIncome = () => {
                     <tbody>
                       {section.lines.map((line) => (
                         <tr key={line.key} className="ci-section-row">
-                          <td className="ci-label">{line.label}</td>
+                          <td className="ci-label">{renderLineLabel(line)}</td>
                           {renderAmountCells(line.key)}
                         </tr>
                       ))}

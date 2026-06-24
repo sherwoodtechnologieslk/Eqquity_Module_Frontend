@@ -1,0 +1,32 @@
+/* Shared "Note N" pill links on SOCI, Cash Flow (also defined in FinancialPosition.css for Notes/SOFP). */
+
+.fr-note-link {
+  display: inline-flex;
+  align-items: center;
+  margin-left: 8px;
+  padding: 1px 7px;
+  font-size: 10px;
+  font-weight: 600;
+  font-family: inherit;
+  letter-spacing: 0.02em;
+  color: #1d4ed8;
+  background: #eff6ff;
+  border: 1px solid #bfdbfe;
+  border-radius: 999px;
+  cursor: pointer;
+  vertical-align: middle;
+  white-space: nowrap;
+}
+
+.fr-note-link:hover {
+  background: #dbeafe;
+  border-color: #93c5fd;
+  color: #1e3a8a;
+}
+
+.cf-label-with-note {
+  display: inline-flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 4px 8px;
+}

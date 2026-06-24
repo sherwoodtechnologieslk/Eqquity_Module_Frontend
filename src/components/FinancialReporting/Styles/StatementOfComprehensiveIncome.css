@@ -483,3 +483,11 @@
     padding: 8px;
   }
 }
+
+.ci-label-with-note {
+  display: inline-flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 4px 8px;
+}
+

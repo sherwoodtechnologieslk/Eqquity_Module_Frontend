@@ -575,8 +575,8 @@ const GsecManualEntryPosting = () => {
   );
 
   return (
-    <div className="gsec-page-container">
-      <div className="gsec-header-section">
+    <div className="gsec-page-container gsec-manual-page">
+      <div className="gsec-header-section gsec-manual-header">
         <div className="gsec-header-icon">
           <svg className="gsec-icon" fill="currentColor" viewBox="0 0 20 20">
             <path

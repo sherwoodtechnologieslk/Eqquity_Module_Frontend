@@ -4,12 +4,22 @@ import '../AccountingEntries/Styles/CombinedTrialBalance.css';
 import '../AccountingEntries/Styles/AccountSummaries.css';
 import './Styles/DoubleEntries.css';
 
+const PAGE_SIZE = 20;
+
 const DoubleEntries = () => {
   const [entries, setEntries] = useState([]);
-  const [filteredEntries, setFilteredEntries] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalTransactions, setTotalTransactions] = useState(0);
+  const [summary, setSummary] = useState({
+    transactionCount: 0,
+    balancedCount: 0,
+    unbalancedCount: 0,
+    totalDebit: 0
+  });
   const [searchTerm, setSearchTerm] = useState('');
+  const [debouncedSearch, setDebouncedSearch] = useState('');
   const [filterDate, setFilterDate] = useState('');
   const [filterAccount, setFilterAccount] = useState('');
   const [accountDropdownOpen, setAccountDropdownOpen] = useState(false);
@@ -20,9 +30,13 @@ const DoubleEntries = () => {
   const accountDropdownRef = useRef(null);
 
   useEffect(() => {
-    loadDoubleEntries();
     loadAccountList();
   }, []);
+
+  useEffect(() => {
+    const timer = setTimeout(() => setDebouncedSearch(searchTerm), 400);
+    return () => clearTimeout(timer);
+  }, [searchTerm]);
 
   const loadAccountList = async () => {
     try {
@@ -55,6 +69,75 @@ const DoubleEntries = () => {
       console.error('Error loading accounts for filter:', err);
     }
   };
+
+  const loadDoubleEntries = useCallback(async () => {
+    try {
+      setLoading(true);
+      setError('');
+
+      const token = localStorage.getItem('token');
+      const params = new URLSearchParams({
+        page: String(currentPage),
+        limit: String(PAGE_SIZE)
+      });
+
+      if (debouncedSearch.trim()) {
+        params.set('search', debouncedSearch.trim());
+      }
+      if (filterDate) {
+        params.set('date', filterDate);
+      }
+      if (filterAccount.trim()) {
+        params.set('account', filterAccount.trim());
+      }
+
+      const response = await fetch(
+        `${process.env.REACT_APP_API_URL || 'http://localhost:8080/api'}/journal-entries/double-entries?${params.toString()}`,
+        {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+            ...(token && { Authorization: `Bearer ${token}` })
+          }
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error('Failed to load double entries');
+      }
+
+      const result = await response.json();
+      if (result.success) {
+        setEntries(Array.isArray(result.data) ? result.data : []);
+        setTotalTransactions(result.pagination?.total ?? result.data?.length ?? 0);
+        setSummary({
+          transactionCount: result.summary?.transactionCount ?? result.pagination?.total ?? 0,
+          balancedCount: result.summary?.balancedCount ?? 0,
+          unbalancedCount: result.summary?.unbalancedCount ?? 0,
+          totalDebit: result.summary?.totalDebit ?? 0
+        });
+      } else {
+        throw new Error(result.error || 'Failed to load entries');
+      }
+    } catch (err) {
+      console.error('Error loading double entries:', err);
+      setError(err.message || 'Failed to load double entries. Please try again.');
+      setEntries([]);
+      setTotalTransactions(0);
+      setSummary({
+        transactionCount: 0,
+        balancedCount: 0,
+        unbalancedCount: 0,
+        totalDebit: 0
+      });
+    } finally {
+      setLoading(false);
+    }
+  }, [currentPage, debouncedSearch, filterDate, filterAccount]);
+
+  useEffect(() => {
+    loadDoubleEntries();
+  }, [loadDoubleEntries]);
 
   const updateDropdownRect = useCallback(() => {
     if (!accountInputRef.current) return;
@@ -94,100 +177,6 @@ const DoubleEntries = () => {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  useEffect(() => {
-    filterEntries();
-  }, [entries, searchTerm, filterDate, filterAccount]);
-
-  const loadDoubleEntries = async () => {
-    try {
-      setLoading(true);
-      setError('');
-      const token = localStorage.getItem('token');
-      const response = await fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:8080/api'}/journal-entries`, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-          ...(token && { 'Authorization': `Bearer ${token}` })
-        }
-      });
-
-      if (response.ok) {
-        const result = await response.json();
-        if (result.success && result.data) {
-          const groupedEntries = groupByTransaction(result.data);
-          setEntries(groupedEntries);
-        } else {
-          throw new Error(result.error || 'Failed to load entries');
-        }
-      } else {
-        throw new Error('Failed to load double entries');
-      }
-    } catch (err) {
-      console.error('Error loading double entries:', err);
-      setError(err.message || 'Failed to load double entries. Please try again.');
-      setEntries([]);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const groupByTransaction = (entryRows) => {
-    const grouped = {};
-    const seenEntryIds = new Set();
-
-    entryRows.forEach((entry) => {
-      if (entry.id != null) {
-        if (seenEntryIds.has(entry.id)) return;
-        seenEntryIds.add(entry.id);
-      }
-
-      const key = entry.reference || entry.transaction_id || entry.id;
-      if (!grouped[key]) {
-        grouped[key] = {
-          id: key,
-          date: entry.date || entry.transaction_date,
-          reference: entry.reference || '',
-          description: entry.description || '',
-          entries: []
-        };
-      }
-      grouped[key].entries.push(entry);
-    });
-    return Object.values(grouped);
-  };
-
-  const filterEntries = () => {
-    let filtered = [...entries];
-
-    if (searchTerm.trim()) {
-      const searchLower = searchTerm.toLowerCase();
-      filtered = filtered.filter((group) =>
-        group.reference?.toLowerCase().includes(searchLower) ||
-        group.description?.toLowerCase().includes(searchLower) ||
-        group.entries.some((e) =>
-          e.account_code?.toLowerCase().includes(searchLower) ||
-          e.account_name?.toLowerCase().includes(searchLower)
-        )
-      );
-    }
-
-    if (filterDate) {
-      filtered = filtered.filter((group) => group.date === filterDate);
-    }
-
-    if (filterAccount.trim()) {
-      const accountLower = filterAccount.toLowerCase();
-      filtered = filtered.filter((group) =>
-        group.entries.some((e) =>
-          e.account_code?.toLowerCase().includes(accountLower) ||
-          e.account_name?.toLowerCase().includes(accountLower)
-        )
-      );
-    }
-
-    setFilteredEntries(filtered);
-  };
-
   const formatCurrency = (amount) => {
     return new Intl.NumberFormat('en-US', {
       minimumFractionDigits: 2,
@@ -208,12 +197,11 @@ const DoubleEntries = () => {
   const calculateTotals = (group) => {
     const totalDebit = group.entries.reduce((sum, e) => sum + (parseFloat(e.debit) || 0), 0);
     const totalCredit = group.entries.reduce((sum, e) => sum + (parseFloat(e.credit) || 0), 0);
-    return { totalDebit, totalCredit, isBalanced: totalDebit === totalCredit };
+    return { totalDebit, totalCredit, isBalanced: Math.abs(totalDebit - totalCredit) < 0.01 };
   };
 
-  const balancedCount = entries.filter((g) => calculateTotals(g).isBalanced).length;
-  const unbalancedCount = entries.length - balancedCount;
-  const totalDebitValue = entries.reduce((sum, g) => sum + calculateTotals(g).totalDebit, 0);
+  const totalPages = Math.max(1, Math.ceil(totalTransactions / PAGE_SIZE));
+  const hasActiveFilters = Boolean(searchTerm.trim() || filterDate || filterAccount.trim());
 
   const accountOptions = useMemo(() => {
     const byCode = new Map();
@@ -253,13 +241,32 @@ const DoubleEntries = () => {
   const handleAccountSelect = (account) => {
     setFilterAccount(account.code);
     setAccountDropdownOpen(false);
+    setCurrentPage(1);
   };
 
   const clearFilters = () => {
     setSearchTerm('');
+    setDebouncedSearch('');
     setFilterDate('');
     setFilterAccount('');
     setAccountDropdownOpen(false);
+    setCurrentPage(1);
+  };
+
+  const handleSearchChange = (value) => {
+    setSearchTerm(value);
+    setCurrentPage(1);
+  };
+
+  const handleDateChange = (value) => {
+    setFilterDate(value);
+    setCurrentPage(1);
+  };
+
+  const handleAccountInputChange = (value) => {
+    setFilterAccount(value);
+    setAccountDropdownOpen(true);
+    setCurrentPage(1);
   };
 
   if (loading && entries.length === 0 && !error) {
@@ -285,20 +292,20 @@ const DoubleEntries = () => {
   }
 
   return (
-    <div className="ctb-page-container">
+    <div className="ctb-page-container de-page">
       <div className="ctb-content-wrapper">
-        <div className="ctb-header-section">
+        <div className="ctb-header-section de-header-section">
           <div className="ctb-header-text-group">
             <h1 className="ctb-main-title">Double Entries</h1>
             <p className="ctb-subtitle">
-              View journal transactions grouped by reference, with matching debits and credits for
-              each double-entry posting.
+              View double-entry postings from Equity, Other Transactions, and GSec ledgers,
+              grouped by reference or deal number.
             </p>
           </div>
           <div className="ctb-header-meta">
             <div className="ctb-period">
               Transactions:&nbsp;
-              <span>{entries.length}</span>
+              <span>{summary.transactionCount}</span>
             </div>
           </div>
         </div>
@@ -316,7 +323,7 @@ const DoubleEntries = () => {
                   className="ctb-filter-input"
                   placeholder="Reference, description, or account..."
                   value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
+                  onChange={(e) => handleSearchChange(e.target.value)}
                 />
               </div>
 
@@ -330,7 +337,7 @@ const DoubleEntries = () => {
                   lang="en-US"
                   className="ctb-filter-input"
                   value={filterDate}
-                  onChange={(e) => setFilterDate(e.target.value)}
+                  onChange={(e) => handleDateChange(e.target.value)}
                 />
               </div>
 
@@ -351,10 +358,7 @@ const DoubleEntries = () => {
                     className="ctb-filter-input de-account-input"
                     placeholder="Search or select account..."
                     value={filterAccount}
-                    onChange={(e) => {
-                      setFilterAccount(e.target.value);
-                      setAccountDropdownOpen(true);
-                    }}
+                    onChange={(e) => handleAccountInputChange(e.target.value)}
                     onFocus={() => setAccountDropdownOpen(true)}
                     autoComplete="off"
                     role="combobox"
@@ -369,6 +373,7 @@ const DoubleEntries = () => {
                       onClick={() => {
                         setFilterAccount('');
                         setAccountDropdownOpen(true);
+                        setCurrentPage(1);
                         accountInputRef.current?.focus();
                       }}
                       aria-label="Clear account filter"
@@ -395,26 +400,26 @@ const DoubleEntries = () => {
         <div className="cas-metrics de-metrics">
           <div className="cas-metric-card">
             <div className="cas-metric-label">Transactions</div>
-            <div className="cas-metric-value">{entries.length}</div>
+            <div className="cas-metric-value">{summary.transactionCount}</div>
           </div>
           <div className="cas-metric-card">
             <div className="cas-metric-label">Balanced</div>
-            <div className="cas-metric-value positive">{balancedCount}</div>
+            <div className="cas-metric-value positive">{summary.balancedCount}</div>
           </div>
           <div className="cas-metric-card">
             <div className="cas-metric-label">Unbalanced</div>
-            <div className="cas-metric-value negative">{unbalancedCount}</div>
+            <div className="cas-metric-value negative">{summary.unbalancedCount}</div>
           </div>
           <div className="cas-metric-card">
             <div className="cas-metric-label">Total Value (DR)</div>
-            <div className="cas-metric-value debit">{formatCurrency(totalDebitValue)}</div>
+            <div className="cas-metric-value debit">{formatCurrency(summary.totalDebit)}</div>
           </div>
         </div>
 
         <div className="ctb-table-card">
           <div className="ctb-card-header ctb-table-header">
             <h2 className="ctb-card-title">
-              Double Entry Transactions ({filteredEntries.length})
+              Double Entry Transactions ({totalTransactions})
             </h2>
             <div className="ctb-export-actions">
               <button
@@ -428,101 +433,136 @@ const DoubleEntries = () => {
             </div>
           </div>
           <p className="ctb-table-hint">
-            Each group below represents one journal transaction. Debits and credits within a group
-            should balance; unbalanced groups are highlighted.
+            Each group represents one transaction from Equity, Other, or GSec. Debits and credits
+            within a group should balance; unbalanced groups are highlighted.
           </p>
 
           <div className="de-transactions-container">
             {loading ? (
               <div className="ctb-loading">Loading double entries...</div>
-            ) : filteredEntries.length === 0 ? (
+            ) : entries.length === 0 ? (
               <div className="ctb-no-data">
-                {searchTerm || filterDate || filterAccount
+                {hasActiveFilters
                   ? 'No double entries match the selected filters.'
                   : 'No double entries have been recorded yet.'}
               </div>
             ) : (
-              <div className="de-transaction-list">
-                {filteredEntries.map((group) => {
-                  const totals = calculateTotals(group);
-                  return (
-                    <div key={group.id} className="de-transaction-group">
-                      <div className="de-group-header">
-                        <div className="de-group-info">
-                          <div className="de-group-date">{formatDate(group.date)}</div>
-                          <div className="de-group-reference">
-                            <strong>Reference:</strong> {group.reference || 'N/A'}
+              <>
+                <div className="de-page-info">
+                  Showing {(currentPage - 1) * PAGE_SIZE + 1}–
+                  {(currentPage - 1) * PAGE_SIZE + entries.length} of {totalTransactions} transactions
+                </div>
+                <div className="de-transaction-list">
+                  {entries.map((group) => {
+                    const totals = calculateTotals(group);
+                    return (
+                      <div key={group.id} className="de-transaction-group">
+                        <div className="de-group-header">
+                          <div className="de-group-info">
+                            <div className="de-group-topline">
+                              <div className="de-group-date">{formatDate(group.date)}</div>
+                              <span className={`de-source-badge de-source-badge--${group.source || 'equity'}`}>
+                                {group.sourceLabel || 'Equity'}
+                              </span>
+                            </div>
+                            <div className="de-group-reference">
+                              <strong>Reference:</strong> {group.reference || 'N/A'}
+                            </div>
+                            <div className="de-group-description">
+                              {group.description || 'No description'}
+                            </div>
                           </div>
-                          <div className="de-group-description">
-                            {group.description || 'No description'}
+                          <div className="de-group-meta">
+                            <span
+                              className={`de-balance-badge ${
+                                totals.isBalanced ? 'de-balance-badge--ok' : 'de-balance-badge--bad'
+                              }`}
+                            >
+                              {totals.isBalanced ? 'Balanced' : 'Unbalanced'}
+                            </span>
+                            <div className="de-group-totals">
+                              <span className="de-total-item">
+                                <span className="de-total-label">Debit</span>
+                                <span className="de-total-value de-total-value--debit">
+                                  {formatCurrency(totals.totalDebit)}
+                                </span>
+                              </span>
+                              <span className="de-total-item">
+                                <span className="de-total-label">Credit</span>
+                                <span className="de-total-value de-total-value--credit">
+                                  {formatCurrency(totals.totalCredit)}
+                                </span>
+                              </span>
+                            </div>
                           </div>
                         </div>
-                        <div className="de-group-meta">
-                          <span
-                            className={`de-balance-badge ${
-                              totals.isBalanced ? 'de-balance-badge--ok' : 'de-balance-badge--bad'
-                            }`}
-                          >
-                            {totals.isBalanced ? 'Balanced' : 'Unbalanced'}
-                          </span>
-                          <div className="de-group-totals">
-                            <span className="de-total-item">
-                              <span className="de-total-label">Debit</span>
-                              <span className="de-total-value de-total-value--debit">
-                                {formatCurrency(totals.totalDebit)}
-                              </span>
-                            </span>
-                            <span className="de-total-item">
-                              <span className="de-total-label">Credit</span>
-                              <span className="de-total-value de-total-value--credit">
-                                {formatCurrency(totals.totalCredit)}
-                              </span>
-                            </span>
-                          </div>
-                        </div>
-                      </div>
 
-                      <div className="de-group-table-wrap">
-                        <table className="ctb-data-table de-nested-table">
-                          <thead>
-                            <tr>
-                              <th>Account Code</th>
-                              <th>Account Name</th>
-                              <th>Description</th>
-                              <th>Debit</th>
-                              <th>Credit</th>
-                            </tr>
-                          </thead>
-                          <tbody>
-                            {group.entries.map((entry, idx) => (
-                              <tr key={entry.id || idx}>
-                                <td className="ctb-account-code">{entry.account_code || '-'}</td>
-                                <td>{entry.account_name || '-'}</td>
-                                <td className="de-description-cell">{entry.description || '-'}</td>
-                                <td className="ctb-debit">
-                                  {parseFloat(entry.debit) > 0 ? formatCurrency(entry.debit) : '-'}
-                                </td>
-                                <td className="ctb-credit">
-                                  {parseFloat(entry.credit) > 0 ? formatCurrency(entry.credit) : '-'}
-                                </td>
+                        <div className="de-group-table-wrap">
+                          <table className="ctb-data-table de-nested-table">
+                            <thead>
+                              <tr>
+                                <th>Account Code</th>
+                                <th>Account Name</th>
+                                <th>Description</th>
+                                <th>Debit</th>
+                                <th>Credit</th>
                               </tr>
-                            ))}
-                          </tbody>
-                          <tfoot>
-                            <tr className="de-totals-row">
-                              <td colSpan="3" className="de-totals-label">
-                                Total
-                              </td>
-                              <td className="ctb-debit">{formatCurrency(totals.totalDebit)}</td>
-                              <td className="ctb-credit">{formatCurrency(totals.totalCredit)}</td>
-                            </tr>
-                          </tfoot>
-                        </table>
+                            </thead>
+                            <tbody>
+                              {group.entries.map((entry, idx) => (
+                                <tr key={entry.id || idx}>
+                                  <td className="ctb-account-code">{entry.account_code || '-'}</td>
+                                  <td>{entry.account_name || '-'}</td>
+                                  <td className="de-description-cell">{entry.description || '-'}</td>
+                                  <td className="ctb-debit">
+                                    {parseFloat(entry.debit) > 0 ? formatCurrency(entry.debit) : '-'}
+                                  </td>
+                                  <td className="ctb-credit">
+                                    {parseFloat(entry.credit) > 0 ? formatCurrency(entry.credit) : '-'}
+                                  </td>
+                                </tr>
+                              ))}
+                            </tbody>
+                            <tfoot>
+                              <tr className="de-totals-row">
+                                <td colSpan="3" className="de-totals-label">
+                                  Total
+                                </td>
+                                <td className="ctb-debit">{formatCurrency(totals.totalDebit)}</td>
+                                <td className="ctb-credit">{formatCurrency(totals.totalCredit)}</td>
+                              </tr>
+                            </tfoot>
+                          </table>
+                        </div>
                       </div>
-                    </div>
-                  );
-                })}
-              </div>
+                    );
+                  })}
+                </div>
+
+                {totalPages > 1 && (
+                  <div className="de-pagination">
+                    <button
+                      type="button"
+                      className="de-pagination-btn"
+                      onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+                      disabled={currentPage === 1 || loading}
+                    >
+                      Previous
+                    </button>
+                    <span className="de-page-label">
+                      Page {currentPage} of {totalPages}
+                    </span>
+                    <button
+                      type="button"
+                      className="de-pagination-btn"
+                      onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
+                      disabled={currentPage === totalPages || loading}
+                    >
+                      Next
+                    </button>
+                  </div>
+                )}
+              </>
             )}
           </div>
         </div>

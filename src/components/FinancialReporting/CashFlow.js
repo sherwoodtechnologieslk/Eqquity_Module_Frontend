@@ -1,8 +1,60 @@
 import React, { useState } from 'react';
 import './Styles/CashFlow.css';
+import './Styles/FinancialNoteLinks.css';
+import {
+  enrichNotesContext,
+  resolveNoteForCashFlowLine
+} from '../../utils/financialNotesRegistry';
 
-const CashFlow = () => {
+const CashFlow = ({ onTabChange }) => {
   const [activeTab, setActiveTab] = useState('operating');
+  const periodEnd = new Date().toISOString().split('T')[0];
+
+  const goToNote = (lineKey, lineLabel) => {
+    const note = resolveNoteForCashFlowLine(lineKey);
+    if (!note || typeof onTabChange !== 'function') return;
+    onTabChange(
+      'Financial Reporting Notes',
+      enrichNotesContext({
+        source: 'CASH_FLOW',
+        lineKey,
+        lineLabel,
+        asOfDate: periodEnd,
+        note
+      })
+    );
+  };
+
+  const renderNoteLink = (lineKey, lineLabel) => {
+    const note = resolveNoteForCashFlowLine(lineKey);
+    if (!note || typeof onTabChange !== 'function') return null;
+    return (
+      <button
+        type="button"
+        className="fr-note-link"
+        onClick={() => goToNote(lineKey, lineLabel)}
+        title={`View ${note.title} (Note ${note.number})`}
+      >
+        Note {note.number}
+      </button>
+    );
+  };
+
+  const renderOpLabel = (label, lineKey) => (
+    <span className="cf-label-with-note">
+      <span>{label}</span>
+      {lineKey ? renderNoteLink(lineKey, label) : null}
+    </span>
+  );
+
+  const renderTableLabel = (label, lineKey, { indent = false } = {}) => (
+    <td className={indent ? 'cf-label-indent' : 'cf-label'}>
+      <span className="cf-label-with-note">
+        <span>{label}</span>
+        {lineKey ? renderNoteLink(lineKey, label) : null}
+      </span>
+    </td>
+  );
 
   // Sample data for Operating Cash Flow
   const operatingCashFlowData = {
@@ -166,14 +218,14 @@ const CashFlow = () => {
                   </div>
                   <div className="cf-op-rows">
                     {[
-                      { label: 'Depreciation', value: operatingCashFlowData.adjustments.depreciation },
-                      { label: 'Amortization', value: operatingCashFlowData.adjustments.amortization },
-                      { label: 'Change in fair value of financial assets', value: operatingCashFlowData.adjustments.changeInFairValue },
-                      { label: 'Interest expense', value: operatingCashFlowData.adjustments.interestExpense },
-                      { label: 'Other non-cash items', value: operatingCashFlowData.adjustments.otherNonCash },
-                    ].map((item, i) => (
-                      <div key={i} className="cf-op-row">
-                        <span className="cf-op-row-label">{item.label}</span>
+                      { key: 'depreciation', label: 'Depreciation', value: operatingCashFlowData.adjustments.depreciation },
+                      { key: 'amortization', label: 'Amortization', value: operatingCashFlowData.adjustments.amortization },
+                      { key: 'changeInFairValue', label: 'Change in fair value of financial assets', value: operatingCashFlowData.adjustments.changeInFairValue },
+                      { key: 'interestExpense', label: 'Interest expense', value: operatingCashFlowData.adjustments.interestExpense },
+                      { key: 'otherNonCash', label: 'Other non-cash items', value: operatingCashFlowData.adjustments.otherNonCash },
+                    ].map((item) => (
+                      <div key={item.key} className="cf-op-row">
+                        <span className="cf-op-row-label">{renderOpLabel(item.label, item.key)}</span>
                         <span className={`cf-op-row-value ${getAmountClass(item.value)}`}>
                           <span className="cf-op-sign">{item.value < 0 ? '−' : '+'}</span>
                           {formatNumber(Math.abs(item.value))}
@@ -196,14 +248,14 @@ const CashFlow = () => {
                   </div>
                   <div className="cf-op-rows">
                     {[
-                      { label: 'Trade and other receivables', value: operatingCashFlowData.workingCapitalChanges.tradeReceivables },
-                      { label: 'Trade and other payables', value: operatingCashFlowData.workingCapitalChanges.tradePayables },
-                      { label: 'Inventories', value: operatingCashFlowData.workingCapitalChanges.inventories },
-                      { label: 'Prepayments', value: operatingCashFlowData.workingCapitalChanges.prepayments },
-                      { label: 'Other current assets', value: operatingCashFlowData.workingCapitalChanges.otherCurrentAssets },
-                    ].map((item, i) => (
-                      <div key={i} className="cf-op-row">
-                        <span className="cf-op-row-label">{item.label}</span>
+                      { key: 'tradeReceivables', label: 'Trade and other receivables', value: operatingCashFlowData.workingCapitalChanges.tradeReceivables },
+                      { key: 'tradePayables', label: 'Trade and other payables', value: operatingCashFlowData.workingCapitalChanges.tradePayables },
+                      { key: 'inventories', label: 'Inventories', value: operatingCashFlowData.workingCapitalChanges.inventories },
+                      { key: 'prepayments', label: 'Prepayments', value: operatingCashFlowData.workingCapitalChanges.prepayments },
+                      { key: 'otherCurrentAssets', label: 'Other current assets', value: operatingCashFlowData.workingCapitalChanges.otherCurrentAssets },
+                    ].map((item) => (
+                      <div key={item.key} className="cf-op-row">
+                        <span className="cf-op-row-label">{renderOpLabel(item.label, item.key)}</span>
                         <span className={`cf-op-row-value ${getAmountClass(item.value)}`}>
                           <span className="cf-op-sign">{item.value < 0 ? '−' : '+'}</span>
                           {formatNumber(Math.abs(item.value))}
@@ -220,11 +272,11 @@ const CashFlow = () => {
                   </div>
                   <div className="cf-op-rows">
                     {[
-                      { label: 'Interest paid', value: operatingCashFlowData.interestPaid },
-                      { label: 'Income tax paid', value: operatingCashFlowData.incomeTaxPaid },
-                    ].map((item, i) => (
-                      <div key={i} className="cf-op-row">
-                        <span className="cf-op-row-label">{item.label}</span>
+                      { key: 'interestPaid', label: 'Interest paid', value: operatingCashFlowData.interestPaid },
+                      { key: 'incomeTaxPaid', label: 'Income tax paid', value: operatingCashFlowData.incomeTaxPaid },
+                    ].map((item) => (
+                      <div key={item.key} className="cf-op-row">
+                        <span className="cf-op-row-label">{renderOpLabel(item.label, item.key)}</span>
                         <span className={`cf-op-row-value ${getAmountClass(item.value)}`}>
                           <span className="cf-op-sign">{item.value < 0 ? '−' : '+'}</span>
                           {formatNumber(Math.abs(item.value))}
@@ -347,21 +399,21 @@ const CashFlow = () => {
                   </tr>
                   
                   <tr>
-                    <td className="cf-label-indent">Purchase of property, plant and equipment</td>
+                    {renderTableLabel('Purchase of property, plant and equipment', 'purchaseOfProperty', { indent: true })}
                     <td className={`cf-amount ${getAmountClass(investingCashFlowData.purchaseOfProperty)}`}>
                       {formatNumber(investingCashFlowData.purchaseOfProperty)}
                     </td>
                   </tr>
                   
                   <tr>
-                    <td className="cf-label-indent">Purchase of equipment</td>
+                    {renderTableLabel('Purchase of equipment', 'purchaseOfEquipment', { indent: true })}
                     <td className={`cf-amount ${getAmountClass(investingCashFlowData.purchaseOfEquipment)}`}>
                       {formatNumber(investingCashFlowData.purchaseOfEquipment)}
                     </td>
                   </tr>
                   
                   <tr>
-                    <td className="cf-label-indent">Purchase of financial assets</td>
+                    {renderTableLabel('Purchase of financial assets', 'purchaseOfFinancialAssets', { indent: true })}
                     <td className={`cf-amount ${getAmountClass(investingCashFlowData.purchaseOfFinancialAssets)}`}>
                       {formatNumber(investingCashFlowData.purchaseOfFinancialAssets)}
                     </td>
@@ -386,7 +438,7 @@ const CashFlow = () => {
                   </tr>
                   
                   <tr>
-                    <td className="cf-label-indent">Sale of financial assets</td>
+                    {renderTableLabel('Sale of financial assets', 'saleOfFinancialAssets', { indent: true })}
                     <td className={`cf-amount ${getAmountClass(investingCashFlowData.saleOfFinancialAssets)}`}>
                       {formatNumber(investingCashFlowData.saleOfFinancialAssets)}
                     </td>
@@ -447,7 +499,7 @@ const CashFlow = () => {
                   </tr>
                   
                   <tr>
-                    <td className="cf-label-indent">Proceeds from borrowings</td>
+                    {renderTableLabel('Proceeds from borrowings', 'proceedsFromBorrowings', { indent: true })}
                     <td className={`cf-amount ${getAmountClass(financingCashFlowData.proceedsFromBorrowings)}`}>
                       {formatNumber(financingCashFlowData.proceedsFromBorrowings)}
                     </td>
@@ -458,14 +510,14 @@ const CashFlow = () => {
                   </tr>
                   
                   <tr>
-                    <td className="cf-label-indent">Repayment of borrowings</td>
+                    {renderTableLabel('Repayment of borrowings', 'repaymentOfBorrowings', { indent: true })}
                     <td className={`cf-amount ${getAmountClass(financingCashFlowData.repaymentOfBorrowings)}`}>
                       {formatNumber(financingCashFlowData.repaymentOfBorrowings)}
                     </td>
                   </tr>
                   
                   <tr>
-                    <td className="cf-label-indent">Payment of lease liabilities</td>
+                    {renderTableLabel('Payment of lease liabilities', 'paymentOfLeaseLiabilities', { indent: true })}
                     <td className={`cf-amount ${getAmountClass(financingCashFlowData.paymentOfLeaseLiabilities)}`}>
                       {formatNumber(financingCashFlowData.paymentOfLeaseLiabilities)}
                     </td>
@@ -527,19 +579,34 @@ const CashFlow = () => {
                           </td>
                         </tr>
                         <tr className="cf-summary-total">
-                          <td className="cf-summary-label"><strong>Net increase in cash and cash equivalents</strong></td>
+                          <td className="cf-summary-label">
+                            <span className="cf-label-with-note">
+                              <strong>Net increase in cash and cash equivalents</strong>
+                              {renderNoteLink('netIncreaseInCash', 'Net increase in cash and cash equivalents')}
+                            </span>
+                          </td>
                           <td className={`cf-summary-value ${getAmountClass(summaryData.netIncreaseInCash)}`}>
                             <strong>{formatCurrency(summaryData.netIncreaseInCash)}</strong>
                           </td>
                         </tr>
                         <tr>
-                          <td className="cf-summary-label">Cash and cash equivalents at beginning of period</td>
+                          <td className="cf-summary-label">
+                            <span className="cf-label-with-note">
+                              <span>Cash and cash equivalents at beginning of period</span>
+                              {renderNoteLink('cashAtBeginning', 'Cash and cash equivalents at beginning of period')}
+                            </span>
+                          </td>
                           <td className="cf-summary-value">
                             {formatCurrency(summaryData.cashAtBeginning)}
                           </td>
                         </tr>
                         <tr className="cf-summary-total">
-                          <td className="cf-summary-label"><strong>Cash and cash equivalents at end of period</strong></td>
+                          <td className="cf-summary-label">
+                            <span className="cf-label-with-note">
+                              <strong>Cash and cash equivalents at end of period</strong>
+                              {renderNoteLink('cashAtEnd', 'Cash and cash equivalents at end of period')}
+                            </span>
+                          </td>
                           <td className={`cf-summary-value ${getAmountClass(summaryData.cashAtEnd)}`}>
                             <strong>{formatCurrency(summaryData.cashAtEnd)}</strong>
                           </td>
