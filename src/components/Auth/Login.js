@@ -57,11 +57,15 @@ const Login = ({ onLogin, switchToSignup, switchToForgotPassword }) => {
             const response = await authService.login(formData);
             
             if (response.token) {
-                // Store token in localStorage
-                authService.setAuth(response.user, response.token);
-                
-                // Call parent callback
-                onLogin(response.user, response.token);
+                const sessionUser = authService.setAuthSession({
+                    user: response.user,
+                    account_kind: response.account_kind,
+                    company_role: response.company_role,
+                    permissions: response.permissions,
+                    company: response.company,
+                });
+                localStorage.setItem('token', response.token);
+                onLogin(sessionUser, response.token);
             }
         } catch (error) {
             if (error.response) {
