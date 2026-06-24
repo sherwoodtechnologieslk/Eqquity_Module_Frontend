@@ -72,17 +72,27 @@ export const authService = {
 
         try {
             const response = await authAPI.get('/auth/me');
+            const data = response.data;
+            authService.setAuthSession(data);
             return true;
         } catch (error) {
-            // Token is invalid or expired, clear it
             localStorage.removeItem('token');
             localStorage.removeItem('user');
+            localStorage.removeItem('authSession');
             return false;
         }
     },
 
-    // Get stored user data
+    // Get stored user data (includes company_role when set)
     getStoredUser: () => {
+        const session = localStorage.getItem('authSession');
+        if (session) {
+            try {
+                return JSON.parse(session);
+            } catch {
+                /* fall through */
+            }
+        }
         const user = localStorage.getItem('user');
         return user ? JSON.parse(user) : null;
     },
@@ -96,12 +106,34 @@ export const authService = {
     logout: () => {
         localStorage.removeItem('token');
         localStorage.removeItem('user');
+        localStorage.removeItem('authSession');
     },
 
-    // Set authentication data
-    setAuth: (user, token) => {
+    // Merge login/me payload into storable session
+    setAuthSession: (authPayload) => {
+        const session = {
+            ...authPayload.user,
+            account_kind: authPayload.account_kind ?? authPayload.user?.account_kind,
+            company_role: authPayload.company_role ?? authPayload.user?.company_role,
+            company_id: authPayload.user?.company_id,
+            permissions: authPayload.permissions || [],
+            company: authPayload.company || null,
+        };
+        localStorage.setItem('authSession', JSON.stringify(session));
+        localStorage.setItem('user', JSON.stringify(session));
+        return session;
+    },
+
+    // Set authentication data after login
+    setAuth: (user, token, extras = {}) => {
         localStorage.setItem('token', token);
-        localStorage.setItem('user', JSON.stringify(user));
+        authService.setAuthSession({
+            user,
+            account_kind: extras.account_kind ?? user?.account_kind,
+            company_role: extras.company_role ?? user?.company_role,
+            permissions: extras.permissions || user?.permissions || [],
+            company: extras.company ?? user?.company ?? null,
+        });
     },
 
     // Change password for authenticated user

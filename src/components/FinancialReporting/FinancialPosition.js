@@ -12,6 +12,7 @@ import {
   deriveBalanceTypeFromBalance,
   parseNetProfit
 } from '../../utils/sofpExport';
+import { enrichNotesContext } from '../../utils/financialNotesRegistry';
 
 const FinancialPosition = ({ onTabChange }) => {
   const [financialPositionData, setFinancialPositionData] = useState(null);
@@ -143,7 +144,7 @@ const FinancialPosition = ({ onTabChange }) => {
 
   const goToNotes = (account) => {
     if (!account) return;
-    const ctx = {
+    const ctx = enrichNotesContext({
       source: 'SOFP',
       accountCode: account.accountCode || '',
       accountName: account.accountName || '',
@@ -156,7 +157,7 @@ const FinancialPosition = ({ onTabChange }) => {
       portfolioId: filters.portfolio || '',
       portfolioLabel: financialPositionData?.portfolio || 'All Portfolios',
       displayLabel: getSofpRowLabel(account) || selectedGroup?.label || ''
-    };
+    });
     setSelectedGroup(null);
     onTabChange?.('Financial Reporting Notes', ctx);
   };
