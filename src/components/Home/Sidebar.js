@@ -1,9 +1,10 @@
 
 // Sidebar.js
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import './Styles/Sidebar.css';
 import SherwoodManagerMark from './SherwoodManagerMark';
+import { filterEquityMenuItems } from '../../constants/governanceConstants';
 
 // Equity Manager menu items
 export const equityManagerMenuItems = [
@@ -21,6 +22,15 @@ export const equityManagerMenuItems = [
       "Recent Activity",
       "Performance Metrics"
     ]
+  },
+  {
+    icon: (
+      <svg fill="currentColor" viewBox="0 0 20 20">
+        <path d="M9 6a3 3 0 11-6 0 3 3 0 016 0zM17 6a3 3 0 11-6 0 3 3 0 016 0zM12.93 17c.046-.327.07-.66.07-1a6.97 6.97 0 00-1.5-4.33A5 5 0 0119 16v1h-6.07zM6 11a5 5 0 015 5v1H1v-1a5 5 0 015-5z" />
+      </svg>
+    ),
+    name: "Company Governance",
+    subTopics: ["User Requests", "Admin Approvals", "Activity Log"]
   },
   {
     icon: (
@@ -639,7 +649,7 @@ export const wealthManagerMenuItems = [
   }
 ];
 
-const Sidebar = ({ onSelect, activeIndex = 0, onLogout, onManagerChange, selectedManager: selectedManagerProp = 'equity', isClientView = false, onClientViewToggle }) => {
+const Sidebar = ({ onSelect, activeIndex = 0, onLogout, onManagerChange, selectedManager: selectedManagerProp = 'equity', isClientView = false, onClientViewToggle, user = null }) => {
   const [active, setActive] = useState(activeIndex);
   const [selectedManager, setSelectedManager] = useState(selectedManagerProp); // 'equity' or 'wealth'
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
@@ -659,11 +669,27 @@ const Sidebar = ({ onSelect, activeIndex = 0, onLogout, onManagerChange, selecte
   // Get current menu items based on selected manager
   const currentMenuItems = selectedManager === 'equity' ? equityManagerMenuItems : wealthManagerMenuItems;
 
+  const visibleMenuItems = useMemo(() => {
+    if (selectedManager === 'equity') {
+      return filterEquityMenuItems(user, currentMenuItems);
+    }
+    return currentMenuItems;
+  }, [currentMenuItems, selectedManager, user]);
+
+  const navigationItems = useMemo(
+    () =>
+      visibleMenuItems.map((item) => ({
+        item,
+        index: currentMenuItems.findIndex((menuItem) => menuItem.name === item.name),
+      })),
+    [visibleMenuItems, currentMenuItems]
+  );
+
   // When a sidebar item is clicked, provide both its index and its subTopics to parent
-  const handleClick = (i) => {
-    setActive(i);
-    if (onSelect && currentMenuItems[i]) {
-      onSelect(i, currentMenuItems[i].subTopics); // Pass index and subTopics
+  const handleClick = (menuItem, originalIndex) => {
+    setActive(originalIndex);
+    if (onSelect && menuItem) {
+      onSelect(originalIndex, menuItem.subTopics || []);
     }
   };
 
@@ -678,11 +704,15 @@ const Sidebar = ({ onSelect, activeIndex = 0, onLogout, onManagerChange, selecte
     }
 
     setSelectedManager(managerType);
-    setIsDropdownOpen(false); // Close dropdown after selection
-    setActive(0); // Reset active item when switching managers
-    const newMenuItems = managerType === 'equity' ? equityManagerMenuItems : wealthManagerMenuItems;
+    setIsDropdownOpen(false);
+    setActive(0);
+    const baseMenuItems = managerType === 'equity' ? equityManagerMenuItems : wealthManagerMenuItems;
+    const newMenuItems =
+      managerType === 'equity' ? filterEquityMenuItems(user, baseMenuItems) : baseMenuItems;
     if (onSelect && newMenuItems.length > 0) {
-      onSelect(0, newMenuItems[0]?.subTopics || []);
+      const first = newMenuItems[0];
+      const originalIndex = baseMenuItems.findIndex((item) => item.name === first.name);
+      onSelect(originalIndex >= 0 ? originalIndex : 0, first?.subTopics || []);
     } else if (onSelect) {
       onSelect(0, []);
     }
@@ -842,15 +872,17 @@ const Sidebar = ({ onSelect, activeIndex = 0, onLogout, onManagerChange, selecte
         <div className="menu-section">
           <h3 className="menu-title">Navigation</h3>
           <ul className="sidebar-menu">
-            {currentMenuItems.length > 0 ? (
-              currentMenuItems.map((item, i) => (
+            {navigationItems.length > 0 ? (
+              navigationItems.map(({ item, index }) => (
               <li
                 key={item.name}
-                className={`sidebar-item${active === i ? ' active' : ''}`}
-                onClick={() => handleClick(i)}
+                className={`sidebar-item${active === index ? ' active' : ''}${
+                  item.name === 'Company Governance' ? ' sidebar-item--governance' : ''
+                }`}
+                onClick={() => handleClick(item, index)}
                 tabIndex={0}
                 role="button"
-                aria-pressed={active === i}
+                aria-pressed={active === index}
                 // title={item.name} // Remove this line to disable native tooltip
               >
                 <span className="item-icon" style={{fontSize:"1.2rem"}}>{item.icon}</span>

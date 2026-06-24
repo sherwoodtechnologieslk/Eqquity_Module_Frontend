@@ -49,13 +49,25 @@ body {
 /* Put the main content in a neat container */
 .dashboard-content {
   flex: 1;
-  min-width: 0; /* allow wide tables to scroll inside children instead of stretching the layout */
+  min-width: 0;
   padding: 2.5rem 2rem 2rem 2rem;
   max-width: none;
   margin: 0;
   width: 100%;
-  margin-top: 132px; /* Account for fixed navbar (84px) + spacing (10px) + dynamic header (38px) - minimal gap */
-  padding-top: 0.25rem; /* Minimal top padding to bring content closer */
+  margin-top: 132px;
+  padding-top: 0.25rem;
+}
+
+.dashboard-content--governance {
+  margin-top: 94px;
+  padding-top: 1.25rem;
+  padding-bottom: 2.5rem;
+  padding-left: 1.75rem;
+  padding-right: 1.75rem;
+  background: #f5f7fa;
+  width: 100%;
+  max-width: none;
+  box-sizing: border-box;
 }
 
 /* Example container for forms/cards */
