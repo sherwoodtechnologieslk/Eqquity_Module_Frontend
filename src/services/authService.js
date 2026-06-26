@@ -136,11 +136,21 @@ export const authService = {
         });
     },
 
-    // Change password for authenticated user
-    changePassword: async (currentPassword, newPassword) => {
+    // Request OTP email before changing password (authenticated)
+    requestChangePasswordCode: async (currentPassword, newPassword) => {
+        const response = await authAPI.post('/auth/change-password/request-code', {
+            currentPassword,
+            newPassword,
+        });
+        return response.data;
+    },
+
+    // Change password for authenticated user (requires email OTP)
+    changePassword: async (currentPassword, newPassword, code) => {
         const response = await authAPI.post('/auth/change-password', {
             currentPassword,
-            newPassword
+            newPassword,
+            code,
         });
         return response.data;
     },
@@ -151,16 +161,7 @@ export const authService = {
         return response.data;
     },
 
-    // Reset password using token
-    resetPassword: async (token, password) => {
-        const response = await authAPI.post('/auth/reset-password', {
-            token,
-            password
-        });
-        return response.data;
-    },
-
-    // Set new password using verification code
+    // Set new password using verification code (forgot-password flow on login portal)
     setNewPassword: async (email, code, newPassword) => {
         const response = await authAPI.post('/auth/set-new-password', {
             email,

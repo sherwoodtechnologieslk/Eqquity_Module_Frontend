@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { authService } from '../../services/authService';
 import './Auth.css';
 
@@ -10,6 +10,15 @@ const Login = ({ onLogin, switchToSignup, switchToForgotPassword }) => {
     const [errors, setErrors] = useState({});
     const [isLoading, setIsLoading] = useState(false);
     const [serverError, setServerError] = useState('');
+    const [authNotice, setAuthNotice] = useState('');
+
+    useEffect(() => {
+        const notice = sessionStorage.getItem('authNotice');
+        if (notice) {
+            setAuthNotice(notice);
+            sessionStorage.removeItem('authNotice');
+        }
+    }, []);
 
     const handleChange = (e) => {
         setFormData({
@@ -84,6 +93,22 @@ const Login = ({ onLogin, switchToSignup, switchToForgotPassword }) => {
                 <h2>Sign In to Equity Module</h2>
                 <p className="auth-subtitle">Sign in to your account</p>
                 
+                {authNotice && (
+                    <div
+                        className="success-message"
+                        style={{
+                            backgroundColor: '#d1fae5',
+                            color: '#065f46',
+                            padding: '1rem',
+                            borderRadius: '0.5rem',
+                            marginBottom: '1rem',
+                        }}
+                        role="status"
+                    >
+                        {authNotice}
+                    </div>
+                )}
+
                 {serverError && (
                     <div className="error-message">
                         {serverError}
@@ -115,7 +140,7 @@ const Login = ({ onLogin, switchToSignup, switchToForgotPassword }) => {
                                     onClick={switchToForgotPassword}
                                     style={{ fontSize: '0.875rem', padding: 0 }}
                                 >
-                                    Forgot Password?
+                                    Forgot password?
                                 </button>
                             )}
                         </div>
