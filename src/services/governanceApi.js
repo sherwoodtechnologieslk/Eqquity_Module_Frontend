@@ -27,6 +27,9 @@ export const governanceService = {
   listUserRequests: () => governanceAPI.get('/governance/user-requests'),
   getUserRequest: (id) => governanceAPI.get(`/governance/user-requests/${id}`),
   createUserRequest: (payload) => governanceAPI.post('/governance/user-requests', payload),
+  listCompanyUsers: () => governanceAPI.get('/governance/users'),
+  updateUserPermissions: (userId, permission_ids) =>
+    governanceAPI.put(`/governance/users/${userId}/permissions`, { permission_ids }),
   approveUserRequest: (id) => governanceAPI.post(`/governance/user-requests/${id}/approve`),
   rejectUserRequest: (id, rejection_reason) =>
     governanceAPI.post(`/governance/user-requests/${id}/reject`, { rejection_reason }),

@@ -30,7 +30,7 @@ export const equityManagerMenuItems = [
       </svg>
     ),
     name: "Company Governance",
-    subTopics: ["User Requests", "Admin Approvals", "Activity Log"]
+    subTopics: ["Activity Log", "User Requests", "Admin Approvals"]
   },
   {
     icon: (

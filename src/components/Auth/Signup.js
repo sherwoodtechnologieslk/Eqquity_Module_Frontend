@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
 import axios from 'axios';
+import { validatePasswordStrength } from '../../utils/passwordValidation';
+import PasswordRequirements from './PasswordRequirements';
 import './Auth.css';
 
 const Signup = ({ onSignup, switchToLogin }) => {
@@ -65,8 +67,11 @@ const Signup = ({ onSignup, switchToLogin }) => {
 
         if (!formData.password) {
             newErrors.password = 'Password is required';
-        } else if (formData.password.length < 6) {
-            newErrors.password = 'Password must be at least 6 characters';
+        } else {
+            const strength = validatePasswordStrength(formData.password);
+            if (!strength.valid) {
+                newErrors.password = `Password must include: ${strength.errors.join(', ')}`;
+            }
         }
 
         if (!formData.confirmPassword) {
@@ -204,6 +209,7 @@ const Signup = ({ onSignup, switchToLogin }) => {
                             placeholder="Enter your password"
                         />
                         {errors.password && <span className="error-text">{errors.password}</span>}
+                        <PasswordRequirements password={formData.password} />
                     </div>
 
                     <div className="form-group">

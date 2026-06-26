@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
 import { authService } from '../../services/authService';
+import { getApiErrorMessage, validatePasswordStrength } from '../../utils/passwordValidation';
+import PasswordRequirements from './PasswordRequirements';
 import './Auth.css';
 
 const SetNewPassword = ({ email, pin, switchToLogin, goBackToPin }) => {
@@ -32,8 +34,11 @@ const SetNewPassword = ({ email, pin, switchToLogin, goBackToPin }) => {
 
         if (!formData.newPassword) {
             newErrors.newPassword = 'New password is required';
-        } else if (formData.newPassword.length < 6) {
-            newErrors.newPassword = 'Password must be at least 6 characters';
+        } else {
+            const strength = validatePasswordStrength(formData.newPassword);
+            if (!strength.valid) {
+                newErrors.newPassword = `Password must include: ${strength.errors.join(', ')}`;
+            }
         }
 
         if (!formData.confirmPassword) {
@@ -63,33 +68,23 @@ const SetNewPassword = ({ email, pin, switchToLogin, goBackToPin }) => {
         setSuccessMessage('');
 
         try {
-            await authService.setNewPassword(email, pin, formData.newPassword);
+            const result = await authService.setNewPassword(email, pin, formData.newPassword);
 
-            setSuccessMessage('Password changed successfully. Redirecting to sign in…');
+            setSuccessMessage(result.message || 'Password changed successfully. Redirecting to sign in…');
 
             setTimeout(() => {
                 if (switchToLogin) {
+                    if (result.logout_required) {
+                        sessionStorage.setItem(
+                            'authNotice',
+                            result.message || 'Password updated successfully. Sign in with your new password.'
+                        );
+                    }
                     switchToLogin();
                 }
             }, 2000);
         } catch (error) {
-            if (error.response) {
-                const msg = error.response.data.message || '';
-                if (
-                    error.response.status === 400 &&
-                    (msg.includes('Invalid') || msg.includes('code') || msg.includes('expired'))
-                ) {
-                    setServerError(
-                        msg.includes('expired')
-                            ? 'Verification code expired. Go back and request a new code.'
-                            : 'Verification code is incorrect. Check the code from your email or go back to re-enter it.'
-                    );
-                } else {
-                    setServerError(msg || 'Failed to change password');
-                }
-            } else {
-                setServerError(error.message || 'Network error. Please try again.');
-            }
+            setServerError(getApiErrorMessage(error, 'Failed to change password'));
         } finally {
             setIsLoading(false);
         }
@@ -147,6 +142,7 @@ const SetNewPassword = ({ email, pin, switchToLogin, goBackToPin }) => {
                             autoComplete="new-password"
                         />
                         {errors.newPassword && <span className="error-text">{errors.newPassword}</span>}
+                        <PasswordRequirements password={formData.newPassword} />
                     </div>
 
                     <div className="form-group">

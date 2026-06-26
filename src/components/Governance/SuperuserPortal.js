@@ -7,6 +7,7 @@ import {
   permissionsForAdminCreation,
 } from '../../constants/governanceConstants';
 import GovernancePermissionPicker from './GovernancePermissionPicker';
+import GovernanceActionModal from './GovernanceActionModal';
 import './SuperuserPortal.css';
 
 const PORTAL_TABS = [
@@ -113,7 +114,7 @@ function permissionIdsFromKeys(catalog, keys = []) {
   return catalog.filter((p) => keySet.has(p.permission_key)).map((p) => p.id);
 }
 
-const SuperuserPortal = ({ user, company, onLogout }) => {
+const SuperuserPortal = ({ user, company, onLogout, onOpenProfile }) => {
   const [permissions, setPermissions] = useState([]);
   const [admins, setAdmins] = useState([]);
   const [adminRequests, setAdminRequests] = useState([]);
@@ -124,6 +125,8 @@ const SuperuserPortal = ({ user, company, onLogout }) => {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [activeTab, setActiveTab] = useState('create');
+  const [revokeModal, setRevokeModal] = useState(null);
+  const [revoking, setRevoking] = useState(false);
   const [form, setForm] = useState({
     email: '',
     first_name: '',
@@ -287,17 +290,25 @@ const SuperuserPortal = ({ user, company, onLogout }) => {
     }
   };
 
-  const handleRevoke = async (adminId, email) => {
-    if (!window.confirm(`Revoke admin access for ${email}?`)) return;
+  const runRevoke = async (adminId, email) => {
     setError('');
     setSuccess('');
+    setRevoking(true);
     try {
       await governanceService.revokeAdmin(adminId);
       setSuccess(`Revoke request for ${email} submitted for company owner approval.`);
       await load();
     } catch (err) {
       setError(err.response?.data?.message || 'Failed to revoke admin');
+    } finally {
+      setRevoking(false);
     }
+  };
+
+  const handleRevokeConfirm = async () => {
+    if (!revokeModal || revoking) return;
+    await runRevoke(revokeModal.adminId, revokeModal.email);
+    setRevokeModal(null);
   };
 
   return (
@@ -309,7 +320,14 @@ const SuperuserPortal = ({ user, company, onLogout }) => {
         </div>
 
         <div className="sup-sidebar-identity">
-          <div className="sup-sidebar-avatar" aria-hidden>{initials(user)}</div>
+          <button
+            type="button"
+            className="sup-sidebar-avatar sup-sidebar-avatar--button"
+            aria-label="Open profile settings"
+            onClick={onOpenProfile}
+          >
+            {initials(user)}
+          </button>
           <div className="sup-sidebar-identity-body">
             <p className="sup-sidebar-identity-name">
               {user?.first_name} {user?.last_name}
@@ -676,7 +694,7 @@ const SuperuserPortal = ({ user, company, onLogout }) => {
                             <button
                               type="button"
                               className="sup-action-btn sup-action-btn--revoke"
-                              onClick={() => handleRevoke(admin.id, admin.email)}
+                              onClick={() => setRevokeModal({ adminId: admin.id, email: admin.email })}
                             >
                               <svg width="14" height="14" viewBox="0 0 20 20" fill="currentColor" aria-hidden>
                                 <path fillRule="evenodd" d="M13.477 14.89A6 6 0 015.11 6.524l8.367 8.368zm1.414-1.414L6.524 5.11a6 6 0 018.367 8.367zM18 10a8 8 0 11-16 0 8 8 0 0116 0z" clipRule="evenodd" />
@@ -786,6 +804,21 @@ const SuperuserPortal = ({ user, company, onLogout }) => {
           </div>
         </div>
       )}
+
+      <GovernanceActionModal
+        open={!!revokeModal}
+        title="Revoke admin access"
+        message={
+          revokeModal
+            ? `Submit a revoke request for ${revokeModal.email}? The company owner must approve it before access is removed.`
+            : ''
+        }
+        confirmLabel="Submit revoke request"
+        confirmTone="danger"
+        loading={revoking}
+        onConfirm={handleRevokeConfirm}
+        onCancel={() => !revoking && setRevokeModal(null)}
+      />
     </div>
   );
 };

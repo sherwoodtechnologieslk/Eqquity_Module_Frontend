@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { governanceService } from '../../services/governanceApi';
 import { PERMISSION_LABELS } from '../../constants/governanceConstants';
+import GovernanceActionModal from './GovernanceActionModal';
 import './AdminGovernancePortal.css';
 
 const ACTION_LABELS = {
@@ -29,6 +30,7 @@ const OwnerAdminApprovals = ({ user, company }) => {
   const [actionId, setActionId] = useState(null);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+  const [actionModal, setActionModal] = useState(null);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -49,10 +51,7 @@ const OwnerAdminApprovals = ({ user, company }) => {
 
   const pendingCount = requests.filter((r) => r.status === 'pending_owner_approval').length;
 
-  const handleApprove = async (request) => {
-    if (!window.confirm(`Approve this ${ACTION_LABELS[request.action_type] || request.action_type} request?`)) {
-      return;
-    }
+  const runApprove = async (request) => {
     setError('');
     setSuccess('');
     setActionId(request.id);
@@ -67,9 +66,7 @@ const OwnerAdminApprovals = ({ user, company }) => {
     }
   };
 
-  const handleReject = async (request) => {
-    const reason = window.prompt('Reject this request? Optional reason:') ?? '';
-    if (reason === null) return;
+  const runReject = async (request, reason) => {
     setError('');
     setSuccess('');
     setActionId(request.id);
@@ -84,6 +81,16 @@ const OwnerAdminApprovals = ({ user, company }) => {
     }
   };
 
+  const handleModalConfirm = async (reason) => {
+    if (!actionModal || actionId) return;
+    if (actionModal.type === 'approve') {
+      await runApprove(actionModal.request);
+    } else {
+      await runReject(actionModal.request, reason);
+    }
+    setActionModal(null);
+  };
+
   const displayName = (request) => {
     if (request.action_type === 'create_admin') {
       return `${request.first_name} ${request.last_name}`;
@@ -96,7 +103,7 @@ const OwnerAdminApprovals = ({ user, company }) => {
   };
 
   return (
-    <div className="agp-root">
+    <div className="agp-root agp-root--plain">
       <header className="agp-page-header">
         <div className="agp-header-main">
           <div className="agp-header-icon" aria-hidden>
@@ -196,7 +203,7 @@ const OwnerAdminApprovals = ({ user, company }) => {
                           type="button"
                           className="agp-btn-ghost-success"
                           disabled={actionId === req.id}
-                          onClick={() => handleApprove(req)}
+                          onClick={() => setActionModal({ type: 'approve', request: req })}
                         >
                           Approve
                         </button>
@@ -204,7 +211,7 @@ const OwnerAdminApprovals = ({ user, company }) => {
                           type="button"
                           className="agp-btn-ghost-danger"
                           disabled={actionId === req.id}
-                          onClick={() => handleReject(req)}
+                          onClick={() => setActionModal({ type: 'reject', request: req })}
                         >
                           Reject
                         </button>
@@ -216,6 +223,28 @@ const OwnerAdminApprovals = ({ user, company }) => {
           )}
         </section>
       )}
+
+      <GovernanceActionModal
+        open={!!actionModal}
+        title={
+          actionModal?.type === 'approve'
+            ? 'Approve admin request'
+            : 'Reject admin request'
+        }
+        message={
+          actionModal
+            ? actionModal.type === 'approve'
+              ? `Approve this ${ACTION_LABELS[actionModal.request.action_type] || actionModal.request.action_type} request?`
+              : `Reject this ${ACTION_LABELS[actionModal.request.action_type] || actionModal.request.action_type} request?`
+            : ''
+        }
+        variant={actionModal?.type === 'reject' ? 'prompt' : 'confirm'}
+        confirmLabel={actionModal?.type === 'approve' ? 'Approve' : 'Reject'}
+        confirmTone={actionModal?.type === 'approve' ? 'success' : 'danger'}
+        loading={!!actionId}
+        onConfirm={handleModalConfirm}
+        onCancel={() => !actionId && setActionModal(null)}
+      />
     </div>
   );
 };

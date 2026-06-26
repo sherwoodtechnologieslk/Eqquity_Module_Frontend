@@ -398,6 +398,15 @@ function App() {
     setVisibleTabs(DEFAULT_EQUITY_TABS);
   };
 
+  const handlePasswordChanged = (message) => {
+    sessionStorage.setItem(
+      'authNotice',
+      message || 'Password updated successfully. Sign in with your new password.'
+    );
+    setIsProfileModalOpen(false);
+    handleLogout();
+  };
+
   // If not authenticated, show auth container
   if (isLoading) {
     return <div className="loading-screen">Loading...</div>;
@@ -410,11 +419,20 @@ function App() {
   // Superuser: governance-only shell (no equity manager UI)
   if (user?.company_role === 'superuser') {
     return (
-      <SuperuserPortal
-        user={user}
-        company={user.company}
-        onLogout={handleLogout}
-      />
+      <>
+        <SuperuserPortal
+          user={user}
+          company={user.company}
+          onLogout={handleLogout}
+          onOpenProfile={() => setIsProfileModalOpen(true)}
+        />
+        <UserProfileModal
+          user={user}
+          isOpen={isProfileModalOpen}
+          onClose={() => setIsProfileModalOpen(false)}
+          onPasswordChanged={handlePasswordChanged}
+        />
+      </>
     );
   }
 
@@ -509,6 +527,7 @@ function App() {
         user={user}
         isOpen={isProfileModalOpen}
         onClose={() => setIsProfileModalOpen(false)}
+        onPasswordChanged={handlePasswordChanged}
       />
 
       {BLUX_ENABLED && (
