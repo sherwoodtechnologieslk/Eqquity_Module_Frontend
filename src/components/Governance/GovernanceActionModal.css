@@ -1,0 +1,163 @@
+.gov-modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.25rem;
+  background: rgba(15, 23, 42, 0.45);
+  backdrop-filter: blur(2px);
+}
+
+.gov-modal {
+  width: 100%;
+  max-width: 440px;
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 20px 40px rgba(15, 23, 42, 0.18);
+  animation: gov-modal-in 0.18s ease-out;
+}
+
+@keyframes gov-modal-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.gov-modal-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 1.1rem 1.25rem 0.75rem;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.gov-modal-header h2 {
+  margin: 0;
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: #1f2937;
+  line-height: 1.35;
+}
+
+.gov-modal-close {
+  flex-shrink: 0;
+  width: 2rem;
+  height: 2rem;
+  border: none;
+  background: #f8fafc;
+  color: #64748b;
+  font-size: 1.35rem;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.gov-modal-close:hover:not(:disabled) {
+  background: #f1f5f9;
+  color: #334155;
+}
+
+.gov-modal-body {
+  padding: 1rem 1.25rem 0.25rem;
+}
+
+.gov-modal-message {
+  margin: 0;
+  font-size: 0.92rem;
+  line-height: 1.55;
+  color: #475569;
+}
+
+.gov-modal-field {
+  display: block;
+  margin-top: 0.85rem;
+}
+
+.gov-modal-field span {
+  display: block;
+  margin-bottom: 0.35rem;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: #64748b;
+}
+
+.gov-modal-field textarea {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 0.65rem 0.75rem;
+  font-family: inherit;
+  font-size: 0.88rem;
+  border: 1px solid #cbd5e1;
+  resize: vertical;
+  min-height: 88px;
+}
+
+.gov-modal-field textarea:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+}
+
+.gov-modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.5rem;
+  padding: 1rem 1.25rem 1.15rem;
+}
+
+.gov-modal-btn {
+  padding: 0.55rem 1rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  border: 1px solid transparent;
+}
+
+.gov-modal-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.gov-modal-btn--ghost {
+  background: #fff;
+  color: #475569;
+  border-color: #e2e8f0;
+}
+
+.gov-modal-btn--ghost:hover:not(:disabled) {
+  background: #f8fafc;
+}
+
+.gov-modal-btn--primary {
+  background: #2563eb;
+  color: #fff;
+}
+
+.gov-modal-btn--primary:hover:not(:disabled) {
+  background: #1d4ed8;
+}
+
+.gov-modal-btn--success {
+  background: #15803d;
+  color: #fff;
+}
+
+.gov-modal-btn--success:hover:not(:disabled) {
+  background: #166534;
+}
+
+.gov-modal-btn--danger {
+  background: #dc2626;
+  color: #fff;
+}
+
+.gov-modal-btn--danger:hover:not(:disabled) {
+  background: #b91c1c;
+}

@@ -119,6 +119,15 @@
   box-shadow: 0 1px 3px rgba(15, 23, 42, 0.06);
 }
 
+.agp-context-bar--plain {
+  border-left: 1px solid #e2e8f0;
+}
+
+.agp-root--plain .agp-stat,
+.agp-root--plain .agp-context-bar {
+  border-left: 1px solid #e2e8f0;
+}
+
 .agp-context-tags {
   display: flex;
   flex-wrap: wrap;
@@ -170,9 +179,29 @@
 }
 
 .agp-alert--info {
-  background: #eff6ff;
-  color: #1d4ed8;
-  border-color: #bfdbfe;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: #f8fafc;
+  color: #475569;
+  border-color: #e2e8f0;
+  font-weight: 400;
+}
+
+.agp-alert--info::before {
+  content: 'i';
+  flex-shrink: 0;
+  width: 18px;
+  height: 18px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.7rem;
+  font-weight: 700;
+  font-style: italic;
+  color: #64748b;
+  background: #e2e8f0;
+  border-radius: 50%;
 }
 
 /* Tab navigation */
@@ -600,5 +629,47 @@
     padding-left: 0;
     padding-top: 0.35rem;
     text-align: right;
+  }
+}
+
+.agp-activity-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1rem 1.5rem;
+  border-top: 1px solid #f1f5f9;
+  background: #fafbfc;
+}
+
+.agp-pagination-meta {
+  font-size: 0.8rem;
+  color: #64748b;
+  text-align: center;
+}
+
+.agp-pagination-btn {
+  padding: 0.3rem 0.4rem;
+  font-size: 0.82rem;
+  font-weight: 500;
+  color: #475569;
+  background: none;
+  border: none;
+  cursor: pointer;
+  transition: color 0.12s;
+}
+
+.agp-pagination-btn:hover:not(:disabled) {
+  color: #0f172a;
+}
+
+.agp-pagination-btn:disabled {
+  color: #cbd5e1;
+  cursor: not-allowed;
+}
+
+@media (max-width: 640px) {
+  .agp-activity-pagination {
+    flex-direction: column;
   }
 }
