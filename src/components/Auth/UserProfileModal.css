@@ -239,6 +239,152 @@
   background: linear-gradient(to right, rgba(148, 163, 184, 0.4), transparent);
 }
 
+.upm-section-heading--spaced {
+  margin-top: 1.35rem;
+}
+
+.upm-password-form {
+  padding: 1rem;
+  background: white;
+  border: 1px solid #e2e8f0;
+  border-left: 3px solid #3b82f6;
+}
+
+.upm-password-hint {
+  margin: 0 0 0.85rem;
+  font-size: 0.85rem;
+  line-height: 1.5;
+  color: #64748b;
+}
+
+.upm-password-alert {
+  margin-bottom: 0.85rem;
+  padding: 0.65rem 0.75rem;
+  font-size: 0.84rem;
+  line-height: 1.45;
+}
+
+.upm-password-alert--error {
+  color: #b91c1c;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+}
+
+.upm-password-alert--success {
+  color: #15803d;
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
+}
+
+.upm-password-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.75rem;
+}
+
+.upm-password-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.upm-password-field span {
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #94a3b8;
+}
+
+.upm-password-field input {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 0.65rem 0.75rem;
+  font-family: inherit;
+  font-size: 0.9rem;
+  border: 1px solid #cbd5e1;
+  background: #fff;
+}
+
+.upm-password-field input:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+}
+
+.upm-password-field--wide {
+  grid-column: 1 / -1;
+}
+
+.upm-password-alert--success {
+  color: #15803d;
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
+}
+
+.upm-password-alert--info {
+  color: #1d4ed8;
+  background: #eff6ff;
+  border: 1px solid #bfdbfe;
+}
+
+.upm-password-otp-meta {
+  margin-bottom: 0.75rem;
+  font-size: 0.85rem;
+  color: #64748b;
+}
+
+.upm-password-otp-expired {
+  color: #b45309;
+}
+
+.upm-password-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 0.85rem;
+  justify-content: flex-end;
+}
+
+.upm-password-secondary {
+  padding: 0.6rem 1rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #475569;
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  cursor: pointer;
+}
+
+.upm-password-secondary:hover:not(:disabled) {
+  background: #f8fafc;
+}
+
+.upm-password-secondary:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+}
+
+.upm-password-submit {
+  margin-top: 0;
+  padding: 0.6rem 1rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #fff;
+  background: #2563eb;
+  border: none;
+  cursor: pointer;
+}
+
+.upm-password-submit:hover:not(:disabled) {
+  background: #1d4ed8;
+}
+
+.upm-password-submit:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+}
+
 .upm-info-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -347,6 +493,10 @@
   }
 
   .upm-info-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .upm-password-grid {
     grid-template-columns: 1fr;
   }
 }

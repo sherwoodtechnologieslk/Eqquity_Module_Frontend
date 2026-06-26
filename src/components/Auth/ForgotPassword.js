@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { authService } from '../../services/authService';
+import { getApiErrorMessage } from '../../utils/passwordValidation';
 import './Auth.css';
 
 const ForgotPassword = ({ switchToLogin, switchToEnterPin }) => {
@@ -55,11 +56,7 @@ const ForgotPassword = ({ switchToLogin, switchToEnterPin }) => {
                 switchToEnterPin(email);
             }
         } catch (error) {
-            if (error.response) {
-                setServerError(error.response.data.message || 'Failed to send verification code');
-            } else {
-                setServerError(error.message || 'Network error. Please try again.');
-            }
+            setServerError(getApiErrorMessage(error, 'Failed to send verification code'));
         } finally {
             setIsLoading(false);
         }
@@ -68,9 +65,9 @@ const ForgotPassword = ({ switchToLogin, switchToEnterPin }) => {
     return (
         <div className="auth-container">
             <div className="auth-card">
-                <h2>Forgot password</h2>
+                <h2>Reset password</h2>
                 <p className="auth-subtitle">
-                    Enter the email address for your account. We will send a verification code there.
+                    Enter your account email. We will send a one-time verification code so you can set a new password.
                 </p>
 
                 {serverError && <div className="error-message">{serverError}</div>}

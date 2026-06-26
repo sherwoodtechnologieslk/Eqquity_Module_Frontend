@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { authService } from '../../services/authService';
+import { getApiErrorMessage } from '../../utils/passwordValidation';
 import './Auth.css';
 
 const ResetEnterPin = ({ email, switchToLogin, switchToSetNewPassword }) => {
@@ -77,8 +78,11 @@ const ResetEnterPin = ({ email, switchToLogin, switchToSetNewPassword }) => {
                 }
             })
             .catch((error) => {
-                const msg = error?.response?.data?.message;
-                setServerError(msg || 'Verification code is incorrect. Please try again.');
+                const msg = getApiErrorMessage(error, 'Verification code is incorrect. Please try again.');
+                setServerError(msg);
+                if (error?.response?.data?.code === 'OTP_LOCKED' && switchToLogin) {
+                    setTimeout(() => switchToLogin(), 2500);
+                }
             })
             .finally(() => {
                 setIsLoading(false);
@@ -100,8 +104,8 @@ const ResetEnterPin = ({ email, switchToLogin, switchToSetNewPassword }) => {
             // Restart countdown for the newly generated PIN
             setSecondsLeft(PIN_VALIDITY_SECONDS);
         } catch (error) {
-            const msg = error?.response?.data?.message;
-            setServerError(msg || 'Failed to resend verification code. Please try again.');
+            const msg = getApiErrorMessage(error, 'Failed to resend verification code. Please try again.');
+            setServerError(msg);
         } finally {
             setResendLoading(false);
         }

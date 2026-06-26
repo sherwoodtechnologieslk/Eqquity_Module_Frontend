@@ -8,10 +8,12 @@ import {
   permissionsForUserCreation,
 } from '../../constants/governanceConstants';
 import GovernancePermissionPicker from './GovernancePermissionPicker';
+import GovernanceActionModal from './GovernanceActionModal';
 import './AdminGovernancePortal.css';
 
 const PORTAL_TABS = [
   { id: 'request', label: 'Request new user' },
+  { id: 'rights', label: 'User rights' },
   { id: 'requests', label: 'All requests' },
 ];
 
@@ -23,6 +25,7 @@ function formatDate(value) {
 const AdminGovernancePortal = ({ user, company }) => {
   const [permissions, setPermissions] = useState([]);
   const [requests, setRequests] = useState([]);
+  const [companyUsers, setCompanyUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [actionId, setActionId] = useState(null);
@@ -34,11 +37,17 @@ const AdminGovernancePortal = ({ user, company }) => {
     user?.company_role === 'admin' && hasPermission(user, 'governance.user.approve');
   const isOwner = user?.company_role === 'company_owner';
 
-  const [activeTab, setActiveTab] = useState(() =>
-    user?.company_role === 'admin' && hasPermission(user, 'governance.user.request')
-      ? 'request'
-      : 'requests'
+  const visibleTabs = useMemo(
+    () =>
+      PORTAL_TABS.filter((tab) => {
+        if (tab.id === 'request') return canRequest;
+        if (tab.id === 'rights') return canRequest || isOwner;
+        return true;
+      }),
+    [canRequest, isOwner]
   );
+
+  const [activeTab, setActiveTab] = useState(() => (canRequest ? 'request' : 'requests'));
 
   const [form, setForm] = useState({
     email: '',
@@ -48,17 +57,26 @@ const AdminGovernancePortal = ({ user, company }) => {
     permission_ids: [],
   });
 
+  const [editForm, setEditForm] = useState({
+    user_id: '',
+    permission_ids: [],
+  });
+
+  const [actionModal, setActionModal] = useState(null);
+
   const load = useCallback(async () => {
     setLoading(true);
     setError('');
     try {
-      const [permRes, reqRes] = await Promise.all([
+      const [permRes, reqRes, userRes] = await Promise.all([
         governanceService.listPermissions(),
         governanceService.listUserRequests(),
+        governanceService.listCompanyUsers(),
       ]);
       const catalog = permissionsForUserCreation(permRes.data.permissions || []);
       setPermissions(catalog);
       setRequests(reqRes.data.requests || []);
+      setCompanyUsers(userRes.data.users || []);
     } catch (err) {
       setError(err.response?.data?.message || 'Failed to load governance data');
     } finally {
@@ -75,6 +93,12 @@ const AdminGovernancePortal = ({ user, company }) => {
     [permissions]
   );
 
+  const permissionIdByKey = useMemo(() => {
+    const map = new Map();
+    permissions.forEach((permission) => map.set(permission.permission_key, permission.id));
+    return map;
+  }, [permissions]);
+
   const pendingCount = requests.filter((r) => r.status === 'pending_second_admin_approval').length;
 
   const togglePermission = (id) => {
@@ -89,6 +113,41 @@ const AdminGovernancePortal = ({ user, company }) => {
   const selectAllInGroup = (items) => {
     const ids = items.map((p) => p.id);
     setForm((prev) => {
+      const allSelected = ids.every((id) => prev.permission_ids.includes(id));
+      if (allSelected) {
+        return { ...prev, permission_ids: prev.permission_ids.filter((id) => !ids.includes(id)) };
+      }
+      return { ...prev, permission_ids: [...new Set([...prev.permission_ids, ...ids])] };
+    });
+  };
+
+  const selectedUser = useMemo(
+    () => companyUsers.find((companyUser) => String(companyUser.id) === String(editForm.user_id)),
+    [companyUsers, editForm.user_id]
+  );
+
+  const selectUserForEdit = (userId) => {
+    const target = companyUsers.find((companyUser) => String(companyUser.id) === String(userId));
+    setEditForm({
+      user_id: userId,
+      permission_ids: (target?.permissions || [])
+        .map((key) => permissionIdByKey.get(key))
+        .filter(Boolean),
+    });
+  };
+
+  const toggleEditPermission = (id) => {
+    setEditForm((prev) => ({
+      ...prev,
+      permission_ids: prev.permission_ids.includes(id)
+        ? prev.permission_ids.filter((x) => x !== id)
+        : [...prev.permission_ids, id],
+    }));
+  };
+
+  const selectAllEditGroup = (items) => {
+    const ids = items.map((p) => p.id);
+    setEditForm((prev) => {
       const allSelected = ids.every((id) => prev.permission_ids.includes(id));
       if (allSelected) {
         return { ...prev, permission_ids: prev.permission_ids.filter((id) => !ids.includes(id)) };
@@ -127,18 +186,44 @@ const AdminGovernancePortal = ({ user, company }) => {
     }
   };
 
-  const handleApprove = async (request) => {
-    if (!window.confirm(`Approve user request for ${request.email}?`)) return;
+  const handleRightsUpdate = async (e) => {
+    e.preventDefault();
+    if (!selectedUser) return;
+    setError('');
+    setSuccess('');
+    setSubmitting(true);
+    try {
+      await governanceService.updateUserPermissions(selectedUser.id, editForm.permission_ids);
+      setSuccess(
+        `Permission update for ${selectedUser.email} was submitted. Their current rights stay active until another admin approves.`
+      );
+      setEditForm({ user_id: '', permission_ids: [] });
+      setActiveTab('requests');
+      await load();
+    } catch (err) {
+      setError(err.response?.data?.message || 'Failed to submit permission update request');
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const runApprove = async (request) => {
     setError('');
     setSuccess('');
     setActionId(request.id);
     try {
       const res = await governanceService.approveUserRequest(request.id);
       const temp = res.data.temporary_password;
+      const emailed = res.data.email_sent;
+      const isPermissionUpdate = request.request_type === 'update_permissions';
       setSuccess(
-        temp
-          ? `User ${request.email} was created. Temporary password: ${temp} — share securely and ask them to change it.`
-          : `User request for ${request.email} was approved.`
+        isPermissionUpdate
+          ? `Permission update for ${request.email} was approved. The new rights are now active.`
+          : temp
+            ? emailed
+              ? `User ${request.email} was created. Temporary password: ${temp} — also emailed to the user. Ask them to open their profile and update their password under Security.`
+              : `User ${request.email} was created. Temporary password: ${temp} — share securely and ask them to open their profile and update their password under Security.`
+            : `User request for ${request.email} was approved.`
       );
       await load();
     } catch (err) {
@@ -148,9 +233,7 @@ const AdminGovernancePortal = ({ user, company }) => {
     }
   };
 
-  const handleReject = async (request) => {
-    const reason = window.prompt(`Reject request for ${request.email}? Optional reason:`) ?? '';
-    if (reason === null) return;
+  const runReject = async (request, reason) => {
     setError('');
     setSuccess('');
     setActionId(request.id);
@@ -165,16 +248,26 @@ const AdminGovernancePortal = ({ user, company }) => {
     }
   };
 
+  const handleModalConfirm = async (reason) => {
+    if (!actionModal || actionId) return;
+    if (actionModal.type === 'approve') {
+      await runApprove(actionModal.request);
+    } else {
+      await runReject(actionModal.request, reason);
+    }
+    setActionModal(null);
+  };
+
   const canReviewRequest = (request) =>
     canApprove &&
     request.status === 'pending_second_admin_approval' &&
     request.requested_by_user_id !== user?.id;
 
   useEffect(() => {
-    if (!canRequest && activeTab === 'request') {
-      setActiveTab('requests');
+    if (!visibleTabs.some((tab) => tab.id === activeTab)) {
+      setActiveTab(visibleTabs[0]?.id || 'requests');
     }
-  }, [canRequest, activeTab]);
+  }, [visibleTabs, activeTab]);
 
   const requestList = (
     <section className="agp-panel agp-panel--list">
@@ -203,16 +296,24 @@ const AdminGovernancePortal = ({ user, company }) => {
               <div className="agp-request-main">
                 <div className="agp-request-top">
                   <strong>
-                    {req.first_name} {req.last_name}
+                    {req.request_type === 'update_permissions'
+                      ? `Permission update for ${req.target_first_name || req.first_name || ''} ${req.target_last_name || req.last_name || ''}`.trim()
+                      : `${req.first_name} ${req.last_name}`}
                   </strong>
                   <span className={`agp-status agp-status--${req.status}`}>
                     {REQUEST_STATUS_LABELS[req.status] || req.status}
                   </span>
                 </div>
-                <div className="agp-request-email">{req.email}</div>
+                <div className="agp-request-email">
+                  {req.email}
+                  {req.request_type === 'update_permissions' && ' · rights change'}
+                </div>
                 <div className="agp-request-meta">
                   <span>Requested by {req.requested_by_email || '—'}</span>
                   <span>{formatDate(req.created_at)}</span>
+                  {req.request_type === 'update_permissions' && (
+                    <span>User stays active with existing rights until approval</span>
+                  )}
                   {req.expires_at && req.status === 'pending_second_admin_approval' && (
                     <span>Expires {formatDate(req.expires_at)}</span>
                   )}
@@ -241,7 +342,7 @@ const AdminGovernancePortal = ({ user, company }) => {
                     type="button"
                     className="agp-btn-ghost-success"
                     disabled={actionId === req.id}
-                    onClick={() => handleApprove(req)}
+                    onClick={() => setActionModal({ type: 'approve', request: req })}
                   >
                     Approve
                   </button>
@@ -249,7 +350,7 @@ const AdminGovernancePortal = ({ user, company }) => {
                     type="button"
                     className="agp-btn-ghost-danger"
                     disabled={actionId === req.id}
-                    onClick={() => handleReject(req)}
+                    onClick={() => setActionModal({ type: 'reject', request: req })}
                   >
                     Reject
                   </button>
@@ -267,8 +368,89 @@ const AdminGovernancePortal = ({ user, company }) => {
     </section>
   );
 
+  const rightsPanel = (
+    <section className="agp-panel">
+      <div className="agp-panel-head">
+        <h2>User rights</h2>
+        <p>
+          Edit an active user's screen/module access. Changes stay pending until a different
+          admin approves them.
+        </p>
+      </div>
+
+      {companyUsers.length === 0 ? (
+        <div className="agp-empty">
+          <h3>No users yet</h3>
+          <p>Create users through the Request new user tab before editing rights.</p>
+        </div>
+      ) : (
+        <form onSubmit={handleRightsUpdate} className="agp-form">
+          <div className="agp-field">
+            <label htmlFor="agp-edit-user">Select user</label>
+            <select
+              id="agp-edit-user"
+              value={editForm.user_id}
+              onChange={(e) => selectUserForEdit(e.target.value)}
+              disabled={!canRequest}
+            >
+              <option value="">Choose a user</option>
+              {companyUsers.map((companyUser) => (
+                <option key={companyUser.id} value={companyUser.id}>
+                  {companyUser.first_name} {companyUser.last_name} — {companyUser.email}
+                  {companyUser.pending_permission_request_id ? ' (pending update)' : ''}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {selectedUser?.pending_permission_request_id && (
+            <div className="agp-alert agp-alert--info" role="status">
+              A permission update for this user is already pending approval from another admin.
+            </div>
+          )}
+
+          {selectedUser && (
+            <div className="agp-form-section">
+              <h3>Proposed permissions</h3>
+              <p className="agp-section-hint">
+                The current permissions are preselected. Submitting will create an approval request
+                and will not change the user's active rights yet.
+              </p>
+              <GovernancePermissionPicker
+                groupedPermissions={groupedPermissions}
+                selectedIds={editForm.permission_ids}
+                onToggle={toggleEditPermission}
+                onToggleGroup={selectAllEditGroup}
+              />
+            </div>
+          )}
+
+          {canRequest ? (
+            <button
+              type="submit"
+              className="agp-btn-primary"
+              disabled={
+                !selectedUser ||
+                !editForm.permission_ids.length ||
+                !!selectedUser.pending_permission_request_id ||
+                submitting
+              }
+            >
+              {submitting ? 'Submitting…' : 'Submit permission update'}
+            </button>
+          ) : (
+            <div className="agp-empty">
+              <h3>View only</h3>
+              <p>Only admins with request permission can submit permission changes.</p>
+            </div>
+          )}
+        </form>
+      )}
+    </section>
+  );
+
   return (
-    <div className="agp-root">
+    <div className="agp-root agp-root--plain">
       <header className="agp-page-header">
         <div className="agp-header-main">
           <div className="agp-header-icon" aria-hidden>
@@ -306,7 +488,7 @@ const AdminGovernancePortal = ({ user, company }) => {
           {isOwner && <span className="agp-context-tag">Company owner</span>}
         </div>
         <p className="agp-workflow-hint">
-          Admin submits request → different admin approves → new user can sign in
+          Admin submits user or rights request → different admin approves → change becomes active
         </p>
       </div>
 
@@ -327,7 +509,7 @@ const AdminGovernancePortal = ({ user, company }) => {
       ) : (
         <>
           <nav className="agp-tabs" aria-label="User request sections">
-            {PORTAL_TABS.map((tab) => (
+            {visibleTabs.map((tab) => (
               <button
                 key={tab.id}
                 type="button"
@@ -436,12 +618,38 @@ const AdminGovernancePortal = ({ user, company }) => {
                   </div>
                 </section>
               )
+            ) : activeTab === 'rights' ? (
+              rightsPanel
             ) : (
               requestList
             )}
           </div>
         </>
       )}
+
+      <GovernanceActionModal
+        open={!!actionModal}
+        title={
+          actionModal?.type === 'approve'
+            ? 'Approve user request'
+            : 'Reject user request'
+        }
+        message={
+          actionModal
+            ? actionModal.type === 'approve'
+              ? actionModal.request.request_type === 'update_permissions'
+                ? `Approve the permission update for ${actionModal.request.email}? The new rights will become active immediately after approval.`
+                : `Create the user account for ${actionModal.request.email}? A temporary password will be shown here and emailed to them.`
+              : `Reject the request for ${actionModal.request.email}?`
+            : ''
+        }
+        variant={actionModal?.type === 'reject' ? 'prompt' : 'confirm'}
+        confirmLabel={actionModal?.type === 'approve' ? 'Approve' : 'Reject'}
+        confirmTone={actionModal?.type === 'approve' ? 'success' : 'danger'}
+        loading={!!actionId}
+        onConfirm={handleModalConfirm}
+        onCancel={() => !actionId && setActionModal(null)}
+      />
     </div>
   );
 };
