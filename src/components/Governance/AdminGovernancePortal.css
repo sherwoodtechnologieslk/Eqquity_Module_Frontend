@@ -86,6 +86,11 @@
   box-shadow: 0 1px 3px rgba(15, 23, 42, 0.06);
 }
 
+/* Plain variant — no blue left accent (used on Activity Log) */
+.agp-stat--plain {
+  border-left: 1px solid #e2e8f0;
+}
+
 .agp-stat-value {
   display: block;
   font-size: 1.35rem;

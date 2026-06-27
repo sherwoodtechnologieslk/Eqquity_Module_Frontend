@@ -7,6 +7,12 @@ const holidayAPI = axios.create({
     baseURL: API_URL,
     headers: { 'Content-Type': 'application/json' }
 });
+
+const notifyOwnerReadOnly = (data = {}) => {
+    if (data?.code !== 'OWNER_READ_ONLY_WRITE_BLOCKED') return;
+    window.dispatchEvent(new CustomEvent('owner-read-only-write-blocked', { detail: data }));
+};
+
 holidayAPI.interceptors.request.use((config) => {
     const token = localStorage.getItem('token');
     if (token) config.headers.Authorization = `Bearer ${token}`;
@@ -20,6 +26,7 @@ holidayAPI.interceptors.response.use(
             localStorage.removeItem('user');
             window.location.href = '/login';
         }
+        notifyOwnerReadOnly(err.response?.data);
         return Promise.reject(err);
     }
 );

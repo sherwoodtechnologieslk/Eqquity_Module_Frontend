@@ -187,20 +187,20 @@
   color: #dc2626;
 }
 
-.form-input,
-.form-select {
-  padding: 0.625rem 0.75rem;
+.opening-bal-entry-container .form-input,
+.opening-bal-entry-container .form-select {
+  padding: 0.45rem 0.65rem;
   border: 1px solid #cbd5e1;
   border-radius: 0.375rem;
-  font-size: 0.875rem;
+  font-size: 0.8rem;
   background: #fff;
   transition: border-color 0.15s ease, box-shadow 0.15s ease;
   font-family: inherit;
 }
 
-.form-textarea {
+.opening-bal-entry-container .form-textarea {
   resize: vertical;
-  min-height: 80px;
+  min-height: 56px;
 }
 
 .form-input:focus,
@@ -239,15 +239,16 @@
   font-size: 0.8125rem;
 }
 
-.form-select {
+.opening-bal-entry-container .form-select {
   width: 100%;
   cursor: pointer;
   appearance: none;
+  -webkit-appearance: none;
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3E%3Cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3E%3C/svg%3E");
   background-repeat: no-repeat;
-  background-position: right 0.65rem center;
-  background-size: 1.25em 1.25em;
-  padding-right: 2.25rem;
+  background-position: right 0.55rem center;
+  background-size: 1.1em 1.1em;
+  padding-right: 2rem;
 }
 
 .selected-account-info {
@@ -282,10 +283,10 @@
 }
 
 .balance-type-label {
-  padding: 0.375rem 0.875rem;
+  padding: 0.3rem 0.75rem;
   border: 1px solid #cbd5e1;
   border-radius: 0.375rem;
-  font-size: 0.875rem;
+  font-size: 0.8rem;
   font-weight: 500;
   color: #475569;
   transition: border-color 0.15s ease, background 0.15s ease;

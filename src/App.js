@@ -151,9 +151,46 @@ function App() {
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [aiAssistantOpen, setAiAssistantOpen] = useState(false);
+  const [ownerReadOnlyPopup, setOwnerReadOnlyPopup] = useState(null);
   // Optional context payload passed across tabs (e.g. SOFP "View notes" → Financial Reporting Notes).
   // Cleared when the tab is changed without a payload.
   const [tabContext, setTabContext] = useState(null);
+
+  useEffect(() => {
+    const showOwnerReadOnlyPopup = (detail = {}) => {
+      setOwnerReadOnlyPopup({
+        title: detail.title || 'Read-only owner account',
+        message:
+          detail.message ||
+          'This action was blocked because company owner accounts are not allowed to create, edit, or delete business data. Please contact an admin.',
+      });
+    };
+
+    const handleOwnerReadOnlyEvent = (event) => showOwnerReadOnlyPopup(event.detail);
+    window.addEventListener('owner-read-only-write-blocked', handleOwnerReadOnlyEvent);
+
+    const originalFetch = window.fetch;
+    window.fetch = async (...args) => {
+      const response = await originalFetch(...args);
+      if (response.status === 403) {
+        response
+          .clone()
+          .json()
+          .then((data) => {
+            if (data?.code === 'OWNER_READ_ONLY_WRITE_BLOCKED') {
+              showOwnerReadOnlyPopup(data);
+            }
+          })
+          .catch(() => {});
+      }
+      return response;
+    };
+
+    return () => {
+      window.removeEventListener('owner-read-only-write-blocked', handleOwnerReadOnlyEvent);
+      window.fetch = originalFetch;
+    };
+  }, []);
   
   // Handle tab selection from Navbar - use Sidebar's menuItems as single source of truth for indices
   const handleTabChange = useCallback((tabName, context = null) => {
@@ -529,6 +566,27 @@ function App() {
         onClose={() => setIsProfileModalOpen(false)}
         onPasswordChanged={handlePasswordChanged}
       />
+
+      {ownerReadOnlyPopup && (
+        <div className="owner-readonly-modal-backdrop" role="presentation">
+          <div
+            className="owner-readonly-modal"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="owner-readonly-title"
+          >
+            <h2 id="owner-readonly-title">{ownerReadOnlyPopup.title}</h2>
+            <p>{ownerReadOnlyPopup.message}</p>
+            <button
+              type="button"
+              className="owner-readonly-modal-btn"
+              onClick={() => setOwnerReadOnlyPopup(null)}
+            >
+              OK
+            </button>
+          </div>
+        </div>
+      )}
 
       {BLUX_ENABLED && (
         <>
