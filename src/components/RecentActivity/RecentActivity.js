@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import './RecentActivity.css';
 import { transactionEntryAPI, otherTransactionAPI } from '../../services/api';
 
+const PAGE_SIZE = 50;
+
 const RecentActivity = () => {
   const [activities, setActivities] = useState([]);
   const [filteredActivities, setFilteredActivities] = useState([]);
@@ -9,6 +11,7 @@ const RecentActivity = () => {
   const [activeFilter, setActiveFilter] = useState('all');
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
+  const [page, setPage] = useState(0);
 
   useEffect(() => {
     loadRecentActivities();
@@ -175,6 +178,7 @@ const RecentActivity = () => {
     console.log('🔍 Filtered activities:', filtered.length);
 
     setFilteredActivities(filtered);
+    setPage(0);
   };
 
   const formatCurrency = (num) => {
@@ -417,6 +421,13 @@ const RecentActivity = () => {
     );
   }
 
+  const totalPages = Math.max(1, Math.ceil(filteredActivities.length / PAGE_SIZE));
+  const pageIndex = Math.min(page, totalPages - 1);
+  const pageStart = pageIndex * PAGE_SIZE;
+  const pageActivities = filteredActivities.slice(pageStart, pageStart + PAGE_SIZE);
+  const showingFrom = filteredActivities.length === 0 ? 0 : pageStart + 1;
+  const showingTo = Math.min(pageStart + PAGE_SIZE, filteredActivities.length);
+
   return (
     <div className="recent-activity">
       <div className="recent-activity-header">
@@ -521,7 +532,8 @@ const RecentActivity = () => {
           <p>Try adjusting your filters</p>
         </div>
         ) : (
-          filteredActivities.map((activity) => (
+          <>
+            {pageActivities.map((activity) => (
             <div key={activity.id} className="activity-item">
               <div className="activity-icon">
                 {getActivityIcon(activity.type, activity.action)}
@@ -557,7 +569,32 @@ const RecentActivity = () => {
                 </div>
               </div>
             </div>
-          ))
+            ))}
+
+            {filteredActivities.length > PAGE_SIZE && (
+              <div className="activity-pagination">
+                <button
+                  type="button"
+                  className="activity-pagination-btn"
+                  onClick={() => setPage((current) => Math.max(0, current - 1))}
+                  disabled={pageIndex === 0}
+                >
+                  Previous
+                </button>
+                <span className="activity-pagination-meta">
+                  Showing {showingFrom}–{showingTo} of {filteredActivities.length} · Page {pageIndex + 1} of {totalPages}
+                </span>
+                <button
+                  type="button"
+                  className="activity-pagination-btn"
+                  onClick={() => setPage((current) => Math.min(totalPages - 1, current + 1))}
+                  disabled={pageIndex >= totalPages - 1}
+                >
+                  Next
+                </button>
+              </div>
+            )}
+          </>
         )}
       </div>
 

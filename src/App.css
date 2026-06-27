@@ -9,6 +9,56 @@ body {
   box-sizing: border-box;
 }
 
+.owner-readonly-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 5000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  background: rgba(15, 23, 42, 0.45);
+}
+
+.owner-readonly-modal {
+  width: min(440px, 100%);
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  box-shadow: 0 24px 60px rgba(15, 23, 42, 0.24);
+  padding: 1.5rem;
+}
+
+.owner-readonly-modal h2 {
+  margin: 0 0 0.75rem;
+  color: #0f172a;
+  font-size: 1.2rem;
+  font-weight: 700;
+}
+
+.owner-readonly-modal p {
+  margin: 0;
+  color: #475569;
+  font-size: 0.95rem;
+  line-height: 1.6;
+}
+
+.owner-readonly-modal-btn {
+  margin-top: 1.25rem;
+  width: 100%;
+  border: none;
+  border-radius: 10px;
+  background: #1d4ed8;
+  color: #ffffff;
+  font-weight: 700;
+  padding: 0.75rem 1rem;
+  cursor: pointer;
+}
+
+.owner-readonly-modal-btn:hover {
+  background: #1e40af;
+}
+
 /* DASHBOARD LAYOUT */
 .dashboard-root {
   display: flex;

@@ -1706,7 +1706,7 @@ const NewGLAccount = () => {
               </div>
             </div>
 
-            <div className="form-row">
+            <div className="form-row form-row--single">
               <div className="form-group">
                 <label htmlFor="activeStatus" className="form-label">
                   Status
@@ -1735,9 +1735,9 @@ const NewGLAccount = () => {
                 <label className="form-label">
                   Account Code <span className="required">*</span>
                 </label>
-                <div style={{ display: 'flex', gap: '1rem', alignItems: 'flex-end', width: '100%' }}>
-                  <div style={{ flex: '1 1 0', minWidth: '150px' }}>
-                    <div style={{ fontSize: '0.75rem', color: '#6b7280', marginBottom: '0.25rem', display: 'block' }}>
+                <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'flex-end', width: '100%' }}>
+                  <div style={{ flex: '1 1 0', minWidth: '90px' }}>
+                    <div style={{ fontSize: '0.7rem', color: '#6b7280', marginBottom: '0.15rem', display: 'block' }}>
                       Category + Subcategory (XXX)
                     </div>
                     <input
@@ -1752,9 +1752,9 @@ const NewGLAccount = () => {
                       style={{ textAlign: 'center', width: '100%' }}
                     />
                   </div>
-                  <span style={{ fontSize: '1.5rem', color: '#6b7280', paddingBottom: '1.5rem', fontWeight: '600' }}>-</span>
-                  <div style={{ flex: '1 1 0', minWidth: '150px' }}>
-                    <div style={{ fontSize: '0.75rem', color: '#6b7280', marginBottom: '0.25rem', display: 'block' }}>
+                  <span style={{ fontSize: '1.25rem', color: '#6b7280', paddingBottom: '1.1rem', fontWeight: '600' }}>-</span>
+                  <div style={{ flex: '1 1 0', minWidth: '90px' }}>
+                    <div style={{ fontSize: '0.7rem', color: '#6b7280', marginBottom: '0.15rem', display: 'block' }}>
                       Branch (XXX)
                     </div>
                     <input
@@ -1769,9 +1769,9 @@ const NewGLAccount = () => {
                       style={{ textAlign: 'center', width: '100%' }}
                     />
                   </div>
-                  <span style={{ fontSize: '1.5rem', color: '#6b7280', paddingBottom: '1.5rem', fontWeight: '600' }}>-</span>
-                  <div style={{ flex: '1 1 0', minWidth: '150px' }}>
-                    <div style={{ fontSize: '0.75rem', color: '#6b7280', marginBottom: '0.25rem', display: 'block' }}>
+                  <span style={{ fontSize: '1.25rem', color: '#6b7280', paddingBottom: '1.1rem', fontWeight: '600' }}>-</span>
+                  <div style={{ flex: '1 1 0', minWidth: '90px' }}>
+                    <div style={{ fontSize: '0.7rem', color: '#6b7280', marginBottom: '0.15rem', display: 'block' }}>
                       Transaction Type (XXX)
                     </div>
                     <input
@@ -1786,9 +1786,9 @@ const NewGLAccount = () => {
                       style={{ textAlign: 'center', width: '100%' }}
                     />
                   </div>
-                  <span style={{ fontSize: '1.5rem', color: '#6b7280', paddingBottom: '1.5rem', fontWeight: '600' }}>-</span>
-                  <div style={{ flex: '1 1 0', minWidth: '150px' }}>
-                    <div style={{ fontSize: '0.75rem', color: '#6b7280', marginBottom: '0.25rem', display: 'block' }}>
+                  <span style={{ fontSize: '1.25rem', color: '#6b7280', paddingBottom: '1.1rem', fontWeight: '600' }}>-</span>
+                  <div style={{ flex: '1 1 0', minWidth: '90px' }}>
+                    <div style={{ fontSize: '0.7rem', color: '#6b7280', marginBottom: '0.15rem', display: 'block' }}>
                       Account Name (XXX)
                     </div>
                     <input
@@ -1803,9 +1803,9 @@ const NewGLAccount = () => {
                       style={{ textAlign: 'center', width: '100%' }}
                     />
                   </div>
-                  <span style={{ fontSize: '1.5rem', color: '#6b7280', paddingBottom: '1.5rem', fontWeight: '600' }}>-</span>
-                  <div style={{ flex: '1 1 0', minWidth: '120px' }}>
-                    <div style={{ fontSize: '0.75rem', color: '#6b7280', marginBottom: '0.25rem', display: 'block' }}>
+                  <span style={{ fontSize: '1.25rem', color: '#6b7280', paddingBottom: '1.1rem', fontWeight: '600' }}>-</span>
+                  <div style={{ flex: '1 1 0', minWidth: '70px' }}>
+                    <div style={{ fontSize: '0.7rem', color: '#6b7280', marginBottom: '0.15rem', display: 'block' }}>
                       Ending (XX)
                     </div>
                     <input
@@ -1869,7 +1869,7 @@ const NewGLAccount = () => {
           <div className="form-section">
             <h3 className="form-section-title">Additional Information</h3>
             
-            <div className="form-row">
+            <div className="form-row form-row--single">
               <div className="form-group">
                 <label htmlFor="parentAccount" className="form-label">
                   Parent Account (Optional)
@@ -3029,44 +3029,44 @@ const NewGLAccount = () => {
           <p className="new-gl-form-subtitle">Understanding the GL account code format</p>
         </div>
         <div style={{ 
-          padding: '2rem',
-          maxWidth: '900px',
+          padding: '1.25rem 1.5rem',
+          maxWidth: '760px',
           margin: '0 auto'
         }}>
           <div style={{
             backgroundColor: '#f8fafc',
             border: '1px solid #e5e7eb',
             borderRadius: '8px',
-            padding: '2rem',
-            marginBottom: '2rem'
+            padding: '1.25rem',
+            marginBottom: '1.25rem'
           }}>
             <h3 style={{
-              fontSize: '1.25rem',
+              fontSize: '1.05rem',
               fontWeight: '600',
               color: '#1f2937',
-              marginBottom: '1rem'
+              marginBottom: '0.6rem'
             }}>
               Account Code Format
             </h3>
             <div style={{
               fontFamily: 'monospace',
-              fontSize: '1.5rem',
+              fontSize: '1.15rem',
               fontWeight: '700',
               color: '#2563eb',
               textAlign: 'center',
-              padding: '1.5rem',
+              padding: '0.85rem',
               backgroundColor: '#fff',
               border: '2px solid #3b82f6',
               borderRadius: '8px',
-              marginBottom: '1.5rem'
+              marginBottom: '0.85rem'
             }}>
               XXX-XXX-XXX-XXX-XX
             </div>
             <p style={{
               color: '#6b7280',
-              fontSize: '0.875rem',
+              fontSize: '0.78rem',
               textAlign: 'center',
-              marginBottom: '2rem'
+              marginBottom: '0'
             }}>
               The account code consists of 5 segments separated by hyphens
             </p>
@@ -3074,50 +3074,50 @@ const NewGLAccount = () => {
 
           <div style={{
             display: 'grid',
-            gap: '1.5rem'
+            gap: '0.85rem'
           }}>
             <div style={{
               backgroundColor: '#fff',
               border: '1px solid #e5e7eb',
               borderRadius: '8px',
-              padding: '1.5rem'
+              padding: '1rem 1.1rem'
             }}>
               <h4 style={{
-                fontSize: '1rem',
+                fontSize: '0.85rem',
                 fontWeight: '600',
                 color: '#1f2937',
-                marginBottom: '0.75rem',
+                marginBottom: '0.5rem',
                 display: 'flex',
                 alignItems: 'center',
                 gap: '0.5rem'
               }}>
                 <span style={{
                   display: 'inline-block',
-                  width: '24px',
-                  height: '24px',
+                  width: '20px',
+                  height: '20px',
                   backgroundColor: '#3b82f6',
                   color: '#fff',
                   borderRadius: '50%',
                   textAlign: 'center',
-                  lineHeight: '24px',
-                  fontSize: '0.875rem',
+                  lineHeight: '20px',
+                  fontSize: '0.72rem',
                   fontWeight: '700'
                 }}>1</span>
                 Part 1: Category + Subcategory (3 digits)
               </h4>
               <p style={{
                 color: '#6b7280',
-                fontSize: '0.875rem',
-                marginBottom: '0.5rem'
+                fontSize: '0.78rem',
+                marginBottom: '0.4rem'
               }}>
                 Combines Main Category (1 digit) and Sub Category (2 digits)
               </p>
               <div style={{
                 fontFamily: 'monospace',
-                fontSize: '0.875rem',
+                fontSize: '0.78rem',
                 color: '#2563eb',
                 backgroundColor: '#eff6ff',
-                padding: '0.5rem',
+                padding: '0.4rem 0.5rem',
                 borderRadius: '4px'
               }}>
                 Example: 111 (1 = ASSETS, 11 = Non-Current Assets)
@@ -3128,44 +3128,44 @@ const NewGLAccount = () => {
               backgroundColor: '#fff',
               border: '1px solid #e5e7eb',
               borderRadius: '8px',
-              padding: '1.5rem'
+              padding: '1rem 1.1rem'
             }}>
               <h4 style={{
-                fontSize: '1rem',
+                fontSize: '0.85rem',
                 fontWeight: '600',
                 color: '#1f2937',
-                marginBottom: '0.75rem',
+                marginBottom: '0.5rem',
                 display: 'flex',
                 alignItems: 'center',
                 gap: '0.5rem'
               }}>
                 <span style={{
                   display: 'inline-block',
-                  width: '24px',
-                  height: '24px',
+                  width: '20px',
+                  height: '20px',
                   backgroundColor: '#3b82f6',
                   color: '#fff',
                   borderRadius: '50%',
                   textAlign: 'center',
-                  lineHeight: '24px',
-                  fontSize: '0.875rem',
+                  lineHeight: '20px',
+                  fontSize: '0.72rem',
                   fontWeight: '700'
                 }}>2</span>
                 Part 2: Branch Code (3 digits)
               </h4>
               <p style={{
                 color: '#6b7280',
-                fontSize: '0.875rem',
-                marginBottom: '0.5rem'
+                fontSize: '0.78rem',
+                marginBottom: '0.4rem'
               }}>
                 Identifies the branch or location code
               </p>
               <div style={{
                 fontFamily: 'monospace',
-                fontSize: '0.875rem',
+                fontSize: '0.78rem',
                 color: '#2563eb',
                 backgroundColor: '#eff6ff',
-                padding: '0.5rem',
+                padding: '0.4rem 0.5rem',
                 borderRadius: '4px'
               }}>
                 Example: 101 (Default branch code)
@@ -3176,44 +3176,44 @@ const NewGLAccount = () => {
               backgroundColor: '#fff',
               border: '1px solid #e5e7eb',
               borderRadius: '8px',
-              padding: '1.5rem'
+              padding: '1rem 1.1rem'
             }}>
               <h4 style={{
-                fontSize: '1rem',
+                fontSize: '0.85rem',
                 fontWeight: '600',
                 color: '#1f2937',
-                marginBottom: '0.75rem',
+                marginBottom: '0.5rem',
                 display: 'flex',
                 alignItems: 'center',
                 gap: '0.5rem'
               }}>
                 <span style={{
                   display: 'inline-block',
-                  width: '24px',
-                  height: '24px',
+                  width: '20px',
+                  height: '20px',
                   backgroundColor: '#3b82f6',
                   color: '#fff',
                   borderRadius: '50%',
                   textAlign: 'center',
-                  lineHeight: '24px',
-                  fontSize: '0.875rem',
+                  lineHeight: '20px',
+                  fontSize: '0.72rem',
                   fontWeight: '700'
                 }}>3</span>
                 Part 3: Transaction Type (3 digits)
               </h4>
               <p style={{
                 color: '#6b7280',
-                fontSize: '0.875rem',
-                marginBottom: '0.5rem'
+                fontSize: '0.78rem',
+                marginBottom: '0.4rem'
               }}>
                 Identifies the specific transaction type or category
               </p>
               <div style={{
                 fontFamily: 'monospace',
-                fontSize: '0.875rem',
+                fontSize: '0.78rem',
                 color: '#2563eb',
                 backgroundColor: '#eff6ff',
-                padding: '0.5rem',
+                padding: '0.4rem 0.5rem',
                 borderRadius: '4px'
               }}>
                 Example: 110 (Property, Plant & Equipment)
@@ -3224,44 +3224,44 @@ const NewGLAccount = () => {
               backgroundColor: '#fff',
               border: '1px solid #e5e7eb',
               borderRadius: '8px',
-              padding: '1.5rem'
+              padding: '1rem 1.1rem'
             }}>
               <h4 style={{
-                fontSize: '1rem',
+                fontSize: '0.85rem',
                 fontWeight: '600',
                 color: '#1f2937',
-                marginBottom: '0.75rem',
+                marginBottom: '0.5rem',
                 display: 'flex',
                 alignItems: 'center',
                 gap: '0.5rem'
               }}>
                 <span style={{
                   display: 'inline-block',
-                  width: '24px',
-                  height: '24px',
+                  width: '20px',
+                  height: '20px',
                   backgroundColor: '#3b82f6',
                   color: '#fff',
                   borderRadius: '50%',
                   textAlign: 'center',
-                  lineHeight: '24px',
-                  fontSize: '0.875rem',
+                  lineHeight: '20px',
+                  fontSize: '0.72rem',
                   fontWeight: '700'
                 }}>4</span>
                 Part 4: Account Name (3 digits)
               </h4>
               <p style={{
                 color: '#6b7280',
-                fontSize: '0.875rem',
-                marginBottom: '0.5rem'
+                fontSize: '0.78rem',
+                marginBottom: '0.4rem'
               }}>
                 Unique identifier for the specific account
               </p>
               <div style={{
                 fontFamily: 'monospace',
-                fontSize: '0.875rem',
+                fontSize: '0.78rem',
                 color: '#2563eb',
                 backgroundColor: '#eff6ff',
-                padding: '0.5rem',
+                padding: '0.4rem 0.5rem',
                 borderRadius: '4px'
               }}>
                 Example: 025 (Fixed assets - computer equipment)
@@ -3272,44 +3272,44 @@ const NewGLAccount = () => {
               backgroundColor: '#fff',
               border: '1px solid #e5e7eb',
               borderRadius: '8px',
-              padding: '1.5rem'
+              padding: '1rem 1.1rem'
             }}>
               <h4 style={{
-                fontSize: '1rem',
+                fontSize: '0.85rem',
                 fontWeight: '600',
                 color: '#1f2937',
-                marginBottom: '0.75rem',
+                marginBottom: '0.5rem',
                 display: 'flex',
                 alignItems: 'center',
                 gap: '0.5rem'
               }}>
                 <span style={{
                   display: 'inline-block',
-                  width: '24px',
-                  height: '24px',
+                  width: '20px',
+                  height: '20px',
                   backgroundColor: '#3b82f6',
                   color: '#fff',
                   borderRadius: '50%',
                   textAlign: 'center',
-                  lineHeight: '24px',
-                  fontSize: '0.875rem',
+                  lineHeight: '20px',
+                  fontSize: '0.72rem',
                   fontWeight: '700'
                 }}>5</span>
                 Part 5: Ending (2 digits)
               </h4>
               <p style={{
                 color: '#6b7280',
-                fontSize: '0.875rem',
-                marginBottom: '0.5rem'
+                fontSize: '0.78rem',
+                marginBottom: '0.4rem'
               }}>
                 Standard ending value for account codes
               </p>
               <div style={{
                 fontFamily: 'monospace',
-                fontSize: '0.875rem',
+                fontSize: '0.78rem',
                 color: '#2563eb',
                 backgroundColor: '#eff6ff',
-                padding: '0.5rem',
+                padding: '0.4rem 0.5rem',
                 borderRadius: '4px'
               }}>
                 Example: 44 (Default ending)
@@ -3318,32 +3318,32 @@ const NewGLAccount = () => {
           </div>
 
           <div style={{
-            marginTop: '2rem',
-            padding: '1.5rem',
+            marginTop: '1.25rem',
+            padding: '1rem 1.1rem',
             backgroundColor: '#fef3c7',
             border: '1px solid #fbbf24',
             borderRadius: '8px'
           }}>
             <h4 style={{
-              fontSize: '1rem',
+              fontSize: '0.85rem',
               fontWeight: '600',
               color: '#92400e',
-              marginBottom: '0.75rem'
+              marginBottom: '0.5rem'
             }}>
               Complete Example
             </h4>
             <div style={{
               fontFamily: 'monospace',
-              fontSize: '1.125rem',
+              fontSize: '1rem',
               fontWeight: '700',
               color: '#92400e',
-              marginBottom: '0.5rem'
+              marginBottom: '0.4rem'
             }}>
               111-101-110-025-44
             </div>
             <p style={{
               color: '#78350f',
-              fontSize: '0.875rem',
+              fontSize: '0.78rem',
               margin: 0
             }}>
               ASSETS (1) + Non-Current Assets (11) = 111 | Branch: 101 | Transaction: Property, Plant & Equipment (110) | Account: Fixed assets - computer equipment (025) | Ending: 44
