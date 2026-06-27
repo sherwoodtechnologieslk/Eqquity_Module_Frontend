@@ -109,7 +109,7 @@ const GovernanceActivityLog = ({ company }) => {
           </div>
         </div>
         <div className="agp-header-stats">
-          <div className="agp-stat">
+          <div className="agp-stat agp-stat--plain">
             <span className="agp-stat-value">{events.length}</span>
             <span className="agp-stat-label">Total events</span>
           </div>
