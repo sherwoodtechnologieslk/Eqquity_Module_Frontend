@@ -1,5 +1,11 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { gsecEntriesAPI, chartOfAccountsAPI } from '../../services/api';
+import {
+  GSEC_SOURCES,
+  shouldSubmitGsecForApproval,
+  gsecSaveButtonLabel,
+  gsecSubmittingLabel,
+} from '../../utils/gsecMakerChecker';
 import './Styles/GsecEntries.css';
 import './Styles/GsecManualEntryPosting.css';
 import './Styles/GsecBulkEntryGrid.css';
@@ -293,16 +299,25 @@ const GsecBulkEntryGrid = () => {
 
     try {
       setSaving(true);
-      const res = await gsecEntriesAPI.saveEntriesToDatabase(entries);
-      const inserted = res?.insertedRows ?? 0;
-      setMessage({
-        type: 'ok',
-        text: res?.message
-          ? `${res.message} (inserted ${inserted} of ${entries.length}).`
-          : `Saved. Inserted ${inserted} of ${entries.length} row(s).`
-      });
-      if (inserted > 0) {
+      if (shouldSubmitGsecForApproval()) {
+        await gsecEntriesAPI.submitGsecEntriesForApproval(entries, { source: GSEC_SOURCES.BULK });
+        setMessage({
+          type: 'ok',
+          text: `${entries.length} row(s) submitted for checker approval. They will be posted to gsec_entries after approval.`,
+        });
         setRows([makeEmptyRow()]);
+      } else {
+        const res = await gsecEntriesAPI.saveEntriesToDatabase(entries);
+        const inserted = res?.insertedRows ?? 0;
+        setMessage({
+          type: 'ok',
+          text: res?.message
+            ? `${res.message} (inserted ${inserted} of ${entries.length}).`
+            : `Saved. Inserted ${inserted} of ${entries.length} row(s).`,
+        });
+        if (inserted > 0) {
+          setRows([makeEmptyRow()]);
+        }
       }
     } catch (err) {
       console.error('Failed to save GSec grid entries:', err);
@@ -356,7 +371,7 @@ const GsecBulkEntryGrid = () => {
             onClick={handleSave}
             disabled={saving || nonBlankRows.length === 0}
           >
-            {saving ? 'Saving…' : 'Save to DB'}
+            {saving ? gsecSubmittingLabel() : gsecSaveButtonLabel()}
           </button>
         </div>
       </div>

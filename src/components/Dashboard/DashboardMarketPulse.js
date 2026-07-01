@@ -101,8 +101,7 @@ const DashboardMarketPulse = ({
     holdingSymbols = [],
     holdingNames = [],
     watchlistSymbols = [],
-    onNavigate,
-    portfolioName = ''
+    onNavigate
 }) => {
     const [activeTab, setActiveTab] = useState('corporate');
     const [feeds, setFeeds] = useState({ corporate: [], listings: [] });
@@ -161,51 +160,35 @@ const DashboardMarketPulse = ({
 
     return (
         <div className="market-pulse-widget">
-            <div className="market-pulse-widget__header">
-                <div className="market-pulse-widget__heading">
-                    <span className="market-pulse-widget__icon" aria-hidden>
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                            <path d="M22 12h-4l-3 9L9 3l-3 9H2" />
-                        </svg>
-                    </span>
-                    <div className="market-pulse-widget__heading-text">
-                        <h3 className="market-pulse-widget__title-text">Market Pulse</h3>
-                        <span className="market-pulse-widget__subtitle-text">
-                            {portfolioName
-                                ? `CSE updates · ${portfolioName}`
-                                : 'Colombo Stock Exchange announcements'}
-                        </span>
-                    </div>
-                </div>
-
+            <div className="market-pulse-widget__header market-pulse-widget__header--bare">
                 <div className="market-pulse-widget__actions">
-                    <button
-                        type="button"
-                        className="market-pulse-widget__refresh"
-                        onClick={() => load(false)}
-                        disabled={isLoading}
-                        aria-label="Refresh market pulse"
-                        title="Refresh"
-                    >
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                            <path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8" />
-                            <path d="M21 3v5h-5" />
-                            <path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16" />
-                            <path d="M3 21v-5h5" />
-                        </svg>
-                    </button>
-                    {onNavigate && (
                         <button
                             type="button"
-                            className="market-pulse-widget__more"
-                            onClick={() => onNavigate(current.targetTab)}
+                            className="market-pulse-widget__refresh"
+                            onClick={() => load(false)}
+                            disabled={isLoading}
+                            aria-label="Refresh market pulse"
+                            title="Refresh"
                         >
-                            View all
-                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                                <polyline points="9 18 15 12 9 6" />
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                <path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8" />
+                                <path d="M21 3v5h-5" />
+                                <path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16" />
+                                <path d="M3 21v-5h5" />
                             </svg>
                         </button>
-                    )}
+                        {onNavigate && (
+                            <button
+                                type="button"
+                                className="market-pulse-widget__more"
+                                onClick={() => onNavigate(current.targetTab)}
+                            >
+                                View all
+                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                                    <polyline points="9 18 15 12 9 6" />
+                                </svg>
+                            </button>
+                        )}
                 </div>
             </div>
 
