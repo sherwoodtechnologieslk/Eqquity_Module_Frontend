@@ -122,6 +122,7 @@ import AssetEntry from './components/FixedAssets/AssetEntry';
 import AssetCategories from './components/FixedAssets/AssetCategories';
 import SuperuserPortal from './components/Governance/SuperuserPortal';
 import AdminGovernancePortal from './components/Governance/AdminGovernancePortal';
+import BusinessApprovalsPortal from './components/Governance/BusinessApprovalsPortal';
 import OwnerAdminApprovals from './components/Governance/OwnerAdminApprovals';
 import GovernanceActivityLog from './components/Governance/GovernanceActivityLog';
 
@@ -355,6 +356,9 @@ function App() {
     'Asset Categories': <AssetCategories onTabChange={handleTabChange} />,
     'User Requests': (
       <AdminGovernancePortal user={user} company={user?.company} />
+    ),
+    'Business Approvals': (
+      <BusinessApprovalsPortal user={user} company={user?.company} />
     ),
     'Admin Approvals': (
       <OwnerAdminApprovals user={user} company={user?.company} />

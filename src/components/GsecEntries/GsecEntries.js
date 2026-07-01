@@ -1,5 +1,11 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { gsecEntriesAPI } from '../../services/api';
+import {
+  GSEC_SOURCES,
+  shouldSubmitGsecForApproval,
+  gsecSaveButtonLabel,
+  gsecSubmittingLabel,
+} from '../../utils/gsecMakerChecker';
 import './Styles/GsecEntries.css';
 
 const GsecEntries = () => {
@@ -158,8 +164,13 @@ const GsecEntries = () => {
 
     try {
       setSaving(true);
-      await gsecEntriesAPI.saveEntriesToDatabase(rows);
-      window.alert('GSec entries saved to database successfully.');
+      if (shouldSubmitGsecForApproval()) {
+        await gsecEntriesAPI.submitGsecEntriesForApproval(rows, { source: GSEC_SOURCES.LEDGER });
+        window.alert('GSec entries submitted for checker approval. They will be posted after approval.');
+      } else {
+        await gsecEntriesAPI.saveLedgerEntriesToDatabase(rows);
+        window.alert('GSec entries saved to database successfully.');
+      }
     } catch (err) {
       console.error('Failed to save GSec entries to database:', err);
       window.alert(err.message || 'Failed to save GSec entries to database.');
@@ -263,7 +274,10 @@ const GsecEntries = () => {
             ledger {missingInfo.totalMissing === 1 ? 'is' : 'are'} missing from
             your database for <strong>{missingInfo.date}</strong>{' '}
             (remote: {missingInfo.totalRemote}, local: {missingInfo.totalLocal}).
-            {missingInfo.totalMissing > 0 && ' Use “Save to DB” to import them.'}
+            {missingInfo.totalMissing > 0 &&
+              (shouldSubmitGsecForApproval()
+                ? ' Use “Submit for Approval” to send them for checker review.'
+                : ' Use “Save to DB” to import them.')}
           </span>
           <button
             type="button"
@@ -297,7 +311,7 @@ const GsecEntries = () => {
             onClick={handleSaveToDatabase}
             disabled={saving || loading || rows.length === 0}
           >
-            {saving ? 'Saving…' : 'Save to DB'}
+            {saving ? gsecSubmittingLabel() : gsecSaveButtonLabel()}
           </button>
           <div className="gsec-pagination">
             <button

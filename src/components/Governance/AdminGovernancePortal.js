@@ -42,9 +42,10 @@ const AdminGovernancePortal = ({ user, company }) => {
       PORTAL_TABS.filter((tab) => {
         if (tab.id === 'request') return canRequest;
         if (tab.id === 'rights') return canRequest || isOwner;
+        if (tab.id === 'requests') return canRequest || canApprove || isOwner;
         return true;
       }),
-    [canRequest, isOwner]
+    [canApprove, canRequest, isOwner]
   );
 
   const [activeTab, setActiveTab] = useState(() => (canRequest ? 'request' : 'requests'));
@@ -68,10 +69,17 @@ const AdminGovernancePortal = ({ user, company }) => {
     setLoading(true);
     setError('');
     try {
+      const shouldLoadUserGovernance = canRequest || canApprove || isOwner;
       const [permRes, reqRes, userRes] = await Promise.all([
-        governanceService.listPermissions(),
-        governanceService.listUserRequests(),
-        governanceService.listCompanyUsers(),
+        shouldLoadUserGovernance
+          ? governanceService.listPermissions()
+          : Promise.resolve({ data: { permissions: [] } }),
+        shouldLoadUserGovernance
+          ? governanceService.listUserRequests()
+          : Promise.resolve({ data: { requests: [] } }),
+        (canRequest || isOwner)
+          ? governanceService.listCompanyUsers()
+          : Promise.resolve({ data: { users: [] } }),
       ]);
       const catalog = permissionsForUserCreation(permRes.data.permissions || []);
       setPermissions(catalog);
@@ -82,7 +90,7 @@ const AdminGovernancePortal = ({ user, company }) => {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [canApprove, canRequest, isOwner]);
 
   useEffect(() => {
     load();
@@ -469,7 +477,7 @@ const AdminGovernancePortal = ({ user, company }) => {
         <div className="agp-header-stats">
           <div className="agp-stat">
             <span className="agp-stat-value">{pendingCount}</span>
-            <span className="agp-stat-label">Pending</span>
+            <span className="agp-stat-label">User pending</span>
           </div>
           <div className="agp-stat">
             <span className="agp-stat-value">{requests.length}</span>
@@ -483,12 +491,12 @@ const AdminGovernancePortal = ({ user, company }) => {
           {company?.company_email && (
             <span className="agp-context-tag">{company.company_email}</span>
           )}
-          {canRequest && <span className="agp-context-tag agp-context-tag--active">Can request users</span>}
-          {canApprove && <span className="agp-context-tag agp-context-tag--active">Can approve requests</span>}
+          {canRequest && <span className="agp-context-tag agp-context-tag--text">Can request users</span>}
+          {canApprove && <span className="agp-context-tag agp-context-tag--text">Can approve requests</span>}
           {isOwner && <span className="agp-context-tag">Company owner</span>}
         </div>
         <p className="agp-workflow-hint">
-          Admin submits user or rights request → different admin approves → change becomes active
+          Maker submits request → different checker approves → change becomes active
         </p>
       </div>
 

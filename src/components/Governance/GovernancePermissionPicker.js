@@ -2,7 +2,7 @@ import React from 'react';
 import { PERMISSION_LABELS } from '../../constants/governanceConstants';
 import './GovernancePermissionPicker.css';
 
-const MODULE_ACCESS_KEYS = new Set(['trade', 'accounting', 'reports', 'master_data']);
+const MODULE_ACCESS_KEYS = new Set(['trade', 'gsec', 'accounting', 'reports', 'master_data']);
 
 function PermCard({ permission, checked, onToggle }) {
   return (

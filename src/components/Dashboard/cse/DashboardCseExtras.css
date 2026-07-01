@@ -1,0 +1,628 @@
+/* Shared styles for the live CSE dashboard widgets (previously unused APIs). */
+
+.cse-card {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 14px;
+    padding: 16px;
+    box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.cse-card__head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+.cse-card__title {
+    font-size: 14px;
+    font-weight: 700;
+    color: #0f172a;
+    margin: 0;
+    letter-spacing: -0.01em;
+}
+
+.cse-card__sub {
+    font-size: 11px;
+    color: #64748b;
+    margin-top: 2px;
+    display: block;
+}
+
+.cse-card__live {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: #0e7490;
+    background: #ecfeff;
+    border: 1px solid #a5f3fc;
+    border-radius: 999px;
+    padding: 3px 9px;
+    white-space: nowrap;
+}
+
+.cse-card__live-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: #06b6d4;
+    box-shadow: 0 0 0 3px rgba(6, 182, 212, 0.18);
+}
+
+.cse-card__state {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 80px;
+    color: #94a3b8;
+    font-size: 12px;
+    text-align: center;
+}
+
+.cse-up { color: #16a34a; }
+.cse-down { color: #dc2626; }
+.cse-flat { color: #64748b; }
+
+/* ---- CSE Today — live market summary (marketSummery) -------------------- */
+/* Matches dashboard content-card + pnl-stat system styling */
+
+.cse-market-today {
+    padding: var(--dash-space-2, 10px) var(--dash-space-3, 14px);
+    margin: 0;
+}
+
+.cse-market-today__header {
+    margin-bottom: 0.65rem;
+    align-items: center;
+}
+
+.cse-market-today__heading {
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+    min-width: 0;
+}
+
+.cse-market-today__heading .card-subtitle {
+    font-family: 'Inter', sans-serif;
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: #1e293b;
+    letter-spacing: -0.01em;
+}
+
+.cse-market-today__hint {
+    font-family: 'Inter', sans-serif;
+    font-size: 0.6875rem;
+    font-weight: 500;
+    color: #94a3b8;
+    letter-spacing: 0.02em;
+}
+
+.cse-market-today__badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    flex-shrink: 0;
+    padding: 0.2rem 0.55rem 0.2rem 0.45rem;
+    font-family: 'Inter', sans-serif;
+    font-size: 0.6875rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: #0369a1;
+    background: rgba(14, 165, 233, 0.1);
+    border: 1px solid rgba(14, 165, 233, 0.35);
+    border-radius: 999px;
+    line-height: 1;
+}
+
+.cse-market-today__badge-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: #0ea5e9;
+    box-shadow: 0 0 0 0 rgba(14, 165, 233, 0.45);
+    animation: cse-market-today-pulse 1.6s ease-out infinite;
+}
+
+@keyframes cse-market-today-pulse {
+    0% { box-shadow: 0 0 0 0 rgba(14, 165, 233, 0.45); }
+    70% { box-shadow: 0 0 0 6px rgba(14, 165, 233, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(14, 165, 233, 0); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .cse-market-today__badge-dot {
+        animation: none;
+    }
+}
+
+.cse-market-today__grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0.5rem;
+}
+
+.cse-market-today__stat {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    padding: 0.75rem 1rem;
+    background: #f8fafc;
+    border: 1px solid #e5e7eb;
+    border-radius: 0;
+    min-width: 0;
+    transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
+}
+
+.cse-market-today__stat:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    border-color: rgba(15, 23, 42, 0.14);
+}
+
+.cse-market-today__stat-label {
+    font-family: 'Inter', sans-serif;
+    font-size: 0.6875rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: #64748b;
+    line-height: 1.2;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.cse-market-today__stat-value {
+    font-family: 'Inter', sans-serif;
+    font-size: 1.0625rem;
+    font-weight: 700;
+    line-height: 1.25;
+    color: #0f172a;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: -0.005em;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.cse-market-today__currency {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: #94a3b8;
+    margin-right: 0.2rem;
+    letter-spacing: 0.04em;
+}
+
+@media (max-width: 720px) {
+    .cse-market-today__grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* ---- Combined CSE Market Today overview (summary + ASPI trend) ----------- */
+.cse-today-overview__body {
+    display: grid;
+    grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
+    gap: var(--dash-space-3, 14px);
+    align-items: stretch;
+}
+
+.cse-today-overview__metrics {
+    grid-template-columns: 1fr;
+    gap: 0.5rem;
+    align-content: start;
+}
+
+.cse-today-overview__trend {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    padding: 0.75rem 1rem;
+    background: #f8fafc;
+    border: 1px solid #e5e7eb;
+    border-radius: 0;
+    justify-content: center;
+}
+
+.cse-today-overview__trend-head {
+    display: flex;
+    flex-direction: column;
+    gap: 0.1rem;
+}
+
+.cse-today-overview__trend-title {
+    font-family: 'Inter', sans-serif;
+    font-size: 0.6875rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: #64748b;
+}
+
+.cse-today-overview__trend-sub {
+    font-family: 'Inter', sans-serif;
+    font-size: 0.625rem;
+    font-weight: 500;
+    color: #94a3b8;
+}
+
+@media (max-width: 900px) {
+    .cse-today-overview__body {
+        grid-template-columns: 1fr;
+    }
+    .cse-today-overview__metrics {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 720px) {
+    .cse-today-overview__metrics {
+        grid-template-columns: 1fr;
+    }
+}
+
+.cse-today-overview__prices {
+    margin-top: var(--dash-space-3, 14px);
+    padding-top: var(--dash-space-3, 14px);
+    border-top: 1px solid #e5e7eb;
+}
+
+.cse-today-overview__prices-head {
+    display: flex;
+    align-items: baseline;
+    gap: 0.5rem;
+    margin-bottom: 0.5rem;
+    flex-wrap: wrap;
+}
+
+/* Horizontal scrolling ticker (marquee) */
+.cse-ticker {
+    position: relative;
+    overflow: hidden;
+    width: 100%;
+    border-top: 1px solid #e5e7eb;
+    border-bottom: 1px solid #e5e7eb;
+    background: #f8fafc;
+    padding: 0.5rem 0;
+    -webkit-mask-image: linear-gradient(
+        to right,
+        transparent 0,
+        #000 48px,
+        #000 calc(100% - 48px),
+        transparent 100%
+    );
+    mask-image: linear-gradient(
+        to right,
+        transparent 0,
+        #000 48px,
+        #000 calc(100% - 48px),
+        transparent 100%
+    );
+}
+
+.cse-ticker__track {
+    display: inline-flex;
+    align-items: center;
+    white-space: nowrap;
+    will-change: transform;
+    animation: cse-ticker-scroll var(--ticker-duration, 120s) linear infinite;
+}
+
+.cse-ticker:hover .cse-ticker__track {
+    animation-play-state: paused;
+}
+
+.cse-ticker__item {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 0.4rem;
+    padding: 0 1rem;
+    border-right: 1px solid #e5e7eb;
+    font-family: 'Inter', sans-serif;
+    font-variant-numeric: tabular-nums;
+}
+
+.cse-ticker__sym {
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: #0f172a;
+}
+
+.cse-ticker__price {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: #475569;
+}
+
+.cse-ticker__chg {
+    font-size: 0.6875rem;
+    font-weight: 700;
+}
+
+@keyframes cse-ticker-scroll {
+    from { transform: translateX(0); }
+    to { transform: translateX(-50%); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .cse-ticker__track {
+        animation: none;
+    }
+    .cse-ticker {
+        overflow-x: auto;
+    }
+}
+
+/* ---- Generic stat grid (daily market summary) --------------------------- */
+.cse-stat-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+}
+
+.cse-stat {
+    background: #f8fafc;
+    border: 1px solid #eef2f7;
+    border-radius: 10px;
+    padding: 10px 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+}
+
+.cse-stat__label {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: #64748b;
+}
+
+.cse-stat__value {
+    font-size: 15px;
+    font-weight: 700;
+    color: #0f172a;
+    font-variant-numeric: tabular-nums;
+}
+
+.cse-flow {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.cse-flow__row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 11px;
+    color: #475569;
+}
+
+.cse-flow__track {
+    flex: 1;
+    height: 8px;
+    border-radius: 6px;
+    background: #eef2f7;
+    overflow: hidden;
+    display: flex;
+}
+
+.cse-flow__seg--buy { background: #22c55e; }
+.cse-flow__seg--sell { background: #ef4444; }
+
+/* ---- List rows (sectors, prices, trades, turnover, covid) --------------- */
+.cse-list {
+    display: flex;
+    flex-direction: column;
+    max-height: 320px;
+    overflow-y: auto;
+}
+
+.cse-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 4px;
+    border-bottom: 1px solid #f1f5f9;
+    font-size: 12px;
+}
+
+.cse-row:last-child { border-bottom: none; }
+
+.cse-row__main {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+    min-width: 0;
+    flex: 1;
+}
+
+.cse-row__sym {
+    font-weight: 700;
+    color: #0f172a;
+}
+
+.cse-row__name {
+    font-size: 10.5px;
+    color: #94a3b8;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 160px;
+}
+
+.cse-row__num {
+    font-variant-numeric: tabular-nums;
+    text-align: right;
+    white-space: nowrap;
+}
+
+.cse-row__val {
+    font-weight: 700;
+    color: #0f172a;
+    font-variant-numeric: tabular-nums;
+    text-align: right;
+    min-width: 64px;
+}
+
+.cse-row__chg {
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+    text-align: right;
+    min-width: 64px;
+}
+
+/* ---- Sparkline (index / company charts) --------------------------------- */
+.cse-spark {
+    width: 100%;
+    height: 90px;
+}
+
+.cse-spark--tile {
+    height: 64px;
+}
+
+/* ---- Intraday grid (4 charts) ------------------------------------------- */
+.cse-intraday-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+}
+
+.cse-intraday-tile {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 10px;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    min-height: 120px;
+}
+
+.cse-intraday-tile__select {
+    width: 100%;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    padding: 6px 8px;
+    font-size: 11px;
+    font-weight: 600;
+    color: #0f172a;
+    background: #fff;
+    cursor: pointer;
+}
+
+.cse-intraday-tile__select:focus {
+    outline: 2px solid #0ea5e9;
+    outline-offset: 1px;
+}
+
+.cse-intraday-tile__chart {
+    flex: 1;
+}
+
+.cse-intraday-tile__state {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 64px;
+    font-size: 11px;
+    color: #94a3b8;
+}
+
+@media (max-width: 720px) {
+    .cse-intraday-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+.cse-spark__wrap {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.cse-spark__foot {
+    display: flex;
+    justify-content: space-between;
+    font-size: 11px;
+    color: #64748b;
+}
+
+.cse-chip-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
+.cse-chip {
+    font-size: 11px;
+    font-weight: 600;
+    color: #334155;
+    background: #f1f5f9;
+    border-radius: 999px;
+    padding: 4px 10px;
+}
+
+.cse-refresh {
+    background: transparent;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    width: 26px;
+    height: 26px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: #64748b;
+    cursor: pointer;
+}
+
+.cse-refresh:hover { background: #f8fafc; color: #0f172a; }
+.cse-refresh:disabled { opacity: 0.5; cursor: default; }
+
+/* ---- Combined breadth + turnover card ---------------------------------- */
+.cse-card--combo .cse-combo__section {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.cse-section-label {
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+    color: #94a3b8;
+}
+
+.cse-combo__divider {
+    height: 1px;
+    background: #eef2f7;
+    margin: 14px 0;
+}
+
+/* Turnover list scrolls internally so the combined card stays compact. */
+.cse-combo__list {
+    max-height: 280px;
+    overflow-y: auto;
+    margin: 0 -4px;
+    padding: 0 4px;
+    scrollbar-width: thin;
+    scrollbar-color: #cbd5e1 transparent;
+}
+
+.cse-combo__list::-webkit-scrollbar { width: 6px; }
+.cse-combo__list::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 999px; }
+.cse-combo__list::-webkit-scrollbar-track { background: transparent; }
+
