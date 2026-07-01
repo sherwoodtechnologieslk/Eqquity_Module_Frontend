@@ -16,8 +16,13 @@ import DashboardSectorMixChart from './DashboardSectorMixChart';
 import MarketNewsWidget from './MarketNewsWidget';
 import DashboardMarketPulse from './DashboardMarketPulse';
 import DashboardMarketMovers from './DashboardMarketMovers';
+import MarketTodayOverview from './cse/MarketTodayOverview';
+import MarketBreadthTurnoverCard from './cse/MarketBreadthTurnoverCard';
+import SectorIndicesCard from './cse/SectorIndicesCard';
+import DetailedTradesCard from './cse/DetailedTradesCard';
+import CovidNoticesCard from './cse/CovidNoticesCard';
+import CompanyIntradayCard from './cse/CompanyIntradayCard';
 import './Dashboard.css';
-import './LatestActivityCard.css';
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, Tooltip, Legend);
 
@@ -236,7 +241,6 @@ function computePortfolioInsights(holdings, pnlMetrics) {
 const Dashboard = ({ onTabChange }) => {
   const [dashboardData, setDashboardData] = useState({
     activePortfolios: 0,
-    recentTransactions: [],
     topPerformers: [],
     marketAlerts: [],
     sectorData: [],
@@ -393,7 +397,6 @@ const Dashboard = ({ onTabChange }) => {
       });
 
       let activePortfolios = 0;
-      let recentTransactions = [];
       let topPerformers = [];
       let marketAlerts = [];
       let sectorData = [];
@@ -444,21 +447,10 @@ const Dashboard = ({ onTabChange }) => {
       const apiBase = process.env.REACT_APP_API_URL || 'http://localhost:8080/api';
       // Run in parallel with P&L below (no dependency on portfolio id).
       // Use allSettled so one failing endpoint (e.g. sell-all) does not reject the whole dashboard load.
-      const txPromise = (async () => {
-        const results = await Promise.allSettled([
-          tradeSummaryAPI.getBuyTransactions(),
-          transactionEntryAPI.getAllSellTransactions(),
-        ]);
-        const buyTransactions = results[0].status === 'fulfilled' ? results[0].value || [] : [];
-        const sellTransactions = results[1].status === 'fulfilled' ? results[1].value || [] : [];
-        if (results[0].status === 'rejected') {
-          console.error('Dashboard: buy transactions request failed:', results[0].reason);
-        }
-        if (results[1].status === 'rejected') {
-          console.error('Dashboard: sell transactions request failed:', results[1].reason);
-        }
-        return [buyTransactions, sellTransactions];
-      })();
+      const txPromise = tradeSummaryAPI.getBuyTransactions().catch((err) => {
+        console.error('Dashboard: buy transactions request failed:', err);
+        return [];
+      });
       const holdingsPromise = fetch(`${apiBase}/portfolios/overview`, {
         method: 'GET',
         headers: {
@@ -574,43 +566,15 @@ const Dashboard = ({ onTabChange }) => {
           }
       }
 
-      // Await buys/sells + holdings (requests started above, in parallel with P&L when applicable)
+      // Await buy transactions + holdings (requests started above, in parallel with P&L when applicable)
       try {
         console.log('Fetching real transactions and holdings from database...');
-        const [[buyTransactions, sellTransactions], holdingsResult] = await Promise.all([
+        const [buyTransactions, holdingsResult] = await Promise.all([
           txPromise,
           holdingsPromise
         ]);
 
         console.log('Buy transactions:', buyTransactions);
-        console.log('Sell transactions:', sellTransactions);
-
-        // Combine and sort all transactions by date
-        const allTransactions = [
-          ...buyTransactions.map(tx => ({ 
-            ...tx, 
-            type: 'BUY',
-            symbol: tx.symbol || 'N/A',
-            quantity: tx.quantity || 0,
-            price: tx.price || 0,
-            date: tx.trade_date || tx.created_at,
-            portfolio: tx.portfolio || 'N/A',
-            company: tx.company_name || 'N/A'
-          })),
-          ...sellTransactions.map(tx => ({ 
-            ...tx, 
-            type: 'SELL',
-            symbol: tx.symbol || 'N/A',
-            quantity: tx.quantity || 0,
-            price: tx.price || 0,
-            date: tx.trade_date || tx.created_at,
-            portfolio: tx.portfolio || 'N/A',
-            company: tx.company_name || 'N/A'
-          }))
-        ].sort((a, b) => new Date(b.date) - new Date(a.date)).slice(0, 10); // Get latest 10
-
-        recentTransactions = allTransactions;
-        console.log('Combined recent transactions:', recentTransactions);
 
         // Calculate top performers from buy transactions
         const performerMap = new Map();
@@ -643,7 +607,6 @@ const Dashboard = ({ onTabChange }) => {
           .slice(0, 5);
 
         marketAlerts = [
-          { type: 'success', message: `Loaded ${recentTransactions.length} recent transactions` },
           { type: 'info', message: `${activePortfolios} active portfolios found` }
         ];
 
@@ -760,7 +723,6 @@ const Dashboard = ({ onTabChange }) => {
         console.error('Error fetching transactions:', transactionError);
         
         // Use empty data if transaction fetch fails
-        recentTransactions = [];
         topPerformers = [];
         marketAlerts = [
           { type: 'error', message: 'Failed to load transaction data' }
@@ -778,7 +740,6 @@ const Dashboard = ({ onTabChange }) => {
       
       setDashboardData({
         activePortfolios,
-        recentTransactions,
         topPerformers: topPerformers.map(performer => ({
           symbol: performer.symbol || 'N/A',
           name: performer.name || 'Unknown',
@@ -805,7 +766,6 @@ const Dashboard = ({ onTabChange }) => {
       // Set empty data on error
       setDashboardData({
         activePortfolios: 0,
-        recentTransactions: [],
         topPerformers: [],
         marketAlerts: [
           { type: 'error', message: 'Failed to load dashboard data. Please try again.' }
@@ -1058,6 +1018,8 @@ const Dashboard = ({ onTabChange }) => {
     <div className="equity-dashboard">
       <div className="dashboard-body">
         <div className="dashboard-body__left">
+          {/* Live CSE — combined market summary + ASPI intraday trend */}
+          <MarketTodayOverview />
           {marketPulseEl}
           {portfolioHeroEl}
           <div className="left-column">
@@ -1066,8 +1028,14 @@ const Dashboard = ({ onTabChange }) => {
           <RiskReturnScatterPlot syncedPortfolioId={selectedPortfolioKey} />
         </div>
 
+        {/* Live CSE — daily breadth/flow + market-wide turnover leaders (combined) */}
+        <MarketBreadthTurnoverCard />
+
         {/* Market News (NewsAPI) */}
         <MarketNewsWidget onOpenFull={() => onTabChange && onTabChange('News & Events')} />
+
+        {/* Live CSE — sector index values (allSectors) */}
+        <SectorIndicesCard />
 
         {/* Top Performers */}
         <div className="content-card">
@@ -1091,121 +1059,6 @@ const Dashboard = ({ onTabChange }) => {
           </div>
         </div>
 
-        {/* Recent Transactions */}
-        {(() => {
-          const recentTx = dashboardData.recentTransactions || [];
-          const buyCount = recentTx.filter(
-            (t) => (t.type || 'BUY').toUpperCase() === 'BUY'
-          ).length;
-          const sellCount = recentTx.filter(
-            (t) => (t.type || 'BUY').toUpperCase() === 'SELL'
-          ).length;
-
-          return (
-            <div className="content-card latest-activity-card">
-              <div className="card-header latest-activity-card__header">
-                <div className="latest-activity-card__heading">
-                  <div className="latest-activity-card__heading-text">
-                    <h3 className="latest-activity-card__title-text">
-                      Latest trading activity
-                    </h3>
-                    <span className="latest-activity-card__subtitle-text">
-                      Recent buys &amp; sells across your portfolios
-                    </span>
-                  </div>
-                </div>
-                {recentTx.length > 0 && (
-                  <div className="latest-activity-card__stats">
-                    <span className="latest-activity-card__stat latest-activity-card__stat--buy">
-                      <span className="latest-activity-card__stat-dot" />
-                      {buyCount} Buys
-                    </span>
-                    <span className="latest-activity-card__stat latest-activity-card__stat--sell">
-                      <span className="latest-activity-card__stat-dot" />
-                      {sellCount} Sells
-                    </span>
-                  </div>
-                )}
-              </div>
-
-              <div className="latest-activity-card__body transactions-container">
-                {recentTx.length > 0 ? (
-                  recentTx.slice(0, 7).map((transaction) => (
-                    <div
-                      key={transaction.id}
-                      className={`transaction-card ${
-                        (transaction.type || 'BUY') === 'SELL' ? 'sell' : 'buy'
-                      }`}
-                    >
-                      <div className="transaction-left">
-                        <div
-                          className={`transaction-badge ${
-                            (transaction.type || 'BUY').toLowerCase() === 'sell'
-                              ? 'sell'
-                              : 'buy'
-                          }`}
-                        >
-                          {transaction.type || 'BUY'}
-                        </div>
-                        <div className="transaction-date">
-                          {transaction.date
-                            ? new Date(transaction.date).toLocaleDateString('en-US', {
-                                month: 'short',
-                                day: 'numeric'
-                              })
-                            : 'N/A'}
-                        </div>
-                      </div>
-                      <div className="transaction-center">
-                        <div className="transaction-symbol">
-                          {transaction.symbol || 'N/A'}
-                        </div>
-                        {transaction.company && transaction.company !== 'N/A' && (
-                          <div className="transaction-company">{transaction.company}</div>
-                        )}
-                      </div>
-                      <div className="transaction-right">
-                        <div className="transaction-quantity">
-                          {Number(transaction.quantity || 0).toLocaleString('en-US', {
-                            minimumFractionDigits: 2,
-                            maximumFractionDigits: 2
-                          })}{' '}
-                          shares
-                        </div>
-                        <div
-                          className={`transaction-price ${
-                            (transaction.type || 'BUY') === 'SELL' ? 'sell' : 'buy'
-                          }`}
-                        >
-                          {Number(
-                            transaction.type === 'SELL'
-                              ? transaction.sold_price || transaction.price || 0
-                              : transaction.price || 0
-                          ).toLocaleString('en-US', {
-                            minimumFractionDigits: 2,
-                            maximumFractionDigits: 4
-                          })}
-                        </div>
-                      </div>
-                    </div>
-                  ))
-                ) : (
-                  <div className="latest-activity-card__empty">
-                    <div className="latest-activity-card__empty-icon">
-                      <svg viewBox="0 0 24 24" fill="currentColor">
-                        <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-5 14H7v-2h7v2zm3-4H7v-2h10v2zm0-4H7V7h10v2z" />
-                      </svg>
-                    </div>
-                    <p className="latest-activity-card__empty-title">No recent transactions</p>
-                    <span className="latest-activity-card__empty-text">
-                      Start trading to see activity here
-                    </span>
-                  </div>
-                )}
-              </div>
-            </div>
-          );
-        })()}
           </div>
         </div>
 
@@ -1217,6 +1070,13 @@ const Dashboard = ({ onTabChange }) => {
             aria-label={`Market ${marketStatus.status.toLowerCase()}`}
           >
             <div className="market-strip__exchange">
+              <span
+                className="market-strip__pill"
+                title={`Market ${marketStatus.status}`}
+              >
+                <span className="market-strip__dot" />
+                {marketStatus.status}
+              </span>
               <div className="market-strip__exchange-text">
                 <span className="market-strip__exchange-name">
                   {userRegion || 'Colombo Stock Exchange'}
@@ -1231,7 +1091,12 @@ const Dashboard = ({ onTabChange }) => {
               <span className="market-strip__date">{formatDate(currentTime)}</span>
             </div>
           </div>
+
           {marketMoversEl}
+
+          {/* Live CSE — single-stock intraday chart (companyChartDataByStock) */}
+          <CompanyIntradayCard holdingSymbols={dashboardData.holdingSymbols || []} />
+
           <div className="right-column">
           {/* P&L Metrics */}
           <div className="pnl-stats">
@@ -1571,6 +1436,12 @@ const Dashboard = ({ onTabChange }) => {
               );
             })()}
           </div>
+
+          {/* Live CSE — recent trade prints / tape (detailedTrades) */}
+          <DetailedTradesCard />
+
+          {/* Live CSE — archived COVID-19 disclosures (getCOVIDAnnouncements) */}
+          <CovidNoticesCard />
 
         {/* Quick Actions */}
         <div className="content-card">

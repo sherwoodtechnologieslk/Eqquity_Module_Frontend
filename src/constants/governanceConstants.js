@@ -1,14 +1,27 @@
 export const PERMISSION_LABELS = {
   'governance.user.request': 'Create user requests',
   'governance.user.approve': 'Approve / reject requests',
+  'business_approval.view': 'View business approval requests',
   'trade.view': 'View trades (all trade areas)',
   'trade.buy.create': 'Create buy transactions',
   'trade.sell.create': 'Create sell transactions',
+  'trade.buy.make': 'Maker: buy transactions',
+  'trade.buy.check': 'Checker: buy transactions',
+  'trade.sell.make': 'Maker: sell transactions',
+  'trade.sell.check': 'Checker: sell transactions',
+  'gsec.entries.make': 'Maker: GSec entries (all screens)',
+  'gsec.entries.check': 'Checker: GSec entries (all screens)',
   'accounting.view': 'View accounting (all GL areas)',
   'accounting.journal.create': 'Post journal entries',
+  'accounting.journal.make': 'Maker: journal entries',
+  'accounting.journal.check': 'Checker: journal entries',
+  'accounting.non_trading.make': 'Maker: non-trading transactions',
+  'accounting.non_trading.check': 'Checker: non-trading transactions',
   'reports.view': 'View reports (all reporting areas)',
   'master_data.view': 'View master data',
   'master_data.manage': 'Manage master data',
+  'master_data.make': 'Maker: master data changes',
+  'master_data.check': 'Checker: master data changes',
   'feature.dashboard.view': 'Dashboard',
   'feature.view_portfolio.view': 'View Portfolio',
   'feature.master_data_mgmt.view': 'Master Data Management',
@@ -44,14 +57,16 @@ export const PERMISSION_LABELS = {
 
 export const MODULE_TITLES = {
   governance: 'User management',
+  business_approval: 'Business approvals',
   trade: 'Trading (module-wide)',
+  gsec: 'GSec',
   accounting: 'Accounting (module-wide)',
   reports: 'Reporting (module-wide)',
   master_data: 'Master data',
   features: 'Sidebar & features',
 };
 
-export const MODULE_ORDER = ['governance', 'features', 'trade', 'accounting', 'reports', 'master_data'];
+export const MODULE_ORDER = ['governance', 'business_approval', 'features', 'trade', 'gsec', 'accounting', 'reports', 'master_data'];
 
 export const REQUEST_STATUS_LABELS = {
   pending_second_admin_approval: 'Pending approval',
@@ -71,6 +86,28 @@ const MASTER_DATA_KEYS = ['master_data.view', 'master_data.manage'];
 const TRADE_KEYS = ['trade.view'];
 const ACCOUNTING_KEYS = ['accounting.view'];
 const REPORTS_KEYS = ['reports.view'];
+const GSEC_KEYS = [
+  'feature.gsec_entries.view',
+  'gsec.entries.make',
+  'gsec.entries.check',
+  'accounting.view',
+];
+/** Maker + checker keys used to show the Business Approvals sidebar section. */
+export const BUSINESS_APPROVAL_SECTION_KEYS = [
+  'business_approval.view',
+  'trade.buy.make',
+  'trade.buy.check',
+  'trade.sell.make',
+  'trade.sell.check',
+  'gsec.entries.make',
+  'gsec.entries.check',
+  'accounting.journal.make',
+  'accounting.journal.check',
+  'accounting.non_trading.make',
+  'accounting.non_trading.check',
+  'master_data.make',
+  'master_data.check',
+];
 
 /** Sidebar section → feature permission key */
 export const SECTION_FEATURE_KEYS = {
@@ -119,12 +156,13 @@ function sectionAccessKeys(sectionName, fallbackKeys = []) {
 const MENU_SECTION_PERMISSIONS = {
   Dashboard: sectionAccessKeys('Dashboard', OPERATIONAL_VIEW_KEYS),
   'Company Governance': 'governance',
+  'Business Approvals': 'business_approvals',
   'View Portfolio': sectionAccessKeys('View Portfolio', TRADE_KEYS),
   'Master Data Management': sectionAccessKeys('Master Data Management', MASTER_DATA_KEYS),
   'Holiday Calendar': sectionAccessKeys('Holiday Calendar', MASTER_DATA_KEYS),
   'Funds Centers': sectionAccessKeys('Funds Centers'),
   'Equity Entries': sectionAccessKeys('Equity Entries', ACCOUNTING_KEYS),
-  'GSec Entries': sectionAccessKeys('GSec Entries', ACCOUNTING_KEYS),
+  'GSec Entries': sectionAccessKeys('GSec Entries', GSEC_KEYS),
   'Accounting Entries': sectionAccessKeys('Accounting Entries', ACCOUNTING_KEYS),
   'Fixed Assets': sectionAccessKeys('Fixed Assets', ACCOUNTING_KEYS),
   'Financial Reporting': sectionAccessKeys('Financial Reporting', REPORTS_KEYS),
@@ -159,6 +197,8 @@ const TAB_PERMISSIONS = {
   'Performance Metrics': [...TRADE_KEYS, ...REPORTS_KEYS],
   'User Requests': 'governance',
 
+  'Business Approvals': 'business_approvals',
+
   'Admin Approvals': 'company_owner_only',
   'Activity Log': 'company_owner_only',
 
@@ -187,12 +227,12 @@ const TAB_PERMISSIONS = {
   'P&L': ACCOUNTING_KEYS,
   'Portfolio MTM': ACCOUNTING_KEYS,
 
-  'GSEC ENTRIES': ACCOUNTING_KEYS,
-  'Missing GSec Entries': ACCOUNTING_KEYS,
-  'Gsec Trial Balance': ACCOUNTING_KEYS,
-  'GSec General Ledger': ACCOUNTING_KEYS,
-  'GSec Manual Entry Posting': ACCOUNTING_KEYS,
-  'GSec Bulk Entry Grid': ACCOUNTING_KEYS,
+  'GSEC ENTRIES': GSEC_KEYS,
+  'Missing GSec Entries': GSEC_KEYS,
+  'Gsec Trial Balance': GSEC_KEYS,
+  'GSec General Ledger': GSEC_KEYS,
+  'GSec Manual Entry Posting': GSEC_KEYS,
+  'GSec Bulk Entry Grid': GSEC_KEYS,
 
   'Combined General Ledger': ACCOUNTING_KEYS,
   'Combined Trial Balance': ACCOUNTING_KEYS,
@@ -329,8 +369,15 @@ export function canAccessGovernance(user) {
   );
 }
 
+export function canAccessBusinessApprovals(user) {
+  if (!user) return false;
+  if (user.company_role === 'company_owner') return true;
+  return hasAnyPermission(user, BUSINESS_APPROVAL_SECTION_KEYS);
+}
+
 function resolveRule(rule, user) {
   if (rule === 'governance') return canAccessGovernance(user);
+  if (rule === 'business_approvals') return canAccessBusinessApprovals(user);
   if (rule === 'company_owner_only') return user?.company_role === 'company_owner';
   if (rule === null) return true;
   if (!rule) return false;
@@ -360,6 +407,9 @@ export function canAccessTab(user, tabName, menuItems = null) {
   }
   if (explicitRule === 'governance') {
     return canAccessGovernance(user);
+  }
+  if (explicitRule === 'business_approvals') {
+    return canAccessBusinessApprovals(user);
   }
   if (Array.isArray(explicitRule)) {
     return hasAnyPermission(user, explicitRule);

@@ -5,6 +5,14 @@ import html2canvas from 'html2canvas';
 import './Styles/OtherTransactions.css';
 import { accountAPI, otherTransactionAPI, otherTransactionGLEntryAPI, glAccountMappingAPI, otherTransactionTypeAPI, chartOfAccountsAPI, accountCategoryAPI } from '../../services/api';
 import { authService } from '../../services/authService';
+import {
+  NON_TRADING_SOURCES,
+  shouldSubmitNonTradingForApproval,
+  nonTradingSaveButtonLabel,
+  nonTradingSubmittingLabel,
+  nonTradingPostButtonLabel,
+  nonTradingPostingLabel,
+} from '../../utils/nonTradingMakerChecker';
 import holidayService from '../../services/holidayService';
 
 // Helper function to get today's date in YYYY-MM-DD format
@@ -20,6 +28,30 @@ const generateVoucherNumber = () => {
   const minute = String(date.getMinutes()).padStart(2, '0');
   const second = String(date.getSeconds()).padStart(2, '0');
   return `V-${year}${month}${day}-${hour}${minute}${second}`;
+};
+
+// GL to GL vouchers: YYYYMMDD-001, YYYYMMDD-002, … (sequence per calendar date)
+const toYmdCompact = (dateYmd) => String(dateYmd || getToday()).substring(0, 10).replace(/-/g, '');
+
+const generateGlToGlVoucherNumber = (dateYmd, existingVouchers = []) => {
+  const datePart = toYmdCompact(dateYmd);
+  const escaped = datePart.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const pattern = new RegExp(`^${escaped}-(\\d{3})$`);
+
+  let maxSeq = 0;
+  (existingVouchers || []).forEach((v) => {
+    const accountType = String(v.account_type || v.accountType || '').toLowerCase().trim();
+    if (accountType !== 'gl_to_gl') return;
+
+    const vn = String(v.voucher_number || v.voucherNumber || '').trim();
+    const match = vn.match(pattern);
+    if (match) {
+      const seq = parseInt(match[1], 10);
+      if (Number.isFinite(seq) && seq > maxSeq) maxSeq = seq;
+    }
+  });
+
+  return `${datePart}-${String(maxSeq + 1).padStart(3, '0')}`;
 };
 
 // Function to generate unique voucher numbers for liability settlements
@@ -942,8 +974,8 @@ const OtherTransactions = () => {
 
   // GL to GL: shared header + multiple debit/credit lines (balanced journal; multi-line API pending)
   const [glToGlForm, setGlToGlForm] = useState({
-    voucherNumber: generateVoucherNumber(),
-    date: new Date().toISOString().split('T')[0],
+    voucherNumber: generateGlToGlVoucherNumber(getToday()),
+    date: getToday(),
     description: '',
     reference: '',
     notes: ''
@@ -1514,7 +1546,13 @@ const OtherTransactions = () => {
       // Ensure vouchers are available for the liability settlement voucher dropdown
       fetchVouchers();
     } else if (activeTab === 'create' && activeFormType === 'glToGl') {
-      // Fetch Chart of Accounts for GL to GL postings
+      // Fetch vouchers for GL-to-GL sequence + Chart of Accounts for account pickers
+      fetchVouchers().then((data) => {
+        setGlToGlForm((prev) => ({
+          ...prev,
+          voucherNumber: generateGlToGlVoucherNumber(prev.date || getToday(), data),
+        }));
+      });
       const loadCoA = async () => {
         try {
           setChartAccountsLoading(true);
@@ -1594,9 +1632,11 @@ const OtherTransactions = () => {
       
       const data = await otherTransactionAPI.getTransactionsByUser(userEmail);
       setVouchers(data || []);
+      return data || [];
     } catch (error) {
       console.error('Error fetching vouchers:', error);
       setVouchers([]);
+      return [];
     } finally {
       setVouchersLoading(false);
     }
@@ -2312,10 +2352,16 @@ const OtherTransactions = () => {
       };
 
       // Call API to save the transaction
-      const result = await otherTransactionAPI.createTransaction(transactionData);
+      const result = await otherTransactionAPI.saveOrSubmitTransaction(transactionData, {
+        source: NON_TRADING_SOURCES.VOUCHER,
+      });
       
       console.log('Transaction saved successfully:', result);
-      setSubmitMessage('Transaction saved successfully!');
+      setSubmitMessage(
+        shouldSubmitNonTradingForApproval()
+          ? 'Transaction submitted for checker approval.'
+          : 'Transaction saved successfully!'
+      );
       handleReset();
       
     } catch (error) {
@@ -2467,6 +2513,14 @@ const OtherTransactions = () => {
 
   const handleGlToGlHeaderChange = (e) => {
     const { name, value } = e.target;
+    if (name === 'date') {
+      setGlToGlForm((prev) => ({
+        ...prev,
+        date: value,
+        voucherNumber: generateGlToGlVoucherNumber(value, vouchers),
+      }));
+      return;
+    }
     setGlToGlForm(prev => ({ ...prev, [name]: value }));
   };
 
@@ -2568,10 +2622,17 @@ const OtherTransactions = () => {
     setGlToGlCreditLines(prev => (prev.length <= 1 ? prev : prev.filter(l => l.id !== lineId)));
   };
 
-  const handleGlToGlReset = () => {
+  const handleGlToGlReset = async () => {
+    const today = getToday();
+    let voucherList = vouchers;
+    try {
+      voucherList = (await fetchVouchers()) || vouchers;
+    } catch (_) {
+      /* keep current list */
+    }
     setGlToGlForm({
-      voucherNumber: generateVoucherNumber(),
-      date: new Date().toISOString().split('T')[0],
+      voucherNumber: generateGlToGlVoucherNumber(today, voucherList),
+      date: today,
       description: '',
       reference: '',
       notes: ''
@@ -2648,8 +2709,12 @@ const OtherTransactions = () => {
         userEmail
       };
 
-      await otherTransactionAPI.createTransaction(payload);
-      setSubmitMessage('GL to GL transaction posted successfully!');
+      await otherTransactionAPI.saveOrSubmitTransaction(payload, { source: NON_TRADING_SOURCES.GL_TO_GL });
+      setSubmitMessage(
+        shouldSubmitNonTradingForApproval()
+          ? 'GL to GL transaction submitted for checker approval.'
+          : 'GL to GL transaction posted successfully!'
+      );
       handleGlToGlReset();
     } catch (error) {
       console.error('Error posting GL to GL transaction:', error);
@@ -2817,10 +2882,16 @@ const OtherTransactions = () => {
       };
 
       // Call API to save the asset derecognition transaction
-      const result = await otherTransactionAPI.createTransaction(transactionData);
+      const result = await otherTransactionAPI.saveOrSubmitTransaction(transactionData, {
+        source: NON_TRADING_SOURCES.ASSET_DERECOGNITION,
+      });
       
       console.log('Asset derecognition transaction saved successfully:', result);
-      setSubmitMessage('Asset derecognition transaction saved successfully!');
+      setSubmitMessage(
+        shouldSubmitNonTradingForApproval()
+          ? 'Asset derecognition submitted for checker approval.'
+          : 'Asset derecognition transaction saved successfully!'
+      );
       handleAssetDerecognitionReset();
       
     } catch (error) {
@@ -3229,10 +3300,16 @@ const isVoucherSettled = (voucher) => {
       };
 
       // Call API to save the transaction
-      const result = await otherTransactionAPI.createTransaction(transactionData);
+      const result = await otherTransactionAPI.saveOrSubmitTransaction(transactionData, {
+        source: NON_TRADING_SOURCES.LIABILITY_SETTLEMENT,
+      });
       
       console.log('Liability settlement transaction saved successfully:', result);
-      setSubmitMessage('Liability settlement transaction saved successfully!');
+      setSubmitMessage(
+        shouldSubmitNonTradingForApproval()
+          ? 'Liability settlement submitted for checker approval.'
+          : 'Liability settlement transaction saved successfully!'
+      );
       handleLiabilitySettlementReset();
       
     } catch (error) {
@@ -4129,7 +4206,7 @@ const isVoucherSettled = (voucher) => {
                   className="other-trans-btn other-trans-btn-primary"
                   disabled={isSubmitting}
                 >
-                  {isSubmitting ? 'Saving...' : 'Save Voucher'}
+                  {isSubmitting ? nonTradingSubmittingLabel() : nonTradingSaveButtonLabel()}
                 </button>
               </div>
             </form>
@@ -4144,7 +4221,12 @@ const isVoucherSettled = (voucher) => {
                     <button
                       type="button"
                       className="other-trans-btn-regenerate"
-                      onClick={() => setGlToGlForm(prev => ({ ...prev, voucherNumber: generateVoucherNumber() }))}
+                      onClick={() =>
+                        setGlToGlForm((prev) => ({
+                          ...prev,
+                          voucherNumber: generateGlToGlVoucherNumber(prev.date || getToday(), vouchers),
+                        }))
+                      }
                     >
                       <svg width="16" height="16" fill="currentColor" viewBox="0 0 20 20">
                         <path fillRule="evenodd" d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01.61-1.276z" clipRule="evenodd"/>
@@ -4159,7 +4241,7 @@ const isVoucherSettled = (voucher) => {
                     className="other-trans-form-input"
                   />
                   <small className="other-trans-field-hint">
-                    Same voucher number applies to every debit/credit line below
+                    Format: YYYYMMDD-001 (sequence resets per date for GL to GL vouchers)
                   </small>
                 </div>
 
@@ -4495,7 +4577,7 @@ const isVoucherSettled = (voucher) => {
                   className="other-trans-btn other-trans-btn-primary"
                   disabled={isSubmitting}
                 >
-                  {isSubmitting ? 'Posting...' : 'Post GL to GL'}
+                  {isSubmitting ? nonTradingPostingLabel('Posting...') : nonTradingPostButtonLabel('Post GL to GL')}
                 </button>
               </div>
             </form>
@@ -5192,7 +5274,7 @@ const isVoucherSettled = (voucher) => {
                   className="other-trans-btn other-trans-btn-primary"
                   disabled={isSubmitting}
                 >
-                  {isSubmitting ? 'Saving...' : 'Save Derecognition Entry'}
+                  {isSubmitting ? nonTradingSubmittingLabel() : nonTradingPostButtonLabel('Save Derecognition Entry')}
                 </button>
               </div>
             </form>
@@ -5803,7 +5885,7 @@ const isVoucherSettled = (voucher) => {
                   className="other-trans-btn other-trans-btn-primary"
                   disabled={isSubmitting}
                 >
-                  {isSubmitting ? 'Saving...' : 'Save Settlement Entry'}
+                  {isSubmitting ? nonTradingSubmittingLabel() : nonTradingPostButtonLabel('Save Settlement Entry')}
                 </button>
               </div>
             </form>
@@ -6766,8 +6848,12 @@ const isVoucherSettled = (voucher) => {
                     date: reverseForm.date,
                     notes: reverseForm.notes
                   };
-                  await otherTransactionAPI.reverse(payload);
-                  setReverseMessage('Reversal posted successfully');
+                  await otherTransactionAPI.reverseOrSubmit(payload);
+                  setReverseMessage(
+                    shouldSubmitNonTradingForApproval()
+                      ? 'Reversal submitted for checker approval.'
+                      : 'Reversal posted successfully'
+                  );
                   setReverseForm({ category: '', subCategory: '', transactionType: '', voucherId: '', voucherNumber: '', amount: '', cashFlowOnSettlement: '', date: new Date().toISOString().split('T')[0], notes: '' });
                   // Refresh GL and vouchers tabs data after reversal
                   fetchGeneralLedger();
@@ -6991,7 +7077,7 @@ const isVoucherSettled = (voucher) => {
                     className="other-trans-btn other-trans-btn-primary"
                     disabled={reverseSubmitting}
                   >
-                    {reverseSubmitting ? 'Posting...' : 'Post Reversal'}
+                    {reverseSubmitting ? nonTradingPostingLabel('Posting...') : nonTradingPostButtonLabel('Post Reversal')}
                   </button>
                 </div>
               </form>

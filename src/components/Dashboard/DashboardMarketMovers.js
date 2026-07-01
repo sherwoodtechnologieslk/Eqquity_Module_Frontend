@@ -85,20 +85,6 @@ const formatCompact = (value) => {
     return n.toLocaleString('en-US', { maximumFractionDigits: 0 });
 };
 
-const formatAsOf = (iso) => {
-    if (!iso) return '';
-    try {
-        return new Date(iso).toLocaleString(undefined, {
-            month: 'short',
-            day: 'numeric',
-            hour: '2-digit',
-            minute: '2-digit'
-        });
-    } catch (e) {
-        return '';
-    }
-};
-
 const rankMovers = (items, options = {}) => {
     const {
         holdingSymbols = [],
@@ -137,11 +123,11 @@ const DashboardMarketMovers = ({
     watchlistSymbols = []
 }) => {
     const [feeds, setFeeds] = useState({ gainers: [], losers: [], active: [] });
-    const [marketStatus, setMarketStatus] = useState({
+    const [, setMarketStatus] = useState({
         status: 'unknown',
         label: 'Loading…'
     });
-    const [lastUpdated, setLastUpdated] = useState(null);
+    const [, setLastUpdated] = useState(null);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState(null);
     const [note, setNote] = useState('');
@@ -245,7 +231,6 @@ const DashboardMarketMovers = ({
     const tabMeta = TABS.find((t) => t.id === activeTab) || TABS[0];
     const items = ranked[activeTab] || [];
     const isActiveTab = activeTab === 'active';
-    const statusKey = marketStatus.status || 'unknown';
 
     // Magnitude used for the relative bars in each row.
     const magnitudeOf = useCallback(
@@ -265,27 +250,32 @@ const DashboardMarketMovers = ({
         return max;
     }, [items, magnitudeOf]);
 
-    const feature = items[0];
-    const restItems = items.slice(1);
-
-    const valueOf = (item) =>
-        isActiveTab ? formatCompact(item.turnover) : formatPct(item.percentageChange);
-    const subtitleOf = (item) =>
-        isActiveTab
-            ? `Vol ${formatCompact(item.shareVolume)}`
-            : `Rs. ${formatPrice(item.price)}`;
-    const valueClassOf = (item) =>
-        isActiveTab ? 'is-active' : pctClass(item.percentageChange);
     const metaOf = (item) => symbolMeta[normalizeSym(item.symbol)] || null;
     const companyOf = (item) => item.company || metaOf(item)?.name || '';
     const sectorOf = (item) => metaOf(item)?.sector || '';
 
+    const isActiveCat = (tabId) => tabId === 'active';
+    const valueFor = (item, tabId) =>
+        isActiveCat(tabId) ? formatCompact(item.turnover) : formatPct(item.percentageChange);
+    const subFor = (item, tabId) =>
+        isActiveCat(tabId)
+            ? `Vol ${formatCompact(item.shareVolume)}`
+            : `Rs. ${formatPrice(item.price)}`;
+    const valueClassFor = (item, tabId) =>
+        isActiveCat(tabId) ? 'is-active' : pctClass(item.percentageChange);
+
+    // Top item of each category — drives the always-visible spotlight strip.
+    const spotlights = TABS.map((tab) => ({
+        tab,
+        item: (ranked[tab.id] || [])[0] || null
+    }));
+
     const renderBadge = (item) => {
         if (item.isHolding) {
-            return <span className="mm2-badge is-holding" title="In your holdings">★</span>;
+            return <span className="mmx-badge is-holding" title="In your holdings">★</span>;
         }
         if (item.isWatchlist) {
-            return <span className="mm2-badge is-watchlist" title="On your watchlist">●</span>;
+            return <span className="mmx-badge is-watchlist" title="On your watchlist">●</span>;
         }
         return null;
     };
@@ -293,177 +283,168 @@ const DashboardMarketMovers = ({
     const renderRow = (item, index, dup = false) => {
         const magnitude = magnitudeOf(item);
         const barWidth = maxMagnitude > 0 ? Math.max((magnitude / maxMagnitude) * 100, 4) : 0;
+        const rank = index + 1;
         return (
             <div
                 key={`${activeTab}-${item.id || item.symbol}${dup ? '-dup' : ''}`}
-                className={`mm2-row ${item.isHolding ? 'is-holding' : ''} ${
+                className={`mmx-row ${item.isHolding ? 'is-holding' : ''} ${
                     item.isWatchlist ? 'is-watchlist' : ''
                 }`}
                 aria-hidden={dup || undefined}
             >
-                <span className="mm2-row__rank">{index + 2}</span>
-                <div className="mm2-row__info">
-                    <div className="mm2-row__symline">
-                        <span className="mm2-row__symbol">{item.symbol || '—'}</span>
+                <span className={`mmx-row__rank${rank <= 3 ? ' is-top' : ''}`}>{rank}</span>
+                <div className="mmx-row__info">
+                    <div className="mmx-row__symline">
+                        <span className="mmx-row__symbol">{item.symbol || '—'}</span>
                         {renderBadge(item)}
                         {sectorOf(item) ? (
-                            <span className="mm2-row__sector" title={sectorOf(item)}>
+                            <span className="mmx-row__sector" title={sectorOf(item)}>
                                 {sectorOf(item)}
                             </span>
                         ) : null}
                     </div>
                     {companyOf(item) ? (
-                        <span className="mm2-row__company" title={companyOf(item)}>
+                        <span className="mmx-row__company" title={companyOf(item)}>
                             {companyOf(item)}
                         </span>
                     ) : null}
-                    <span className="mm2-row__sub">{subtitleOf(item)}</span>
                 </div>
-                <div className={`mm2-row__bar mm2-row__bar--${tabMeta.accent}`} aria-hidden>
-                    <span style={{ width: `${barWidth}%` }} />
+                <div className="mmx-row__metric">
+                    <div className={`mmx-row__bar mmx-row__bar--${tabMeta.accent}`} aria-hidden>
+                        <span style={{ width: `${barWidth}%` }} />
+                    </div>
+                    <span className="mmx-row__sub">{subFor(item, activeTab)}</span>
                 </div>
-                <span className={`mm2-row__value ${valueClassOf(item)}`}>{valueOf(item)}</span>
+                <span className={`mmx-row__value ${valueClassFor(item, activeTab)}`}>
+                    {valueFor(item, activeTab)}
+                </span>
             </div>
         );
     };
 
     return (
         <div
-            className={`market-movers-board mm2 mm2--${tabMeta.accent}`}
+            className={`market-movers-board mmx mmx--${tabMeta.accent}`}
             onMouseEnter={() => setIsPaused(true)}
             onMouseLeave={() => setIsPaused(false)}
         >
-            <div className="mm2-header">
-                <div className="mm2-heading">
-                    <span className="mm2-heading__icon" aria-hidden>
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                            <polyline points="22 7 13.5 15.5 8.5 10.5 2 17" />
-                            <polyline points="16 7 22 7 22 13" />
-                        </svg>
-                    </span>
-                    <div className="mm2-heading__text">
-                        <h3 className="mm2-title">Market Movers</h3>
-                        <span className="mm2-subtitle">
-                            Live CSE board{lastUpdated ? ` · ${formatAsOf(lastUpdated)}` : ''}
-                        </span>
-                    </div>
-                </div>
-
-                <div className="mm2-header__actions">
-                    <span
-                        className={`mm2-status mm2-status--${statusKey}`}
-                        title={marketStatus.label}
-                    >
-                        <span className="mm2-status__dot" />
-                        {marketStatus.label}
-                    </span>
-                    <button
-                        type="button"
-                        className="mm2-refresh"
-                        onClick={() => load(false)}
-                        disabled={isLoading}
-                        aria-label="Refresh market movers"
-                        title="Refresh"
-                    >
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                            <path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8" />
-                            <path d="M21 3v5h-5" />
-                            <path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16" />
-                            <path d="M3 21v-5h5" />
-                        </svg>
-                    </button>
-                </div>
-            </div>
-
-            <div className="mm2-tabs" role="tablist" aria-label="Market mover categories">
-                {TABS.map((tab) => (
-                    <button
-                        key={tab.id}
-                        type="button"
-                        role="tab"
-                        aria-selected={activeTab === tab.id}
-                        className={`mm2-tab mm2-tab--${tab.accent} ${
-                            activeTab === tab.id ? 'is-active' : ''
-                        }`}
-                        onClick={() => setActiveTab(tab.id)}
-                    >
-                        <span className="mm2-tab__icon" aria-hidden>{tab.icon}</span>
-                        <span className="mm2-tab__label">{tab.label}</span>
-                        <span className="mm2-tab__count">{counts[tab.id]}</span>
-                    </button>
-                ))}
-            </div>
-
             {isLoading && (
-                <div className="mm2-state">
+                <div className="mmx-state">
                     <div className="loading-spinner" />
                     <span>Loading market data…</span>
                 </div>
             )}
 
             {!isLoading && error && (
-                <div className="mm2-state is-error">
+                <div className="mmx-state is-error">
                     <span>{error}</span>
                     <button type="button" onClick={() => load(false)}>Retry</button>
                 </div>
             )}
 
             {!isLoading && !error && (
-                <div className="mm2-body">
-                    {feature ? (
-                        <div className={`mm2-feature mm2-feature--${tabMeta.accent}`}>
-                            <div className="mm2-feature__left">
-                                <span className="mm2-feature__tag">
-                                    <span className="mm2-feature__tag-icon" aria-hidden>
-                                        {tabMeta.icon}
+                <>
+                    <div className="mmx__spotlights">
+                        {spotlights.map(({ tab, item }) => (
+                            <button
+                                key={tab.id}
+                                type="button"
+                                className={`mmx-spot mmx-spot--${tab.accent} ${
+                                    activeTab === tab.id ? 'is-active' : ''
+                                }`}
+                                onClick={() => setActiveTab(tab.id)}
+                                aria-pressed={activeTab === tab.id}
+                            >
+                                <span className="mmx-spot__tag">
+                                    <span className="mmx-spot__tag-icon" aria-hidden>
+                                        {tab.icon}
                                     </span>
-                                    {tabMeta.featureTag}
+                                    {tab.featureTag}
                                 </span>
-                                <div className="mm2-feature__symline">
-                                    <span className="mm2-feature__symbol">
-                                        {feature.symbol || '—'}
-                                    </span>
-                                    {renderBadge(feature)}
-                                    {sectorOf(feature) ? (
-                                        <span className="mm2-feature__sector" title={sectorOf(feature)}>
-                                            {sectorOf(feature)}
+                                {item ? (
+                                    <>
+                                        <span className="mmx-spot__symbol">
+                                            {item.symbol || '—'}
+                                            {renderBadge(item)}
                                         </span>
-                                    ) : null}
-                                </div>
-                                {companyOf(feature) ? (
-                                    <span className="mm2-feature__company" title={companyOf(feature)}>
-                                        {companyOf(feature)}
-                                    </span>
-                                ) : null}
-                                <span className="mm2-feature__sub">{subtitleOf(feature)}</span>
-                            </div>
-                            <span className={`mm2-feature__value ${valueClassOf(feature)}`}>
-                                {valueOf(feature)}
+                                        <span className="mmx-spot__company" title={companyOf(item)}>
+                                            {companyOf(item) || sectorOf(item) || '\u00A0'}
+                                        </span>
+                                        <span
+                                            className={`mmx-spot__value ${valueClassFor(item, tab.id)}`}
+                                        >
+                                            {valueFor(item, tab.id)}
+                                        </span>
+                                        <span className="mmx-spot__sub">{subFor(item, tab.id)}</span>
+                                    </>
+                                ) : (
+                                    <span className="mmx-spot__empty">No data</span>
+                                )}
+                            </button>
+                        ))}
+                    </div>
+
+                    <div className="mmx__seg" role="tablist" aria-label="Market mover categories">
+                        <span
+                            className="mmx__seg-glider"
+                            style={{
+                                transform: `translateX(${
+                                    TABS.findIndex((t) => t.id === activeTab) * 100
+                                }%)`
+                            }}
+                            aria-hidden
+                        />
+                        {TABS.map((tab) => (
+                            <button
+                                key={tab.id}
+                                type="button"
+                                role="tab"
+                                aria-selected={activeTab === tab.id}
+                                className={`mmx__seg-btn mmx__seg-btn--${tab.accent} ${
+                                    activeTab === tab.id ? 'is-active' : ''
+                                }`}
+                                onClick={() => setActiveTab(tab.id)}
+                            >
+                                <span className="mmx__seg-label">{tab.label}</span>
+                                <span className="mmx__seg-count">{counts[tab.id]}</span>
+                            </button>
+                        ))}
+                    </div>
+
+                    <div className="mmx__panel">
+                        <div className="mmx__panel-head">
+                            <span>#</span>
+                            <span>Security</span>
+                            <span className="mmx__panel-head-metric">
+                                {isActiveTab ? 'Volume' : 'Last price'}
+                            </span>
+                            <span className="mmx__panel-head-value">
+                                {isActiveTab ? 'Turnover' : 'Change'}
                             </span>
                         </div>
-                    ) : (
-                        <div className="mm2-empty">{note || 'No data available'}</div>
-                    )}
 
-                    {restItems.length > 0 && (() => {
-                        const autoscroll = restItems.length > AUTOSCROLL_MIN_ROWS;
-                        const trackDuration = `${Math.max(restItems.length * 2.4, 12)}s`;
-                        return (
-                            <div className={`mm2-list${autoscroll ? ' is-autoscrolling' : ''}`}>
-                                <div
-                                    className="mm2-list__track"
-                                    style={autoscroll ? { animationDuration: trackDuration } : undefined}
-                                >
-                                    {restItems.map((item, index) => renderRow(item, index))}
-                                    {autoscroll &&
-                                        restItems.map((item, index) =>
-                                            renderRow(item, index, true)
-                                        )}
+                        {items.length === 0 ? (
+                            <div className="mmx-empty">{note || 'No data available'}</div>
+                        ) : (() => {
+                            const autoscroll = items.length > AUTOSCROLL_MIN_ROWS;
+                            const trackDuration = `${Math.max(items.length * 2.4, 12)}s`;
+                            return (
+                                <div className={`mmx__list${autoscroll ? ' is-autoscrolling' : ''}`}>
+                                    <div
+                                        className="mmx__list-track"
+                                        style={autoscroll ? { animationDuration: trackDuration } : undefined}
+                                    >
+                                        {items.map((item, index) => renderRow(item, index))}
+                                        {autoscroll &&
+                                            items.map((item, index) =>
+                                                renderRow(item, index, true)
+                                            )}
+                                    </div>
                                 </div>
-                            </div>
-                        );
-                    })()}
-                </div>
+                            );
+                        })()}
+                    </div>
+                </>
             )}
         </div>
     );

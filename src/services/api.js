@@ -1,3 +1,5 @@
+import { authService } from './authService';
+
 const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8080/api';
 
 /** YYYY-MM-DD in local calendar (avoids day shift from toISOString() in non-UTC timezones). */
@@ -1448,6 +1450,58 @@ export const otherTransactionAPI = {
     }
   },
 
+  /** Maker-checker submit for non-trading / other transaction screens. */
+  submitNonTradingForApproval: async (data, { source, action_type = 'create' } = {}) => {
+    try {
+      const payload =
+        action_type === 'post'
+          ? { source: source || 'reverse', operation: 'reverse', ...data }
+          : { source, transaction: data };
+
+      return await makeAuthenticatedRequest(`${API_BASE_URL}/governance/business-requests`, {
+        method: 'POST',
+        body: JSON.stringify({
+          entity_type: 'non_trading_transaction',
+          action_type,
+          payload,
+        }),
+      });
+    } catch (error) {
+      console.error('Error submitting non-trading transaction for approval:', error);
+      const message = error.message || 'Failed to submit non-trading transaction for approval';
+      throw new Error(message);
+    }
+  },
+
+  /** Create directly or submit for checker approval depending on user role. */
+  saveOrSubmitTransaction: async (transactionData, { source } = {}) => {
+    const user = authService.getStoredUser();
+    const needsApproval =
+      user?.account_kind === 'company_member' &&
+      ['admin', 'user'].includes(user?.company_role);
+
+    if (needsApproval) {
+      return otherTransactionAPI.submitNonTradingForApproval(transactionData, { source, action_type: 'create' });
+    }
+    return otherTransactionAPI.createTransaction(transactionData);
+  },
+
+  /** Reverse directly or submit for checker approval depending on user role. */
+  reverseOrSubmit: async (reverseData) => {
+    const user = authService.getStoredUser();
+    const needsApproval =
+      user?.account_kind === 'company_member' &&
+      ['admin', 'user'].includes(user?.company_role);
+
+    if (needsApproval) {
+      return otherTransactionAPI.submitNonTradingForApproval(reverseData, {
+        source: 'reverse',
+        action_type: 'post',
+      });
+    }
+    return otherTransactionAPI.reverse(reverseData);
+  },
+
   // Update other transaction
   updateTransaction: async (id, transactionData) => {
     try {
@@ -2644,6 +2698,61 @@ export const gsecEntriesAPI = {
     } catch (error) {
       console.error('Error saving GSec entries to database:', error);
       const message = error.message || 'Failed to save GSec entries to database';
+      throw new Error(message);
+    }
+  },
+
+  /** GSec Ledger Entries screen only — owner may post from this flow. */
+  saveLedgerEntriesToDatabase: async (entries) => {
+    try {
+      return await makeAuthenticatedRequest(`${API_BASE_URL}/gsec-entries/import`, {
+        method: 'POST',
+        body: JSON.stringify({ entries })
+      });
+    } catch (error) {
+      console.error('Error saving GSec ledger entries to database:', error);
+      const message = error.message || 'Failed to save GSec entries to database';
+      throw new Error(message);
+    }
+  },
+
+  submitLedgerEntriesForApproval: async (entries) => {
+    return gsecEntriesAPI.submitGsecEntriesForApproval(entries, {
+      source: 'gsec_ledger_entries',
+    });
+  },
+
+  /** Shared maker-checker submit for all GSec posting screens. */
+  submitGsecEntriesForApproval: async (entries, { source, passDuplicates = false } = {}) => {
+    try {
+      return await makeAuthenticatedRequest(`${API_BASE_URL}/governance/business-requests`, {
+        method: 'POST',
+        body: JSON.stringify({
+          entity_type: 'gsec_ledger_entry',
+          action_type: 'post',
+          payload: {
+            source,
+            passDuplicates: !!passDuplicates,
+            entries,
+          },
+        }),
+      });
+    } catch (error) {
+      console.error('Error submitting GSec entries for approval:', error);
+      const message = error.message || 'Failed to submit GSec entries for approval';
+      throw new Error(message);
+    }
+  },
+
+  checkGsecDuplicates: async (entries) => {
+    try {
+      return await makeAuthenticatedRequest(`${API_BASE_URL}/gsec-entries/check-duplicates`, {
+        method: 'POST',
+        body: JSON.stringify({ entries }),
+      });
+    } catch (error) {
+      console.error('Error checking GSec duplicates:', error);
+      const message = error.message || 'Failed to check GSec duplicates';
       throw new Error(message);
     }
   },

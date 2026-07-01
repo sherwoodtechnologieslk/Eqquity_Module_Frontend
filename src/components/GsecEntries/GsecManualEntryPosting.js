@@ -1,5 +1,10 @@
 import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import { gsecEntriesAPI, chartOfAccountsAPI } from '../../services/api';
+import {
+  GSEC_SOURCES,
+  shouldSubmitGsecForApproval,
+  gsecSubmittingLabel,
+} from '../../utils/gsecMakerChecker';
 import './Styles/GsecEntries.css';
 import './Styles/GsecManualEntryPosting.css';
 
@@ -400,16 +405,33 @@ const GsecManualEntryPosting = () => {
     if (!pending || pending.length === 0) return;
     try {
       setSaving(true);
-      const res = await gsecEntriesAPI.manualPostEntries(pending, { passDuplicates: true });
-      if (res?.success) {
-        const msg =
-          pending.length === 1
-            ? 'Entry saved (duplicate check was bypassed).'
-            : `${res.insertedRows ?? pending.length} entries saved (duplicate check was bypassed).`;
+      if (shouldSubmitGsecForApproval()) {
+        await gsecEntriesAPI.submitGsecEntriesForApproval(pending, {
+          source: GSEC_SOURCES.MANUAL,
+          passDuplicates: true,
+        });
         handleReset();
-        setMessage({ type: 'ok', text: msg });
+        setMessage({
+          type: 'ok',
+          text:
+            pending.length === 1
+              ? 'Entry submitted for checker approval (duplicate check bypassed).'
+              : `${pending.length} entries submitted for checker approval (duplicate check bypassed).`,
+        });
+        closeDuplicateModal();
       } else {
-        setMessage({ type: 'error', text: res?.message || 'Save failed after passing duplicates.' });
+        const res = await gsecEntriesAPI.manualPostEntries(pending, { passDuplicates: true });
+        if (res?.success) {
+          const msg =
+            pending.length === 1
+              ? 'Entry saved (duplicate check was bypassed).'
+              : `${res.insertedRows ?? pending.length} entries saved (duplicate check was bypassed).`;
+          handleReset();
+          setMessage({ type: 'ok', text: msg });
+          closeDuplicateModal();
+        } else {
+          setMessage({ type: 'error', text: res?.message || 'Save failed after passing duplicates.' });
+        }
       }
     } catch (err) {
       console.error(err);
@@ -417,6 +439,52 @@ const GsecManualEntryPosting = () => {
     } finally {
       setSaving(false);
     }
+  };
+
+  const submitEntriesForApproval = async (entries) => {
+    const dup = await gsecEntriesAPI.checkGsecDuplicates(entries);
+    if (dup?.duplicate) {
+      setDuplicateModal({
+        open: true,
+        existingRows: Array.isArray(dup.existingRows) ? dup.existingRows : [],
+        pendingEntries: entries,
+        notice: dup.message || '',
+      });
+      return false;
+    }
+    await gsecEntriesAPI.submitGsecEntriesForApproval(entries, { source: GSEC_SOURCES.MANUAL });
+    return true;
+  };
+
+  const postEntriesDirect = async (entries) => {
+    const res = await gsecEntriesAPI.manualPostEntries(entries, { passDuplicates: false });
+    if (res?.duplicate && res.success === false) {
+      setDuplicateModal({
+        open: true,
+        existingRows: Array.isArray(res.existingRows) ? res.existingRows : [],
+        pendingEntries: entries,
+        notice: res.message || '',
+      });
+      return false;
+    }
+    if (res?.success) {
+      const n = res.insertedRows ?? 0;
+      if (n === 0) {
+        setMessage({ type: 'error', text: res.message || 'Nothing was inserted.' });
+        return false;
+      }
+      handleReset();
+      setMessage({
+        type: 'ok',
+        text:
+          entries.length === 1
+            ? 'Entry saved to GSec ledger successfully.'
+            : 'Double entry (2 lines) saved to GSec ledger successfully.',
+      });
+      return true;
+    }
+    setMessage({ type: 'error', text: res?.message || 'Unexpected response from server.' });
+    return false;
   };
 
   const handleSubmit = async (e) => {
@@ -445,27 +513,15 @@ const GsecManualEntryPosting = () => {
       if (postingMode === 'single') {
         if (!validateLineAccounts(line1, 'Line')) return;
         const entries = [buildEntryPayload(shared, line1)];
-        const res = await gsecEntriesAPI.manualPostEntries(entries, { passDuplicates: false });
-        if (res?.duplicate && res.success === false) {
-          setDuplicateModal({
-            open: true,
-            existingRows: Array.isArray(res.existingRows) ? res.existingRows : [],
-            pendingEntries: entries,
-            notice: res.message || ''
-          });
-          return;
-        }
-        if (res?.success) {
-          const n = res.insertedRows ?? 0;
-          if (n === 0) {
-            setMessage({ type: 'error', text: res.message || 'Nothing was inserted.' });
-            return;
+        if (shouldSubmitGsecForApproval()) {
+          const ok = await submitEntriesForApproval(entries);
+          if (ok) {
+            handleReset();
+            setMessage({ type: 'ok', text: 'Entry submitted for checker approval.' });
           }
-          handleReset();
-          setMessage({ type: 'ok', text: 'Entry saved to GSec ledger successfully.' });
           return;
         }
-        setMessage({ type: 'error', text: res?.message || 'Unexpected response from server.' });
+        await postEntriesDirect(entries);
         return;
       }
 
@@ -500,27 +556,15 @@ const GsecManualEntryPosting = () => {
       }
 
       const entries = [buildEntryPayload(shared, line1), buildEntryPayload(shared, line2)];
-      const res = await gsecEntriesAPI.manualPostEntries(entries, { passDuplicates: false });
-      if (res?.duplicate && res.success === false) {
-        setDuplicateModal({
-          open: true,
-          existingRows: Array.isArray(res.existingRows) ? res.existingRows : [],
-          pendingEntries: entries,
-          notice: res.message || ''
-        });
-        return;
-      }
-      if (res?.success) {
-        const n = res.insertedRows ?? 0;
-        if (n === 0) {
-          setMessage({ type: 'error', text: res.message || 'Nothing was inserted.' });
-          return;
+      if (shouldSubmitGsecForApproval()) {
+        const ok = await submitEntriesForApproval(entries);
+        if (ok) {
+          handleReset();
+          setMessage({ type: 'ok', text: 'Double entry submitted for checker approval.' });
         }
-        handleReset();
-        setMessage({ type: 'ok', text: 'Double entry (2 lines) saved to GSec ledger successfully.' });
         return;
       }
-      setMessage({ type: 'error', text: res?.message || 'Unexpected response from server.' });
+      await postEntriesDirect(entries);
     } catch (err) {
       console.error(err);
       setMessage({ type: 'error', text: err.message || 'Failed to save entry.' });
@@ -864,7 +908,15 @@ const GsecManualEntryPosting = () => {
 
           <div className="gsec-manual-actions">
             <button type="submit" className="gsec-refresh-button" disabled={saving}>
-              {saving ? 'Posting…' : postingMode === 'single' ? 'Post entry' : 'Post double entry'}
+              {saving
+                ? gsecSubmittingLabel()
+                : shouldSubmitGsecForApproval()
+                  ? postingMode === 'single'
+                    ? 'Submit entry for approval'
+                    : 'Submit double entry for approval'
+                  : postingMode === 'single'
+                    ? 'Post entry'
+                    : 'Post double entry'}
             </button>
             <button type="button" className="gsec-button-ghost" onClick={handleReset} disabled={saving}>
               Clear form
@@ -943,10 +995,14 @@ const GsecManualEntryPosting = () => {
               </button>
               <button type="button" className="gsec-refresh-button" onClick={handlePassDuplicates} disabled={saving}>
                 {saving
-                  ? 'Saving…'
-                  : duplicateModal.pendingEntries?.length === 1
-                    ? 'Pass entry'
-                    : 'Pass entries'}
+                  ? gsecSubmittingLabel()
+                  : shouldSubmitGsecForApproval()
+                    ? duplicateModal.pendingEntries?.length === 1
+                      ? 'Pass entry for approval'
+                      : 'Pass entries for approval'
+                    : duplicateModal.pendingEntries?.length === 1
+                      ? 'Pass entry'
+                      : 'Pass entries'}
               </button>
             </div>
           </div>

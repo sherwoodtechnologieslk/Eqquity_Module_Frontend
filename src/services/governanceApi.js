@@ -39,6 +39,15 @@ export const governanceService = {
     governanceAPI.post(`/governance/admin-requests/${id}/reject`, { rejection_reason }),
   listAuditEvents: (limit = 100) =>
     governanceAPI.get('/governance/audit-events', { params: { limit } }),
+  listBusinessApprovalEntities: () => governanceAPI.get('/governance/business-approval-entities'),
+  listBusinessApprovalRequests: (params = {}) =>
+    governanceAPI.get('/governance/business-requests', { params }),
+  createBusinessApprovalRequest: (payload) =>
+    governanceAPI.post('/governance/business-requests', payload),
+  approveBusinessApprovalRequest: (id) =>
+    governanceAPI.post(`/governance/business-requests/${id}/approve`),
+  rejectBusinessApprovalRequest: (id, rejection_reason) =>
+    governanceAPI.post(`/governance/business-requests/${id}/reject`, { rejection_reason }),
 };
 
 export default governanceService;

@@ -96,6 +96,114 @@ const cseApi = {
     mostActiveTrades: () => request('/most-active'),
     marketStatus: () => request('/market-status'),
 
+    // --- Newly surfaced CSE endpoints (previously unused) ------------------
+
+    // marketSummery — live market-wide turnover / volume / trades.
+    liveMarketSummary: async () => {
+        const body = await request('/live-market-summary');
+        return {
+            success: true,
+            lastUpdated: body?.lastUpdated || new Date().toISOString(),
+            summary: body?.summary || null,
+            note: body?.note || ''
+        };
+    },
+
+    // dailyMarketSummery — latest daily stats + recent history.
+    dailyMarketSummary: async () => {
+        const body = await request('/daily-market-summary');
+        return {
+            success: true,
+            lastUpdated: body?.lastUpdated || new Date().toISOString(),
+            latest: body?.latest || null,
+            history: Array.isArray(body?.history) ? body.history : [],
+            note: body?.note || ''
+        };
+    },
+
+    // allSectors — live CSE sector index values.
+    sectorIndices: async () => {
+        const body = await request('/sector-indices');
+        return {
+            success: true,
+            lastUpdated: body?.lastUpdated || new Date().toISOString(),
+            items: Array.isArray(body?.items) ? body.items : [],
+            note: body?.note || ''
+        };
+    },
+
+    // todaySharePrice — today's OHLC + last price for every security.
+    sharePrices: async () => {
+        const body = await request('/share-prices');
+        return {
+            success: true,
+            lastUpdated: body?.lastUpdated || new Date().toISOString(),
+            items: Array.isArray(body?.items) ? body.items : [],
+            note: body?.note || ''
+        };
+    },
+
+    // tradeSummary — full-market snapshot, sorted as turnover leaders.
+    turnoverLeaders: async () => {
+        const body = await request('/turnover-leaders');
+        return {
+            success: true,
+            lastUpdated: body?.lastUpdated || new Date().toISOString(),
+            items: Array.isArray(body?.items) ? body.items : [],
+            totalSecurities: body?.totalSecurities || 0,
+            note: body?.note || ''
+        };
+    },
+
+    // detailedTrades — recent individual trade prints (optional symbol).
+    detailedTrades: async (symbol) => {
+        const path = symbol
+            ? `/detailed-trades?symbol=${encodeURIComponent(symbol)}`
+            : '/detailed-trades';
+        const body = await request(path);
+        return {
+            success: true,
+            lastUpdated: body?.lastUpdated || new Date().toISOString(),
+            items: Array.isArray(body?.items) ? body.items : [],
+            note: body?.note || ''
+        };
+    },
+
+    // getCOVIDAnnouncements — legacy COVID-19 disclosure notices.
+    covidAnnouncements: () => request('/covid'),
+
+    // companyChartDataByStock — intraday tick series for one stock.
+    // Accepts either a stockId or a symbol (resolved to a stockId server-side).
+    companyChart: async ({ stockId, symbol, period = 1 } = {}) => {
+        if (!stockId && !symbol) {
+            return { success: false, points: [], note: 'No stockId or symbol provided.' };
+        }
+        const params = new URLSearchParams();
+        if (stockId) params.set('stockId', stockId);
+        if (symbol) params.set('symbol', symbol);
+        params.set('period', String(period));
+        const body = await request(`/company-chart?${params.toString()}`);
+        return {
+            success: true,
+            lastUpdated: body?.lastUpdated || new Date().toISOString(),
+            points: Array.isArray(body?.points) ? body.points : [],
+            note: body?.note || ''
+        };
+    },
+
+    // chartData — index intraday series (default ASI / ASPI).
+    indexChart: async (symbol = 'ASI', period = 1) => {
+        const body = await request(
+            `/index-chart?symbol=${encodeURIComponent(symbol)}&period=${encodeURIComponent(period)}`
+        );
+        return {
+            success: true,
+            lastUpdated: body?.lastUpdated || new Date().toISOString(),
+            points: Array.isArray(body?.points) ? body.points : [],
+            note: body?.note || ''
+        };
+    },
+
     // Market-wide indices (ASPI + S&P SL20) for the Global Events factor.
     marketIndices: async () => {
         const url = `${API_BASE_URL}/cse-announcements/market-indices`;
