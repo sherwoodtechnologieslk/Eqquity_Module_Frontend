@@ -16,25 +16,6 @@
   padding-bottom: 0.75rem;
 }
 
-.new-gl-header-icon {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 3rem;
-  height: 3rem;
-  background: linear-gradient(135deg, #60a5fa, #2563eb);
-  border-radius: 0.18rem;
-  margin: 0;
-  box-shadow: 0 8px 32px 0 rgba(59, 130, 246, 0.15), 0 2px 8px 0 rgba(59, 130, 246, 0.08);
-  flex-shrink: 0;
-}
-
-.new-gl-icon {
-  width: 1.5rem;
-  height: 1.5rem;
-  color: #fff;
-}
-
 .new-gl-header-text-group {
   display: flex;
   flex-direction: column;
@@ -442,14 +423,6 @@
   .new-gl-main-title {
     font-size: 2.2rem;
   }
-  .new-gl-header-icon {
-    width: 4rem;
-    height: 4rem;
-  }
-  .new-gl-icon {
-    width: 2rem;
-    height: 2rem;
-  }
 }
 
 @media (max-width: 768px) {
@@ -463,10 +436,6 @@
     gap: 1rem;
     padding-top: 0.2rem;
     padding-bottom: 0.65rem;
-  }
-  
-  .new-gl-header-icon {
-    margin-bottom: 0.5rem;
   }
   
   .new-gl-main-title {
@@ -508,16 +477,6 @@
 }
 
 @media (max-width: 480px) {
-  .new-gl-header-icon {
-    width: 3rem;
-    height: 3rem;
-  }
-  
-  .new-gl-icon {
-    width: 1.5rem;
-    height: 1.5rem;
-  }
-  
   .new-gl-main-title {
     font-size: 1.125rem;
   }

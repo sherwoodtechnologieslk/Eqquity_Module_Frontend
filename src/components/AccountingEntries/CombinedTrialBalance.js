@@ -8,6 +8,8 @@ import './Styles/CombinedTrialBalance.css';
 /** Map a GSec balance-sheet account entry into the AccountDetailsModal entry shape. */
 const mapGsecEntry = (e) => ({
   source: 'GSec',
+  ledgerSource: 'gsec',
+  lineId: e.id,
   date: e.entry_date,
   description: e.description || '—',
   reference: e.deal_number != null && e.deal_number !== '' ? String(e.deal_number) : '—',
@@ -21,9 +23,18 @@ const mapEquityEntry = (e) => {
   const isOpening =
     e.entry_source === 'OpeningBalance' ||
     (!!e.description && /opening/i.test(String(e.description)));
+  const ledgerSource =
+    e.entry_source === 'OtherTransaction'
+      ? 'other'
+      : e.entry_source === 'GeneralLedger'
+        ? 'equity'
+        : null;
+
   return {
     ...e,
     source: isOpening ? 'Opening Balance' : 'Equity',
+    ledgerSource: isOpening ? null : ledgerSource,
+    lineId: isOpening ? null : e.id,
     transaction_type:
       e.transaction_type ||
       (isOpening ? 'Opening balance' : null) ||
@@ -813,6 +824,9 @@ const CombinedTrialBalance = () => {
         loadError={accountModalError}
         detailSource={accountModalSourceLabel}
         softHeader
+        onNavigateAccount={(code) =>
+          handleAccountDrillDown({ account_code: code, account_name: '' })
+        }
       />
     </div>
   );
