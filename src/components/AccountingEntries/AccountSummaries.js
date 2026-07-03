@@ -50,6 +50,60 @@ const glSourceLabel = (glSource) => {
   return glSource || '—';
 };
 
+/** Parse reconciliation row id + gl_source into double-entry group link (CTB-compatible). */
+const resolveReconciliationEntryLink = (t) => {
+  const glSource = t?.gl_source;
+  if (glSource === 'opening_balance_entries') {
+    return { ledgerSource: null, lineId: null, source: 'Opening Balance' };
+  }
+
+  const rawId = String(t?.id ?? '').trim();
+  let ledgerSource = null;
+  let lineId = null;
+
+  const prefixMatch = rawId.match(/^(gle|ot|gsec):(\d+)$/i);
+  if (prefixMatch) {
+    const prefix = prefixMatch[1].toLowerCase();
+    lineId = parseInt(prefixMatch[2], 10);
+    ledgerSource =
+      prefix === 'gle' ? 'equity' : prefix === 'ot' ? 'other' : 'gsec';
+  } else if (glSource === 'general_ledger_entries') {
+    ledgerSource = 'equity';
+    lineId = parseInt(rawId, 10);
+  } else if (glSource === 'other_transaction_gl_entries') {
+    ledgerSource = 'other';
+    lineId = parseInt(rawId, 10);
+  } else if (glSource === 'gsec_entries') {
+    ledgerSource = 'gsec';
+    lineId = parseInt(rawId, 10);
+  }
+
+  const sourceLabel = glSourceLabel(glSource);
+  const validLineId = Number.isFinite(lineId) ? lineId : null;
+
+  return {
+    ledgerSource: validLineId != null ? ledgerSource : null,
+    lineId: validLineId,
+    source: sourceLabel
+  };
+};
+
+const mapReconciliationEntry = (t) => {
+  const link = resolveReconciliationEntryLink(t);
+  return {
+    date: t.date,
+    description: t.description || '—',
+    reference: t.reference != null && String(t.reference).trim() !== '' ? String(t.reference) : '—',
+    debit: Number(t.debit) || 0,
+    credit: Number(t.credit) || 0,
+    source: link.source,
+    transaction_type: link.source,
+    ledgerSource: link.ledgerSource,
+    lineId: link.lineId,
+    id: link.lineId
+  };
+};
+
 /** Map account-reconciliation /transactions response into AccountDetailsModal shape */
 const mapReconciliationToModalData = (accountCode, accountName, startDate, endDate, api) => {
   const txs = Array.isArray(api?.transactions) ? api.transactions : [];
@@ -64,15 +118,7 @@ const mapReconciliationToModalData = (accountCode, accountName, startDate, endDa
       endDate,
       portfolio: 'GL · Other · GSec · Opening balance'
     },
-    entries: txs.map((t) => ({
-      date: t.date,
-      description: t.description || '—',
-      reference: t.reference != null && String(t.reference).trim() !== '' ? String(t.reference) : '—',
-      debit: Number(t.debit) || 0,
-      credit: Number(t.credit) || 0,
-      source: glSourceLabel(t.gl_source),
-      transaction_type: glSourceLabel(t.gl_source)
-    })),
+    entries: txs.map(mapReconciliationEntry),
     totals: {
       total_debit,
       total_credit,
