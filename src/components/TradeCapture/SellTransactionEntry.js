@@ -1594,7 +1594,12 @@ const SellTransactionEntry = ({ setFifoParams, setActiveTab }) => {
                     placeholder="Original purchase price"
                     step="0.01"
                     min="0"
-                    readOnly
+                    readOnly={form.valuationMethod && form.valuationMethod.toUpperCase() === 'WAP'}
+                    title={
+                      form.valuationMethod && form.valuationMethod.toUpperCase() === 'WAP'
+                        ? 'Running WAP from buy history (sell price does not change WAP)'
+                        : undefined
+                    }
                   />
                   {errors.boughtPrice && <span className="sell-error-text">{errors.boughtPrice}</span>}
                 </div>

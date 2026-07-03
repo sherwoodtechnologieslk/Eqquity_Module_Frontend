@@ -386,20 +386,6 @@
   line-height: 1;
 }
 
-.ctb-source[data-source='Equity'] {
-  background: linear-gradient(135deg, #2563eb 0%, #38bdf8 100%);
-  color: #0b1120;
-  border: none;
-  box-shadow: 0 3px 10px rgba(37, 99, 235, 0.35);
-}
-
-.ctb-source[data-source='GSec'] {
-  background: linear-gradient(135deg, #16a34a 0%, #4ade80 100%);
-  color: #022c22;
-  border: none;
-  box-shadow: 0 3px 10px rgba(22, 163, 74, 0.35);
-}
-
 .ctb-account-code {
   font-family: 'Courier New', monospace;
   font-weight: 600;

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import './Styles/StrategyMaster.css';
+import './Styles/EquityMasterEntry.css';
 import { portfolioAPI, portfolioStrategyAPI } from '../../services/api';
 
 const ViewPortfoliosModal = ({ open, onClose }) => {
@@ -21,22 +21,22 @@ const ViewPortfoliosModal = ({ open, onClose }) => {
   if (!open) return null;
 
   return (
-    <div className="vp-modal-overlay" onClick={onClose}>
-      <div className="vp-modal-content" onClick={e => e.stopPropagation()}>
-        <div className="vp-modal-header">
+    <div className="eqt-modal-overlay" onClick={onClose}>
+      <div className="eqt-modal-content" onClick={e => e.stopPropagation()}>
+        <div className="eqt-modal-header">
           <h2>Portfolio Strategy Details</h2>
-          <button className="vp-modal-close" onClick={onClose}>&times;</button>
+          <button className="eqt-modal-close" onClick={onClose}>&times;</button>
         </div>
-        <div className="vp-modal-body">
+        <div className="eqt-modal-body">
           {loading ? (
             <div>Loading...</div>
           ) : error ? (
-            <div className="vp-modal-error">{error}</div>
+            <div className="eqt-modal-error">{error}</div>
           ) : data.length === 0 ? (
             <div>No assignments found.</div>
           ) : (
-            <div className="vp-table-wrapper">
-              <table className="vp-table">
+            <div className="eqt-data-table-wrapper">
+              <table className="eqt-data-table">
                 <thead>
                   <tr>
                     <th>Portfolio Name</th>
@@ -135,42 +135,40 @@ const StrategyMaster = () => {
   };
 
   return (
-    <div className="strat-page-container">
-      <div className="strat-content-wrapper">
-        <div className="strat-header-section">
-          <div className="strat-header-icon">
-            <svg className="strat-icon" fill="currentColor" viewBox="0 0 20 20">
-              <path d="M4 4a2 2 0 00-2 2v6a2 2 0 002 2h6a2 2 0 002-2V6a2 2 0 00-2-2H4z"/>
-              <path d="M14 10h2a2 2 0 012 2v4a2 2 0 01-2 2h-2v-8z"/>
-            </svg>
-          </div>
-          <div className="strat-header-text-group">
-            <h1 className="strat-main-title">Strategy Master Entry</h1>
-            <p className="strat-subtitle">Create and define new strategies linked to portfolio entities</p>
+    <div className="eqt-page-container">
+      <div className="eqt-content-wrapper">
+        <div className="eqt-header-section">
+          <div className="eqt-header-text-group">
+            <h1 className="eqt-main-title">Strategy Master Entry</h1>
+            <p className="eqt-subtitle">Create and define new strategies linked to portfolio entities</p>
           </div>
         </div>
 
-        <div className="strat-form-card">
-          <form onSubmit={handleSubmit} className="strat-form-content">
+        <div className="eqt-form-card">
+          <div className="eqt-card-header">
+            <h2 className="eqt-card-title">Strategy Configuration</h2>
+          </div>
+          <div className="eqt-form-content">
+          <form onSubmit={handleSubmit}>
 
-            <div className="strat-form-grid">
-              <div className="strat-field-group">
-                <label className="strat-field-label">Strategy ID *</label>
+            <div className="eqt-form-grid">
+              <div className="eqt-field-group">
+                <label className="eqt-field-label">Strategy ID *</label>
                 <input
                   name="strategyId"
                   value={form.strategyId}
                   onChange={handleChange}
-                  className="strat-form-input"
+                  className="eqt-form-input"
                   placeholder="Enter strategy ID"
                 />
               </div>
-              <div className="strat-field-group">
-                <label className="strat-field-label">Portfolio ID *</label>
+              <div className="eqt-field-group">
+                <label className="eqt-field-label">Portfolio ID *</label>
                 <select
                   name="portfolioId"
                   value={form.portfolioId}
                   onChange={handleChange}
-                  className="strat-form-select"
+                  className="eqt-form-select"
                   disabled={portfoliosLoading}
                 >
                   <option value="">
@@ -185,13 +183,13 @@ const StrategyMaster = () => {
                   ))}
                 </select>
               </div>
-              <div className="strat-field-group">
-                <label className="strat-field-label">Portfolio Name *</label>
+              <div className="eqt-field-group">
+                <label className="eqt-field-label">Portfolio Name *</label>
                 <select
                   name="portfolioName"
                   value={form.portfolioName}
                   onChange={handleChange}
-                  className="strat-form-select"
+                  className="eqt-form-select"
                   disabled={portfoliosLoading}
                 >
                   <option value="">
@@ -207,13 +205,13 @@ const StrategyMaster = () => {
                 </select>
               </div>
 
-              <div className="strat-field-group">
-                <label className="strat-field-label">Strategy Type *</label>
+              <div className="eqt-field-group">
+                <label className="eqt-field-label">Strategy Type *</label>
                 <select
                   name="strategyType"
                   value={form.strategyType}
                   onChange={handleChange}
-                  className="strat-form-select"
+                  className="eqt-form-select"
                 >
                   <option value="">Select Type</option>
                   <option value="Trading">Trading</option>
@@ -222,13 +220,13 @@ const StrategyMaster = () => {
                 </select>
               </div>
 
-              <div className="strat-field-group">
-                <label className="strat-field-label">Entity/Business Unit *</label>
+              <div className="eqt-field-group">
+                <label className="eqt-field-label">Entity/Business Unit *</label>
                 <select
                   name="entityBusinessUnit"
                   value={form.entityBusinessUnit}
                   onChange={handleChange}
-                  className="strat-form-select"
+                  className="eqt-form-select"
                 >
                   <option value="">Select Entity</option>
                   <option value="Finance">Finance</option>
@@ -237,26 +235,26 @@ const StrategyMaster = () => {
               </div>
             </div>
 
-            <div className="strat-button-section">
-              <button type="reset" onClick={handleReset} className="strat-btn strat-btn-secondary">
+            <div className="eqt-button-section">
+              <button type="reset" onClick={handleReset} className="eqt-btn eqt-btn-secondary">
                 Reset Form
               </button>
               <button
                 type="button"
-                className="strat-btn strat-btn-secondary"
-                style={{ minWidth: 150 }}
+                className="eqt-btn eqt-btn-tertiary"
                 onClick={() => setViewModalOpen(true)}
               >
                 View Portfolios
               </button>
-              <button type="submit" className="strat-btn strat-btn-primary">
+              <button type="submit" className="eqt-btn eqt-btn-primary">
                 Save Strategy
               </button>
             </div>
           </form>
+          </div>
         </div>
         <ViewPortfoliosModal open={viewModalOpen} onClose={() => setViewModalOpen(false)} />
-        <div className="strat-footer-section">
+        <div className="eqt-footer-section">
           <p>SHERWOOD TECHNOLOGIES (PVT) LTD • Secure strategy management system • All data is encrypted and protected</p>
         </div>
       </div>

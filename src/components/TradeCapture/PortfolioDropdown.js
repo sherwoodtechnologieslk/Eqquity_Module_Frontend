@@ -1,49 +1,13 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { portfolioAPI, portfolioCostingMethodAPI, transactionEntryAPI } from '../../services/api';
+import {
+  buildHoldingsFromTransactions,
+  buildHoldingsFromBackendPositions,
+} from '../../utils/portfolioHoldingsExport';
+import { toLocalYmd, txTradeDateYmd } from '../../utils/tradeDateYmd';
 import './Styles/PortfolioDropdown.css';
 
 const ALL_PORTFOLIOS_VALUE = '__ALL_PORTFOLIOS__';
-
-function toLocalYmd(d) {
-  if (!(d instanceof Date) || Number.isNaN(d.getTime())) return null;
-  const y = d.getFullYear();
-  const m = String(d.getMonth() + 1).padStart(2, '0');
-  const day = String(d.getDate()).padStart(2, '0');
-  return `${y}-${m}-${day}`;
-}
-
-function txTradeDateYmd(tx) {
-  if (!tx) return null;
-  const raw =
-    tx.trade_date ??
-    tx.tradeDate ??
-    tx.tradeDateTime ??
-    tx.trade_datetime ??
-    tx.date ??
-    tx.transaction_date ??
-    tx.transactionDate;
-  if (!raw) return null;
-  if (raw instanceof Date) return toLocalYmd(raw);
-  const s = String(raw).trim();
-  if (!s) return null;
-
-  // ISO-like: "YYYY-MM-DD..." → take date portion
-  const iso = s.match(/^(\d{4})-(\d{2})-(\d{2})/);
-  if (iso) return `${iso[1]}-${iso[2]}-${iso[3]}`;
-
-  // Common "DD/MM/YYYY" or "DD-MM-YYYY"
-  const dmy = s.match(/^(\d{1,2})[/-](\d{1,2})[/-](\d{4})/);
-  if (dmy) {
-    const dd = String(dmy[1]).padStart(2, '0');
-    const mm = String(dmy[2]).padStart(2, '0');
-    const yyyy = dmy[3];
-    return `${yyyy}-${mm}-${dd}`;
-  }
-
-  const d = new Date(s);
-  if (!Number.isNaN(d.getTime())) return toLocalYmd(d);
-  return s.slice(0, 10);
-}
 
 const PortfolioDropdown = () => {
   const [portfolios, setPortfolios] = useState([]);
@@ -60,6 +24,7 @@ const PortfolioDropdown = () => {
   const [holdingsLastUpdateTo, setHoldingsLastUpdateTo] = useState('');
   const [rawBuyTransactions, setRawBuyTransactions] = useState([]);
   const [rawSellTransactions, setRawSellTransactions] = useState([]);
+  const [backendPositions, setBackendPositions] = useState([]);
 
   // Define costing method labels for display
   const costingMethodLabels = {
@@ -87,92 +52,10 @@ const PortfolioDropdown = () => {
       setSelectedPortfolioCostingMethod('');
       setRawBuyTransactions([]);
       setRawSellTransactions([]);
+      setBackendPositions([]);
     } finally {
       setPortfoliosLoading(false);
     }
-  };
-
-  const buildHoldingsFromTransactions = (buyTransactions, sellTransactions) => {
-    const normalize = (v) => String(v || '').toLowerCase().trim();
-
-    const groupMap = new Map();
-
-    const getKey = (tx) => {
-      const symbol = normalize(tx.symbol);
-      const name = normalize(tx.company_name || tx.companyName || tx.company);
-      const equityId = tx.equity_id || tx.equityId || '';
-      return symbol || name || String(equityId) || 'unknown';
-    };
-
-    const getDisplayName = (tx, key) => {
-      const candidate = tx.company_name || tx.companyName || tx.company || tx.symbol || key;
-      return String(candidate || key).trim() || 'Unknown';
-    };
-
-    buyTransactions.forEach((tx) => {
-      const key = getKey(tx);
-      if (!groupMap.has(key)) {
-        groupMap.set(key, { key, displayName: getDisplayName(tx, key), buys: [], sells: [] });
-      }
-      groupMap.get(key).buys.push(tx);
-    });
-
-    sellTransactions.forEach((tx) => {
-      const key = getKey(tx);
-      if (!groupMap.has(key)) {
-        groupMap.set(key, { key, displayName: getDisplayName(tx, key), buys: [], sells: [] });
-      }
-      groupMap.get(key).sells.push(tx);
-    });
-
-    const holdings = Array.from(groupMap.values()).map((g) => {
-      const lastTradeDate = [...g.buys, ...g.sells]
-        .map((t) => txTradeDateYmd(t))
-        .filter(Boolean)
-        .sort()
-        .slice(-1)[0] || null;
-
-      const totalBuyQuantity = g.buys.reduce((sum, tx) => sum + (parseFloat(tx.quantity) || 0), 0);
-      const totalBuyGrossValue = g.buys.reduce((sum, tx) => sum + (parseFloat(tx.gross_value) || 0), 0);
-      const totalSellQuantity = g.sells.reduce((sum, tx) => sum + (parseFloat(tx.quantity) || 0), 0);
-
-      const calculatedNetQuantity = Math.max(0, totalBuyQuantity - totalSellQuantity);
-      const wap = totalBuyQuantity > 0 ? totalBuyGrossValue / totalBuyQuantity : 0;
-      const calculatedCostValue = calculatedNetQuantity * wap;
-
-      const totalBuyCharges = g.buys.reduce((sum, tx) => {
-        const brokerage = parseFloat(tx.brokerage) || 0;
-        const cdsFees = parseFloat(tx.cds_fees) || 0;
-        const cseFees = parseFloat(tx.cse_fees) || 0;
-        const clearingFees = parseFloat(tx.clearing_fees) || 0;
-        const sec = parseFloat(tx.sec) || 0;
-        const stl = parseFloat(tx.stl) || 0;
-        return sum + brokerage + cdsFees + cseFees + clearingFees + sec + stl;
-      }, 0);
-
-      const calculatedCharges = totalBuyQuantity > 0
-        ? (totalBuyCharges * (calculatedNetQuantity / totalBuyQuantity))
-        : 0;
-
-      const netValue = calculatedCostValue + calculatedCharges;
-      const costPerShare = calculatedNetQuantity > 0 ? netValue / calculatedNetQuantity : 0;
-
-      return {
-        companyName: g.displayName,
-        companyId: null,
-        netQuantity: calculatedNetQuantity,
-        avgBuyPrice: wap,
-        costValue: calculatedCostValue,
-        totalCharges: calculatedCharges,
-        netValue,
-        costPerShare,
-        lastTradeDate
-      };
-    })
-    .filter((h) => (h.netQuantity || 0) > 0)
-    .sort((a, b) => a.companyName.localeCompare(b.companyName));
-
-    return holdings;
   };
 
   const loadPortfolioHoldings = async (portfolioName) => {
@@ -197,6 +80,7 @@ const PortfolioDropdown = () => {
 
         setRawBuyTransactions(buyTransactions || []);
         setRawSellTransactions(sellTransactions || []);
+        setBackendPositions([]);
         return;
       }
 
@@ -206,10 +90,11 @@ const PortfolioDropdown = () => {
         console.error('Portfolio not found:', portfolioName);
         setRawBuyTransactions([]);
         setRawSellTransactions([]);
+        setBackendPositions([]);
         return;
       }
       
-      const portfolioId = selectedPortfolio.id; // Use the numeric ID field
+      const portfolioId = selectedPortfolio.id || selectedPortfolio.portfolioId;
       console.log('Using portfolio ID:', portfolioId, 'for portfolio:', portfolioName);
       console.log('Selected portfolio object:', selectedPortfolio);
       
@@ -217,7 +102,15 @@ const PortfolioDropdown = () => {
         console.error('No portfolio ID found for portfolio:', portfolioName);
         setRawBuyTransactions([]);
         setRawSellTransactions([]);
+        setBackendPositions([]);
         return;
+      }
+
+      let positionsData = [];
+      try {
+        positionsData = await transactionEntryAPI.getPortfolioPositions(portfolioId);
+      } catch (positionsError) {
+        console.error('Error fetching portfolio positions:', positionsError);
       }
       
       // Fetch all buy transactions, then filter to this portfolio
@@ -245,11 +138,13 @@ const PortfolioDropdown = () => {
 
       setRawBuyTransactions(buyTransactions || []);
       setRawSellTransactions(sellTransactions || []);
+      setBackendPositions(positionsData || []);
     } catch (error) {
       console.error('Error loading portfolio holdings:', error);
       console.error('Error details:', error.message);
       setRawBuyTransactions([]);
       setRawSellTransactions([]);
+      setBackendPositions([]);
     } finally {
       setHoldingsLoading(false);
     }
@@ -310,17 +205,39 @@ const PortfolioDropdown = () => {
     };
   }, [rawBuyTransactions, rawSellTransactions, holdingsLastUpdateFrom, holdingsLastUpdateTo]);
 
-  const holdingsAllDates = useMemo(
-    () => buildHoldingsFromTransactions(rawBuyTransactions || [], rawSellTransactions || []),
-    [rawBuyTransactions, rawSellTransactions]
-  );
-
-  const holdingsFilteredDates = useMemo(
-    () => buildHoldingsFromTransactions(filteredTransactions.buy || [], filteredTransactions.sell || []),
-    [filteredTransactions]
-  );
-
   const hasHoldingsDateFilter = Boolean(holdingsLastUpdateFrom.trim() || holdingsLastUpdateTo.trim());
+
+  const useBackendPositionsForHoldings =
+    !isAllPortfoliosSelected && !hasHoldingsDateFilter && (backendPositions?.length ?? 0) > 0;
+
+  const holdingsAllDates = useMemo(() => {
+    if (useBackendPositionsForHoldings) {
+      return buildHoldingsFromBackendPositions(
+        backendPositions,
+        rawBuyTransactions || [],
+        rawSellTransactions || []
+      );
+    }
+    return buildHoldingsFromTransactions(
+      rawBuyTransactions || [],
+      rawSellTransactions || []
+    );
+  }, [
+    useBackendPositionsForHoldings,
+    backendPositions,
+    rawBuyTransactions,
+    rawSellTransactions,
+  ]);
+
+  const holdingsFilteredDates = useMemo(() => {
+    if (hasHoldingsDateFilter) {
+      return buildHoldingsFromTransactions(
+        filteredTransactions.buy || [],
+        filteredTransactions.sell || []
+      );
+    }
+    return holdingsAllDates;
+  }, [hasHoldingsDateFilter, filteredTransactions, holdingsAllDates]);
 
   const holdingsDateRangeWasReversed = Boolean(
     holdingsLastUpdateFrom.trim() &&
@@ -368,6 +285,7 @@ const PortfolioDropdown = () => {
     } else {
       setRawBuyTransactions([]);
       setRawSellTransactions([]);
+      setBackendPositions([]);
     }
   };
 

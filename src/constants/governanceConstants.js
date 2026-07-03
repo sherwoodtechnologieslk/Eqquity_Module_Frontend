@@ -169,6 +169,7 @@ const MENU_SECTION_PERMISSIONS = {
   'Financial Reports Export': sectionAccessKeys('Financial Reports Export', REPORTS_KEYS),
   'Settlement and Accounting': sectionAccessKeys('Settlement and Accounting', [...MASTER_DATA_KEYS, ...ACCOUNTING_KEYS]),
   'Account Management': sectionAccessKeys('Account Management', ACCOUNTING_KEYS),
+  Vouchers: sectionAccessKeys('Vouchers', ACCOUNTING_KEYS),
   'Opening Balance Management': sectionAccessKeys('Opening Balance Management', ACCOUNTING_KEYS),
   'Trade Capture': sectionAccessKeys('Trade Capture', TRADE_KEYS),
   'Batch Transaction Import': sectionAccessKeys('Batch Transaction Import', TRADE_KEYS),
@@ -262,6 +263,8 @@ const TAB_PERMISSIONS = {
   'New GL Account': ACCOUNTING_KEYS,
   'Account Reconciliation': ACCOUNTING_KEYS,
   'Other Transactions': ACCOUNTING_KEYS,
+  Vouchers: ACCOUNTING_KEYS,
+  'Internal Bank Transfer': ACCOUNTING_KEYS,
 
   'Opening Balance Entry': ACCOUNTING_KEYS,
   'Opening Balance List': ACCOUNTING_KEYS,
@@ -300,6 +303,7 @@ const TAB_PERMISSIONS = {
   'Trading Updates': null,
   'Regulatory Updates': null,
   'Financial Reports': null,
+  'COVID-19 Disclosures': null,
   'News & Events': null,
 
   TradeCore: TRADE_KEYS,

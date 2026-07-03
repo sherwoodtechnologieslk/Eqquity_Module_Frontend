@@ -18,7 +18,7 @@ const EquityMasterEntry = () => {
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitMessage, setSubmitMessage] = useState('');
-  const [showListView, setShowListView] = useState(false);
+  const [listRefreshKey, setListRefreshKey] = useState(0);
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -71,11 +71,20 @@ const EquityMasterEntry = () => {
 
       const result = await equityAPI.createEquity(equityData);
       
-      setSubmitMessage('Equity saved successfully!');
       console.log('Equity created:', result);
-      
-      // Reset form after successful submission
-      handleReset();
+      setListRefreshKey((key) => key + 1);
+      setForm({
+        companyName: '',
+        tickerSymbol: '',
+        isin: '',
+        sector: '',
+        market: 'Colombo Stock Exchange',
+        country: 'Sri Lanka',
+        currency: 'LKR',
+        status: true,
+        notes: ''
+      });
+      setSubmitMessage('Equity saved successfully!');
       
     } catch (error) {
       console.error('Error saving equity:', error);
@@ -100,44 +109,15 @@ const EquityMasterEntry = () => {
     setSubmitMessage('');
   };
 
-  const toggleView = () => {
-    setShowListView(!showListView);
-  };
-
-  // If showing list view, render the list component
-  if (showListView) {
-    return (
-      <div>
-        <div className="eqt-view-toggle">
-          <button onClick={toggleView} className="eqt-back-btn">
-            Back to Entry Form
-          </button>
-          <button onClick={() => window.location.reload()} className="eqt-refresh-btn">
-            <svg className="eqt-refresh-icon" fill="currentColor" viewBox="0 0 20 20">
-              <path fillRule="evenodd" d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01.61-1.276z" clipRule="evenodd"/>
-            </svg>
-            Refresh
-          </button>
-        </div>
-        <EquityListView />
-      </div>
-    );
-  }
-
   return (
     <div className="eqt-page-container">
       <div className="eqt-content-wrapper">
         <div className="eqt-header-section">
-  <div className="eqt-header-icon">
-    <svg className="eqt-icon" fill="currentColor" viewBox="0 0 20 20">
-      <path d="M4 4a2 2 0 00-2 2v8a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2H4zm2 6a2 2 0 114 0 2 2 0 01-4 0zm8 0a2 2 0 114 0 2 2 0 01-4 0z"/>
-    </svg>
-  </div>
-  <div className="eqt-header-text-group">
-    <h1 className="eqt-main-title">Equity Master Entry</h1>
-    <p className="eqt-subtitle">Add new equity securities to your portfolio management system</p>
-  </div>
-</div>
+          <div className="eqt-header-text-group">
+            <h1 className="eqt-main-title">Equity Master Entry</h1>
+            <p className="eqt-subtitle">Add new equity securities and manage existing records below</p>
+          </div>
+        </div>
 
         {/* Form Card */}
         <div className="eqt-form-card">
@@ -301,14 +281,6 @@ const EquityMasterEntry = () => {
                   Reset Form
                 </button>
                 <button
-                  type="button"
-                  className="eqt-btn eqt-btn-tertiary"
-                  disabled={isSubmitting}
-                  onClick={toggleView}
-                >
-                  View Existing Equities
-                </button>
-                <button
                   type="submit"
                   className="eqt-btn eqt-btn-primary"
                   disabled={isSubmitting}
@@ -318,6 +290,14 @@ const EquityMasterEntry = () => {
               </div>
             </form>
           </div>
+        </div>
+
+        {/* Existing Equities */}
+        <div className="eqt-form-card eqt-list-card">
+          <div className="eqt-card-header">
+            <h2 className="eqt-card-title">Existing Equities</h2>
+          </div>
+          <EquityListView embedded refreshKey={listRefreshKey} />
         </div>
 
         {/* Footer */}

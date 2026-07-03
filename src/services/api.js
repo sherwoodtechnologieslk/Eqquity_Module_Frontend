@@ -2859,6 +2859,27 @@ export const gsecEntriesAPI = {
   }
 };
 
+// API service for journal / double-entry operations
+export const journalEntriesAPI = {
+  getDoubleEntryGroup: async (source, lineId) => {
+    try {
+      const queryParams = new URLSearchParams({
+        source: String(source),
+        lineId: String(lineId),
+        _ts: Date.now().toString()
+      });
+
+      return await makeAuthenticatedRequest(
+        `${API_BASE_URL}/journal-entries/double-entries/group?${queryParams}`,
+        { method: 'GET', cache: 'no-store' }
+      );
+    } catch (error) {
+      console.error('Error fetching double-entry group:', error);
+      throw error;
+    }
+  }
+};
+
 // API service for Opening Balance operations
 export const openingBalanceAPI = {
   // Create a new opening balance entry

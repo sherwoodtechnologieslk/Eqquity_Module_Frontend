@@ -316,14 +316,14 @@ const FinancialPosition = ({ onTabChange }) => {
           </button>
         </td>
         <td className="fp-amount-cell">
-          <div className="fp-balance-cell">
-            <span className={`fp-account-balance ${state}`}>
-              {formatCurrency(Number(group.balance) || 0)}
-            </span>
-            <span className={`fp-drcr-badge ${state}`}>
-              {balanceType === 'ZERO' ? '' : balanceType}
-            </span>
-          </div>
+          <span className={`fp-account-balance ${state}`}>
+            {formatCurrency(Number(group.balance) || 0)}
+          </span>
+        </td>
+        <td className="fp-drcr-cell">
+          <span className={`fp-drcr-badge ${state}`}>
+            {balanceType === 'ZERO' ? '—' : balanceType}
+          </span>
         </td>
       </tr>
     );
@@ -331,16 +331,15 @@ const FinancialPosition = ({ onTabChange }) => {
 
   const renderSubtotalRow = (label, amount) => (
     <tr key={`subtotal-${label}`} className="fp-subtotal-row">
-      <td colSpan="1" className="fp-subtotal-label">
+      <td className="fp-subtotal-label">
         <strong>{label}</strong>
       </td>
       <td className="fp-amount-cell">
-        <div className="fp-balance-cell">
-          <span className="fp-subtotal-balance positive">
-            <strong>{formatCurrency(Number(amount) || 0)}</strong>
-          </span>
-        </div>
+        <span className="fp-subtotal-balance positive">
+          <strong>{formatCurrency(Number(amount) || 0)}</strong>
+        </span>
       </td>
+      <td className="fp-drcr-cell" aria-hidden="true" />
     </tr>
   );
 
@@ -506,6 +505,7 @@ const FinancialPosition = ({ onTabChange }) => {
                       <tr className="fp-table-header">
                         <th className="fp-th-name">Transaction type</th>
                         <th className="fp-th-balance">Amount</th>
+                        <th className="fp-th-drcr">DR/CR</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -533,6 +533,7 @@ const FinancialPosition = ({ onTabChange }) => {
                       <tr className="fp-table-header">
                         <th className="fp-th-name">Transaction type</th>
                         <th className="fp-th-balance">Amount</th>
+                        <th className="fp-th-drcr">DR/CR</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -577,6 +578,7 @@ const FinancialPosition = ({ onTabChange }) => {
                       <tr className="fp-table-header">
                         <th className="fp-th-name">Transaction type</th>
                         <th className="fp-th-balance">Amount</th>
+                        <th className="fp-th-drcr">DR/CR</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -600,6 +602,7 @@ const FinancialPosition = ({ onTabChange }) => {
                       <tr className="fp-table-header">
                         <th className="fp-th-name">Transaction type</th>
                         <th className="fp-th-balance">Amount</th>
+                        <th className="fp-th-drcr">DR/CR</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -626,6 +629,7 @@ const FinancialPosition = ({ onTabChange }) => {
                       <tr className="fp-table-header">
                         <th className="fp-th-name">Transaction type</th>
                         <th className="fp-th-balance">Amount</th>
+                        <th className="fp-th-drcr">DR/CR</th>
                       </tr>
                     </thead>
                     <tbody>

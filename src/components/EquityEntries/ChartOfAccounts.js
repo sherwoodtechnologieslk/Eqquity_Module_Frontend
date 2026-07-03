@@ -326,14 +326,9 @@ const ChartOfAccounts = () => {
 
   return (
     <div className="coa-page-container">
+      <div className="coa-content-wrapper">
       {/* Header Section */}
       <div className="coa-header-section">
-        <div className="coa-header-icon">
-          <svg className="coa-icon" fill="currentColor" viewBox="0 0 20 20">
-            <path fillRule="evenodd" d="M4 4a2 2 0 00-2 2v8a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2H4zm2 2v8h8V6H6z" clipRule="evenodd"/>
-            <path d="M8 8a1 1 0 011-1h2a1 1 0 110 2H9a1 1 0 01-1-1zm0 2a1 1 0 011-1h2a1 1 0 110 2H9a1 1 0 01-1-1zm1 1a1 1 0 100 2h2a1 1 0 100-2H9z"/>
-          </svg>
-        </div>
         <div className="coa-header-text-group">
           <h1 className="coa-main-title">Chart of Accounts</h1>
           <p className="coa-subtitle">View and manage your complete chart of accounts</p>
@@ -342,21 +337,11 @@ const ChartOfAccounts = () => {
 
       {/* Success Message */}
       {successMessage && (
-        <div style={{
-          padding: '1rem 1.5rem',
-          marginBottom: '1.5rem',
-          backgroundColor: '#dcfce7',
-          border: '1px solid #86efac',
-          borderRadius: '8px',
-          color: '#166534',
-          display: 'flex',
-          alignItems: 'center',
-          gap: '0.75rem'
-        }}>
-          <svg style={{ width: '20px', height: '20px' }} fill="currentColor" viewBox="0 0 20 20">
+        <div className="coa-success-banner">
+          <svg className="coa-success-icon" fill="currentColor" viewBox="0 0 20 20">
             <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd"/>
           </svg>
-          <span style={{ fontWeight: '600' }}>{successMessage}</span>
+          <span className="coa-success-text">{successMessage}</span>
         </div>
       )}
 
@@ -374,7 +359,8 @@ const ChartOfAccounts = () => {
               'system'
             } accounts)
           </h2>
-          <button 
+          <button
+            type="button"
             onClick={loadAccounts}
             className="coa-refresh-btn"
             disabled={loading}
@@ -384,71 +370,39 @@ const ChartOfAccounts = () => {
         </div>
 
         {/* Tab Navigation */}
-        <div style={{
-          display: 'flex',
-          gap: '0.5rem',
-          marginBottom: '1.5rem',
-          borderBottom: '2px solid #e5e7eb'
-        }}>
+        <div className="coa-tab-nav">
           <button
+            type="button"
             onClick={() => {
               setActiveTab('user');
-              setSearchTerm(''); // Clear search when switching tabs
+              setSearchTerm('');
             }}
-            style={{
-              padding: '0.75rem 1.5rem',
-              fontSize: '0.875rem',
-              fontWeight: '600',
-              color: activeTab === 'user' ? '#3b82f6' : '#6b7280',
-              backgroundColor: 'transparent',
-              border: 'none',
-              borderBottom: activeTab === 'user' ? '2px solid #3b82f6' : '2px solid transparent',
-              cursor: 'pointer',
-              marginBottom: '-2px',
-              transition: 'all 0.2s'
-            }}
+            className={`coa-tab-btn${activeTab === 'user' ? ' coa-tab-btn--active' : ''}`}
           >
-            User Accounts ({userAccounts.length})
+            <span className="coa-tab-label">User Accounts</span>
+            <span className="coa-tab-count">{userAccounts.length}</span>
           </button>
           <button
+            type="button"
             onClick={() => {
               setActiveTab('trading');
-              setSearchTerm(''); // Clear search when switching tabs
+              setSearchTerm('');
             }}
-            style={{
-              padding: '0.75rem 1.5rem',
-              fontSize: '0.875rem',
-              fontWeight: '600',
-              color: activeTab === 'trading' ? '#3b82f6' : '#6b7280',
-              backgroundColor: 'transparent',
-              border: 'none',
-              borderBottom: activeTab === 'trading' ? '2px solid #3b82f6' : '2px solid transparent',
-              cursor: 'pointer',
-              marginBottom: '-2px',
-              transition: 'all 0.2s'
-            }}
+            className={`coa-tab-btn${activeTab === 'trading' ? ' coa-tab-btn--active' : ''}`}
           >
-            Trading Accounts ({systemAccounts.length})
+            <span className="coa-tab-label">Trading Accounts</span>
+            <span className="coa-tab-count">{systemAccounts.length}</span>
           </button>
           <button
+            type="button"
             onClick={() => {
               setActiveTab('system');
-              setSearchTerm(''); // Clear search when switching tabs
+              setSearchTerm('');
             }}
-            style={{
-              padding: '0.75rem 1.5rem',
-              fontSize: '0.875rem',
-              fontWeight: '600',
-              color: activeTab === 'system' ? '#3b82f6' : '#6b7280',
-              backgroundColor: 'transparent',
-              border: 'none',
-              borderBottom: activeTab === 'system' ? '2px solid #3b82f6' : '2px solid transparent',
-              cursor: 'pointer',
-              marginBottom: '-2px',
-              transition: 'all 0.2s'
-            }}
+            className={`coa-tab-btn${activeTab === 'system' ? ' coa-tab-btn--active' : ''}`}
           >
-            System Accounts ({systemAccountsFromCSV.length})
+            <span className="coa-tab-label">System Accounts</span>
+            <span className="coa-tab-count">{systemAccountsFromCSV.length}</span>
           </button>
         </div>
 
@@ -476,16 +430,7 @@ const ChartOfAccounts = () => {
 
         {/* Stats Section */}
         {displayAccounts.length > 0 && (
-          <div className="coa-stats" style={{
-            display: 'flex',
-            gap: '2rem',
-            marginBottom: '0',
-            padding: '1rem 2rem',
-            background: '#f8fafc',
-            borderBottom: 'none',
-            alignItems: 'center',
-            flexWrap: 'wrap'
-          }}>
+          <div className="coa-stats">
             <div className="coa-stat">
               <div className="coa-stat-value">{displayAccounts.length}</div>
               <div className="coa-stat-label">Total {
@@ -505,72 +450,21 @@ const ChartOfAccounts = () => {
             
             {/* Use System Chart of Accounts Button - Only for System Accounts tab */}
             {activeTab === 'system' && !loadingSystemAccounts && systemAccountsFromCSV.length > 0 && (
-              <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
+              <div className="coa-stats-actions">
                 <button
+                  type="button"
                   onClick={handleImportSystemAccounts}
                   disabled={importingSystemAccounts}
-                  style={{
-                    padding: '0.875rem 2rem',
-                    fontSize: '1rem',
-                    fontWeight: '600',
-                    color: importingSystemAccounts ? '#9ca3af' : '#3b82f6',
-                    backgroundColor: 'transparent',
-                    border: `2px solid ${importingSystemAccounts ? '#9ca3af' : '#3b82f6'}`,
-                    borderRadius: '8px',
-                    cursor: importingSystemAccounts ? 'not-allowed' : 'pointer',
-                    transition: 'all 0.2s ease',
-                    whiteSpace: 'nowrap',
-                    marginLeft: '0',
-                    opacity: importingSystemAccounts ? 0.6 : 1
-                  }}
-                  onMouseEnter={(e) => {
-                    if (!importingSystemAccounts) {
-                      e.target.style.backgroundColor = '#eff6ff';
-                      e.target.style.borderColor = '#2563eb';
-                      e.target.style.color = '#2563eb';
-                    }
-                  }}
-                  onMouseLeave={(e) => {
-                    if (!importingSystemAccounts) {
-                      e.target.style.backgroundColor = 'transparent';
-                      e.target.style.borderColor = '#3b82f6';
-                      e.target.style.color = '#3b82f6';
-                    }
-                  }}
+                  className="coa-import-btn"
                 >
                   {importingSystemAccounts ? 'Importing...' : 'Use System Chart of Accounts'}
                 </button>
 
                 <button
+                  type="button"
                   onClick={handleExportSystemAccounts}
                   disabled={exportingSystemAccounts}
-                  style={{
-                    padding: '0.875rem 1.5rem',
-                    fontSize: '1rem',
-                    fontWeight: '600',
-                    color: exportingSystemAccounts ? '#9ca3af' : '#16a34a',
-                    backgroundColor: 'transparent',
-                    border: `2px solid ${exportingSystemAccounts ? '#9ca3af' : '#16a34a'}`,
-                    borderRadius: '8px',
-                    cursor: exportingSystemAccounts ? 'not-allowed' : 'pointer',
-                    transition: 'all 0.2s ease',
-                    whiteSpace: 'nowrap',
-                    opacity: exportingSystemAccounts ? 0.6 : 1
-                  }}
-                  onMouseEnter={(e) => {
-                    if (!exportingSystemAccounts) {
-                      e.target.style.backgroundColor = '#dcfce7';
-                      e.target.style.borderColor = '#15803d';
-                      e.target.style.color = '#15803d';
-                    }
-                  }}
-                  onMouseLeave={(e) => {
-                    if (!exportingSystemAccounts) {
-                      e.target.style.backgroundColor = 'transparent';
-                      e.target.style.borderColor = '#16a34a';
-                      e.target.style.color = '#16a34a';
-                    }
-                  }}
+                  className="coa-export-btn"
                 >
                   {exportingSystemAccounts ? 'Exporting...' : 'Export to Excel'}
                 </button>
@@ -674,6 +568,7 @@ const ChartOfAccounts = () => {
                         <td>{acc.created_at ? new Date(acc.created_at).toLocaleDateString() : '-'}</td>
                         <td>
                           <button
+                            type="button"
                             onClick={() => handleEdit(acc)}
                             className="coa-edit-btn"
                             title="Edit Account"
@@ -687,13 +582,7 @@ const ChartOfAccounts = () => {
                       </>
                     ) : (
                       <td>
-                        <span style={{
-                          fontSize: '0.75rem',
-                          color: '#6b7280',
-                          fontStyle: 'italic'
-                        }}>
-                              Trading Account
-                        </span>
+                        <span className="coa-trading-note">Trading Account</span>
                       </td>
                         )}
                       </>
@@ -710,234 +599,94 @@ const ChartOfAccounts = () => {
       <div className="coa-footer-section">
         <p>SHERWOOD TECHNOLOGIES (PVT) LTD • Chart of Accounts Management • All data is encrypted and protected</p>
       </div>
+      </div>
 
       {/* Edit Modal */}
       {editingAccount && typeof document !== 'undefined' && createPortal(
-        <div 
+        <div
           className="coa-modal-overlay"
           onClick={handleCloseEdit}
-          style={{
-            position: 'fixed',
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            backgroundColor: 'rgba(0, 0, 0, 0.5)',
-            display: 'flex',
-            alignItems: 'flex-start',
-            justifyContent: 'center',
-            zIndex: 9999,
-            paddingTop: '100px',
-            paddingBottom: '20px',
-            overflowY: 'auto'
-          }}
         >
-          <div 
+          <div
             className="coa-modal-content"
             onClick={(e) => e.stopPropagation()}
-            style={{
-              backgroundColor: '#fff',
-              borderRadius: '0.5rem',
-              padding: '1.5rem',
-              maxWidth: '600px',
-              width: '90%',
-              maxHeight: 'calc(100vh - 140px)',
-              display: 'flex',
-              flexDirection: 'column',
-              boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)',
-              marginBottom: '20px',
-              position: 'relative',
-              zIndex: 10000
-            }}
           >
-            <div style={{ 
-              marginBottom: '1rem',
-              flexShrink: 0,
-              borderBottom: '1px solid #e5e7eb',
-              paddingBottom: '1rem'
-            }}>
-              <h2 style={{ 
-                margin: 0,
-                fontSize: '1.5rem',
-                fontWeight: '600',
-                color: '#1f2937',
-                marginBottom: '0.5rem'
-              }}>
-                Edit Account
-              </h2>
-              <p style={{ 
-                margin: 0,
-                color: '#6b7280',
-                fontSize: '0.875rem'
-              }}>
-                Update account information below
-              </p>
+            <div className="coa-modal-header">
+              <h2 className="coa-modal-title">Edit Account</h2>
+              <p className="coa-modal-subtitle">Update account information below</p>
             </div>
 
-            <div style={{ 
-              display: 'flex', 
-              flexDirection: 'column', 
-              gap: '1rem',
-              overflowY: 'auto',
-              flex: 1,
-              paddingRight: '0.5rem'
-            }}>
-              {/* Account Code */}
-              <div>
-                <label style={{ 
-                  display: 'block',
-                  fontSize: '0.875rem',
-                  fontWeight: '600',
-                  color: '#374151',
-                  marginBottom: '0.5rem'
-                }}>
-                  Account Code <span style={{ color: '#dc2626' }}>*</span>
+            <div className="coa-modal-body">
+              <div className="coa-form-group">
+                <label className="coa-form-label" htmlFor="coa-edit-account-code">
+                  Account Code <span className="coa-form-required">*</span>
                 </label>
                 <input
+                  id="coa-edit-account-code"
                   type="text"
                   name="account_code"
                   value={editFormData.account_code}
                   onChange={handleEditInputChange}
-                  style={{
-                    width: '100%',
-                    padding: '0.75rem',
-                    fontSize: '0.875rem',
-                    border: `2px solid ${editErrors.account_code ? '#dc2626' : '#d1d5db'}`,
-                    borderRadius: '0.375rem',
-                    boxSizing: 'border-box'
-                  }}
-                  placeholder="e.g., 1-001-01-01-01"
+                  className={`coa-form-input${editErrors.account_code ? ' coa-form-input--error' : ''}`}
+                  placeholder="e.g., 101-101-555-001-44"
                 />
                 {editErrors.account_code && (
-                  <span style={{ 
-                    color: '#dc2626',
-                    fontSize: '0.75rem',
-                    marginTop: '0.25rem',
-                    display: 'block'
-                  }}>
-                    {editErrors.account_code}
-                  </span>
+                  <span className="coa-form-error">{editErrors.account_code}</span>
                 )}
               </div>
 
-              {/* Description */}
-              <div>
-                <label style={{ 
-                  display: 'block',
-                  fontSize: '0.875rem',
-                  fontWeight: '600',
-                  color: '#374151',
-                  marginBottom: '0.5rem'
-                }}>
-                  Description <span style={{ color: '#dc2626' }}>*</span>
+              <div className="coa-form-group">
+                <label className="coa-form-label" htmlFor="coa-edit-description">
+                  Description <span className="coa-form-required">*</span>
                 </label>
                 <input
+                  id="coa-edit-description"
                   type="text"
                   name="description"
                   value={editFormData.description}
                   onChange={handleEditInputChange}
-                  style={{
-                    width: '100%',
-                    padding: '0.75rem',
-                    fontSize: '0.875rem',
-                    border: `2px solid ${editErrors.description ? '#dc2626' : '#d1d5db'}`,
-                    borderRadius: '0.375rem',
-                    boxSizing: 'border-box'
-                  }}
+                  className={`coa-form-input${editErrors.description ? ' coa-form-input--error' : ''}`}
                   placeholder="Account description"
                 />
                 {editErrors.description && (
-                  <span style={{ 
-                    color: '#dc2626',
-                    fontSize: '0.75rem',
-                    marginTop: '0.25rem',
-                    display: 'block'
-                  }}>
-                    {editErrors.description}
-                  </span>
+                  <span className="coa-form-error">{editErrors.description}</span>
                 )}
               </div>
 
-              {/* Account Type */}
-              <div>
-                <label style={{ 
-                  display: 'block',
-                  fontSize: '0.875rem',
-                  fontWeight: '600',
-                  color: '#374151',
-                  marginBottom: '0.5rem'
-                }}>
-                  Account Type
-                </label>
+              <div className="coa-form-group">
+                <label className="coa-form-label" htmlFor="coa-edit-account-type">Account Type</label>
                 <input
+                  id="coa-edit-account-type"
                   type="text"
                   name="account_type"
                   value={editFormData.account_type}
                   onChange={handleEditInputChange}
-                  style={{
-                    width: '100%',
-                    padding: '0.75rem',
-                    fontSize: '0.875rem',
-                    border: '2px solid #d1d5db',
-                    borderRadius: '0.375rem',
-                    boxSizing: 'border-box'
-                  }}
+                  className="coa-form-input"
                   placeholder="e.g., Asset, Liability, Equity"
                 />
               </div>
 
-              {/* Account Category */}
-              <div>
-                <label style={{ 
-                  display: 'block',
-                  fontSize: '0.875rem',
-                  fontWeight: '600',
-                  color: '#374151',
-                  marginBottom: '0.5rem'
-                }}>
-                  Account Category
-                </label>
+              <div className="coa-form-group">
+                <label className="coa-form-label" htmlFor="coa-edit-account-category">Account Category</label>
                 <input
+                  id="coa-edit-account-category"
                   type="text"
                   name="account_category"
                   value={editFormData.account_category}
                   onChange={handleEditInputChange}
-                  style={{
-                    width: '100%',
-                    padding: '0.75rem',
-                    fontSize: '0.875rem',
-                    border: '2px solid #d1d5db',
-                    borderRadius: '0.375rem',
-                    boxSizing: 'border-box'
-                  }}
+                  className="coa-form-input"
                   placeholder="e.g., Current Assets, Operating Expenses"
                 />
               </div>
 
-              {/* Normal Balance */}
-              <div>
-                <label style={{ 
-                  display: 'block',
-                  fontSize: '0.875rem',
-                  fontWeight: '600',
-                  color: '#374151',
-                  marginBottom: '0.5rem'
-                }}>
-                  Normal Balance
-                </label>
+              <div className="coa-form-group">
+                <label className="coa-form-label" htmlFor="coa-edit-normal-balance">Normal Balance</label>
                 <select
+                  id="coa-edit-normal-balance"
                   name="normal_balance"
                   value={editFormData.normal_balance}
                   onChange={handleEditInputChange}
-                  style={{
-                    width: '100%',
-                    padding: '0.75rem',
-                    fontSize: '0.875rem',
-                    border: '2px solid #d1d5db',
-                    borderRadius: '0.375rem',
-                    boxSizing: 'border-box',
-                    backgroundColor: '#fff'
-                  }}
+                  className="coa-form-select"
                 >
                   <option value="">Select if applicable</option>
                   <option value="Debit">Debit</option>
@@ -945,58 +694,27 @@ const ChartOfAccounts = () => {
                 </select>
               </div>
 
-              {/* Parent Account */}
-              <div>
-                <label style={{ 
-                  display: 'block',
-                  fontSize: '0.875rem',
-                  fontWeight: '600',
-                  color: '#374151',
-                  marginBottom: '0.5rem'
-                }}>
-                  Parent Account
-                </label>
+              <div className="coa-form-group">
+                <label className="coa-form-label" htmlFor="coa-edit-parent-account">Parent Account</label>
                 <input
+                  id="coa-edit-parent-account"
                   type="text"
                   name="parent_account"
                   value={editFormData.parent_account}
                   onChange={handleEditInputChange}
-                  style={{
-                    width: '100%',
-                    padding: '0.75rem',
-                    fontSize: '0.875rem',
-                    border: '2px solid #d1d5db',
-                    borderRadius: '0.375rem',
-                    boxSizing: 'border-box'
-                  }}
-                  placeholder="e.g., 1-000-01-01-01"
+                  className="coa-form-input"
+                  placeholder="e.g., 101-101-100-001-44"
                 />
               </div>
 
-              {/* Active Status */}
-              <div>
-                <label style={{ 
-                  display: 'block',
-                  fontSize: '0.875rem',
-                  fontWeight: '600',
-                  color: '#374151',
-                  marginBottom: '0.5rem'
-                }}>
-                  Active Status
-                </label>
+              <div className="coa-form-group">
+                <label className="coa-form-label" htmlFor="coa-edit-active-status">Active Status</label>
                 <select
+                  id="coa-edit-active-status"
                   name="active_status"
                   value={editFormData.active_status}
                   onChange={handleEditInputChange}
-                  style={{
-                    width: '100%',
-                    padding: '0.75rem',
-                    fontSize: '0.875rem',
-                    border: '2px solid #d1d5db',
-                    borderRadius: '0.375rem',
-                    boxSizing: 'border-box',
-                    backgroundColor: '#fff'
-                  }}
+                  className="coa-form-select"
                 >
                   <option value="Yes">Active</option>
                   <option value="No">Inactive</option>
@@ -1004,46 +722,20 @@ const ChartOfAccounts = () => {
               </div>
             </div>
 
-            {/* Modal Actions */}
-            <div style={{ 
-              display: 'flex',
-              justifyContent: 'flex-end',
-              gap: '1rem',
-              marginTop: '1rem',
-              paddingTop: '1rem',
-              borderTop: '1px solid #e5e7eb',
-              flexShrink: 0
-            }}>
+            <div className="coa-modal-actions">
               <button
+                type="button"
                 onClick={handleCloseEdit}
                 disabled={isSaving}
-                style={{
-                  padding: '0.75rem 1.5rem',
-                  fontSize: '0.875rem',
-                  fontWeight: '500',
-                  color: '#374151',
-                  backgroundColor: '#f3f4f6',
-                  border: '1px solid #d1d5db',
-                  borderRadius: '0.375rem',
-                  cursor: isSaving ? 'not-allowed' : 'pointer',
-                  opacity: isSaving ? 0.6 : 1
-                }}
+                className="coa-btn-cancel"
               >
                 Cancel
               </button>
               <button
+                type="button"
                 onClick={handleSaveEdit}
                 disabled={isSaving}
-                style={{
-                  padding: '0.75rem 1.5rem',
-                  fontSize: '0.875rem',
-                  fontWeight: '500',
-                  color: '#fff',
-                  backgroundColor: isSaving ? '#9ca3af' : '#3b82f6',
-                  border: 'none',
-                  borderRadius: '0.375rem',
-                  cursor: isSaving ? 'not-allowed' : 'pointer'
-                }}
+                className="coa-btn-save"
               >
                 {isSaving ? 'Saving...' : 'Save Changes'}
               </button>

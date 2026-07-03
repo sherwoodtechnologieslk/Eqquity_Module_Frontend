@@ -631,6 +631,28 @@
   box-shadow: none;
 }
 
+.agp-list-pagination {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.65rem 1rem;
+  padding: 0.85rem 1rem;
+  border-top: 1px solid #e2e8f0;
+  background: #f8fafc;
+}
+
+@media (max-width: 640px) {
+  .agp-list-pagination {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .agp-list-pagination .agp-payload-pagination-actions {
+    justify-content: center;
+  }
+}
+
 /* Loading */
 .agp-loading {
   display: flex;
