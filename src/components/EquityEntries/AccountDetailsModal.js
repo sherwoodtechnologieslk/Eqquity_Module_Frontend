@@ -315,9 +315,21 @@ const AccountDetailsModal = ({
               <h2 className="account-modal-title">Account Details</h2>
               <p className="account-modal-subtitle">
                 <span className="account-modal-subtitle-text">
-                  {detailSource
-                    ? `${detailSource} — ${accountData?.accountCode || accountCode}`
-                    : `Detailed view for account: ${accountData?.accountCode || accountCode}`}
+                  {detailSource ? (
+                    <>
+                      {detailSource}{' '}
+                      <span className="account-modal-subtitle-code">
+                        {accountData?.accountCode || accountCode}
+                      </span>
+                    </>
+                  ) : (
+                    <>
+                      Detailed view for account{' '}
+                      <span className="account-modal-subtitle-code">
+                        {accountData?.accountCode || accountCode}
+                      </span>
+                    </>
+                  )}
                 </span>
                 <span className="account-modal-subtitle-actions">
                   <span
