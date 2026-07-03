@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import './Styles/PortfolioMaster.css';
+import './Styles/EquityMasterEntry.css';
 import { portfolioAPI } from '../../services/api';
 import PortfolioListView from './PortfolioListView';
 
@@ -163,8 +163,8 @@ const PortfolioMaster = () => {
 
     if (fieldType === 'textarea') {
       return (
-        <div key={fieldName} className="prt-field-group">
-          <label className="prt-field-label">
+        <div key={fieldName} className="eqt-field-group">
+          <label className="eqt-field-label">
             {label} {required && '*'}
           </label>
           <textarea
@@ -173,7 +173,7 @@ const PortfolioMaster = () => {
             onChange={handleChange}
             placeholder={`Enter ${label.toLowerCase()}...`}
             rows="4"
-            className="prt-form-textarea"
+            className="eqt-form-textarea"
           />
         </div>
       );
@@ -181,15 +181,15 @@ const PortfolioMaster = () => {
 
     if (isSelect) {
       return (
-        <div key={fieldName} className="prt-field-group">
-          <label className="prt-field-label">
+        <div key={fieldName} className="eqt-field-group">
+          <label className="eqt-field-label">
             {label} {required && '*'}
           </label>
           <select
             name={fieldName}
             value={value}
             onChange={handleChange}
-            className="prt-form-select"
+            className="eqt-form-select"
           >
             <option value="">Select {label}</option>
             {selectOptions.map(option => (
@@ -201,8 +201,8 @@ const PortfolioMaster = () => {
     }
 
     return (
-      <div key={fieldName} className="prt-field-group">
-        <label className="prt-field-label">
+      <div key={fieldName} className="eqt-field-group">
+        <label className="eqt-field-label">
           {label} {required && '*'}
         </label>
         <input
@@ -211,7 +211,7 @@ const PortfolioMaster = () => {
           value={value}
           onChange={handleChange}
           placeholder={fieldType === 'date' ? '' : `Enter ${label.toLowerCase()}`}
-          className="prt-form-input"
+          className="eqt-form-input"
           step={fieldName === 'targetYield' ? '0.01' : undefined}
         />
       </div>
@@ -220,55 +220,47 @@ const PortfolioMaster = () => {
 
   if (showListView) {
     return (
-      <div>
-        <div className="prt-view-toggle">
-          <button onClick={toggleView} className="prt-back-btn">
-            Back to Entry Form
-          </button>
-          <button onClick={() => window.location.reload()} className="prt-refresh-btn">
-            <svg className="prt-refresh-icon" fill="currentColor" viewBox="0 0 20 20">
-              <path fillRule="evenodd" d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01.61-1.276z" clipRule="evenodd"/>
-            </svg>
-            Refresh
-          </button>
+      <div className="eqt-page-container">
+        <div className="eqt-content-wrapper">
+          <div className="eqt-view-toggle">
+            <button onClick={toggleView} className="eqt-back-btn">
+              Back to Entry Form
+            </button>
+            <button onClick={() => window.location.reload()} className="eqt-refresh-btn">
+              <svg className="eqt-refresh-icon" fill="currentColor" viewBox="0 0 20 20">
+                <path fillRule="evenodd" d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01.61-1.276z" clipRule="evenodd"/>
+              </svg>
+              Refresh
+            </button>
+          </div>
+          <PortfolioListView />
         </div>
-        <PortfolioListView />
       </div>
     );
   }
 
   return (
-    <div className="prt-page-container">
-      <div className="prt-content-wrapper">
-        <div className="prt-header-section">
-          <div className="prt-header-icon">
-            <svg className="prt-icon" fill="currentColor" viewBox="0 0 20 20">
-              <path d="M3 4a1 1 0 011-1h12a1 1 0 011 1v2a1 1 0 01-1 1H4a1 1 0 01-1-1V4zM3 10a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H4a1 1 0 01-1-1v-6zM14 9a1 1 0 00-1 1v6a1 1 0 001 1h2a1 1 0 001-1v-6a1 1 0 00-1-1h-2z"/>
-            </svg>
-          </div>
-          <div className="prt-header-text-group">
-            <h1 className="prt-main-title">Portfolio Master Entry</h1>
-            <p className="prt-subtitle">Create and configure new investment portfolios for your treasury management system</p>
+    <div className="eqt-page-container">
+      <div className="eqt-content-wrapper">
+        <div className="eqt-header-section">
+          <div className="eqt-header-text-group">
+            <h1 className="eqt-main-title">Portfolio Master Entry</h1>
+            <p className="eqt-subtitle">Create and configure new investment portfolios for your treasury management system</p>
           </div>
         </div>
 
-        <div className="prt-form-card">
-          <div className="prt-card-header">
-            <h2 className="prt-card-title">Portfolio Configuration</h2>
+        <div className="eqt-form-card">
+          <div className="eqt-card-header">
+            <h2 className="eqt-card-title">Portfolio Configuration</h2>
           </div>
 
-          <div className="prt-form-content">
+          <div className="eqt-form-content">
             <form onSubmit={handleSubmit}>
-              <div className="prt-section-header">
-                <div className="prt-section-icon">
-                  <svg className="prt-section-icon-svg" fill="currentColor" viewBox="0 0 20 20">
-                    <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                  </svg>
-                </div>
-                <h3 className="prt-section-title">Basic Information</h3>
+              <div className="eqt-section-header">
+                <h3 className="eqt-section-title">Basic Information</h3>
               </div>
 
-              <div className="prt-form-grid">
+              <div className="eqt-form-grid">
                 {renderField('portfolioId', form.portfolioId)}
                 {renderField('portfolioName', form.portfolioName)}
                 {renderField('portfolioType', form.portfolioType)}
@@ -277,17 +269,11 @@ const PortfolioMaster = () => {
                 {renderField('baseCurrency', form.baseCurrency)}
               </div>
 
-              <div className="prt-section-header">
-                <div className="prt-section-icon">
-                  <svg className="prt-section-icon-svg" fill="currentColor" viewBox="0 0 20 20">
-                    <path d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z"/>
-                    <path fillRule="evenodd" d="M4 5a2 2 0 012-2v1a1 1 0 102 0V3h2v1a1 1 0 102 0V3a2 2 0 012 2v6a2 2 0 01-2 2H6a2 2 0 01-2-2V5zm2.5 7a1.5 1.5 0 100-3 1.5 1.5 0 000 3zm2.45-1.5a2.5 2.5 0 114.9 0 2.5 2.5 0 01-4.9 0z" clipRule="evenodd"/>
-                  </svg>
-                </div>
-                <h3 className="prt-section-title">Investment Parameters</h3>
+              <div className="eqt-section-header">
+                <h3 className="eqt-section-title">Investment Parameters</h3>
               </div>
 
-              <div className="prt-form-grid">
+              <div className="eqt-form-grid">
                 {renderField('benchmark', form.benchmark)}
                 {renderField('riskProfile', form.riskProfile)}
                 {renderField('investmentHorizon', form.investmentHorizon)}
@@ -296,16 +282,11 @@ const PortfolioMaster = () => {
                 {renderField('endDate', form.endDate)}
               </div>
 
-              <div className="prt-section-header">
-                <div className="prt-section-icon">
-                  <svg className="prt-section-icon-svg" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clipRule="evenodd"/>
-                  </svg>
-                </div>
-                <h3 className="prt-section-title">Operations & Compliance</h3>
+              <div className="eqt-section-header">
+                <h3 className="eqt-section-title">Operations & Compliance</h3>
               </div>
 
-              <div className="prt-form-grid">
+              <div className="eqt-form-grid">
                 {renderField('status', form.status)}
                 {renderField('complianceRulesId', form.complianceRulesId)}
                 {renderField('parentPortfolioId', form.parentPortfolioId)}
@@ -316,21 +297,27 @@ const PortfolioMaster = () => {
                 {renderField('tags', form.tags)}
               </div>
 
-              <div className="prt-notes-section">
+              <div className="eqt-notes-section">
                 {renderField('notes', form.notes)}
               </div>
 
-              <div className="prt-button-section">
+              {submitMessage && (
+                <div className={`eqt-message ${submitMessage.includes('Error') ? 'eqt-error' : 'eqt-success'}`}>
+                  {submitMessage}
+                </div>
+              )}
+
+              <div className="eqt-button-section">
                 <button
                   type="reset"
                   onClick={handleReset}
-                  className="prt-btn prt-btn-secondary"
+                  className="eqt-btn eqt-btn-secondary"
                 >
                   Reset Form
                 </button>
                 <button
                   type="button"
-                  className="prt-btn prt-btn-tertiary"
+                  className="eqt-btn eqt-btn-tertiary"
                   onClick={toggleView}
                   disabled={isSubmitting}
                 >
@@ -338,20 +325,17 @@ const PortfolioMaster = () => {
                 </button>
                 <button
                   type="submit"
-                  className="prt-btn prt-btn-primary"
+                  className="eqt-btn eqt-btn-primary"
                   disabled={isSubmitting}
                 >
                   {isSubmitting ? 'Saving...' : 'Save Portfolio'}
                 </button>
               </div>
             </form>
-            {submitMessage && (
-              <div className="prt-submit-message">{submitMessage}</div>
-            )}
           </div>
         </div>
 
-        <div className="prt-footer-section">
+        <div className="eqt-footer-section">
           <p>SHERWOOD TECHNOLOGIES (PVT) LTD • Secure portfolio management system • All data is encrypted and protected</p>
         </div>
       </div>

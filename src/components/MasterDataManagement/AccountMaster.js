@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { accountAPI } from '../../services/api';
 import AccountListView from './AccountListView';
-import './Styles/AccountMaster.css';
+import './Styles/EquityMasterEntry.css';
 
 const AccountMaster = () => {
   const [form, setForm] = useState({
@@ -125,14 +125,14 @@ const AccountMaster = () => {
 
   if (showListView) {
     return (
-      <div className="acct-page-container">
-        <div className="acct-content-wrapper">
-          <div className="acct-view-toggle">
-            <button onClick={toggleView} className="acct-back-btn">
+      <div className="eqt-page-container">
+        <div className="eqt-content-wrapper">
+          <div className="eqt-view-toggle">
+            <button onClick={toggleView} className="eqt-back-btn">
               Back to Entry Form
             </button>
-            <button onClick={() => window.location.reload()} className="acct-refresh-btn">
-              <svg className="acct-refresh-icon" fill="currentColor" viewBox="0 0 20 20">
+            <button onClick={() => window.location.reload()} className="eqt-refresh-btn">
+              <svg className="eqt-refresh-icon" fill="currentColor" viewBox="0 0 20 20">
                 <path fillRule="evenodd" d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01.61-1.276z" clipRule="evenodd"/>
               </svg>
               Refresh
@@ -145,49 +145,44 @@ const AccountMaster = () => {
   }
 
   return (
-    <div className="acct-page-container">
-      <div className="acct-content-wrapper">
-        <div className="acct-header-section">
-          <div className="acct-header-icon">
-            <svg className="acct-icon" fill="currentColor" viewBox="0 0 20 20">
-              <path fillRule="evenodd" d="M6 2a2 2 0 00-2 2v12a2 2 0 002 2h8a2 2 0 002-2V4a2 2 0 00-2-2H6zm1 2a1 1 0 000 2h6a1 1 0 100-2H7zm6 7a1 1 0 011 1v3a1 1 0 11-2 0v-3a1 1 0 011-1zm-3 3a1 1 0 100 2h.01a1 1 0 100-2H10zm-4 1a1 1 0 011-1h.01a1 1 0 110 2H7a1 1 0 01-1-1zm1-4a1 1 0 100 2h.01a1 1 0 100-2H7zm2 0a1 1 0 100 2h.01a1 1 0 100-2H9zm2 0a1 1 0 100 2h.01a1 1 0 100-2H11z" clipRule="evenodd"/>
-            </svg>
-          </div>
-          <div className="acct-header-text-group">
-            <h1 className="acct-main-title">Account Master</h1>
-            <p className="acct-subtitle">Configure payment methods and settlement accounts for treasury operations</p>
+    <div className="eqt-page-container">
+      <div className="eqt-content-wrapper">
+        <div className="eqt-header-section">
+          <div className="eqt-header-text-group">
+            <h1 className="eqt-main-title">Account Master</h1>
+            <p className="eqt-subtitle">Configure payment methods and settlement accounts for treasury operations</p>
           </div>
         </div>
 
         {/* Form Card */}
-        <div className="acct-form-card">
-          <div className="acct-card-header">
-            <h2 className="acct-card-title">
+        <div className="eqt-form-card">
+          <div className={`eqt-card-header${isEditMode ? ' eqt-card-header-row' : ''}`}>
+            <h2 className="eqt-card-title">
               {isEditMode ? 'Edit Account' : 'Payment Method Configuration'}
             </h2>
             {isEditMode && (
               <button
                 type="button"
                 onClick={handleCancelEdit}
-                className="acct-cancel-edit-btn"
+                className="eqt-cancel-edit-btn"
               >
                 Cancel Edit
               </button>
             )}
           </div>
 
-          <div className="acct-form-content">
+          <div className="eqt-form-content">
             <form onSubmit={handleSubmit}>
-              <div className="acct-form-grid">
+              <div className="eqt-form-grid">
                 
                 {/* Payment Method */}
-                <div className="acct-field-group">
-                  <label className="acct-field-label">Payment Method *</label>
+                <div className="eqt-field-group">
+                  <label className="eqt-field-label">Payment Method *</label>
                   <select
                     name="paymentMethod"
                     value={form.paymentMethod}
                     onChange={handleChange}
-                    className="acct-form-select"
+                    className="eqt-form-select"
                   >
                     <option value="">Select Payment Method</option>
                     <option value="Bank Transfer">Bank Transfer</option>
@@ -195,114 +190,114 @@ const AccountMaster = () => {
                     <option value="Cheque">Cheque</option>
                     <option value="Cash">Cash</option>
                   </select>
-                  <span className="acct-help-text">Choose the payment method for this account</span>
+                  <span className="eqt-help-text">Choose the payment method for this account</span>
                 </div>
 
                 {/* Account Name */}
-                <div className="acct-field-group">
-                  <label className="acct-field-label">Account Name *</label>
+                <div className="eqt-field-group">
+                  <label className="eqt-field-label">Account Name *</label>
                   <input
                     name="accountName"
                     placeholder="e.g. Main Operating Account, Treasury Account"
                     value={form.accountName}
                     onChange={handleChange}
-                    className="acct-form-input"
+                    className="eqt-form-input"
                   />
-                  <span className="acct-help-text">Descriptive name for this account</span>
+                  <span className="eqt-help-text">Descriptive name for this account</span>
                 </div>
 
                 {/* Account Number */}
-                <div className="acct-field-group">
-                  <label className="acct-field-label">Account Number *</label>
+                <div className="eqt-field-group">
+                  <label className="eqt-field-label">Account Number *</label>
                   <input
                     name="accountNumber"
                     placeholder="e.g. 5566778899"
                     value={form.accountNumber}
                     onChange={handleChange}
-                    className="acct-form-input"
+                    className="eqt-form-input"
                   />
-                  <span className="acct-help-text">Primary account number</span>
+                  <span className="eqt-help-text">Primary account number</span>
                 </div>
 
                 {/* Bank Name */}
-                <div className="acct-field-group">
-                  <label className="acct-field-label">Bank Name *</label>
+                <div className="eqt-field-group">
+                  <label className="eqt-field-label">Bank Name *</label>
                   <input
                     name="bankName"
                     placeholder="e.g. People's Bank"
                     value={form.bankName}
                     onChange={handleChange}
-                    className="acct-form-input"
+                    className="eqt-form-input"
                   />
-                  <span className="acct-help-text">Name of the bank</span>
+                  <span className="eqt-help-text">Name of the bank</span>
                 </div>
 
                 {/* Branch Name */}
-                <div className="acct-field-group">
-                  <label className="acct-field-label">Branch Name *</label>
+                <div className="eqt-field-group">
+                  <label className="eqt-field-label">Branch Name *</label>
                   <input
                     name="branchName"
                     placeholder="e.g. Online Banking"
                     value={form.branchName}
                     onChange={handleChange}
-                    className="acct-form-input"
+                    className="eqt-form-input"
                   />
-                  <span className="acct-help-text">Branch or service type</span>
+                  <span className="eqt-help-text">Branch or service type</span>
                 </div>
 
                 {/* SWIFT Code */}
-                <div className="acct-field-group">
-                  <label className="acct-field-label">SWIFT Code</label>
+                <div className="eqt-field-group">
+                  <label className="eqt-field-label">SWIFT Code</label>
                   <input
                     name="swiftCode"
                     placeholder="e.g. PSBKL2X"
                     value={form.swiftCode}
                     onChange={handleChange}
-                    className="acct-form-input"
+                    className="eqt-form-input"
                   />
-                  <span className="acct-help-text">Bank SWIFT code (optional)</span>
+                  <span className="eqt-help-text">Bank SWIFT code (optional)</span>
                 </div>
 
                 {/* IBAN */}
-                <div className="acct-field-group">
-                  <label className="acct-field-label">IBAN</label>
+                <div className="eqt-field-group">
+                  <label className="eqt-field-label">IBAN</label>
                   <input
                     name="iban"
                     placeholder="e.g. LK5566778899001122334455"
                     value={form.iban}
                     onChange={handleChange}
-                    className="acct-form-input"
+                    className="eqt-form-input"
                   />
-                  <span className="acct-help-text">International Bank Account Number (optional)</span>
+                  <span className="eqt-help-text">International Bank Account Number (optional)</span>
                 </div>
               </div>
 
               {/* Error Message */}
               {submitMessage && (
-                <div className={`acct-submit-message ${submitMessage.includes('Error') ? 'acct-error-message' : 'acct-success-message'}`}>
+                <div className={`eqt-message ${submitMessage.includes('Error') ? 'eqt-error' : 'eqt-success'}`}>
                   {submitMessage}
                 </div>
               )}
 
               {/* Buttons */}
-              <div className="acct-button-section">
+              <div className="eqt-button-section">
                 <button
                   type="button"
                   onClick={handleReset}
-                  className="acct-btn acct-btn-secondary"
+                  className="eqt-btn eqt-btn-secondary"
                 >
                   Reset Form
                 </button>
                 <button
                   type="button"
                   onClick={toggleView}
-                  className="acct-btn acct-btn-tertiary"
+                  className="eqt-btn eqt-btn-tertiary"
                 >
                   View Existing Methods
                 </button>
                 <button
                   type="submit"
-                  className="acct-btn acct-btn-primary"
+                  className="eqt-btn eqt-btn-primary"
                   disabled={isSubmitting}
                 >
                   {isSubmitting 
@@ -316,7 +311,7 @@ const AccountMaster = () => {
         </div>
 
         {/* Footer */}
-        <div className="acct-footer-section">
+        <div className="eqt-footer-section">
           <p>SHERWOOD TECHNOLOGIES (PVT) LTD • Secure payment method configuration • All data is encrypted and protected</p>
         </div>
       </div>
