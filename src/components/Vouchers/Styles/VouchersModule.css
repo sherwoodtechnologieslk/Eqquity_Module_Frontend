@@ -1,0 +1,5 @@
+.vm-page {
+  min-height: 100vh;
+  padding: 0.35rem 1rem 2rem;
+  box-sizing: border-box;
+}
