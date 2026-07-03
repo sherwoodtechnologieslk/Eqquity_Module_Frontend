@@ -1,24 +1,65 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { equityAPI } from '../../services/api';
 import './Styles/EquityListView.css';
 
-const EquityListView = () => {
+const PAGE_SIZE = 20;
+
+const EquityListView = ({ embedded = false, refreshKey = 0 }) => {
   const [equities, setEquities] = useState([]);
   const [filteredEquities, setFilteredEquities] = useState([]);
+  const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
   const [searchFocused, setSearchFocused] = useState(false);
   const [editingEquity, setEditingEquity] = useState(null);
   const [showEditModal, setShowEditModal] = useState(false);
-
+  const loadMoreRef = useRef(null);
+  const scrollAreaRef = useRef(null);
   useEffect(() => {
     fetchEquities();
-  }, []);
+  }, [refreshKey]);
 
   useEffect(() => {
     filterEquities();
   }, [searchQuery, equities]);
+
+  useEffect(() => {
+    setVisibleCount(PAGE_SIZE);
+  }, [searchQuery, refreshKey, filteredEquities.length]);
+
+  const loadMore = useCallback(() => {
+    setVisibleCount((count) => {
+      if (count >= filteredEquities.length) {
+        return count;
+      }
+      return Math.min(count + PAGE_SIZE, filteredEquities.length);
+    });
+  }, [filteredEquities.length]);
+
+  useEffect(() => {
+    const sentinel = loadMoreRef.current;
+    const scrollRoot = scrollAreaRef.current;
+    if (!sentinel || filteredEquities.length <= visibleCount) {
+      return undefined;
+    }
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0]?.isIntersecting) {
+          loadMore();
+        }
+      },
+      {
+        root: scrollRoot,
+        rootMargin: '80px',
+        threshold: 0.1
+      }
+    );
+
+    observer.observe(sentinel);
+    return () => observer.disconnect();
+  }, [filteredEquities.length, visibleCount, loadMore]);
 
   const fetchEquities = async () => {
     try {
@@ -88,9 +129,16 @@ const EquityListView = () => {
     setEditingEquity(null);
   };
 
+  const containerClass = embedded
+    ? 'eqt-list-container eqt-list-container--embedded'
+    : 'eqt-list-container';
+
+  const visibleEquities = filteredEquities.slice(0, visibleCount);
+  const hasMore = visibleCount < filteredEquities.length;
+
   if (loading) {
     return (
-      <div className="eqt-list-container">
+      <div className={containerClass}>
         <div className="eqt-loading">
           <div className="eqt-loading-spinner"></div>
           <p>Loading equities...</p>
@@ -100,7 +148,7 @@ const EquityListView = () => {
   }
 
   return (
-    <div className="eqt-list-container">
+    <div className={containerClass}>
 
       {/* Unique Search Bar */}
       <div className="eqt-search-container">
@@ -135,7 +183,16 @@ const EquityListView = () => {
         {searchQuery && (
           <div className="eqt-search-results-info">
             <span className="eqt-search-count">
-              {filteredEquities.length} of {equities.length} equities found
+              Showing {Math.min(visibleCount, filteredEquities.length)} of {filteredEquities.length} matches
+              {hasMore ? ' — scroll down for more' : ''}
+            </span>
+          </div>
+        )}
+        {!searchQuery && filteredEquities.length > 0 && (
+          <div className="eqt-search-results-info">
+            <span className="eqt-search-count">
+              Showing {Math.min(visibleCount, filteredEquities.length)} of {filteredEquities.length} equities
+              {hasMore ? ' — scroll down for more' : ''}
             </span>
           </div>
         )}
@@ -159,29 +216,29 @@ const EquityListView = () => {
             </svg>
           </div>
           <h3>{searchQuery ? 'No Search Results' : 'No Equities Found'}</h3>
-          <p>{searchQuery ? `No equities found matching "${searchQuery}". Try adjusting your search terms.` : 'Add your first equity using the Equity Master Entry form to get started.'}</p>
+          <p>{searchQuery ? `No equities found matching "${searchQuery}". Try adjusting your search terms.` : 'Add your first equity using the form above.'}</p>
         </div>
       ) : (
         <div className="eqt-table-container">
-        
-          <div className="eqt-table-wrapper">
-            <table className="eqt-table">
-              <thead>
-                <tr>
-                  <th>Company Name</th>
-                  <th>Symbol</th>
-                  <th>ISIN</th>
-                  <th>Sector</th>
-                  <th>Market</th>
-                  <th>Country</th>
-                  <th>Currency</th>
-                  <th>Status</th>
-                  <th>Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {filteredEquities.map((equity, index) => (
-                  <tr key={equity.id} className={index % 2 === 0 ? 'eqt-row-even' : 'eqt-row-odd'}>
+          <div className="eqt-table-scroll-area" ref={scrollAreaRef}>
+            <div className="eqt-table-wrapper">
+              <table className="eqt-table">
+                <thead>
+                  <tr>
+                    <th>Company Name</th>
+                    <th>Symbol</th>
+                    <th>ISIN</th>
+                    <th>Sector</th>
+                    <th>Market</th>
+                    <th>Country</th>
+                    <th>Currency</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {visibleEquities.map((equity, index) => (
+                    <tr key={equity.id} className={index % 2 === 0 ? 'eqt-row-even' : 'eqt-row-odd'}>
                     <td className="eqt-cell-name">{equity.name}</td>
                     <td className="eqt-cell-symbol">{equity.symbol}</td>
                     <td className="eqt-cell-isin">{equity.isin}</td>
@@ -220,9 +277,20 @@ const EquityListView = () => {
                       </div>
                     </td>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                  ))}
+                  {hasMore && (
+                    <tr ref={loadMoreRef} className="eqt-load-more-row">
+                      <td colSpan="9">
+                        <div className="eqt-load-more-indicator">
+                          <div className="eqt-load-more-spinner"></div>
+                          <span>Loading more equities...</span>
+                        </div>
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
           </div>
         </div>
       )}

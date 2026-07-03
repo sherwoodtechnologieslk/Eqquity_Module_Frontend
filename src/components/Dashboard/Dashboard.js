@@ -8,7 +8,7 @@ import {
   Legend
 } from 'chart.js';
 import { Bar } from 'react-chartjs-2';
-import { tradeSummaryAPI, transactionEntryAPI } from '../../services/api';
+import { transactionEntryAPI } from '../../services/api';
 import { realizedPnLService } from '../../services/realizedPnLService';
 import { authService } from '../../services/authService';
 import RiskReturnScatterPlot from './RiskReturnScatterPlot';
@@ -20,7 +20,6 @@ import MarketTodayOverview from './cse/MarketTodayOverview';
 import MarketBreadthTurnoverCard from './cse/MarketBreadthTurnoverCard';
 import SectorIndicesCard from './cse/SectorIndicesCard';
 import DetailedTradesCard from './cse/DetailedTradesCard';
-import CovidNoticesCard from './cse/CovidNoticesCard';
 import CompanyIntradayCard from './cse/CompanyIntradayCard';
 import './Dashboard.css';
 
@@ -241,7 +240,6 @@ function computePortfolioInsights(holdings, pnlMetrics) {
 const Dashboard = ({ onTabChange }) => {
   const [dashboardData, setDashboardData] = useState({
     activePortfolios: 0,
-    topPerformers: [],
     marketAlerts: [],
     sectorData: [],
     sectorLegend: [],
@@ -397,7 +395,6 @@ const Dashboard = ({ onTabChange }) => {
       });
 
       let activePortfolios = 0;
-      let topPerformers = [];
       let marketAlerts = [];
       let sectorData = [];
       let sectorLegend = [];
@@ -445,12 +442,6 @@ const Dashboard = ({ onTabChange }) => {
       }
 
       const apiBase = process.env.REACT_APP_API_URL || 'http://localhost:8080/api';
-      // Run in parallel with P&L below (no dependency on portfolio id).
-      // Use allSettled so one failing endpoint (e.g. sell-all) does not reject the whole dashboard load.
-      const txPromise = tradeSummaryAPI.getBuyTransactions().catch((err) => {
-        console.error('Dashboard: buy transactions request failed:', err);
-        return [];
-      });
       const holdingsPromise = fetch(`${apiBase}/portfolios/overview`, {
         method: 'GET',
         headers: {
@@ -566,45 +557,10 @@ const Dashboard = ({ onTabChange }) => {
           }
       }
 
-      // Await buy transactions + holdings (requests started above, in parallel with P&L when applicable)
+      // Await holdings (request started above, in parallel with P&L when applicable)
       try {
-        console.log('Fetching real transactions and holdings from database...');
-        const [buyTransactions, holdingsResult] = await Promise.all([
-          txPromise,
-          holdingsPromise
-        ]);
-
-        console.log('Buy transactions:', buyTransactions);
-
-        // Calculate top performers from buy transactions
-        const performerMap = new Map();
-        buyTransactions.forEach(tx => {
-          const key = tx.symbol || 'N/A';
-          if (performerMap.has(key)) {
-            const existing = performerMap.get(key);
-            existing.totalValue += (tx.quantity || 0) * (tx.price || 0);
-            existing.transactionCount += 1;
-            existing.totalQuantity += (tx.quantity || 0);
-          } else {
-            performerMap.set(key, {
-              symbol: key,
-              name: tx.company_name || 'Unknown',
-              totalValue: (tx.quantity || 0) * (tx.price || 0),
-              transactionCount: 1,
-              totalQuantity: tx.quantity || 0
-            });
-          }
-        });
-
-        topPerformers = Array.from(performerMap.values())
-          .map(performer => ({
-            symbol: performer.symbol,
-            name: performer.name,
-            avgPrice: performer.totalQuantity > 0 ? performer.totalValue / performer.totalQuantity : 0,
-            transactionCount: performer.transactionCount
-          }))
-          .sort((a, b) => b.transactionCount - a.transactionCount)
-          .slice(0, 5);
+        console.log('Fetching holdings from database...');
+        const holdingsResult = await holdingsPromise;
 
         marketAlerts = [
           { type: 'info', message: `${activePortfolios} active portfolios found` }
@@ -719,13 +675,12 @@ const Dashboard = ({ onTabChange }) => {
         portfolioHealth = computePortfolioHealth(holdingsData, sectorData);
         portfolioInsights = computePortfolioInsights(holdingsData, pnlMetrics);
 
-      } catch (transactionError) {
-        console.error('Error fetching transactions:', transactionError);
-        
-        // Use empty data if transaction fetch fails
-        topPerformers = [];
+      } catch (holdingsError) {
+        console.error('Error fetching holdings:', holdingsError);
+
+        // Use empty data if holdings fetch fails
         marketAlerts = [
-          { type: 'error', message: 'Failed to load transaction data' }
+          { type: 'error', message: 'Failed to load holdings data' }
         ];
         sectorData = [];
         sectorLegend = [];
@@ -740,12 +695,6 @@ const Dashboard = ({ onTabChange }) => {
       
       setDashboardData({
         activePortfolios,
-        topPerformers: topPerformers.map(performer => ({
-          symbol: performer.symbol || 'N/A',
-          name: performer.name || 'Unknown',
-          avgPrice: performer.avgPrice || 0,
-          transactionCount: performer.transactionCount || 0
-        })),
         marketAlerts: marketAlerts,
         sectorData: sectorData,
         sectorLegend: sectorLegend,
@@ -766,7 +715,6 @@ const Dashboard = ({ onTabChange }) => {
       // Set empty data on error
       setDashboardData({
         activePortfolios: 0,
-        topPerformers: [],
         marketAlerts: [
           { type: 'error', message: 'Failed to load dashboard data. Please try again.' }
         ],
@@ -1020,6 +968,10 @@ const Dashboard = ({ onTabChange }) => {
         <div className="dashboard-body__left">
           {/* Live CSE — combined market summary + ASPI intraday trend */}
           <MarketTodayOverview />
+
+          {/* Live CSE — sector index values (allSectors) */}
+          <SectorIndicesCard />
+
           {marketPulseEl}
           {portfolioHeroEl}
           <div className="left-column">
@@ -1033,31 +985,6 @@ const Dashboard = ({ onTabChange }) => {
 
         {/* Market News (NewsAPI) */}
         <MarketNewsWidget onOpenFull={() => onTabChange && onTabChange('News & Events')} />
-
-        {/* Live CSE — sector index values (allSectors) */}
-        <SectorIndicesCard />
-
-        {/* Top Performers */}
-        <div className="content-card">
-          <div className="card-header">
-            <div className="header-left">
-              <span className="card-subtitle">Most traded stocks</span>
-            </div>
-          </div>
-          <div className="performers-container">
-            {dashboardData.topPerformers.map((performer, index) => (
-              <div key={index} className="performer-card">
-                <div className="performer-info">
-                  <div className="performer-symbol">{performer.symbol || 'N/A'}</div>
-                  <div className="performer-name">{performer.name || 'Unknown'}</div>
-                </div>
-                <div className="performer-stats">
-                  <div className="performer-trades">{performer.transactionCount || 0} trades</div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
 
           </div>
         </div>
@@ -1439,9 +1366,6 @@ const Dashboard = ({ onTabChange }) => {
 
           {/* Live CSE — recent trade prints / tape (detailedTrades) */}
           <DetailedTradesCard />
-
-          {/* Live CSE — archived COVID-19 disclosures (getCOVIDAnnouncements) */}
-          <CovidNoticesCard />
 
         {/* Quick Actions */}
         <div className="content-card">

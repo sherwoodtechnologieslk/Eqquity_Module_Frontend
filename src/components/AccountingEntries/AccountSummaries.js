@@ -632,6 +632,9 @@ const AccountSummaries = () => {
         accountData={accountModalData}
         loadError={accountModalError}
         detailSource="Combined (GL · Other · GSec · OB)"
+        onNavigateAccount={(code) =>
+          handleAccountDrillDown({ account_code: code, account_name: '' })
+        }
       />
     </div>
   );

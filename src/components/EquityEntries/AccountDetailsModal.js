@@ -1,7 +1,42 @@
 import React, { useState, useEffect } from 'react';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
+import { journalEntriesAPI } from '../../services/api';
+import RelatedEntriesModal from './RelatedEntriesModal';
 import './Styles/AccountDetailsModal.css';
+
+const resolveEntryLink = (entry) => {
+  if (!entry) return null;
+
+  if (entry.ledgerSource && entry.lineId != null) {
+    return { source: entry.ledgerSource, lineId: entry.lineId };
+  }
+
+  const entrySource = entry.entry_source || entry.entrySource;
+  const lineId = entry.lineId ?? entry.id;
+
+  if (
+    entry.source === 'Opening Balance' ||
+    entrySource === 'OpeningBalance' ||
+    entry.entry_source === 'OpeningBalance'
+  ) {
+    return null;
+  }
+
+  if (entry.source === 'GSec' || entrySource === 'GSec') {
+    return lineId != null ? { source: 'gsec', lineId } : null;
+  }
+
+  if (entrySource === 'OtherTransaction') {
+    return lineId != null ? { source: 'other', lineId } : null;
+  }
+
+  if (entrySource === 'GeneralLedger' || entry.source === 'Equity') {
+    return lineId != null ? { source: 'equity', lineId } : null;
+  }
+
+  return lineId != null ? { source: 'equity', lineId } : null;
+};
 
 const AccountDetailsModal = ({
   isOpen,
@@ -11,12 +46,22 @@ const AccountDetailsModal = ({
   loadError,
   detailSource,
   softHeader = false,
+  onNavigateAccount,
 }) => {
   const [isVisible, setIsVisible] = useState(false);
+  const [relatedOpen, setRelatedOpen] = useState(false);
+  const [relatedLoading, setRelatedLoading] = useState(false);
+  const [relatedError, setRelatedError] = useState('');
+  const [relatedData, setRelatedData] = useState(null);
 
   useEffect(() => {
     if (isOpen) {
       setIsVisible(true);
+    } else {
+      setRelatedOpen(false);
+      setRelatedData(null);
+      setRelatedError('');
+      setRelatedLoading(false);
     }
   }, [isOpen]);
 
@@ -24,8 +69,50 @@ const AccountDetailsModal = ({
   const showSourceColumn = entries.some((e) => e && e.source);
 
   const handleClose = () => {
+    setRelatedOpen(false);
+    setRelatedData(null);
+    setRelatedError('');
     setIsVisible(false);
     setTimeout(onClose, 300);
+  };
+
+  const handleCloseRelated = () => {
+    setRelatedOpen(false);
+    setRelatedData(null);
+    setRelatedError('');
+  };
+
+  const handleEntryClick = async (entry) => {
+    const link = resolveEntryLink(entry);
+    if (!link) return;
+
+    setRelatedOpen(true);
+    setRelatedLoading(true);
+    setRelatedError('');
+    setRelatedData(null);
+
+    try {
+      const response = await journalEntriesAPI.getDoubleEntryGroup(link.source, link.lineId);
+      if (!response?.success || !response?.data) {
+        throw new Error(response?.error || 'Failed to load related entries');
+      }
+      setRelatedData(response.data);
+    } catch (err) {
+      console.error('Error loading related entries:', err);
+      setRelatedError(err.message || 'Failed to load related entries');
+    } finally {
+      setRelatedLoading(false);
+    }
+  };
+
+  const handleRelatedAccountClick = (nextAccountCode) => {
+    if (!nextAccountCode || String(nextAccountCode) === String(accountCode)) {
+      return;
+    }
+    handleCloseRelated();
+    if (typeof onNavigateAccount === 'function') {
+      onNavigateAccount(nextAccountCode);
+    }
   };
 
   const formatCurrency = (amount) => {
@@ -211,7 +298,10 @@ const AccountDetailsModal = ({
 
   return (
     <div className={`account-modal-overlay ${isVisible ? 'visible' : ''}`} onClick={handleClose}>
-      <div className={`account-modal-content ${isVisible ? 'visible' : ''}`} onClick={e => e.stopPropagation()}>
+      <div
+        className={`account-modal-content account-details-modal ${isVisible ? 'visible' : ''}`}
+        onClick={e => e.stopPropagation()}
+      >
         <div className="account-modal-form-card">
           <div
             className={`account-modal-header${softHeader ? ' account-modal-header--soft' : ''}`}
@@ -373,6 +463,9 @@ const AccountDetailsModal = ({
                   {accountData.entries && accountData.entries.length > 0 && (
                     <div className="entries-section">
                       <h3 className="section-title">Transaction Entries</h3>
+                      <p className="entries-section-hint">
+                        Click a row to view the full double entry and its other-side accounts.
+                      </p>
                       <div className="entries-table-container">
                         <table className={`entries-table ${showSourceColumn ? 'has-source' : ''}`}>
                           <thead>
@@ -387,8 +480,32 @@ const AccountDetailsModal = ({
                             </tr>
                           </thead>
                           <tbody>
-                            {accountData.entries.map((entry, index) => (
-                              <tr key={index}>
+                            {accountData.entries.map((entry, index) => {
+                              const entryLink = resolveEntryLink(entry);
+                              const isClickable = Boolean(entryLink);
+
+                              return (
+                              <tr
+                                key={`${entryLink?.source || 'entry'}-${entryLink?.lineId || entry.id || index}-${index}`}
+                                className={isClickable ? 'entry-row-clickable' : 'entry-row-static'}
+                                onClick={isClickable ? () => handleEntryClick(entry) : undefined}
+                                onKeyDown={
+                                  isClickable
+                                    ? (e) => {
+                                        if (e.key === 'Enter' || e.key === ' ') {
+                                          e.preventDefault();
+                                          handleEntryClick(entry);
+                                        }
+                                      }
+                                    : undefined
+                                }
+                                tabIndex={isClickable ? 0 : undefined}
+                                title={
+                                  isClickable
+                                    ? 'View double entry — other-side accounts'
+                                    : 'Opening balance lines do not have counterpart entries'
+                                }
+                              >
                                 {showSourceColumn && (
                                   <td>
                                     <span
@@ -410,7 +527,8 @@ const AccountDetailsModal = ({
                                 </td>
                                 <td>{entry.transaction_type}</td>
                               </tr>
-                            ))}
+                              );
+                            })}
                           </tbody>
                         </table>
                       </div>
@@ -450,6 +568,16 @@ const AccountDetailsModal = ({
           </div>
         </div>
       </div>
+
+      <RelatedEntriesModal
+        isOpen={relatedOpen}
+        onClose={handleCloseRelated}
+        groupData={relatedData}
+        loading={relatedLoading}
+        error={relatedError}
+        currentAccountCode={accountData?.accountCode || accountCode}
+        onAccountClick={onNavigateAccount ? handleRelatedAccountClick : undefined}
+      />
     </div>
   );
 };
