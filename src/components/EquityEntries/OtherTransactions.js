@@ -796,7 +796,7 @@ const buildRequestLetterDoc = (form) => {
   </div>`;
 };
 
-const OtherTransactions = () => {
+const OtherTransactions = ({ initialTab = 'create' }) => {
   const [form, setForm] = useState({
     voucherNumber: generateVoucherNumber(),
     category: '', // Main category (Income, Expense, Asset, Liability)
@@ -900,7 +900,7 @@ const OtherTransactions = () => {
   });
   
   // New states for viewing vouchers and general ledger
-  const [activeTab, setActiveTab] = useState('create'); // 'create', 'defineTransaction', 'view', 'generalLedger', 'reverseTransaction'
+  const [activeTab, setActiveTab] = useState(initialTab); // 'create', 'defineTransaction', 'view', 'generalLedger', 'reverseTransaction'
   const [activeCategory, setActiveCategory] = useState('all'); // 'all', 'income', 'expense', 'asset', 'liability'
   
   // Form type state for Create Voucher tab (voucher, assetDepreciation, assetDerecognition, liabilitySettlement, glToGl)
@@ -1217,6 +1217,10 @@ const OtherTransactions = () => {
         setHolidays([]);
       });
   }, []);
+
+  useEffect(() => {
+    setActiveTab(initialTab);
+  }, [initialTab]);
 
   // Fetch accounts, GL mappings, and account categories on mount
   useEffect(() => {

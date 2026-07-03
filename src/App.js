@@ -63,6 +63,8 @@ import EquityGLMapping from './components/TradeCapture/EquityGLMapping';
 import AvgCostCalculator from './components/TradeCapture/AvgCostCalculator';
 import PortfolioMTM from './components/EquityEntries/PortfolioMTM';
 import OtherTransactions from './components/EquityEntries/OtherTransactions';
+import VouchersModule from './components/Vouchers/VouchersModule';
+import InternalBankTransferModule from './components/Vouchers/InternalBankTransferModule';
 import OpeningBalEntry from './components/OpeningBalManage/OpeningBalEntry';
 import OpeningBalList from './components/OpeningBalManage/OpeningBalList';
 import AccountBalanceSetup from './components/OpeningBalManage/AccountBalanceSetup';
@@ -80,6 +82,7 @@ import NewsEvents from './components/CSEAnnouncements/NewsEvents';
 import FinancialReports from './components/CSEAnnouncements/FinancialReports';
 import TradingUpdates from './components/CSEAnnouncements/TradingUpdates';
 import RegulatoryUpdates from './components/CSEAnnouncements/RegulatoryUpdates';
+import CovidDisclosures from './components/CSEAnnouncements/CovidDisclosures';
 import FinancialPosition from './components/FinancialReporting/FinancialPosition';
 import StatementOfComprehensiveIncome from './components/FinancialReporting/StatementOfComprehensiveIncome';
 import CashFlow from './components/FinancialReporting/CashFlow';
@@ -313,6 +316,8 @@ function App() {
     'Trial Balance': <TrialBalance />,
     'Account Reconciliation': <AccountReconciliation />,
     'Other Transactions': <OtherTransactions />,
+    Vouchers: <VouchersModule />,
+    'Internal Bank Transfer': <InternalBankTransferModule />,
     'P&L': <ProfitLoss />,
     'Portfolio MTM': <PortfolioMTM />,
     'Double Entries': <DoubleEntries />,
@@ -328,6 +333,7 @@ function App() {
     'Trading Updates': <TradingUpdates />,
     'Regulatory Updates': <RegulatoryUpdates />,
     'Financial Reports': <FinancialReports />,
+    'COVID-19 Disclosures': <CovidDisclosures />,
     'News & Events': <NewsEvents />,
     'TradeCore': <TradeCore />,
     'Statement of Financial Position': <FinancialPosition onTabChange={handleTabChange} />,
