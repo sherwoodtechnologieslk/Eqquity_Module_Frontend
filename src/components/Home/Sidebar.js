@@ -209,8 +209,7 @@ export const equityManagerMenuItems = [
     subTopics: [
       "Chart Of Accounts",
       "New GL Account",
-      "Account Reconciliation",
-      "Other Transactions"
+      "Account Reconciliation"
     ]
   },
   {
@@ -222,6 +221,7 @@ export const equityManagerMenuItems = [
     name: "Vouchers",
     subTopics: [
       "Vouchers",
+      "Other Transactions",
       "Internal Bank Transfer"
     ]
   },

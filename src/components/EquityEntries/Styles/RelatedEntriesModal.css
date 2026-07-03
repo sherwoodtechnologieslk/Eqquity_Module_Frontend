@@ -147,11 +147,11 @@
 }
 
 .related-entries-summary-item strong.debit {
-  color: #1d4ed8;
+  color: #059669;
 }
 
 .related-entries-summary-item strong.credit {
-  color: #0369a1;
+  color: #dc2626;
 }
 
 .related-entries-summary-item strong.balanced {
@@ -213,28 +213,39 @@
 }
 
 .related-entries-table td.debit {
-  color: #1d4ed8;
+  color: #059669;
   font-weight: 600;
 }
 
 .related-entries-table td.credit {
-  color: #0369a1;
+  color: #dc2626;
   font-weight: 600;
+}
+
+.related-entries-table td:first-child {
+  font-family: 'Courier New', Courier, ui-monospace, monospace;
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: #1e293b;
 }
 
 .related-account-link {
   border: none;
   background: none;
   padding: 0;
+  font: inherit;
   color: #2563eb;
-  font-weight: 700;
   cursor: pointer;
   text-decoration: underline;
+  text-decoration-color: rgba(37, 99, 235, 0.35);
   text-underline-offset: 2px;
+  transition: color 0.15s ease, text-decoration-color 0.15s ease;
 }
 
 .related-account-link:hover {
   color: #1d4ed8;
+  text-decoration-color: rgba(29, 78, 216, 0.65);
 }
 
 .related-account-link.is-current {
