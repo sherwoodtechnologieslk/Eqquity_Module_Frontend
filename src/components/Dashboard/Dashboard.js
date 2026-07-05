@@ -19,7 +19,6 @@ import DashboardMarketMovers from './DashboardMarketMovers';
 import MarketTodayOverview from './cse/MarketTodayOverview';
 import MarketBreadthTurnoverCard from './cse/MarketBreadthTurnoverCard';
 import SectorIndicesCard from './cse/SectorIndicesCard';
-import DetailedTradesCard from './cse/DetailedTradesCard';
 import CompanyIntradayCard from './cse/CompanyIntradayCard';
 import './Dashboard.css';
 
@@ -1363,9 +1362,6 @@ const Dashboard = ({ onTabChange }) => {
               );
             })()}
           </div>
-
-          {/* Live CSE — recent trade prints / tape (detailedTrades) */}
-          <DetailedTradesCard />
 
         {/* Quick Actions */}
         <div className="content-card">
