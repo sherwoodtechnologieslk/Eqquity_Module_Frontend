@@ -552,7 +552,7 @@ const FinancialPosition = ({ onTabChange }) => {
 
               <div className="fp-total-strip">
                 <span className="fp-total-strip-label">Total Assets</span>
-                <span className="fp-total-strip-value positive">
+                <span className="fp-total-strip-value">
                   {formatCurrency(Number(financialPositionData?.totals?.totalAssets) || 0)}
                 </span>
               </div>
@@ -648,7 +648,7 @@ const FinancialPosition = ({ onTabChange }) => {
 
               <div className="fp-total-strip">
                 <span className="fp-total-strip-label">Total Equity & Liabilities</span>
-                <span className="fp-total-strip-value positive">
+                <span className="fp-total-strip-value">
                   {formatCurrency(Number(equityTotalsForDisplay?.totalLiabilitiesAndEquity) || 0)}
                 </span>
               </div>
