@@ -569,3 +569,254 @@
     gap: 4px 10px;
   }
 }
+
+/* ----- Dashboard card integration ----- */
+.content-card.dashboard-chart-lead .risk-return-scatter-plot {
+  --rr-bg: #f1f5f9;
+  --rr-surface: #ffffff;
+  --rr-strip: #f8fafc;
+  --rr-line-soft: rgba(15, 23, 42, 0.08);
+  --rr-grid: rgba(148, 163, 184, 0.35);
+}
+
+.content-card.dashboard-chart-lead .scatter-plot-header {
+  background: transparent;
+  border: none;
+  padding: 0;
+  flex-shrink: 0;
+}
+
+.content-card.dashboard-chart-lead .scatter-plot-header .header-left::before {
+  display: none;
+}
+
+.content-card.dashboard-chart-lead .scatter-plot-header .card-subtitle {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  padding: 0 0 2px;
+  margin: 0;
+  color: #0f172a;
+  white-space: normal;
+  line-height: 1.35;
+}
+
+.content-card.dashboard-chart-lead .scatter-plot-controls {
+  background: #ffffff;
+  border: 1px solid rgba(15, 23, 42, 0.07);
+  border-bottom: 1px solid rgba(15, 23, 42, 0.07);
+  border-radius: 10px;
+  padding: 8px;
+  margin: 0;
+  gap: 8px;
+  flex-wrap: wrap;
+  align-items: stretch;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+  flex-shrink: 0;
+}
+
+.content-card.dashboard-chart-lead .scatter-plot-controls__segment {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0;
+  min-height: 30px;
+  background: #f1f5f9;
+  border: 1px solid rgba(15, 23, 42, 0.05);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.content-card.dashboard-chart-lead .time-btn,
+.content-card.dashboard-chart-lead .color-btn {
+  border: none;
+  border-right: 1px solid rgba(15, 23, 42, 0.06);
+  border-radius: 0;
+  font-family: 'Inter', system-ui, sans-serif;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0;
+  text-transform: none;
+  padding: 7px 10px;
+  min-width: 0;
+  line-height: 1.2;
+}
+
+.content-card.dashboard-chart-lead .time-range-buttons .time-btn:last-child,
+.content-card.dashboard-chart-lead .color-mode-buttons .color-btn:last-child {
+  border-right: none;
+}
+
+.content-card.dashboard-chart-lead .control-group-label,
+.content-card.dashboard-chart-lead .control-group-label--inline {
+  font-family: 'Inter', system-ui, sans-serif;
+  font-size: 0.5625rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  padding: 0 0 0 8px;
+  flex-shrink: 0;
+  line-height: 1;
+}
+
+.content-card.dashboard-chart-lead .scatter-plot-chartjs-wrapper {
+  min-height: 400px;
+  padding: 8px 10px 6px;
+  border: none;
+  box-shadow: none;
+  background: transparent;
+}
+
+.content-card.dashboard-chart-lead .scatter-quadrant-legend {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0;
+  width: 100%;
+  background: #ffffff;
+  border: 1px solid rgba(15, 23, 42, 0.07);
+  border-radius: 10px;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  font-family: 'Inter', system-ui, sans-serif;
+  font-size: 0.5625rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  text-transform: none;
+  color: #64748b;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+  flex-shrink: 0;
+}
+
+.content-card.dashboard-chart-lead .scatter-quadrant-legend__item {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  padding: 8px 6px;
+  border-right: 1px solid rgba(15, 23, 42, 0.06);
+  border-bottom: none;
+  white-space: normal;
+  text-align: center;
+  line-height: 1.25;
+}
+
+.content-card.dashboard-chart-lead .scatter-quadrant-legend__item:last-child {
+  border-right: none;
+}
+
+.content-card.dashboard-chart-lead .scatter-quadrant-legend__swatch {
+  width: 7px;
+  height: 7px;
+  border-radius: 2px;
+  border-color: rgba(15, 23, 42, 0.12);
+  flex-shrink: 0;
+}
+
+.content-card.dashboard-chart-lead .scatter-legend.scatter-plot-panel {
+  padding: 10px 12px;
+  flex-shrink: 0;
+}
+
+.content-card.dashboard-chart-lead .scatter-legend .legend-content {
+  padding: 0;
+  margin: 0;
+}
+
+.content-card.dashboard-chart-lead .legend-title {
+  font-family: 'Inter', system-ui, sans-serif;
+  font-size: 0.5625rem;
+  font-weight: 600;
+  letter-spacing: 0.07em;
+  margin: 0 0 8px;
+  padding: 0;
+}
+
+.content-card.dashboard-chart-lead .legend-items {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 6px 12px;
+  padding: 0;
+  margin: 0;
+}
+
+.content-card.dashboard-chart-lead .legend-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  font-family: 'Inter', system-ui, sans-serif;
+  font-size: 0.6875rem;
+  font-weight: 500;
+  letter-spacing: 0;
+  color: #334155;
+}
+
+.content-card.dashboard-chart-lead .legend-item span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.content-card.dashboard-chart-lead .legend-color {
+  width: 8px;
+  height: 8px;
+  border-radius: 2px;
+  border: none;
+  flex-shrink: 0;
+}
+
+.content-card.dashboard-chart-lead .scatter-plot-loading.scatter-plot-panel,
+.content-card.dashboard-chart-lead .scatter-plot-error.scatter-plot-panel,
+.content-card.dashboard-chart-lead .scatter-plot-empty.scatter-plot-panel {
+  margin: 0;
+  border-style: dashed;
+  border-color: rgba(148, 163, 184, 0.35);
+  background: #f8fafc;
+  box-shadow: none;
+}
+
+@media (max-width: 900px) {
+  .content-card.dashboard-chart-lead .scatter-quadrant-legend {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .content-card.dashboard-chart-lead .scatter-quadrant-legend__item:nth-child(2) {
+    border-right: none;
+  }
+
+  .content-card.dashboard-chart-lead .scatter-quadrant-legend__item:nth-child(-n + 2) {
+    border-bottom: 1px solid rgba(15, 23, 42, 0.06);
+  }
+}
+
+@media (max-width: 640px) {
+  .content-card.dashboard-chart-lead .risk-return-scatter-plot {
+    padding: 12px;
+  }
+
+  .content-card.dashboard-chart-lead .scatter-plot-body {
+    padding: 8px;
+    gap: 6px;
+  }
+
+  .content-card.dashboard-chart-lead .legend-items {
+    grid-template-columns: 1fr;
+  }
+
+  .content-card.dashboard-chart-lead .scatter-quadrant-legend {
+    grid-template-columns: 1fr;
+  }
+
+  .content-card.dashboard-chart-lead .scatter-quadrant-legend__item {
+    border-right: none;
+    border-bottom: 1px solid rgba(15, 23, 42, 0.06);
+    justify-content: flex-start;
+    text-align: left;
+    padding: 8px 10px;
+  }
+
+  .content-card.dashboard-chart-lead .scatter-quadrant-legend__item:last-child {
+    border-bottom: none;
+  }
+}

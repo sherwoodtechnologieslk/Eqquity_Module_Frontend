@@ -274,6 +274,9 @@ const RiskReturnScatterPlot = ({ syncedPortfolioId }) => {
       responsive: true,
       maintainAspectRatio: false,
       animation: false,
+      layout: {
+        padding: { top: 4, right: 8, bottom: 4, left: 4 }
+      },
       plugins: {
         legend: { display: false },
         tooltip: {
@@ -328,7 +331,8 @@ const RiskReturnScatterPlot = ({ syncedPortfolioId }) => {
             display: true,
             text: 'RISK · VOLATILITY (%)',
             color: '#475569',
-            font: { size: 10, weight: '700', family: monoFont }
+            font: { size: 10, weight: '700', family: monoFont },
+            padding: { top: 8, bottom: 4 }
           },
           ticks: {
             color: '#1e293b',
@@ -344,7 +348,8 @@ const RiskReturnScatterPlot = ({ syncedPortfolioId }) => {
             display: true,
             text: 'RETURN (%)',
             color: '#475569',
-            font: { size: 10, weight: '700', family: monoFont }
+            font: { size: 10, weight: '700', family: monoFont },
+            padding: { bottom: 8, top: 4 }
           },
           ticks: {
             color: '#1e293b',
@@ -360,171 +365,171 @@ const RiskReturnScatterPlot = ({ syncedPortfolioId }) => {
 
   return (
     <div className="risk-return-scatter-plot">
-      <div className="scatter-plot-header">
-        <div className="header-left">
-          <span className="card-subtitle">Risk-Return Scatter Plot: Portfolio holdings by risk vs return</span>
+      <div className="scatter-plot-body">
+        <div className="scatter-plot-header">
+          <div className="header-left">
+            <span className="card-subtitle">Risk-Return Scatter Plot: Portfolio holdings by risk vs return</span>
+          </div>
         </div>
-      </div>
 
-      <div
-        className="scatter-plot-controls scatter-plot-controls--inline"
-        role="toolbar"
-        aria-label="Chart range and color mode"
-      >
-        <div className="scatter-plot-controls__segment" role="group" aria-label="Time range">
-          <span className="control-group-label control-group-label--inline">Range</span>
-          <div className="time-range-buttons">
-            {['30D', '60D', '90D', '1Y'].map((range) => (
+        <div
+          className="scatter-plot-controls scatter-plot-controls--inline"
+          role="toolbar"
+          aria-label="Chart range and color mode"
+        >
+          <div className="scatter-plot-controls__segment" role="group" aria-label="Time range">
+            <span className="control-group-label control-group-label--inline">Range</span>
+            <div className="time-range-buttons">
+              {['30D', '60D', '90D', '1Y'].map((range) => (
+                <button
+                  key={range}
+                  type="button"
+                  className={`time-btn ${selectedTimeRange === range ? 'active' : ''}`}
+                  onClick={() => setSelectedTimeRange(range)}
+                >
+                  {range}
+                </button>
+              ))}
+            </div>
+          </div>
+          <div className="scatter-plot-controls__segment" role="group" aria-label="Color by">
+            <div className="color-mode-buttons">
               <button
-                key={range}
                 type="button"
-                className={`time-btn ${selectedTimeRange === range ? 'active' : ''}`}
-                onClick={() => setSelectedTimeRange(range)}
+                className={`color-btn ${colorMode === 'sector' ? 'active' : ''}`}
+                onClick={() => setColorMode('sector')}
               >
-                {range}
+                Sector
               </button>
-            ))}
+              <button
+                type="button"
+                className={`color-btn ${colorMode === 'performance' ? 'active' : ''}`}
+                onClick={() => setColorMode('performance')}
+              >
+                Performance
+              </button>
+            </div>
           </div>
         </div>
-        <div className="scatter-plot-controls__divider" aria-hidden="true" />
-        <div className="scatter-plot-controls__segment" role="group" aria-label="Color by">
-          <div className="color-mode-buttons">
-            <button
-              type="button"
-              className={`color-btn ${colorMode === 'sector' ? 'active' : ''}`}
-              onClick={() => setColorMode('sector')}
-            >
-              Sector
-            </button>
-            <button
-              type="button"
-              className={`color-btn ${colorMode === 'performance' ? 'active' : ''}`}
-              onClick={() => setColorMode('performance')}
-            >
-              Performance
-            </button>
+
+        {isLoading && (
+          <div className="scatter-plot-panel scatter-plot-loading">
+            <div className="loading-spinner"></div>
+            <p>Loading risk–return data…</p>
           </div>
-        </div>
-      </div>
+        )}
 
-      {isLoading && (
-        <div className="scatter-plot-loading">
-          <div className="loading-spinner"></div>
-          <p>Loading risk–return data…</p>
-        </div>
-      )}
-
-      {error && (
-        <div className="scatter-plot-error">
-          <p>{error}</p>
-          <button onClick={loadScatterData}>Retry</button>
-        </div>
-      )}
-
-      {!isLoading && !error && scatterData.length === 0 && (
-        <div className="scatter-plot-empty">
-          <div className="empty-icon">
-            <svg viewBox="0 0 24 24" fill="currentColor">
-              <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
-            </svg>
+        {error && (
+          <div className="scatter-plot-panel scatter-plot-error">
+            <p>{error}</p>
+            <button onClick={loadScatterData}>Retry</button>
           </div>
-          <p>No data available for the selected portfolio</p>
-          <span>Ensure you have holdings with sufficient historical price data</span>
-        </div>
-      )}
+        )}
 
-      {!isLoading && !error && scatterData.length > 0 && chartData && (
-        <div className="scatter-plot-container">
-          <div className="scatter-plot-svg-wrapper scatter-plot-chartjs-wrapper">
-            {chartJsData && (
-              <Scatter
-                data={chartJsData}
-                options={{
-                  ...chartJsOptions,
-                  scales: {
-                    x: {
-                      ...chartJsOptions.scales.x,
-                      min: chartData.minVolatility,
-                      max: chartData.maxVolatility
-                    },
-                    y: {
-                      ...chartJsOptions.scales.y,
-                      min: chartData.minReturn,
-                      max: chartData.maxReturn
+        {!isLoading && !error && scatterData.length === 0 && (
+          <div className="scatter-plot-panel scatter-plot-empty">
+            <div className="empty-icon">
+              <svg viewBox="0 0 24 24" fill="currentColor">
+                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+              </svg>
+            </div>
+            <p>No data available for the selected portfolio</p>
+            <span>Ensure you have holdings with sufficient historical price data</span>
+          </div>
+        )}
+
+        {!isLoading && !error && scatterData.length > 0 && chartData && (
+          <>
+            <div className="scatter-plot-panel scatter-plot-svg-wrapper scatter-plot-chartjs-wrapper">
+              {chartJsData && (
+                <Scatter
+                  data={chartJsData}
+                  options={{
+                    ...chartJsOptions,
+                    scales: {
+                      x: {
+                        ...chartJsOptions.scales.x,
+                        min: chartData.minVolatility,
+                        max: chartData.maxVolatility
+                      },
+                      y: {
+                        ...chartJsOptions.scales.y,
+                        min: chartData.minReturn,
+                        max: chartData.maxReturn
+                      }
                     }
-                  }
-                }}
-                plugins={[quadrantPlugin]}
-              />
-            )}
-          </div>
+                  }}
+                  plugins={[quadrantPlugin]}
+                />
+              )}
+            </div>
 
-          <div className="scatter-quadrant-legend" aria-label="Risk-return zones">
-            <span className="scatter-quadrant-legend__item">
-              <i className="scatter-quadrant-legend__swatch scatter-quadrant-legend__swatch--ideal" />
-              Lower vol · higher return
-            </span>
-            <span className="scatter-quadrant-legend__item">
-              <i className="scatter-quadrant-legend__swatch scatter-quadrant-legend__swatch--hot" />
-              Higher vol · higher return
-            </span>
-            <span className="scatter-quadrant-legend__item">
-              <i className="scatter-quadrant-legend__swatch scatter-quadrant-legend__swatch--dull" />
-              Lower vol · lower return
-            </span>
-            <span className="scatter-quadrant-legend__item">
-              <i className="scatter-quadrant-legend__swatch scatter-quadrant-legend__swatch--risk" />
-              Higher vol · lower return
-            </span>
-          </div>
+            <div className="scatter-quadrant-legend" aria-label="Risk-return zones">
+              <span className="scatter-quadrant-legend__item">
+                <i className="scatter-quadrant-legend__swatch scatter-quadrant-legend__swatch--ideal" />
+                Lower vol · higher return
+              </span>
+              <span className="scatter-quadrant-legend__item">
+                <i className="scatter-quadrant-legend__swatch scatter-quadrant-legend__swatch--hot" />
+                Higher vol · higher return
+              </span>
+              <span className="scatter-quadrant-legend__item">
+                <i className="scatter-quadrant-legend__swatch scatter-quadrant-legend__swatch--dull" />
+                Lower vol · lower return
+              </span>
+              <span className="scatter-quadrant-legend__item">
+                <i className="scatter-quadrant-legend__swatch scatter-quadrant-legend__swatch--risk" />
+                Higher vol · lower return
+              </span>
+            </div>
 
-          {/* Legend */}
-          <div className="scatter-legend">
-            {colorMode === 'sector' ? (
-              <div className="legend-content">
-                <div className="legend-title">Sectors</div>
-                <div className="legend-items">
-                  {Array.from(new Set(scatterData.map(d => d.sector))).map((sector, index) => (
-                    <div key={sector} className="legend-item">
-                      <div
-                        className="legend-color"
-                        style={{ backgroundColor: getSectorColor(sector, index) }}
-                      ></div>
-                      <span>{sector}</span>
+            <div className="scatter-plot-panel scatter-legend">
+              {colorMode === 'sector' ? (
+                <div className="legend-content">
+                  <div className="legend-title">Sectors</div>
+                  <div className="legend-items">
+                    {Array.from(new Set(scatterData.map(d => d.sector))).map((sector, index) => (
+                      <div key={sector} className="legend-item">
+                        <div
+                          className="legend-color"
+                          style={{ backgroundColor: getSectorColor(sector, index) }}
+                        ></div>
+                        <span>{sector}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ) : (
+                <div className="legend-content">
+                  <div className="legend-title">Performance</div>
+                  <div className="legend-items">
+                    <div className="legend-item">
+                      <div className="legend-color" style={{ backgroundColor: '#10B981' }}></div>
+                      <span>High Positive (≥20%)</span>
                     </div>
-                  ))}
-                </div>
-              </div>
-            ) : (
-              <div className="legend-content">
-                <div className="legend-title">Performance</div>
-                <div className="legend-items">
-                  <div className="legend-item">
-                    <div className="legend-color" style={{ backgroundColor: '#10B981' }}></div>
-                    <span>High Positive (≥20%)</span>
-                  </div>
-                  <div className="legend-item">
-                    <div className="legend-color" style={{ backgroundColor: '#84CC16' }}></div>
-                    <span>Medium Positive (10-20%)</span>
-                  </div>
-                  <div className="legend-item">
-                    <div className="legend-color" style={{ backgroundColor: '#F59E0B' }}></div>
-                    <span>Low Positive (0-10%)</span>
-                  </div>
-                  <div className="legend-item">
-                    <div className="legend-color" style={{ backgroundColor: '#F97316' }}></div>
-                    <span>Low Negative (-10-0%)</span>
-                  </div>
-                  <div className="legend-item">
-                    <div className="legend-color" style={{ backgroundColor: '#EF4444' }}></div>
-                    <span>High Negative (&lt;-10%)</span>
+                    <div className="legend-item">
+                      <div className="legend-color" style={{ backgroundColor: '#84CC16' }}></div>
+                      <span>Medium Positive (10-20%)</span>
+                    </div>
+                    <div className="legend-item">
+                      <div className="legend-color" style={{ backgroundColor: '#F59E0B' }}></div>
+                      <span>Low Positive (0-10%)</span>
+                    </div>
+                    <div className="legend-item">
+                      <div className="legend-color" style={{ backgroundColor: '#F97316' }}></div>
+                      <span>Low Negative (-10-0%)</span>
+                    </div>
+                    <div className="legend-item">
+                      <div className="legend-color" style={{ backgroundColor: '#EF4444' }}></div>
+                      <span>High Negative (&lt;-10%)</span>
+                    </div>
                   </div>
                 </div>
-              </div>
-            )}
-          </div>
-        </div>
-      )}
+              )}
+            </div>
+          </>
+        )}
+      </div>
     </div>
   );
 };
