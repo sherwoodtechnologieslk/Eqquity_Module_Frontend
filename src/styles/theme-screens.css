@@ -1,0 +1,418 @@
+/**
+ * Phase 4 — main daily screens: dashboard, governance, accounting, other transactions, profile modal.
+ * Layered on theme-shell.css; light mode unchanged.
+ */
+
+/* ========== Dashboard ========== */
+[data-theme='dark'] .equity-dashboard {
+  --dash-card-border: rgba(255, 255, 255, 0.08);
+  --dash-card-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  --dash-card-shadow-hover: 0 4px 12px rgba(0, 0, 0, 0.15);
+  --dash-card-surface: linear-gradient(165deg, #263447 0%, #2d3b50 100%);
+}
+
+[data-theme='dark'] .equity-dashboard .dashboard-header,
+[data-theme='dark'] .equity-dashboard .status-card,
+[data-theme='dark'] .equity-dashboard .market-hours-box,
+[data-theme='dark'] .equity-dashboard .market-strip,
+[data-theme='dark'] .equity-dashboard .pnl-stat,
+[data-theme='dark'] .equity-dashboard .cost-vs-mv-chart-container,
+[data-theme='dark'] .equity-dashboard .chart-container,
+[data-theme='dark'] .equity-dashboard .chart-legend,
+[data-theme='dark'] .equity-dashboard .dashboard-hero__portfolio-select {
+  background: var(--app-surface) !important;
+  border-color: var(--app-border) !important;
+  color: var(--app-text);
+}
+
+[data-theme='dark'] .equity-dashboard .dashboard-hero__eyebrow,
+[data-theme='dark'] .equity-dashboard .dashboard-hero__note,
+[data-theme='dark'] .equity-dashboard .pnl-stat__label,
+[data-theme='dark'] .equity-dashboard .status-subtitle,
+[data-theme='dark'] .equity-dashboard .market-hours-label {
+  color: var(--app-text-muted) !important;
+}
+
+[data-theme='dark'] .equity-dashboard .pnl-stat__value,
+[data-theme='dark'] .equity-dashboard .status-value,
+[data-theme='dark'] .equity-dashboard .status-info,
+[data-theme='dark'] .equity-dashboard .market-hours-value {
+  color: var(--app-text-heading) !important;
+}
+
+[data-theme='dark'] .market-pulse-widget {
+  --mp-accent-bg: rgba(37, 99, 235, 0.2);
+  --mp-ink: #f1f5f9;
+  --mp-ink-soft: #cbd5e1;
+  --mp-muted: #94a3b8;
+  --mp-line: rgba(255, 255, 255, 0.1);
+  background: linear-gradient(165deg, #263447 0%, #2d3b50 100%) !important;
+}
+
+[data-theme='dark'] .market-movers-board.mmx {
+  --mm-up-bg: rgba(5, 150, 105, 0.15);
+  --mm-down-bg: rgba(220, 38, 38, 0.15);
+  --mm-neutral-bg: rgba(217, 119, 6, 0.15);
+  --mm-ink: #f1f5f9;
+  --mm-ink-soft: #cbd5e1;
+  --mm-muted: #94a3b8;
+  --mm-line: rgba(255, 255, 255, 0.1);
+  background: linear-gradient(165deg, #263447 0%, #2d3b50 100%) !important;
+}
+
+[data-theme='dark'] .latest-activity-card {
+  --lt-bg: #1e293b;
+  --lt-panel: #334155;
+  --lt-panel-2: #475569;
+  --lt-grid: #334155;
+  --lt-grid-strong: #475569;
+  --lt-ink: #f1f5f9;
+  --lt-slate: #cbd5e1;
+  --lt-muted: #94a3b8;
+  --lt-faint: #64748b;
+}
+
+[data-theme='dark'] .latest-activity-card__header {
+  background: linear-gradient(180deg, #1e293b 0%, #334155 100%) !important;
+}
+
+/* ========== Governance / Business Approvals (agp-*) ========== */
+[data-theme='dark'] .agp-stat,
+[data-theme='dark'] .agp-context-bar,
+[data-theme='dark'] .agp-panel,
+[data-theme='dark'] .agp-payload-card,
+[data-theme='dark'] .agp-payload-table-wrap {
+  background: var(--app-surface) !important;
+  border-color: var(--app-border) !important;
+}
+
+[data-theme='dark'] .agp-stat-value,
+[data-theme='dark'] .agp-form-section h3,
+[data-theme='dark'] .agp-request-top strong,
+[data-theme='dark'] .agp-empty h3 {
+  color: var(--app-text-heading) !important;
+}
+
+[data-theme='dark'] .agp-stat-label,
+[data-theme='dark'] .agp-section-hint,
+[data-theme='dark'] .agp-workflow-hint,
+[data-theme='dark'] .agp-request-email,
+[data-theme='dark'] .agp-request-meta,
+[data-theme='dark'] .agp-empty,
+[data-theme='dark'] .agp-payload-empty {
+  color: var(--app-text-muted) !important;
+}
+
+[data-theme='dark'] .agp-context-tag {
+  background: var(--app-surface-muted);
+  border-color: var(--app-border);
+  color: var(--app-text-secondary);
+}
+
+[data-theme='dark'] .agp-context-tag--active {
+  background: rgba(37, 99, 235, 0.2);
+  border-color: rgba(96, 165, 250, 0.45);
+  color: #93c5fd;
+}
+
+[data-theme='dark'] .agp-tabs {
+  border-bottom-color: var(--app-border);
+}
+
+[data-theme='dark'] .agp-tab {
+  color: var(--app-text-muted);
+}
+
+[data-theme='dark'] .agp-tab:hover {
+  color: var(--app-text-secondary);
+}
+
+[data-theme='dark'] .agp-tab--active {
+  color: #60a5fa;
+  border-bottom-color: #3b82f6;
+}
+
+[data-theme='dark'] .agp-tab-badge--muted {
+  background: var(--app-surface-muted);
+  color: var(--app-text-secondary);
+}
+
+[data-theme='dark'] .agp-field label {
+  color: var(--app-text-secondary);
+}
+
+[data-theme='dark'] .agp-field input {
+  background: var(--app-input-bg) !important;
+  border-color: var(--app-input-border) !important;
+  color: var(--app-input-text) !important;
+}
+
+[data-theme='dark'] .agp-request-item {
+  border-bottom-color: var(--app-border);
+}
+
+[data-theme='dark'] .agp-request-item:hover {
+  background: var(--app-surface-muted) !important;
+}
+
+[data-theme='dark'] .agp-alert--info {
+  background: var(--app-surface-muted);
+  color: var(--app-text-secondary);
+  border-color: var(--app-border);
+}
+
+[data-theme='dark'] .agp-alert--info::before {
+  background: var(--app-border);
+  color: var(--app-text-muted);
+}
+
+[data-theme='dark'] .agp-payload-toggle:not(.agp-payload-toggle--active) {
+  color: #93c5fd;
+  background: rgba(37, 99, 235, 0.15);
+  border-color: rgba(96, 165, 250, 0.35);
+}
+
+[data-theme='dark'] .agp-payload-toggle:not(.agp-payload-toggle--active):hover {
+  background: rgba(37, 99, 235, 0.25);
+}
+
+[data-theme='dark'] .agp-payload-toggle:not(.agp-payload-toggle--active) .agp-payload-count-badge {
+  background: rgba(37, 99, 235, 0.3);
+  color: #bfdbfe;
+}
+
+[data-theme='dark'] .agp-payload-source {
+  background: var(--app-surface-muted);
+  border-color: var(--app-border);
+  color: var(--app-text-secondary);
+}
+
+[data-theme='dark'] .agp-payload-table thead tr {
+  background: var(--app-table-header-bg) !important;
+  box-shadow: 0 1px 0 var(--app-border);
+}
+
+[data-theme='dark'] .agp-payload-th {
+  color: var(--app-text-heading) !important;
+}
+
+[data-theme='dark'] .agp-payload-table th,
+[data-theme='dark'] .agp-payload-table td {
+  border-bottom-color: var(--app-border) !important;
+  color: var(--app-text);
+}
+
+[data-theme='dark'] .agp-payload-table tbody tr:nth-child(even) {
+  background: rgba(15, 23, 42, 0.35);
+}
+
+[data-theme='dark'] .agp-payload-table tbody tr:hover {
+  background: rgba(37, 99, 235, 0.12) !important;
+}
+
+[data-theme='dark'] .agp-payload-rownum {
+  color: var(--app-text-muted);
+}
+
+[data-theme='dark'] .agp-payload-footer,
+[data-theme='dark'] .agp-payload-range {
+  color: var(--app-text-muted);
+}
+
+[data-theme='dark'] .agp-payload-page-btn {
+  background: var(--app-surface-muted);
+  border-color: var(--app-border);
+  color: var(--app-text);
+}
+
+/* ========== Other Transactions ========== */
+[data-theme='dark'] .other-trans-tab-btn:hover:not(.active) {
+  color: #93c5fd;
+  background: rgba(255, 255, 255, 0.06);
+  border-color: var(--app-border);
+}
+
+[data-theme='dark'] .other-trans-form-type-nav {
+  background: var(--app-surface-muted) !important;
+  border-top-color: var(--app-border) !important;
+}
+
+[data-theme='dark'] .other-trans-form-type-btn {
+  background: var(--app-surface) !important;
+  color: var(--app-text-muted);
+  box-shadow: none;
+}
+
+[data-theme='dark'] .other-trans-form-type-btn:hover:not(.active) {
+  color: #93c5fd;
+  border-color: rgba(96, 165, 250, 0.35);
+  background: rgba(37, 99, 235, 0.12) !important;
+}
+
+[data-theme='dark'] .other-trans-form-type-btn.active {
+  color: #93c5fd;
+  background: rgba(37, 99, 235, 0.2) !important;
+  border-color: rgba(96, 165, 250, 0.45);
+}
+
+[data-theme='dark'] .other-trans-btn-secondary,
+[data-theme='dark'] .other-trans-btn-tertiary {
+  background: var(--app-surface-muted) !important;
+  color: var(--app-text) !important;
+  border-color: var(--app-border) !important;
+}
+
+[data-theme='dark'] .other-trans-btn-secondary:hover:not(:disabled),
+[data-theme='dark'] .other-trans-btn-tertiary:hover:not(:disabled) {
+  background: var(--app-surface-elevated) !important;
+}
+
+[data-theme='dark'] .other-trans-btn-regenerate {
+  background: var(--app-surface-muted);
+  color: var(--app-text-secondary);
+  border-color: var(--app-border);
+}
+
+[data-theme='dark'] .other-trans-message.other-trans-success {
+  background: rgba(5, 150, 105, 0.15);
+  color: #6ee7b7;
+}
+
+[data-theme='dark'] .other-trans-message.other-trans-error {
+  background: rgba(220, 38, 38, 0.15);
+  color: #fca5a5;
+}
+
+[data-theme='dark'] .other-trans-gl2gl-line-card {
+  background: var(--app-surface);
+  border-color: var(--app-border);
+}
+
+[data-theme='dark'] .other-trans-gl2gl-line-card--locked {
+  background: var(--app-surface-muted);
+}
+
+/* ========== Account Summaries & shared accounting (ctb/cgl/cas) ========== */
+[data-theme='dark'] .cas-tabs-card,
+[data-theme='dark'] .cas-tab:not(.active) {
+  background: var(--app-surface) !important;
+  border-color: var(--app-border) !important;
+  color: var(--app-text) !important;
+}
+
+[data-theme='dark'] .cas-tab:hover:not(.active) {
+  background: var(--app-surface-muted) !important;
+}
+
+[data-theme='dark'] .cas-tab.active {
+  background: #334155 !important;
+  border-color: #475569 !important;
+  color: #f8fafc !important;
+}
+
+[data-theme='dark'] .ctb-clear-btn,
+[data-theme='dark'] .cgl-clear-btn {
+  background: var(--app-surface-muted) !important;
+  color: var(--app-text) !important;
+  border-color: var(--app-border) !important;
+}
+
+[data-theme='dark'] .ctb-metric-card,
+[data-theme='dark'] .cgl-metric-card,
+[data-theme='dark'] .cas-metric-card {
+  background: var(--app-surface) !important;
+  border-color: var(--app-border) !important;
+}
+
+[data-theme='dark'] .ctb-metric-label,
+[data-theme='dark'] .cgl-metric-label,
+[data-theme='dark'] .cas-metric-label {
+  color: var(--app-text-muted) !important;
+}
+
+[data-theme='dark'] .ctb-metric-value,
+[data-theme='dark'] .cgl-metric-value,
+[data-theme='dark'] .cas-metric-value {
+  color: var(--app-text-heading) !important;
+}
+
+/* ========== GSec shared ========== */
+[data-theme='dark'] .gsec-page-container {
+  background-color: var(--app-bg) !important;
+}
+
+[data-theme='dark'] .gsec-filters-card,
+[data-theme='dark'] .gsec-table-card {
+  background: var(--app-surface) !important;
+  border-color: var(--app-border) !important;
+}
+
+[data-theme='dark'] .gsec-main-title {
+  color: var(--app-text-heading) !important;
+}
+
+[data-theme='dark'] .gsec-subtitle {
+  color: var(--app-text-secondary) !important;
+}
+
+/* ========== User profile modal (body only — header gradient stays) ========== */
+[data-theme='dark'] .upm-modal-content {
+  background: var(--app-surface);
+  border-color: var(--app-border);
+}
+
+[data-theme='dark'] .upm-modal-body {
+  background: var(--app-bg);
+}
+
+[data-theme='dark'] .upm-section-heading h4 {
+  color: var(--app-text-heading);
+}
+
+[data-theme='dark'] .upm-section-heading::after {
+  background: linear-gradient(to right, var(--app-border), transparent);
+}
+
+[data-theme='dark'] .upm-info-cell {
+  background: var(--app-surface);
+  border-color: var(--app-border);
+}
+
+[data-theme='dark'] .upm-info-cell:hover {
+  border-color: var(--app-border-strong);
+}
+
+[data-theme='dark'] .upm-info-label {
+  color: var(--app-text-muted);
+}
+
+[data-theme='dark'] .upm-info-value {
+  color: var(--app-text-heading);
+}
+
+[data-theme='dark'] .upm-password-hint,
+[data-theme='dark'] .upm-password-otp-meta {
+  color: var(--app-text-muted);
+}
+
+[data-theme='dark'] .upm-password-field span {
+  color: var(--app-text-secondary);
+}
+
+[data-theme='dark'] .upm-password-field input {
+  background: var(--app-input-bg) !important;
+  border-color: var(--app-input-border) !important;
+  color: var(--app-input-text) !important;
+}
+
+[data-theme='dark'] .upm-password-secondary {
+  background: var(--app-surface-muted);
+  color: var(--app-text);
+  border-color: var(--app-border);
+}
+
+/* Native select dropdown options */
+[data-theme='dark'] select option {
+  background: #1e293b;
+  color: #f1f5f9;
+}

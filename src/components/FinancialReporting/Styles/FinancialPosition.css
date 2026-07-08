@@ -1112,9 +1112,9 @@
 .fp-total-strip {
   margin: 0.25rem -1.15rem 0;
   padding: 0.85rem 1.15rem;
-  background: linear-gradient(180deg, #1e293b 0%, #0f172a 100%);
+  background: #f8fafc;
   border: none;
-  border-top: none;
+  border-top: 1px solid #cbd5e1;
   border-radius: 0 0 7px 7px;
   display: flex;
   align-items: center;
@@ -1125,22 +1125,24 @@
 .fp-total-strip-label {
   font-size: 0.6875rem;
   font-weight: 800;
-  color: #e2e8f0;
+  color: #334155;
   text-transform: uppercase;
-  letter-spacing: 0.12em;
+  letter-spacing: 0.08em;
 }
 
 .fp-total-strip-value {
-  font-size: 1.0625rem;
+  font-size: 0.875rem;
   font-weight: 800;
   font-family: ui-monospace, 'Courier New', Courier, monospace;
   font-variant-numeric: tabular-nums;
-  color: #ffffff;
+  color: #0f172a;
 }
 
-.fp-side-card .fp-total-strip-value.positive,
-.fp-side-card .fp-total-strip-value.negative {
-  color: #ffffff;
+.fp-total-strip .fp-total-strip-value.positive,
+.fp-total-strip .fp-total-strip-value.negative,
+.fp-side-card .fp-total-strip .fp-total-strip-value.positive,
+.fp-side-card .fp-total-strip .fp-total-strip-value.negative {
+  color: #0f172a;
 }
 
 /* Responsive Design */

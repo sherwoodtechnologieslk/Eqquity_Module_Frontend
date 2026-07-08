@@ -2,7 +2,7 @@ body {
   margin: 0;
   padding: 0;
   font-family: 'Inter', sans-serif;
-  background-color: #f5f7fa;
+  background-color: var(--app-bg, #f5f7fa);
 }
 
 * {
@@ -72,9 +72,9 @@ body {
   display: flex;
   flex-direction: column;
   min-width: 0;
-  background: #f5f7fa;
+  background: var(--app-bg, #f5f7fa);
   margin-left: 274px; /* Account for sidebar width */
-  transition: margin-left 0.3s ease;
+  transition: margin-left 0.3s ease, background-color 0.25s ease;
   position: relative;
   z-index: 1;
 }
@@ -106,6 +106,9 @@ body {
   width: 100%;
   margin-top: 132px;
   padding-top: 0.25rem;
+  background: var(--app-bg-subtle);
+  transition: background-color 0.25s ease;
+  box-sizing: border-box;
 }
 
 .dashboard-content--governance {
@@ -114,20 +117,23 @@ body {
   padding-bottom: 2.5rem;
   padding-left: 1.75rem;
   padding-right: 1.75rem;
-  background: #f5f7fa;
+  background: var(--app-bg, #f5f7fa);
   width: 100%;
   max-width: none;
   box-sizing: border-box;
+  transition: background-color 0.25s ease;
 }
 
 /* Example container for forms/cards */
 .container {
   max-width: 800px;
   margin: 0 auto;
-  background-color: white;
+  background-color: var(--app-surface, #ffffff);
   padding: 2rem;
   border-radius: 8px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.10);
+  box-shadow: 0 4px 12px var(--app-shadow, rgba(0, 0, 0, 0.10));
+  border: 1px solid var(--app-border, transparent);
+  transition: background-color 0.25s ease, border-color 0.25s ease;
 }
 
 h2 {
@@ -148,17 +154,18 @@ textarea {
   padding: 10px;
   font-size: 14px;
   width: 100%;
-  border: 1px solid #cfd8dc;
+  border: 1px solid var(--app-input-border, #cfd8dc);
   border-radius: 4px;
-  background: #f8fafc;
-  transition: border 0.15s, background 0.15s;
+  background: var(--app-input-bg, #f8fafc);
+  color: var(--app-input-text, inherit);
+  transition: border 0.15s, background 0.15s, color 0.15s;
 }
 
 input:focus,
 select:focus,
 textarea:focus {
-  border: 1.5px solid #2563eb;
-  background: #f1f5fe;
+  border: 1.5px solid var(--app-input-focus-border, #2563eb);
+  background: var(--app-input-focus-bg, #f1f5fe);
   outline: none;
 }
 
@@ -273,6 +280,7 @@ textarea {
   align-items: center;
   height: 100vh;
   font-size: 1.5rem;
-  color: #666;
-  background-color: #f8f9fa;
+  color: var(--app-text-muted, #666);
+  background-color: var(--app-bg, #f8f9fa);
+  transition: background-color 0.25s ease, color 0.25s ease;
 }

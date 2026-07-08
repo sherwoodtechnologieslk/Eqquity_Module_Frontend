@@ -19,7 +19,6 @@ import DashboardMarketMovers from './DashboardMarketMovers';
 import MarketTodayOverview from './cse/MarketTodayOverview';
 import MarketBreadthTurnoverCard from './cse/MarketBreadthTurnoverCard';
 import SectorIndicesCard from './cse/SectorIndicesCard';
-import DetailedTradesCard from './cse/DetailedTradesCard';
 import CompanyIntradayCard from './cse/CompanyIntradayCard';
 import './Dashboard.css';
 
@@ -768,24 +767,24 @@ const Dashboard = ({ onTabChange }) => {
         {
           label: 'Cost',
           data: costVsMvSectors.map((s) => s.cost || 0),
-          backgroundColor: '#94a3b8',
-          borderColor: '#64748b',
+          backgroundColor: '#cbd5e1',
+          borderColor: '#94a3b8',
           borderWidth: 0,
-          borderRadius: 0,
-          maxBarThickness: 22,
-          categoryPercentage: 0.7,
-          barPercentage: 0.9
+          borderRadius: 4,
+          maxBarThickness: 20,
+          categoryPercentage: 0.72,
+          barPercentage: 0.88
         },
         {
           label: 'Market value',
           data: costVsMvSectors.map((s) => s.marketValue || 0),
           backgroundColor: '#3b82f6',
-          borderColor: '#1e40af',
+          borderColor: '#2563eb',
           borderWidth: 0,
-          borderRadius: 0,
-          maxBarThickness: 22,
-          categoryPercentage: 0.7,
-          barPercentage: 0.9
+          borderRadius: 4,
+          maxBarThickness: 20,
+          categoryPercentage: 0.72,
+          barPercentage: 0.88
         }
       ]
     }),
@@ -793,8 +792,7 @@ const Dashboard = ({ onTabChange }) => {
   );
 
   const costVsMvChartOptions = useMemo(() => {
-    const monoFont =
-      "'IBM Plex Mono', 'Roboto Mono', 'SF Mono', Menlo, Consolas, 'Courier New', monospace";
+    const chartFont = "'Inter', system-ui, sans-serif";
     return {
       responsive: true,
       maintainAspectRatio: false,
@@ -804,37 +802,41 @@ const Dashboard = ({ onTabChange }) => {
           position: 'top',
           align: 'end',
           labels: {
-            boxWidth: 10,
-            boxHeight: 10,
-            color: '#1e293b',
-            font: { size: 11, weight: '600', family: monoFont },
-            usePointStyle: false,
-            padding: 14
+            boxWidth: 8,
+            boxHeight: 8,
+            color: '#475569',
+            font: { size: 11, weight: '600', family: chartFont },
+            usePointStyle: true,
+            pointStyle: 'circle',
+            padding: 12
           }
         },
         tooltip: {
           backgroundColor: '#ffffff',
           titleColor: '#0f172a',
-          bodyColor: '#1e293b',
-          borderColor: '#0f172a',
+          bodyColor: '#334155',
+          borderColor: 'rgba(15, 23, 42, 0.1)',
           borderWidth: 1,
-          titleFont: { size: 11, weight: '700', family: monoFont },
-          bodyFont: { size: 10, weight: '500', family: monoFont },
+          titleFont: { size: 11, weight: '600', family: chartFont },
+          bodyFont: { size: 11, weight: '500', family: chartFont },
           titleMarginBottom: 6,
           padding: 10,
-          cornerRadius: 0,
-          displayColors: false,
+          cornerRadius: 8,
+          displayColors: true,
+          boxWidth: 8,
+          boxHeight: 8,
+          usePointStyle: true,
           callbacks: {
             title: (items) => {
               const idx = items?.[0]?.dataIndex ?? 0;
               const row = costVsMvSectors[idx];
               const sector = row ? row.sector : items?.[0]?.label;
-              return (sector || '').toString().toUpperCase();
+              return (sector || '').toString();
             },
             label: (ctx) => {
-              const label = (ctx.dataset.label || '').toString().toUpperCase();
+              const label = ctx.dataset.label || '';
               const value = formatLkrCompact(Number(ctx.raw) || 0);
-              return `${label.padEnd(12, ' ')}${value}`;
+              return `${label}: ${value}`;
             }
           }
         }
@@ -843,8 +845,8 @@ const Dashboard = ({ onTabChange }) => {
         x: {
           grid: { display: false, drawBorder: false },
           ticks: {
-            color: '#1e293b',
-            font: { size: 10, family: monoFont },
+            color: '#64748b',
+            font: { size: 10, weight: '500', family: chartFont },
             maxRotation: 40,
             minRotation: 0,
             autoSkip: false,
@@ -855,17 +857,17 @@ const Dashboard = ({ onTabChange }) => {
               return label.length > 16 ? `${label.slice(0, 15)}…` : label;
             }
           },
-          border: { color: '#0f172a' }
+          border: { display: false }
         },
         y: {
           ticks: {
             callback: (v) => formatLkrCompact(v),
-            color: '#1e293b',
-            font: { size: 10, family: monoFont },
-            padding: 4
+            color: '#94a3b8',
+            font: { size: 10, weight: '500', family: chartFont },
+            padding: 6
           },
-          grid: { color: '#e2e8f0', drawTicks: false, drawBorder: false },
-          border: { color: '#0f172a' }
+          grid: { color: 'rgba(148, 163, 184, 0.25)', drawTicks: false, drawBorder: false },
+          border: { display: false }
         }
       }
     };
@@ -1130,10 +1132,10 @@ const Dashboard = ({ onTabChange }) => {
             <div className="card-header">
               <div className="header-left">
                 <h3>Portfolio Health & Risk</h3>
+                {dashboardData.sectorChartPortfolioName && (
+                  <span className="card-subtitle">{dashboardData.sectorChartPortfolioName}</span>
+                )}
               </div>
-              {dashboardData.sectorChartPortfolioName && (
-                <span className="card-subtitle">{dashboardData.sectorChartPortfolioName}</span>
-              )}
             </div>
 
             {(() => {
@@ -1267,10 +1269,10 @@ const Dashboard = ({ onTabChange }) => {
             <div className="card-header">
               <div className="header-left">
                 <h3>Portfolio Insights</h3>
+                {dashboardData.sectorChartPortfolioName && (
+                  <span className="card-subtitle">{dashboardData.sectorChartPortfolioName}</span>
+                )}
               </div>
-              {dashboardData.sectorChartPortfolioName && (
-                <span className="card-subtitle">{dashboardData.sectorChartPortfolioName}</span>
-              )}
             </div>
 
             {(() => {
@@ -1364,14 +1366,11 @@ const Dashboard = ({ onTabChange }) => {
             })()}
           </div>
 
-          {/* Live CSE — recent trade prints / tape (detailedTrades) */}
-          <DetailedTradesCard />
-
         {/* Quick Actions */}
-        <div className="content-card">
+        <div className="content-card dashboard-quick-actions-card">
           <div className="card-header">
             <div className="header-left">
-              <span className="card-subtitle">Quick Actions</span>
+              <h3>Quick Actions</h3>
             </div>
           </div>
           <div className="actions-grid">

@@ -842,7 +842,6 @@
   border: 1px solid #eef2f6;
   border-radius: 10px;
   padding: 1.1rem 1.25rem;
-  border-left: 3px solid var(--tr-blue);
 }
 
 .tr-documents-info h4 {

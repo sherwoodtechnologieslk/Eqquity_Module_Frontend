@@ -4,6 +4,16 @@ import { computeRunningWapFromBuySellTransactions, chronologicalSortKey } from '
 
 const normalize = (v) => String(v || '').toLowerCase().trim();
 
+/** Average Buy Price for display and Cost Value — 2 decimal places. */
+const roundAvgBuyPrice = (wap) => Math.round((parseFloat(wap) || 0) * 100) / 100;
+
+/** Cost Value = Net Quantity × Average Buy Price (2 dp). */
+const costValueFromQuantityAndWap = (netQuantity, wap) => {
+  const qty = parseFloat(netQuantity) || 0;
+  const avgBuyPrice = roundAvgBuyPrice(wap);
+  return qty * avgBuyPrice;
+};
+
 /** Group key matches backend MTM: company_name first. */
 const getKey = (tx) => {
   const name = normalize(tx.company_name || tx.companyName || tx.company);
@@ -15,6 +25,26 @@ const getKey = (tx) => {
 const getDisplayName = (tx, key) => {
   const candidate = tx.company_name || tx.companyName || tx.company || tx.symbol || key;
   return String(candidate || key).trim() || 'Unknown';
+};
+
+/** Company / equity identifier — symbol from trades (CSE company id). */
+const getCompanyIdFromTx = (tx) => {
+  const id =
+    tx?.symbol ||
+    tx?.company_id ||
+    tx?.companyId ||
+    tx?.equity_id ||
+    tx?.equityId ||
+    '';
+  return String(id || '').trim() || null;
+};
+
+const getCompanyIdForGroup = (buys, sells, fallback = null) => {
+  for (const tx of [...(buys || []), ...(sells || [])]) {
+    const id = getCompanyIdFromTx(tx);
+    if (id) return id;
+  }
+  return fallback;
 };
 
 function computeChargesForGroup(buys, netQuantity) {
@@ -35,9 +65,9 @@ function computeChargesForGroup(buys, netQuantity) {
 
 function mapGroupToHolding(g) {
   const running = computeRunningWapFromBuySellTransactions(g.buys, g.sells);
-  const wap = running.wap;
   const calculatedNetQuantity = running.quantity;
-  const calculatedCostValue = calculatedNetQuantity * wap;
+  const avgBuyPrice = roundAvgBuyPrice(running.wap);
+  const calculatedCostValue = costValueFromQuantityAndWap(calculatedNetQuantity, running.wap);
   const { calculatedCharges } = computeChargesForGroup(g.buys, calculatedNetQuantity);
   const netValue = calculatedCostValue + calculatedCharges;
   const costPerShare = calculatedNetQuantity > 0 ? netValue / calculatedNetQuantity : 0;
@@ -52,9 +82,9 @@ function mapGroupToHolding(g) {
   return {
     companyName: g.displayName,
     companyKey: g.key,
-    companyId: null,
+    companyId: getCompanyIdForGroup(g.buys, g.sells, g.symbol) || '—',
     netQuantity: calculatedNetQuantity,
-    avgBuyPrice: wap,
+    avgBuyPrice,
     costValue: calculatedCostValue,
     totalCharges: calculatedCharges,
     netValue,
@@ -69,7 +99,15 @@ function groupTransactions(buyTransactions, sellTransactions) {
   (buyTransactions || []).forEach((tx) => {
     const key = getKey(tx);
     if (!groupMap.has(key)) {
-      groupMap.set(key, { key, displayName: getDisplayName(tx, key), buys: [], sells: [] });
+      groupMap.set(key, {
+        key,
+        displayName: getDisplayName(tx, key),
+        symbol: getCompanyIdFromTx(tx),
+        buys: [],
+        sells: [],
+      });
+    } else if (!groupMap.get(key).symbol) {
+      groupMap.get(key).symbol = getCompanyIdFromTx(tx) || groupMap.get(key).symbol;
     }
     groupMap.get(key).buys.push(tx);
   });
@@ -77,7 +115,15 @@ function groupTransactions(buyTransactions, sellTransactions) {
   (sellTransactions || []).forEach((tx) => {
     const key = getKey(tx);
     if (!groupMap.has(key)) {
-      groupMap.set(key, { key, displayName: getDisplayName(tx, key), buys: [], sells: [] });
+      groupMap.set(key, {
+        key,
+        displayName: getDisplayName(tx, key),
+        symbol: getCompanyIdFromTx(tx),
+        buys: [],
+        sells: [],
+      });
+    } else if (!groupMap.get(key).symbol) {
+      groupMap.get(key).symbol = getCompanyIdFromTx(tx) || groupMap.get(key).symbol;
     }
     groupMap.get(key).sells.push(tx);
   });
@@ -109,8 +155,8 @@ export const buildHoldingsFromBackendPositions = (positionsData, buyTransactions
       const group = groupMap.get(companyKey);
 
       const netQuantity = parseFloat(position.quantity) || 0;
-      const wap = parseFloat(position.costPrice) || 0;
-      const costValue = parseFloat(position.costValue) || netQuantity * wap;
+      const avgBuyPrice = roundAvgBuyPrice(parseFloat(position.costPrice) || 0);
+      const costValue = costValueFromQuantityAndWap(netQuantity, position.costPrice);
 
       const buys = group?.buys || [];
       const { calculatedCharges } = computeChargesForGroup(buys, netQuantity);
@@ -128,9 +174,12 @@ export const buildHoldingsFromBackendPositions = (positionsData, buyTransactions
       return {
         companyName,
         companyKey,
-        companyId: null,
+        companyId:
+          position.symbol ||
+          getCompanyIdForGroup(group?.buys, group?.sells, group?.symbol) ||
+          '—',
         netQuantity,
-        avgBuyPrice: wap,
+        avgBuyPrice,
         costValue,
         totalCharges: calculatedCharges,
         netValue,

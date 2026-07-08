@@ -91,7 +91,7 @@ function DashboardSectorMixChart({ sectorData, totalCompanies }) {
           bodyFont: { size: 10, weight: '500', family: monoFont },
           titleMarginBottom: 6,
           padding: 10,
-          cornerRadius: 0,
+          cornerRadius: 8,
           displayColors: false,
           callbacks: {
             title: (items) => {

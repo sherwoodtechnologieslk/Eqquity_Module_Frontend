@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import './Styles/Navbar.css';
+import ThemeToggle from '../Common/ThemeToggle';
 
 const Navbar = ({ activeTab, onTabChange, visibleTabs = [], user, onLogout, onOpenProfile }) => {
   const [isScrolled, setIsScrolled] = useState(false);
@@ -204,6 +205,8 @@ const Navbar = ({ activeTab, onTabChange, visibleTabs = [], user, onLogout, onOp
                 <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
               </svg>
             </button>
+
+            <ThemeToggle />
 
             <div className="user-avatar" title={`User Profile - ${user?.first_name} ${user?.last_name}`} onClick={onOpenProfile} style={{ cursor: 'pointer' }}>
               <span>{user?.first_name?.[0]}{user?.last_name?.[0]}</span>

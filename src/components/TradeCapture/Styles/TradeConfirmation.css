@@ -108,15 +108,91 @@
 }
 
 .tc-trade-report-export .fre-export-btn {
-  padding: 0.55rem 0.9rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.45rem;
+  min-height: 2.35rem;
+  padding: 0.55rem 1rem;
   border-radius: 8px;
-  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.06);
+  font-size: 0.82rem;
+  font-weight: 600;
+  letter-spacing: 0;
+  text-transform: none;
+  cursor: pointer;
+  transition: background 0.16s ease, border-color 0.16s ease, color 0.16s ease,
+    transform 0.16s ease, box-shadow 0.16s ease;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.05);
+}
+
+.tc-trade-report-export .fre-export-btn::before {
+  content: '';
+  width: 1rem;
+  height: 1rem;
+  flex-shrink: 0;
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: contain;
+}
+
+.tc-trade-report-export .fre-export-excel {
+  background: linear-gradient(180deg, #f0fdf4 0%, #ecfdf5 100%);
+  color: #047857;
+  border: 1px solid #86efac;
+}
+
+.tc-trade-report-export .fre-export-excel::before {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23047857' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z'/%3E%3Cpath d='M14 2v6h6'/%3E%3Cpath d='M8 13h2'/%3E%3Cpath d='M8 17h2'/%3E%3Cpath d='M14 13h2'/%3E%3Cpath d='M14 17h2'/%3E%3C/svg%3E");
+}
+
+.tc-trade-report-export .fre-export-excel:hover:not(:disabled) {
+  background: linear-gradient(180deg, #dcfce7 0%, #d1fae5 100%);
+  border-color: #4ade80;
+  color: #065f46;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(5, 150, 105, 0.18);
+}
+
+.tc-trade-report-export .fre-export-pdf {
+  background: linear-gradient(180deg, #fff1f2 0%, #ffe4e6 100%);
+  color: #be123c;
+  border: 1px solid #fda4af;
+}
+
+.tc-trade-report-export .fre-export-pdf::before {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23be123c' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z'/%3E%3Cpath d='M14 2v6h6'/%3E%3Cpath d='M9 15h6'/%3E%3Cpath d='M9 11h6'/%3E%3C/svg%3E");
+}
+
+.tc-trade-report-export .fre-export-pdf:hover:not(:disabled) {
+  background: linear-gradient(180deg, #ffe4e6 0%, #fecdd3 100%);
+  border-color: #fb7185;
+  color: #9f1239;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(225, 29, 72, 0.16);
+}
+
+.tc-trade-report-export .fre-export-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+  filter: grayscale(0.15);
+}
+
+.tc-trade-report-export .fre-export-btn:focus-visible {
+  outline: 2px solid var(--tc-accent-border);
+  outline-offset: 2px;
 }
 
 @media (max-width: 768px) {
   .tc-trade-report-export {
     width: 100%;
     flex-wrap: wrap;
+  }
+
+  .tc-trade-report-export .fre-export-btn {
+    flex: 1 1 calc(50% - 0.25rem);
+    min-width: 8.5rem;
   }
 }
 
@@ -204,8 +280,12 @@
   background: transparent;
   border: none;
   border-radius: 8px;
-  font-size: 0.85rem;
-  font-weight: 600;
+  font-family: inherit;
+  font-size: 0.9rem;
+  font-weight: 400;
+  font-style: normal;
+  letter-spacing: normal;
+  text-transform: none;
   color: var(--tc-muted);
   cursor: pointer;
   transition: all 0.15s ease;
@@ -219,7 +299,10 @@
 .tc-tab-active {
   color: #ffffff;
   background: linear-gradient(135deg, var(--tc-accent-strong) 0%, var(--tc-accent) 100%);
-  font-weight: 700;
+  font-weight: 500;
+  font-style: normal;
+  letter-spacing: normal;
+  text-transform: none;
   box-shadow: 0 2px 6px rgba(37, 99, 235, 0.28);
 }
 
@@ -235,6 +318,66 @@
   min-height: 400px;
   box-shadow: none;
   border: none;
+}
+
+/* ---------- By Date tab ---------- */
+.tc-by-date-report {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.tc-by-date-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 1rem 1.5rem;
+  padding: 1rem 1.25rem;
+  background: var(--tc-card);
+  border: 1px solid var(--tc-border);
+  border-radius: 12px;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.05);
+}
+
+.tc-by-date-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.tc-by-date-field label {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--tc-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.tc-by-date-input {
+  min-width: 11rem;
+  padding: 0.55rem 0.75rem;
+  border: 1px solid var(--tc-border);
+  border-radius: 8px;
+  font-size: 0.9rem;
+  color: var(--tc-text);
+  background: #fff;
+  font-family: inherit;
+}
+
+.tc-by-date-input:focus {
+  outline: none;
+  border-color: var(--tc-accent-border);
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+}
+
+.tc-by-date-hint {
+  margin: 0;
+  flex: 1;
+  min-width: min(100%, 14rem);
+  font-size: 0.82rem;
+  color: var(--tc-muted);
+  line-height: 1.5;
+  padding-bottom: 0.15rem;
 }
 
 /* ---------- Update Portfolio ---------- */

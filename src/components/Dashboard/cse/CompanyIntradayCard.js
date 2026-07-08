@@ -1,10 +1,14 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useId, useMemo, useState } from 'react';
 import cseApi from '../../../services/cseApi';
 import CseCardShell from './CseCardShell';
-import { fmtNum, sparklinePath } from './cseFormat';
+import { fmtNum, fmtPct, pctClass, sparklinePath } from './cseFormat';
 
 const REFRESH_MS = 3 * 60 * 1000;
 const CHART_COUNT = 4;
+const TILE_CHART_W = 160;
+const TILE_CHART_H = 64;
+const TILE_CHART_PAD = 4;
+const TILE_GRID_LINES = [0.25, 0.5, 0.75];
 
 const DEFAULT_SYMBOLS = ['JKH.N0000', 'COMB.N0000', 'SAMP.N0000', 'DIAL.N0000'];
 
@@ -30,6 +34,7 @@ const IntradaySparkTile = ({ symbol, options, onSymbolChange, refreshKey }) => {
     const [points, setPoints] = useState([]);
     const [loading, setLoading] = useState(true);
     const [note, setNote] = useState('');
+    const chartFillId = useId().replace(/:/g, '');
 
     const load = useCallback(async () => {
         if (!symbol) {
@@ -55,51 +60,82 @@ const IntradaySparkTile = ({ symbol, options, onSymbolChange, refreshKey }) => {
     }, [load, refreshKey]);
 
     const values = points.map((p) => p.price);
-    const spark = sparklinePath(values, 160, 64);
+    const spark = sparklinePath(values, TILE_CHART_W, TILE_CHART_H, TILE_CHART_PAD);
     const first = values[0];
     const last = values[values.length - 1];
     const changePct = first ? ((last - first) / first) * 100 : 0;
-    const stroke = spark.up ? '#16a34a' : '#dc2626';
-    const fill = spark.up ? 'rgba(22,163,74,0.12)' : 'rgba(220,38,38,0.12)';
+    const changeDir = pctClass(changePct);
+    const stroke = spark.up ? '#059669' : '#dc2626';
+
+    const gridYs = TILE_GRID_LINES.map(
+        (t) => TILE_CHART_PAD + (TILE_CHART_H - TILE_CHART_PAD * 2) * t
+    );
 
     return (
         <div className="cse-intraday-tile">
-            <select
-                className="cse-intraday-tile__select"
-                value={symbol}
-                onChange={(e) => onSymbolChange(e.target.value)}
-                aria-label="Select stock for intraday chart"
-            >
-                {options.map((opt) => (
-                    <option key={opt.value} value={opt.value}>
-                        {opt.label}
-                    </option>
-                ))}
-            </select>
+            <div className="cse-intraday-tile__head">
+                <select
+                    className="cse-intraday-tile__select"
+                    value={symbol}
+                    onChange={(e) => onSymbolChange(e.target.value)}
+                    aria-label="Select stock for intraday chart"
+                >
+                    {options.map((opt) => (
+                        <option key={opt.value} value={opt.value}>
+                            {opt.label}
+                        </option>
+                    ))}
+                </select>
+                {!loading && points.length >= 2 ? (
+                    <span className={`cse-intraday-tile__pct cse-${changeDir}`}>
+                        {fmtPct(changePct)}
+                    </span>
+                ) : null}
+            </div>
 
             {loading && points.length === 0 ? (
                 <div className="cse-intraday-tile__state">Loading…</div>
             ) : points.length < 2 ? (
                 <div className="cse-intraday-tile__state">{note || 'No intraday data.'}</div>
             ) : (
-                <div className="cse-spark__wrap cse-intraday-tile__chart">
-                    <svg className="cse-spark cse-spark--tile" viewBox="0 0 160 64" preserveAspectRatio="none">
-                        <path d={spark.area} fill={fill} stroke="none" />
+                <div className="cse-intraday-tile__chart">
+                    <svg
+                        className="cse-intraday-tile__svg"
+                        viewBox={`0 0 ${TILE_CHART_W} ${TILE_CHART_H}`}
+                        preserveAspectRatio="none"
+                        aria-hidden
+                    >
+                        <defs>
+                            <linearGradient id={chartFillId} x1="0" y1="0" x2="0" y2="1">
+                                <stop offset="0%" stopColor={stroke} stopOpacity="0.2" />
+                                <stop offset="100%" stopColor={stroke} stopOpacity="0" />
+                            </linearGradient>
+                        </defs>
+                        {gridYs.map((y) => (
+                            <line
+                                key={y}
+                                x1={TILE_CHART_PAD}
+                                y1={y}
+                                x2={TILE_CHART_W - TILE_CHART_PAD}
+                                y2={y}
+                                className="cse-intraday-tile__grid"
+                            />
+                        ))}
+                        <path d={spark.area} fill={`url(#${chartFillId})`} stroke="none" />
                         <path
                             d={spark.line}
                             fill="none"
                             stroke={stroke}
-                            strokeWidth="1.25"
+                            strokeWidth="1.5"
                             strokeLinejoin="round"
                             strokeLinecap="round"
                             vectorEffect="non-scaling-stroke"
                         />
                     </svg>
-                    <div className="cse-spark__foot">
-                        <span>{fmtNum(first, 2)}</span>
-                        <span style={{ fontWeight: 700, color: stroke }}>
-                            {fmtNum(last, 2)} ({changePct >= 0 ? '+' : ''}
-                            {changePct.toFixed(2)}%)
+                    <div className="cse-intraday-tile__foot">
+                        <span>Open {fmtNum(first, 2)}</span>
+                        <span>
+                            Now <strong className={`cse-${changeDir}`}>{fmtNum(last, 2)}</strong>
                         </span>
                     </div>
                 </div>
@@ -202,7 +238,7 @@ const CompanyIntradayCard = ({ holdingSymbols = [] }) => {
             lastUpdated={lastUpdated}
             onRefresh={handleRefresh}
             refreshing={catalogLoading}
-            className="cse-card--company-chart"
+            className="cse-card--company-chart cse-intraday-card"
         >
             {catalogLoading && options.length <= DEFAULT_SYMBOLS.length ? (
                 <div className="cse-card__state">Loading symbol list…</div>

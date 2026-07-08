@@ -583,7 +583,10 @@ export const parsedTradeTransactionAPI = {
   // Get parsed trade transactions by date
   getParsedTransactionsByDate: async (tradeDate) => {
     try {
-      return await makeAuthenticatedRequest(`${API_BASE_URL}/parsed-trade-transactions/by-date?tradeDate=${tradeDate}`);
+      const normalized = String(tradeDate || '').trim().replace(/\//g, '-');
+      return await makeAuthenticatedRequest(
+        `${API_BASE_URL}/parsed-trade-transactions/by-date?tradeDate=${encodeURIComponent(normalized)}`
+      );
     } catch (error) {
       console.error('Error fetching parsed transactions by date:', error);
       throw error;

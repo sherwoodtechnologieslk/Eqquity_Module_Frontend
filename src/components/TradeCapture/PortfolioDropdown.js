@@ -310,11 +310,14 @@ const PortfolioDropdown = () => {
 
 
   return (
-    <div className="pf-dropdown-container">
+    <div className="pf-dropdown-container pf-page">
       {/* Header Section */}
       <div className="pf-header-section">
         <div className="pf-header-text-group">
           <h1 className="pf-main-title">Portfolio Selection</h1>
+          <p className="pf-header-subtitle">
+            View holdings, average cost, and charges for each portfolio
+          </p>
         </div>
         <button
           className={`pf-refresh-button ${isRefreshing ? 'pf-refreshing' : ''}`}
@@ -333,7 +336,11 @@ const PortfolioDropdown = () => {
       </div>
 
       {/* Dropdown Section */}
-      <div className="pf-select-wrapper">
+      <div className="pf-select-card">
+        <label htmlFor="portfolio-select" className="pf-select-label">
+          Portfolio
+        </label>
+        <div className="pf-select-wrapper">
         <div className={`pf-select-container ${isFocused ? 'pf-focused' : ''} ${portfoliosLoading ? 'pf-loading' : ''}`}> 
           <select
             id="portfolio-select"
@@ -380,6 +387,7 @@ const PortfolioDropdown = () => {
               </svg>
             </div>
           )}
+        </div>
         </div>
       </div>
 
@@ -559,25 +567,27 @@ const PortfolioDropdown = () => {
                    <thead>
                      <tr>
                        <th>Company</th>
+                       <th>Company ID</th>
                        <th>Net Quantity</th>
                        <th>Average Buy Price</th>
+                       <th>Cost per Share</th>
                        <th>Cost Value</th>
                        <th>Charges</th>
                        <th>Net Value</th>
-                       <th>Cost per Share</th>
                         <th>Last Trade Date</th>
                       </tr>
                     </thead>
                    <tbody>
                      {holdingsFilteredDates.map((holding) => (
-                       <tr key={holding.companyName} className="ph-table-row">
+                       <tr key={`${holding.companyKey}-${holding.companyName}`} className="ph-table-row">
                          <td className="ph-company-name">{holding.companyName}</td>
+                         <td className="ph-company-id">{holding.companyId || '—'}</td>
                          <td className="ph-quantity">{(holding.netQuantity || 0).toLocaleString()}</td>
                          <td className="ph-avg-price">{(holding.avgBuyPrice || 0).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
-                         <td className="ph-total-value">{(holding.costValue || 0).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 4})}</td>
+                         <td className="ph-cost-per-share">{(holding.costPerShare || 0).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 4})}</td>
+                         <td className="ph-total-value">{(holding.costValue || 0).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
                          <td className="ph-charges">{(holding.totalCharges || 0).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
                          <td className="ph-net-value">{(holding.netValue || 0).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 4})}</td>
-                         <td className="ph-cost-per-share">{(holding.costPerShare || 0).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 4})}</td>
                          <td className="ph-last-update">
                            {holding.lastTradeDate ? holding.lastTradeDate : '—'}
                          </td>
@@ -587,24 +597,16 @@ const PortfolioDropdown = () => {
                    <tfoot>
                      <tr className="ph-total-row">
                        <td><strong>Portfolio Totals</strong></td>
+                       <td className="ph-total-company-id" aria-hidden="true" />
                        <td className="ph-total-quantity">
                          {holdingsFilteredDates.reduce((sum, holding) => sum + (holding.netQuantity || 0), 0).toLocaleString()}
                        </td>
                        <td className="ph-total-avg-price">
                          {holdingsFilteredDates.length > 0 ? 
                            (holdingsFilteredDates.reduce((sum, holding) => sum + (holding.costValue || 0), 0) / 
-                            holdingsFilteredDates.reduce((sum, holding) => sum + (holding.netQuantity || 0), 0)).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 4}) : 
+                            holdingsFilteredDates.reduce((sum, holding) => sum + (holding.netQuantity || 0), 0)).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2}) : 
                            '0.00'
                          }
-                       </td>
-                       <td className="ph-total-value-sum">
-                         {holdingsFilteredDates.reduce((sum, holding) => sum + (holding.costValue || 0), 0).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 4})}
-                       </td>
-                       <td className="ph-total-charges">
-                         {holdingsFilteredDates.reduce((sum, holding) => sum + (holding.totalCharges || 0), 0).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}
-                       </td>
-                       <td className="ph-total-net-value">
-                         {holdingsFilteredDates.reduce((sum, holding) => sum + (holding.netValue || 0), 0).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 4})}
                        </td>
                        <td className="ph-total-cost-per-share">
                          {holdingsFilteredDates.length > 0 ? 
@@ -612,6 +614,15 @@ const PortfolioDropdown = () => {
                             holdingsFilteredDates.reduce((sum, holding) => sum + (holding.netQuantity || 0), 0)).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 4}) : 
                            '0.00'
                          }
+                       </td>
+                       <td className="ph-total-value-sum">
+                         {holdingsFilteredDates.reduce((sum, holding) => sum + (holding.costValue || 0), 0).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}
+                       </td>
+                       <td className="ph-total-charges">
+                         {holdingsFilteredDates.reduce((sum, holding) => sum + (holding.totalCharges || 0), 0).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}
+                       </td>
+                       <td className="ph-total-net-value">
+                         {holdingsFilteredDates.reduce((sum, holding) => sum + (holding.netValue || 0), 0).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 4})}
                        </td>
                        <td className="ph-total-last-update" aria-hidden="true" />
                      </tr>

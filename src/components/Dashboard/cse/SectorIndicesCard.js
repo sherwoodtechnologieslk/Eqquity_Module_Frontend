@@ -5,7 +5,9 @@ import './DashboardCseExtras.css';
 
 const REFRESH_MS = 4 * 60 * 1000;
 
-// Live CSE sector index board (allSectors) — premium grid below Market Today.
+const dirLabel = { up: 'Gaining', down: 'Declining', flat: 'Unchanged' };
+
+// Live CSE sector index board (allSectors) — institutional-grade panel below Market Today.
 const SectorIndicesCard = () => {
     const [items, setItems] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -58,15 +60,6 @@ const SectorIndicesCard = () => {
         return { gainer, loser, turnover };
     }, [items]);
 
-    const maxAbsPct = useMemo(() => {
-        let max = 0;
-        sorted.forEach((s) => {
-            const m = Math.abs(Number(s.percentage) || 0);
-            if (m > max) max = m;
-        });
-        return max || 1;
-    }, [sorted]);
-
     const labelOf = (s) => s?.name || s?.symbol || '—';
 
     return (
@@ -75,133 +68,165 @@ const SectorIndicesCard = () => {
             role="region"
             aria-label="Live CSE sector indices"
         >
-            <div className="card-header cse-sector-indices__header">
+            <header className="card-header cse-sector-indices__header">
                 <div className="header-left cse-sector-indices__heading">
-                    <span className="card-subtitle">Sector Indices</span>
                     <span className="cse-sector-indices__hint">
-                        Live CSE sector index values
-                        {items.length > 0 ? ` · ${items.length} sectors` : ''}
+                        Live CSE sector index values · Colombo Stock Exchange
                     </span>
                 </div>
-                <span className="cse-sector-indices__badge">
-                    <span className="cse-sector-indices__badge-dot" aria-hidden />
-                    Live
-                </span>
-            </div>
+            </header>
 
             {loading && items.length === 0 ? (
-                <div className="cse-sector-indices__state">Loading sector indices…</div>
+                <div className="cse-sector-indices__state">
+                    <span className="cse-sector-indices__state-pulse" aria-hidden />
+                    Loading sector indices…
+                </div>
             ) : items.length === 0 ? (
                 <div className="cse-sector-indices__state">{note || 'No sector data available.'}</div>
             ) : (
-                <>
-                    <div className="cse-sector-indices__spotlights">
-                        <div className="cse-sector-spot cse-sector-spot--up">
-                            <span className="cse-sector-spot__tag">Top gainer</span>
+                <div className="cse-sector-indices__body">
+                    <div className="cse-sector-indices__kpis">
+                        <article className="cse-sector-kpi cse-sector-kpi--up">
+                            <div className="cse-sector-kpi__head">
+                                <span className="cse-sector-kpi__label">Top Gainer</span>
+                                <span className="cse-sector-kpi__glyph" aria-hidden>▲</span>
+                            </div>
                             {highlights.gainer ? (
                                 <>
-                                    <span className="cse-sector-spot__name" title={labelOf(highlights.gainer)}>
+                                    <span
+                                        className="cse-sector-kpi__name"
+                                        title={labelOf(highlights.gainer)}
+                                    >
                                         {labelOf(highlights.gainer)}
                                     </span>
-                                    <span className="cse-sector-spot__value">
-                                        {fmtNum(highlights.gainer.value, 2)}
-                                    </span>
-                                    <span className="cse-sector-spot__chg cse-up">
-                                        {fmtPct(highlights.gainer.percentage)}
-                                    </span>
+                                    <div className="cse-sector-kpi__metrics">
+                                        <span className="cse-sector-kpi__value">
+                                            {fmtNum(highlights.gainer.value, 2)}
+                                        </span>
+                                        <span className="cse-sector-kpi__chg cse-up">
+                                            {fmtPct(highlights.gainer.percentage)}
+                                        </span>
+                                    </div>
                                 </>
                             ) : (
-                                <span className="cse-sector-spot__empty">No gainers today</span>
+                                <span className="cse-sector-kpi__empty">No gainers today</span>
                             )}
-                        </div>
-                        <div className="cse-sector-spot cse-sector-spot--down">
-                            <span className="cse-sector-spot__tag">Top loser</span>
+                        </article>
+
+                        <article className="cse-sector-kpi cse-sector-kpi--down">
+                            <div className="cse-sector-kpi__head">
+                                <span className="cse-sector-kpi__label">Top Loser</span>
+                                <span className="cse-sector-kpi__glyph" aria-hidden>▼</span>
+                            </div>
                             {highlights.loser ? (
                                 <>
-                                    <span className="cse-sector-spot__name" title={labelOf(highlights.loser)}>
+                                    <span
+                                        className="cse-sector-kpi__name"
+                                        title={labelOf(highlights.loser)}
+                                    >
                                         {labelOf(highlights.loser)}
                                     </span>
-                                    <span className="cse-sector-spot__value">
-                                        {fmtNum(highlights.loser.value, 2)}
-                                    </span>
-                                    <span className="cse-sector-spot__chg cse-down">
-                                        {fmtPct(highlights.loser.percentage)}
-                                    </span>
+                                    <div className="cse-sector-kpi__metrics">
+                                        <span className="cse-sector-kpi__value">
+                                            {fmtNum(highlights.loser.value, 2)}
+                                        </span>
+                                        <span className="cse-sector-kpi__chg cse-down">
+                                            {fmtPct(highlights.loser.percentage)}
+                                        </span>
+                                    </div>
                                 </>
                             ) : (
-                                <span className="cse-sector-spot__empty">No losers today</span>
+                                <span className="cse-sector-kpi__empty">No losers today</span>
                             )}
-                        </div>
-                        <div className="cse-sector-spot cse-sector-spot--neutral">
-                            <span className="cse-sector-spot__tag">Highest turnover</span>
+                        </article>
+
+                        <article className="cse-sector-kpi cse-sector-kpi--flow">
+                            <div className="cse-sector-kpi__head">
+                                <span className="cse-sector-kpi__label">Highest Turnover</span>
+                                <span className="cse-sector-kpi__glyph cse-sector-kpi__glyph--flow" aria-hidden>◆</span>
+                            </div>
                             {highlights.turnover ? (
                                 <>
-                                    <span className="cse-sector-spot__name" title={labelOf(highlights.turnover)}>
+                                    <span
+                                        className="cse-sector-kpi__name"
+                                        title={labelOf(highlights.turnover)}
+                                    >
                                         {labelOf(highlights.turnover)}
                                     </span>
-                                    <span className="cse-sector-spot__value cse-sector-spot__value--compact">
-                                        LKR {fmtCompact(highlights.turnover.turnover)}
-                                    </span>
-                                    <span className="cse-sector-spot__sub">
-                                        {fmtNum(highlights.turnover.value, 2)} index
-                                    </span>
+                                    <div className="cse-sector-kpi__metrics">
+                                        <span className="cse-sector-kpi__value cse-sector-kpi__value--compact">
+                                            LKR {fmtCompact(highlights.turnover.turnover)}
+                                        </span>
+                                        <span className="cse-sector-kpi__sub">
+                                            {fmtNum(highlights.turnover.value, 2)} index
+                                        </span>
+                                    </div>
                                 </>
                             ) : (
-                                <span className="cse-sector-spot__empty">No turnover data</span>
+                                <span className="cse-sector-kpi__empty">No turnover data</span>
                             )}
+                        </article>
+                    </div>
+
+                    <div className="cse-sector-indices__table-panel">
+                        <div className="cse-sector-indices__list-head" role="row">
+                            <span>Sector</span>
+                            <span>Index</span>
+                            <span>Change</span>
+                            <span>Flow</span>
                         </div>
-                    </div>
 
-                    <div className="cse-sector-indices__panel-head" aria-hidden>
-                        <span>Sector</span>
-                        <span>Index</span>
-                        <span>Change</span>
-                    </div>
-
-                    <div className="cse-sector-indices__grid">
-                        {sorted.map((s) => {
-                            const pct = Number(s.percentage) || 0;
-                            const dir = pctClass(pct);
-                            const barWidth = Math.max((Math.abs(pct) / maxAbsPct) * 100, 4);
-                            return (
-                                <article
-                                    key={s.id}
-                                    className={`cse-sector-tile cse-sector-tile--${dir}`}
-                                >
-                                    <div className="cse-sector-tile__top">
-                                        <div className="cse-sector-tile__info">
-                                            <span className="cse-sector-tile__name" title={s.name}>
+                        <div className="cse-sector-indices__list" role="table" aria-label="Sector index rankings">
+                            {sorted.map((s, index) => {
+                                const pct = Number(s.percentage) || 0;
+                                const dir = pctClass(pct);
+                                const fullLabel = s.indexName || s.name || s.symbol || '—';
+                                return (
+                                    <article
+                                        key={s.id}
+                                        className={`cse-sector-row cse-sector-row--${dir}${
+                                            index % 2 === 1 ? ' cse-sector-row--alt' : ''
+                                        }`}
+                                        title={fullLabel}
+                                        role="row"
+                                    >
+                                        <div className="cse-sector-row__sector" role="cell">
+                                            <span
+                                                className={`cse-sector-row__signal cse-sector-row__signal--${dir}`}
+                                                title={dirLabel[dir] || 'Unchanged'}
+                                                aria-label={dirLabel[dir] || 'Unchanged'}
+                                            />
+                                            <span className="cse-sector-row__name">
                                                 {s.name || s.symbol || '—'}
                                             </span>
-                                            {s.indexName ? (
-                                                <span className="cse-sector-tile__index" title={s.indexName}>
-                                                    {s.indexName}
+                                        </div>
+                                        <div className="cse-sector-row__value" role="cell">
+                                            {fmtNum(s.value, 2)}
+                                        </div>
+                                        <div
+                                            className={`cse-sector-row__chg cse-${dir}`}
+                                            role="cell"
+                                        >
+                                            {fmtPct(pct)}
+                                        </div>
+                                        <div className="cse-sector-row__flow" role="cell">
+                                            {s.turnover > 0 ? (
+                                                <span>LKR {fmtCompact(s.turnover)}</span>
+                                            ) : (
+                                                <span className="cse-sector-row__flow-empty">—</span>
+                                            )}
+                                            {s.volume > 0 ? (
+                                                <span className="cse-sector-row__vol">
+                                                    Vol {fmtCompact(s.volume)}
                                                 </span>
                                             ) : null}
                                         </div>
-                                        <span className={`cse-sector-tile__chg cse-${dir}`}>
-                                            {fmtPct(pct)}
-                                        </span>
-                                    </div>
-                                    <div className="cse-sector-tile__value">{fmtNum(s.value, 2)}</div>
-                                    <div className={`cse-sector-tile__bar cse-sector-tile__bar--${dir}`}>
-                                        <span style={{ width: `${barWidth}%` }} />
-                                    </div>
-                                    {(s.turnover > 0 || s.volume > 0) && (
-                                        <div className="cse-sector-tile__foot">
-                                            {s.turnover > 0 && (
-                                                <span>Turnover LKR {fmtCompact(s.turnover)}</span>
-                                            )}
-                                            {s.volume > 0 && (
-                                                <span>Vol {fmtCompact(s.volume)}</span>
-                                            )}
-                                        </div>
-                                    )}
-                                </article>
-                            );
-                        })}
+                                    </article>
+                                );
+                            })}
+                        </div>
                     </div>
-                </>
+                </div>
             )}
         </div>
     );

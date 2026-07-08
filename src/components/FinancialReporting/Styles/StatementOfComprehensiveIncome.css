@@ -4,21 +4,21 @@
    ============================================================ */
 
 .comprehensive-income {
-  min-height: 100vh;
-  padding: 1.75rem 1.25rem 3rem;
-  background: linear-gradient(180deg, #f1f5f9 0%, #f8fafc 220px, #f8fafc 100%);
+  padding: 1.25rem 1rem 2rem;
+  background: transparent;
 }
 
 /* ----- Page header ---------------------------------------------------- */
 
 .ci-page-header {
   max-width: 1400px;
-  margin: 0 auto 1.5rem auto;
-  background: white;
-  border: 1px solid #e2e8f0;
-  border-radius: 14px;
-  box-shadow: 0 4px 18px rgba(15, 23, 42, 0.06);
-  padding: 1.5rem 1.75rem 1.75rem;
+  margin: 0 auto 1rem auto;
+  background: transparent;
+  border: none;
+  border-bottom: 2px solid #e2e8f0;
+  border-radius: 0;
+  box-shadow: none;
+  padding: 0 0 1rem 0;
 }
 
 .ci-title-row {
@@ -70,13 +70,13 @@
 /* ----- Filter row ----------------------------------------------------- */
 
 .ci-filter-row {
-  margin-top: 1.25rem;
+  margin-top: 1rem;
   display: flex;
   align-items: center;
   flex-wrap: wrap;
   gap: 14px;
-  padding-top: 1rem;
-  border-top: 1px dashed #e2e8f0;
+  padding-top: 0.85rem;
+  border-top: 1px dashed #cbd5e1;
 }
 
 .ci-filter-group {
@@ -141,26 +141,27 @@
 /* ----- KPI tiles ------------------------------------------------------ */
 
 .ci-kpi-row {
-  margin-top: 1.25rem;
+  margin-top: 1rem;
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 12px;
+  gap: 10px;
 }
 
 .ci-kpi-tile {
-  padding: 14px 16px;
-  background: #f8fafc;
-  border: 1px solid #e2e8f0;
-  border-radius: 12px;
+  padding: 12px 14px;
+  background: #eef2f7;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
   display: flex;
   flex-direction: column;
   gap: 6px;
-  transition: transform 0.18s ease, box-shadow 0.18s ease;
+  transition: border-color 0.18s ease;
 }
 
 .ci-kpi-tile:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 6px 16px rgba(15, 23, 42, 0.07);
+  transform: none;
+  box-shadow: none;
+  border-color: #94a3b8;
 }
 
 .ci-kpi-label {
@@ -213,20 +214,19 @@
   margin: 0 auto;
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 10px;
 }
 
 .ci-section-card {
-  background: white;
-  border: 1px solid #e2e8f0;
-  border-radius: 14px;
-  box-shadow: 0 2px 10px rgba(15, 23, 42, 0.04);
+  background: #eef2f7;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  box-shadow: none;
   overflow: hidden;
-  transition: box-shadow 0.18s ease;
 }
 
 .ci-section-card.open {
-  box-shadow: 0 6px 18px rgba(15, 23, 42, 0.07);
+  box-shadow: none;
 }
 
 .ci-section-toggle {
@@ -245,12 +245,12 @@
 }
 
 .ci-section-card.open .ci-section-toggle {
-  border-bottom-color: #e2e8f0;
-  background: #f8fafc;
+  border-bottom-color: #cbd5e1;
+  background: #e2e8f0;
 }
 
 .ci-section-toggle:hover {
-  background: #f1f5f9;
+  background: #e2e8f0;
 }
 
 .ci-chevron {
@@ -302,8 +302,9 @@
 }
 
 .ci-section-body {
-  padding: 8px 18px 18px;
+  padding: 6px 14px 14px;
   overflow-x: auto;
+  background: #eef2f7;
 }
 
 /* ----- Table inside each section ------------------------------------- */
@@ -345,12 +346,12 @@
 }
 
 .ci-table tbody tr {
-  border-bottom: 1px solid #f1f5f9;
+  border-bottom: 1px solid #e2e8f0;
   transition: background 0.15s ease;
 }
 
 .ci-table tbody tr:hover {
-  background: #f8fafc;
+  background: #e2e8f0;
 }
 
 .ci-table tbody td {
@@ -388,7 +389,7 @@
 }
 
 .ci-total-row {
-  background: #f8fafc;
+  background: #e2e8f0;
   border-top: 2px solid #cbd5e1;
 }
 
@@ -433,11 +434,11 @@
 
 @media (max-width: 768px) {
   .comprehensive-income {
-    padding: 1rem 0.75rem 2.5rem;
+    padding: 1rem 0.75rem 2rem;
   }
 
   .ci-page-header {
-    padding: 1.25rem 1rem 1.5rem;
+    padding: 0 0 0.85rem 0;
   }
 
   .ci-title-row h1 {
