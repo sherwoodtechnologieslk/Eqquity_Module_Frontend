@@ -3,9 +3,57 @@ import { createPortal } from 'react-dom';
 import './Styles/NewGLAccount.css';
 import { accountAPI, chartOfAccountsAPI, glAccountMappingAPI, glAccountAPI, accountCategoryAPI, customAccountTypeAPI } from '../../services/api';
 
+const TYPE_CODE_PATTERNS = {
+  asset: '1XX-XXX-XXX-XXX-XX',
+  liability: '2XX-XXX-XXX-XXX-XX',
+  equity: '8XX-XXX-XXX-XXX-XX',
+  revenue: '3XX-XXX-XXX-XXX-XX',
+  'other income': '4XX-XXX-XXX-XXX-XX',
+  provisions: '5XX-XXX-XXX-XXX-XX',
+  expense: '6XX-XXX-XXX-XXX-XX',
+};
+
+const TYPE_PREFIX_MAP = {
+  asset: '1',
+  liability: '2',
+  equity: '8',
+  revenue: '3',
+  'other income': '4',
+  provisions: '5',
+  expense: '6',
+};
+
+const getTypeCodePattern = (typeKey, accountType) => {
+  if (TYPE_CODE_PATTERNS[typeKey]) return TYPE_CODE_PATTERNS[typeKey];
+  if (accountType?.codePrefix) return `${accountType.codePrefix}-XXX-XXX-XXX-XX`;
+  return null;
+};
+
+const getTypePrefix = (typeKey, accountTypesList) => {
+  if (TYPE_PREFIX_MAP[typeKey]) return TYPE_PREFIX_MAP[typeKey];
+  const customType = accountTypesList.find((t) => t.value === typeKey);
+  return customType?.codePrefix?.charAt(0) || '';
+};
+
+/** Screen tab ids — single source of truth for nav + panel wiring */
+const NGL_TABS = [
+  { id: 'newGLAccount', label: 'New GL Account' },
+  { id: 'accountCategory', label: 'Account Category' },
+  { id: 'glMapping', label: 'GL Mapping' },
+  { id: 'accountCodeStructure', label: 'Account Code Structure' },
+];
+
+const NGL_TAB_IDS = NGL_TABS.map((tab) => tab.id);
+
+const getNglTabPanelProps = (tabId) => ({
+  role: 'tabpanel',
+  id: `ngl-tabpanel-${tabId}`,
+  'aria-labelledby': `ngl-tab-${tabId}`,
+});
+
 const NewGLAccount = () => {
   // Tab state
-  const [activeTab, setActiveTab] = useState('newGLAccount'); // 'newGLAccount', 'accountCategory', 'glMapping', or 'accountCodeStructure'
+  const [activeTab, setActiveTab] = useState(NGL_TAB_IDS[0]);
   
   const [formData, setFormData] = useState({
     accountCode: '',
@@ -35,6 +83,8 @@ const NewGLAccount = () => {
   const [customAccountTypes, setCustomAccountTypes] = useState([]); // Array of custom account types: [{ value: 'custom1', label: 'Custom 1' }]
   const [newAccountTypeName, setNewAccountTypeName] = useState('');
   const [newAccountTypeCode, setNewAccountTypeCode] = useState('');
+  const [activeCategoryType, setActiveCategoryType] = useState('asset');
+  const [expandedCategoryTxns, setExpandedCategoryTxns] = useState({});
 
   // GL Mapping states
   const [bankAccounts, setBankAccounts] = useState([]);
@@ -68,6 +118,13 @@ const NewGLAccount = () => {
   
   // Combine base and custom account types
   const accountTypes = [...baseAccountTypes, ...customAccountTypes];
+
+  useEffect(() => {
+    if (activeTab !== 'accountCategory') return;
+    if (!accountTypes.some((t) => t.value === activeCategoryType)) {
+      setActiveCategoryType(accountTypes[0]?.value || 'asset');
+    }
+  }, [activeTab, accountTypes, activeCategoryType]);
 
   // Account categories for better organization (loaded from database)
   const [accountCategories, setAccountCategories] = useState({});
@@ -1544,83 +1601,35 @@ const NewGLAccount = () => {
         </div>
       )}
 
-      {/* Tab Navigation */}
-      <div style={{
-        display: 'flex',
-        gap: '1rem',
-        marginBottom: '2rem',
-        borderBottom: '2px solid #e5e7eb'
-      }}>
-        <button
-          onClick={() => setActiveTab('newGLAccount')}
-          style={{
-            padding: '0.75rem 1.5rem',
-            fontSize: '1rem',
-            fontWeight: activeTab === 'newGLAccount' ? '600' : '400',
-            color: activeTab === 'newGLAccount' ? '#3b82f6' : '#6b7280',
-            background: 'transparent',
-            border: 'none',
-            borderBottom: activeTab === 'newGLAccount' ? '3px solid #3b82f6' : '3px solid transparent',
-            cursor: 'pointer',
-            transition: 'all 0.2s ease'
-          }}
-        >
-          New GL Account
-        </button>
-        <button
-          onClick={() => setActiveTab('accountCategory')}
-          style={{
-            padding: '0.75rem 1.5rem',
-            fontSize: '1rem',
-            fontWeight: activeTab === 'accountCategory' ? '600' : '400',
-            color: activeTab === 'accountCategory' ? '#3b82f6' : '#6b7280',
-            background: 'transparent',
-            border: 'none',
-            borderBottom: activeTab === 'accountCategory' ? '3px solid #3b82f6' : '3px solid transparent',
-            cursor: 'pointer',
-            transition: 'all 0.2s ease'
-          }}
-        >
-          Account Category
-        </button>
-        <button
-          onClick={() => setActiveTab('glMapping')}
-          style={{
-            padding: '0.75rem 1.5rem',
-            fontSize: '1rem',
-            fontWeight: activeTab === 'glMapping' ? '600' : '400',
-            color: activeTab === 'glMapping' ? '#3b82f6' : '#6b7280',
-            background: 'transparent',
-            border: 'none',
-            borderBottom: activeTab === 'glMapping' ? '3px solid #3b82f6' : '3px solid transparent',
-            cursor: 'pointer',
-            transition: 'all 0.2s ease'
-          }}
-        >
-          GL Mapping
-        </button>
-        <button
-          onClick={() => setActiveTab('accountCodeStructure')}
-          style={{
-            padding: '0.75rem 1.5rem',
-            fontSize: '1rem',
-            fontWeight: activeTab === 'accountCodeStructure' ? '600' : '400',
-            color: activeTab === 'accountCodeStructure' ? '#3b82f6' : '#6b7280',
-            background: 'transparent',
-            border: 'none',
-            borderBottom: activeTab === 'accountCodeStructure' ? '3px solid #3b82f6' : '3px solid transparent',
-            cursor: 'pointer',
-            transition: 'all 0.2s ease'
-          }}
-        >
-          Account Code Structure
-        </button>
-      </div>
+      {/* Tab Navigation — styles owned by NewGLAccount.css; excluded from global theme overrides */}
+      <nav className="new-gl-tab-nav" role="tablist" aria-label="GL Account Specification sections">
+        {NGL_TABS.map((tab) => {
+          const isActive = activeTab === tab.id;
+          return (
+            <button
+              key={tab.id}
+              type="button"
+              role="tab"
+              id={`ngl-tab-${tab.id}`}
+              aria-selected={isActive}
+              aria-controls={`ngl-tabpanel-${tab.id}`}
+              tabIndex={isActive ? 0 : -1}
+              onClick={() => setActiveTab(tab.id)}
+              className={`new-gl-tab-btn${isActive ? ' new-gl-tab-btn--active' : ''}`}
+            >
+              {tab.label}
+            </button>
+          );
+        })}
+      </nav>
 
       {/* Conditional Content Based on Active Tab */}
       {activeTab === 'newGLAccount' ? (
       /* New GL Account Form */
-      <div className="new-gl-form-card">
+      <div
+        className="new-gl-form-card ngl-tab-panel--new-gl-account"
+        {...getNglTabPanelProps('newGLAccount')}
+      >
         <div className="new-gl-form-header">
           <h2 className="new-gl-form-title">Account Details</h2>
           <p className="new-gl-form-subtitle">Define the GL account specification details below</p>
@@ -1726,13 +1735,13 @@ const NewGLAccount = () => {
             <h3 className="form-section-title">Account Identification</h3>
             
             <div className="form-row">
-              <div className="form-group" style={{ width: '100%' }}>
+              <div className="form-group ngl-account-code-group">
                 <label className="form-label">
                   Account Code <span className="required">*</span>
                 </label>
-                <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'flex-end', width: '100%' }}>
-                  <div style={{ flex: '1 1 0', minWidth: '90px' }}>
-                    <div style={{ fontSize: '0.7rem', color: '#6b7280', marginBottom: '0.15rem', display: 'block' }}>
+                <div className="ngl-account-code-row">
+                  <div className="ngl-account-code-part">
+                    <div className="ngl-account-code-part-label">
                       Category + Subcategory (XXX)
                     </div>
                     <input
@@ -1741,15 +1750,14 @@ const NewGLAccount = () => {
                       name="accountCodePart1"
                       value={formData.accountCodePart1}
                       onChange={handleInputChange}
-                      className={`form-input ${errors.accountCode ? 'error' : ''}`}
+                      className={`form-input ngl-account-code-input ${errors.accountCode ? 'error' : ''}`}
                       placeholder="101"
                       maxLength={3}
-                      style={{ textAlign: 'center', width: '100%' }}
                     />
                   </div>
-                  <span style={{ fontSize: '1.25rem', color: '#6b7280', paddingBottom: '1.1rem', fontWeight: '600' }}>-</span>
-                  <div style={{ flex: '1 1 0', minWidth: '90px' }}>
-                    <div style={{ fontSize: '0.7rem', color: '#6b7280', marginBottom: '0.15rem', display: 'block' }}>
+                  <span className="ngl-account-code-separator">-</span>
+                  <div className="ngl-account-code-part">
+                    <div className="ngl-account-code-part-label">
                       Branch (XXX)
                     </div>
                     <input
@@ -1758,15 +1766,14 @@ const NewGLAccount = () => {
                       name="accountCodePart2"
                       value={formData.accountCodePart2}
                       onChange={handleInputChange}
-                      className={`form-input ${errors.accountCode ? 'error' : ''}`}
+                      className={`form-input ngl-account-code-input ${errors.accountCode ? 'error' : ''}`}
                       placeholder="101"
                       maxLength={3}
-                      style={{ textAlign: 'center', width: '100%' }}
                     />
                   </div>
-                  <span style={{ fontSize: '1.25rem', color: '#6b7280', paddingBottom: '1.1rem', fontWeight: '600' }}>-</span>
-                  <div style={{ flex: '1 1 0', minWidth: '90px' }}>
-                    <div style={{ fontSize: '0.7rem', color: '#6b7280', marginBottom: '0.15rem', display: 'block' }}>
+                  <span className="ngl-account-code-separator">-</span>
+                  <div className="ngl-account-code-part">
+                    <div className="ngl-account-code-part-label">
                       Transaction Type (XXX)
                     </div>
                     <input
@@ -1775,15 +1782,14 @@ const NewGLAccount = () => {
                       name="accountCodePart3"
                       value={formData.accountCodePart3}
                       onChange={handleInputChange}
-                      className={`form-input ${errors.accountCode ? 'error' : ''}`}
+                      className={`form-input ngl-account-code-input ${errors.accountCode ? 'error' : ''}`}
                       placeholder="555"
                       maxLength={3}
-                      style={{ textAlign: 'center', width: '100%' }}
                     />
                   </div>
-                  <span style={{ fontSize: '1.25rem', color: '#6b7280', paddingBottom: '1.1rem', fontWeight: '600' }}>-</span>
-                  <div style={{ flex: '1 1 0', minWidth: '90px' }}>
-                    <div style={{ fontSize: '0.7rem', color: '#6b7280', marginBottom: '0.15rem', display: 'block' }}>
+                  <span className="ngl-account-code-separator">-</span>
+                  <div className="ngl-account-code-part">
+                    <div className="ngl-account-code-part-label">
                       Account Name (XXX)
                     </div>
                     <input
@@ -1792,15 +1798,14 @@ const NewGLAccount = () => {
                       name="accountCodePart4"
                       value={formData.accountCodePart4}
                       onChange={handleInputChange}
-                      className={`form-input ${errors.accountCode ? 'error' : ''}`}
+                      className={`form-input ngl-account-code-input ${errors.accountCode ? 'error' : ''}`}
                       placeholder="001"
                       maxLength={3}
-                      style={{ textAlign: 'center', width: '100%' }}
                     />
                   </div>
-                  <span style={{ fontSize: '1.25rem', color: '#6b7280', paddingBottom: '1.1rem', fontWeight: '600' }}>-</span>
-                  <div style={{ flex: '1 1 0', minWidth: '70px' }}>
-                    <div style={{ fontSize: '0.7rem', color: '#6b7280', marginBottom: '0.15rem', display: 'block' }}>
+                  <span className="ngl-account-code-separator">-</span>
+                  <div className="ngl-account-code-part">
+                    <div className="ngl-account-code-part-label">
                       Ending (XX)
                     </div>
                     <input
@@ -1809,10 +1814,9 @@ const NewGLAccount = () => {
                       name="accountCodePart5"
                       value={formData.accountCodePart5}
                       onChange={handleInputChange}
-                      className={`form-input ${errors.accountCode ? 'error' : ''}`}
+                      className={`form-input ngl-account-code-input ${errors.accountCode ? 'error' : ''}`}
                       placeholder="44"
                       maxLength={2}
-                      style={{ textAlign: 'center', width: '100%' }}
                     />
                   </div>
                 </div>
@@ -1917,13 +1921,13 @@ const NewGLAccount = () => {
       </div>
       ) : activeTab === 'accountCategory' ? (
       /* Account Category Management Tab */
-      <div className="new-gl-form-card">
+      <div className="new-gl-form-card" {...getNglTabPanelProps('accountCategory')}>
         <div className="new-gl-form-header">
           <h2 className="new-gl-form-title">Account Category Management</h2>
           <p className="new-gl-form-subtitle">Manage account categories for each account type</p>
         </div>
 
-        <div style={{ padding: '2rem' }}>
+        <div className="new-gl-tab-content ngl-category-tab">
           <div className="gl-mapping-instructions">
             <div className="gl-mapping-instructions-content">
               <p className="gl-mapping-instructions-title">
@@ -1937,25 +1941,13 @@ const NewGLAccount = () => {
 
           {/* Add New Account Type Section */}
           {customAccountTypes.length < 4 && (
-            <div style={{ 
-              marginBottom: '2rem',
-              padding: '1.5rem',
-              backgroundColor: '#eff6ff',
-              borderRadius: '0.5rem',
-              border: '2px dashed #3b82f6'
-            }}>
-              <h3 style={{ 
-                marginTop: 0,
-                marginBottom: '1rem',
-                fontSize: '1.125rem',
-                fontWeight: '600',
-                color: '#374151'
-              }}>
+            <div className="ngl-add-type-panel">
+              <h3 className="ngl-panel-title">
                 Add New Account Type Category ({customAccountTypes.length}/4)
               </h3>
-              <div style={{ display: 'flex', gap: '1rem', alignItems: 'flex-end' }}>
-                <div style={{ flex: 1 }}>
-                  <label style={{ fontSize: '0.75rem', color: '#6b7280', marginBottom: '0.25rem', display: 'block' }}>
+              <div className="ngl-flex-row-end">
+                <div className="ngl-flex-field">
+                  <label className="ngl-inline-label">
                     Account Type Name
                   </label>
                   <input
@@ -1963,18 +1955,11 @@ const NewGLAccount = () => {
                     value={newAccountTypeName}
                     onChange={(e) => setNewAccountTypeName(e.target.value)}
                     placeholder="e.g., Bank Account, Investment"
-                    style={{
-                      width: '100%',
-                      padding: '0.5rem 0.75rem',
-                      fontSize: '0.875rem',
-                      border: '1px solid #d1d5db',
-                      borderRadius: '0.375rem',
-                      backgroundColor: '#fff'
-                    }}
+                    className="ngl-inline-input"
                   />
                 </div>
-                <div style={{ flex: 1 }}>
-                  <label style={{ fontSize: '0.75rem', color: '#6b7280', marginBottom: '0.25rem', display: 'block' }}>
+                <div className="ngl-flex-field">
+                  <label className="ngl-inline-label">
                     Account Code Prefix (XXX)
                   </label>
                   <input
@@ -1983,33 +1968,12 @@ const NewGLAccount = () => {
                     onChange={(e) => setNewAccountTypeCode(e.target.value.toUpperCase())}
                     placeholder="e.g., 4XX, 5XX, 7XX, 9XX"
                     maxLength={3}
-                    style={{
-                      width: '100%',
-                      padding: '0.5rem 0.75rem',
-                      fontSize: '0.875rem',
-                      border: '1px solid #d1d5db',
-                      borderRadius: '0.375rem',
-                      backgroundColor: '#fff',
-                      fontFamily: 'monospace',
-                      textAlign: 'center'
-                    }}
+                    className="ngl-inline-input ngl-inline-input--mono"
                   />
                 </div>
                 <button
                   onClick={handleAddAccountType}
-                  style={{
-                    padding: '0.5rem 1.5rem',
-                    fontSize: '0.875rem',
-                    fontWeight: '600',
-                    color: '#fff',
-                    backgroundColor: '#3b82f6',
-                    border: 'none',
-                    borderRadius: '0.375rem',
-                    cursor: 'pointer',
-                    whiteSpace: 'nowrap'
-                  }}
-                  onMouseEnter={(e) => e.target.style.backgroundColor = '#2563eb'}
-                  onMouseLeave={(e) => e.target.style.backgroundColor = '#3b82f6'}
+                  type="button" className="ngl-btn-primary"
                 >
                   Add Account Type
                 </button>
@@ -2017,774 +1981,299 @@ const NewGLAccount = () => {
             </div>
           )}
 
-          {accountTypes.map(accountType => {
+          <div className="ngl-cat-type-nav">
+            {accountTypes.map((type) => {
+              const count = (accountCategories[type.value] || []).length;
+              return (
+                <button
+                  key={type.value}
+                  type="button"
+                  className={`ngl-cat-type-pill ${activeCategoryType === type.value ? 'ngl-cat-type-pill--active' : ''}`}
+                  onClick={() => setActiveCategoryType(type.value)}
+                >
+                  {type.label}
+                  <span className="ngl-cat-type-pill-count">{count}</span>
+                </button>
+              );
+            })}
+          </div>
+
+          {accountTypes.filter((t) => t.value === activeCategoryType).map(accountType => {
             const typeKey = accountType.value;
             const categories = accountCategories[typeKey] || [];
             const isEditing = editingCategory[typeKey];
+            const codePattern = getTypeCodePattern(typeKey, accountType);
             
             return (
-              <div key={typeKey} style={{ 
-                marginBottom: '2rem',
-                padding: '1.5rem',
-                backgroundColor: '#f9fafb',
-                borderRadius: '0.5rem',
-                border: '1px solid #e5e7eb'
-              }}>
-                <h3 style={{ 
-                  marginTop: 0,
-                  marginBottom: '1rem',
-                  fontSize: '1.125rem',
-                  fontWeight: '600',
-                  color: '#374151',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '0.75rem'
-                }}>
-                  {accountType.value === 'asset' && (
-                    <span style={{
-                      fontSize: '0.875rem',
-                      fontWeight: '600',
-                      color: '#fff',
-                      backgroundColor: '#3b82f6',
-                      padding: '0.25rem 0.75rem',
-                      borderRadius: '0.375rem',
-                      fontFamily: 'monospace',
-                      letterSpacing: '0.05em'
-                    }}>
-                      1XX-XXX-XXX-XXX-XX
-                    </span>
-                  )}
-                  {accountType.value === 'liability' && (
-                    <span style={{
-                      fontSize: '0.875rem',
-                      fontWeight: '600',
-                      color: '#fff',
-                      backgroundColor: '#3b82f6',
-                      padding: '0.25rem 0.75rem',
-                      borderRadius: '0.375rem',
-                      fontFamily: 'monospace',
-                      letterSpacing: '0.05em'
-                    }}>
-                      2XX-XXX-XXX-XXX-XX
-                    </span>
-                  )}
-                  {accountType.value === 'equity' && (
-                    <span style={{
-                      fontSize: '0.875rem',
-                      fontWeight: '600',
-                      color: '#fff',
-                      backgroundColor: '#3b82f6',
-                      padding: '0.25rem 0.75rem',
-                      borderRadius: '0.375rem',
-                      fontFamily: 'monospace',
-                      letterSpacing: '0.05em'
-                    }}>
-                      8XX-XXX-XXX-XXX-XX
-                    </span>
-                  )}
-                  {accountType.value === 'revenue' && (
-                    <span style={{
-                      fontSize: '0.875rem',
-                      fontWeight: '600',
-                      color: '#fff',
-                      backgroundColor: '#3b82f6',
-                      padding: '0.25rem 0.75rem',
-                      borderRadius: '0.375rem',
-                      fontFamily: 'monospace',
-                      letterSpacing: '0.05em'
-                    }}>
-                      3XX-XXX-XXX-XXX-XX
-                    </span>
-                  )}
-                  {accountType.value === 'other income' && (
-                    <span style={{
-                      fontSize: '0.875rem',
-                      fontWeight: '600',
-                      color: '#fff',
-                      backgroundColor: '#3b82f6',
-                      padding: '0.25rem 0.75rem',
-                      borderRadius: '0.375rem',
-                      fontFamily: 'monospace',
-                      letterSpacing: '0.05em'
-                    }}>
-                      4XX-XXX-XXX-XXX-XX
-                    </span>
-                  )}
-                  {accountType.value === 'provisions' && (
-                    <span style={{
-                      fontSize: '0.875rem',
-                      fontWeight: '600',
-                      color: '#fff',
-                      backgroundColor: '#3b82f6',
-                      padding: '0.25rem 0.75rem',
-                      borderRadius: '0.375rem',
-                      fontFamily: 'monospace',
-                      letterSpacing: '0.05em'
-                    }}>
-                      5XX-XXX-XXX-XXX-XX
-                    </span>
-                  )}
-                  {accountType.value === 'expense' && (
-                    <span style={{
-                      fontSize: '0.875rem',
-                      fontWeight: '600',
-                      color: '#fff',
-                      backgroundColor: '#3b82f6',
-                      padding: '0.25rem 0.75rem',
-                      borderRadius: '0.375rem',
-                      fontFamily: 'monospace',
-                      letterSpacing: '0.05em'
-                    }}>
-                      6XX-XXX-XXX-XXX-XX
-                    </span>
-                  )}
-                  {accountType.codePrefix && (
-                    <span style={{
-                      fontSize: '0.875rem',
-                      fontWeight: '600',
-                      color: '#fff',
-                      backgroundColor: '#3b82f6',
-                      padding: '0.25rem 0.75rem',
-                      borderRadius: '0.375rem',
-                      fontFamily: 'monospace',
-                      letterSpacing: '0.05em'
-                    }}>
-                      {accountType.codePrefix}-XXX-XXX-XXX-XX
-                    </span>
-                  )}
-                  <span style={{ flex: 1 }}>{accountType.label} Categories</span>
+              <div key={typeKey} className="ngl-cat-type-panel">
+                <div className="ngl-cat-type-header">
+                  <div className="ngl-cat-type-header-text">
+                    <h3 className="ngl-cat-type-name">{accountType.label}</h3>
+                    {codePattern && <p className="ngl-cat-type-code">{codePattern}</p>}
+                  </div>
                   {customAccountTypes.some(t => t.value === accountType.value) && (
                     <button
                       onClick={() => handleDeleteAccountType(accountType.value)}
-                      style={{
-                        padding: '0.25rem 0.5rem',
-                        fontSize: '0.75rem',
-                        color: '#dc2626',
-                        backgroundColor: 'transparent',
-                        border: '1px solid #dc2626',
-                        borderRadius: '0.25rem',
-                        cursor: 'pointer'
-                      }}
+                      type="button"
+                      className="ngl-btn-sm ngl-btn-sm-delete"
                       title="Delete Account Type"
                     >
                       Delete Type
                     </button>
                   )}
-                </h3>
+                </div>
 
-                {/* Add New Category */}
-                <div style={{ 
-                  display: 'flex',
-                  gap: '0.5rem',
-                  marginBottom: '1rem',
-                  flexWrap: 'wrap'
-                }}>
-                  <input
-                    type="text"
-                    placeholder="Enter new category name"
-                    value={categoryInputs[typeKey] || ''}
-                    onChange={(e) => handleCategoryInputChange(typeKey, e.target.value)}
-                    onKeyPress={(e) => {
-                      if (e.key === 'Enter') {
-                        handleAddCategory(typeKey);
-                      }
-                    }}
-                    style={{
-                      flex: 2,
-                      minWidth: '200px',
-                      padding: '0.5rem 0.75rem',
-                      fontSize: '0.875rem',
-                      border: '1px solid #d1d5db',
-                      borderRadius: '0.375rem',
-                      backgroundColor: '#fff'
-                    }}
-                  />
-                  <input
-                    type="text"
-                    placeholder="Number (00-99)"
-                    value={categoryNumberInputs[typeKey] || ''}
-                    onChange={(e) => {
-                      const value = e.target.value.replace(/\D/g, '').slice(0, 2);
-                      setCategoryNumberInputs(prev => ({
-                        ...prev,
-                        [typeKey]: value
-                      }));
-                    }}
-                    onKeyPress={(e) => {
-                      if (e.key === 'Enter') {
-                        handleAddCategory(typeKey);
-                      }
-                    }}
-                    style={{
-                      flex: 1,
-                      minWidth: '120px',
-                      padding: '0.5rem 0.75rem',
-                      fontSize: '0.875rem',
-                      border: '1px solid #d1d5db',
-                      borderRadius: '0.375rem',
-                      backgroundColor: '#fff',
-                      textAlign: 'center',
-                      fontFamily: 'monospace'
-                    }}
-                  />
-                  {/* Preview of full account code format */}
-                  {categoryNumberInputs[typeKey] && categoryNumberInputs[typeKey].length > 0 && (() => {
-                    // Get account type prefix
-                    let typePrefix = '';
-                    if (typeKey === 'asset') typePrefix = '1';
-                    else if (typeKey === 'liability') typePrefix = '2';
-                    else if (typeKey === 'equity') typePrefix = '8';
-                    else if (typeKey === 'revenue') typePrefix = '3';
-                    else if (typeKey === 'other income') typePrefix = '4';
-                    else if (typeKey === 'provisions') typePrefix = '5';
-                    else if (typeKey === 'expense') typePrefix = '6';
-                    else {
-                      const customType = accountTypes.find(t => t.value === typeKey);
-                      if (customType && customType.codePrefix) {
-                        typePrefix = customType.codePrefix.charAt(0);
-                      }
-                    }
-                    
-                    // Pad the number to 2 digits
-                    const paddedNumber = categoryNumberInputs[typeKey].padStart(2, '0');
-                    const fullCategoryNumber = `${typePrefix}${paddedNumber}`;
-                    const fullCode = `${fullCategoryNumber}-XXX-XXX-XXX-XX`;
-                    
-                    return (
-                      <span style={{
-                        fontSize: '0.75rem',
-                        fontWeight: '600',
-                        color: '#10b981',
-                        backgroundColor: '#ecfdf5',
-                        padding: '0.25rem 0.5rem',
-                        borderRadius: '0.375rem',
-                        fontFamily: 'monospace',
-                        letterSpacing: '0.05em',
-                        whiteSpace: 'nowrap'
-                      }}>
-                        Preview: {fullCode}
-                      </span>
-                    );
-                  })()}
+                <div className="ngl-cat-add-form">
+                  <div className="ngl-cat-add-field">
+                    <label className="ngl-inline-label">Category name</label>
+                    <input
+                      type="text"
+                      placeholder="e.g. Non-Current Assets"
+                      value={categoryInputs[typeKey] || ''}
+                      onChange={(e) => handleCategoryInputChange(typeKey, e.target.value)}
+                      onKeyPress={(e) => {
+                        if (e.key === 'Enter') handleAddCategory(typeKey);
+                      }}
+                      className="ngl-inline-input"
+                    />
+                  </div>
+                  <div className="ngl-cat-add-field ngl-cat-add-field--narrow">
+                    <label className="ngl-inline-label">Number (00–99)</label>
+                    <input
+                      type="text"
+                      placeholder="11"
+                      value={categoryNumberInputs[typeKey] || ''}
+                      onChange={(e) => {
+                        const value = e.target.value.replace(/\D/g, '').slice(0, 2);
+                        setCategoryNumberInputs(prev => ({ ...prev, [typeKey]: value }));
+                      }}
+                      onKeyPress={(e) => {
+                        if (e.key === 'Enter') handleAddCategory(typeKey);
+                      }}
+                      className="ngl-inline-input ngl-inline-input--mono"
+                    />
+                  </div>
                   <button
                     onClick={() => handleAddCategory(typeKey)}
-                    style={{
-                      padding: '0.5rem 1rem',
-                      fontSize: '0.875rem',
-                      fontWeight: '500',
-                      color: '#fff',
-                      backgroundColor: '#3b82f6',
-                      border: 'none',
-                      borderRadius: '0.375rem',
-                      cursor: 'pointer',
-                      whiteSpace: 'nowrap'
-                    }}
-                    onMouseEnter={(e) => e.target.style.backgroundColor = '#2563eb'}
-                    onMouseLeave={(e) => e.target.style.backgroundColor = '#3b82f6'}
+                    type="button"
+                    className="ngl-btn-primary ngl-cat-add-btn"
                   >
                     Add Category
                   </button>
                 </div>
+                {categoryNumberInputs[typeKey] && categoryNumberInputs[typeKey].length > 0 && (() => {
+                  const typePrefix = getTypePrefix(typeKey, accountTypes);
+                  const paddedNumber = categoryNumberInputs[typeKey].padStart(2, '0');
+                  const fullCode = `${typePrefix}${paddedNumber}-XXX-XXX-XXX-XX`;
+                  return <p className="ngl-cat-add-preview">Preview: {fullCode}</p>;
+                })()}
 
-                {/* Categories List */}
-                <div style={{ 
-                  display: 'flex',
-                  flexWrap: 'wrap',
-                  gap: '0.5rem'
-                }}>
-                  {categories.map((category, index) => {
-                    const isCurrentlyEditing = isEditing && isEditing.oldName === category;
-                    
-                    return (
-                      <div
-                        key={index}
-                        style={{
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: '0.5rem',
-                          padding: '0.5rem 0.75rem',
-                          backgroundColor: '#fff',
-                          border: '1px solid #d1d5db',
-                          borderRadius: '0.375rem',
-                          fontSize: '0.875rem'
-                        }}
-                      >
-                        {isCurrentlyEditing ? (
-                          <>
-                            <input
-                              type="text"
-                              value={isEditing.newName}
-                              onChange={(e) => handleCategoryEditChange(typeKey, e.target.value, 'newName')}
-                              onKeyPress={(e) => {
-                                if (e.key === 'Enter') {
-                                  handleSaveCategoryEdit(typeKey);
-                                } else if (e.key === 'Escape') {
-                                  handleCancelEditCategory(typeKey);
-                                }
-                              }}
-                              autoFocus
-                              style={{
-                                padding: '0.25rem 0.5rem',
-                                fontSize: '0.875rem',
-                                border: '1px solid #3b82f6',
-                                borderRadius: '0.25rem',
-                                minWidth: '150px'
-                              }}
-                            />
-                            <input
-                              type="text"
-                              placeholder="Number"
-                              value={isEditing.newNumber || ''}
-                              onChange={(e) => {
-                                const value = e.target.value.replace(/\D/g, '').slice(0, 2);
-                                handleCategoryEditChange(typeKey, value, 'newNumber');
-                              }}
-                              onKeyPress={(e) => {
-                                if (e.key === 'Enter') {
-                                  handleSaveCategoryEdit(typeKey);
-                                } else if (e.key === 'Escape') {
-                                  handleCancelEditCategory(typeKey);
-                                }
-                              }}
-                              style={{
-                                padding: '0.25rem 0.5rem',
-                                fontSize: '0.875rem',
-                                border: '1px solid #3b82f6',
-                                borderRadius: '0.25rem',
-                                width: '60px',
-                                textAlign: 'center',
-                                fontFamily: 'monospace'
-                              }}
-                            />
-                            <button
-                              onClick={() => handleSaveCategoryEdit(typeKey)}
-                              style={{
-                                padding: '0.25rem 0.5rem',
-                                fontSize: '0.75rem',
-                                color: '#fff',
-                                backgroundColor: '#10b981',
-                                border: 'none',
-                                borderRadius: '0.25rem',
-                                cursor: 'pointer'
-                              }}
-                              title="Save"
-                            >
-                              ✓
-                            </button>
-                            <button
-                              onClick={() => handleCancelEditCategory(typeKey)}
-                              style={{
-                                padding: '0.25rem 0.5rem',
-                                fontSize: '0.75rem',
-                                color: '#fff',
-                                backgroundColor: '#6b7280',
-                                border: 'none',
-                                borderRadius: '0.25rem',
-                                cursor: 'pointer'
-                              }}
-                              title="Cancel"
-                            >
-                              ✕
-                            </button>
-                          </>
-                          ) : (
-                            <>
-                              {categoryNumbers[typeKey]?.[category] && (() => {
-                                const fullCategoryNumber = categoryNumbers[typeKey][category];
-                                // category_number now stores the full 3-digit first segment (e.g., 101, 201, 801)
-                                const fullCode = `${fullCategoryNumber}-XXX-XXX-XXX-XX`;
-                                
-                                return (
-                                  <span style={{
-                                    fontSize: '0.75rem',
-                                    fontWeight: '600',
-                                    color: '#fff',
-                                    backgroundColor: '#10b981',
-                                    padding: '0.25rem 0.5rem',
-                                    borderRadius: '0.375rem',
-                                    fontFamily: 'monospace',
-                                    letterSpacing: '0.05em',
-                                    marginRight: '0.5rem'
-                                  }}>
-                                    {fullCode}
-                                  </span>
-                                );
-                              })()}
-                              <span style={{ color: '#374151' }}>
-                                {category}
-                              </span>
-                            <button
-                              onClick={() => handleStartEditCategory(typeKey, category)}
-                              style={{
-                                padding: '0.25rem 0.5rem',
-                                fontSize: '0.75rem',
-                                color: '#3b82f6',
-                                backgroundColor: 'transparent',
-                                border: '1px solid #3b82f6',
-                                borderRadius: '0.25rem',
-                                cursor: 'pointer'
-                              }}
-                              title="Edit"
-                            >
-                              Edit
-                            </button>
-                            <button
-                              onClick={() => handleDeleteCategory(typeKey, category)}
-                              style={{
-                                padding: '0.25rem 0.5rem',
-                                fontSize: '0.75rem',
-                                color: '#dc2626',
-                                backgroundColor: 'transparent',
-                                border: '1px solid #dc2626',
-                                borderRadius: '0.25rem',
-                                cursor: 'pointer'
-                              }}
-                              title="Delete"
-                            >
-                              Delete
-                            </button>
-                          </>
-                        )}
-                      </div>
-                    );
-                  })}
-                  
-                  {categories.length === 0 && (
-                    <div style={{ 
-                      color: '#6b7280',
-                      fontSize: '0.875rem',
-                      fontStyle: 'italic',
-                      padding: '0.5rem'
-                    }}>
-                      No categories defined yet. Add one above.
+                {categories.length === 0 ? (
+                  <div className="ngl-cat-empty">No categories yet. Add one above to get started.</div>
+                ) : (
+                  <div className="ngl-cat-list">
+                    <div className="ngl-cat-list-head">
+                      <span>Code</span>
+                      <span>Category</span>
+                      <span className="ngl-cat-list-head-types">Transaction Types</span>
+                      <span>Actions</span>
                     </div>
-                  )}
-                </div>
+                    {categories.map((category, index) => {
+                      const isCurrentlyEditing = isEditing && isEditing.oldName === category;
+                      const categoryAccountNames = accountNames[typeKey]?.[category] || [];
+                      const isEditingAccountName = editingAccountNames[typeKey]?.[category];
+                      const accountNameInput = accountNameInputs[typeKey]?.[category] || '';
+                      const accountNameCodeInput = accountNameCodes[typeKey]?.[category] || '';
+                      const txnPanelKey = `${typeKey}::${category}`;
+                      const isTxnExpanded = !!expandedCategoryTxns[txnPanelKey];
+                      const fullCategoryNumber = categoryNumbers[typeKey]?.[category];
+                      const displayCode = fullCategoryNumber ? `${fullCategoryNumber}-XXX-…` : '—';
 
-                {/* Transaction Types Section for each category */}
-                {categories.map((category) => {
-                  const categoryAccountNames = accountNames[typeKey]?.[category] || [];
-                  const isEditingAccountName = editingAccountNames[typeKey]?.[category];
-                  const accountNameInput = accountNameInputs[typeKey]?.[category] || '';
-                  const accountNameCodeInput = accountNameCodes[typeKey]?.[category] || '';
-
-                  return (
-                    <div
-                      key={category}
-                      style={{
-                        marginTop: '1.5rem',
-                        padding: '1rem',
-                        backgroundColor: '#ffffff',
-                        borderRadius: '0.375rem',
-                        border: '1px solid #e5e7eb',
-                        marginLeft: '1rem'
-                      }}
-                    >
-                      <div style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'space-between',
-                        marginBottom: '0.75rem'
-                      }}>
-                        <h4 style={{
-                          margin: 0,
-                          fontSize: '0.875rem',
-                          fontWeight: '600',
-                          color: '#374151'
-                        }}>
-                          Transaction Types under "{category}"
-                        </h4>
-                        <span style={{
-                          fontSize: '0.75rem',
-                          color: '#6b7280',
-                          backgroundColor: '#f3f4f6',
-                          padding: '0.25rem 0.5rem',
-                          borderRadius: '0.25rem'
-                        }}>
-                          {categoryAccountNames.length} type{categoryAccountNames.length !== 1 ? 's' : ''}
-                        </span>
-                      </div>
-
-                      {/* Add Transaction Type Input */}
-                      <div style={{
-                        display: 'flex',
-                        gap: '0.5rem',
-                        marginBottom: '0.75rem',
-                        alignItems: 'flex-end'
-                      }}>
-                        <div style={{ flex: 1 }}>
-                          <label style={{
-                            fontSize: '0.75rem',
-                            color: '#6b7280',
-                            marginBottom: '0.25rem',
-                            display: 'block'
-                          }}>
-                            Transaction Type Name
-                          </label>
-                          <input
-                            type="text"
-                            placeholder="Enter transaction type"
-                            value={accountNameInput}
-                            onChange={(e) => {
-                              setAccountNameInputs(prev => ({
-                                ...prev,
-                                [typeKey]: {
-                                  ...(prev[typeKey] || {}),
-                                  [category]: e.target.value
-                                }
-                              }));
-                            }}
-                            onKeyPress={(e) => {
-                              if (e.key === 'Enter') {
-                                handleAddAccountName(typeKey, category);
-                              }
-                            }}
-                            style={{
-                              width: '100%',
-                              padding: '0.5rem 0.75rem',
-                              fontSize: '0.875rem',
-                              border: '1px solid #d1d5db',
-                              borderRadius: '0.375rem',
-                              backgroundColor: '#fff'
-                            }}
-                          />
-                        </div>
-                        <div style={{ width: '120px' }}>
-                          <label style={{
-                            fontSize: '0.75rem',
-                            color: '#6b7280',
-                            marginBottom: '0.25rem',
-                            display: 'block'
-                          }}>
-                            Code (3 digits)
-                          </label>
-                          <input
-                            type="text"
-                            placeholder="001"
-                            value={accountNameCodeInput}
-                            onChange={(e) => {
-                              const value = e.target.value.replace(/\D/g, '').slice(0, 3);
-                              setAccountNameCodes(prev => ({
-                                ...prev,
-                                [typeKey]: {
-                                  ...(prev[typeKey] || {}),
-                                  [category]: value
-                                }
-                              }));
-                            }}
-                            onKeyPress={(e) => {
-                              if (e.key === 'Enter') {
-                                handleAddAccountName(typeKey, category);
-                              }
-                            }}
-                            style={{
-                              width: '100%',
-                              padding: '0.5rem 0.75rem',
-                              fontSize: '0.875rem',
-                              border: '1px solid #d1d5db',
-                              borderRadius: '0.375rem',
-                              backgroundColor: '#fff',
-                              textAlign: 'center',
-                              fontFamily: 'monospace'
-                            }}
-                          />
-                        </div>
-                        <button
-                          onClick={() => handleAddAccountName(typeKey, category)}
-                          style={{
-                            padding: '0.5rem 1rem',
-                            fontSize: '0.875rem',
-                            fontWeight: '500',
-                            color: '#fff',
-                            backgroundColor: '#10b981',
-                            border: 'none',
-                            borderRadius: '0.375rem',
-                            cursor: 'pointer',
-                            whiteSpace: 'nowrap',
-                            height: 'fit-content'
-                          }}
-                          onMouseEnter={(e) => e.target.style.backgroundColor = '#059669'}
-                          onMouseLeave={(e) => e.target.style.backgroundColor = '#10b981'}
-                        >
-                          Add Transaction Type
-                        </button>
-                      </div>
-
-                      {/* Transaction Types List */}
-                      {categoryAccountNames.length > 0 && (
-                        <div style={{
-                          display: 'flex',
-                          flexWrap: 'wrap',
-                          gap: '0.5rem'
-                        }}>
-                          {categoryAccountNames.map((typeObj, nameIndex) => {
-                            const accountName = typeof typeObj === 'string' ? typeObj : typeObj.name;
-                            const typeCode = typeof typeObj === 'string' ? null : typeObj.code;
-                            const isCurrentlyEditing = isEditingAccountName && isEditingAccountName.oldName === accountName;
-
-                            return (
-                              <div
-                                key={nameIndex}
-                                style={{
-                                  display: 'flex',
-                                  alignItems: 'center',
-                                  gap: '0.5rem',
-                                  padding: '0.5rem 0.75rem',
-                                  backgroundColor: '#f9fafb',
-                                  border: '1px solid #d1d5db',
-                                  borderRadius: '0.375rem',
-                                  fontSize: '0.875rem'
-                                }}
-                              >
-                                {isCurrentlyEditing ? (
-                                  <>
-                                    <input
-                                      type="text"
-                                      value={isEditingAccountName.newName}
-                                      onChange={(e) => handleAccountNameEditChange(typeKey, category, 'newName', e.target.value)}
-                                      onKeyPress={(e) => {
-                                        if (e.key === 'Enter') {
-                                          handleSaveAccountNameEdit(typeKey, category);
-                                        } else if (e.key === 'Escape') {
-                                          handleCancelEditAccountName(typeKey, category);
-                                        }
-                                      }}
-                                      autoFocus
-                                      style={{
-                                        padding: '0.25rem 0.5rem',
-                                        fontSize: '0.875rem',
-                                        border: '1px solid #3b82f6',
-                                        borderRadius: '0.25rem',
-                                        minWidth: '150px'
-                                      }}
-                                    />
-                                    <input
-                                      type="text"
-                                      placeholder="Code"
-                                      value={isEditingAccountName.newCode || ''}
-                                      onChange={(e) => {
-                                        const value = e.target.value.replace(/\D/g, '').slice(0, 3);
-                                        handleAccountNameEditChange(typeKey, category, 'newCode', value);
-                                      }}
-                                      onKeyPress={(e) => {
-                                        if (e.key === 'Enter') {
-                                          handleSaveAccountNameEdit(typeKey, category);
-                                        } else if (e.key === 'Escape') {
-                                          handleCancelEditAccountName(typeKey, category);
-                                        }
-                                      }}
-                                      style={{
-                                        padding: '0.25rem 0.5rem',
-                                        fontSize: '0.875rem',
-                                        border: '1px solid #3b82f6',
-                                        borderRadius: '0.25rem',
-                                        width: '60px',
-                                        textAlign: 'center',
-                                        fontFamily: 'monospace'
-                                      }}
-                                    />
-                                    <button
-                                      onClick={() => handleSaveAccountNameEdit(typeKey, category)}
-                                      style={{
-                                        padding: '0.25rem 0.5rem',
-                                        fontSize: '0.75rem',
-                                        color: '#fff',
-                                        backgroundColor: '#10b981',
-                                        border: 'none',
-                                        borderRadius: '0.25rem',
-                                        cursor: 'pointer'
-                                      }}
-                                      title="Save"
-                                    >
-                                      ✓
-                                    </button>
-                                    <button
-                                      onClick={() => handleCancelEditAccountName(typeKey, category)}
-                                      style={{
-                                        padding: '0.25rem 0.5rem',
-                                        fontSize: '0.75rem',
-                                        color: '#fff',
-                                        backgroundColor: '#6b7280',
-                                        border: 'none',
-                                        borderRadius: '0.25rem',
-                                        cursor: 'pointer'
-                                      }}
-                                      title="Cancel"
-                                    >
-                                      ✕
-                                    </button>
-                                  </>
-                                ) : (
-                                  <>
-                                    {typeCode && (
-                                      <span style={{
-                                        fontSize: '0.75rem',
-                                        fontWeight: '600',
-                                        color: '#fff',
-                                        backgroundColor: '#6366f1',
-                                        padding: '0.25rem 0.5rem',
-                                        borderRadius: '0.375rem',
-                                        fontFamily: 'monospace',
-                                        letterSpacing: '0.05em',
-                                        marginRight: '0.5rem'
-                                      }}>
-                                        {typeCode}
-                                      </span>
-                                    )}
-                                    <span style={{ color: '#374151' }}>
-                                      {accountName}
-                                    </span>
-                                    <button
-                                      onClick={() => handleStartEditAccountName(typeKey, category, accountName)}
-                                      style={{
-                                        padding: '0.25rem 0.5rem',
-                                        fontSize: '0.75rem',
-                                        color: '#3b82f6',
-                                        backgroundColor: 'transparent',
-                                        border: '1px solid #3b82f6',
-                                        borderRadius: '0.25rem',
-                                        cursor: 'pointer'
-                                      }}
-                                      title="Edit"
-                                    >
-                                      Edit
-                                    </button>
-                                    <button
-                                      onClick={() => handleDeleteAccountName(typeKey, category, accountName)}
-                                      style={{
-                                        padding: '0.25rem 0.5rem',
-                                        fontSize: '0.75rem',
-                                        color: '#dc2626',
-                                        backgroundColor: 'transparent',
-                                        border: '1px solid #dc2626',
-                                        borderRadius: '0.25rem',
-                                        cursor: 'pointer'
-                                      }}
-                                      title="Delete"
-                                    >
-                                      Delete
-                                    </button>
-                                  </>
-                                )}
+                      return (
+                        <div key={index} className={`ngl-cat-list-item ${isCurrentlyEditing ? 'ngl-cat-list-item--editing' : ''}`}>
+                          {isCurrentlyEditing ? (
+                            <div className="ngl-cat-edit-panel">
+                              <div className="ngl-cat-edit-panel-meta">
+                                <span className="ngl-cat-list-code">{displayCode}</span>
+                                <span className="ngl-cat-edit-panel-label">Editing category</span>
                               </div>
-                            );
-                          })}
-                        </div>
-                      )}
+                              <div className="ngl-cat-edit-panel-form">
+                                <div className="ngl-cat-edit-panel-field">
+                                  <label className="ngl-inline-label">Category name</label>
+                                  <input
+                                    type="text"
+                                    value={isEditing.newName}
+                                    onChange={(e) => handleCategoryEditChange(typeKey, e.target.value, 'newName')}
+                                    onKeyPress={(e) => {
+                                      if (e.key === 'Enter') handleSaveCategoryEdit(typeKey);
+                                      else if (e.key === 'Escape') handleCancelEditCategory(typeKey);
+                                    }}
+                                    autoFocus
+                                    className="ngl-inline-input"
+                                  />
+                                </div>
+                                <div className="ngl-cat-edit-panel-field ngl-cat-edit-panel-field--narrow">
+                                  <label className="ngl-inline-label">Number (00–99)</label>
+                                  <input
+                                    type="text"
+                                    placeholder="11"
+                                    value={isEditing.newNumber || ''}
+                                    onChange={(e) => {
+                                      const value = e.target.value.replace(/\D/g, '').slice(0, 2);
+                                      handleCategoryEditChange(typeKey, value, 'newNumber');
+                                    }}
+                                    onKeyPress={(e) => {
+                                      if (e.key === 'Enter') handleSaveCategoryEdit(typeKey);
+                                      else if (e.key === 'Escape') handleCancelEditCategory(typeKey);
+                                    }}
+                                    className="ngl-inline-input ngl-inline-input--mono"
+                                  />
+                                </div>
+                                <div className="ngl-cat-edit-panel-actions">
+                                  <button type="button" onClick={() => handleSaveCategoryEdit(typeKey)} className="ngl-btn-sm ngl-btn-sm-save">Save</button>
+                                  <button type="button" onClick={() => handleCancelEditCategory(typeKey)} className="ngl-btn-sm ngl-btn-sm-cancel">Cancel</button>
+                                </div>
+                              </div>
+                            </div>
+                          ) : (
+                          <>
+                          <div className="ngl-cat-list-row">
+                            <span className="ngl-cat-list-code">{displayCode}</span>
+                            <span className="ngl-cat-list-name">{category}</span>
+                            <button
+                              type="button"
+                              className={`ngl-cat-txn-toggle ${isTxnExpanded ? 'ngl-cat-txn-toggle--open' : ''}`}
+                              onClick={() => setExpandedCategoryTxns((prev) => ({ ...prev, [txnPanelKey]: !prev[txnPanelKey] }))}
+                              aria-expanded={isTxnExpanded}
+                              aria-label={`${isTxnExpanded ? 'Hide' : 'Show'} transaction types for ${category}`}
+                              title={isTxnExpanded ? 'Hide transaction types' : 'Show transaction types'}
+                            >
+                              <span className="ngl-cat-txn-toggle-count">{categoryAccountNames.length}</span>
+                              <span className="ngl-cat-txn-toggle-label">Types</span>
+                              <svg className="ngl-cat-txn-toggle-chevron" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                                <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
+                              </svg>
+                            </button>
+                            <div className="ngl-cat-list-actions">
+                              <button type="button" onClick={() => handleStartEditCategory(typeKey, category)} className="ngl-btn-sm ngl-btn-sm-edit" title="Edit">Edit</button>
+                              <button type="button" onClick={() => handleDeleteCategory(typeKey, category)} className="ngl-btn-sm ngl-btn-sm-delete" title="Delete">Delete</button>
+                            </div>
+                          </div>
 
-                      {categoryAccountNames.length === 0 && (
-                        <div style={{
-                          color: '#6b7280',
-                          fontSize: '0.875rem',
-                          fontStyle: 'italic',
-                          padding: '0.5rem'
-                        }}>
-                          No transaction types yet. Add one above.
+                          {isTxnExpanded && (
+                            <div className="ngl-cat-txn-panel">
+                              <p className="ngl-cat-txn-panel-title">Transaction types for {category}</p>
+                              <div className="ngl-cat-txn-add">
+                                <input
+                                  type="text"
+                                  placeholder="Transaction type name"
+                                  value={accountNameInput}
+                                  onChange={(e) => {
+                                    setAccountNameInputs(prev => ({
+                                      ...prev,
+                                      [typeKey]: { ...(prev[typeKey] || {}), [category]: e.target.value }
+                                    }));
+                                  }}
+                                  onKeyPress={(e) => {
+                                    if (e.key === 'Enter') handleAddAccountName(typeKey, category);
+                                  }}
+                                  className="ngl-inline-input"
+                                />
+                                <input
+                                  type="text"
+                                  placeholder="001"
+                                  value={accountNameCodeInput}
+                                  onChange={(e) => {
+                                    const value = e.target.value.replace(/\D/g, '').slice(0, 3);
+                                    setAccountNameCodes(prev => ({
+                                      ...prev,
+                                      [typeKey]: { ...(prev[typeKey] || {}), [category]: value }
+                                    }));
+                                  }}
+                                  onKeyPress={(e) => {
+                                    if (e.key === 'Enter') handleAddAccountName(typeKey, category);
+                                  }}
+                                  className="ngl-inline-input ngl-inline-input--mono ngl-cat-txn-code-input"
+                                />
+                                <button type="button" onClick={() => handleAddAccountName(typeKey, category)} className="ngl-btn-success">
+                                  Add
+                                </button>
+                              </div>
+                              {categoryAccountNames.length === 0 ? (
+                                <p className="ngl-cat-txn-empty">No transaction types yet.</p>
+                              ) : (
+                                <div className="ngl-cat-txn-list">
+                                  {categoryAccountNames.map((typeObj, nameIndex) => {
+                                    const accountName = typeof typeObj === 'string' ? typeObj : typeObj.name;
+                                    const typeCode = typeof typeObj === 'string' ? null : typeObj.code;
+                                    const isTxnEditing = isEditingAccountName && isEditingAccountName.oldName === accountName;
+
+                                    return (
+                                      <div key={nameIndex} className={`ngl-cat-txn-row ${isTxnEditing ? 'ngl-cat-txn-row--editing' : ''}`}>
+                                        {isTxnEditing ? (
+                                          <div className="ngl-cat-txn-edit-panel">
+                                            <div className="ngl-cat-txn-edit-form">
+                                              <div className="ngl-cat-txn-edit-field">
+                                                <label className="ngl-inline-label">Type name</label>
+                                                <input
+                                                  type="text"
+                                                  value={isEditingAccountName.newName}
+                                                  onChange={(e) => handleAccountNameEditChange(typeKey, category, 'newName', e.target.value)}
+                                                  onKeyPress={(e) => {
+                                                    if (e.key === 'Enter') handleSaveAccountNameEdit(typeKey, category);
+                                                    else if (e.key === 'Escape') handleCancelEditAccountName(typeKey, category);
+                                                  }}
+                                                  autoFocus
+                                                  className="ngl-inline-input"
+                                                />
+                                              </div>
+                                              <div className="ngl-cat-txn-edit-field ngl-cat-txn-edit-field--narrow">
+                                                <label className="ngl-inline-label">Code</label>
+                                                <input
+                                                  type="text"
+                                                  placeholder="001"
+                                                  value={isEditingAccountName.newCode || ''}
+                                                  onChange={(e) => {
+                                                    const value = e.target.value.replace(/\D/g, '').slice(0, 3);
+                                                    handleAccountNameEditChange(typeKey, category, 'newCode', value);
+                                                  }}
+                                                  onKeyPress={(e) => {
+                                                    if (e.key === 'Enter') handleSaveAccountNameEdit(typeKey, category);
+                                                    else if (e.key === 'Escape') handleCancelEditAccountName(typeKey, category);
+                                                  }}
+                                                  className="ngl-inline-input ngl-inline-input--mono"
+                                                />
+                                              </div>
+                                              <div className="ngl-cat-txn-edit-actions">
+                                                <button type="button" onClick={() => handleSaveAccountNameEdit(typeKey, category)} className="ngl-btn-sm ngl-btn-sm-save">Save</button>
+                                                <button type="button" onClick={() => handleCancelEditAccountName(typeKey, category)} className="ngl-btn-sm ngl-btn-sm-cancel">Cancel</button>
+                                              </div>
+                                            </div>
+                                          </div>
+                                        ) : (
+                                          <>
+                                            <span className="ngl-cat-txn-row-code">{typeCode || '—'}</span>
+                                            <span className="ngl-cat-txn-row-name">{accountName}</span>
+                                            <div className="ngl-cat-list-actions">
+                                              <button type="button" onClick={() => handleStartEditAccountName(typeKey, category, accountName)} className="ngl-btn-sm ngl-btn-sm-edit">Edit</button>
+                                              <button type="button" onClick={() => handleDeleteAccountName(typeKey, category, accountName)} className="ngl-btn-sm ngl-btn-sm-delete">Delete</button>
+                                            </div>
+                                          </>
+                                        )}
+                                      </div>
+                                    );
+                                  })}
+                                </div>
+                              )}
+                            </div>
+                          )}
+                          </>
+                          )}
                         </div>
-                      )}
-                    </div>
-                  );
-                })}
+                      );
+                    })}
+                  </div>
+                )}
               </div>
             );
           })}
@@ -2792,31 +2281,23 @@ const NewGLAccount = () => {
       </div>
       ) : activeTab === 'glMapping' ? (
       /* GL Mapping Tab */
-      <div className="new-gl-form-card">
+      <div className="new-gl-form-card" {...getNglTabPanelProps('glMapping')}>
         <div className="new-gl-form-header">
           <h2 className="new-gl-form-title">GL Account Mapping</h2>
           <p className="new-gl-form-subtitle">Map your payment accounts to specific GL account codes from the Chart of Accounts</p>
         </div>
 
         {loading ? (
-          <div style={{ 
-            padding: '3rem', 
-            textAlign: 'center',
-            color: '#6b7280'
-          }}>
+          <div className="ngl-loading-panel">
             <div className="loading-spinner"></div>
-            <p style={{ marginTop: '1rem' }}>Loading accounts...</p>
+            <p className="ngl-empty-hint">Loading accounts...</p>
           </div>
         ) : bankAccounts.length === 0 ? (
-          <div style={{ 
-            padding: '3rem', 
-            textAlign: 'center',
-            color: '#6b7280'
-          }}>
+          <div className="ngl-empty-panel">
             <p>No bank accounts found. Please add accounts first.</p>
           </div>
         ) : (
-          <div style={{ padding: '2rem 0' }}>
+          <div className="ngl-mapping-body">
             <div className="gl-mapping-instructions">
               <div className="gl-mapping-instructions-content">
                 <p className="gl-mapping-instructions-title">
@@ -2829,75 +2310,50 @@ const NewGLAccount = () => {
             </div>
 
             {/* Mappings Table */}
-            <div style={{ overflowX: 'auto', overflowY: 'visible', position: 'relative' }}>
-              <table style={{ 
-                width: '100%',
-                borderCollapse: 'collapse',
-                border: '1px solid #e5e7eb'
-              }}>
+            <div className="ngl-mapping-table-wrap">
+              <table className="ngl-mapping-table">
                 <thead>
-                  <tr style={{ backgroundColor: '#f9fafb' }}>
-                    <th style={{ 
-                      padding: '1rem', 
-                      textAlign: 'left',
-                      fontSize: '0.875rem',
-                      fontWeight: '600',
-                      color: '#374151',
-                      borderBottom: '2px solid #e5e7eb'
-                    }}>
+                  <tr>
+                    <th>
                       Bank Account
                     </th>
-                    <th style={{ 
-                      padding: '1rem', 
-                      textAlign: 'left',
-                      fontSize: '0.875rem',
-                      fontWeight: '600',
-                      color: '#374151',
-                      borderBottom: '2px solid #e5e7eb'
-                    }}>
+                    <th>
                       GL Account Code
                     </th>
                   </tr>
                 </thead>
                 <tbody>
                   {bankAccounts.map(account => (
-                    <tr key={account.id} style={{ borderBottom: '1px solid #e5e7eb' }}>
-                      <td style={{ padding: '1rem', fontSize: '0.875rem' }}>
-                        <div style={{ marginBottom: '0.25rem' }}>
+                    <tr key={account.id}>
+                      <td>
+                        <div>
                           <strong>{account.bank_name}</strong>
                         </div>
-                        <div style={{ color: '#6b7280', fontSize: '0.8125rem' }}>
+                        <div className="ngl-mapping-account-sub">
                           {account.account_name} ({account.account_number})
                         </div>
                         {mappingErrors[account.id] && (
-                          <div style={{ color: '#ef4444', fontSize: '0.75rem', marginTop: '0.25rem' }}>
+                          <div className="ngl-mapping-error">
                             {mappingErrors[account.id]}
                           </div>
                         )}
                       </td>
-                      <td style={{ padding: '1rem', overflow: 'visible', position: 'relative' }}>
+                      <td className="ngl-mapping-td--search">
                         {(() => {
                           const hasExistingMapping = existingMappings[account.id];
                           const existingMapping = hasExistingMapping ? hasExistingMapping.gl_account_code : '';
                           
                           return hasExistingMapping ? (
-                            <div style={{
-                              padding: '0.5rem',
-                              fontSize: '0.875rem',
-                              color: '#059669',
-                              backgroundColor: '#d1fae5',
-                              borderRadius: '6px',
-                              border: '1px solid #059669'
-                            }}>
-                              <div style={{ fontWeight: '600', marginBottom: '0.25rem' }}>
+                            <div className="ngl-mapping-mapped-box">
+                              <div className="ngl-mapping-mapped-code">
                                 {existingMapping}
                               </div>
-                              <div style={{ fontSize: '0.8125rem', color: '#047857' }}>
+                              <div className="ngl-mapping-mapped-label">
                                 Already Mapped
                               </div>
                             </div>
                           ) : (
-                            <div style={{ position: 'relative' }}>
+                            <div className="ngl-mapping-search-wrap">
                               <input
                                 type="text"
                                 placeholder="Search GL (code or name)"
@@ -2916,29 +2372,16 @@ const NewGLAccount = () => {
                                   // Delay to allow click selection
                                   setTimeout(() => setShowCoaListByAccount(prev => ({ ...prev, [account.id]: false })), 150);
                                 }}
-                                style={{
-                                  width: '100%',
-                                  padding: '0.5rem',
-                                  fontSize: '0.875rem',
-                                  border: `1px solid ${mappingErrors[account.id] ? '#ef4444' : '#d1d5db'}`,
-                                  borderRadius: '6px',
-                                  backgroundColor: '#fff'
-                                }}
+                                className={`ngl-mapping-search-input ${mappingErrors[account.id] ? 'ngl-mapping-search-input--error' : ''}`}
                               />
                               {showCoaListByAccount[account.id] && coaDropdownPosByAccount[account.id] && typeof document !== 'undefined' && createPortal(
                                 <div
+                                  className="ngl-coa-dropdown"
                                   style={{
                                     position: 'fixed',
                                     left: coaDropdownPosByAccount[account.id].left,
                                     top: coaDropdownPosByAccount[account.id].top,
                                     width: coaDropdownPosByAccount[account.id].width,
-                                    background: 'white',
-                                    border: '1px solid #e5e7eb',
-                                    borderRadius: '6px',
-                                    maxHeight: '260px',
-                                    overflowY: 'auto',
-                                    zIndex: 10000,
-                                    boxShadow: '0 8px 24px rgba(0,0,0,0.12)'
                                   }}
                                   onMouseDown={(e) => e.preventDefault()}
                                 >
@@ -2960,16 +2403,14 @@ const NewGLAccount = () => {
                                           setCoaSearchByAccount(prev => ({ ...prev, [account.id]: `${coa.account_code} - ${coa.description}` }));
                                           setShowCoaListByAccount(prev => ({ ...prev, [account.id]: false }));
                                         }}
-                                        style={{ padding: '0.5rem 0.75rem', cursor: 'pointer', borderBottom: '1px solid #f3f4f6' }}
-                                        onMouseEnter={(e) => { e.currentTarget.style.background = '#f9fafb'; }}
-                                        onMouseLeave={(e) => { e.currentTarget.style.background = 'white'; }}
+                                        className="ngl-coa-dropdown-item"
                                       >
-                                        <div style={{ fontWeight: 600, color: '#111827', fontSize: '0.875rem' }}>{coa.account_code}</div>
-                                        <div style={{ color: '#6b7280', fontSize: '0.8125rem' }}>{coa.description}</div>
+                                        <div className="ngl-coa-dropdown-code">{coa.account_code}</div>
+                                        <div className="ngl-mapping-account-sub">{coa.description}</div>
                                       </div>
                                     ))}
                                   {chartOfAccounts.length === 0 && (
-                                    <div style={{ padding: '0.5rem 0.75rem', color: '#6b7280' }}>No accounts loaded</div>
+                                    <div className="ngl-coa-dropdown-empty">No accounts loaded</div>
                                   )}
                                 </div>,
                                 document.body
@@ -2985,30 +2426,10 @@ const NewGLAccount = () => {
             </div>
 
             {/* Action Buttons */}
-            <div style={{ 
-              marginTop: '2rem',
-              paddingTop: '2rem',
-              borderTop: '1px solid #e5e7eb',
-              display: 'flex',
-              justifyContent: 'flex-end',
-              gap: '1rem',
-              maxWidth: '90%'
-            }}>
+            <div className="ngl-actions-bar">
               <button
                 onClick={handleSaveMappings}
-                style={{
-                  padding: '0.75rem 1.5rem',
-                  fontSize: '1rem',
-                  fontWeight: '500',
-                  color: '#fff',
-                  backgroundColor: '#3b82f6',
-                  border: 'none',
-                  borderRadius: '8px',
-                  cursor: 'pointer',
-                  transition: 'background-color 0.2s'
-                }}
-                onMouseEnter={(e) => e.target.style.backgroundColor = '#2563eb'}
-                onMouseLeave={(e) => e.target.style.backgroundColor = '#3b82f6'}
+                type="button" className="ngl-btn-primary"
               >
                 Save Mappings
               </button>
@@ -3018,329 +2439,99 @@ const NewGLAccount = () => {
       </div>
       ) : activeTab === 'accountCodeStructure' ? (
       /* Account Code Structure Tab */
-      <div className="new-gl-form-card">
+      <div className="new-gl-form-card" {...getNglTabPanelProps('accountCodeStructure')}>
         <div className="new-gl-form-header">
           <h2 className="new-gl-form-title">Account Code Structure</h2>
           <p className="new-gl-form-subtitle">Understanding the GL account code format</p>
         </div>
-        <div style={{ 
-          padding: '1.25rem 1.5rem',
-          maxWidth: '760px',
-          margin: '0 auto'
-        }}>
-          <div style={{
-            backgroundColor: '#f8fafc',
-            border: '1px solid #e5e7eb',
-            borderRadius: '8px',
-            padding: '1.25rem',
-            marginBottom: '1.25rem'
-          }}>
-            <h3 style={{
-              fontSize: '1.05rem',
-              fontWeight: '600',
-              color: '#1f2937',
-              marginBottom: '0.6rem'
-            }}>
+        <div className="new-gl-tab-content new-gl-tab-content--compact">
+          <div className="ngl-format-overview">
+            <h3 className="ngl-format-title">
               Account Code Format
             </h3>
-            <div style={{
-              fontFamily: 'monospace',
-              fontSize: '1.15rem',
-              fontWeight: '700',
-              color: '#2563eb',
-              textAlign: 'center',
-              padding: '0.85rem',
-              backgroundColor: '#fff',
-              border: '2px solid #3b82f6',
-              borderRadius: '8px',
-              marginBottom: '0.85rem'
-            }}>
+            <div className="ngl-format-display">
               XXX-XXX-XXX-XXX-XX
             </div>
-            <p style={{
-              color: '#6b7280',
-              fontSize: '0.78rem',
-              textAlign: 'center',
-              marginBottom: '0'
-            }}>
+            <p className="ngl-format-caption">
               The account code consists of 5 segments separated by hyphens
             </p>
           </div>
 
-          <div style={{
-            display: 'grid',
-            gap: '0.85rem'
-          }}>
-            <div style={{
-              backgroundColor: '#fff',
-              border: '1px solid #e5e7eb',
-              borderRadius: '8px',
-              padding: '1rem 1.1rem'
-            }}>
-              <h4 style={{
-                fontSize: '0.85rem',
-                fontWeight: '600',
-                color: '#1f2937',
-                marginBottom: '0.5rem',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '0.5rem'
-              }}>
-                <span style={{
-                  display: 'inline-block',
-                  width: '20px',
-                  height: '20px',
-                  backgroundColor: '#3b82f6',
-                  color: '#fff',
-                  borderRadius: '50%',
-                  textAlign: 'center',
-                  lineHeight: '20px',
-                  fontSize: '0.72rem',
-                  fontWeight: '700'
-                }}>1</span>
+          <div className="ngl-segments-grid">
+            <div className="ngl-segment-card">
+              <h4 className="ngl-segment-heading">
+                <span className="ngl-segment-num">1</span>
                 Part 1: Category + Subcategory (3 digits)
               </h4>
-              <p style={{
-                color: '#6b7280',
-                fontSize: '0.78rem',
-                marginBottom: '0.4rem'
-              }}>
+              <p className="ngl-segment-desc">
                 Combines Main Category (1 digit) and Sub Category (2 digits)
               </p>
-              <div style={{
-                fontFamily: 'monospace',
-                fontSize: '0.78rem',
-                color: '#2563eb',
-                backgroundColor: '#eff6ff',
-                padding: '0.4rem 0.5rem',
-                borderRadius: '4px'
-              }}>
+              <div className="ngl-segment-example">
                 Example: 111 (1 = ASSETS, 11 = Non-Current Assets)
               </div>
             </div>
 
-            <div style={{
-              backgroundColor: '#fff',
-              border: '1px solid #e5e7eb',
-              borderRadius: '8px',
-              padding: '1rem 1.1rem'
-            }}>
-              <h4 style={{
-                fontSize: '0.85rem',
-                fontWeight: '600',
-                color: '#1f2937',
-                marginBottom: '0.5rem',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '0.5rem'
-              }}>
-                <span style={{
-                  display: 'inline-block',
-                  width: '20px',
-                  height: '20px',
-                  backgroundColor: '#3b82f6',
-                  color: '#fff',
-                  borderRadius: '50%',
-                  textAlign: 'center',
-                  lineHeight: '20px',
-                  fontSize: '0.72rem',
-                  fontWeight: '700'
-                }}>2</span>
+            <div className="ngl-segment-card">
+              <h4 className="ngl-segment-heading">
+                <span className="ngl-segment-num">2</span>
                 Part 2: Branch Code (3 digits)
               </h4>
-              <p style={{
-                color: '#6b7280',
-                fontSize: '0.78rem',
-                marginBottom: '0.4rem'
-              }}>
+              <p className="ngl-segment-desc">
                 Identifies the branch or location code
               </p>
-              <div style={{
-                fontFamily: 'monospace',
-                fontSize: '0.78rem',
-                color: '#2563eb',
-                backgroundColor: '#eff6ff',
-                padding: '0.4rem 0.5rem',
-                borderRadius: '4px'
-              }}>
+              <div className="ngl-segment-example">
                 Example: 101 (Default branch code)
               </div>
             </div>
 
-            <div style={{
-              backgroundColor: '#fff',
-              border: '1px solid #e5e7eb',
-              borderRadius: '8px',
-              padding: '1rem 1.1rem'
-            }}>
-              <h4 style={{
-                fontSize: '0.85rem',
-                fontWeight: '600',
-                color: '#1f2937',
-                marginBottom: '0.5rem',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '0.5rem'
-              }}>
-                <span style={{
-                  display: 'inline-block',
-                  width: '20px',
-                  height: '20px',
-                  backgroundColor: '#3b82f6',
-                  color: '#fff',
-                  borderRadius: '50%',
-                  textAlign: 'center',
-                  lineHeight: '20px',
-                  fontSize: '0.72rem',
-                  fontWeight: '700'
-                }}>3</span>
+            <div className="ngl-segment-card">
+              <h4 className="ngl-segment-heading">
+                <span className="ngl-segment-num">3</span>
                 Part 3: Transaction Type (3 digits)
               </h4>
-              <p style={{
-                color: '#6b7280',
-                fontSize: '0.78rem',
-                marginBottom: '0.4rem'
-              }}>
+              <p className="ngl-segment-desc">
                 Identifies the specific transaction type or category
               </p>
-              <div style={{
-                fontFamily: 'monospace',
-                fontSize: '0.78rem',
-                color: '#2563eb',
-                backgroundColor: '#eff6ff',
-                padding: '0.4rem 0.5rem',
-                borderRadius: '4px'
-              }}>
+              <div className="ngl-segment-example">
                 Example: 110 (Property, Plant & Equipment)
               </div>
             </div>
 
-            <div style={{
-              backgroundColor: '#fff',
-              border: '1px solid #e5e7eb',
-              borderRadius: '8px',
-              padding: '1rem 1.1rem'
-            }}>
-              <h4 style={{
-                fontSize: '0.85rem',
-                fontWeight: '600',
-                color: '#1f2937',
-                marginBottom: '0.5rem',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '0.5rem'
-              }}>
-                <span style={{
-                  display: 'inline-block',
-                  width: '20px',
-                  height: '20px',
-                  backgroundColor: '#3b82f6',
-                  color: '#fff',
-                  borderRadius: '50%',
-                  textAlign: 'center',
-                  lineHeight: '20px',
-                  fontSize: '0.72rem',
-                  fontWeight: '700'
-                }}>4</span>
+            <div className="ngl-segment-card">
+              <h4 className="ngl-segment-heading">
+                <span className="ngl-segment-num">4</span>
                 Part 4: Account Name (3 digits)
               </h4>
-              <p style={{
-                color: '#6b7280',
-                fontSize: '0.78rem',
-                marginBottom: '0.4rem'
-              }}>
+              <p className="ngl-segment-desc">
                 Unique identifier for the specific account
               </p>
-              <div style={{
-                fontFamily: 'monospace',
-                fontSize: '0.78rem',
-                color: '#2563eb',
-                backgroundColor: '#eff6ff',
-                padding: '0.4rem 0.5rem',
-                borderRadius: '4px'
-              }}>
+              <div className="ngl-segment-example">
                 Example: 025 (Fixed assets - computer equipment)
               </div>
             </div>
 
-            <div style={{
-              backgroundColor: '#fff',
-              border: '1px solid #e5e7eb',
-              borderRadius: '8px',
-              padding: '1rem 1.1rem'
-            }}>
-              <h4 style={{
-                fontSize: '0.85rem',
-                fontWeight: '600',
-                color: '#1f2937',
-                marginBottom: '0.5rem',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '0.5rem'
-              }}>
-                <span style={{
-                  display: 'inline-block',
-                  width: '20px',
-                  height: '20px',
-                  backgroundColor: '#3b82f6',
-                  color: '#fff',
-                  borderRadius: '50%',
-                  textAlign: 'center',
-                  lineHeight: '20px',
-                  fontSize: '0.72rem',
-                  fontWeight: '700'
-                }}>5</span>
+            <div className="ngl-segment-card">
+              <h4 className="ngl-segment-heading">
+                <span className="ngl-segment-num">5</span>
                 Part 5: Ending (2 digits)
               </h4>
-              <p style={{
-                color: '#6b7280',
-                fontSize: '0.78rem',
-                marginBottom: '0.4rem'
-              }}>
+              <p className="ngl-segment-desc">
                 Standard ending value for account codes
               </p>
-              <div style={{
-                fontFamily: 'monospace',
-                fontSize: '0.78rem',
-                color: '#2563eb',
-                backgroundColor: '#eff6ff',
-                padding: '0.4rem 0.5rem',
-                borderRadius: '4px'
-              }}>
+              <div className="ngl-segment-example">
                 Example: 44 (Default ending)
               </div>
             </div>
           </div>
 
-          <div style={{
-            marginTop: '1.25rem',
-            padding: '1rem 1.1rem',
-            backgroundColor: '#fef3c7',
-            border: '1px solid #fbbf24',
-            borderRadius: '8px'
-          }}>
-            <h4 style={{
-              fontSize: '0.85rem',
-              fontWeight: '600',
-              color: '#92400e',
-              marginBottom: '0.5rem'
-            }}>
+          <div className="ngl-complete-example">
+            <h4 className="ngl-complete-example-title">
               Complete Example
             </h4>
-            <div style={{
-              fontFamily: 'monospace',
-              fontSize: '1rem',
-              fontWeight: '700',
-              color: '#92400e',
-              marginBottom: '0.4rem'
-            }}>
+            <div className="ngl-complete-example-code">
               111-101-110-025-44
             </div>
-            <p style={{
-              color: '#78350f',
-              fontSize: '0.78rem',
-              margin: 0
-            }}>
+            <p className="ngl-complete-example-text">
               ASSETS (1) + Non-Current Assets (11) = 111 | Branch: 101 | Transaction: Property, Plant & Equipment (110) | Account: Fixed assets - computer equipment (025) | Ending: 44
             </p>
           </div>
