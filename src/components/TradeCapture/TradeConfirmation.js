@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { parsedTradeTransactionAPI, equityAPI, portfolioAPI } from '../../services/api';
 import {
   getLatestDayTradeReportState,
+  groupTransactionsByCompany,
   exportTradeReportToExcel as emitTradeReportExcel,
   exportTradeReportToPdf as emitTradeReportPdf,
   formatTradeDate,
@@ -17,6 +18,19 @@ import UpdateSellTransactionsModal from './UpdateSellTransactionsModal';
 import './Styles/TradeConfirmation.css';
 import ExportPdfExcelButtons from '../FinancialReporting/ExportPdfExcelButtons';
 
+const toInputDateValue = (dateStr) => {
+  if (!dateStr) return '';
+  const s = String(dateStr).split('T')[0].trim();
+  if (/^\d{4}-\d{2}-\d{2}$/.test(s)) return s;
+  if (/^\d{4}\/\d{2}\/\d{2}$/.test(s)) return s.replace(/\//g, '-');
+  const slashParts = s.split('/');
+  if (slashParts.length === 3 && slashParts[0].length <= 2) {
+    const [day, month, year] = slashParts;
+    return `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
+  }
+  return s;
+};
+
 const TradeConfirmation = () => {
   const [activeTab, setActiveTab] = useState('purchases');
   const [groupedData, setGroupedData] = useState({ sales: {}, purchases: {} });
@@ -31,6 +45,10 @@ const TradeConfirmation = () => {
   const [unupdatedTransactions, setUnupdatedTransactions] = useState([]);
   const [unupdatedLoading, setUnupdatedLoading] = useState(false);
   const [unupdatedError, setUnupdatedError] = useState('');
+  const [historicalSelectedDate, setHistoricalSelectedDate] = useState('');
+  const [historicalGroupedData, setHistoricalGroupedData] = useState({ sales: {}, purchases: {} });
+  const [historicalLoading, setHistoricalLoading] = useState(false);
+  const [historicalError, setHistoricalError] = useState('');
 
   const fetchTransactions = useCallback(async () => {
     try {
@@ -81,7 +99,43 @@ const TradeConfirmation = () => {
     }
   }, [activeTab, fetchUnupdatedTransactions, showUpdateBuyModal, showUpdateSellModal]);
 
-  const reportDate = latestTradeDate ? formatTradeDate(latestTradeDate) : 'N/A';
+  const fetchHistoricalReport = useCallback(async (date) => {
+    if (!date) {
+      setHistoricalGroupedData({ sales: {}, purchases: {} });
+      setHistoricalError('');
+      return;
+    }
+
+    setHistoricalLoading(true);
+    setHistoricalError('');
+
+    try {
+      const data = await parsedTradeTransactionAPI.getParsedTransactionsByDate(date);
+      setHistoricalGroupedData(groupTransactionsByCompany(data || []));
+    } catch (err) {
+      console.error('Error fetching historical trade report:', err);
+      setHistoricalError('Failed to load trade report for the selected date. Please try again.');
+      setHistoricalGroupedData({ sales: {}, purchases: {} });
+    } finally {
+      setHistoricalLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (activeTab !== 'by-date') return;
+
+    if (!historicalSelectedDate && latestTradeDate) {
+      setHistoricalSelectedDate(toInputDateValue(latestTradeDate));
+      return;
+    }
+
+    if (historicalSelectedDate) {
+      fetchHistoricalReport(historicalSelectedDate);
+    }
+  }, [activeTab, historicalSelectedDate, latestTradeDate, fetchHistoricalReport]);
+
+  const hasGroupedTradeData = (data) =>
+    Object.keys(data.sales).length > 0 || Object.keys(data.purchases).length > 0;
 
   const calculateGroupTotals = (groupTransactions) => {
     let totalAmount = 0;
@@ -535,7 +589,7 @@ const TradeConfirmation = () => {
     );
   };
 
-  const renderTradeReport = () => {
+  const renderTradeReportBody = (reportGroupedData, tradeDateValue) => {
     const renderReportSection = (companyId, transactions, type) => {
       const totals = calculateReportTotals(transactions);
       const isSale = type === 'sale';
@@ -615,18 +669,19 @@ const TradeConfirmation = () => {
       );
     };
 
-    const purchaseGroups = Object.entries(groupedData.purchases);
-    const saleGroups = Object.entries(groupedData.sales);
-    const purchaseTotals = calculateReportTotals(Object.values(groupedData.purchases).flat());
-    const saleTotals = calculateReportTotals(Object.values(groupedData.sales).flat());
+    const purchaseGroups = Object.entries(reportGroupedData.purchases);
+    const saleGroups = Object.entries(reportGroupedData.sales);
+    const purchaseTotals = calculateReportTotals(Object.values(reportGroupedData.purchases).flat());
+    const saleTotals = calculateReportTotals(Object.values(reportGroupedData.sales).flat());
     const netSettlement = saleTotals.net - purchaseTotals.net;
+    const formattedReportDate = tradeDateValue ? formatTradeDate(tradeDateValue) : 'N/A';
 
     return (
       <div className="tc-trade-report">
         <div className="tc-trade-report-header">
           <p>Dear Sir/Madam,</p>
           <p>
-            We wish to inform you that the following transaction(s) were done on {reportDate}.
+            We wish to inform you that the following transaction(s) were done on {formattedReportDate}.
           </p>
         </div>
 
@@ -652,6 +707,76 @@ const TradeConfirmation = () => {
             <strong>{formatCurrency(netSettlement)}</strong>
           </div>
         </div>
+      </div>
+    );
+  };
+
+  const renderTradeReport = () => renderTradeReportBody(groupedData, latestTradeDate);
+
+  const renderTradeReportByDate = () => {
+    const formattedSelectedDate = historicalSelectedDate
+      ? formatTradeDate(historicalSelectedDate)
+      : '';
+
+    return (
+      <div className="tc-by-date-report">
+        <div className="tc-by-date-controls">
+          <div className="tc-by-date-field">
+            <label htmlFor="tc-trade-date-picker">Trade date</label>
+            <input
+              id="tc-trade-date-picker"
+              type="date"
+              value={historicalSelectedDate}
+              onChange={(e) => setHistoricalSelectedDate(e.target.value)}
+              className="tc-by-date-input"
+            />
+          </div>
+          <p className="tc-by-date-hint">
+            Select a date to view the trade confirmation report for that session.
+          </p>
+        </div>
+
+        {!historicalSelectedDate && (
+          <div className="tc-no-data">
+            <p>Please select a trade date to view the report.</p>
+          </div>
+        )}
+
+        {historicalSelectedDate && historicalLoading && (
+          <div className="tc-loading">
+            <div className="tc-spinner"></div>
+            <p>Loading trade report for {formattedSelectedDate}...</p>
+          </div>
+        )}
+
+        {historicalSelectedDate && historicalError && !historicalLoading && (
+          <div className="tc-error">
+            <h3>Error Loading Trade Report</h3>
+            <p>{historicalError}</p>
+            <button
+              type="button"
+              onClick={() => fetchHistoricalReport(historicalSelectedDate)}
+              className="tc-retry-btn"
+            >
+              Retry
+            </button>
+          </div>
+        )}
+
+        {historicalSelectedDate &&
+          !historicalLoading &&
+          !historicalError &&
+          !hasGroupedTradeData(historicalGroupedData) && (
+            <div className="tc-no-data">
+              <p>No trade confirmations found for {formattedSelectedDate}.</p>
+            </div>
+          )}
+
+        {historicalSelectedDate &&
+          !historicalLoading &&
+          !historicalError &&
+          hasGroupedTradeData(historicalGroupedData) &&
+          renderTradeReportBody(historicalGroupedData, historicalSelectedDate)}
       </div>
     );
   };
@@ -698,6 +823,31 @@ const TradeConfirmation = () => {
               />
             </div>
           ) : null}
+          {activeTab === 'by-date' ? (
+            <div className="tc-trade-report-export">
+              <ExportPdfExcelButtons
+                exportDisabled={
+                  !historicalSelectedDate ||
+                  historicalLoading ||
+                  !hasGroupedTradeData(historicalGroupedData)
+                }
+                onExportExcel={() =>
+                  emitTradeReportExcel({
+                    groupedData: historicalGroupedData,
+                    latestTradeDate: historicalSelectedDate,
+                    filenameBase: `trade-report-${historicalSelectedDate}`
+                  })
+                }
+                onExportPdf={() =>
+                  emitTradeReportPdf({
+                    groupedData: historicalGroupedData,
+                    latestTradeDate: historicalSelectedDate,
+                    filenameBase: `trade-report-${historicalSelectedDate}`
+                  })
+                }
+              />
+            </div>
+          ) : null}
           <button type="button" onClick={fetchTransactions} className="tc-refresh-btn">
             Refresh
           </button>
@@ -735,6 +885,12 @@ const TradeConfirmation = () => {
           >
             Update Portfolio
           </button>
+          <button
+            className={`tc-tab ${activeTab === 'by-date' ? 'tc-tab-active' : ''}`}
+            onClick={() => setActiveTab('by-date')}
+          >
+            By Date
+          </button>
         </div>
       </div>
 
@@ -744,6 +900,7 @@ const TradeConfirmation = () => {
         {activeTab === 'trade-report' && renderTradeReport()}
         {activeTab === 'to-be-updated' && renderToBeUpdated()}
         {activeTab === 'update-portfolio' && renderUpdatePortfolio()}
+        {activeTab === 'by-date' && renderTradeReportByDate()}
       </div>
     </div>
   );
