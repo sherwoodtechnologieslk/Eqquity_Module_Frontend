@@ -2730,328 +2730,591 @@
 }
 
 /* ========================================================================
-   Journal / GL / Trial Balance style overrides (system-consistent)
-   These rules intentionally override earlier "glass/particles" styling so
-   Portfolio Selection matches the accounting screens' look & spacing.
+   Portfolio Selection — refreshed layout (2026)
    ======================================================================== */
 
-.pf-dropdown-container {
+.pf-page {
+  --pf-bg: #f1f5f9;
+  --pf-surface: #ffffff;
+  --pf-border: #e2e8f0;
+  --pf-border-soft: #f1f5f9;
+  --pf-text: #0f172a;
+  --pf-text-muted: #64748b;
+  --pf-blue: #2563eb;
+  --pf-blue-dark: #1e40af;
+  --pf-blue-gradient: linear-gradient(135deg, #1e3a8a 0%, #1d4ed8 42%, #2563eb 72%, #3b82f6 100%);
+  --pf-shadow-sm: 0 1px 2px rgba(15, 23, 42, 0.06);
+  --pf-shadow-md: 0 4px 16px rgba(15, 23, 42, 0.08);
+  --pf-radius: 12px;
+  --pf-radius-sm: 8px;
+  --pf-mono: ui-monospace, 'SF Mono', 'Cascadia Code', 'Courier New', monospace;
+
   margin: 0 !important;
   max-width: none !important;
   width: 100% !important;
   min-width: 0 !important;
-  padding: 24px !important;
-  background-color: #f8fafc !important;
+  padding: 1.5rem 1.75rem 2.5rem !important;
+  background: transparent !important;
   align-items: stretch !important;
+  box-sizing: border-box;
 }
 
-/* Header: matches journal-entries header structure */
-.pf-header-section {
+.pf-page *,
+.pf-page *::before,
+.pf-page *::after {
+  box-sizing: border-box;
+}
+
+/* Header */
+.pf-page .pf-header-section {
   display: flex !important;
   justify-content: space-between !important;
-  align-items: center !important;
-  margin-bottom: 24px !important;
-  padding-bottom: 16px !important;
-  border-bottom: 2px solid #e2e8f0 !important;
+  align-items: flex-start !important;
+  gap: 1rem !important;
+  margin-bottom: 1.25rem !important;
+  padding: 0 0 1rem !important;
+  border-bottom: 1px solid var(--pf-border) !important;
 }
 
-.pf-main-title {
-  font-size: 28px !important;
+.pf-page .pf-header-text-group {
+  gap: 0.35rem !important;
+}
+
+.pf-page .pf-main-title {
+  font-size: 1.625rem !important;
   font-weight: 700 !important;
-  color: #1e293b !important;
+  color: var(--pf-text) !important;
   margin: 0 !important;
+  letter-spacing: -0.02em !important;
+  line-height: 1.2 !important;
 }
 
-.pf-label-accent {
-  color: #dc2626 !important;
-  font-weight: 700 !important;
+.pf-page .pf-header-subtitle {
+  margin: 0;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--pf-text-muted);
+  line-height: 1.45;
 }
 
-.pf-refresh-button {
-  background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%) !important;
-  color: #ffffff !important;
-  border: none !important;
-  padding: 12px 16px !important;
-  border-radius: 0 !important;
+.pf-page .pf-refresh-button {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  width: 2.5rem !important;
+  height: 2.5rem !important;
+  padding: 0 !important;
+  background: var(--pf-surface) !important;
+  color: var(--pf-blue) !important;
+  border: 1px solid var(--pf-border) !important;
+  border-radius: 10px !important;
   cursor: pointer !important;
-  transition: all 0.3s ease !important;
-  box-shadow: 0 4px 15px rgba(59, 130, 246, 0.4) !important;
+  transition: background 0.2s ease, border-color 0.2s ease, transform 0.15s ease, box-shadow 0.2s ease !important;
+  box-shadow: var(--pf-shadow-sm) !important;
+  flex-shrink: 0;
 }
 
-.pf-refresh-button:hover:not(:disabled) {
-  transform: translateY(-2px) !important;
-  box-shadow: 0 6px 20px rgba(59, 130, 246, 0.6) !important;
+.pf-page .pf-refresh-button:hover:not(:disabled) {
+  background: #eff6ff !important;
+  border-color: #bfdbfe !important;
+  transform: translateY(-1px) !important;
+  box-shadow: var(--pf-shadow-md) !important;
 }
 
-.pf-refresh-button:disabled {
-  opacity: 0.6 !important;
+.pf-page .pf-refresh-button:disabled {
+  opacity: 0.55 !important;
   cursor: not-allowed !important;
   transform: none !important;
-  box-shadow: none !important;
 }
 
-/* Selection area becomes a simple filter-card like other accounting screens */
-.pf-select-wrapper {
+.pf-page .pf-refresh-button svg {
+  width: 1.125rem !important;
+  height: 1.125rem !important;
+}
+
+/* Portfolio select card */
+.pf-page .pf-select-card {
+  background: var(--pf-surface);
+  border: 1px solid var(--pf-border);
+  border-radius: var(--pf-radius);
+  padding: 0.65rem 0.85rem 0.7rem;
+  box-shadow: var(--pf-shadow-sm);
+  margin-bottom: 0.5rem;
+}
+
+.pf-page .pf-select-label {
+  display: block;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--pf-text-muted);
+  margin-bottom: 0.35rem;
+}
+
+.pf-page .pf-select-wrapper {
   max-width: none !important;
+  width: 100% !important;
 }
 
-.pf-select-container {
-  background: #ffffff !important;
-  border-radius: 0 !important;
+.pf-page .pf-select-container {
+  background: #f8fafc !important;
+  border-radius: var(--pf-radius-sm) !important;
   padding: 0 !important;
-  border: 1px solid #e2e8f0 !important;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1) !important;
+  border: 1px solid var(--pf-border) !important;
+  box-shadow: none !important;
   backdrop-filter: none !important;
   overflow: hidden !important;
   transform: none !important;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease !important;
 }
 
-.pf-select-container:hover,
-.pf-focused {
-  transform: none !important;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1) !important;
+.pf-page .pf-select-container:hover {
+  border-color: #cbd5e1 !important;
 }
 
-.pf-dropdown-select {
-  padding: 14px 44px 14px 12px !important;
-  font-size: 14px !important;
+.pf-page .pf-select-container.pf-focused {
+  border-color: var(--pf-blue) !important;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12) !important;
+}
+
+.pf-page .pf-dropdown-select {
+  padding: 0.55rem 2.5rem 0.55rem 0.75rem !important;
+  font-size: 0.875rem !important;
   font-weight: 600 !important;
-  color: #1e293b !important;
+  color: var(--pf-text) !important;
+  background: transparent !important;
 }
 
-.pf-dropdown-select:focus {
+.pf-page .pf-dropdown-select:focus {
   outline: none !important;
 }
 
-.pf-select-container.pf-focused {
-  border-color: #3b82f6 !important;
-  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1) !important;
-}
-
-/* Hide decorative layers from the "glass" design */
-.pf-particles,
-.pf-glass-backdrop,
-.pf-select-border,
-.pf-success-indicator,
-.pf-loading-animation {
+.pf-page .pf-particles,
+.pf-page .pf-glass-backdrop,
+.pf-page .pf-select-border,
+.pf-page .pf-success-indicator,
+.pf-page .pf-loading-animation {
   display: none !important;
 }
 
-.pf-select-icon-container {
-  right: 12px !important;
+.pf-page .pf-select-icon-container {
+  right: 0.75rem !important;
 }
 
-/* Costing method card → same container feel as filters section */
-.pf-costing-method-card {
-  border-radius: 0 !important;
-  border: 1px solid #e2e8f0 !important;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1) !important;
-  background: #ffffff !important;
+.pf-page .pf-dropdown-chevron svg {
+  width: 1.125rem;
+  height: 1.125rem;
+  color: var(--pf-text-muted);
 }
 
-.pf-costing-method-title {
-  color: #1e293b !important;
-  font-weight: 700 !important;
+/* Filters + costing panel */
+.pf-page .pf-secondary-container {
+  margin-top: 0 !important;
+  margin-bottom: 0.75rem !important;
 }
 
-.pf-costing-method-value {
-  font-weight: 600 !important;
-}
-
-/* Costing Method: label/value rows like accounting screens */
-.pf-costing-method-section {
-  margin: 24px 0 !important;
-}
-
-.pf-costing-method-header {
-  gap: 12px !important;
-  align-items: flex-start !important;
-}
-
-.pf-costing-method-icon {
-  width: 40px !important;
-  height: 40px !important;
-  border-radius: 0 !important;
-  background: #f8fafc !important;
-  border: 1px solid #e2e8f0 !important;
-  box-shadow: none !important;
-  color: #475569 !important;
-}
-
-.pf-costing-method-icon svg {
-  width: 20px !important;
-  height: 20px !important;
-  color: #475569 !important;
-}
-
-.pf-costing-method-title {
-  font-size: 20px !important;
-  font-weight: 700 !important;
-  margin: 0 0 10px 0 !important;
-  letter-spacing: 0 !important;
-}
-
-.pf-costing-method-details {
-  gap: 10px !important;
-}
-
-.pf-portfolio-info,
-.pf-costing-method-info {
-  display: grid !important;
-  grid-template-columns: 180px 1fr !important;
-  gap: 10px 12px !important;
-  align-items: start !important;
-}
-
-.pf-portfolio-info strong {
-  color: #475569 !important;
-  font-weight: 600 !important;
-}
-
-.pf-costing-method-label {
-  font-size: 14px !important;
-  font-weight: 600 !important;
-  color: #475569 !important;
-  text-transform: none !important;
-  letter-spacing: 0 !important;
-}
-
-.pf-costing-method-value {
+.pf-page .pf-secondary-grid-v2 {
+  background: var(--pf-surface) !important;
+  border: 1px solid var(--pf-border) !important;
+  border-radius: var(--pf-radius) !important;
   padding: 0 !important;
-  border: none !important;
-  background: transparent !important;
-  font-size: 14px !important;
-  font-weight: 600 !important;
-  color: #1e293b !important;
+  box-shadow: var(--pf-shadow-sm) !important;
+  overflow: hidden;
+  gap: 0 !important;
 }
 
-.pf-costing-method-value.pf-method-assigned {
-  display: inline-flex !important;
-  align-items: center !important;
-  padding: 6px 10px !important;
-  border-radius: 0 !important;
-  background: #dcfce7 !important;
-  border: 1px solid #86efac !important;
-  color: #059669 !important;
-  font-weight: 700 !important;
+.pf-page .pf-secondary-grid-v2::after {
+  background: var(--pf-border) !important;
+  top: 0.65rem !important;
+  bottom: 0.65rem !important;
 }
 
-.pf-costing-method-value.pf-method-not-assigned {
-  display: inline-flex !important;
-  align-items: center !important;
-  padding: 6px 10px !important;
-  border-radius: 0 !important;
-  background: #fef3c7 !important;
-  border: 1px solid #fbbf24 !important;
-  color: #d97706 !important;
-  font-weight: 700 !important;
-}
-
-@media (max-width: 980px) {
-  .pf-portfolio-info,
-  .pf-costing-method-info {
-    grid-template-columns: 1fr !important;
-  }
-}
-
-/* Holdings: align with entries-table container/table look */
-.ph-table-section {
-  width: 100% !important;
-}
-
-.ph-table-header {
-  background: #ffffff !important;
-  border-radius: 0 !important;
-  border: 1px solid #e2e8f0 !important;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1) !important;
-  padding: 24px !important;
-  margin-bottom: 24px !important;
-}
-
-.ph-table-header h2 {
-  font-size: 24px !important;
-  font-weight: 700 !important;
-  color: #1e293b !important;
-  margin: 0 0 6px 0 !important;
-}
-
-.ph-table-header p {
+.pf-page .pf-holdings-date-filter,
+.pf-page .pf-costing-method-section {
+  padding: 0.65rem 0.85rem !important;
   margin: 0 !important;
-  color: #64748b !important;
-  font-size: 14px !important;
+}
+
+.pf-page .pf-panel-title-row {
+  margin-bottom: 0.45rem !important;
+}
+
+.pf-page .pf-panel-title {
+  font-size: 0.8125rem !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.04em !important;
+  text-transform: uppercase !important;
+  color: var(--pf-text-muted) !important;
+}
+
+.pf-page .pf-panel-meta {
+  font-size: 0.6875rem !important;
+  font-weight: 600 !important;
+  color: #94a3b8 !important;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  padding: 0.2rem 0.5rem;
+  background: #f8fafc;
+  border-radius: 999px;
+  border: 1px solid var(--pf-border-soft);
+}
+
+.pf-page .pf-link-btn,
+.pf-page .pf-holdings-date-clear,
+.pf-page .ph-header-clear,
+.pf-page .ph-no-data-clear {
+  background: #eff6ff !important;
+  border: 1px solid #bfdbfe !important;
+  border-radius: 999px !important;
+  padding: 0.3rem 0.75rem !important;
+  color: var(--pf-blue-dark) !important;
+  font-weight: 600 !important;
+  font-size: 0.75rem !important;
+  text-decoration: none !important;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.pf-page .pf-link-btn:hover,
+.pf-page .pf-holdings-date-clear:hover,
+.pf-page .ph-header-clear:hover,
+.pf-page .ph-no-data-clear:hover {
+  background: #dbeafe !important;
+  color: var(--pf-blue-dark) !important;
+}
+
+.pf-page .pf-holdings-date-filter-controls {
+  gap: 0.45rem 0.55rem !important;
+}
+
+.pf-page .pf-holdings-date-input {
+  border: 1px solid var(--pf-border) !important;
+  border-radius: var(--pf-radius-sm) !important;
+  padding: 0.4rem 0.55rem !important;
+  font-size: 0.8125rem !important;
+  font-weight: 500 !important;
+  color: var(--pf-text) !important;
+  background: #f8fafc !important;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease !important;
+}
+
+.pf-page .pf-holdings-date-input:focus {
+  outline: none !important;
+  border-color: var(--pf-blue) !important;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1) !important;
+  background: var(--pf-surface) !important;
+}
+
+.pf-page .pf-holdings-date-filter-field label {
+  font-size: 0.6875rem !important;
+  font-weight: 600 !important;
+  color: var(--pf-text-muted) !important;
+  margin-bottom: 0.2rem !important;
+}
+
+.pf-page .pf-rule-list {
+  margin: 0.45rem 0 0 !important;
+  padding: 0.4rem 0.55rem 0.4rem 1.25rem !important;
+  background: #f8fafc;
+  border-radius: var(--pf-radius-sm);
+  border: 1px solid var(--pf-border-soft);
+  font-size: 0.6875rem !important;
+  color: var(--pf-text-muted) !important;
+  line-height: 1.35 !important;
+}
+
+.pf-page .pf-rule-list li {
+  margin-bottom: 0.1rem;
+}
+
+.pf-page .pf-rule-list li::before {
+  color: var(--pf-blue) !important;
+}
+
+.pf-page .pf-inline-warning {
+  border-radius: var(--pf-radius-sm) !important;
+  font-size: 0.6875rem !important;
+  font-weight: 600 !important;
+  margin: 0 0 0.35rem 0 !important;
+  padding: 0.3rem 0.45rem !important;
+}
+
+.pf-page .pf-kv {
+  gap: 0 !important;
+}
+
+.pf-page .pf-kv-row {
+  padding: 0.3rem 0 !important;
+  border-bottom: 1px solid var(--pf-border-soft) !important;
+}
+
+.pf-page .pf-kv-row:last-child {
+  border-bottom: none !important;
+}
+
+.pf-page .pf-kv-label {
+  font-size: 0.75rem !important;
+  font-weight: 600 !important;
+  color: var(--pf-text-muted) !important;
+}
+
+.pf-page .pf-kv-value {
+  font-size: 0.8125rem !important;
+  font-weight: 600 !important;
+  color: var(--pf-text) !important;
+}
+
+.pf-page .pf-badge {
+  border-radius: 999px !important;
+  font-size: 0.6875rem !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  padding: 0.25rem 0.55rem !important;
+}
+
+.pf-page .pf-badge-blue {
+  background: #eff6ff !important;
+  color: var(--pf-blue-dark) !important;
+  border: 1px solid #bfdbfe !important;
+}
+
+.pf-page .pf-badge-gray {
+  background: #f8fafc !important;
+  color: #94a3b8 !important;
+  border: 1px solid var(--pf-border) !important;
+}
+
+.pf-page .pf-method-pill {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.2rem 0.5rem;
+  border-radius: 999px;
+  background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%);
+  border: 1px solid #86efac;
+  color: #047857;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.pf-page .pf-muted {
+  color: var(--pf-text-muted) !important;
+  font-size: 0.8125rem !important;
+}
+
+/* Holdings table card */
+.pf-page .ph-table-section {
+  width: 100% !important;
+  background: var(--pf-surface) !important;
+  border: 1px solid var(--pf-border) !important;
+  border-radius: var(--pf-radius) !important;
+  box-shadow: var(--pf-shadow-md) !important;
+  overflow: hidden !important;
+  margin-top: 0 !important;
+  margin-bottom: 1.5rem !important;
+}
+
+.pf-page .ph-table-header {
+  background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%) !important;
+  border-bottom: 1px solid var(--pf-border) !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  padding: 1.15rem 1.35rem !important;
+  margin-bottom: 0 !important;
+}
+
+.pf-page .ph-table-header h2 {
+  font-size: 1.125rem !important;
+  font-weight: 700 !important;
+  color: var(--pf-text) !important;
+  margin: 0 !important;
+  letter-spacing: -0.01em;
+}
+
+.pf-page .ph-table-header p {
+  margin: 0.35rem 0 0 !important;
+  color: var(--pf-text-muted) !important;
+  font-size: 0.8125rem !important;
   font-weight: 500 !important;
 }
 
-.ph-table-container {
-  background: #ffffff !important;
+.pf-page .ph-table-container {
+  background: transparent !important;
+  border: none !important;
   border-radius: 0 !important;
-  border: 1px solid #e2e8f0 !important;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1) !important;
+  box-shadow: none !important;
   overflow-x: auto !important;
-  overflow-y: visible !important;
 }
 
-.ph-table {
-  width: 100% !important;
-  border-collapse: collapse !important;
-  min-width: 980px !important;
-  font-size: 14px !important;
+.pf-page .ph-table {
+  min-width: 960px !important;
+  font-size: 0.8125rem !important;
+  border-collapse: separate !important;
+  border-spacing: 0 !important;
 }
 
-.ph-table th {
-  background-color: #0f172a !important;
+.pf-page .ph-table th {
+  background: var(--pf-blue-gradient) !important;
   color: #ffffff !important;
   font-weight: 600 !important;
-  font-size: 14px !important;
-  padding: 16px 12px !important;
-  text-align: left !important;
-  border-bottom: 1px solid #e2e8f0 !important;
+  font-size: 0.6875rem !important;
+  letter-spacing: 0.06em !important;
+  text-transform: uppercase !important;
+  padding: 0.85rem 0.9rem !important;
+  border-bottom: none !important;
+  white-space: nowrap !important;
+  position: sticky !important;
+  top: 0 !important;
+  z-index: 2 !important;
+}
+
+.pf-page .ph-table th:first-child {
+  padding-left: 1.25rem !important;
+}
+
+.pf-page .ph-table th:last-child {
+  padding-right: 1.25rem !important;
+}
+
+.pf-page .ph-table td {
+  padding: 0.8rem 0.9rem !important;
+  border-bottom: 1px solid var(--pf-border-soft) !important;
+  font-size: 0.8125rem !important;
+  color: var(--pf-text) !important;
+  vertical-align: middle !important;
+}
+
+.pf-page .ph-table td:first-child {
+  padding-left: 1.25rem !important;
+}
+
+.pf-page .ph-table td:last-child {
+  padding-right: 1.25rem !important;
+}
+
+.pf-page .ph-table tbody tr:nth-child(even) {
+  background: #fafbfc !important;
+}
+
+.pf-page .ph-table tbody tr:hover,
+.pf-page .ph-table-row:hover {
+  background: #eff6ff !important;
+}
+
+.pf-page .ph-company-name {
+  font-weight: 600 !important;
+  color: var(--pf-text) !important;
+  max-width: 220px;
+}
+
+.pf-page .ph-company-id {
+  font-weight: 600 !important;
+  font-family: var(--pf-mono) !important;
+  font-size: 0.75rem !important;
+  letter-spacing: 0.04em !important;
+  color: var(--pf-blue-dark) !important;
   white-space: nowrap !important;
 }
 
-.ph-table td {
-  padding: 16px 12px !important;
-  border-bottom: 1px solid #f1f5f9 !important;
-  font-size: 14px !important;
-  color: #1e293b !important;
+.pf-page .ph-quantity,
+.pf-page .ph-avg-price,
+.pf-page .ph-cost-per-share,
+.pf-page .ph-total-value,
+.pf-page .ph-charges,
+.pf-page .ph-net-value,
+.pf-page .ph-total-quantity,
+.pf-page .ph-total-avg-price,
+.pf-page .ph-total-value-sum,
+.pf-page .ph-total-charges,
+.pf-page .ph-total-net-value,
+.pf-page .ph-total-cost-per-share {
+  text-align: right !important;
+  font-family: var(--pf-mono) !important;
+  font-variant-numeric: tabular-nums !important;
+  font-weight: 500 !important;
+  white-space: nowrap !important;
 }
 
-.ph-table tbody tr:hover,
-.ph-table-row:hover {
-  background-color: #f8fafc !important;
+.pf-page .ph-avg-price {
+  color: var(--pf-blue-dark) !important;
+  font-weight: 600 !important;
 }
 
-.ph-total-row td {
+.pf-page .ph-cost-per-share {
+  color: #0f766e !important;
+  font-weight: 600 !important;
+}
+
+.pf-page .ph-net-value {
+  font-weight: 600 !important;
+}
+
+.pf-page .ph-last-update,
+.pf-page .ph-total-last-update {
+  text-align: left !important;
+  font-family: inherit !important;
+  color: var(--pf-text-muted) !important;
+  font-size: 0.75rem !important;
+  white-space: nowrap !important;
+}
+
+.pf-page .ph-total-row td {
   font-weight: 700 !important;
   background: #f1f5f9 !important;
-  border-top: 1px solid #e2e8f0 !important;
+  border-top: 2px solid var(--pf-border) !important;
+  border-bottom: none !important;
+  padding-top: 0.9rem !important;
+  padding-bottom: 0.9rem !important;
+  font-size: 0.8125rem !important;
 }
 
-/* Numeric alignment like journal entries */
-.ph-quantity,
-.ph-avg-price,
-.ph-total-value,
-.ph-charges,
-.ph-net-value,
-.ph-cost-per-share,
-.ph-total-quantity,
-.ph-total-avg-price,
-.ph-total-value-sum,
-.ph-total-charges,
-.ph-total-net-value,
-.ph-total-cost-per-share {
-  text-align: right !important;
-  font-family: 'Courier New', monospace !important;
-  font-weight: 500 !important;
+.pf-page .ph-loading,
+.pf-page .ph-no-data {
+  padding: 3rem 1.5rem !important;
+  color: var(--pf-text-muted) !important;
+}
+
+.pf-page .ph-loading-spinner {
+  border-color: #e2e8f0 !important;
+  border-top-color: var(--pf-blue) !important;
+}
+
+.pf-page .ph-no-data h3 {
+  color: var(--pf-text) !important;
+  font-size: 1.05rem !important;
+}
+
+.pf-page .ph-no-data-icon {
+  width: 3rem !important;
+  height: 3rem !important;
+  color: #cbd5e1 !important;
 }
 
 @media (max-width: 980px) {
-  .pf-dropdown-container {
-    padding: 16px !important;
+  .pf-page {
+    padding: 1rem !important;
   }
-  .pf-header-section {
+
+  .pf-page .pf-header-section {
     flex-direction: column !important;
     align-items: stretch !important;
-    gap: 12px !important;
+  }
+
+  .pf-page .pf-secondary-grid,
+  .pf-page .pf-secondary-grid-v2 {
+    grid-template-columns: 1fr !important;
+  }
+
+  .pf-page .pf-secondary-grid-v2::after {
+    display: none !important;
+  }
+
+  .pf-page .pf-holdings-date-filter {
+    border-bottom: 1px solid var(--pf-border) !important;
+  }
+
+  .pf-page .pf-holdings-date-filter-controls {
+    grid-template-columns: 1fr !important;
   }
 }

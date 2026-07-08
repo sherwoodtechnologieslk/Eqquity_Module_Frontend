@@ -1666,6 +1666,59 @@ function sectorRiskDateRange(period) {
   };
 }
 
+const EMPTY_MTM_POSITION = { symbol: 'N/A', companyName: '', gainLossPercentage: 0 };
+
+function getCompanyInitials(item) {
+  const companyName = String(item?.companyName || '').trim();
+  if (companyName) {
+    const words = companyName.split(/\s+/).filter(Boolean);
+    if (words.length >= 2) {
+      return `${words[0][0] || ''}${words[1][0] || ''}`.toUpperCase();
+    }
+    return companyName.slice(0, 2).toUpperCase();
+  }
+  const symbol = String(item?.symbol || '').trim();
+  if (!symbol || symbol === 'N/A') return '?';
+  const base = symbol.split('.')[0] || symbol;
+  return base.slice(0, 2).toUpperCase();
+}
+
+function formatMtmTrendPercentage(percentage) {
+  const arrow = percentage >= 0 ? '↑' : '↓';
+  const sign = percentage >= 0 ? '+' : '';
+  return `${arrow} ${sign}${percentage.toFixed(2)}%`;
+}
+
+function formatLkrAmountParts(amount) {
+  return {
+    code: 'LKR',
+    amount: new Intl.NumberFormat('en-US', {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    }).format(amount),
+  };
+}
+
+function formatCompactLkr(amount) {
+  const abs = Math.abs(amount);
+  if (abs >= 1_000_000_000) return `LKR ${(amount / 1_000_000_000).toFixed(1)}B`;
+  if (abs >= 1_000_000) return `LKR ${(amount / 1_000_000).toFixed(1)}M`;
+  if (abs >= 1_000) return `LKR ${(amount / 1_000).toFixed(1)}K`;
+  return new Intl.NumberFormat('en-US', {
+    style: 'currency',
+    currency: 'LKR',
+    minimumFractionDigits: 2,
+  }).format(amount);
+}
+
+function formatLkrFull(amount) {
+  return new Intl.NumberFormat('en-US', {
+    style: 'currency',
+    currency: 'LKR',
+    minimumFractionDigits: 2,
+  }).format(amount);
+}
+
 const MarkToMarketValuation = () => {
   const [portfolios, setPortfolios] = useState([]);
   const [selectedPortfolio, setSelectedPortfolio] = useState('');
@@ -1927,6 +1980,50 @@ const MarkToMarketValuation = () => {
   }, [mtmData, mtmLastUpdateFrom, mtmLastUpdateTo]);
 
   const totals = useMemo(() => computeMtmPortfolioTotals(filteredMtmData), [filteredMtmData]);
+
+  const overviewMetrics = useMemo(() => {
+    if (!filteredMtmData.length) {
+      return {
+        bestPerformer: EMPTY_MTM_POSITION,
+        worstPerformer: EMPTY_MTM_POSITION,
+        winners: 0,
+        losers: 0,
+        winRate: 0,
+        avgPositionSize: 0,
+      };
+    }
+
+    const bestPerformer = filteredMtmData.reduce((best, current) =>
+      current.gainLossPercentage > best.gainLossPercentage ? current : best
+    );
+    const worstPerformer = filteredMtmData.reduce((worst, current) =>
+      current.gainLossPercentage < worst.gainLossPercentage ? current : worst
+    );
+    const winners = filteredMtmData.filter((item) => item.gainLossPercentage > 0).length;
+
+    return {
+      bestPerformer,
+      worstPerformer,
+      winners,
+      losers: filteredMtmData.filter((item) => item.gainLossPercentage < 0).length,
+      winRate: (winners / filteredMtmData.length) * 100,
+      avgPositionSize: totals.totalMarket / filteredMtmData.length,
+    };
+  }, [filteredMtmData, totals.totalMarket]);
+
+  const focusCompanyInsights = useCallback((symbol) => {
+    if (!symbol || symbol === 'N/A') return;
+    setSelectedAnalysisCompany(symbol);
+    setSelectedCompany(symbol);
+    setActiveTab('price-analysis');
+    requestAnimationFrame(() => {
+      document.querySelector('.mtm-tab-content')?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    });
+  }, []);
+
+  const avgPositionParts = formatLkrAmountParts(overviewMetrics.avgPositionSize);
+  const avgPositionCompact = formatCompactLkr(overviewMetrics.avgPositionSize);
+  const avgPositionFull = formatLkrFull(overviewMetrics.avgPositionSize);
 
   const hasLastUpdateDateFilter = Boolean(mtmLastUpdateFrom.trim() || mtmLastUpdateTo.trim());
 
@@ -2446,137 +2543,92 @@ const MarkToMarketValuation = () => {
                   <h3>Performance Analysis</h3>
                   <span className="mtm-last-updated">Last updated: {lastUpdated.toLocaleTimeString()}</span>
                 </div>
-                
-                <div className="mtm-performance-grid">
-                  {/* Performance Overview Cards */}
-                  <div className="mtm-performance-row">
-                    <div className="mtm-performance-card best-performer">
-                      <div className="mtm-card-header">
-                        <div className="mtm-card-icon best-icon">
-                          <svg viewBox="0 0 24 24" fill="currentColor">
-                            <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
-                          </svg>
-                        </div>
-                        <div className="mtm-card-title">Best Performer</div>
-                      </div>
-                      <div className="mtm-card-content">
-                        <div className="mtm-card-value">
-                          {(() => {
-                            const bestPerformer = filteredMtmData.reduce((best, current) => 
-                              current.gainLossPercentage > best.gainLossPercentage ? current : best, 
-                              filteredMtmData[0] || { symbol: 'N/A', gainLossPercentage: 0 }
-                            );
-                            return bestPerformer.symbol;
-                          })()}
-                        </div>
-                        <div className="mtm-card-change positive">
-                          {(() => {
-                            const bestPerformer = filteredMtmData.reduce((best, current) => 
-                              current.gainLossPercentage > best.gainLossPercentage ? current : best, 
-                              filteredMtmData[0] || { gainLossPercentage: 0 }
-                            );
-                            return '+' + formatPercentage(bestPerformer.gainLossPercentage);
-                          })()}
-                        </div>
-                      </div>
-                    </div>
 
-                    <div className="mtm-performance-card worst-performer">
-                      <div className="mtm-card-header">
-                        <div className="mtm-card-icon worst-icon">
-                          <svg viewBox="0 0 24 24" fill="currentColor">
-                            <path d="M12 2l-3.09 6.26L2 9.27l5 4.87-1.18 6.88L12 17.77l6.18 3.25L17 14.14l5-4.87-6.91-1.01L12 2z"/>
-                          </svg>
-                        </div>
-                        <div className="mtm-card-title">Worst Performer</div>
+                <div className="mtm-performance-grid">
+                  <div className="mtm-performance-row">
+                    <button
+                      type="button"
+                      className="mtm-performer-card mtm-performer-card--best"
+                      onClick={() => focusCompanyInsights(overviewMetrics.bestPerformer.symbol)}
+                      disabled={!filteredMtmData.length || overviewMetrics.bestPerformer.symbol === 'N/A'}
+                      aria-label={`View price analysis for best performer ${overviewMetrics.bestPerformer.symbol}`}
+                    >
+                      <div className="mtm-performer-card__head">
+                        <span className="mtm-performer-card__title">Best Performer</span>
                       </div>
-                      <div className="mtm-card-content">
-                        <div className="mtm-card-value">
-                          {(() => {
-                            const worstPerformer = filteredMtmData.reduce((worst, current) => 
-                              current.gainLossPercentage < worst.gainLossPercentage ? current : worst, 
-                              filteredMtmData[0] || { symbol: 'N/A', gainLossPercentage: 0 }
-                            );
-                            return worstPerformer.symbol;
-                          })()}
+                      <div className="mtm-performer-card__body">
+                        <div className="mtm-performer-card__identity">
+                          <div className="mtm-company-avatar mtm-company-avatar--best" aria-hidden="true">
+                            {getCompanyInitials(overviewMetrics.bestPerformer)}
+                          </div>
+                          <span className="mtm-performer-card__symbol">{overviewMetrics.bestPerformer.symbol}</span>
                         </div>
-                        <div className={`mtm-card-change ${(() => {
-                          const worstPerformer = filteredMtmData.reduce((worst, current) => 
-                            current.gainLossPercentage < worst.gainLossPercentage ? current : worst, 
-                            filteredMtmData[0] || { gainLossPercentage: 0 }
-                          );
-                          return worstPerformer.gainLossPercentage >= 0 ? 'positive' : 'negative';
-                        })()}`}>
-                          {(() => {
-                            const worstPerformer = filteredMtmData.reduce((worst, current) => 
-                              current.gainLossPercentage < worst.gainLossPercentage ? current : worst, 
-                              filteredMtmData[0] || { gainLossPercentage: 0 }
-                            );
-                            return '+' + formatPercentage(worstPerformer.gainLossPercentage);
-                          })()}
+                        <div className="mtm-performer-card__hero mtm-performer-card__hero--positive">
+                          {formatMtmTrendPercentage(overviewMetrics.bestPerformer.gainLossPercentage)}
                         </div>
+                        <p className="mtm-performer-card__caption">Highest return today</p>
                       </div>
-                    </div>
+                    </button>
+
+                    <button
+                      type="button"
+                      className="mtm-performer-card mtm-performer-card--worst"
+                      onClick={() => focusCompanyInsights(overviewMetrics.worstPerformer.symbol)}
+                      disabled={!filteredMtmData.length || overviewMetrics.worstPerformer.symbol === 'N/A'}
+                      aria-label={`View price analysis for worst performer ${overviewMetrics.worstPerformer.symbol}`}
+                    >
+                      <div className="mtm-performer-card__head">
+                        <span className="mtm-performer-card__title">Worst Performer</span>
+                      </div>
+                      <div className="mtm-performer-card__body">
+                        <div className="mtm-performer-card__identity">
+                          <div className="mtm-company-avatar mtm-company-avatar--worst" aria-hidden="true">
+                            {getCompanyInitials(overviewMetrics.worstPerformer)}
+                          </div>
+                          <span className="mtm-performer-card__symbol">{overviewMetrics.worstPerformer.symbol}</span>
+                        </div>
+                        <div
+                          className={`mtm-performer-card__hero ${
+                            overviewMetrics.worstPerformer.gainLossPercentage >= 0
+                              ? 'mtm-performer-card__hero--positive'
+                              : 'mtm-performer-card__hero--negative'
+                          }`}
+                        >
+                          {formatMtmTrendPercentage(overviewMetrics.worstPerformer.gainLossPercentage)}
+                        </div>
+                        <p className="mtm-performer-card__caption">Largest decline today</p>
+                      </div>
+                    </button>
                   </div>
 
-                  {/* Stats Grid */}
-                  <div className="mtm-stats-grid">
-                    <div className="mtm-stat-card winners">
-                      <div className="mtm-stat-icon">
-                        <svg viewBox="0 0 24 24" fill="currentColor">
-                          <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
-                        </svg>
-                      </div>
-                      <div className="mtm-stat-content">
-                        <div className="mtm-stat-label">WINNERS</div>
-                        <div className="mtm-stat-value">
-                          {filteredMtmData.filter(item => item.gainLossPercentage > 0).length}
-                        </div>
-                      </div>
+                  <div className="mtm-kpi-grid">
+                    <div className="mtm-kpi-card mtm-kpi-card--winners">
+                      <div className="mtm-kpi-card__icon" aria-hidden="true">↑</div>
+                      <div className="mtm-kpi-card__label">Winners</div>
+                      <div className="mtm-kpi-card__value">{overviewMetrics.winners}</div>
                     </div>
 
-                    <div className="mtm-stat-card losers">
-                      <div className="mtm-stat-icon">
-                        <svg viewBox="0 0 24 24" fill="currentColor">
-                          <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
-                        </svg>
-                      </div>
-                      <div className="mtm-stat-content">
-                        <div className="mtm-stat-label">LOSERS</div>
-                        <div className="mtm-stat-value">
-                          {filteredMtmData.filter(item => item.gainLossPercentage < 0).length}
-                        </div>
-                      </div>
+                    <div className="mtm-kpi-card mtm-kpi-card--losers">
+                      <div className="mtm-kpi-card__icon" aria-hidden="true">↓</div>
+                      <div className="mtm-kpi-card__label">Losers</div>
+                      <div className="mtm-kpi-card__value">{overviewMetrics.losers}</div>
                     </div>
 
-                    <div className="mtm-stat-card win-rate">
-                      <div className="mtm-stat-icon">
-                        <svg viewBox="0 0 24 24" fill="currentColor">
-                          <path d="M16 6l2.29 2.29-4.88 4.88-4-4L2 16.59 3.41 18l6-6 4 4 6.3-6.29L22 12V6z"/>
-                        </svg>
-                      </div>
-                      <div className="mtm-stat-content">
-                        <div className="mtm-stat-label">WIN RATE</div>
-                        <div className="mtm-stat-value">
-                          {filteredMtmData.length > 0 ? 
-                            ((filteredMtmData.filter(item => item.gainLossPercentage > 0).length / filteredMtmData.length) * 100).toFixed(0) + '%' : 
-                            '0%'
-                          }
-                        </div>
-                      </div>
+                    <div className="mtm-kpi-card mtm-kpi-card--win-rate">
+                      <div className="mtm-kpi-card__icon" aria-hidden="true">✓</div>
+                      <div className="mtm-kpi-card__label">Win Rate</div>
+                      <div className="mtm-kpi-card__value">{overviewMetrics.winRate.toFixed(0)}%</div>
                     </div>
 
-                    <div className="mtm-stat-card avg-position">
-                      <div className="mtm-stat-icon">
-                        <svg viewBox="0 0 24 24" fill="currentColor">
-                          <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.94-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/>
-                        </svg>
-                      </div>
-                      <div className="mtm-stat-content">
-                        <div className="mtm-stat-label">AVG POSITION SIZE</div>
-                        <div className="mtm-stat-value">
-                          {formatCurrency(filteredMtmData.length > 0 ? totals.totalMarket / filteredMtmData.length : 0)}
-                        </div>
+                    <div className="mtm-kpi-card mtm-kpi-card--avg-position" title={avgPositionFull}>
+                      <div className="mtm-kpi-card__icon" aria-hidden="true">₨</div>
+                      <div className="mtm-kpi-card__label">Average Position Size</div>
+                      <div className="mtm-kpi-card__value mtm-kpi-card__value--currency">
+                        <span className="mtm-kpi-card__value-compact">{avgPositionCompact}</span>
+                        <span className="mtm-kpi-card__value-split" aria-label={avgPositionFull}>
+                          <span className="mtm-kpi-card__currency-code">{avgPositionParts.code}</span>
+                          <span className="mtm-kpi-card__currency-amount">{avgPositionParts.amount}</span>
+                        </span>
                       </div>
                     </div>
                   </div>

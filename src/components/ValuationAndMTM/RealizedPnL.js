@@ -24,7 +24,7 @@ const RealizedPnL = () => {
   });
 
   const [isLoading, setIsLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState('trades');
+  const [activeTab, setActiveTab] = useState('buy-trades');
   const [timeRange, setTimeRange] = useState('1Y');
   const [selectedPortfolio, setSelectedPortfolio] = useState('all');
   const [portfolios, setPortfolios] = useState([]);
@@ -142,6 +142,26 @@ const RealizedPnL = () => {
     }).format(num || 0);
   };
 
+  const formatKpiMoney = (value, mode = 'signed') => {
+    const amount = Number(value) || 0;
+    if (mode === 'magnitude') {
+      return { sign: '', figure: formatCurrency(Math.abs(amount)) };
+    }
+    const sign = amount < 0 ? '−' : '';
+    return { sign, figure: formatCurrency(Math.abs(amount)) };
+  };
+
+  const renderKpiMoney = (value, tone, mode = 'signed') => {
+    const { sign, figure } = formatKpiMoney(value, mode);
+    return (
+      <div className={`realized-pnl-kpi__value realized-pnl-kpi__value--${tone}`}>
+        {sign ? <span className="realized-pnl-kpi__sign">{sign}</span> : null}
+        <span className="realized-pnl-kpi__currency">LKR</span>
+        <span className="realized-pnl-kpi__figure">{figure}</span>
+      </div>
+    );
+  };
+
   const formatPercentage = (num) => {
     return `${num > 0 ? '+' : ''}${num.toFixed(2)}%`;
   };
@@ -150,6 +170,15 @@ const RealizedPnL = () => {
     if (value > 0) return 'positive';
     if (value < 0) return 'negative';
     return 'neutral';
+  };
+
+  const timeRangeLabels = {
+    '1M': '1 month',
+    '3M': '3 months',
+    '6M': '6 months',
+    '1Y': '1 year',
+    '3Y': '3 years',
+    '5Y': '5 years',
   };
 
   // Handler functions for action buttons
@@ -193,11 +222,17 @@ const RealizedPnL = () => {
     <div className="realized-pnl-page">
       <div className="realized-pnl-page-wrapper">
       <div className="realized-pnl-page-header">
-        <h1 className="realized-pnl-page-title">Realized Gain/Loss Tracking</h1>
-        <div className="realized-pnl-page-controls">
-          <div className="realized-pnl-time-selector">
-            <label className="realized-pnl-time-label">Time Range:</label>
-            <select className="realized-pnl-time-dropdown" value={timeRange} onChange={(e) => setTimeRange(e.target.value)}>
+        <div className="realized-pnl-header-text">
+          <h1 className="realized-pnl-page-title">Realized Gain/Loss Tracking</h1>
+          <p className="realized-pnl-page-subtitle">
+            Realized capital gains and losses from completed sell transactions
+          </p>
+        </div>
+        <div className="realized-pnl-toolbar">
+          <div className="realized-pnl-page-controls">
+            <div className="realized-pnl-time-selector">
+              <label className="realized-pnl-time-label" htmlFor="rpnlTimeRange">Time Range</label>
+              <select id="rpnlTimeRange" className="realized-pnl-time-dropdown" value={timeRange} onChange={(e) => setTimeRange(e.target.value)}>
               <option value="1M">1 Month</option>
               <option value="3M">3 Months</option>
               <option value="6M">6 Months</option>
@@ -207,8 +242,8 @@ const RealizedPnL = () => {
             </select>
           </div>
           <div className="realized-pnl-portfolio-selector">
-            <label className="realized-pnl-portfolio-label">Portfolio:</label>
-            <select className="realized-pnl-portfolio-dropdown"
+            <label className="realized-pnl-portfolio-label" htmlFor="rpnlPortfolio">Portfolio</label>
+            <select id="rpnlPortfolio" className="realized-pnl-portfolio-dropdown"
               value={selectedPortfolio} 
               onChange={(e) => setSelectedPortfolio(e.target.value)}
               disabled={portfoliosLoading}
@@ -222,57 +257,95 @@ const RealizedPnL = () => {
             </select>
             {portfoliosLoading && <span className="realized-pnl-loading-indicator">Loading portfolios...</span>}
           </div>
-        </div>
-      </div>
-
-      {/* Summary Cards */}
-      <div className="realized-pnl-summary-grid">
-        <div className="realized-pnl-summary-card">
-          <div className="realized-pnl-card-title">Total Realized Gains</div>
-          <div className="realized-pnl-card-amount positive">{formatCurrency(parseFloat(realizedData.portfolioSummary.totalRealizedGains || 0))}</div>
-          <div className="realized-pnl-card-description">Profits from completed trades</div>
-        </div>
-
-        <div className="realized-pnl-summary-card">
-          <div className="realized-pnl-card-title">Total Realized Losses</div>
-          <div className="realized-pnl-card-amount negative">{formatCurrency(parseFloat(realizedData.portfolioSummary.totalRealizedLosses || 0))}</div>
-          <div className="realized-pnl-card-description">Losses from completed trades</div>
-        </div>
-
-        <div className="realized-pnl-summary-card">
-          <div className="realized-pnl-card-title">Net Realized Capital Gain</div>
-          <div className={`realized-pnl-card-amount ${getPnLColor(realizedData.portfolioSummary.netRealizedPnL)}`}>
-            {formatCurrency(parseFloat(realizedData.portfolioSummary.netRealizedPnL || 0))}
-          </div>
-          <div className="realized-pnl-card-description">Net profit/loss</div>
-        </div>
-
-        <div className="realized-pnl-summary-card">
-          <div className="realized-pnl-card-title">Win Rate</div>
-          <div className="realized-pnl-card-amount">{parseFloat(realizedData.portfolioSummary.winRate || 0).toFixed(1)}%</div>
-          <div className="realized-pnl-card-description">Profitable trades</div>
-        </div>
-
-        <div className="realized-pnl-summary-card">
-          <div className="realized-pnl-card-title">Realized P&L</div>
-          <div className={`realized-pnl-card-amount ${getPnLColor(realizedData.realizedPnL || 0)}`}>
-            {formatCurrency(parseFloat(realizedData.realizedPnL || 0))}
-          </div>
-          <div className="realized-pnl-card-description">
-            After fees and cost of funds
           </div>
         </div>
       </div>
+
+      {/* Portfolio KPI summary */}
+      <section className="realized-pnl-kpi-panel" aria-label="Realized gain and loss summary">
+        <div className="realized-pnl-kpi-panel__head">
+          <h2 className="realized-pnl-kpi-panel__title">Portfolio Summary</h2>
+          <p className="realized-pnl-kpi-panel__meta">
+            {timeRangeLabels[timeRange] || timeRange} period · {parseInt(realizedData.portfolioSummary.totalTrades || 0, 10).toLocaleString()} completed sells
+          </p>
+        </div>
+
+        <div className="realized-pnl-summary-grid">
+          <article className="realized-pnl-kpi realized-pnl-kpi--gains">
+            <header className="realized-pnl-kpi__head">
+              <span className="realized-pnl-kpi__label">Total Realized Gains</span>
+            </header>
+            {renderKpiMoney(realizedData.portfolioSummary.totalRealizedGains, 'positive', 'unsigned')}
+            <footer className="realized-pnl-kpi__foot">Profits from completed trades</footer>
+          </article>
+
+          <article className="realized-pnl-kpi realized-pnl-kpi--losses">
+            <header className="realized-pnl-kpi__head">
+              <span className="realized-pnl-kpi__label">Total Realized Losses</span>
+            </header>
+            {renderKpiMoney(realizedData.portfolioSummary.totalRealizedLosses, 'negative', 'magnitude')}
+            <footer className="realized-pnl-kpi__foot">Losses from completed trades</footer>
+          </article>
+
+          <article className="realized-pnl-kpi realized-pnl-kpi--net">
+            <header className="realized-pnl-kpi__head">
+              <span className="realized-pnl-kpi__label">Net Realized Capital Gain</span>
+            </header>
+            {renderKpiMoney(
+              realizedData.portfolioSummary.netRealizedPnL,
+              getPnLColor(realizedData.portfolioSummary.netRealizedPnL)
+            )}
+            <footer className="realized-pnl-kpi__foot">Net profit / loss before fee adjustment</footer>
+          </article>
+
+          <article className="realized-pnl-kpi realized-pnl-kpi--win-rate">
+            <header className="realized-pnl-kpi__head">
+              <span className="realized-pnl-kpi__label">Win Rate</span>
+            </header>
+            <div className="realized-pnl-kpi__value realized-pnl-kpi__value--metric">
+              <span className="realized-pnl-kpi__figure">
+                {parseFloat(realizedData.portfolioSummary.winRate || 0).toFixed(1)}
+              </span>
+              <span className="realized-pnl-kpi__unit">%</span>
+            </div>
+            <footer className="realized-pnl-kpi__foot">Profitable sell transactions</footer>
+          </article>
+
+          <article className="realized-pnl-kpi realized-pnl-kpi--featured">
+            <header className="realized-pnl-kpi__head">
+              <span className="realized-pnl-kpi__label">Realized P&amp;L</span>
+              <span className="realized-pnl-kpi__badge">After fees</span>
+            </header>
+            {renderKpiMoney(realizedData.realizedPnL, getPnLColor(realizedData.realizedPnL || 0))}
+            <footer className="realized-pnl-kpi__foot">Net of estimated buy &amp; sell charges</footer>
+          </article>
+        </div>
+      </section>
 
       {/* Navigation Tabs */}
-      <div className="realized-pnl-tab-navigation">
-        <button 
-          className={`realized-pnl-tab-button ${activeTab === 'trades' ? 'active' : ''}`}
-          onClick={() => setActiveTab('trades')}
+      <div className="realized-pnl-tab-navigation" role="tablist" aria-label="Realized P&amp;L views">
+        <button
+          type="button"
+          role="tab"
+          aria-selected={activeTab === 'buy-trades'}
+          className={`realized-pnl-tab-button ${activeTab === 'buy-trades' ? 'active' : ''}`}
+          onClick={() => setActiveTab('buy-trades')}
         >
-          Trade History
+          Buy Trade History
         </button>
-        <button 
+        <button
+          type="button"
+          role="tab"
+          aria-selected={activeTab === 'sell-trades'}
+          className={`realized-pnl-tab-button ${activeTab === 'sell-trades' ? 'active' : ''}`}
+          onClick={() => setActiveTab('sell-trades')}
+        >
+          Sell Trade History
+        </button>
+        <button
+          type="button"
+          role="tab"
+          aria-selected={activeTab === 'performance'}
           className={`realized-pnl-tab-button ${activeTab === 'performance' ? 'active' : ''}`}
           onClick={() => setActiveTab('performance')}
         >
@@ -282,11 +355,9 @@ const RealizedPnL = () => {
 
       {/* Tab Content */}
       <div className="realized-pnl-tab-content">
-        {activeTab === 'trades' && (
+        {activeTab === 'buy-trades' && (
           <div className="realized-pnl-trades-content">
-            {/* Buy Trade History */}
             <div className="realized-pnl-trade-history-section">
-              <h3 className="realized-pnl-trade-history-title">Buy Trade History</h3>
               {realizedData.tradeHistory && realizedData.tradeHistory.filter(trade => trade.tradeType === 'BUY').length > 0 ? (
                 <div className="realized-pnl-trade-history-table-container">
                   <table className="realized-pnl-trade-history-table">
@@ -330,10 +401,12 @@ const RealizedPnL = () => {
                 </div>
               )}
             </div>
+          </div>
+        )}
 
-            {/* Sell Trade History */}
+        {activeTab === 'sell-trades' && (
+          <div className="realized-pnl-trades-content">
             <div className="realized-pnl-trade-history-section">
-              <h3 className="realized-pnl-trade-history-title">Sell Trade History</h3>
               {realizedData.tradeHistory && realizedData.tradeHistory.filter(trade => trade.tradeType === 'SELL').length > 0 ? (
                 <div className="realized-pnl-trade-history-table-container">
                   <table className="realized-pnl-trade-history-table">
@@ -430,13 +503,13 @@ const RealizedPnL = () => {
 
       {/* Export and Actions */}
       <div className="realized-pnl-actions-container">
-        <button className="realized-pnl-action-button" onClick={() => handleGenerateReport()}>
+        <button type="button" className="realized-pnl-action-button realized-pnl-action-button--primary" onClick={() => handleGenerateReport()}>
           Generate Realized Capital Gain Report
         </button>
-        <button className="realized-pnl-action-button" onClick={() => handleExportToExcel()}>
+        <button type="button" className="realized-pnl-action-button realized-pnl-action-button--primary" onClick={() => handleExportToExcel()}>
           Export to Excel
         </button>
-        <button className="realized-pnl-action-button" onClick={loadRealizedPnLData}>
+        <button type="button" className="realized-pnl-action-button realized-pnl-action-button--secondary" onClick={loadRealizedPnLData}>
           Refresh Data
         </button>
       </div>

@@ -5,6 +5,7 @@ import DynamicHeader from './components/Home/DynamicHeader';
 import Sidebar, { equityManagerMenuItems, wealthManagerMenuItems } from './components/Home/Sidebar';
 import AuthContainer from './components/Auth/AuthContainer';
 import UserProfileModal from './components/Auth/UserProfileModal';
+import PremiumModal from './components/PremiumModal/premiumModal';
 import { authService } from './services/authService';
 import {
   canAccessTab,
@@ -156,6 +157,8 @@ function App() {
   const [isLoading, setIsLoading] = useState(true);
   const [aiAssistantOpen, setAiAssistantOpen] = useState(false);
   const [ownerReadOnlyPopup, setOwnerReadOnlyPopup] = useState(null);
+  const [isPremiumModalOpen, setIsPremiumModalOpen] = useState(false);
+  const [premiumModalVariant, setPremiumModalVariant] = useState('default');
   // Optional context payload passed across tabs (e.g. SOFP "View notes" → Financial Reporting Notes).
   // Cleared when the tab is changed without a payload.
   const [tabContext, setTabContext] = useState(null);
@@ -227,6 +230,12 @@ function App() {
   }, [selectedManager, user]);
 
   const handleManagerChange = (managerType) => {
+    if (managerType === 'wealth') {
+      setPremiumModalVariant('wealth');
+      setIsPremiumModalOpen(true);
+      return false;
+    }
+
     setSelectedManager(managerType);
     setActiveSidebarItem(0);
     setVisibleTabs(['Dashboard', 'Portfolio Overview', 'Market Summary', 'Recent Activity', 'Performance Metrics']);
@@ -503,6 +512,10 @@ function App() {
       ) : (
         <Sidebar
           onSelect={handleSidebarSelect}
+          onPremiumFeature={(menuItem) => {
+            setPremiumModalVariant(menuItem.premiumVariant || 'default');
+            setIsPremiumModalOpen(true);
+          }}
           activeIndex={activeSidebarItem}
           onLogout={handleLogout}
           onManagerChange={handleManagerChange}
@@ -575,6 +588,36 @@ function App() {
         isOpen={isProfileModalOpen}
         onClose={() => setIsProfileModalOpen(false)}
         onPasswordChanged={handlePasswordChanged}
+      />
+
+      <PremiumModal
+        isOpen={isPremiumModalOpen}
+        onClose={() => setIsPremiumModalOpen(false)}
+        variant={premiumModalVariant}
+        onContactSales={() => {
+          const subjectMap = {
+            portfolioTransfers: 'Upgrade Request - Portfolio Transfers',
+            integrationAutomation: 'Upgrade Request - Integration and Automation',
+            riskLimitManagement: 'Upgrade Request - Risk and Limit Management',
+            reportingCompliance: 'Upgrade Request - Reporting and Compliance',
+            portfolioMonitoring: 'Upgrade Request - Portfolio Monitoring',
+            ipo: 'Upgrade Request - IPO',
+            predictiveValuationModel: 'Upgrade Request - Predictive Valuation Model (PVM)',
+            tradeCore: 'Upgrade Request - TradeCore',
+            corporateActions: 'Upgrade Request - Corporate Actions',
+            securityIdentity: 'Upgrade Request - Security Identity',
+            voluntaryCorporateActions: 'Upgrade Request - Voluntary Corporate Actions',
+            mandatoryCorporateActions: 'Upgrade Request - Mandatory Corporate Actions',
+            chartsAndInsights: 'Upgrade Request - Charts and Insights',
+            wealth: 'Upgrade Request - Sherwood Wealth',
+          };
+          const subject =
+            subjectMap[premiumModalVariant] || 'Upgrade Request - Premium Feature';
+          window.open(
+            `mailto:support@sherwoodtech.com?subject=${encodeURIComponent(subject)}`,
+            '_blank'
+          );
+        }}
       />
 
       {ownerReadOnlyPopup && (

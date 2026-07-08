@@ -323,6 +323,10 @@ const ChartOfAccounts = () => {
 
   const activeCount = filteredAccounts.filter(acc => acc.active_status === 'Yes').length;
   const inactiveCount = filteredAccounts.length - activeCount;
+  const accountTypeLabel =
+    activeTab === 'user' ? 'user' :
+    activeTab === 'trading' ? 'trading' :
+    'system';
 
   return (
     <div className="coa-page-container">
@@ -348,25 +352,7 @@ const ChartOfAccounts = () => {
       {/* Data Display Card */}
       <div className="coa-data-card">
         <div className="coa-card-header">
-          <h2 className="coa-card-title">
-            Account Records ({
-              activeTab === 'user' ? userAccounts.length : 
-              activeTab === 'trading' ? systemAccounts.length : 
-              systemAccountsFromCSV.length
-            } {
-              activeTab === 'user' ? 'user' : 
-              activeTab === 'trading' ? 'trading' : 
-              'system'
-            } accounts)
-          </h2>
-          <button
-            type="button"
-            onClick={loadAccounts}
-            className="coa-refresh-btn"
-            disabled={loading}
-          >
-            {loading ? 'Loading...' : 'Refresh'}
-          </button>
+          <h2 className="coa-card-title">Account Records</h2>
         </div>
 
         {/* Tab Navigation */}
@@ -408,14 +394,28 @@ const ChartOfAccounts = () => {
 
         {/* Search Bar */}
         <div className="coa-search-container">
-          <div className="coa-search-wrapper">
-            <input
-              type="text"
-              className="coa-search-input"
-              placeholder="Search by account code, description, or type..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-            />
+          <div className="coa-search-toolbar">
+            <div className="coa-search-wrapper">
+              <input
+                type="text"
+                className="coa-search-input"
+                placeholder="Search by account code, description, or type..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
+            </div>
+            <button
+              type="button"
+              onClick={loadAccounts}
+              className="coa-refresh-btn"
+              disabled={loading}
+              aria-label="Refresh accounts"
+            >
+              <svg className="coa-refresh-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v6h6M20 20v-6h-6M5 19a9 9 0 0014-7 9 9 0 00-14-7" />
+              </svg>
+              <span>{loading ? 'Loading...' : 'Refresh'}</span>
+            </button>
           </div>
           {searchTerm && (
             <div className="coa-search-results">
@@ -431,21 +431,38 @@ const ChartOfAccounts = () => {
         {/* Stats Section */}
         {displayAccounts.length > 0 && (
           <div className="coa-stats">
-            <div className="coa-stat">
-              <div className="coa-stat-value">{displayAccounts.length}</div>
-              <div className="coa-stat-label">Total {
-                activeTab === 'user' ? 'User' : 
-                activeTab === 'trading' ? 'Trading' : 
-                'System'
-              } Accounts</div>
+            <div className="coa-stat coa-stat--total">
+              <div className="coa-stat-icon" aria-hidden="true">
+                <svg className="coa-stat-icon-svg" fill="currentColor" viewBox="0 0 20 20">
+                  <path d="M7 3a1 1 0 000 2h6a1 1 0 100-2H7zM4 7a1 1 0 011-1h10a1 1 0 110 2H5a1 1 0 01-1-1zM6 11a1 1 0 100 2h8a1 1 0 100-2H6zm-1 4a1 1 0 011-1h6a1 1 0 110 2H6a1 1 0 01-1-1z" />
+                </svg>
+              </div>
+              <div className="coa-stat-content">
+                <div className="coa-stat-value">{displayAccounts.length}</div>
+                <div className="coa-stat-label">Total {accountTypeLabel} accounts</div>
+              </div>
             </div>
-            <div className="coa-stat">
-              <div className="coa-stat-value">{activeCount}</div>
-              <div className="coa-stat-label">Active</div>
+            <div className="coa-stat coa-stat--active">
+              <div className="coa-stat-icon" aria-hidden="true">
+                <svg className="coa-stat-icon-svg" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                </svg>
+              </div>
+              <div className="coa-stat-content">
+                <div className="coa-stat-value">{activeCount}</div>
+                <div className="coa-stat-label">Active accounts</div>
+              </div>
             </div>
-            <div className="coa-stat">
-              <div className="coa-stat-value">{inactiveCount}</div>
-              <div className="coa-stat-label">Inactive</div>
+            <div className="coa-stat coa-stat--inactive">
+              <div className="coa-stat-icon" aria-hidden="true">
+                <svg className="coa-stat-icon-svg" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                </svg>
+              </div>
+              <div className="coa-stat-content">
+                <div className="coa-stat-value">{inactiveCount}</div>
+                <div className="coa-stat-label">Inactive accounts</div>
+              </div>
             </div>
             
             {/* Use System Chart of Accounts Button - Only for System Accounts tab */}
@@ -572,11 +589,12 @@ const ChartOfAccounts = () => {
                             onClick={() => handleEdit(acc)}
                             className="coa-edit-btn"
                             title="Edit Account"
+                            aria-label="Edit account"
                           >
-                            <svg className="coa-edit-icon" fill="currentColor" viewBox="0 0 20 20">
+                            <svg className="coa-edit-icon" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
                               <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z"/>
                             </svg>
-                            Edit
+                            <span className="coa-edit-btn-label">Edit</span>
                           </button>
                         </td>
                       </>

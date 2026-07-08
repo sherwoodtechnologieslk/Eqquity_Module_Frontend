@@ -1,13 +1,22 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import './index.css';
+import './styles/theme.css';
+import './styles/theme-shell.css';
+import './styles/theme-screens.css';
 import App from './App';
+import './styles/theme-dark-deep.css';
 import reportWebVitals from './reportWebVitals';
+import { initThemeFromStorage, ThemeProvider } from './context/ThemeContext';
+
+initThemeFromStorage();
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
   <React.StrictMode>
-    <App />
+    <ThemeProvider>
+      <App />
+    </ThemeProvider>
   </React.StrictMode>
 );
 
