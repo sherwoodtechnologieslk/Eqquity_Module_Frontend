@@ -1,0 +1,97 @@
+/**
+ * Global theme tokens. Light values match the current UI; dark mode layers on top.
+ * Components can adopt these gradually — nothing is forced to change yet.
+ */
+:root,
+[data-theme='light'] {
+  color-scheme: light;
+
+  --app-bg: #f5f7fa;
+  --app-bg-subtle: #f8fafc;
+  --app-surface: #ffffff;
+  --app-surface-muted: #f1f5f9;
+  --app-surface-elevated: #ffffff;
+  --app-text: #111827;
+  --app-text-heading: #1f2937;
+  --app-text-secondary: #475569;
+  --app-text-muted: #6b7280;
+  --app-border: #e5e7eb;
+  --app-border-strong: #e2e8f0;
+  --app-shadow: rgba(15, 23, 42, 0.08);
+  --app-input-bg: #f8fafc;
+  --app-input-border: #cfd8dc;
+  --app-input-text: #111827;
+  --app-input-focus-bg: #f1f5fe;
+  --app-input-focus-border: #2563eb;
+  --app-table-header-bg: #f8fafc;
+  --app-table-row-hover: #f1f5f9;
+  --app-tab-bar-bg: linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%);
+  --app-primary: #2563eb;
+  --app-primary-hover: #1d4ed8;
+  --app-success: #16a34a;
+  --app-success-bg: #dcfce7;
+  --app-success-text: #166534;
+  --app-warning: #d97706;
+  --app-error: #dc2626;
+  --app-error-bg: #fee2e2;
+  --app-error-text: #991b1b;
+  --navbar-bg-start: #1e40af;
+  --navbar-bg-mid: #2563eb;
+  --navbar-bg-end: #3b82f6;
+}
+
+[data-theme='dark'] {
+  color-scheme: dark;
+
+  /* Commercial financial dark palette — layered elevation, blue reserved for primary UI */
+  --app-bg: #1e293b;
+  --app-bg-subtle: #1e293b;
+  --app-surface: #263447;
+  --app-surface-muted: #2d3b50;
+  --app-surface-elevated: #34445a;
+  --app-text: #cbd5e1;
+  --app-text-heading: #f8fafc;
+  --app-text-secondary: #cbd5e1;
+  --app-text-muted: #94a3b8;
+  --app-border: #475569;
+  --app-border-strong: #4b5f7a;
+  --app-shadow: rgba(0, 0, 0, 0.15);
+  --app-shadow-soft: rgba(0, 0, 0, 0.12);
+  --app-input-bg: #263447;
+  --app-input-border: #5c738f;
+  --app-input-text: #f8fafc;
+  --app-input-placeholder: #9aa7b8;
+  --app-input-focus-bg: #263447;
+  --app-input-focus-border: #3b82f6;
+  --app-table-header-bg: #3a4b63;
+  --app-table-header-text: #ffffff;
+  --app-table-row-odd: #2f3d52;
+  --app-table-row-even: #324258;
+  --app-table-row-hover: #42546e;
+  --app-primary: #3b82f6;
+  --app-primary-hover: #2563eb;
+  --app-success: #22c55e;
+  --app-success-bg: #1f7a4d;
+  --app-success-text: #d7ffe7;
+  --app-warning: #f59e0b;
+  --app-error: #ef4444;
+  --app-error-bg: #7a3030;
+  --app-error-text: #ffd7d7;
+  --app-tab-bar-bg: transparent;
+  --navbar-bg: #24334d;
+  --navbar-bg-start: #24334d;
+  --navbar-bg-mid: #24334d;
+  --navbar-bg-end: #24334d;
+}
+
+[data-theme='dark'] html,
+[data-theme='dark'] body {
+  background-color: var(--app-bg);
+}
+
+html,
+body {
+  background-color: var(--app-bg);
+  color: var(--app-text);
+  transition: background-color 0.25s ease, color 0.25s ease;
+}

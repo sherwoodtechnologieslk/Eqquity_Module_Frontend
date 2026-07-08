@@ -1,0 +1,696 @@
+/**
+ * Deep dark-mode layer — loaded last so it wins over per-screen :root tokens.
+ * Targets white surfaces, modals, hardcoded slate text, and module CSS variables.
+ * Light mode is untouched. Print/PDF stays light.
+ */
+
+/* ========== Module CSS variable overrides (trade, batch import, reports) ========== */
+[data-theme='dark'] {
+  /* Buy */
+  --buy-slate-bg: #0f172a;
+  --buy-card-bg: #1e293b;
+  --buy-border: #334155;
+  --buy-text: #f1f5f9;
+  --buy-muted: #94a3b8;
+  --buy-green-light: rgba(5, 150, 105, 0.14);
+  --buy-green-border: rgba(5, 150, 105, 0.35);
+
+  /* Sell */
+  --sell-slate-bg: #0f172a;
+  --sell-card-bg: #1e293b;
+  --sell-border: #334155;
+  --sell-text: #f1f5f9;
+  --sell-muted: #94a3b8;
+  --sell-rose-light: rgba(225, 29, 72, 0.12);
+  --sell-rose-border: rgba(225, 29, 72, 0.35);
+
+  /* Bulk buy / sell */
+  --bb-slate-bg: #0f172a;
+  --bb-card-bg: #1e293b;
+  --bb-border: #334155;
+  --bb-text: #f1f5f9;
+  --bb-muted: #94a3b8;
+  --bb-green-light: rgba(5, 150, 105, 0.14);
+  --bb-green-border: rgba(5, 150, 105, 0.35);
+
+  --bs-slate-bg: #0f172a;
+  --bs-card-bg: #1e293b;
+  --bs-border: #334155;
+  --bs-text: #f1f5f9;
+  --bs-muted: #94a3b8;
+  --bs-rose-light: rgba(225, 29, 72, 0.12);
+  --bs-rose-border: rgba(225, 29, 72, 0.35);
+
+  /* Import history */
+  --ih-slate-bg: #0f172a;
+  --ih-card-bg: #1e293b;
+  --ih-border: #334155;
+  --ih-text: #f1f5f9;
+  --ih-muted: #94a3b8;
+  --ih-blue-light: rgba(37, 99, 235, 0.14);
+  --ih-blue-border: rgba(96, 165, 250, 0.35);
+
+  /* Financial reports export */
+  --fre-bg: #0f172a;
+  --fre-surface: #1e293b;
+  --fre-ink: #f1f5f9;
+  --fre-muted: #94a3b8;
+  --fre-border: #334155;
+  --fre-border-strong: #475569;
+  --fre-head: #f8fafc;
+  --fre-shadow: 0 10px 24px rgba(0, 0, 0, 0.35);
+  --fre-bw-hover: rgba(255, 255, 255, 0.06);
+  --fre-bw-hover-strong: rgba(255, 255, 255, 0.1);
+}
+
+/* ========== Extended surfaces (panels, widgets, toolbars, strips) ========== */
+/* NGL panels → NewGLAccount.css */
+[data-theme='dark'] .dashboard-main [class*='-panel']:not([class*='-panel-header']):not([class*='gradient']):not(.ngl-loading-panel):not(.ngl-empty-panel):not(.ngl-add-type-panel):not(.ngl-cat-type-panel):not(.ngl-cat-edit-panel):not(.ngl-cat-txn-edit-panel),
+[data-theme='dark'] .dashboard-main [class*='-widget']:not(.market-pulse-widget):not(.market-movers-board):not(.latest-activity-card),
+[data-theme='dark'] .dashboard-main [class*='-toolbar']:not([class*='__badge']),
+[data-theme='dark'] .dashboard-main [class*='-tool-bar'],
+[data-theme='dark'] .dashboard-main [class*='-search-bar'],
+[data-theme='dark'] .dashboard-main [class*='-filter-bar'],
+[data-theme='dark'] .dashboard-main [class*='-action-bar'],
+[data-theme='dark'] .dashboard-main [class*='-footer-bar'],
+[data-theme='dark'] .dashboard-main [class*='-table-wrap'],
+[data-theme='dark'] .dashboard-main [class*='-table-container']:not(.coa-table-container),
+[data-theme='dark'] .dashboard-main [class*='-grid-wrap'],
+[data-theme='dark'] .dashboard-main [class*='-list-wrap'],
+[data-theme='dark'] .dashboard-main [class*='-results-wrap'],
+[data-theme='dark'] .dashboard-main [class*='-state']:not([class*='--error']),
+[data-theme='dark'] .dashboard-main [class*='-hero']:not([class*='__score--']):not([class*='gradient']),
+[data-theme='dark'] .dashboard-main [class*='-kpi']:not([class*='--accent']),
+[data-theme='dark'] .dashboard-main [class*='-box']:not([class*='checkbox']):not([class*='hours']),
+[data-theme='dark'] .dashboard-main [class*='-strip']:not(.market-strip),
+[data-theme='dark'] .dashboard-main [class*='-row-card'],
+[data-theme='dark'] .dashboard-main [class*='-line-card'],
+[data-theme='dark'] .dashboard-main [class*='-entry-row'],
+[data-theme='dark'] .dashboard-main [class*='-accordion-body'],
+[data-theme='dark'] .dashboard-main [class*='-dropdown-menu'],
+[data-theme='dark'] .dashboard-main [class*='-dropdown-panel'],
+[data-theme='dark'] .dashboard-main [class*='-popover'],
+[data-theme='dark'] .dashboard-main [class*='-tooltip-inner'] {
+  background: var(--app-surface) !important;
+  border-color: var(--app-border) !important;
+  color: var(--app-text);
+}
+
+/* Soft tinted info / note boxes (not semantic success/error) */
+[data-theme='dark'] .dashboard-main [class*='-info-box'],
+[data-theme='dark'] .dashboard-main [class*='-note-box'],
+[data-theme='dark'] .dashboard-main [class*='-hint-box'],
+[data-theme='dark'] .dashboard-main [class*='-fee-structure-info'],
+[data-theme='dark'] .dashboard-main [class*='-structure-note'] {
+  background: var(--app-surface-muted) !important;
+  border-color: var(--app-border) !important;
+  color: var(--app-text-secondary) !important;
+}
+
+/* Section dividers */
+[data-theme='dark'] .dashboard-main [class*='-section-header'],
+[data-theme='dark'] .dashboard-main [class*='-section-divider'] {
+  border-bottom-color: var(--app-border) !important;
+}
+
+/* ========== Modals (COA → ChartOfAccounts.css; Premium → premiumModal.css) ========== */
+[data-theme='dark'] [class*='-modal-content']:not(.coa-modal-content):not(.em-premium-modal-content),
+[data-theme='dark'] [class*='-modal-body']:not(.coa-modal-body),
+[data-theme='dark'] [class*='-modal-panel'],
+[data-theme='dark'] [class*='-modal-dialog'],
+[data-theme='dark'] [class*='-modal-form-card'],
+[data-theme='dark'] .account-details-modal.account-modal-content,
+[data-theme='dark'] .account-details-modal .account-modal-form-card,
+[data-theme='dark'] .governance-action-modal,
+[data-theme='dark'] .governance-action-modal__body,
+[data-theme='dark'] .governance-permission-picker {
+  background: var(--app-surface) !important;
+  border-color: var(--app-border) !important;
+  color: var(--app-text);
+}
+
+[data-theme='dark'] [class*='-modal-header']:not([class*='gradient']):not(.coa-modal-header):not(.em-premium-modal-header),
+[data-theme='dark'] .account-details-modal .account-modal-toolbar,
+[data-theme='dark'] .governance-action-modal__footer {
+  background: var(--app-surface-muted) !important;
+  border-color: var(--app-border) !important;
+}
+
+[data-theme='dark'] [class*='-modal-overlay']:not(.coa-modal-overlay):not(.em-premium-modal-overlay),
+[data-theme='dark'] [class*='-modal-backdrop'],
+[data-theme='dark'] .account-modal-overlay {
+  background: rgba(2, 6, 23, 0.72) !important;
+}
+
+/* Modal inner fields / tabs (NGL screen tabs → NewGLAccount.css) */
+[data-theme='dark'] [class*='-modal'] [class*='-tab']:not(.active):not([class*='--active']),
+[data-theme='dark'] .account-details-modal [class*='-tab-btn']:not(.active):not(.new-gl-tab-btn):not(.em-premium-modal-btn-secondary):not(.em-premium-modal-btn-primary) {
+  background: var(--app-surface-muted) !important;
+  color: var(--app-text-muted) !important;
+  border-color: var(--app-border) !important;
+}
+
+[data-theme='dark'] .account-details-modal [class*='-readonly-chip'],
+[data-theme='dark'] .account-details-modal [class*='-info-chip'],
+[data-theme='dark'] [class*='-modal'] [class*='-chip']:not([class*='status']) {
+  background: var(--app-surface-muted) !important;
+  border-color: var(--app-border) !important;
+  color: var(--app-text-secondary) !important;
+}
+
+/* ========== Catch-all form controls inside main content ========== */
+[data-theme='dark'] .dashboard-main input:not(.coa-search-input):not(.coa-form-input):not(.form-input):not(.ngl-inline-input):not(.ngl-mapping-search-input):not(.ngl-account-code-input):not([type='checkbox']):not([type='radio']):not([type='range']):not([type='file']):not([type='color']),
+[data-theme='dark'] .dashboard-main select:not(.coa-form-select):not(.form-select),
+[data-theme='dark'] .dashboard-main textarea {
+  background: var(--app-input-bg) !important;
+  border-color: var(--app-input-border) !important;
+  color: var(--app-input-text) !important;
+}
+
+[data-theme='dark'] .dashboard-main input::placeholder,
+[data-theme='dark'] .dashboard-main textarea::placeholder {
+  color: var(--app-text-muted);
+  opacity: 0.9;
+}
+
+[data-theme='dark'] .dashboard-main input:disabled,
+[data-theme='dark'] .dashboard-main select:disabled,
+[data-theme='dark'] .dashboard-main textarea:disabled {
+  background: var(--app-surface-muted) !important;
+  color: var(--app-text-muted) !important;
+}
+
+/* ========== Typography — NGL → NewGLAccount.css ========== */
+[data-theme='dark'] .dashboard-main h1:not(.new-gl-main-title),
+[data-theme='dark'] .dashboard-main h2:not(.new-gl-form-title),
+[data-theme='dark'] .dashboard-main h3:not(.form-section-title):not(.ngl-panel-title),
+[data-theme='dark'] .dashboard-main h4,
+[data-theme='dark'] .dashboard-main h5 {
+  color: var(--app-text-heading);
+}
+
+[data-theme='dark'] .dashboard-main [class*='-main-title']:not(.coa-main-title):not(.new-gl-main-title),
+[data-theme='dark'] .dashboard-main [class*='-page-title'],
+[data-theme='dark'] .dashboard-main [class*='-section-title']:not(.form-section-title),
+[data-theme='dark'] .dashboard-main [class*='-card-title']:not(.coa-card-title):not(.new-gl-form-title),
+[data-theme='dark'] .dashboard-main [class*='__title'],
+[data-theme='dark'] .dashboard-main [class*='__heading'],
+[data-theme='dark'] .dashboard-main [class*='-heading'],
+[data-theme='dark'] .dashboard-main [class*='-toolbar__title'] {
+  color: var(--app-text-heading) !important;
+}
+
+[data-theme='dark'] .dashboard-main [class*='-subtitle']:not(.coa-subtitle):not(.new-gl-subtitle):not(.new-gl-form-subtitle),
+[data-theme='dark'] .dashboard-main [class*='-page-subtitle'],
+[data-theme='dark'] .dashboard-main [class*='__subtitle'],
+[data-theme='dark'] .dashboard-main [class*='-description'],
+[data-theme='dark'] .dashboard-main [class*='-hint']:not(.input-hint),
+[data-theme='dark'] .dashboard-main [class*='-helper'],
+[data-theme='dark'] .dashboard-main [class*='-meta'],
+[data-theme='dark'] .dashboard-main [class*='-caption'],
+[data-theme='dark'] .dashboard-main [class*='-footnote'],
+[data-theme='dark'] .dashboard-main [class*='-toolbar__subtitle'] {
+  color: var(--app-text-secondary) !important;
+}
+
+[data-theme='dark'] .dashboard-main [class*='-metric-label'],
+[data-theme='dark'] .dashboard-main [class*='-stat-label']:not(.coa-stat-label),
+[data-theme='dark'] .dashboard-main [class*='-field-label'],
+[data-theme='dark'] .dashboard-main [class*='-form-label']:not(.coa-form-label):not(.form-label),
+[data-theme='dark'] .dashboard-main [class*='__label'],
+[data-theme='dark'] .dashboard-main [class*='-label']:not([class*='badge']):not([class*='status']):not(.coa-tab-label):not(.form-label):not(.ngl-account-code-part-label):not(.ngl-inline-label) {
+  color: var(--app-text-muted) !important;
+}
+
+[data-theme='dark'] .dashboard-main [class*='-metric-value'],
+[data-theme='dark'] .dashboard-main [class*='-stat-value']:not(.coa-stat-value),
+[data-theme='dark'] .dashboard-main [class*='-field-value'],
+[data-theme='dark'] .dashboard-main [class*='-cell-value'],
+[data-theme='dark'] .dashboard-main [class*='-amount'],
+[data-theme='dark'] .dashboard-main [class*='-total'],
+[data-theme='dark'] .dashboard-main [class*='-count']:not(.coa-tab-count),
+[data-theme='dark'] .dashboard-main [class*='-number'],
+[data-theme='dark'] .dashboard-main [class*='__value'],
+[data-theme='dark'] .dashboard-main [class*='-kpi__value'],
+[data-theme='dark'] .dashboard-main [class*='-data-value'],
+[data-theme='dark'] .dashboard-main [class*='-info-value'] {
+  color: var(--app-text-heading) !important;
+}
+
+[data-theme='dark'] .buy-live-kpi--accent .buy-live-kpi__value,
+[data-theme='dark'] .buy-live-kpi--accent .buy-live-kpi__label,
+[data-theme='dark'] .buy-live-kpi--accent .buy-live-kpi__ccy,
+[data-theme='dark'] .sell-live-kpi--accent .sell-live-kpi__value,
+[data-theme='dark'] .sell-live-kpi--accent .sell-live-kpi__label,
+[data-theme='dark'] .sell-live-kpi--accent .sell-live-kpi__ccy {
+  color: #ffffff !important;
+}
+
+/* Preserve semantic money / status colors (after generic text rules) */
+[data-theme='dark'] .dashboard-main .pov-pos,
+[data-theme='dark'] .dashboard-main [class*='-positive'],
+[data-theme='dark'] .dashboard-main [class*='-profit'],
+[data-theme='dark'] .dashboard-main [class*='-buy-side'],
+[data-theme='dark'] .dashboard-main [class*='-amount-debit'],
+[data-theme='dark'] .dashboard-main [class*='-debit-amt'],
+[data-theme='dark'] .dashboard-main .text-success {
+  color: #34d399 !important;
+}
+
+[data-theme='dark'] .dashboard-main .pov-neg,
+[data-theme='dark'] .dashboard-main [class*='-negative'],
+[data-theme='dark'] .dashboard-main [class*='-loss'],
+[data-theme='dark'] .dashboard-main [class*='-sell-side'],
+[data-theme='dark'] .dashboard-main [class*='-amount-credit'],
+[data-theme='dark'] .dashboard-main [class*='-credit-amt'],
+[data-theme='dark'] .dashboard-main .text-danger {
+  color: #f87171 !important;
+}
+
+[data-theme='dark'] .dashboard-main .text-warning,
+[data-theme='dark'] .dashboard-main [class*='-warning-text'] {
+  color: #fbbf24 !important;
+}
+
+[data-theme='dark'] .dashboard-main [class*='-card-header']:not(.coa-card-header):not(.new-gl-form-header) h1,
+[data-theme='dark'] .dashboard-main [class*='-card-header']:not(.coa-card-header):not(.new-gl-form-header) h2,
+[data-theme='dark'] .dashboard-main [class*='-card-header']:not(.coa-card-header):not(.new-gl-form-header) h3,
+[data-theme='dark'] .dashboard-main [class*='-card-header']:not(.coa-card-header):not(.new-gl-form-header) h4,
+[data-theme='dark'] .dashboard-main [class*='-card-header']:not(.coa-card-header):not(.new-gl-form-header) p,
+[data-theme='dark'] .dashboard-main [class*='-card-header']:not(.coa-card-header):not(.new-gl-form-header) span,
+[data-theme='dark'] .dashboard-main [class*='-card-header']:not(.coa-card-header):not(.new-gl-form-header) [class*='-card-title'] {
+  color: #ffffff !important;
+}
+
+/* ========== Tables — zebra + sticky headers (COA → ChartOfAccounts.css) ========== */
+[data-theme='dark'] .dashboard-main table:not(.coa-data-table):not(.ngl-mapping-table) tbody tr:nth-child(even) td {
+  background: rgba(15, 23, 42, 0.35);
+}
+
+[data-theme='dark'] .dashboard-main [class*='-table'] tfoot td,
+[data-theme='dark'] .dashboard-main table tfoot td {
+  background: var(--app-surface-muted) !important;
+  color: var(--app-text-heading) !important;
+  border-color: var(--app-border) !important;
+}
+
+/* ========== Buttons — NGL → NewGLAccount.css; Premium → premiumModal.css ========== */
+[data-theme='dark'] .dashboard-main [class*='-btn-secondary']:not(.btn-secondary):not(.em-premium-modal-btn-secondary),
+[data-theme='dark'] .dashboard-main [class*='-btn-tertiary'],
+[data-theme='dark'] .dashboard-main [class*='-btn-outline'],
+[data-theme='dark'] .dashboard-main [class*='-btn-ghost'],
+[data-theme='dark'] .dashboard-main [class*='-clear-btn'],
+[data-theme='dark'] .dashboard-main [class*='-refresh-btn']:not(.coa-refresh-btn):not([class*='-card-header'] *),
+[data-theme='dark'] .dashboard-main [class*='-export-btn']:not(.coa-export-btn):not([class*='primary']),
+[data-theme='dark'] .dashboard-main [class*='-cancel-btn']:not(.coa-btn-cancel) {
+  background: var(--app-surface-muted) !important;
+  color: var(--app-text) !important;
+  border-color: var(--app-border) !important;
+}
+
+[data-theme='dark'] .dashboard-main [class*='-btn-secondary']:not(.btn-secondary):not(.em-premium-modal-btn-secondary):hover:not(:disabled),
+[data-theme='dark'] .dashboard-main [class*='-btn-tertiary']:hover:not(:disabled),
+[data-theme='dark'] .dashboard-main [class*='-btn-outline']:hover:not(:disabled),
+[data-theme='dark'] .dashboard-main [class*='-clear-btn']:hover:not(:disabled) {
+  background: var(--app-surface-elevated) !important;
+}
+
+/* ========== Dashboard (equity-dashboard) deep fixes ========== */
+[data-theme='dark'] .equity-dashboard {
+  background: var(--app-bg);
+}
+
+[data-theme='dark'] .equity-dashboard .dashboard-header,
+[data-theme='dark'] .equity-dashboard .dashboard-tabs,
+[data-theme='dark'] .equity-dashboard .dashboard-tab-content,
+[data-theme='dark'] .equity-dashboard .content-card,
+[data-theme='dark'] .equity-dashboard .health-card,
+[data-theme='dark'] .equity-dashboard .health-score,
+[data-theme='dark'] .equity-dashboard .health-metric,
+[data-theme='dark'] .equity-dashboard .health-breakdown,
+[data-theme='dark'] .equity-dashboard .health-alert,
+[data-theme='dark'] .equity-dashboard .widget-shell,
+[data-theme='dark'] .equity-dashboard .widget-body,
+[data-theme='dark'] .equity-dashboard .holdings-panel,
+[data-theme='dark'] .equity-dashboard .sector-panel,
+[data-theme='dark'] .equity-dashboard .allocation-panel,
+[data-theme='dark'] .equity-dashboard .top-movers-panel,
+[data-theme='dark'] .equity-dashboard .recent-trades-panel,
+[data-theme='dark'] .equity-dashboard .news-panel,
+[data-theme='dark'] .equity-dashboard .calendar-panel,
+[data-theme='dark'] .equity-dashboard .performance-panel,
+[data-theme='dark'] .equity-dashboard .summary-grid-item,
+[data-theme='dark'] .equity-dashboard .dashboard-card,
+[data-theme='dark'] .equity-dashboard .dash-card,
+[data-theme='dark'] .equity-dashboard .blux-widget,
+[data-theme='dark'] .equity-dashboard .blux-widget__body {
+  background: var(--app-surface) !important;
+  border-color: var(--app-border) !important;
+  color: var(--app-text);
+}
+
+[data-theme='dark'] .equity-dashboard .dashboard-tab:not(.active),
+[data-theme='dark'] .equity-dashboard .widget-tab:not(.active) {
+  background: transparent !important;
+  color: var(--app-text-muted) !important;
+}
+
+[data-theme='dark'] .equity-dashboard .dashboard-tab.active,
+[data-theme='dark'] .equity-dashboard .widget-tab.active {
+  background: var(--app-surface-muted) !important;
+  color: var(--app-text-heading) !important;
+}
+
+[data-theme='dark'] .equity-dashboard .dashboard-title,
+[data-theme='dark'] .equity-dashboard .widget-title,
+[data-theme='dark'] .equity-dashboard .panel-title,
+[data-theme='dark'] .equity-dashboard .holdings-symbol,
+[data-theme='dark'] .equity-dashboard .movers-symbol {
+  color: var(--app-text-heading) !important;
+}
+
+[data-theme='dark'] .equity-dashboard .dashboard-subtitle,
+[data-theme='dark'] .equity-dashboard .widget-subtitle,
+[data-theme='dark'] .equity-dashboard .panel-subtitle,
+[data-theme='dark'] .equity-dashboard .holdings-name,
+[data-theme='dark'] .equity-dashboard .movers-name {
+  color: var(--app-text-muted) !important;
+}
+
+[data-theme='dark'] .equity-dashboard .market-news-item,
+[data-theme='dark'] .equity-dashboard .market-news-card,
+[data-theme='dark'] .equity-dashboard .cse-extra-card,
+[data-theme='dark'] .equity-dashboard .cse-extra-row {
+  background: var(--app-surface) !important;
+  border-color: var(--app-border) !important;
+}
+
+[data-theme='dark'] .equity-dashboard .market-news-title,
+[data-theme='dark'] .equity-dashboard .cse-extra-title {
+  color: var(--app-text-heading) !important;
+}
+
+[data-theme='dark'] .equity-dashboard .market-news-meta,
+[data-theme='dark'] .equity-dashboard .cse-extra-meta {
+  color: var(--app-text-muted) !important;
+}
+
+[data-theme='dark'] .equity-dashboard .health-card .header-left h3,
+[data-theme='dark'] .equity-dashboard .health-gauge__score,
+[data-theme='dark'] .equity-dashboard .health-score__value,
+[data-theme='dark'] .equity-dashboard .insight-value,
+[data-theme='dark'] .equity-dashboard .risk-item__value {
+  color: var(--app-text-heading) !important;
+}
+
+[data-theme='dark'] .equity-dashboard .health-card .card-subtitle {
+  color: #93c5fd !important;
+}
+
+[data-theme='dark'] .equity-dashboard .health-card .insight-section-title,
+[data-theme='dark'] .equity-dashboard .health-gauge__outof,
+[data-theme='dark'] .equity-dashboard .health-score__label,
+[data-theme='dark'] .equity-dashboard .risk-item__label {
+  color: var(--app-text-muted) !important;
+}
+
+[data-theme='dark'] .equity-dashboard .health-gauge__bg {
+  stroke: #334155 !important;
+}
+
+/* Warning / amber panels stay tinted but readable */
+[data-theme='dark'] .equity-dashboard [class*='--warning'],
+[data-theme='dark'] .equity-dashboard [class*='--amber'],
+[data-theme='dark'] .equity-dashboard [class*='-alert--medium'] {
+  background: rgba(217, 119, 6, 0.15) !important;
+  border-color: rgba(251, 191, 36, 0.35) !important;
+  color: #fcd34d !important;
+}
+
+/* ========== Portfolio Overview tab (pov-*) ========== */
+[data-theme='dark'] .portfolio-overview,
+[data-theme='dark'] [class*='pov-'] {
+  color: var(--app-text);
+}
+
+[data-theme='dark'] .pov-header,
+[data-theme='dark'] .pov-hero,
+[data-theme='dark'] .pov-hero__score,
+[data-theme='dark'] .pov-hero__breakdown,
+[data-theme='dark'] .pov-hero__valuation,
+[data-theme='dark'] .pov-card,
+[data-theme='dark'] .pov-panel,
+[data-theme='dark'] .pov-table-wrap,
+[data-theme='dark'] .pov-state,
+[data-theme='dark'] .pov-alert,
+[data-theme='dark'] .pov-insight,
+[data-theme='dark'] .pov-metric,
+[data-theme='dark'] .pov-row {
+  background: var(--app-surface) !important;
+  border-color: var(--app-border) !important;
+}
+
+[data-theme='dark'] .pov-title {
+  color: var(--app-text-heading) !important;
+}
+
+[data-theme='dark'] .pov-subtitle,
+[data-theme='dark'] .pov-hero__eyebrow,
+[data-theme='dark'] .pov-gauge__outof,
+[data-theme='dark'] .pov-hero__status,
+[data-theme='dark'] .pov-metric__label,
+[data-theme='dark'] .pov-insight__label {
+  color: var(--app-text-muted) !important;
+}
+
+[data-theme='dark'] .pov-select,
+[data-theme='dark'] .pov-refresh {
+  background: var(--app-input-bg) !important;
+  border-color: var(--app-input-border) !important;
+  color: var(--app-input-text) !important;
+}
+
+[data-theme='dark'] .pov-table thead th {
+  background: var(--app-table-header-bg) !important;
+  color: var(--app-text-heading) !important;
+  border-color: var(--app-border) !important;
+}
+
+[data-theme='dark'] .pov-table tbody td {
+  background: var(--app-surface);
+  color: var(--app-text);
+  border-color: var(--app-border) !important;
+}
+
+[data-theme='dark'] .pov-table tbody tr:hover td {
+  background: var(--app-table-row-hover) !important;
+}
+
+[data-theme='dark'] .pov-pill--moderate {
+  background: rgba(217, 119, 6, 0.15) !important;
+  color: #fcd34d !important;
+  border-color: rgba(251, 191, 36, 0.35) !important;
+}
+
+/* ========== General Ledger / Trial Balance / Combined ========== */
+[data-theme='dark'] .gl-page-container,
+[data-theme='dark'] .tb-page-container,
+[data-theme='dark'] .ctb-page-container,
+[data-theme='dark'] .cgl-page-container,
+[data-theme='dark'] .cas-page-container {
+  background-color: var(--app-bg) !important;
+}
+
+[data-theme='dark'] .gl-filters-card,
+[data-theme='dark'] .gl-table-card,
+[data-theme='dark'] .tb-filters-card,
+[data-theme='dark'] .tb-table-card,
+[data-theme='dark'] .ctb-filters-card,
+[data-theme='dark'] .ctb-table-card,
+[data-theme='dark'] .cgl-filters-card,
+[data-theme='dark'] .cgl-table-card,
+[data-theme='dark'] .de-filters-card,
+[data-theme='dark'] .de-table-card {
+  background: var(--app-surface) !important;
+  border-color: var(--app-border) !important;
+}
+
+/* ========== Journal entries ========== */
+[data-theme='dark'] .je-page-container,
+[data-theme='dark'] .je-filters-card,
+[data-theme='dark'] .je-table-card,
+[data-theme='dark'] .je-modal-content,
+[data-theme='dark'] .je-modal-body {
+  background: var(--app-surface) !important;
+  border-color: var(--app-border) !important;
+}
+
+/* ========== Other transactions page shell ========== */
+[data-theme='dark'] .other-trans-page-container {
+  background-color: var(--app-bg) !important;
+}
+
+[data-theme='dark'] .other-trans-data-card,
+[data-theme='dark'] .other-trans-form-card {
+  background: var(--app-surface) !important;
+  border-color: var(--app-border) !important;
+}
+
+[data-theme='dark'] .other-trans-main-title {
+  color: var(--app-text-heading) !important;
+}
+
+[data-theme='dark'] .other-trans-subtitle {
+  color: var(--app-text-secondary) !important;
+}
+
+/* ========== GSec screens ========== */
+[data-theme='dark'] .gsec-bulk-grid,
+[data-theme='dark'] .gsec-manual-form,
+[data-theme='dark'] .gsec-ledger-panel,
+[data-theme='dark'] .gsec-balance-sheet-card {
+  background: var(--app-surface) !important;
+  border-color: var(--app-border) !important;
+}
+
+/* ========== Governance portals (admin / superuser) ========== */
+[data-theme='dark'] .admin-governance-portal,
+[data-theme='dark'] .superuser-portal,
+[data-theme='dark'] .admin-governance-portal [class*='-card'],
+[data-theme='dark'] .superuser-portal [class*='-card'],
+[data-theme='dark'] .admin-governance-portal [class*='-panel'],
+[data-theme='dark'] .superuser-portal [class*='-panel'] {
+  background: var(--app-surface) !important;
+  border-color: var(--app-border) !important;
+  color: var(--app-text);
+}
+
+[data-theme='dark'] .governance-action-modal__intro,
+[data-theme='dark'] .governance-permission-picker__toolbar {
+  background: var(--app-surface-muted) !important;
+  border-color: var(--app-border) !important;
+  color: var(--app-text-secondary) !important;
+}
+
+/* ========== Master data / vouchers / opening balance ========== */
+[data-theme='dark'] .eqt-page-container,
+[data-theme='dark'] .eqt-form-card,
+[data-theme='dark'] .eqt-list-card,
+[data-theme='dark'] .eqt-modal-content,
+[data-theme='dark'] .eqt-modal-body,
+[data-theme='dark'] .av-page-container,
+[data-theme='dark'] .av-form-card,
+[data-theme='dark'] .av-modal-body,
+[data-theme='dark'] .ob-page-container,
+[data-theme='dark'] .ob-form-card,
+[data-theme='dark'] .ob-list-card,
+[data-theme='dark'] .abs-page-container,
+[data-theme='dark'] .abs-form-card {
+  background: var(--app-surface) !important;
+  border-color: var(--app-border) !important;
+}
+
+/* ========== Trade list views & confirmation ========== */
+[data-theme='dark'] .buy-list-page,
+[data-theme='dark'] .sell-list-page,
+[data-theme='dark'] .buy-list-card,
+[data-theme='dark'] .sell-list-card,
+[data-theme='dark'] .trade-confirmation-page,
+[data-theme='dark'] .trade-confirmation-card,
+[data-theme='dark'] .transaction-view-page,
+[data-theme='dark'] .transaction-view-card {
+  background: var(--app-surface) !important;
+  border-color: var(--app-border) !important;
+}
+
+[data-theme='dark'] .buy-page-container,
+[data-theme='dark'] .sell-page,
+[data-theme='dark'] .bulk-buy-page-container,
+[data-theme='dark'] .bulk-sell-page-container,
+[data-theme='dark'] .import-history-container {
+  background: var(--app-bg) !important;
+  color: var(--app-text);
+}
+
+[data-theme='dark'] .buy-section-card,
+[data-theme='dark'] .sell-section-card,
+[data-theme='dark'] .bulk-buy-section-card,
+[data-theme='dark'] .bulk-sell-section-card,
+[data-theme='dark'] .import-history-card {
+  background: var(--app-surface) !important;
+  border-color: var(--app-border) !important;
+}
+
+[data-theme='dark'] .buy-toolbar__title,
+[data-theme='dark'] .sell-toolbar__title,
+[data-theme='dark'] .buy-section-title,
+[data-theme='dark'] .sell-section-title {
+  color: var(--app-text-heading) !important;
+}
+
+/* ========== Financial reporting ========== */
+[data-theme='dark'] .fp-main-container,
+[data-theme='dark'] .fp-page-container,
+[data-theme='dark'] .fp-report-card,
+[data-theme='dark'] .fp-modal-body,
+[data-theme='dark'] .cf-page-container,
+[data-theme='dark'] .cf-main-container,
+[data-theme='dark'] .cf-report-card,
+[data-theme='dark'] .sci-page-container,
+[data-theme='dark'] .sci-main-container,
+[data-theme='dark'] .sci-report-card,
+[data-theme='dark'] .fre-page,
+[data-theme='dark'] .fre-card,
+[data-theme='dark'] .gfd-page,
+[data-theme='dark'] .gfd-card {
+  background: var(--app-surface) !important;
+  border-color: var(--app-border) !important;
+  color: var(--app-text);
+}
+
+[data-theme='dark'] .fp-main-container,
+[data-theme='dark'] .cf-main-container,
+[data-theme='dark'] .sci-main-container,
+[data-theme='dark'] .fre-page,
+[data-theme='dark'] .gfd-page {
+  background: var(--app-bg) !important;
+}
+
+/* ========== Account details modal text ========== */
+[data-theme='dark'] .account-details-modal .account-modal-title,
+[data-theme='dark'] .account-details-modal [class*='-section-title'],
+[data-theme='dark'] .account-details-modal [class*='-field-value'],
+[data-theme='dark'] .account-details-modal [class*='-amount'] {
+  color: var(--app-text-heading) !important;
+}
+
+[data-theme='dark'] .account-details-modal [class*='-field-label'],
+[data-theme='dark'] .account-details-modal [class*='-hint'],
+[data-theme='dark'] .account-details-modal [class*='-meta'] {
+  color: var(--app-text-muted) !important;
+}
+
+/* ========== Pagination & empty states ========== */
+[data-theme='dark'] .dashboard-main [class*='-pagination'] button:not(:disabled),
+[data-theme='dark'] .dashboard-main [class*='-page-btn']:not(:disabled) {
+  background: var(--app-surface-muted) !important;
+  color: var(--app-text) !important;
+  border-color: var(--app-border) !important;
+}
+
+[data-theme='dark'] .dashboard-main [class*='-empty'],
+[data-theme='dark'] .dashboard-main [class*='-no-data'],
+[data-theme='dark'] .dashboard-main [class*='-no-results'] {
+  color: var(--app-text-muted) !important;
+}
+
+/* ========== Print / export — always light ========== */
+@media print {
+  [data-theme='dark'] .dashboard-main,
+  [data-theme='dark'] .dashboard-main * {
+    background: #ffffff !important;
+    color: #111827 !important;
+    border-color: #e5e7eb !important;
+    box-shadow: none !important;
+  }
+}

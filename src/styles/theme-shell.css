@@ -1,0 +1,169 @@
+/**
+ * Shell + shared UI dark-mode overrides.
+ * Uses attribute selectors so individual screen CSS files stay untouched for now.
+ */
+
+[data-theme='dark'] .loading-screen {
+  background-color: var(--app-bg);
+  color: var(--app-text-muted);
+}
+
+[data-theme='dark'] .owner-readonly-modal {
+  background: var(--app-surface);
+  border-color: var(--app-border);
+}
+
+[data-theme='dark'] .owner-readonly-modal h2 {
+  color: var(--app-text-heading);
+}
+
+[data-theme='dark'] .owner-readonly-modal p {
+  color: var(--app-text-secondary);
+}
+
+[data-theme='dark'] .dashboard-content--governance,
+[data-theme='dark'] .agp-root {
+  background: var(--app-bg);
+  color: var(--app-text);
+}
+
+[data-theme='dark'] .agp-header-text h1,
+[data-theme='dark'] .agp-header-text p strong {
+  color: var(--app-text-heading);
+}
+
+[data-theme='dark'] .agp-header-text p {
+  color: var(--app-text-secondary);
+}
+
+/* Page shells (Chart of Accounts → ChartOfAccounts.css; GL Account Spec → NewGLAccount.css) */
+[data-theme='dark'] [class*='-page-container']:not(.coa-page-container):not(.new-gl-account-container),
+[data-theme='dark'] [class*='-main-container'],
+[data-theme='dark'] [class*='-module-root'] {
+  background-color: var(--app-bg) !important;
+  color: var(--app-text);
+}
+
+/* White cards / panels (not gradient headers) */
+[data-theme='dark'] [class*='-form-card']:not(.new-gl-form-card),
+[data-theme='dark'] [class*='-filters-card'],
+[data-theme='dark'] [class*='-table-card'],
+[data-theme='dark'] [class*='-summary-card'],
+[data-theme='dark'] [class*='-content-card'],
+[data-theme='dark'] [class*='-list-card'],
+[data-theme='dark'] [class*='-data-card']:not(.coa-data-card),
+[data-theme='dark'] [class*='-section-card'],
+[data-theme='dark'] [class*='-metric-card'],
+[data-theme='dark'] [class*='-stat-card'],
+[data-theme='dark'] [class*='-info-panel'],
+[data-theme='dark'] [class*='-details-panel'],
+[data-theme='dark'] [class*='-empty-state'],
+[data-theme='dark'] [class*='-pagination-bar'],
+[data-theme='dark'] .container {
+  background: var(--app-surface) !important;
+  border-color: var(--app-border) !important;
+  color: var(--app-text);
+}
+
+[data-theme='dark'] [class*='-form-content'],
+[data-theme='dark'] [class*='-filters-content'],
+[data-theme='dark'] [class*='-card-body'],
+[data-theme='dark'] [class*='-table-wrap'] {
+  background: var(--app-surface);
+  color: var(--app-text);
+}
+
+/* Page titles */
+[data-theme='dark'] [class*='-main-title']:not(.coa-main-title):not(.new-gl-main-title),
+[data-theme='dark'] [class*='-page-title'] {
+  color: var(--app-text-heading) !important;
+}
+
+[data-theme='dark'] [class*='-subtitle']:not(.coa-subtitle):not(.new-gl-subtitle),
+[data-theme='dark'] [class*='-page-subtitle'] {
+  color: var(--app-text-secondary) !important;
+}
+
+/* Tab / segmented nav bars (COA → ChartOfAccounts.css; NGL → NewGLAccount.css) */
+[data-theme='dark'] [class*='-tab-navigation'],
+[data-theme='dark'] [class*='-form-type-nav'],
+[data-theme='dark'] [class*='-category-tabs'] {
+  background: var(--app-tab-bar-bg) !important;
+  border-color: var(--app-border) !important;
+}
+
+/* .new-gl-tab-nav / .new-gl-tab-btn — permanent styles in NewGLAccount.css only */
+[data-theme='dark'] [class*='-tab-btn']:not(.active):not([class*='--active']):not(.coa-tab-btn):not(.new-gl-tab-btn) {
+  color: var(--app-text-secondary);
+}
+
+/* Tables (Chart of Accounts → .coa-data-table in ChartOfAccounts.css) */
+[data-theme='dark'] table:not(.coa-data-table):not(.ngl-mapping-table) thead th,
+[data-theme='dark'] [class*='-data-table']:not(.coa-data-table) thead th {
+  background: var(--app-table-header-bg) !important;
+  color: var(--app-text-heading) !important;
+  border-color: var(--app-border) !important;
+}
+
+[data-theme='dark'] table:not(.coa-data-table):not(.ngl-mapping-table) tbody td,
+[data-theme='dark'] [class*='-data-table']:not(.coa-data-table) tbody td {
+  background: var(--app-surface);
+  color: var(--app-text);
+  border-color: var(--app-border) !important;
+}
+
+[data-theme='dark'] table:not(.coa-data-table):not(.ngl-mapping-table) tbody tr:hover td {
+  background: var(--app-table-row-hover) !important;
+}
+
+/* Form fields — NGL → NewGLAccount.css (.form-input, .form-select, .ngl-*) */
+[data-theme='dark'] [class*='-form-input']:not(.coa-form-input):not(.coa-search-input):not(.form-input):not(.ngl-account-code-input):not(.ngl-mapping-search-input):not(.ngl-inline-input),
+[data-theme='dark'] [class*='-form-select']:not(.coa-form-select):not(.form-select),
+[data-theme='dark'] [class*='-form-textarea'],
+[data-theme='dark'] [class*='-filter-input'],
+[data-theme='dark'] [class*='-filter-select'] {
+  background: var(--app-input-bg) !important;
+  border-color: var(--app-input-border) !important;
+  color: var(--app-input-text) !important;
+}
+
+[data-theme='dark'] [class*='-form-input']:not(.coa-form-input):not(.coa-search-input):not(.form-input):not(.ngl-account-code-input):not(.ngl-mapping-search-input):not(.ngl-inline-input):focus,
+[data-theme='dark'] [class*='-form-select']:not(.coa-form-select):not(.form-select):focus,
+[data-theme='dark'] [class*='-form-textarea']:focus,
+[data-theme='dark'] [class*='-filter-input']:focus,
+[data-theme='dark'] [class*='-filter-select']:focus {
+  background: var(--app-input-focus-bg) !important;
+  border-color: var(--app-input-focus-border) !important;
+}
+
+[data-theme='dark'] .dashboard-main [class*='-field-label'],
+[data-theme='dark'] .dashboard-main [class*='-form-label']:not(.form-label):not(.ngl-account-code-part-label):not(.ngl-inline-label),
+[data-theme='dark'] .dashboard-main label:not([class*='badge']):not([class*='status']):not(.form-label):not(.ngl-account-code-part-label):not(.ngl-inline-label) {
+  color: var(--app-text-secondary);
+}
+
+[data-theme='dark'] [class*='-readonly-field'] {
+  background: var(--app-surface-muted) !important;
+  color: var(--app-text-muted) !important;
+}
+
+/* Dynamic header ticker */
+[data-theme='dark'] .dynamic-header-label,
+[data-theme='dark'] .stock-symbol,
+[data-theme='dark'] .stock-price {
+  color: var(--app-text-heading) !important;
+}
+
+[data-theme='dark'] .stock-name,
+[data-theme='dark'] .stock-change-rs,
+[data-theme='dark'] .date-badge,
+[data-theme='dark'] .dynamic-header-loading {
+  color: var(--app-text-muted) !important;
+}
+
+/* Keep gradient card headers readable — titles on blue/green bars stay white */
+[data-theme='dark'] [class*='-card-header']:not(.coa-card-header):not(.new-gl-form-header) [class*='-card-title'],
+[data-theme='dark'] [class*='-card-header']:not(.coa-card-header):not(.new-gl-form-header) h2,
+[data-theme='dark'] [class*='-card-header']:not(.coa-card-header):not(.new-gl-form-header) h3 {
+  color: #ffffff !important;
+}
