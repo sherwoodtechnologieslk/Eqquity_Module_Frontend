@@ -1,7 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { accountCategoryAPI, accountReconciliationAPI, trialBalanceAPI, gsecEntriesAPI } from '../../services/api';
+import { accountCategoryAPI, trialBalanceAPI, gsecEntriesAPI } from '../../services/api';
 import AccountDetailsModal from '../EquityEntries/AccountDetailsModal';
-import './Styles/CombinedTrialBalance.css';
 import './Styles/AccountSummaries.css';
 
 const getDefaultDateRange = () => {
@@ -42,90 +41,47 @@ const buildCategoryTypesFromAccountCategoryRows = (...rowArrays) => {
   return distinctTypes;
 };
 
-const glSourceLabel = (glSource) => {
-  if (glSource === 'opening_balance_entries') return 'Opening balance';
-  if (glSource === 'general_ledger_entries') return 'General ledger';
-  if (glSource === 'other_transaction_gl_entries') return 'Other transactions';
-  if (glSource === 'gsec_entries') return 'GSec';
-  return glSource || '—';
-};
+/** Map a GSec balance-sheet account entry into the AccountDetailsModal entry shape. */
+const mapGsecEntry = (e) => ({
+  source: 'GSec',
+  ledgerSource: 'gsec',
+  lineId: e.id,
+  date: e.entry_date,
+  description: e.description || '—',
+  reference: e.deal_number != null && e.deal_number !== '' ? String(e.deal_number) : '—',
+  debit: Number(e.debit_amount) || 0,
+  credit: Number(e.credit_amount) || 0,
+  transaction_type: [e.account_category, e.currency].filter(Boolean).join(' · ') || 'GSec',
+});
 
-/** Parse reconciliation row id + gl_source into double-entry group link (CTB-compatible). */
-const resolveReconciliationEntryLink = (t) => {
-  const glSource = t?.gl_source;
-  if (glSource === 'opening_balance_entries') {
-    return { ledgerSource: null, lineId: null, source: 'Opening Balance' };
-  }
-
-  const rawId = String(t?.id ?? '').trim();
-  let ledgerSource = null;
-  let lineId = null;
-
-  const prefixMatch = rawId.match(/^(gle|ot|gsec):(\d+)$/i);
-  if (prefixMatch) {
-    const prefix = prefixMatch[1].toLowerCase();
-    lineId = parseInt(prefixMatch[2], 10);
-    ledgerSource =
-      prefix === 'gle' ? 'equity' : prefix === 'ot' ? 'other' : 'gsec';
-  } else if (glSource === 'general_ledger_entries') {
-    ledgerSource = 'equity';
-    lineId = parseInt(rawId, 10);
-  } else if (glSource === 'other_transaction_gl_entries') {
-    ledgerSource = 'other';
-    lineId = parseInt(rawId, 10);
-  } else if (glSource === 'gsec_entries') {
-    ledgerSource = 'gsec';
-    lineId = parseInt(rawId, 10);
-  }
-
-  const sourceLabel = glSourceLabel(glSource);
-  const validLineId = Number.isFinite(lineId) ? lineId : null;
+/** Map an Equity trial-balance account entry into the AccountDetailsModal entry shape. */
+const mapEquityEntry = (e) => {
+  const isOpening =
+    e.entry_source === 'OpeningBalance' ||
+    (!!e.description && /opening/i.test(String(e.description)));
+  const ledgerSource =
+    e.entry_source === 'OtherTransaction'
+      ? 'other'
+      : e.entry_source === 'GeneralLedger'
+        ? 'equity'
+        : null;
 
   return {
-    ledgerSource: validLineId != null ? ledgerSource : null,
-    lineId: validLineId,
-    source: sourceLabel
+    ...e,
+    source: isOpening ? 'Opening Balance' : 'Equity',
+    ledgerSource: isOpening ? null : ledgerSource,
+    lineId: isOpening ? null : e.id,
+    transaction_type:
+      e.transaction_type ||
+      (isOpening ? 'Opening balance' : null) ||
+      e.status ||
+      '—',
   };
 };
 
-const mapReconciliationEntry = (t) => {
-  const link = resolveReconciliationEntryLink(t);
-  return {
-    date: t.date,
-    description: t.description || '—',
-    reference: t.reference != null && String(t.reference).trim() !== '' ? String(t.reference) : '—',
-    debit: Number(t.debit) || 0,
-    credit: Number(t.credit) || 0,
-    source: link.source,
-    transaction_type: link.source,
-    ledgerSource: link.ledgerSource,
-    lineId: link.lineId,
-    id: link.lineId
-  };
-};
-
-/** Map account-reconciliation /transactions response into AccountDetailsModal shape */
-const mapReconciliationToModalData = (accountCode, accountName, startDate, endDate, api) => {
-  const txs = Array.isArray(api?.transactions) ? api.transactions : [];
-  const total_debit = txs.reduce((s, t) => s + (Number(t.debit) || 0), 0);
-  const total_credit = txs.reduce((s, t) => s + (Number(t.credit) || 0), 0);
-  const net_balance = total_debit - total_credit;
-  return {
-    accountCode,
-    accountName: accountName || '—',
-    period: {
-      startDate,
-      endDate,
-      portfolio: 'GL · Other · GSec · Opening balance'
-    },
-    entries: txs.map(mapReconciliationEntry),
-    totals: {
-      total_debit,
-      total_credit,
-      net_balance,
-      balance_type: net_balance > 0.005 ? 'DR' : net_balance < -0.005 ? 'CR' : 'ZERO'
-    }
-  };
+const entryDateValue = (e) => {
+  const t = new Date(e.date).getTime();
+  return Number.isNaN(t) ? 0 : t;
 };
 
 /**
@@ -189,6 +145,13 @@ const mergeEquityAndGsecAccounts = (equityAccounts, gsecAccounts) => {
       String(a.account_code).localeCompare(String(b.account_code), undefined, { numeric: true })
     );
 };
+
+const IconInfo = () => (
+  <svg className="cas-icon" viewBox="0 0 20 20" fill="none" stroke="currentColor" aria-hidden="true">
+    <circle cx="10" cy="10" r="7.5" strokeWidth="1.5" />
+    <path strokeLinecap="round" strokeWidth="1.5" d="M10 9v4M10 7h.01" />
+  </svg>
+);
 
 const AccountSummaries = () => {
   const [filters, setFilters] = useState(() => getDefaultDateRange());
@@ -267,21 +230,11 @@ const AccountSummaries = () => {
     });
   }, [categoryTypes]);
 
-  // Metrics are derived from the merged accounts (equity GL + other + opening
-  // balances + GSec) so the cards always match the visible table, including GSec.
-  const activeRow = useMemo(() => {
+  const activeCategoryLabel = useMemo(() => {
     const key = toKey(activeCategory);
-    const rows = (Array.isArray(accounts) ? accounts : []).filter(
-      (a) => key === 'all' || toKey(a?.account_type) === key
-    );
-    const debit = rows.reduce((s, r) => s + (Number(r?.total_debit) || 0), 0);
-    const credit = rows.reduce((s, r) => s + (Number(r?.total_credit) || 0), 0);
-    const label =
-      key === 'all'
-        ? 'All'
-        : categories.find((c) => toKey(c?.key) === key)?.label || toLabel(activeCategory) || '—';
-    return { label, debit, credit, net: debit - credit };
-  }, [accounts, activeCategory, categories]);
+    if (key === 'all') return 'All';
+    return categories.find((c) => toKey(c?.key) === key)?.label || toLabel(activeCategory) || '—';
+  }, [activeCategory, categories]);
 
   const filteredAccounts = useMemo(() => {
     const key = toKey(activeCategory);
@@ -298,6 +251,19 @@ const AccountSummaries = () => {
       minimumFractionDigits: 2
     }).format(n);
   };
+
+  const formatNetBalance = (net) => {
+    const n = Number(net) || 0;
+    if (Math.abs(n) < 0.005) return { text: '—', side: null };
+    const side = n > 0 ? 'DR' : 'CR';
+    return { text: formatCurrency(Math.abs(n)), side };
+  };
+
+  const periodLabel = appliedPeriod
+    ? `${formatDate(appliedPeriod.startDate)} – ${formatDate(appliedPeriod.endDate)}`
+    : hasValidPeriod
+      ? `${formatDate(filterDisplayDates.startDate)} – ${formatDate(filterDisplayDates.endDate)}`
+      : 'Select dates';
 
   const handleDateChange = (field, value) => {
     const defaults = getDefaultDateRange();
@@ -434,22 +400,73 @@ const AccountSummaries = () => {
     setAccountModalError('');
 
     try {
-      const res = await accountReconciliationAPI.getAccountTransactions(code, {
+      const queryFilters = {
         startDate: appliedPeriod.startDate,
-        endDate: appliedPeriod.endDate
-      });
-      if (res?.error) {
-        throw new Error(res.error);
-      }
-      setAccountModalData(
-        mapReconciliationToModalData(
-          code,
-          acc?.account_name,
-          appliedPeriod.startDate,
-          appliedPeriod.endDate,
-          res
-        )
+        endDate: appliedPeriod.endDate,
+      };
+
+      const [equityRes, gsecRes] = await Promise.all([
+        trialBalanceAPI
+          .getAccountDetails(code, queryFilters)
+          .catch((err) => ({ success: false, error: err?.message || 'Equity fetch failed' })),
+        gsecEntriesAPI
+          .getBalanceSheetAccountDetails(code, queryFilters)
+          .catch((err) => ({ success: false, error: err?.message || 'GSec fetch failed' })),
+      ]);
+
+      const equityEntries =
+        equityRes?.success && Array.isArray(equityRes?.data?.entries)
+          ? equityRes.data.entries.map(mapEquityEntry)
+          : [];
+      const gsecEntries =
+        gsecRes?.success && Array.isArray(gsecRes?.data?.entries)
+          ? gsecRes.data.entries.map(mapGsecEntry)
+          : [];
+
+      const mergedEntries = [...equityEntries, ...gsecEntries].sort(
+        (a, b) => entryDateValue(b) - entryDateValue(a)
       );
+
+      if (
+        mergedEntries.length === 0 &&
+        equityRes?.success === false &&
+        gsecRes?.success === false
+      ) {
+        throw new Error(
+          equityRes?.error || gsecRes?.error || 'Failed to load account details'
+        );
+      }
+
+      const total_debit = mergedEntries.reduce((s, e) => s + (Number(e.debit) || 0), 0);
+      const total_credit = mergedEntries.reduce((s, e) => s + (Number(e.credit) || 0), 0);
+      const net_balance = total_debit - total_credit;
+
+      const sources = [];
+      if (equityEntries.length > 0) sources.push('Equity');
+      if (gsecEntries.length > 0) sources.push('GSec');
+
+      setAccountModalData({
+        accountCode: code,
+        accountName:
+          equityRes?.data?.accountName ||
+          gsecRes?.data?.accountName ||
+          acc?.account_name ||
+          '',
+        period: {
+          startDate: appliedPeriod.startDate,
+          endDate: appliedPeriod.endDate,
+          portfolio:
+            equityRes?.data?.period?.portfolio ||
+            (sources.length > 0 ? sources.join(' + ') : 'GL · Other · GSec · Opening balance'),
+        },
+        entries: mergedEntries,
+        totals: {
+          total_debit,
+          total_credit,
+          net_balance,
+          balance_type: net_balance > 0.005 ? 'DR' : net_balance < -0.005 ? 'CR' : 'ZERO',
+        },
+      });
     } catch (err) {
       console.error('AccountSummaries drill-down:', err);
       setAccountModalError(err.message || 'Failed to load entries');
@@ -458,78 +475,95 @@ const AccountSummaries = () => {
 
   const periodStart = filterDisplayDates.startDate;
   const periodEnd = filterDisplayDates.endDate;
+  const accountsTitle =
+    toKey(activeCategory) === 'all' ? 'Accounts (All)' : `Accounts (${activeCategoryLabel})`;
 
   return (
-    <div className="ctb-page-container">
-      <div className="ctb-content-wrapper">
-        <div className="ctb-header-section cas-header-wrap">
-          <div className="ctb-header-text-group">
-            <h1 className="ctb-main-title">Account Summaries</h1>
-            <p className="ctb-subtitle">
+    <div className="cas-page-container">
+      <div className="cas-content-wrapper">
+        <header className="cas-masthead">
+          <div className="cas-masthead__primary">
+            <p className="cas-eyebrow">Financial Reporting</p>
+            <h1 className="cas-main-title">Account Summaries</h1>
+            <p className="cas-subtitle">
               High-level debit and credit totals by account classification for Equity and by category
               for GSec over the selected period.
             </p>
           </div>
-          <div className="ctb-header-meta">
-            <div className="ctb-period">
-              Period:&nbsp;
-              <span>
-                {hasValidPeriod ? `${formatDate(periodStart)} — ${formatDate(periodEnd)}` : ''}
-              </span>
+          <div className="cas-masthead__meta">
+            <div className="cas-meta-chip">
+              <span className="cas-meta-chip__label">Reporting Period</span>
+              <span className="cas-meta-chip__value">{periodLabel}</span>
+            </div>
+            <div className="cas-meta-chip">
+              <span className="cas-meta-chip__label">Category</span>
+              <span className="cas-meta-chip__value">{activeCategoryLabel}</span>
+            </div>
+            <div className="cas-meta-chip">
+              <span className="cas-meta-chip__label">Accounts</span>
+              <span className="cas-meta-chip__value">{filteredAccounts.length}</span>
             </div>
           </div>
-        </div>
+        </header>
 
-        <div className="ctb-filters-card cas-filters-card">
-          <div className="ctb-filters-content">
-            <div className="ctb-filters-grid">
-              <div className="ctb-filter-group">
-                <label className="ctb-filter-label">Start Date</label>
-                <input
-                  type="date"
-                  lang="en-US"
-                  className="ctb-filter-input"
-                  value={filterDisplayDates.startDate}
-                  onChange={(e) => handleDateChange('startDate', e.target.value)}
-                />
-              </div>
-              <div className="ctb-filter-group">
-                <label className="ctb-filter-label">End Date</label>
-                <input
-                  type="date"
-                  lang="en-US"
-                  className="ctb-filter-input"
-                  value={filterDisplayDates.endDate}
-                  onChange={(e) => handleDateChange('endDate', e.target.value)}
-                />
-              </div>
-              <div className="ctb-filter-group ctb-filter-actions">
-                <button
-                  type="button"
-                  className="ctb-apply-btn"
-                  onClick={handleApply}
-                  disabled={loading || !hasValidPeriod}
-                  title={!hasValidPeriod ? 'Select a valid Start/End date range' : undefined}
-                >
-                  Apply
-                </button>
-                <button type="button" className="ctb-clear-btn" onClick={clearFilters}>
-                  Reset
-                </button>
-              </div>
+        <section className="cas-toolbar" aria-label="Report filters">
+          <div className="cas-toolbar__row">
+            <div className="cas-field">
+              <label className="cas-field__label" htmlFor="cas-start-date">Start Date</label>
+              <input
+                id="cas-start-date"
+                type="date"
+                lang="en-US"
+                className="cas-field__input"
+                value={periodStart}
+                onChange={(e) => handleDateChange('startDate', e.target.value)}
+              />
+            </div>
+            <div className="cas-field">
+              <label className="cas-field__label" htmlFor="cas-end-date">End Date</label>
+              <input
+                id="cas-end-date"
+                type="date"
+                lang="en-US"
+                className="cas-field__input"
+                value={periodEnd}
+                onChange={(e) => handleDateChange('endDate', e.target.value)}
+              />
+            </div>
+            <div className="cas-toolbar__actions">
+              <button
+                type="button"
+                className="cas-btn cas-btn--primary"
+                onClick={handleApply}
+                disabled={loading || !hasValidPeriod}
+                title={!hasValidPeriod ? 'Select a valid Start/End date range' : undefined}
+              >
+                Apply Filters
+              </button>
+              <button type="button" className="cas-btn cas-btn--ghost" onClick={clearFilters}>
+                Clear
+              </button>
             </div>
           </div>
-        </div>
+          {!hasValidPeriod && (
+            <p className="cas-toolbar__hint" role="status">
+              Select a <strong>Start Date</strong> and <strong>End Date</strong>, then click Apply Filters to load
+              account summaries.
+            </p>
+          )}
+        </section>
 
-        <div className="cas-tabs-card">
-          <div className="cas-tabs-row" role="tablist" aria-label="Main account categories">
+        <section className="cas-categories" aria-label="Account categories">
+          <div className="cas-categories__row" role="tablist" aria-label="Main account categories">
             {categories.map((c) => (
               <button
                 key={c.key}
                 type="button"
                 role="tab"
                 aria-selected={toKey(activeCategory) === toKey(c.key)}
-                className={`cas-tab ${toKey(activeCategory) === toKey(c.key) ? 'active' : ''}`}
+                className={`cas-categories__tab${
+                  toKey(activeCategory) === toKey(c.key) ? ' cas-categories__tab--active' : ''
+                }`}
                 onClick={() => setActiveCategory(toKey(c.key))}
                 disabled={loading}
               >
@@ -537,138 +571,154 @@ const AccountSummaries = () => {
               </button>
             ))}
           </div>
-        </div>
+        </section>
 
-        <div className="cas-metrics">
-          {error ? (
-            <div className="cas-error">{error}</div>
-          ) : loading ? (
-            <div className="cas-loading">Loading categories…</div>
-          ) : summary == null ? (
-            <div className="cas-loading">Click Apply to load categories.</div>
-          ) : (
-            <>
-              <div className="cas-metric-card">
-                <div className="cas-metric-label">{activeRow.label} Debit</div>
-                <div className="cas-metric-value debit">{formatCurrency(activeRow.debit)}</div>
-              </div>
-              <div className="cas-metric-card">
-                <div className="cas-metric-label">{activeRow.label} Credit</div>
-                <div className="cas-metric-value credit">{formatCurrency(activeRow.credit)}</div>
-              </div>
-              <div className="cas-metric-card">
-                <div className="cas-metric-label">{activeRow.label} Net</div>
-                <div className={`cas-metric-value ${activeRow.net >= 0 ? 'positive' : 'negative'}`}>
-                  {formatCurrency(activeRow.net)}
-                </div>
-              </div>
-            </>
-          )}
-        </div>
+        {error ? (
+          <div className="cas-error-banner" role="alert">
+            <p className="cas-error-banner__title">Unable to load summaries</p>
+            <p className="cas-error-banner__text">{error}</p>
+          </div>
+        ) : null}
 
-        <div className="cas-accounts-card">
-          <div className="cas-accounts-header">
-            <div className="cas-accounts-title">
-              {toKey(activeCategory) === 'all' ? 'Accounts (All)' : `Accounts (${activeRow.label})`}
-            </div>
-            <div className="cas-accounts-meta">
-              {filteredAccounts.length} accounts
-              {appliedPeriod ? (
-                <span className="cas-accounts-hint">
-                  {' '}
-                  · Click code or name for entries (general ledger, other transactions, GSec)
-                </span>
-              ) : null}
+        <section className="cas-report" aria-label="Account summaries report">
+          <div className="cas-report__header">
+            <div className="cas-report__heading">
+              <h2 className="cas-report__title">{accountsTitle}</h2>
+              <p className="cas-report__meta">
+                {periodLabel} · {activeCategoryLabel} · {filteredAccounts.length} accounts
+              </p>
             </div>
           </div>
 
-          <div className="ctb-table-container">
-            {filteredAccounts.length === 0 ? null : (
-              <table className="ctb-data-table">
+          {appliedPeriod ? (
+            <div className="cas-info-banner" role="note">
+              <span className="cas-info-banner__icon" aria-hidden="true">
+                <IconInfo />
+              </span>
+              <p className="cas-info-banner__text">
+                Click an <strong>account code</strong> or <strong>account name</strong> to view every entry for that
+                account from general ledger, other transactions, opening balances, and GSec.
+              </p>
+            </div>
+          ) : null}
+
+          <div className="cas-table-wrap">
+            {loading ? (
+              <div className="cas-empty-state">
+                <p className="cas-empty-state__title">Loading account summaries…</p>
+              </div>
+            ) : filteredAccounts.length === 0 ? (
+              <div className="cas-empty-state">
+                <p className="cas-empty-state__title">No accounts to display</p>
+                <p className="cas-empty-state__text">
+                  {summary == null
+                    ? 'Apply filters to load accounts for the selected period.'
+                    : 'No accounts match the selected category.'}
+                </p>
+              </div>
+            ) : (
+              <table className="cas-grid">
                 <thead>
                   <tr>
-                    <th>Account Code</th>
-                    <th>Account Name</th>
-                    <th>Debit</th>
-                    <th>Credit</th>
-                    <th>Net</th>
-                    <th>DR / CR</th>
+                    <th className="cas-col-code">Account Code</th>
+                    <th className="cas-col-name">Account Name</th>
+                    <th className="cas-col-num">Debit</th>
+                    <th className="cas-col-num">Credit</th>
+                    <th className="cas-col-num">Net</th>
+                    <th className="cas-col-drcr">DR / CR</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {filteredAccounts.map((a, idx) => (
-                    <tr key={String(a?.account_code || a?.accountCode || `${a?.account_name || 'acc'}-${idx}`)}>
-                      <td
-                        className={`ctb-account-code ${appliedPeriod ? 'ctb-account-drilldown' : ''}`}
-                        onClick={appliedPeriod ? (e) => handleAccountDrillDown(a, e) : undefined}
-                        role={appliedPeriod ? 'button' : undefined}
-                        tabIndex={appliedPeriod ? 0 : undefined}
-                        title={
-                          appliedPeriod
-                            ? 'View entries from general ledger, other transactions, and GSec'
-                            : undefined
-                        }
-                        onKeyDown={
-                          appliedPeriod
-                            ? (e) => {
-                                if (e.key === 'Enter' || e.key === ' ') {
-                                  e.preventDefault();
-                                  handleAccountDrillDown(a, e);
-                                }
-                              }
-                            : undefined
-                        }
+                  {filteredAccounts.map((a, idx) => {
+                    const netDisplay = formatNetBalance(a.net_balance);
+                    const canDrill = Boolean(appliedPeriod);
+                    return (
+                      <tr
+                        key={String(a?.account_code || a?.accountCode || `${a?.account_name || 'acc'}-${idx}`)}
+                        className={idx % 2 === 1 ? 'cas-grid__row--alt' : ''}
                       >
-                        {a.account_code}
-                      </td>
-                      <td
-                        className={`ctb-account-name ${appliedPeriod ? 'ctb-account-drilldown' : ''}`}
-                        onClick={appliedPeriod ? (e) => handleAccountDrillDown(a, e) : undefined}
-                        role={appliedPeriod ? 'button' : undefined}
-                        tabIndex={appliedPeriod ? 0 : undefined}
-                        title={
-                          appliedPeriod
-                            ? 'View entries from general ledger, other transactions, and GSec'
-                            : undefined
-                        }
-                        onKeyDown={
-                          appliedPeriod
-                            ? (e) => {
-                                if (e.key === 'Enter' || e.key === ' ') {
-                                  e.preventDefault();
-                                  handleAccountDrillDown(a, e);
-                                }
-                              }
-                            : undefined
-                        }
-                      >
-                        {a.account_name}
-                      </td>
-                      <td className="ctb-debit">
-                        {Number(a.total_debit) > 0 ? formatCurrency(a.total_debit) : '—'}
-                      </td>
-                      <td className="ctb-credit">
-                        {Number(a.total_credit) > 0 ? formatCurrency(a.total_credit) : '—'}
-                      </td>
-                      <td
-                        className={`ctb-net-balance${
-                          Number(a.net_balance) > 0.005
-                            ? ' positive'
-                            : Number(a.net_balance) < -0.005
-                              ? ' negative'
-                              : ''
-                        }`}
-                      >
-                        {Math.abs(Number(a.net_balance) || 0) < 0.005 ? '—' : formatCurrency(a.net_balance)}
-                      </td>
-                      <td className="ctb-balance-type-cell">{a.balance_type || '—'}</td>
-                    </tr>
-                  ))}
+                        <td className="cas-col-code">
+                          <span
+                            className={`cas-code${canDrill ? ' cas-drilldown' : ''}`}
+                            onClick={canDrill ? (e) => handleAccountDrillDown(a, e) : undefined}
+                            role={canDrill ? 'button' : undefined}
+                            tabIndex={canDrill ? 0 : undefined}
+                            title={
+                              canDrill
+                                ? 'View entries from general ledger, other transactions, and GSec'
+                                : undefined
+                            }
+                            onKeyDown={
+                              canDrill
+                                ? (e) => {
+                                    if (e.key === 'Enter' || e.key === ' ') {
+                                      e.preventDefault();
+                                      handleAccountDrillDown(a, e);
+                                    }
+                                  }
+                                : undefined
+                            }
+                          >
+                            {a.account_code}
+                          </span>
+                        </td>
+                        <td className="cas-col-name">
+                          <span
+                            className={canDrill ? 'cas-drilldown' : ''}
+                            onClick={canDrill ? (e) => handleAccountDrillDown(a, e) : undefined}
+                            role={canDrill ? 'button' : undefined}
+                            tabIndex={canDrill ? 0 : undefined}
+                            title={
+                              canDrill
+                                ? 'View entries from general ledger, other transactions, and GSec'
+                                : undefined
+                            }
+                            onKeyDown={
+                              canDrill
+                                ? (e) => {
+                                    if (e.key === 'Enter' || e.key === ' ') {
+                                      e.preventDefault();
+                                      handleAccountDrillDown(a, e);
+                                    }
+                                  }
+                                : undefined
+                            }
+                          >
+                            {a.account_name}
+                          </span>
+                        </td>
+                        <td className="cas-col-num">
+                          <span className="cas-amount cas-amount--debit">
+                            {Number(a.total_debit) > 0 ? formatCurrency(a.total_debit) : '—'}
+                          </span>
+                        </td>
+                        <td className="cas-col-num">
+                          <span className="cas-amount cas-amount--credit">
+                            {Number(a.total_credit) > 0 ? formatCurrency(a.total_credit) : '—'}
+                          </span>
+                        </td>
+                        <td className="cas-col-num">
+                          <span
+                            className={`cas-amount${
+                              netDisplay.side === 'DR'
+                                ? ' cas-amount--debit'
+                                : netDisplay.side === 'CR'
+                                  ? ' cas-amount--credit'
+                                  : ''
+                            }`}
+                          >
+                            {netDisplay.text}
+                          </span>
+                        </td>
+                        <td className="cas-col-drcr">{a.balance_type || '—'}</td>
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
             )}
           </div>
-        </div>
+        </section>
       </div>
 
       <AccountDetailsModal
@@ -678,6 +728,7 @@ const AccountSummaries = () => {
         accountData={accountModalData}
         loadError={accountModalError}
         detailSource="Combined (GL · Other · GSec · OB)"
+        softHeader
         onNavigateAccount={(code) =>
           handleAccountDrillDown({ account_code: code, account_name: '' })
         }

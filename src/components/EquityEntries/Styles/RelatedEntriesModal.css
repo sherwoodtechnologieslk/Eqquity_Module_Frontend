@@ -290,3 +290,233 @@
     grid-template-columns: 1fr;
   }
 }
+
+/* ── Institutional variant (Combined Trial Balance) ── */
+.related-entries-overlay--institutional {
+  padding: 16px;
+  align-items: center;
+  justify-content: center;
+  padding-top: 16px;
+}
+
+.related-entries-modal--institutional {
+  width: min(920px, 100%);
+  max-height: min(82vh, calc(100vh - 32px));
+  border-radius: 12px;
+  border: 1px solid #dbeafe;
+  box-shadow:
+    0 4px 16px rgba(37, 99, 235, 0.08),
+    0 24px 48px rgba(15, 23, 42, 0.12);
+}
+
+.related-entries-modal--institutional .related-entries-header {
+  padding: 16px 20px;
+  background: linear-gradient(180deg, #eff6ff 0%, #f8fbff 55%, #ffffff 100%);
+  border-bottom: 1px solid #dbeafe;
+}
+
+.related-entries-modal--institutional .related-entries-title {
+  font-size: 1rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: #1e3a8a;
+}
+
+.related-entries-modal--institutional .related-entries-subtitle {
+  font-size: 0.75rem;
+  color: #64748b;
+}
+
+.related-entries-modal--institutional .related-entries-close {
+  background: #ffffff;
+  border: 1px solid #bfdbfe;
+  color: #2563eb;
+  border-radius: 8px;
+}
+
+.related-entries-modal--institutional .related-entries-close:hover {
+  background: #eff6ff;
+  border-color: #93c5fd;
+  color: #1d4ed8;
+}
+
+.related-entries-modal--institutional .related-entries-body {
+  padding: 16px 20px;
+  background: #ffffff;
+}
+
+.related-entries-modal--institutional .related-entries-spinner {
+  border-color: #dbeafe;
+  border-top-color: #2563eb;
+}
+
+.rem-institutional-summary {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px 14px;
+  margin-bottom: 12px;
+  padding: 12px 14px;
+  border: 1px solid #dbeafe;
+  border-radius: 8px;
+  background: #fafbff;
+}
+
+.rem-institutional-summary__item {
+  display: flex;
+  flex-direction: row;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 4px;
+  line-height: 1.3;
+}
+
+.rem-institutional-summary__item span {
+  font-size: 0.625rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: #3b82f6;
+}
+
+.rem-institutional-summary__item strong {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: #0f172a;
+}
+
+.rem-institutional-summary__item strong.debit,
+.rem-institutional-summary__item strong.credit {
+  color: #0f172a;
+}
+
+.rem-institutional-summary__item strong.balanced {
+  color: #047857;
+}
+
+.rem-institutional-summary__item strong.unbalanced {
+  color: #b91c1c;
+}
+
+.rem-institutional-hint {
+  margin: 0 0 10px;
+  font-size: 0.8125rem;
+  line-height: 1.45;
+  color: #64748b;
+}
+
+.rem-institutional-table-wrap {
+  border: none;
+  border-radius: 0;
+  overflow: auto;
+}
+
+.rem-institutional-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.8125rem;
+}
+
+.rem-institutional-table th {
+  padding: 10px 12px;
+  text-align: left;
+  background: #eff6ff;
+  border-bottom: 1px solid #dbeafe;
+  color: #475569;
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.rem-institutional-table td {
+  padding: 10px 12px;
+  border-bottom: 1px solid #f1f5f9;
+  vertical-align: middle;
+  color: #0f172a;
+}
+
+.rem-institutional-table tbody tr:nth-child(even) td {
+  background: #fafbfc;
+}
+
+.rem-institutional-table tbody tr:hover td {
+  background: #f0f7ff;
+}
+
+.rem-institutional-table tbody tr.is-highlighted td {
+  background: #e8f2ff;
+}
+
+.rem-institutional-table td.debit,
+.rem-institutional-table td.credit {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  font-weight: 500;
+  color: #0f172a;
+}
+
+.rem-institutional-table td:first-child {
+  font-family: ui-monospace, 'Courier New', Courier, monospace;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: #0f172a;
+}
+
+.rem-institutional-account-link {
+  color: #2563eb;
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.rem-institutional-account-link:hover {
+  color: #1d4ed8;
+  text-decoration: underline;
+  text-decoration-color: rgba(29, 78, 216, 0.4);
+}
+
+.rem-institutional-account-link.is-current {
+  color: #0f172a;
+  text-decoration: none;
+  cursor: default;
+}
+
+.related-entries-modal--institutional .related-entries-footer {
+  padding: 12px 20px;
+  border-top: 1px solid #dbeafe;
+  background: #fafbff;
+}
+
+.rem-institutional-back-btn {
+  height: 32px;
+  padding: 0 14px;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  background: transparent;
+  color: #64748b;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 140ms ease, color 140ms ease;
+}
+
+.rem-institutional-back-btn:hover {
+  color: #1d4ed8;
+  background: #eff6ff;
+}
+
+@media (max-width: 768px) {
+  .related-entries-overlay--institutional {
+    padding: 8px;
+  }
+
+  .related-entries-modal--institutional {
+    max-height: calc(100vh - 16px);
+  }
+
+  .rem-institutional-summary {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+}
