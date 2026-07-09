@@ -336,7 +336,11 @@ const AccountDetailsModal = ({
                 </span>
                 <span className="account-modal-subtitle-actions">
                   <span
-                    className={`account-modal-header-link ${!accountData ? 'disabled' : ''}`}
+                    className={
+                      softHeader
+                        ? `adm-detail-export-btn adm-detail-export-btn--pdf${!accountData ? ' adm-detail-export-btn--disabled' : ''}`
+                        : `account-modal-header-link ${!accountData ? 'disabled' : ''}`
+                    }
                     role="button"
                     tabIndex={!accountData ? -1 : 0}
                     onClick={!accountData ? undefined : handleExportPdf}
@@ -354,9 +358,13 @@ const AccountDetailsModal = ({
                   >
                     Export PDF
                   </span>
-                  <span className="account-modal-header-sep">|</span>
+                  {!softHeader && <span className="account-modal-header-sep">|</span>}
                   <span
-                    className={`account-modal-header-link ${!accountData ? 'disabled' : ''}`}
+                    className={
+                      softHeader
+                        ? `adm-detail-export-btn adm-detail-export-btn--csv${!accountData ? ' adm-detail-export-btn--disabled' : ''}`
+                        : `account-modal-header-link ${!accountData ? 'disabled' : ''}`
+                    }
                     role="button"
                     tabIndex={!accountData ? -1 : 0}
                     onClick={!accountData ? undefined : handleExportCsv}
@@ -594,6 +602,7 @@ const AccountDetailsModal = ({
         error={relatedError}
         currentAccountCode={accountData?.accountCode || accountCode}
         onAccountClick={onNavigateAccount ? handleRelatedAccountClick : undefined}
+        institutional={softHeader}
       />
     </div>,
     document.body
