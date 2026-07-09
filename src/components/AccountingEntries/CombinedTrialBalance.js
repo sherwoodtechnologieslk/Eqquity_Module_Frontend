@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { trialBalanceAPI, gsecEntriesAPI } from '../../services/api';
@@ -75,6 +76,77 @@ const resolveTrialBalanceDates = (f) => {
   return { startDate: s, endDate: e };
 };
 
+const SOURCE_FILTER_LABELS = {
+  all: 'All Ledgers',
+  equity: 'Equity Activity',
+  gsec: 'GSec Activity',
+  opening: 'Opening Balance',
+};
+
+const IconSearch = () => (
+  <svg className="ctb-icon" viewBox="0 0 20 20" fill="none" stroke="currentColor" aria-hidden="true">
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.75" d="M9 3.5a5.5 5.5 0 100 11 5.5 5.5 0 000-11z" />
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.75" d="M14 14l3.5 3.5" />
+  </svg>
+);
+
+const IconInfo = () => (
+  <svg className="ctb-icon" viewBox="0 0 20 20" fill="none" stroke="currentColor" aria-hidden="true">
+    <circle cx="10" cy="10" r="7.5" strokeWidth="1.5" />
+    <path strokeLinecap="round" strokeWidth="1.5" d="M10 9v4M10 7h.01" />
+  </svg>
+);
+
+const IconCheck = () => (
+  <svg className="ctb-status-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true">
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
+  </svg>
+);
+
+const IconAlert = () => (
+  <svg className="ctb-status-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true">
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v4M12 17h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" />
+  </svg>
+);
+
+const IconPdf = () => (
+  <svg className="ctb-icon" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+    <path fillRule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm8 0v3a1 1 0 01-1 1H9a1 1 0 01-1-1V4h4z" clipRule="evenodd" />
+  </svg>
+);
+
+const IconExcel = () => (
+  <svg className="ctb-icon" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+    <path fillRule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm4 3v2h2V7H8zm2 4H8v2h2v-2zm4-4h-2v2h2V7zm-2 4h2v2h-2v-2z" clipRule="evenodd" />
+  </svg>
+);
+
+const IconSpinner = () => (
+  <svg className="ctb-spinner" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+    <circle cx="12" cy="12" r="9" stroke="currentColor" strokeWidth="2.5" opacity="0.2" />
+    <path d="M21 12a9 9 0 00-9-9" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" />
+  </svg>
+);
+
+const IconExpand = () => (
+  <svg className="ctb-icon" viewBox="0 0 20 20" fill="none" stroke="currentColor" aria-hidden="true">
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.75" d="M3.5 7.5V3.5H7.5M12.5 3.5H16.5V7.5M16.5 12.5V16.5H12.5M7.5 16.5H3.5V12.5" />
+  </svg>
+);
+
+const IconCollapse = () => (
+  <svg className="ctb-icon" viewBox="0 0 20 20" fill="none" stroke="currentColor" aria-hidden="true">
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.75" d="M7.5 3.5V7.5H3.5M16.5 7.5H12.5V3.5M12.5 16.5V12.5H16.5M3.5 12.5H7.5V16.5" />
+  </svg>
+);
+
+const getPeriodLabel = (filters, formatDate) => {
+  if (!filters.startDate && !filters.endDate) return 'All dates';
+  return `${filters.startDate ? formatDate(filters.startDate) : 'Earliest'} – ${
+    filters.endDate ? formatDate(filters.endDate) : 'Latest'
+  }`;
+};
+
 const CombinedTrialBalance = () => {
   const [equityTB, setEquityTB] = useState(null);
   const [gsecBS, setGsecBS] = useState(null);
@@ -84,8 +156,11 @@ const CombinedTrialBalance = () => {
   const hasLoadedOnceRef = useRef(false);
 
   const [filters, setFilters] = useState({ startDate: '', endDate: '' });
+  const [appliedFilters, setAppliedFilters] = useState({ startDate: '', endDate: '' });
   const [sourceFilter, setSourceFilter] = useState('all'); // all | equity | gsec
   const [searchTerm, setSearchTerm] = useState('');
+  const [showSourcesColumn, setShowSourcesColumn] = useState(true);
+  const [reportExpanded, setReportExpanded] = useState(false);
 
   const [accountModalOpen, setAccountModalOpen] = useState(false);
   const [accountModalCode, setAccountModalCode] = useState('');
@@ -93,8 +168,11 @@ const CombinedTrialBalance = () => {
   const [accountModalError, setAccountModalError] = useState('');
   const [accountModalSourceLabel, setAccountModalSourceLabel] = useState('');
 
-  const filtersRef = useRef(filters);
-  filtersRef.current = filters;
+  const appliedFiltersRef = useRef(appliedFilters);
+  appliedFiltersRef.current = appliedFilters;
+
+  const filtersArePending =
+    filters.startDate !== appliedFilters.startDate || filters.endDate !== appliedFilters.endDate;
 
   const handleCloseAccountModal = () => {
     setAccountModalOpen(false);
@@ -116,8 +194,8 @@ const CombinedTrialBalance = () => {
     setAccountModalError('');
 
     try {
-      const resolved = resolveTrialBalanceDates(filters);
-      const queryFilters = { ...filters, startDate: resolved.startDate, endDate: resolved.endDate };
+      const resolved = resolveTrialBalanceDates(appliedFiltersRef.current);
+      const queryFilters = { ...appliedFiltersRef.current, startDate: resolved.startDate, endDate: resolved.endDate };
 
       const [equityRes, gsecRes] = await Promise.all([
         trialBalanceAPI
@@ -175,8 +253,8 @@ const CombinedTrialBalance = () => {
           acc.account_name ||
           '',
         period: {
-          startDate: filters.startDate || '',
-          endDate: filters.endDate || '',
+          startDate: appliedFiltersRef.current.startDate || '',
+          endDate: appliedFiltersRef.current.endDate || '',
           portfolio:
             equityRes?.data?.period?.portfolio ||
             (sources.length > 0 ? sources.join(' + ') : 'All Portfolios'),
@@ -197,9 +275,16 @@ const CombinedTrialBalance = () => {
 
   const fetchData = async (options = {}) => {
     const { showLoader = true, filtersOverride } = options;
-    const active = filtersOverride ?? filtersRef.current;
+    const active = filtersOverride ?? appliedFiltersRef.current;
     const resolved = resolveTrialBalanceDates(active);
     const queryFilters = { ...active, startDate: resolved.startDate, endDate: resolved.endDate };
+
+    if (filtersOverride) {
+      setAppliedFilters({
+        startDate: filtersOverride.startDate || '',
+        endDate: filtersOverride.endDate || '',
+      });
+    }
 
     try {
       if (showLoader || !hasLoadedOnceRef.current) {
@@ -235,8 +320,9 @@ const CombinedTrialBalance = () => {
 
   useEffect(() => {
     fetchData({ showLoader: true });
+    // Initial load only — date changes apply when the user clicks Apply Filters.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [filters.startDate, filters.endDate]);
+  }, []);
 
   // Keep screen fresh when transactions update elsewhere (tab often stays mounted).
   useEffect(() => {
@@ -258,6 +344,25 @@ const CombinedTrialBalance = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  useEffect(() => {
+    if (!reportExpanded) return undefined;
+
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+
+    const onKeyDown = (e) => {
+      if (e.key === 'Escape') {
+        setReportExpanded(false);
+      }
+    };
+    window.addEventListener('keydown', onKeyDown);
+
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      window.removeEventListener('keydown', onKeyDown);
+    };
+  }, [reportExpanded]);
+
   const handleDateChange = (field, value) => {
     const raw = value != null ? String(value).trim() : '';
     setFilters((prev) => ({
@@ -267,7 +372,13 @@ const CombinedTrialBalance = () => {
   };
 
   const handleApply = () => {
-    fetchData({ showLoader: true });
+    fetchData({
+      showLoader: true,
+      filtersOverride: {
+        startDate: filters.startDate || '',
+        endDate: filters.endDate || '',
+      },
+    });
   };
 
   const handleExportPdf = () => {
@@ -281,11 +392,11 @@ const CombinedTrialBalance = () => {
       doc.text('Combined Trial Balance', 40, 34);
 
       const periodLabel =
-        !filters.startDate && !filters.endDate
+        !appliedFilters.startDate && !appliedFilters.endDate
           ? 'Period: All dates'
           : `Period: ${
-              filters.startDate ? formatDate(filters.startDate) : 'Earliest'
-            } - ${filters.endDate ? formatDate(filters.endDate) : 'Latest'}`;
+              appliedFilters.startDate ? formatDate(appliedFilters.startDate) : 'Earliest'
+            } - ${appliedFilters.endDate ? formatDate(appliedFilters.endDate) : 'Latest'}`;
 
       doc.setFontSize(9);
       doc.setTextColor(71, 85, 105);
@@ -306,9 +417,9 @@ const CombinedTrialBalance = () => {
         acc.account_code,
         acc.account_name,
         acc.account_type,
-        acc.total_debit > 0 ? formatCurrency(acc.total_debit) : '-',
+        acc.total_debit > 0 ?         formatCurrency(acc.total_debit) : '-',
         acc.total_credit > 0 ? formatCurrency(acc.total_credit) : '-',
-        formatCurrency(acc.net_balance),
+        formatNetBalance(acc.net_balance).text,
         acc.balance_type
       ]);
 
@@ -318,7 +429,7 @@ const CombinedTrialBalance = () => {
         '',
         formatCurrency(totals.debit),
         formatCurrency(totals.credit),
-        formatCurrency(netDifference),
+        isBalanced ? formatCurrency(0) : netDifferenceDisplay.text,
         isBalanced ? 'BALANCED' : 'OUT OF BALANCE'
       ];
 
@@ -367,7 +478,7 @@ const CombinedTrialBalance = () => {
     setError('');
 
     try {
-      const resolved = resolveTrialBalanceDates(filters);
+      const resolved = resolveTrialBalanceDates(appliedFilters);
       const blob = await trialBalanceAPI.exportCombinedTrialBalanceExcel({
         startDate: resolved.startDate,
         endDate: resolved.endDate,
@@ -394,9 +505,12 @@ const CombinedTrialBalance = () => {
   };
 
   const clearFilters = () => {
-    setFilters({ startDate: '', endDate: '' });
+    const cleared = { startDate: '', endDate: '' };
+    setFilters(cleared);
+    setAppliedFilters(cleared);
     setSourceFilter('all');
     setSearchTerm('');
+    fetchData({ showLoader: true, filtersOverride: cleared });
   };
 
   const formatCurrency = (amount) => {
@@ -406,6 +520,16 @@ const CombinedTrialBalance = () => {
       currency: 'LKR',
       minimumFractionDigits: 2,
     }).format(n);
+  };
+
+  /** Absolute balance — no signed/minus display; side used for coloring only. */
+  const formatNetBalance = (net) => {
+    const n = Number(net) || 0;
+    if (Math.abs(n) < 0.005) {
+      return { text: '—', side: null };
+    }
+    const side = n > 0 ? 'DR' : 'CR';
+    return { text: formatCurrency(Math.abs(n)), side };
   };
 
   const formatDate = (dateString) => {
@@ -561,11 +685,147 @@ const CombinedTrialBalance = () => {
 
   const netDifference = totals.debit - totals.credit;
   const isBalanced = Math.abs(netDifference) < 0.01;
+  const periodLabel = getPeriodLabel(appliedFilters, formatDate);
+  const netDifferenceDisplay = formatNetBalance(netDifference);
+
+  const renderTrialBalanceTable = () => {
+    if (filteredAccounts.length === 0) {
+      return (
+        <div className="ctb-empty-state">
+          <p className="ctb-empty-state__title">No accounts found</p>
+          <p className="ctb-empty-state__text">Adjust your date range, ledger filter, or search terms.</p>
+        </div>
+      );
+    }
+
+    return (
+      <table className="ctb-grid">
+        <thead>
+          <tr>
+            <th className="ctb-col-code">Account Code</th>
+            <th className="ctb-col-name">Account Name</th>
+            <th className="ctb-col-type">Type / Category</th>
+            <th className="ctb-col-num">Debit</th>
+            <th className="ctb-col-num">Credit</th>
+            <th className="ctb-col-num">Net</th>
+            <th className="ctb-col-drcr">DR / CR</th>
+            {showSourcesColumn && <th className="ctb-col-sources">Sources</th>}
+          </tr>
+        </thead>
+        <tbody>
+          {filteredAccounts.map((acc, idx) => {
+            const netDisplay = formatNetBalance(acc.net_balance);
+            return (
+              <tr key={acc.id} className={idx % 2 === 1 ? 'ctb-grid__row--alt' : ''}>
+                <td
+                  className="ctb-col-code ctb-drilldown"
+                  onClick={(e) => handleAccountDrillDown(acc, e)}
+                  role="button"
+                  tabIndex={0}
+                  title="View transactions and balances for this account"
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault();
+                      handleAccountDrillDown(acc, e);
+                    }
+                  }}
+                >
+                  <span className="ctb-code">{acc.account_code}</span>
+                </td>
+                <td
+                  className="ctb-col-name ctb-drilldown"
+                  onClick={(e) => handleAccountDrillDown(acc, e)}
+                  role="button"
+                  tabIndex={0}
+                  title="View transactions and balances for this account"
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault();
+                      handleAccountDrillDown(acc, e);
+                    }
+                  }}
+                >
+                  {acc.account_name}
+                </td>
+                <td className="ctb-col-type">{acc.account_type}</td>
+                <td className="ctb-col-num">
+                  <span className="ctb-amount">
+                    {acc.total_debit > 0 ? formatCurrency(acc.total_debit) : '—'}
+                  </span>
+                </td>
+                <td className="ctb-col-num">
+                  <span className="ctb-amount">
+                    {acc.total_credit > 0 ? formatCurrency(acc.total_credit) : '—'}
+                  </span>
+                </td>
+                <td className="ctb-col-num">
+                  <span
+                    className={`ctb-amount${
+                      netDisplay.side === 'DR'
+                        ? ' ctb-amount--debit'
+                        : netDisplay.side === 'CR'
+                          ? ' ctb-amount--credit'
+                          : ''
+                    }`}
+                  >
+                    {netDisplay.text}
+                  </span>
+                </td>
+                <td className="ctb-col-drcr">{acc.balance_type || '—'}</td>
+                {showSourcesColumn && (
+                  <td className="ctb-col-sources">
+                    <div className="ctb-source-badges">
+                      {getDisplaySources(acc.sources).map((src) => (
+                        <span key={src} className="ctb-source-badge" data-source={src}>
+                          {src}
+                        </span>
+                      ))}
+                    </div>
+                  </td>
+                )}
+              </tr>
+            );
+          })}
+        </tbody>
+        <tfoot>
+          <tr className="ctb-grid__totals">
+            <td colSpan={3} className="ctb-totals-label">Totals</td>
+            <td className="ctb-col-num">
+              <span className="ctb-amount ctb-amount--emphasis">{formatCurrency(totals.debit)}</span>
+            </td>
+            <td className="ctb-col-num">
+              <span className="ctb-amount ctb-amount--emphasis">{formatCurrency(totals.credit)}</span>
+            </td>
+            <td className="ctb-col-num">
+              <span
+                className={`ctb-amount ctb-amount--emphasis${
+                  isBalanced
+                    ? ''
+                    : netDifferenceDisplay.side === 'DR'
+                      ? ' ctb-amount--debit'
+                      : ' ctb-amount--credit'
+                }`}
+              >
+                {isBalanced ? formatCurrency(0) : netDifferenceDisplay.text}
+              </span>
+            </td>
+            <td className={`ctb-col-drcr ctb-totals-status${isBalanced ? ' ctb-totals-status--ok' : ' ctb-totals-status--warn'}`}>
+              {isBalanced ? 'Balanced' : 'Out of Balance'}
+            </td>
+            {showSourcesColumn && <td className="ctb-col-sources" />}
+          </tr>
+        </tfoot>
+      </table>
+    );
+  };
 
   if (loading) {
     return (
       <div className="ctb-page-container">
-        <div className="ctb-loading">Loading Combined Trial Balance...</div>
+        <div className="ctb-loading-state">
+          <IconSpinner />
+          <p>Loading Combined Trial Balance…</p>
+        </div>
       </div>
     );
   }
@@ -576,7 +836,7 @@ const CombinedTrialBalance = () => {
         <div className="ctb-error">
           <div className="ctb-error-title">Error loading Combined Trial Balance</div>
           <div className="ctb-error-message">{error}</div>
-          <button className="ctb-retry-btn" onClick={fetchData}>
+          <button type="button" className="ctb-retry-btn" onClick={() => fetchData()}>
             Retry
           </button>
         </div>
@@ -587,234 +847,285 @@ const CombinedTrialBalance = () => {
   return (
     <div className="ctb-page-container">
       <div className="ctb-content-wrapper">
-        {/* Header */}
-        <div className="ctb-header-section">
-          <div className="ctb-header-text-group">
+        <header className="ctb-masthead">
+          <div className="ctb-masthead__primary">
+            <p className="ctb-eyebrow">Financial Reporting</p>
             <h1 className="ctb-main-title">Combined Trial Balance</h1>
             <p className="ctb-subtitle">
-              One unified row per account across the Equity and GSec ledgers. Click an account to
-              see every underlying entry, tagged with the ledger it came from.
+              Unified account balances across Equity and GSec ledgers with drill-down to underlying entries.
             </p>
           </div>
-          <div className="ctb-header-meta">
-            <div className="ctb-period">
-              Period:&nbsp;
-              <span>
-                {!filters.startDate && !filters.endDate
-                  ? 'All dates'
-                  : `${filters.startDate ? formatDate(filters.startDate) : 'Earliest'} - ${
-                      filters.endDate ? formatDate(filters.endDate) : 'Latest'
-                    }`}
+          <div className="ctb-masthead__meta">
+            <div className="ctb-meta-chip">
+              <span className="ctb-meta-chip__label">Reporting Period</span>
+              <span className="ctb-meta-chip__value">{periodLabel}</span>
+            </div>
+            <div className="ctb-meta-chip">
+              <span className="ctb-meta-chip__label">Ledger Scope</span>
+              <span className="ctb-meta-chip__value">{SOURCE_FILTER_LABELS[sourceFilter] || 'All Ledgers'}</span>
+            </div>
+            <div className="ctb-meta-chip">
+              <span className="ctb-meta-chip__label">Accounts</span>
+              <span className="ctb-meta-chip__value">{filteredAccounts.length}</span>
+            </div>
+          </div>
+        </header>
+
+        <section className="ctb-toolbar" aria-label="Report filters">
+          <div className="ctb-toolbar__row">
+            <div className="ctb-field">
+              <label className="ctb-field__label" htmlFor="ctb-start-date">Start Date</label>
+              <input
+                id="ctb-start-date"
+                type="date"
+                lang="en-US"
+                className="ctb-field__input"
+                value={filters.startDate}
+                onChange={(e) => handleDateChange('startDate', e.target.value)}
+              />
+            </div>
+            <div className="ctb-field">
+              <label className="ctb-field__label" htmlFor="ctb-end-date">End Date</label>
+              <input
+                id="ctb-end-date"
+                type="date"
+                lang="en-US"
+                className="ctb-field__input"
+                value={filters.endDate}
+                onChange={(e) => handleDateChange('endDate', e.target.value)}
+              />
+            </div>
+            <div className="ctb-field">
+              <label className="ctb-field__label" htmlFor="ctb-source-filter">Activity In</label>
+              <select
+                id="ctb-source-filter"
+                className="ctb-field__select"
+                value={sourceFilter}
+                onChange={(e) => setSourceFilter(e.target.value)}
+              >
+                <option value="all">All Ledgers</option>
+                <option value="equity">With Equity Activity</option>
+                <option value="gsec">With GSec Activity</option>
+                <option value="opening">With Opening Balance</option>
+              </select>
+            </div>
+            <div className="ctb-field ctb-field--search">
+              <label className="ctb-field__label" htmlFor="ctb-search">Search</label>
+              <div className="ctb-search-wrap">
+                <span className="ctb-search-icon" aria-hidden="true"><IconSearch /></span>
+                <input
+                  id="ctb-search"
+                  type="search"
+                  className="ctb-field__input"
+                  placeholder="Account code, name, type, or ledger…"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                />
+              </div>
+            </div>
+            <div className="ctb-toolbar__actions">
+              <button
+                type="button"
+                className={`ctb-btn ctb-btn--primary${filtersArePending ? ' ctb-btn--primary-pending' : ''}`}
+                onClick={handleApply}
+              >
+                Apply Filters
+              </button>
+              <button type="button" className="ctb-btn ctb-btn--ghost" onClick={clearFilters}>
+                Clear
+              </button>
+            </div>
+          </div>
+          {filtersArePending && (
+            <p className="ctb-toolbar__hint" role="status">
+              Date range updated. Click <strong>Apply Filters</strong> to refresh the report.
+            </p>
+          )}
+        </section>
+
+        <div
+          className={`ctb-status-banner ${isBalanced ? 'ctb-status-banner--balanced' : 'ctb-status-banner--unbalanced'}`}
+          role="status"
+        >
+          <div className="ctb-status-banner__lead">
+            <span
+              className={`ctb-status-banner__indicator ${isBalanced ? 'ctb-status-banner__indicator--ok' : 'ctb-status-banner__indicator--warn'}`}
+              aria-hidden="true"
+            >
+              {isBalanced ? <IconCheck /> : <IconAlert />}
+            </span>
+            <div>
+              <p className="ctb-status-banner__title">
+                {isBalanced ? 'Trial Balance Reconciled' : 'Trial Balance Out of Balance'}
+              </p>
+              <p className="ctb-status-banner__text">
+                {isBalanced
+                  ? 'Total debits and credits are in agreement for the selected period and filters.'
+                  : 'Debits and credits do not reconcile. Review underlying entries before closing the period.'}
+              </p>
+            </div>
+          </div>
+          <div className="ctb-status-banner__metrics">
+            <div className="ctb-metric">
+              <span className="ctb-metric__label">Total Debits</span>
+              <span className="ctb-metric__value ctb-amount">{formatCurrency(totals.debit)}</span>
+            </div>
+            <div className="ctb-metric">
+              <span className="ctb-metric__label">Total Credits</span>
+              <span className="ctb-metric__value ctb-amount">{formatCurrency(totals.credit)}</span>
+            </div>
+            <div className="ctb-metric">
+              <span className="ctb-metric__label">Net Balance</span>
+              <span
+                className={`ctb-metric__value ctb-amount${
+                  isBalanced
+                    ? ''
+                    : netDifferenceDisplay.side === 'DR'
+                      ? ' ctb-amount--debit'
+                      : ' ctb-amount--credit'
+                }`}
+              >
+                {isBalanced ? formatCurrency(0) : netDifferenceDisplay.text}
+              </span>
+            </div>
+            <div className="ctb-metric">
+              <span className="ctb-metric__label">Status</span>
+              <span className={`ctb-metric__value ${isBalanced ? 'ctb-status-pill--ok' : 'ctb-status-pill--warn'}`}>
+                {isBalanced ? 'Balanced' : 'Out of Balance'}
               </span>
             </div>
           </div>
         </div>
 
-        {/* Filters */}
-        <div className="ctb-filters-card">
-          <div className="ctb-filters-content">
-            <div className="ctb-filters-grid">
-              <div className="ctb-filter-group">
-                <label className="ctb-filter-label">Start Date</label>
-                <input
-                  type="date"
-                  lang="en-US"
-                  className="ctb-filter-input"
-                  value={filters.startDate}
-                  onChange={(e) => handleDateChange('startDate', e.target.value)}
-                />
-              </div>
-              <div className="ctb-filter-group">
-                <label className="ctb-filter-label">End Date</label>
-                <input
-                  type="date"
-                  lang="en-US"
-                  className="ctb-filter-input"
-                  value={filters.endDate}
-                  onChange={(e) => handleDateChange('endDate', e.target.value)}
-                />
-              </div>
-              <div className="ctb-filter-group">
-                <label className="ctb-filter-label">Activity In</label>
-                <select
-                  className="ctb-filter-select"
-                  value={sourceFilter}
-                  onChange={(e) => setSourceFilter(e.target.value)}
-                >
-                  <option value="all">All Ledgers</option>
-                  <option value="equity">With Equity Activity</option>
-                  <option value="gsec">With GSec Activity</option>
-                  <option value="opening">With Opening Balance</option>
-                </select>
-              </div>
-              <div className="ctb-filter-group">
-                <label className="ctb-filter-label">Search</label>
-                <input
-                  type="text"
-                  className="ctb-filter-input"
-                  placeholder="Account code, name, type, or ledger..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                />
-              </div>
-              <div className="ctb-filter-group ctb-filter-actions">
-                <button className="ctb-apply-btn" onClick={handleApply}>
-                  Apply
-                </button>
-                <button className="ctb-clear-btn" onClick={clearFilters}>
-                  Clear
-                </button>
-              </div>
+        <section className="ctb-report" aria-label="Combined Trial Balance report">
+          <div className="ctb-report__header">
+            <div className="ctb-report__heading">
+              <h2 className="ctb-report__title">Combined Trial Balance</h2>
+              <p className="ctb-report__meta">
+                {periodLabel} · {SOURCE_FILTER_LABELS[sourceFilter] || 'All Ledgers'} · {filteredAccounts.length} accounts
+              </p>
             </div>
-          </div>
-        </div>
-
-        {/* Balance status */}
-        <div className={`ctb-balance-status ${isBalanced ? 'ctb-balanced' : 'ctb-unbalanced'}`}>
-          <span className="ctb-status-text">
-            {isBalanced ? 'BALANCED' : 'OUT OF BALANCE'}
-          </span>
-          <span className="ctb-status-details">
-            Total Debits: {formatCurrency(totals.debit)} | Total Credits:{' '}
-            {formatCurrency(totals.credit)} | Net (DR − CR):{' '}
-            {formatCurrency(netDifference)} | Accounts: {filteredAccounts.length}
-          </span>
-        </div>
-
-        {/* Table */}
-        <div className="ctb-table-card">
-          <div className="ctb-card-header ctb-table-header">
-            <h2 className="ctb-card-title">Combined Trial Balance</h2>
-            <div className="ctb-export-actions">
-              <button className="ctb-export-btn" onClick={handleExportPdf} disabled={exporting}>
-                {exporting ? 'Exporting…' : 'Export to PDF'}
+            <div className="ctb-report__actions">
+              <button
+                type="button"
+                className={`ctb-btn ctb-btn--sources${showSourcesColumn ? ' ctb-btn--sources-active' : ''}`}
+                onClick={() => setShowSourcesColumn((prev) => !prev)}
+                aria-pressed={showSourcesColumn}
+                title={showSourcesColumn ? 'Hide Sources column' : 'Show Sources column'}
+              >
+                Sources
               </button>
-              <button className="ctb-export-btn" onClick={handleExportExcel} disabled={exporting}>
-                {exporting ? 'Exporting…' : 'Export to Excel'}
+              <button
+                type="button"
+                className="ctb-btn ctb-btn--export"
+                onClick={() => setReportExpanded(true)}
+                title="Expand trial balance"
+              >
+                <IconExpand />
+                <span>Expand</span>
+              </button>
+              <button
+                type="button"
+                className="ctb-btn ctb-btn--export"
+                onClick={handleExportPdf}
+                disabled={exporting}
+              >
+                {exporting ? <IconSpinner /> : <IconPdf />}
+                <span>{exporting ? 'Exporting…' : 'Export PDF'}</span>
+              </button>
+              <button
+                type="button"
+                className="ctb-btn ctb-btn--export"
+                onClick={handleExportExcel}
+                disabled={exporting}
+              >
+                {exporting ? <IconSpinner /> : <IconExcel />}
+                <span>{exporting ? 'Exporting…' : 'Export Excel'}</span>
               </button>
             </div>
           </div>
-          <p className="ctb-table-hint">
-            Click an <strong>account code</strong> or <strong>account name</strong> to view every
-            entry for that account (Equity GL, other transactions, opening balances and GSec
-            entries are interleaved and tagged with their source).
-          </p>
-          <div className="ctb-table-container">
-            {filteredAccounts.length === 0 ? (
-              <div className="ctb-no-data">
-                No accounts found for the selected filters.
-              </div>
-            ) : (
-              <table className="ctb-data-table">
-                <thead>
-                  <tr>
-                    <th>Account Code</th>
-                    <th>Account Name</th>
-                    <th>Type / Category</th>
-                    <th>Debit</th>
-                    <th>Credit</th>
-                    <th>Net</th>
-                    <th>DR / CR</th>
-                    <th className="ctb-sources-header">Sources</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {filteredAccounts.map((acc) => (
-                    <tr key={acc.id} className="ctb-row">
-                      <td
-                        className="ctb-account-code ctb-account-drilldown"
-                        onClick={(e) => handleAccountDrillDown(acc, e)}
-                        role="button"
-                        tabIndex={0}
-                        title="View transactions and balances for this account"
-                        onKeyDown={(e) => {
-                          if (e.key === 'Enter' || e.key === ' ') {
-                            e.preventDefault();
-                            handleAccountDrillDown(acc, e);
-                          }
-                        }}
-                      >
-                        {acc.account_code}
-                      </td>
-                      <td
-                        className="ctb-account-name ctb-account-drilldown"
-                        onClick={(e) => handleAccountDrillDown(acc, e)}
-                        role="button"
-                        tabIndex={0}
-                        title="View transactions and balances for this account"
-                        onKeyDown={(e) => {
-                          if (e.key === 'Enter' || e.key === ' ') {
-                            e.preventDefault();
-                            handleAccountDrillDown(acc, e);
-                          }
-                        }}
-                      >
-                        {acc.account_name}
-                      </td>
-                      <td className="ctb-account-type">{acc.account_type}</td>
-                      <td className="ctb-debit">
-                        {acc.total_debit > 0 ? formatCurrency(acc.total_debit) : '-'}
-                      </td>
-                      <td className="ctb-credit">
-                        {acc.total_credit > 0 ? formatCurrency(acc.total_credit) : '-'}
-                      </td>
-                      <td
-                        className={`ctb-net-balance${
-                          acc.net_balance > 0.005
-                            ? ' positive'
-                            : acc.net_balance < -0.005
-                              ? ' negative'
-                              : ''
-                        }`}
-                      >
-                        {Math.abs(acc.net_balance) < 0.005
-                          ? '—'
-                          : formatCurrency(acc.net_balance)}
-                      </td>
-                      <td className="ctb-balance-type-cell">
-                        {acc.balance_type || '—'}
-                      </td>
-                      <td className="ctb-sources-cell">
-                        <div className="ctb-sources-pills">
-                          {getDisplaySources(acc.sources).map((src) => (
-                            <span key={src} className="ctb-source" data-source={src}>
-                              {src}
-                            </span>
-                          ))}
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-                <tfoot>
-                  <tr className="ctb-totals-row">
-                    <td colSpan={3} className="ctb-totals-label">
-                      Totals
-                    </td>
-                    <td className="ctb-debit">{formatCurrency(totals.debit)}</td>
-                    <td className="ctb-credit">{formatCurrency(totals.credit)}</td>
-                    <td
-                      className={`ctb-net-balance${
-                        netDifference > 0.005
-                          ? ' positive'
-                          : netDifference < -0.005
-                            ? ' negative'
-                            : ''
-                      }`}
-                    >
-                      {formatCurrency(netDifference)}
-                    </td>
-                    <td className="ctb-balance-type-cell">
-                      {isBalanced ? 'BALANCED' : 'OUT OF BALANCE'}
-                    </td>
-                    <td className="ctb-sources-cell" />
-                  </tr>
-                </tfoot>
-              </table>
-            )}
+
+          <div className="ctb-info-banner" role="note">
+            <span className="ctb-info-banner__icon" aria-hidden="true"><IconInfo /></span>
+            <p className="ctb-info-banner__text">
+              Click an <strong>account code</strong> or <strong>account name</strong> to view every entry for that
+              account. Equity GL, other transactions, opening balances, and GSec entries are interleaved and tagged
+              with their source ledger.
+            </p>
           </div>
-        </div>
+
+          <div className="ctb-table-wrap">
+            {renderTrialBalanceTable()}
+          </div>
+        </section>
       </div>
+
+      {reportExpanded &&
+        createPortal(
+          <div
+            className="ctb-expand-overlay"
+            role="dialog"
+            aria-modal="true"
+            aria-label="Expanded Combined Trial Balance"
+            onClick={() => setReportExpanded(false)}
+          >
+            <div
+              className="ctb-expand-modal"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="ctb-expand-modal__header">
+                <div className="ctb-expand-modal__heading">
+                  <h2 className="ctb-expand-modal__title">Combined Trial Balance</h2>
+                  <p className="ctb-expand-modal__meta">
+                    {periodLabel} · {SOURCE_FILTER_LABELS[sourceFilter] || 'All Ledgers'} · {filteredAccounts.length} accounts
+                  </p>
+                </div>
+                <div className="ctb-expand-modal__actions">
+                  <button
+                    type="button"
+                    className={`ctb-btn ctb-btn--sources${showSourcesColumn ? ' ctb-btn--sources-active' : ''}`}
+                    onClick={() => setShowSourcesColumn((prev) => !prev)}
+                    aria-pressed={showSourcesColumn}
+                    title={showSourcesColumn ? 'Hide Sources column' : 'Show Sources column'}
+                  >
+                    Sources
+                  </button>
+                  <button
+                    type="button"
+                    className="ctb-btn ctb-btn--export"
+                    onClick={handleExportPdf}
+                    disabled={exporting}
+                  >
+                    {exporting ? <IconSpinner /> : <IconPdf />}
+                    <span>{exporting ? 'Exporting…' : 'Export PDF'}</span>
+                  </button>
+                  <button
+                    type="button"
+                    className="ctb-btn ctb-btn--export"
+                    onClick={handleExportExcel}
+                    disabled={exporting}
+                  >
+                    {exporting ? <IconSpinner /> : <IconExcel />}
+                    <span>{exporting ? 'Exporting…' : 'Export Excel'}</span>
+                  </button>
+                  <button
+                    type="button"
+                    className="ctb-btn ctb-btn--export"
+                    onClick={() => setReportExpanded(false)}
+                    title="Close expanded view"
+                  >
+                    <IconCollapse />
+                    <span>Close</span>
+                  </button>
+                </div>
+              </div>
+              <div className="ctb-expand-modal__body">
+                {renderTrialBalanceTable()}
+              </div>
+            </div>
+          </div>,
+          document.body
+        )}
 
       <AccountDetailsModal
         isOpen={accountModalOpen}

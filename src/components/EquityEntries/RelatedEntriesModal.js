@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { createPortal } from 'react-dom';
 import './Styles/RelatedEntriesModal.css';
 
 const formatCurrency = (amount) =>
@@ -61,7 +62,7 @@ const RelatedEntriesModal = ({
     return false;
   };
 
-  return (
+  return createPortal(
     <div
       className={`related-entries-overlay ${isVisible ? 'visible' : ''}`}
       onClick={handleClose}
@@ -176,7 +177,8 @@ const RelatedEntriesModal = ({
           </button>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 };
 
