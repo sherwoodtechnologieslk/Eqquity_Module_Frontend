@@ -30,7 +30,8 @@ const RelatedEntriesModal = ({
   loading,
   error,
   currentAccountCode,
-  onAccountClick
+  onAccountClick,
+  institutional = false,
 }) => {
   const [isVisible, setIsVisible] = useState(false);
 
@@ -64,11 +65,15 @@ const RelatedEntriesModal = ({
 
   return createPortal(
     <div
-      className={`related-entries-overlay ${isVisible ? 'visible' : ''}`}
+      className={`related-entries-overlay${
+        institutional ? ' related-entries-overlay--institutional' : ''
+      } ${isVisible ? 'visible' : ''}`}
       onClick={handleClose}
     >
       <div
-        className={`related-entries-modal ${isVisible ? 'visible' : ''}`}
+        className={`related-entries-modal${
+          institutional ? ' related-entries-modal--institutional' : ''
+        } ${isVisible ? 'visible' : ''}`}
         onClick={(e) => e.stopPropagation()}
       >
         <div className="related-entries-header">
@@ -99,16 +104,40 @@ const RelatedEntriesModal = ({
 
           {!loading && !error && groupData && (
             <>
-              <div className="related-entries-summary">
-                <div className="related-entries-summary-item">
+              <div
+                className={
+                  institutional
+                    ? 'rem-institutional-summary'
+                    : 'related-entries-summary'
+                }
+              >
+                <div
+                  className={
+                    institutional
+                      ? 'rem-institutional-summary__item'
+                      : 'related-entries-summary-item'
+                  }
+                >
                   <span>Total Debit</span>
                   <strong className="debit">{formatCurrency(groupData.totals?.total_debit)}</strong>
                 </div>
-                <div className="related-entries-summary-item">
+                <div
+                  className={
+                    institutional
+                      ? 'rem-institutional-summary__item'
+                      : 'related-entries-summary-item'
+                  }
+                >
                   <span>Total Credit</span>
                   <strong className="credit">{formatCurrency(groupData.totals?.total_credit)}</strong>
                 </div>
-                <div className="related-entries-summary-item">
+                <div
+                  className={
+                    institutional
+                      ? 'rem-institutional-summary__item'
+                      : 'related-entries-summary-item'
+                  }
+                >
                   <span>Status</span>
                   <strong className={groupData.totals?.is_balanced ? 'balanced' : 'unbalanced'}>
                     {groupData.totals?.is_balanced ? 'Balanced' : 'Unbalanced'}
@@ -116,12 +145,28 @@ const RelatedEntriesModal = ({
                 </div>
               </div>
 
-              <p className="related-entries-hint">
+              <p
+                className={
+                  institutional ? 'rem-institutional-hint' : 'related-entries-hint'
+                }
+              >
                 Click an account code to open that account&apos;s ledger. The highlighted row is the line you selected.
               </p>
 
-              <div className="related-entries-table-wrap">
-                <table className="related-entries-table">
+              <div
+                className={
+                  institutional
+                    ? 'rem-institutional-table-wrap'
+                    : 'related-entries-table-wrap'
+                }
+              >
+                <table
+                  className={
+                    institutional
+                      ? 'rem-institutional-table'
+                      : 'related-entries-table'
+                  }
+                >
                   <thead>
                     <tr>
                       <th>Account</th>
@@ -147,7 +192,11 @@ const RelatedEntriesModal = ({
                             {onAccountClick && entry.account_code ? (
                               <button
                                 type="button"
-                                className={`related-account-link${isCurrentAccount ? ' is-current' : ''}`}
+                                className={`related-account-link${
+                                  isCurrentAccount ? ' is-current' : ''
+                                }${
+                                  institutional ? ' rem-institutional-account-link' : ''
+                                }`}
                                 onClick={() => onAccountClick(entry.account_code)}
                                 title={`Open account ${entry.account_code}`}
                               >
@@ -172,7 +221,15 @@ const RelatedEntriesModal = ({
         </div>
 
         <div className="related-entries-footer">
-          <button type="button" className="related-entries-back-btn" onClick={handleClose}>
+          <button
+            type="button"
+            className={
+              institutional
+                ? 'rem-institutional-back-btn'
+                : 'related-entries-back-btn'
+            }
+            onClick={handleClose}
+          >
             Back to account
           </button>
         </div>
