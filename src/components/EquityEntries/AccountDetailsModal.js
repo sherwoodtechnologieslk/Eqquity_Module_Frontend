@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { journalEntriesAPI } from '../../services/api';
@@ -296,10 +297,12 @@ const AccountDetailsModal = ({
 
   if (!isOpen) return null;
 
-  return (
+  return createPortal(
     <div className={`account-modal-overlay ${isVisible ? 'visible' : ''}`} onClick={handleClose}>
       <div
-        className={`account-modal-content account-details-modal ${isVisible ? 'visible' : ''}`}
+        className={`account-modal-content account-details-modal${
+          softHeader ? ' account-details-modal--institutional' : ''
+        } ${isVisible ? 'visible' : ''}`}
         onClick={e => e.stopPropagation()}
       >
         <div className="account-modal-form-card">
@@ -384,6 +387,7 @@ const AccountDetailsModal = ({
                 </div>
               ) : accountData ? (
                 <div className="account-details-content">
+                  <div className="account-meta-panel">
                   {/* Account Summary */}
                   <div className="account-summary-section">
                     <h3 className="section-title">Account Summary</h3>
@@ -469,6 +473,7 @@ const AccountDetailsModal = ({
                         <span className="period-value">{accountData.period?.portfolio}</span>
                       </div>
                     </div>
+                  </div>
                   </div>
 
                   {/* Transaction Entries */}
@@ -590,7 +595,8 @@ const AccountDetailsModal = ({
         currentAccountCode={accountData?.accountCode || accountCode}
         onAccountClick={onNavigateAccount ? handleRelatedAccountClick : undefined}
       />
-    </div>
+    </div>,
+    document.body
   );
 };
 
