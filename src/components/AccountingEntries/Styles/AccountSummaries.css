@@ -330,23 +330,25 @@
   align-items: center;
   justify-content: space-between;
   gap: var(--cas-space-2);
-  padding: var(--cas-space-2) var(--cas-space-3);
-  border-bottom: 1px solid var(--cas-border);
-  background: linear-gradient(180deg, #fafbfc 0%, var(--cas-surface) 100%);
+  padding: 0.6rem var(--cas-space-3);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.14);
+  background: linear-gradient(90deg, #2563eb 0%, #22c55e 100%);
+  box-shadow: 0 1px 3px rgba(37, 99, 235, 0.2);
 }
 
 .cas-report__title {
   margin: 0;
-  font-size: 1rem;
+  font-size: 0.9rem;
   font-weight: 700;
-  letter-spacing: -0.02em;
-  color: var(--cas-text);
+  letter-spacing: -0.01em;
+  line-height: 1.2;
+  color: #ffffff;
 }
 
 .cas-report__meta {
   margin: 4px 0 0;
   font-size: 0.75rem;
-  color: var(--cas-text-muted);
+  color: rgba(255, 255, 255, 0.86);
 }
 
 .cas-info-banner {
@@ -379,8 +381,8 @@
 
 /* ── Data grid ── */
 .cas-table-wrap {
-  overflow: auto;
-  max-height: calc(100vh - 320px);
+  overflow-x: auto;
+  overflow-y: visible;
 }
 
 .cas-grid {
@@ -554,9 +556,5 @@
 
   .cas-toolbar__actions .cas-btn--primary {
     flex: 1;
-  }
-
-  .cas-table-wrap {
-    max-height: none;
   }
 }

@@ -22,7 +22,7 @@ const ChartOfAccounts = () => {
   // System-generated accounts (matching frontend labels)
   const systemAccounts = [
     {
-      account_code: '101-101-555-001-44',
+      account_code: '131-101-350-001-44',
       description: 'Investment in Equity Securities',
       account_type: 'Asset',
       account_category: 'Current Assets',
@@ -46,7 +46,7 @@ const ChartOfAccounts = () => {
       active_status: 'Yes'
     },
     {
-      account_code: '601-101-100-001-44',
+      account_code: '651-101-120-001-44',
       description: 'Brokerage',
       account_type: 'Expense',
       account_category: 'Trading Expenses',
@@ -54,7 +54,7 @@ const ChartOfAccounts = () => {
       active_status: 'Yes'
     },
     {
-      account_code: '601-101-101-001-44',
+      account_code: '651-101-120-002-44',
       description: 'CSE Fees',
       account_type: 'Expense',
       account_category: 'Trading Expenses',
@@ -62,7 +62,7 @@ const ChartOfAccounts = () => {
       active_status: 'Yes'
     },
     {
-      account_code: '601-101-102-001-44',
+      account_code: '651-101-120-003-44',
       description: 'SEC',
       account_type: 'Expense',
       account_category: 'Trading Expenses',
@@ -70,7 +70,7 @@ const ChartOfAccounts = () => {
       active_status: 'Yes'
     },
     {
-      account_code: '601-101-103-001-44',
+      account_code: '651-101-120-004-44',
       description: 'CDS Fees',
       account_type: 'Expense',
       account_category: 'Trading Expenses',
@@ -78,7 +78,7 @@ const ChartOfAccounts = () => {
       active_status: 'Yes'
     },
     {
-      account_code: '601-101-104-001-44',
+      account_code: '651-101-120-005-44',
       description: 'Clearing Fees',
       account_type: 'Expense',
       account_category: 'Trading Expenses',
@@ -86,10 +86,26 @@ const ChartOfAccounts = () => {
       active_status: 'Yes'
     },
     {
-      account_code: '601-101-105-001-44',
+      account_code: '651-101-120-006-44',
       description: 'STL',
       account_type: 'Expense',
       account_category: 'Trading Expenses',
+      normal_balance: 'Debit',
+      active_status: 'Yes'
+    },
+    {
+      account_code: '249-101-270-001-44',
+      description: 'Share Purchase Settlement Payable Control',
+      account_type: 'Liability',
+      account_category: 'Current Liabilities',
+      normal_balance: 'Credit',
+      active_status: 'Yes'
+    },
+    {
+      account_code: '131-101-290-001-44',
+      description: 'Share Sale Settlement Receivable Control',
+      account_type: 'Asset',
+      account_category: 'Current Assets',
       normal_balance: 'Debit',
       active_status: 'Yes'
     }
@@ -432,37 +448,16 @@ const ChartOfAccounts = () => {
         {displayAccounts.length > 0 && (
           <div className="coa-stats">
             <div className="coa-stat coa-stat--total">
-              <div className="coa-stat-icon" aria-hidden="true">
-                <svg className="coa-stat-icon-svg" fill="currentColor" viewBox="0 0 20 20">
-                  <path d="M7 3a1 1 0 000 2h6a1 1 0 100-2H7zM4 7a1 1 0 011-1h10a1 1 0 110 2H5a1 1 0 01-1-1zM6 11a1 1 0 100 2h8a1 1 0 100-2H6zm-1 4a1 1 0 011-1h6a1 1 0 110 2H6a1 1 0 01-1-1z" />
-                </svg>
-              </div>
-              <div className="coa-stat-content">
-                <div className="coa-stat-value">{displayAccounts.length}</div>
-                <div className="coa-stat-label">Total {accountTypeLabel} accounts</div>
-              </div>
+              <div className="coa-stat-label">Total {accountTypeLabel} accounts</div>
+              <div className="coa-stat-value">{displayAccounts.length}</div>
             </div>
             <div className="coa-stat coa-stat--active">
-              <div className="coa-stat-icon" aria-hidden="true">
-                <svg className="coa-stat-icon-svg" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                </svg>
-              </div>
-              <div className="coa-stat-content">
-                <div className="coa-stat-value">{activeCount}</div>
-                <div className="coa-stat-label">Active accounts</div>
-              </div>
+              <div className="coa-stat-label">Active accounts</div>
+              <div className="coa-stat-value">{activeCount}</div>
             </div>
             <div className="coa-stat coa-stat--inactive">
-              <div className="coa-stat-icon" aria-hidden="true">
-                <svg className="coa-stat-icon-svg" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
-                </svg>
-              </div>
-              <div className="coa-stat-content">
-                <div className="coa-stat-value">{inactiveCount}</div>
-                <div className="coa-stat-label">Inactive accounts</div>
-              </div>
+              <div className="coa-stat-label">Inactive accounts</div>
+              <div className="coa-stat-value">{inactiveCount}</div>
             </div>
             
             {/* Use System Chart of Accounts Button - Only for System Accounts tab */}
