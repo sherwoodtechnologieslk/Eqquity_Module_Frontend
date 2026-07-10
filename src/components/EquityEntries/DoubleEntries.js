@@ -1,10 +1,22 @@
 import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import { createPortal } from 'react-dom';
-import '../AccountingEntries/Styles/CombinedTrialBalance.css';
-import '../AccountingEntries/Styles/AccountSummaries.css';
 import './Styles/DoubleEntries.css';
 
 const PAGE_SIZE = 20;
+
+const IconSearch = () => (
+  <svg className="de-icon" viewBox="0 0 20 20" fill="none" stroke="currentColor" aria-hidden="true">
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.75" d="M9 3.5a5.5 5.5 0 100 11 5.5 5.5 0 000-11z" />
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.75" d="M14 14l3.5 3.5" />
+  </svg>
+);
+
+const IconInfo = () => (
+  <svg className="de-icon" viewBox="0 0 20 20" fill="none" stroke="currentColor" aria-hidden="true">
+    <circle cx="10" cy="10" r="7.5" strokeWidth="1.5" />
+    <path strokeLinecap="round" strokeWidth="1.5" d="M10 9v4M10 7h.01" />
+  </svg>
+);
 
 const DoubleEntries = () => {
   const [entries, setEntries] = useState([]);
@@ -185,8 +197,9 @@ const DoubleEntries = () => {
   };
 
   const formatDate = (dateString) => {
-    if (!dateString) return '-';
+    if (!dateString) return '—';
     const date = new Date(dateString);
+    if (Number.isNaN(date.getTime())) return String(dateString);
     return date.toLocaleDateString('en-US', {
       year: 'numeric',
       month: 'short',
@@ -271,19 +284,19 @@ const DoubleEntries = () => {
 
   if (loading && entries.length === 0 && !error) {
     return (
-      <div className="ctb-page-container">
-        <div className="ctb-loading">Loading Double Entries...</div>
+      <div className="de-page-container">
+        <div className="de-loading-state">Loading double entries…</div>
       </div>
     );
   }
 
   if (error && entries.length === 0) {
     return (
-      <div className="ctb-page-container">
-        <div className="ctb-error">
-          <div className="ctb-error-title">Error loading Double Entries</div>
-          <div className="ctb-error-message">{error}</div>
-          <button type="button" className="ctb-retry-btn" onClick={loadDoubleEntries}>
+      <div className="de-page-container">
+        <div className="de-error-banner">
+          <p className="de-error-banner__title">Error loading Double Entries</p>
+          <p className="de-error-banner__text">{error}</p>
+          <button type="button" className="de-btn de-btn--primary" onClick={loadDoubleEntries}>
             Retry
           </button>
         </div>
@@ -292,139 +305,170 @@ const DoubleEntries = () => {
   }
 
   return (
-    <div className="ctb-page-container de-page">
-      <div className="ctb-content-wrapper">
-        <div className="ctb-header-section de-header-section">
-          <div className="ctb-header-text-group">
-            <h1 className="ctb-main-title">Double Entries</h1>
-            <p className="ctb-subtitle">
-              View double-entry postings from Equity, Other Transactions, and GSec ledgers,
-              grouped by reference or deal number.
+    <div className="de-page-container">
+      <div className="de-content-wrapper">
+        <header className="de-masthead">
+          <div className="de-masthead__primary">
+            <p className="de-eyebrow">Financial Reporting</p>
+            <h1 className="de-main-title">Double Entries</h1>
+            <p className="de-subtitle">
+              View double-entry postings from Equity, Other Transactions, and GSec ledgers, grouped by
+              reference or deal number.
             </p>
           </div>
-          <div className="ctb-header-meta">
-            <div className="ctb-period">
-              Transactions:&nbsp;
-              <span>{summary.transactionCount}</span>
+          <div className="de-masthead__meta">
+            <div className="de-meta-chip">
+              <span className="de-meta-chip__label">Transactions</span>
+              <span className="de-meta-chip__value">{summary.transactionCount}</span>
+            </div>
+            <div className="de-meta-chip">
+              <span className="de-meta-chip__label">Balanced</span>
+              <span className="de-meta-chip__value">{summary.balancedCount}</span>
+            </div>
+            <div className="de-meta-chip">
+              <span className="de-meta-chip__label">Unbalanced</span>
+              <span className="de-meta-chip__value">{summary.unbalancedCount}</span>
             </div>
           </div>
-        </div>
+        </header>
 
-        <div className="ctb-filters-card de-filters-card">
-          <div className="ctb-filters-content">
-            <div className="ctb-filters-grid de-filters-grid">
-              <div className="ctb-filter-group de-filter-search">
-                <label className="ctb-filter-label" htmlFor="deSearch">
-                  Search
-                </label>
+        <section className="de-toolbar" aria-label="Report filters">
+          <div className="de-toolbar__row">
+            <div className="de-field de-field--search">
+              <label className="de-field__label" htmlFor="deSearch">
+                Search
+              </label>
+              <div className="de-search-wrap">
+                <span className="de-search-icon" aria-hidden="true">
+                  <IconSearch />
+                </span>
                 <input
                   id="deSearch"
-                  type="text"
-                  className="ctb-filter-input"
-                  placeholder="Reference, description, or account..."
+                  type="search"
+                  className="de-field__input"
+                  placeholder="Reference, description, or account…"
                   value={searchTerm}
                   onChange={(e) => handleSearchChange(e.target.value)}
                 />
               </div>
+            </div>
 
-              <div className="ctb-filter-group">
-                <label className="ctb-filter-label" htmlFor="filterDate">
-                  Date
-                </label>
+            <div className="de-field">
+              <label className="de-field__label" htmlFor="deFilterDate">
+                Date
+              </label>
+              <input
+                type="date"
+                id="deFilterDate"
+                lang="en-US"
+                className="de-field__input"
+                value={filterDate}
+                onChange={(e) => handleDateChange(e.target.value)}
+              />
+            </div>
+
+            <div
+              className={`de-field de-field--account${
+                accountDropdownOpen ? ' de-field--account-open' : ''
+              }`}
+              ref={accountComboRef}
+            >
+              <label className="de-field__label" htmlFor="deFilterAccount">
+                Account
+              </label>
+              <div className="de-account-combo">
                 <input
-                  type="date"
-                  id="filterDate"
-                  lang="en-US"
-                  className="ctb-filter-input"
-                  value={filterDate}
-                  onChange={(e) => handleDateChange(e.target.value)}
+                  ref={accountInputRef}
+                  type="text"
+                  id="deFilterAccount"
+                  className="de-field__input de-account-input"
+                  placeholder="Search or select account…"
+                  value={filterAccount}
+                  onChange={(e) => handleAccountInputChange(e.target.value)}
+                  onFocus={() => setAccountDropdownOpen(true)}
+                  autoComplete="off"
+                  role="combobox"
+                  aria-expanded={accountDropdownOpen}
+                  aria-controls="deAccountDropdown"
+                  aria-autocomplete="list"
                 />
+                {filterAccount && (
+                  <button
+                    type="button"
+                    className="de-account-clear"
+                    onClick={() => {
+                      setFilterAccount('');
+                      setAccountDropdownOpen(true);
+                      setCurrentPage(1);
+                      accountInputRef.current?.focus();
+                    }}
+                    aria-label="Clear account filter"
+                  >
+                    ×
+                  </button>
+                )}
               </div>
+            </div>
 
-              <div
-                className={`ctb-filter-group de-account-combo-wrap${
-                  accountDropdownOpen ? ' de-account-combo-wrap--open' : ''
-                }`}
-                ref={accountComboRef}
-              >
-                <label className="ctb-filter-label" htmlFor="filterAccount">
-                  Account
-                </label>
-                <div className="de-account-combo">
-                  <input
-                    ref={accountInputRef}
-                    type="text"
-                    id="filterAccount"
-                    className="ctb-filter-input de-account-input"
-                    placeholder="Search or select account..."
-                    value={filterAccount}
-                    onChange={(e) => handleAccountInputChange(e.target.value)}
-                    onFocus={() => setAccountDropdownOpen(true)}
-                    autoComplete="off"
-                    role="combobox"
-                    aria-expanded={accountDropdownOpen}
-                    aria-controls="deAccountDropdown"
-                    aria-autocomplete="list"
-                  />
-                  {filterAccount && (
-                    <button
-                      type="button"
-                      className="de-account-clear"
-                      onClick={() => {
-                        setFilterAccount('');
-                        setAccountDropdownOpen(true);
-                        setCurrentPage(1);
-                        accountInputRef.current?.focus();
-                      }}
-                      aria-label="Clear account filter"
-                    >
-                      ×
-                    </button>
-                  )}
-                </div>
-              </div>
+            <div className="de-toolbar__actions">
+              <button type="button" className="de-btn de-btn--ghost" onClick={clearFilters}>
+                Clear
+              </button>
+            </div>
+          </div>
+        </section>
 
-              <div className="ctb-filter-group ctb-filter-actions">
-                <button type="button" className="ctb-clear-btn" onClick={clearFilters}>
-                  Clear
-                </button>
-              </div>
+        {error ? (
+          <div className="de-error-banner de-error-banner--inline" role="alert">
+            <p className="de-error-banner__title">Unable to load entries</p>
+            <p className="de-error-banner__text">{error}</p>
+          </div>
+        ) : null}
+
+        <div className="de-status-banner" role="status">
+          <div className="de-status-banner__lead">
+            <p className="de-status-banner__title">Double-entry overview</p>
+            <p className="de-status-banner__text">
+              {hasActiveFilters
+                ? 'Showing filtered transactions across Equity, Other, and GSec ledgers.'
+                : 'All double-entry groups across Equity, Other, and GSec ledgers.'}
+            </p>
+          </div>
+          <div className="de-status-banner__metrics">
+            <div className="de-metric">
+              <span className="de-metric__label">Transactions</span>
+              <span className="de-metric__value">{summary.transactionCount}</span>
+            </div>
+            <div className="de-metric">
+              <span className="de-metric__label">Balanced</span>
+              <span className="de-metric__value de-status-pill--ok">{summary.balancedCount}</span>
+            </div>
+            <div className="de-metric">
+              <span className="de-metric__label">Unbalanced</span>
+              <span className="de-metric__value de-status-pill--warn">{summary.unbalancedCount}</span>
+            </div>
+            <div className="de-metric">
+              <span className="de-metric__label">Total Value (DR)</span>
+              <span className="de-metric__value de-amount de-amount--debit">
+                {formatCurrency(summary.totalDebit)}
+              </span>
             </div>
           </div>
         </div>
 
-        {error && (
-          <div className="de-inline-error">{error}</div>
-        )}
-
-        <div className="cas-metrics de-metrics">
-          <div className="cas-metric-card">
-            <div className="cas-metric-label">Transactions</div>
-            <div className="cas-metric-value">{summary.transactionCount}</div>
-          </div>
-          <div className="cas-metric-card">
-            <div className="cas-metric-label">Balanced</div>
-            <div className="cas-metric-value positive">{summary.balancedCount}</div>
-          </div>
-          <div className="cas-metric-card">
-            <div className="cas-metric-label">Unbalanced</div>
-            <div className="cas-metric-value negative">{summary.unbalancedCount}</div>
-          </div>
-          <div className="cas-metric-card">
-            <div className="cas-metric-label">Total Value (DR)</div>
-            <div className="cas-metric-value debit">{formatCurrency(summary.totalDebit)}</div>
-          </div>
-        </div>
-
-        <div className="ctb-table-card">
-          <div className="ctb-card-header ctb-table-header">
-            <h2 className="ctb-card-title">
-              Double Entry Transactions ({totalTransactions})
-            </h2>
-            <div className="ctb-export-actions">
+        <section className="de-report" aria-label="Double entry transactions">
+          <div className="de-report__header">
+            <div className="de-report__heading">
+              <h2 className="de-report__title">Double Entry Transactions ({totalTransactions})</h2>
+              <p className="de-report__meta">
+                Page {currentPage} of {totalPages}
+                {hasActiveFilters ? ' · Filters active' : ''}
+              </p>
+            </div>
+            <div className="de-report__actions">
               <button
                 type="button"
-                className="ctb-export-btn"
+                className="de-btn de-btn--export"
                 onClick={loadDoubleEntries}
                 disabled={loading}
               >
@@ -432,45 +476,60 @@ const DoubleEntries = () => {
               </button>
             </div>
           </div>
-          <p className="ctb-table-hint">
-            Each group represents one transaction from Equity, Other, or GSec. Debits and credits
-            within a group should balance; unbalanced groups are highlighted.
-          </p>
 
-          <div className="de-transactions-container">
+          <div className="de-info-banner" role="note">
+            <span className="de-info-banner__icon" aria-hidden="true">
+              <IconInfo />
+            </span>
+            <p className="de-info-banner__text">
+              Each group represents one transaction from Equity, Other, or GSec. Debits and credits within a
+              group should balance; <strong>unbalanced</strong> groups are highlighted.
+            </p>
+          </div>
+
+          <div className="de-report__body">
             {loading ? (
-              <div className="ctb-loading">Loading double entries...</div>
+              <div className="de-empty-state">
+                <p className="de-empty-state__title">Loading double entries…</p>
+              </div>
             ) : entries.length === 0 ? (
-              <div className="ctb-no-data">
-                {hasActiveFilters
-                  ? 'No double entries match the selected filters.'
-                  : 'No double entries have been recorded yet.'}
+              <div className="de-empty-state">
+                <p className="de-empty-state__title">No transactions to display</p>
+                <p className="de-empty-state__text">
+                  {hasActiveFilters
+                    ? 'No double entries match the selected filters.'
+                    : 'No double entries have been recorded yet.'}
+                </p>
               </div>
             ) : (
               <>
-                <div className="de-page-info">
+                <p className="de-page-info">
                   Showing {(currentPage - 1) * PAGE_SIZE + 1}–
                   {(currentPage - 1) * PAGE_SIZE + entries.length} of {totalTransactions} transactions
-                </div>
+                </p>
+
                 <div className="de-transaction-list">
                   {entries.map((group) => {
                     const totals = calculateTotals(group);
                     return (
-                      <div key={group.id} className="de-transaction-group">
+                      <article key={group.id} className="de-transaction-group">
                         <div className="de-group-header">
                           <div className="de-group-info">
                             <div className="de-group-topline">
-                              <div className="de-group-date">{formatDate(group.date)}</div>
-                              <span className={`de-source-badge de-source-badge--${group.source || 'equity'}`}>
+                              <span className="de-group-date">{formatDate(group.date)}</span>
+                              <span
+                                className={`de-source-badge de-source-badge--${
+                                  group.source || 'equity'
+                                }`}
+                              >
                                 {group.sourceLabel || 'Equity'}
                               </span>
                             </div>
-                            <div className="de-group-reference">
-                              <strong>Reference:</strong> {group.reference || 'N/A'}
-                            </div>
-                            <div className="de-group-description">
-                              {group.description || 'No description'}
-                            </div>
+                            <p className="de-group-reference">
+                              <span className="de-group-reference__label">Reference</span>
+                              {group.reference || 'N/A'}
+                            </p>
+                            <p className="de-group-description">{group.description || 'No description'}</p>
                           </div>
                           <div className="de-group-meta">
                             <span
@@ -480,70 +539,70 @@ const DoubleEntries = () => {
                             >
                               {totals.isBalanced ? 'Balanced' : 'Unbalanced'}
                             </span>
-                            <div className="de-group-totals">
-                              <span className="de-total-item">
-                                <span className="de-total-label">Debit</span>
-                                <span className="de-total-value de-total-value--debit">
-                                  {formatCurrency(totals.totalDebit)}
-                                </span>
-                              </span>
-                              <span className="de-total-item">
-                                <span className="de-total-label">Credit</span>
-                                <span className="de-total-value de-total-value--credit">
-                                  {formatCurrency(totals.totalCredit)}
-                                </span>
-                              </span>
-                            </div>
                           </div>
                         </div>
 
                         <div className="de-group-table-wrap">
-                          <table className="ctb-data-table de-nested-table">
+                          <table className="de-grid de-grid--nested">
                             <thead>
                               <tr>
-                                <th>Account Code</th>
+                                <th className="de-col-code">Account Code</th>
                                 <th>Account Name</th>
                                 <th>Description</th>
-                                <th>Debit</th>
-                                <th>Credit</th>
+                                <th className="de-col-num">Debit</th>
+                                <th className="de-col-num">Credit</th>
                               </tr>
                             </thead>
                             <tbody>
                               {group.entries.map((entry, idx) => (
                                 <tr key={entry.id || idx}>
-                                  <td className="ctb-account-code">{entry.account_code || '-'}</td>
-                                  <td>{entry.account_name || '-'}</td>
-                                  <td className="de-description-cell">{entry.description || '-'}</td>
-                                  <td className="ctb-debit">
-                                    {parseFloat(entry.debit) > 0 ? formatCurrency(entry.debit) : '-'}
+                                  <td className="de-col-code">
+                                    <span className="de-code">{entry.account_code || '—'}</span>
                                   </td>
-                                  <td className="ctb-credit">
-                                    {parseFloat(entry.credit) > 0 ? formatCurrency(entry.credit) : '-'}
+                                  <td>{entry.account_name || '—'}</td>
+                                  <td className="de-description-cell">{entry.description || '—'}</td>
+                                  <td className="de-col-num">
+                                    <span className="de-amount de-amount--debit">
+                                      {parseFloat(entry.debit) > 0 ? formatCurrency(entry.debit) : '—'}
+                                    </span>
+                                  </td>
+                                  <td className="de-col-num">
+                                    <span className="de-amount de-amount--credit">
+                                      {parseFloat(entry.credit) > 0 ? formatCurrency(entry.credit) : '—'}
+                                    </span>
                                   </td>
                                 </tr>
                               ))}
                             </tbody>
                             <tfoot>
-                              <tr className="de-totals-row">
+                              <tr className="de-grid__totals">
                                 <td colSpan="3" className="de-totals-label">
                                   Total
                                 </td>
-                                <td className="ctb-debit">{formatCurrency(totals.totalDebit)}</td>
-                                <td className="ctb-credit">{formatCurrency(totals.totalCredit)}</td>
+                                <td className="de-col-num">
+                                  <span className="de-amount de-amount--debit">
+                                    {formatCurrency(totals.totalDebit)}
+                                  </span>
+                                </td>
+                                <td className="de-col-num">
+                                  <span className="de-amount de-amount--credit">
+                                    {formatCurrency(totals.totalCredit)}
+                                  </span>
+                                </td>
                               </tr>
                             </tfoot>
                           </table>
                         </div>
-                      </div>
+                      </article>
                     );
                   })}
                 </div>
 
-                {totalPages > 1 && (
+                {totalPages > 1 ? (
                   <div className="de-pagination">
                     <button
                       type="button"
-                      className="de-pagination-btn"
+                      className="de-btn de-btn--secondary"
                       onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
                       disabled={currentPage === 1 || loading}
                     >
@@ -554,18 +613,18 @@ const DoubleEntries = () => {
                     </span>
                     <button
                       type="button"
-                      className="de-pagination-btn"
+                      className="de-btn de-btn--secondary"
                       onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
                       disabled={currentPage === totalPages || loading}
                     >
                       Next
                     </button>
                   </div>
-                )}
+                ) : null}
               </>
             )}
           </div>
-        </div>
+        </section>
       </div>
 
       {accountDropdownOpen &&
@@ -583,9 +642,7 @@ const DoubleEntries = () => {
             }}
           >
             {filteredAccountOptions.length === 0 ? (
-              <div className="de-account-option de-account-option--empty">
-                No matching accounts
-              </div>
+              <div className="de-account-option de-account-option--empty">No matching accounts</div>
             ) : (
               filteredAccountOptions.map((account) => (
                 <button
