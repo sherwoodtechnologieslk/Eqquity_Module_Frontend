@@ -104,54 +104,68 @@ const RelatedEntriesModal = ({
 
           {!loading && !error && groupData && (
             <>
-              <div
-                className={
-                  institutional
-                    ? 'rem-institutional-summary'
-                    : 'related-entries-summary'
-                }
-              >
-                <div
-                  className={
-                    institutional
-                      ? 'rem-institutional-summary__item'
-                      : 'related-entries-summary-item'
-                  }
-                >
-                  <span>Total Debit</span>
-                  <strong className="debit">{formatCurrency(groupData.totals?.total_debit)}</strong>
+              {institutional ? (
+                <div className="rem-institutional-summary">
+                  <div className="rem-institutional-summary__item rem-institutional-summary__item--debit">
+                    <span className="rem-institutional-summary__label">Total Debit</span>
+                    <strong className="rem-institutional-summary__value rem-institutional-summary__value--debit">
+                      {formatCurrency(groupData.totals?.total_debit)}
+                    </strong>
+                  </div>
+                  <div className="rem-institutional-summary__item rem-institutional-summary__item--credit">
+                    <span className="rem-institutional-summary__label">Total Credit</span>
+                    <strong className="rem-institutional-summary__value rem-institutional-summary__value--credit">
+                      {formatCurrency(groupData.totals?.total_credit)}
+                    </strong>
+                  </div>
+                  <div
+                    className={`rem-institutional-summary__item rem-institutional-summary__item--status${
+                      groupData.totals?.is_balanced
+                        ? ' rem-institutional-summary__item--balanced'
+                        : ' rem-institutional-summary__item--unbalanced'
+                    }`}
+                  >
+                    <span className="rem-institutional-summary__label">Status</span>
+                    <strong
+                      className={`rem-institutional-summary__value rem-institutional-summary__value--status${
+                        groupData.totals?.is_balanced
+                          ? ' rem-institutional-summary__value--balanced'
+                          : ' rem-institutional-summary__value--unbalanced'
+                      }`}
+                    >
+                      {groupData.totals?.is_balanced ? 'Balanced' : 'Unbalanced'}
+                    </strong>
+                  </div>
                 </div>
-                <div
-                  className={
-                    institutional
-                      ? 'rem-institutional-summary__item'
-                      : 'related-entries-summary-item'
-                  }
-                >
-                  <span>Total Credit</span>
-                  <strong className="credit">{formatCurrency(groupData.totals?.total_credit)}</strong>
+              ) : (
+                <div className="related-entries-summary">
+                  <div className="related-entries-summary-item">
+                    <span>Total Debit</span>
+                    <strong className="debit">{formatCurrency(groupData.totals?.total_debit)}</strong>
+                  </div>
+                  <div className="related-entries-summary-item">
+                    <span>Total Credit</span>
+                    <strong className="credit">{formatCurrency(groupData.totals?.total_credit)}</strong>
+                  </div>
+                  <div className="related-entries-summary-item">
+                    <span>Status</span>
+                    <strong className={groupData.totals?.is_balanced ? 'balanced' : 'unbalanced'}>
+                      {groupData.totals?.is_balanced ? 'Balanced' : 'Unbalanced'}
+                    </strong>
+                  </div>
                 </div>
-                <div
-                  className={
-                    institutional
-                      ? 'rem-institutional-summary__item'
-                      : 'related-entries-summary-item'
-                  }
-                >
-                  <span>Status</span>
-                  <strong className={groupData.totals?.is_balanced ? 'balanced' : 'unbalanced'}>
-                    {groupData.totals?.is_balanced ? 'Balanced' : 'Unbalanced'}
-                  </strong>
-                </div>
-              </div>
+              )}
 
-              <p
-                className={
-                  institutional ? 'rem-institutional-hint' : 'related-entries-hint'
-                }
-              >
-                Click an account code to open that account&apos;s ledger. The highlighted row is the line you selected.
-              </p>
+              {institutional ? (
+                <div className="rem-institutional-hint" role="note">
+                  Click an <strong>account code</strong> to open that account&apos;s ledger. The highlighted row is the
+                  line you selected.
+                </div>
+              ) : (
+                <p className="related-entries-hint">
+                  Click an account code to open that account&apos;s ledger. The highlighted row is the line you selected.
+                </p>
+              )}
 
               <div
                 className={

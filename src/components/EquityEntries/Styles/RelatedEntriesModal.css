@@ -291,7 +291,7 @@
   }
 }
 
-/* ── Institutional variant (Combined Trial Balance) ── */
+/* ── Institutional variant (Combined Trial Balance / Account Summaries) ── */
 .related-entries-overlay--institutional {
   padding: 16px;
   align-items: center;
@@ -300,114 +300,159 @@
 }
 
 .related-entries-modal--institutional {
-  width: min(920px, 100%);
+  width: min(960px, 100%);
   max-height: min(82vh, calc(100vh - 32px));
   border-radius: 12px;
-  border: 1px solid #dbeafe;
-  box-shadow:
-    0 4px 16px rgba(37, 99, 235, 0.08),
-    0 24px 48px rgba(15, 23, 42, 0.12);
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 24px 48px rgba(15, 23, 42, 0.16);
 }
 
 .related-entries-modal--institutional .related-entries-header {
-  padding: 16px 20px;
-  background: linear-gradient(180deg, #eff6ff 0%, #f8fbff 55%, #ffffff 100%);
-  border-bottom: 1px solid #dbeafe;
+  padding: 14px 20px;
+  background: linear-gradient(180deg, #fafbfc 0%, #ffffff 100%);
+  border-bottom: 1px solid #e2e8f0;
 }
 
 .related-entries-modal--institutional .related-entries-title {
   font-size: 1rem;
   font-weight: 700;
   letter-spacing: -0.02em;
-  color: #1e3a8a;
+  color: #0f172a;
 }
 
 .related-entries-modal--institutional .related-entries-subtitle {
+  margin-top: 4px;
   font-size: 0.75rem;
-  color: #64748b;
+  color: #94a3b8;
 }
 
 .related-entries-modal--institutional .related-entries-close {
   background: #ffffff;
-  border: 1px solid #bfdbfe;
-  color: #2563eb;
+  border: 1px solid #e2e8f0;
+  color: #64748b;
   border-radius: 8px;
+  width: 32px;
+  height: 32px;
+  font-size: 1.25rem;
 }
 
 .related-entries-modal--institutional .related-entries-close:hover {
-  background: #eff6ff;
-  border-color: #93c5fd;
-  color: #1d4ed8;
+  background: #f8fafc;
+  border-color: #cbd5e1;
+  color: #0f172a;
 }
 
 .related-entries-modal--institutional .related-entries-body {
-  padding: 16px 20px;
+  padding: 16px 20px 18px;
   background: #ffffff;
 }
 
 .related-entries-modal--institutional .related-entries-spinner {
-  border-color: #dbeafe;
+  border-color: #e2e8f0;
   border-top-color: #2563eb;
 }
 
 .rem-institutional-summary {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 10px 14px;
-  margin-bottom: 12px;
-  padding: 12px 14px;
-  border: 1px solid #dbeafe;
-  border-radius: 8px;
-  background: #fafbff;
+  display: flex;
+  align-items: stretch;
+  margin-bottom: 14px;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  background: #f8fafc;
+  overflow: hidden;
 }
 
 .rem-institutional-summary__item {
+  flex: 1 1 0;
   display: flex;
-  flex-direction: row;
-  align-items: baseline;
-  flex-wrap: wrap;
+  flex-direction: column;
   gap: 4px;
-  line-height: 1.3;
+  padding: 12px 16px;
+  min-width: 0;
 }
 
-.rem-institutional-summary__item span {
+.rem-institutional-summary__item:not(:last-child) {
+  border-right: 1px solid #e2e8f0;
+}
+
+.rem-institutional-summary__item--status {
+  background: #ffffff;
+}
+
+.rem-institutional-summary__item--balanced {
+  background: #f0fdf4;
+}
+
+.rem-institutional-summary__item--unbalanced {
+  background: #fef2f2;
+}
+
+.rem-institutional-summary__label {
   font-size: 0.625rem;
   font-weight: 700;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.06em;
   text-transform: uppercase;
-  color: #3b82f6;
+  color: #94a3b8;
 }
 
-.rem-institutional-summary__item strong {
-  font-size: 0.8125rem;
-  font-weight: 600;
+.rem-institutional-summary__value {
+  font-size: 0.875rem;
+  font-weight: 700;
   color: #0f172a;
+  line-height: 1.25;
 }
 
-.rem-institutional-summary__item strong.debit,
-.rem-institutional-summary__item strong.credit {
-  color: #0f172a;
+.rem-institutional-summary__value--debit,
+.rem-institutional-summary__value--credit {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Courier New', monospace;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.01em;
 }
 
-.rem-institutional-summary__item strong.balanced {
+.rem-institutional-summary__value--debit {
   color: #047857;
 }
 
-.rem-institutional-summary__item strong.unbalanced {
+.rem-institutional-summary__value--credit {
+  color: #c75a5a;
+}
+
+.rem-institutional-summary__value--status {
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.rem-institutional-summary__value--balanced {
+  color: #047857;
+}
+
+.rem-institutional-summary__value--unbalanced {
   color: #b91c1c;
 }
 
 .rem-institutional-hint {
-  margin: 0 0 10px;
+  margin: 0 0 12px;
+  padding: 8px 12px;
+  border-radius: 8px;
+  background: #f8fafc;
+  border: 1px solid #f1f5f9;
   font-size: 0.8125rem;
   line-height: 1.45;
   color: #64748b;
 }
 
+.rem-institutional-hint strong {
+  color: #0f172a;
+  font-weight: 600;
+}
+
 .rem-institutional-table-wrap {
-  border: none;
-  border-radius: 0;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
   overflow: auto;
+  max-height: min(48vh, 420px);
 }
 
 .rem-institutional-table {
@@ -416,17 +461,28 @@
   font-size: 0.8125rem;
 }
 
+.rem-institutional-table thead {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+}
+
 .rem-institutional-table th {
   padding: 10px 12px;
   text-align: left;
-  background: #eff6ff;
-  border-bottom: 1px solid #dbeafe;
-  color: #475569;
+  background: #f1f5f9;
+  border-bottom: 1px solid #e2e8f0;
+  color: #64748b;
   font-size: 0.6875rem;
   font-weight: 700;
   letter-spacing: 0.05em;
   text-transform: uppercase;
   white-space: nowrap;
+}
+
+.rem-institutional-table th:nth-child(4),
+.rem-institutional-table th:nth-child(5) {
+  text-align: right;
 }
 
 .rem-institutional-table td {
@@ -436,36 +492,54 @@
   color: #0f172a;
 }
 
+.rem-institutional-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
 .rem-institutional-table tbody tr:nth-child(even) td {
   background: #fafbfc;
 }
 
 .rem-institutional-table tbody tr:hover td {
-  background: #f0f7ff;
+  background: #f8fafc;
 }
 
 .rem-institutional-table tbody tr.is-highlighted td {
-  background: #e8f2ff;
+  background: #eff6ff;
 }
 
 .rem-institutional-table td.debit,
 .rem-institutional-table td.credit {
   text-align: right;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Courier New', monospace;
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
-  font-weight: 500;
-  color: #0f172a;
+  font-weight: 600;
+  font-size: 0.8125rem;
+}
+
+.rem-institutional-table td.debit {
+  color: #047857;
+}
+
+.rem-institutional-table td.credit {
+  color: #c75a5a;
+}
+
+.rem-institutional-table td:nth-child(3) {
+  color: #64748b;
+  max-width: 280px;
 }
 
 .rem-institutional-table td:first-child {
   font-family: ui-monospace, 'Courier New', Courier, monospace;
-  font-size: 0.8125rem;
+  font-size: 0.75rem;
   font-weight: 600;
-  color: #0f172a;
+  white-space: nowrap;
 }
 
 .rem-institutional-account-link {
-  color: #2563eb;
+  color: #1e40af;
   text-decoration: none;
   font-weight: 600;
 }
@@ -473,7 +547,8 @@
 .rem-institutional-account-link:hover {
   color: #1d4ed8;
   text-decoration: underline;
-  text-decoration-color: rgba(29, 78, 216, 0.4);
+  text-decoration-color: rgba(29, 78, 216, 0.35);
+  text-underline-offset: 2px;
 }
 
 .rem-institutional-account-link.is-current {
@@ -483,27 +558,29 @@
 }
 
 .related-entries-modal--institutional .related-entries-footer {
-  padding: 12px 20px;
-  border-top: 1px solid #dbeafe;
-  background: #fafbff;
+  padding: 12px 20px 14px;
+  border-top: 1px solid #e2e8f0;
+  background: #fafbfc;
 }
 
 .rem-institutional-back-btn {
-  height: 32px;
+  height: 34px;
   padding: 0 14px;
-  border: 1px solid transparent;
+  border: 1px solid #e2e8f0;
   border-radius: 8px;
-  background: transparent;
-  color: #64748b;
+  background: #ffffff;
+  color: #475569;
   font-size: 0.8125rem;
   font-weight: 600;
   cursor: pointer;
-  transition: background 140ms ease, color 140ms ease;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+  transition: background 140ms ease, border-color 140ms ease, color 140ms ease;
 }
 
 .rem-institutional-back-btn:hover {
-  color: #1d4ed8;
-  background: #eff6ff;
+  color: #0f172a;
+  background: #f8fafc;
+  border-color: #cbd5e1;
 }
 
 @media (max-width: 768px) {
@@ -516,7 +593,15 @@
   }
 
   .rem-institutional-summary {
-    grid-template-columns: 1fr;
-    gap: 8px;
+    flex-direction: column;
+  }
+
+  .rem-institutional-summary__item:not(:last-child) {
+    border-right: none;
+    border-bottom: 1px solid #e2e8f0;
+  }
+
+  .rem-institutional-table-wrap {
+    max-height: none;
   }
 }

@@ -164,15 +164,12 @@
 }
 
 [data-theme='dark'] .coa-stats {
-  background: var(--app-surface-muted);
+  background: var(--app-surface);
+  border-bottom-color: var(--app-border);
 }
 
 [data-theme='dark'] .coa-stat {
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.12);
-}
-
-[data-theme='dark'] .coa-stat:hover {
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.12);
+  border-right-color: var(--app-border);
 }
 
 [data-theme='dark'] .coa-stat--total .coa-stat-value {
@@ -579,87 +576,58 @@
   display: inline-block;
 }
 
-/* Stats — compact dashboard widgets */
+/* Stats — flat KPI strip */
 .coa-stats {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 0.65rem;
+  gap: 0;
   align-items: stretch;
-  padding: 0.75rem 1.25rem;
-  background: var(--app-bg-subtle);
-  border-bottom: 1px solid var(--app-border-strong);
+  padding: 0.7rem 1.25rem;
+  background: var(--app-surface);
+  border-bottom: 1px solid var(--app-border);
 }
 
 .coa-stat {
   display: flex;
-  align-items: center;
-  gap: 0.6rem;
-  min-width: 0;
-  padding: 0.55rem 0.75rem;
-  background: var(--app-surface);
-  border: 1px solid var(--app-border);
-  border-radius: 0.5rem;
-  box-shadow: 0 2px 6px rgba(15, 23, 42, 0.06);
-  transition: border-color 0.15s ease;
-}
-
-.coa-stat:hover {
-  border-color: var(--app-border-strong);
-}
-
-.coa-stat-icon {
-  flex-shrink: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 2rem;
-  height: 2rem;
-  border-radius: 0.4375rem;
-  background: var(--app-surface-muted);
-  color: var(--app-text-secondary);
-}
-
-.coa-stat-icon-svg {
-  width: 1rem;
-  height: 1rem;
-}
-
-.coa-stat-content {
-  display: flex;
   flex-direction: column;
-  gap: 0.1rem;
+  gap: 0.2rem;
   min-width: 0;
+  padding: 0.15rem 1rem;
+  background: transparent;
+  border: none;
+  border-right: 1px solid var(--app-border);
+  border-radius: 0;
+  box-shadow: none;
+}
+
+.coa-stat:first-child {
+  padding-left: 0;
+}
+
+.coa-stat:last-child {
+  border-right: none;
+  padding-right: 0;
 }
 
 .coa-stat-value {
-  font-size: 1.25rem;
+  font-size: 1.375rem;
   font-weight: 700;
   color: var(--app-text-heading);
   line-height: 1.1;
-  letter-spacing: -0.01em;
+  letter-spacing: -0.02em;
 }
 
 .coa-stat-label {
-  font-size: 0.75rem;
+  font-size: 0.6875rem;
   color: var(--app-text-muted);
-  text-transform: none;
-  letter-spacing: normal;
-  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  font-weight: 600;
   line-height: 1.25;
-}
-
-.coa-stat--active .coa-stat-icon {
-  color: #16a34a;
-  background: rgba(34, 197, 94, 0.12);
 }
 
 .coa-stat--active .coa-stat-value {
   color: #16a34a;
-}
-
-.coa-stat--inactive .coa-stat-icon {
-  color: var(--app-text-muted);
-  background: var(--app-surface-muted);
 }
 
 .coa-stat--inactive .coa-stat-value {
@@ -673,6 +641,9 @@
   align-items: center;
   gap: 0.65rem;
   margin-left: 0;
+  margin-top: 0.15rem;
+  padding-top: 0.65rem;
+  border-top: 1px solid var(--app-border);
   justify-content: flex-end;
 }
 
@@ -1163,10 +1134,23 @@
 
   .coa-stats {
     grid-template-columns: 1fr;
+    gap: 0.55rem;
+    padding: 0.75rem 1rem;
+  }
+
+  .coa-stat {
+    padding: 0.35rem 0;
+    border-right: none;
+    border-bottom: 1px solid var(--app-border);
+  }
+
+  .coa-stat:last-child {
+    border-bottom: none;
+    padding-bottom: 0;
   }
 
   .coa-stat-value {
-    font-size: 1.125rem;
+    font-size: 1.25rem;
   }
 
   .coa-stats-actions {

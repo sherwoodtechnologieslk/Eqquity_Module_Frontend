@@ -5,15 +5,74 @@ import autoTable from 'jspdf-autotable';
 import * as XLSX from 'xlsx';
 import './Styles/CombinedGL.css';
 
+const SOURCE_FILTER_LABELS = {
+  all: 'All Ledgers',
+  equity: 'Equity Only',
+  gsec: 'GSec Only',
+};
+
+const getPeriodLabel = (filters, formatDate) => {
+  if (!filters.dateFrom && !filters.dateTo) return 'All dates';
+  return `${filters.dateFrom ? formatDate(filters.dateFrom) : 'Earliest'} – ${
+    filters.dateTo ? formatDate(filters.dateTo) : 'Latest'
+  }`;
+};
+
+const IconSearch = () => (
+  <svg className="cgl-icon" viewBox="0 0 20 20" fill="none" stroke="currentColor" aria-hidden="true">
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.75" d="M9 3.5a5.5 5.5 0 100 11 5.5 5.5 0 000-11z" />
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.75" d="M14 14l3.5 3.5" />
+  </svg>
+);
+
+const IconInfo = () => (
+  <svg className="cgl-icon" viewBox="0 0 20 20" fill="none" stroke="currentColor" aria-hidden="true">
+    <circle cx="10" cy="10" r="7.5" strokeWidth="1.5" />
+    <path strokeLinecap="round" strokeWidth="1.5" d="M10 9v4M10 7h.01" />
+  </svg>
+);
+
+const IconCheck = () => (
+  <svg className="cgl-status-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true">
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
+  </svg>
+);
+
+const IconAlert = () => (
+  <svg className="cgl-status-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true">
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v4M12 17h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" />
+  </svg>
+);
+
+const IconPdf = () => (
+  <svg className="cgl-icon" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+    <path fillRule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm8 0v3a1 1 0 01-1 1H9a1 1 0 01-1-1V4h4z" clipRule="evenodd" />
+  </svg>
+);
+
+const IconExcel = () => (
+  <svg className="cgl-icon" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+    <path fillRule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm4 3v2h2V7H8zm2 4H8v2h2v-2zm4-4h-2v2h2V7zm-2 4h2v2h-2v-2z" clipRule="evenodd" />
+  </svg>
+);
+
+const IconSpinner = () => (
+  <svg className="cgl-spinner" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+    <circle cx="12" cy="12" r="9" stroke="currentColor" strokeWidth="2.5" opacity="0.2" />
+    <path d="M21 12a9 9 0 00-9-9" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" />
+  </svg>
+);
+
 const CombinedGL = ({ onTabChange }) => {
   const [equityEntries, setEquityEntries] = useState([]);
   const [gsecEntries, setGsecEntries] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
+  const [loadError, setLoadError] = useState('');
+  const [actionMessage, setActionMessage] = useState('');
   const [exporting, setExporting] = useState(false);
 
   const [filters, setFilters] = useState({
-    source: 'all', // all | equity | gsec
+    source: 'all',
     account_code: '',
     dateFrom: '',
     dateTo: '',
@@ -25,7 +84,7 @@ const CombinedGL = ({ onTabChange }) => {
   const fetchData = async () => {
     try {
       setLoading(true);
-      setError('');
+      setLoadError('');
 
       const [equityData, gsecData] = await Promise.all([
         generalLedgerAPI.getAllEntries(null),
@@ -36,7 +95,7 @@ const CombinedGL = ({ onTabChange }) => {
       setGsecEntries(Array.isArray(gsecData) ? gsecData : []);
     } catch (err) {
       console.error('Error fetching combined GL data:', err);
-      setError(err.message || 'Failed to fetch combined general ledger data');
+      setLoadError(err.message || 'Failed to fetch combined general ledger data');
     } finally {
       setLoading(false);
     }
@@ -50,7 +109,7 @@ const CombinedGL = ({ onTabChange }) => {
     if (!value) return '';
     const d = new Date(value);
     if (Number.isNaN(d.getTime())) return '';
-    return d.toISOString().slice(0, 10); // YYYY-MM-DD
+    return d.toISOString().slice(0, 10);
   };
 
   const handleFilterChange = (e) => {
@@ -142,6 +201,7 @@ const CombinedGL = ({ onTabChange }) => {
   const totalDebits = filteredEntries.reduce((sum, e) => sum + (e.debit || 0), 0);
   const totalCredits = filteredEntries.reduce((sum, e) => sum + (e.credit || 0), 0);
   const netBalance = totalCredits - totalDebits;
+  const isBalanced = Math.abs(netBalance) < 0.01;
 
   const indexOfLast = currentPage * entriesPerPage;
   const indexOfFirst = indexOfLast - entriesPerPage;
@@ -157,6 +217,15 @@ const CombinedGL = ({ onTabChange }) => {
     }).format(n);
   };
 
+  const formatLedgerAmount = (amount) => {
+    const n = Number(amount) || 0;
+    const formatted = new Intl.NumberFormat('en-LK', {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    }).format(n);
+    return `LKR ${formatted}`;
+  };
+
   const formatDateDisplay = (value) => {
     if (!value) return '';
     const d = new Date(value);
@@ -169,9 +238,11 @@ const CombinedGL = ({ onTabChange }) => {
     return new Intl.NumberFormat('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(n);
   };
 
+  const periodLabel = getPeriodLabel(filters, formatDateDisplay);
+
   const handleExportPdf = async () => {
     setExporting(true);
-    setError('');
+    setActionMessage('');
     try {
       const doc = new jsPDF('p', 'pt', 'a4');
       const stamp = new Date().toISOString().slice(0, 10);
@@ -225,13 +296,13 @@ const CombinedGL = ({ onTabChange }) => {
         styles: { fontSize: 8, cellPadding: 3, valign: 'middle' },
         headStyles: { fillColor: [15, 23, 42], textColor: [255, 255, 255], fontStyle: 'bold' },
         alternateRowStyles: { fillColor: [248, 250, 252] },
-        margin: { left: 40, right: 40 }
+        margin: { left: 40, right: 40 },
       });
 
       doc.save(`combined-general-ledger-${stamp}.pdf`);
     } catch (err) {
       console.error('Failed to export combined GL PDF:', err);
-      setError('Failed to export combined general ledger PDF: ' + (err.message || 'Unknown error'));
+      setActionMessage('Failed to export PDF: ' + (err.message || 'Unknown error'));
     } finally {
       setExporting(false);
     }
@@ -239,7 +310,7 @@ const CombinedGL = ({ onTabChange }) => {
 
   const handleExportExcel = async () => {
     setExporting(true);
-    setError('');
+    setActionMessage('');
     try {
       const stamp = new Date().toISOString().slice(0, 10);
 
@@ -258,19 +329,18 @@ const CombinedGL = ({ onTabChange }) => {
       }));
 
       const ws = XLSX.utils.json_to_sheet(data);
-      // Optional: set column widths for readability
       ws['!cols'] = [
-        { wch: 12 }, // Date
-        { wch: 18 }, // AccountCode
-        { wch: 28 }, // AccountName
-        { wch: 40 }, // Description
-        { wch: 18 }, // Reference
-        { wch: 14 }, // Debit
-        { wch: 14 }, // Credit
-        { wch: 14 }, // Balance
-        { wch: 16 }, // Type
-        { wch: 12 }, // Status
-        { wch: 10 }, // Sources
+        { wch: 12 },
+        { wch: 18 },
+        { wch: 28 },
+        { wch: 40 },
+        { wch: 18 },
+        { wch: 14 },
+        { wch: 14 },
+        { wch: 14 },
+        { wch: 16 },
+        { wch: 12 },
+        { wch: 10 },
       ];
 
       const wb = XLSX.utils.book_new();
@@ -278,27 +348,39 @@ const CombinedGL = ({ onTabChange }) => {
       XLSX.writeFile(wb, `combined-general-ledger-${stamp}.xlsx`);
     } catch (err) {
       console.error('Failed to export combined GL Excel:', err);
-      setError('Failed to export combined general ledger Excel: ' + (err.message || 'Unknown error'));
+      setActionMessage('Failed to export Excel: ' + (err.message || 'Unknown error'));
     } finally {
       setExporting(false);
+    }
+  };
+
+  const handleSourceNavigate = (entry) => {
+    if (!onTabChange) return;
+    if (entry.source === 'Equity') {
+      onTabChange('General Ledger');
+    } else if (entry.source === 'GSec') {
+      onTabChange('GSec General Ledger');
     }
   };
 
   if (loading) {
     return (
       <div className="cgl-page-container">
-        <div className="cgl-loading">Loading Combined General Ledger...</div>
+        <div className="cgl-loading-state">
+          <IconSpinner />
+          <p>Loading Combined General Ledger…</p>
+        </div>
       </div>
     );
   }
 
-  if (error) {
+  if (loadError) {
     return (
       <div className="cgl-page-container">
-        <div className="cgl-error">
-          <div className="cgl-error-title">Error loading Combined General Ledger</div>
-          <div className="cgl-error-message">{error}</div>
-          <button className="cgl-retry-btn" onClick={fetchData}>
+        <div className="cgl-error-state">
+          <p className="cgl-error-state__title">Unable to load Combined General Ledger</p>
+          <p className="cgl-error-state__text">{loadError}</p>
+          <button type="button" className="cgl-btn cgl-btn--primary" onClick={fetchData}>
             Retry
           </button>
         </div>
@@ -309,244 +391,306 @@ const CombinedGL = ({ onTabChange }) => {
   return (
     <div className="cgl-page-container">
       <div className="cgl-content-wrapper">
-        {/* Header */}
-        <div className="cgl-header-section">
-          <div className="cgl-header-text-group">
+        <header className="cgl-masthead">
+          <div className="cgl-masthead__primary">
+            <p className="cgl-eyebrow">Financial Reporting</p>
             <h1 className="cgl-main-title">Combined General Ledger</h1>
             <p className="cgl-subtitle">
-              Unified view of Equity and GSec ledger entries in a single screen.
+              Unified line-level view of Equity and GSec ledger entries with filtering, export, and source navigation.
             </p>
           </div>
-        </div>
-
-        {/* Filters & search */}
-        <div className="cgl-filters-card">
-          <div className="cgl-card-header">
-            <h2 className="cgl-card-title">Filters & Search</h2>
+          <div className="cgl-masthead__meta">
+            <div className="cgl-meta-chip">
+              <span className="cgl-meta-chip__label">Reporting Period</span>
+              <span className="cgl-meta-chip__value">{periodLabel}</span>
+            </div>
+            <div className="cgl-meta-chip">
+              <span className="cgl-meta-chip__label">Ledger Scope</span>
+              <span className="cgl-meta-chip__value">{SOURCE_FILTER_LABELS[filters.source] || 'All Ledgers'}</span>
+            </div>
+            <div className="cgl-meta-chip">
+              <span className="cgl-meta-chip__label">Entries</span>
+              <span className="cgl-meta-chip__value">{filteredEntries.length.toLocaleString()}</span>
+            </div>
           </div>
-          <div className="cgl-filters-content">
-            <div className="cgl-search-section">
+        </header>
+
+        <section className="cgl-toolbar" aria-label="Ledger filters">
+          <div className="cgl-toolbar__row cgl-toolbar__row--primary">
+            <div className="cgl-field">
+              <label className="cgl-field__label" htmlFor="cgl-source">Ledger Source</label>
+              <select
+                id="cgl-source"
+                name="source"
+                value={filters.source}
+                onChange={handleFilterChange}
+                className="cgl-field__select"
+              >
+                <option value="all">All Ledgers</option>
+                <option value="equity">Equity Only</option>
+                <option value="gsec">GSec Only</option>
+              </select>
+            </div>
+
+            <div className="cgl-field">
+              <label className="cgl-field__label" htmlFor="cgl-account">Account Code</label>
               <input
+                id="cgl-account"
                 type="text"
-                placeholder="Search by account code, name, description, reference or source..."
-                value={searchTerm}
-                onChange={(e) => {
-                  setSearchTerm(e.target.value);
-                  setCurrentPage(1);
-                }}
-                className="cgl-search-input"
+                name="account_code"
+                value={filters.account_code}
+                onChange={handleFilterChange}
+                className="cgl-field__input"
+                placeholder="Filter by code"
               />
             </div>
 
-            <div className="cgl-filters-grid">
-              <div className="cgl-filter-group">
-                <label className="cgl-filter-label">Source</label>
-                <select
-                  name="source"
-                  value={filters.source}
-                  onChange={handleFilterChange}
-                  className="cgl-filter-select"
-                >
-                  <option value="all">All</option>
-                  <option value="equity">Equity Only</option>
-                  <option value="gsec">GSec Only</option>
-                </select>
-              </div>
+            <div className="cgl-field">
+              <label className="cgl-field__label" htmlFor="cgl-date-from">Date From</label>
+              <input
+                id="cgl-date-from"
+                type="date"
+                name="dateFrom"
+                value={filters.dateFrom}
+                onChange={handleFilterChange}
+                className="cgl-field__input"
+              />
+            </div>
 
-              <div className="cgl-filter-group">
-                <label className="cgl-filter-label">Account Code</label>
+            <div className="cgl-field">
+              <label className="cgl-field__label" htmlFor="cgl-date-to">Date To</label>
+              <input
+                id="cgl-date-to"
+                type="date"
+                name="dateTo"
+                value={filters.dateTo}
+                onChange={handleFilterChange}
+                className="cgl-field__input"
+              />
+            </div>
+          </div>
+
+          <div className="cgl-toolbar__row cgl-toolbar__row--secondary">
+            <div className="cgl-field cgl-field--search">
+              <label className="cgl-field__label" htmlFor="cgl-search">Search</label>
+              <div className="cgl-search-wrap">
+                <span className="cgl-search-icon" aria-hidden="true"><IconSearch /></span>
                 <input
-                  type="text"
-                  name="account_code"
-                  value={filters.account_code}
-                  onChange={handleFilterChange}
-                  className="cgl-filter-input"
-                  placeholder="Enter account code"
+                  id="cgl-search"
+                  type="search"
+                  className="cgl-field__input"
+                  placeholder="Account code, name, description, reference, or source…"
+                  value={searchTerm}
+                  onChange={(e) => {
+                    setSearchTerm(e.target.value);
+                    setCurrentPage(1);
+                  }}
                 />
               </div>
+            </div>
+            <div className="cgl-toolbar__actions">
+              <button type="button" className="cgl-btn cgl-btn--ghost" onClick={clearFilters}>
+                Clear
+              </button>
+            </div>
+          </div>
+        </section>
 
-              <div className="cgl-filter-group">
-                <label className="cgl-filter-label">Date From</label>
-                <input
-                  type="date"
-                  name="dateFrom"
-                  value={filters.dateFrom}
-                  onChange={handleFilterChange}
-                  className="cgl-filter-input"
-                />
-              </div>
-
-              <div className="cgl-filter-group">
-                <label className="cgl-filter-label">Date To</label>
-                <input
-                  type="date"
-                  name="dateTo"
-                  value={filters.dateTo}
-                  onChange={handleFilterChange}
-                  className="cgl-filter-input"
-                />
-              </div>
-
-              <div className="cgl-filter-group">
-                <button type="button" className="cgl-clear-filters-btn" onClick={clearFilters}>
-                  Clear Filters
-                </button>
-              </div>
+        <div
+          className={`cgl-status-banner ${isBalanced ? 'cgl-status-banner--balanced' : 'cgl-status-banner--unbalanced'}`}
+          role="status"
+        >
+          <div className="cgl-status-banner__lead">
+            <span
+              className={`cgl-status-banner__indicator ${isBalanced ? 'cgl-status-banner__indicator--ok' : 'cgl-status-banner__indicator--warn'}`}
+              aria-hidden="true"
+            >
+              {isBalanced ? <IconCheck /> : <IconAlert />}
+            </span>
+            <div>
+              <p className="cgl-status-banner__title">
+                {isBalanced ? 'Ledger Totals Reconciled' : 'Ledger Totals Out of Balance'}
+              </p>
+              <p className="cgl-status-banner__text">
+                {isBalanced
+                  ? 'Total debits and credits agree for the current filter selection.'
+                  : 'Filtered debits and credits do not reconcile. Review underlying entries.'}
+              </p>
+            </div>
+          </div>
+          <div className="cgl-status-banner__metrics">
+            <div className="cgl-metric">
+              <span className="cgl-metric__label">Total Entries</span>
+              <span className="cgl-metric__value">{filteredEntries.length.toLocaleString()}</span>
+            </div>
+            <div className="cgl-metric">
+              <span className="cgl-metric__label">Total Debits</span>
+              <span className="cgl-metric__value cgl-amount cgl-amount--debit">{formatCurrency(totalDebits)}</span>
+            </div>
+            <div className="cgl-metric">
+              <span className="cgl-metric__label">Total Credits</span>
+              <span className="cgl-metric__value cgl-amount cgl-amount--credit">{formatCurrency(totalCredits)}</span>
+            </div>
+            <div className="cgl-metric">
+              <span className="cgl-metric__label">Net Difference</span>
+              <span className={`cgl-metric__value cgl-amount ${netBalance >= 0 ? 'cgl-amount--credit' : 'cgl-amount--debit'}`}>
+                {formatCurrency(Math.abs(netBalance))}
+              </span>
+            </div>
+            <div className="cgl-metric">
+              <span className="cgl-metric__label">Status</span>
+              <span className={`cgl-metric__value ${isBalanced ? 'cgl-status-pill--ok' : 'cgl-status-pill--warn'}`}>
+                {isBalanced ? 'Balanced' : 'Out of Balance'}
+              </span>
             </div>
           </div>
         </div>
 
-        {/* Summary stats */}
-        <div className="cgl-summary-stats">
-          <div className="cgl-stat-card">
-            <div className="cgl-stat-value">{filteredEntries.length}</div>
-            <div className="cgl-stat-label">Total Entries</div>
-          </div>
-          <div className="cgl-stat-card">
-            <div className="cgl-stat-value debit">{formatCurrency(totalDebits)}</div>
-            <div className="cgl-stat-label">Total Debits</div>
-          </div>
-          <div className="cgl-stat-card">
-            <div className="cgl-stat-value credit">{formatCurrency(totalCredits)}</div>
-            <div className="cgl-stat-label">Total Credits</div>
-          </div>
-          <div className="cgl-stat-card">
-            <div className={`cgl-stat-value ${netBalance >= 0 ? 'positive' : 'negative'}`}>
-              {formatCurrency(Math.abs(netBalance))}
+        <section className="cgl-report" aria-label="Combined General Ledger report">
+          <div className="cgl-report__header">
+            <div className="cgl-report__heading">
+              <h2 className="cgl-report__title">Ledger Entries</h2>
+              <p className="cgl-report__meta">
+                {periodLabel} · {SOURCE_FILTER_LABELS[filters.source] || 'All Ledgers'} ·{' '}
+                {filteredEntries.length.toLocaleString()} records
+                {totalPages > 1 ? ` · Page ${currentPage} of ${totalPages}` : ''}
+              </p>
             </div>
-            <div className="cgl-stat-label">Net Balance</div>
-          </div>
-        </div>
-
-        {/* Table */}
-        <div className="cgl-table-card">
-          <div className="cgl-card-header cgl-table-header">
-            <h2 className="cgl-card-title">
-              Combined Ledger Entries ({filteredEntries.length} records)
-            </h2>
-            <div className="cgl-header-actions">
+            <div className="cgl-report__actions">
               <button
                 type="button"
-                className="cgl-export-btn"
+                className="cgl-btn cgl-btn--export"
                 onClick={handleExportPdf}
                 disabled={exporting || filteredEntries.length === 0}
                 title="Export current filtered ledger to PDF"
               >
-                {exporting ? 'Exporting…' : 'Export to PDF'}
+                {exporting ? <IconSpinner /> : <IconPdf />}
+                <span>{exporting ? 'Exporting…' : 'Export PDF'}</span>
               </button>
               <button
                 type="button"
-                className="cgl-export-btn"
+                className="cgl-btn cgl-btn--export"
                 onClick={handleExportExcel}
                 disabled={exporting || filteredEntries.length === 0}
                 title="Export current filtered ledger to Excel"
               >
-                {exporting ? 'Exporting…' : 'Export to Excel'}
+                {exporting ? <IconSpinner /> : <IconExcel />}
+                <span>{exporting ? 'Exporting…' : 'Export Excel'}</span>
               </button>
             </div>
           </div>
 
-          <div className="cgl-table-container">
+          {actionMessage && (
+            <div className="cgl-action-banner" role="alert">
+              {actionMessage}
+            </div>
+          )}
+
+          <div className="cgl-info-banner" role="note">
+            <span className="cgl-info-banner__icon" aria-hidden="true"><IconInfo /></span>
+            <p className="cgl-info-banner__text">
+              <strong>Source navigation:</strong> click an Equity or GSec badge in the Sources column to open the dedicated ledger screen.
+            </p>
+          </div>
+
+          <div className="cgl-table-wrap">
             {filteredEntries.length === 0 ? (
-              <div className="cgl-no-data">
-                No ledger entries found for the selected filters.
+              <div className="cgl-empty-state">
+                <p className="cgl-empty-state__title">No ledger entries found</p>
+                <p className="cgl-empty-state__text">Adjust your date range, ledger filter, account code, or search terms.</p>
               </div>
             ) : (
-              <>
-                <table className="cgl-ledger-table">
-                  <thead>
-                    <tr>
-                      <th>Date</th>
-                      <th>Account Code</th>
-                      <th>Account Name</th>
-                      <th>Description</th>
-                      <th>Reference</th>
-                      <th>Debit (LKR)</th>
-                      <th>Credit (LKR)</th>
-                      <th>Balance (LKR)</th>
-                      <th>Type</th>
-                      <th>Status</th>
-                      <th className="cgl-sources-header">Sources</th>
+              <table className="cgl-grid">
+                <thead>
+                  <tr>
+                    <th className="cgl-col-date">Date</th>
+                    <th className="cgl-col-code">Account Code</th>
+                    <th className="cgl-col-name">Account Name</th>
+                    <th className="cgl-col-desc">Description</th>
+                    <th className="cgl-col-ref">Reference</th>
+                    <th className="cgl-col-amount">Debit (LKR)</th>
+                    <th className="cgl-col-amount">Credit (LKR)</th>
+                    <th className="cgl-col-num">Balance (LKR)</th>
+                    <th className="cgl-col-type">Type</th>
+                    <th className="cgl-col-status">Status</th>
+                    <th className="cgl-col-sources">Source</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {currentEntries.map((entry, idx) => (
+                    <tr key={entry.id} className={idx % 2 === 1 ? 'cgl-grid__row--alt' : ''}>
+                      <td className="cgl-col-date">{formatDateDisplay(entry.date)}</td>
+                      <td className="cgl-col-code">
+                        <span className="cgl-code">{entry.account_code}</span>
+                      </td>
+                      <td className="cgl-col-name">{entry.account_name}</td>
+                      <td className="cgl-col-desc">{entry.description}</td>
+                      <td className="cgl-col-ref">{entry.reference}</td>
+                      <td className="cgl-col-amount">
+                        {entry.debit > 0 ? formatLedgerAmount(entry.debit) : '-'}
+                      </td>
+                      <td className="cgl-col-amount">
+                        {entry.credit > 0 ? formatLedgerAmount(entry.credit) : '-'}
+                      </td>
+                      <td className="cgl-col-num">
+                        <span className={`cgl-amount ${entry.balance >= 0 ? 'cgl-amount--debit' : 'cgl-amount--credit'}`}>
+                          {formatLedgerAmount(Math.abs(entry.balance))}
+                        </span>
+                      </td>
+                      <td className="cgl-col-type">{entry.transaction_type}</td>
+                      <td className="cgl-col-status">
+                        {entry.source === 'Equity' ? entry.status || '—' : 'GSec'}
+                      </td>
+                      <td className="cgl-col-sources">
+                        <button
+                          type="button"
+                          className="cgl-source-link"
+                          onClick={() => handleSourceNavigate(entry)}
+                          disabled={!onTabChange}
+                          title={onTabChange ? `Open ${entry.source} General Ledger` : undefined}
+                        >
+                          <span className="cgl-source-badge" data-source={entry.source}>
+                            {entry.source}
+                          </span>
+                        </button>
+                      </td>
                     </tr>
-                  </thead>
-                  <tbody>
-                    {currentEntries.map((entry) => (
-                      <tr key={entry.id}>
-                        <td className="cgl-date">{formatDateDisplay(entry.date)}</td>
-                        <td className="cgl-account-code">{entry.account_code}</td>
-                        <td className="cgl-account-name">{entry.account_name}</td>
-                        <td className="cgl-description">{entry.description}</td>
-                        <td className="cgl-reference">{entry.reference}</td>
-                        <td className="cgl-debit">
-                          {entry.debit > 0 ? formatCurrency(entry.debit) : '-'}
-                        </td>
-                        <td className="cgl-credit">
-                          {entry.credit > 0 ? formatCurrency(entry.credit) : '-'}
-                        </td>
-                        <td
-                          className={`cgl-balance ${
-                            entry.balance >= 0 ? 'positive' : 'negative'
-                          }`}
-                        >
-                          {formatCurrency(Math.abs(entry.balance))}
-                        </td>
-                        <td className="cgl-type">{entry.transaction_type}</td>
-                        <td className="cgl-status">
-                          {entry.source === 'Equity' ? entry.status || '-' : 'GSec'}
-                        </td>
-                        <td
-                          className="cgl-sources-cell"
-                          onClick={() => {
-                            if (!onTabChange) return;
-                            if (entry.source === 'Equity') {
-                              onTabChange('General Ledger');
-                            } else if (entry.source === 'GSec') {
-                              onTabChange('GSec General Ledger');
-                            }
-                          }}
-                        >
-                          <div className="cgl-sources-pills">
-                            <span className="cgl-source" data-source={entry.source}>
-                              {entry.source}
-                            </span>
-                          </div>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-
-                {totalPages > 1 && (
-                  <div className="cgl-pagination">
-                    <button
-                      type="button"
-                      onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
-                      disabled={currentPage === 1}
-                      className="cgl-pagination-btn"
-                    >
-                      Previous
-                    </button>
-                    <div className="cgl-page-info">
-                      Page {currentPage} of {totalPages}
-                    </div>
-                    <button
-                      type="button"
-                      onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
-                      disabled={currentPage === totalPages}
-                      className="cgl-pagination-btn"
-                    >
-                      Next
-                    </button>
-                  </div>
-                )}
-              </>
+                  ))}
+                </tbody>
+              </table>
             )}
           </div>
-        </div>
+
+          {filteredEntries.length > 0 && totalPages > 1 && (
+            <div className="cgl-pagination">
+              <button
+                type="button"
+                onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+                disabled={currentPage === 1}
+                className="cgl-btn cgl-btn--secondary cgl-pagination__btn"
+              >
+                Previous
+              </button>
+              <div className="cgl-pagination__info">
+                Page {currentPage} of {totalPages}
+                <span className="cgl-pagination__count">
+                  Showing {indexOfFirst + 1}–{Math.min(indexOfLast, filteredEntries.length)} of {filteredEntries.length}
+                </span>
+              </div>
+              <button
+                type="button"
+                onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
+                disabled={currentPage === totalPages}
+                className="cgl-btn cgl-btn--secondary cgl-pagination__btn"
+              >
+                Next
+              </button>
+            </div>
+          )}
+        </section>
       </div>
     </div>
   );
 };
 
 export default CombinedGL;
-

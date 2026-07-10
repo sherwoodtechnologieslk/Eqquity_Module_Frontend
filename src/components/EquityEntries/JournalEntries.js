@@ -1,5 +1,4 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import '../AccountingEntries/Styles/CombinedTrialBalance.css';
 import './Styles/JournalEntries.css';
 
 const PAGE_SIZE = 250;
@@ -272,19 +271,19 @@ const JournalEntries = ({ onTabChange }) => {
 
   if (isLoading && entries.length === 0) {
     return (
-      <div className="ctb-page-container">
-        <div className="ctb-loading">Loading Journal Entries...</div>
+      <div className="je-page-container">
+        <div className="je-loading">Loading Journal Entries...</div>
       </div>
     );
   }
 
   return (
-    <div className="ctb-page-container je-page">
-      <div className="ctb-content-wrapper">
-        <div className="ctb-header-section je-header">
-          <div className="ctb-header-text-group">
-            <h1 className="ctb-main-title">Journal Entries</h1>
-            <p className="ctb-subtitle">
+    <div className="je-page-container">
+      <div className="je-content-wrapper">
+        <div className="je-header">
+          <div className="je-header__text">
+            <h1 className="je-main-title">Journal Entries</h1>
+            <p className="je-subtitle">
               Browse and filter general ledger journal lines posted from trades, corporate actions,
               and manual entries.
             </p>
@@ -300,13 +299,13 @@ const JournalEntries = ({ onTabChange }) => {
           </div>
         </div>
 
-        <div className="ctb-filters-card je-filters-card">
-          <div className="ctb-filters-content">
-            <div className="ctb-filters-grid je-filters-grid">
-              <div className="ctb-filter-group">
-                <label className="ctb-filter-label">Portfolio</label>
+        <div className="je-filters-card">
+          <div className="je-filters-content">
+            <div className="je-filters-grid">
+              <div className="je-filter-group">
+                <label className="je-filter-label">Portfolio</label>
                 <select
-                  className="ctb-filter-select"
+                  className="je-filter-select"
                   value={filters.portfolio}
                   onChange={(e) => handleFilterChange({ portfolio: e.target.value })}
                 >
@@ -322,10 +321,10 @@ const JournalEntries = ({ onTabChange }) => {
                 </select>
               </div>
 
-              <div className="ctb-filter-group">
-                <label className="ctb-filter-label">Status</label>
+              <div className="je-filter-group">
+                <label className="je-filter-label">Status</label>
                 <select
-                  className="ctb-filter-select"
+                  className="je-filter-select"
                   value={filters.status}
                   onChange={(e) => handleFilterChange({ status: e.target.value })}
                 >
@@ -336,10 +335,10 @@ const JournalEntries = ({ onTabChange }) => {
                 </select>
               </div>
 
-              <div className="ctb-filter-group">
-                <label className="ctb-filter-label">Transaction Type</label>
+              <div className="je-filter-group">
+                <label className="je-filter-label">Transaction Type</label>
                 <select
-                  className="ctb-filter-select"
+                  className="je-filter-select"
                   value={filters.transactionType}
                   onChange={(e) => handleFilterChange({ transactionType: e.target.value })}
                 >
@@ -351,30 +350,30 @@ const JournalEntries = ({ onTabChange }) => {
                 </select>
               </div>
 
-              <div className="ctb-filter-group">
-                <label className="ctb-filter-label">From Date</label>
+              <div className="je-filter-group">
+                <label className="je-filter-label">From Date</label>
                 <input
                   type="date"
                   lang="en-US"
-                  className="ctb-filter-input"
+                  className="je-filter-input"
                   value={filters.dateFrom}
                   onChange={(e) => handleFilterChange({ dateFrom: e.target.value })}
                 />
               </div>
 
-              <div className="ctb-filter-group">
-                <label className="ctb-filter-label">To Date</label>
+              <div className="je-filter-group">
+                <label className="je-filter-label">To Date</label>
                 <input
                   type="date"
                   lang="en-US"
-                  className="ctb-filter-input"
+                  className="je-filter-input"
                   value={filters.dateTo}
                   onChange={(e) => handleFilterChange({ dateTo: e.target.value })}
                 />
               </div>
 
-              <div className="ctb-filter-group ctb-filter-actions">
-                <button type="button" className="ctb-clear-btn" onClick={clearFilters}>
+              <div className="je-filter-group je-filter-actions">
+                <button type="button" className="je-clear-btn" onClick={clearFilters}>
                   Clear
                 </button>
               </div>
@@ -388,13 +387,18 @@ const JournalEntries = ({ onTabChange }) => {
           {isLoading && <span className="je-summary-loading"> · Loading…</span>}
         </div>
 
-        <div className={`ctb-table-card je-table-card${isLoading ? ' je-table-card--loading' : ''}`}>
-          <div className="ctb-card-header ctb-table-header">
-            <h2 className="ctb-card-title">Journal Entries ({totalEntries})</h2>
+        <div className={`je-table-card${isLoading ? ' je-table-card--loading' : ''}`}>
+          <div className="je-table-header">
+            <div className="je-table-header__heading">
+              <h2 className="je-card-title">
+                Journal Entries
+                <span className="je-card-count">({totalEntries})</span>
+              </h2>
+            </div>
           </div>
 
           <div className="je-table-scroll">
-            <table className="ctb-data-table je-table">
+            <table className="je-table">
               <thead>
                 <tr>
                   <th className="je-col-date">Date</th>
@@ -412,7 +416,7 @@ const JournalEntries = ({ onTabChange }) => {
               <tbody>
                 {!isLoading && entries.length === 0 ? (
                   <tr>
-                    <td colSpan="10" className="ctb-no-data">
+                    <td colSpan="10" className="je-no-data">
                       No journal entries found for the selected filters.
                     </td>
                   </tr>
@@ -420,7 +424,7 @@ const JournalEntries = ({ onTabChange }) => {
                   entries.map((entry) => (
                     <tr key={entry.id}>
                       <td className="je-col-date">{formatDate(entry.date)}</td>
-                      <td className="je-col-code ctb-account-code" title={entry.account_code || ''}>
+                      <td className="je-col-code je-account-code" title={entry.account_code || ''}>
                         {entry.account_code || '—'}
                       </td>
                       <td className="je-col-name">{entry.account_name || '—'}</td>
@@ -444,10 +448,10 @@ const JournalEntries = ({ onTabChange }) => {
                           '—'
                         )}
                       </td>
-                      <td className="je-col-amount ctb-debit">
+                      <td className="je-col-amount je-debit">
                         {Number(entry.debit) > 0 ? formatCurrency(entry.debit) : '—'}
                       </td>
-                      <td className="je-col-amount ctb-credit">
+                      <td className="je-col-amount je-credit">
                         {Number(entry.credit) > 0 ? formatCurrency(entry.credit) : '—'}
                       </td>
                       <td className="je-col-amount je-balance">{formatCurrency(entry.balance)}</td>
