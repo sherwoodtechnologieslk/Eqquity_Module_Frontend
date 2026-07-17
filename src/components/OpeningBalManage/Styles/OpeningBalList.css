@@ -755,6 +755,27 @@
   font-size: 0.9rem;
 }
 
+/* Balance Sheet tab: tone down the blue used elsewhere in the list */
+.opening-bs-grid .opening-bal-list-table thead {
+  background: #f1f5f9;
+  color: #475569;
+}
+
+.opening-bs-grid .opening-bal-list-table th {
+  font-size: 0.75rem;
+  padding: 0.65rem 1rem;
+}
+
+.opening-bs-grid .opening-bal-list-table td {
+  padding: 0.65rem 1rem;
+}
+
+.opening-bs-grid .debit-amount,
+.opening-bs-grid .credit-amount {
+  color: #334155;
+  font-weight: 500;
+}
+
 /* Table Summary */
 .table-summary {
   padding: 1rem 2rem;

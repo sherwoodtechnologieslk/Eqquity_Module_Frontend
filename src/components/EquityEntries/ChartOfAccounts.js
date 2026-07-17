@@ -30,19 +30,11 @@ const ChartOfAccounts = () => {
       active_status: 'Yes'
     },
     {
-      account_code: '301-101-555-001-44',
-      description: 'Capital Gains',
-      account_type: 'Revenue',
+      account_code: '467-101-190-001-44',
+      description: 'Capital Gains/Losses on Share Trading',
+      account_type: 'Other Income',
       account_category: 'Other Income',
       normal_balance: 'Credit',
-      active_status: 'Yes'
-    },
-    {
-      account_code: '601-101-555-001-44',
-      description: 'Capital Losses',
-      account_type: 'Expense',
-      account_category: 'Trading Expenses',
-      normal_balance: 'Debit',
       active_status: 'Yes'
     },
     {

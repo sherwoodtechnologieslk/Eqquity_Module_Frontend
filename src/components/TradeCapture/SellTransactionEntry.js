@@ -1109,9 +1109,19 @@ const SellTransactionEntry = ({ setFifoParams, setActiveTab }) => {
     
     try {
       console.log('Submitting sell transaction:', submitForm);
-      await transactionEntryAPI.saveSellTransaction(submitForm);
-      setShowSuccess(true);
-      setTimeout(() => setShowSuccess(false), 3000);
+      const result = await transactionEntryAPI.saveSellTransaction(submitForm);
+      if (result && (result.warning || result.accountingError) && !result.glPosted) {
+        alert(
+          `Sell transaction saved (ID: ${result.id || result.sellTransactionId}), but trade-date GL could NOT be posted.\n\nReason: ${result.accountingError || result.warning}\n\nGo to Trade Confirmation → Post Entries to post GL manually.`
+        );
+      } else if (result && result.glPosted === false && result.message) {
+        alert(`${result.message}\n\nGo to Trade Confirmation → Post Entries to post trade-date GL.`);
+      } else if (result && result.glPosted) {
+        alert(`Sell transaction saved and trade-date GL posted successfully (ID: ${result.id || result.sellTransactionId}).`);
+      } else {
+        setShowSuccess(true);
+        setTimeout(() => setShowSuccess(false), 3000);
+      }
       handleReset();
       // Generate new deal number for next transaction
       const newDealNumber = await generateSellDealNumber();

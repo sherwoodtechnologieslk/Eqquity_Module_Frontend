@@ -568,6 +568,7 @@ const TrialBalance = () => {
         onClose={handleCloseModal}
         accountCode={selectedAccountData?.accountCode}
         accountData={selectedAccountData}
+        softHeader
         onNavigateAccount={handleViewDetails}
       />
       </div>

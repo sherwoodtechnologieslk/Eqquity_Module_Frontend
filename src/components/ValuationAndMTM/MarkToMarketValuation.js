@@ -2540,8 +2540,15 @@ const MarkToMarketValuation = () => {
             {activeTab === 'overview' && (
               <div className="mtm-overview-content">
                 <div className="mtm-overview-header">
-                  <h3>Performance Analysis</h3>
-                  <span className="mtm-last-updated">Last updated: {lastUpdated.toLocaleTimeString()}</span>
+                  <div className="mtm-overview-header-text">
+                    <h3>Performance snapshot</h3>
+                    <p className="mtm-overview-header-desc">
+                      Leaders, laggards, and breadth across open positions
+                    </p>
+                  </div>
+                  <span className="mtm-last-updated">
+                    Updated {lastUpdated.toLocaleTimeString()}
+                  </span>
                 </div>
 
                 <div className="mtm-performance-grid">
@@ -2553,21 +2560,28 @@ const MarkToMarketValuation = () => {
                       disabled={!filteredMtmData.length || overviewMetrics.bestPerformer.symbol === 'N/A'}
                       aria-label={`View price analysis for best performer ${overviewMetrics.bestPerformer.symbol}`}
                     >
-                      <div className="mtm-performer-card__head">
-                        <span className="mtm-performer-card__title">Best Performer</span>
-                      </div>
-                      <div className="mtm-performer-card__body">
+                      <span className="mtm-performer-card__label">Best performer</span>
+                      <div className="mtm-performer-card__main">
                         <div className="mtm-performer-card__identity">
                           <div className="mtm-company-avatar mtm-company-avatar--best" aria-hidden="true">
                             {getCompanyInitials(overviewMetrics.bestPerformer)}
                           </div>
-                          <span className="mtm-performer-card__symbol">{overviewMetrics.bestPerformer.symbol}</span>
+                          <div className="mtm-performer-card__names">
+                            <span className="mtm-performer-card__symbol">
+                              {overviewMetrics.bestPerformer.symbol}
+                            </span>
+                            {overviewMetrics.bestPerformer.companyName ? (
+                              <span className="mtm-performer-card__company">
+                                {overviewMetrics.bestPerformer.companyName}
+                              </span>
+                            ) : null}
+                          </div>
                         </div>
                         <div className="mtm-performer-card__hero mtm-performer-card__hero--positive">
                           {formatMtmTrendPercentage(overviewMetrics.bestPerformer.gainLossPercentage)}
                         </div>
-                        <p className="mtm-performer-card__caption">Highest return today</p>
                       </div>
+                      <span className="mtm-performer-card__caption">Highest unrealized return · Open price analysis</span>
                     </button>
 
                     <button
@@ -2577,15 +2591,22 @@ const MarkToMarketValuation = () => {
                       disabled={!filteredMtmData.length || overviewMetrics.worstPerformer.symbol === 'N/A'}
                       aria-label={`View price analysis for worst performer ${overviewMetrics.worstPerformer.symbol}`}
                     >
-                      <div className="mtm-performer-card__head">
-                        <span className="mtm-performer-card__title">Worst Performer</span>
-                      </div>
-                      <div className="mtm-performer-card__body">
+                      <span className="mtm-performer-card__label">Worst performer</span>
+                      <div className="mtm-performer-card__main">
                         <div className="mtm-performer-card__identity">
                           <div className="mtm-company-avatar mtm-company-avatar--worst" aria-hidden="true">
                             {getCompanyInitials(overviewMetrics.worstPerformer)}
                           </div>
-                          <span className="mtm-performer-card__symbol">{overviewMetrics.worstPerformer.symbol}</span>
+                          <div className="mtm-performer-card__names">
+                            <span className="mtm-performer-card__symbol">
+                              {overviewMetrics.worstPerformer.symbol}
+                            </span>
+                            {overviewMetrics.worstPerformer.companyName ? (
+                              <span className="mtm-performer-card__company">
+                                {overviewMetrics.worstPerformer.companyName}
+                              </span>
+                            ) : null}
+                          </div>
                         </div>
                         <div
                           className={`mtm-performer-card__hero ${
@@ -2596,33 +2617,33 @@ const MarkToMarketValuation = () => {
                         >
                           {formatMtmTrendPercentage(overviewMetrics.worstPerformer.gainLossPercentage)}
                         </div>
-                        <p className="mtm-performer-card__caption">Largest decline today</p>
                       </div>
+                      <span className="mtm-performer-card__caption">Largest unrealized decline · Open price analysis</span>
                     </button>
                   </div>
 
-                  <div className="mtm-kpi-grid">
-                    <div className="mtm-kpi-card mtm-kpi-card--winners">
-                      <div className="mtm-kpi-card__icon" aria-hidden="true">↑</div>
+                  <div className="mtm-kpi-grid" role="list">
+                    <div className="mtm-kpi-card mtm-kpi-card--winners" role="listitem">
                       <div className="mtm-kpi-card__label">Winners</div>
                       <div className="mtm-kpi-card__value">{overviewMetrics.winners}</div>
                     </div>
 
-                    <div className="mtm-kpi-card mtm-kpi-card--losers">
-                      <div className="mtm-kpi-card__icon" aria-hidden="true">↓</div>
+                    <div className="mtm-kpi-card mtm-kpi-card--losers" role="listitem">
                       <div className="mtm-kpi-card__label">Losers</div>
                       <div className="mtm-kpi-card__value">{overviewMetrics.losers}</div>
                     </div>
 
-                    <div className="mtm-kpi-card mtm-kpi-card--win-rate">
-                      <div className="mtm-kpi-card__icon" aria-hidden="true">✓</div>
-                      <div className="mtm-kpi-card__label">Win Rate</div>
+                    <div className="mtm-kpi-card mtm-kpi-card--win-rate" role="listitem">
+                      <div className="mtm-kpi-card__label">Win rate</div>
                       <div className="mtm-kpi-card__value">{overviewMetrics.winRate.toFixed(0)}%</div>
                     </div>
 
-                    <div className="mtm-kpi-card mtm-kpi-card--avg-position" title={avgPositionFull}>
-                      <div className="mtm-kpi-card__icon" aria-hidden="true">₨</div>
-                      <div className="mtm-kpi-card__label">Average Position Size</div>
+                    <div
+                      className="mtm-kpi-card mtm-kpi-card--avg-position"
+                      role="listitem"
+                      title={avgPositionFull}
+                    >
+                      <div className="mtm-kpi-card__label">Avg. position</div>
                       <div className="mtm-kpi-card__value mtm-kpi-card__value--currency">
                         <span className="mtm-kpi-card__value-compact">{avgPositionCompact}</span>
                         <span className="mtm-kpi-card__value-split" aria-label={avgPositionFull}>
