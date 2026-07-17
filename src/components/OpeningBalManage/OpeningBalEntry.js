@@ -377,6 +377,7 @@ const OpeningBalEntry = () => {
     <div className="opening-bal-entry-container">
       <header className="opening-bal-page-header">
         <div className="opening-bal-header-section">
+          <span className="opening-bal-header-badge">OPENING</span>
           <div className="opening-bal-header-text-group">
             <h1 className="opening-bal-main-title">Opening Balance Entry</h1>
             <p className="opening-bal-subtitle">Record opening balances for general ledger accounts</p>

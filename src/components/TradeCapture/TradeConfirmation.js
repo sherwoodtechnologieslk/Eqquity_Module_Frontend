@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { parsedTradeTransactionAPI, equityAPI, portfolioAPI } from '../../services/api';
+import { parsedTradeTransactionAPI, equityAPI, portfolioAPI, transactionEntryAPI } from '../../services/api';
 import {
   getLatestDayTradeReportState,
   groupTransactionsByCompany,
@@ -13,22 +13,24 @@ import {
   calculateNetAmount,
   calculateReportTotals
 } from '../../utils/tradeReportExport';
+import {
+  txTradeDateYmd,
+  txSettlementDateYmd,
+} from '../../utils/tradeDateYmd';
 import UpdateBuyTransactionsModal from './UpdateBuyTransactionsModal';
 import UpdateSellTransactionsModal from './UpdateSellTransactionsModal';
+import PostParsedTradeModal from './PostParsedTradeModal';
 import './Styles/TradeConfirmation.css';
 import ExportPdfExcelButtons from '../FinancialReporting/ExportPdfExcelButtons';
 
-const toInputDateValue = (dateStr) => {
-  if (!dateStr) return '';
-  const s = String(dateStr).split('T')[0].trim();
-  if (/^\d{4}-\d{2}-\d{2}$/.test(s)) return s;
-  if (/^\d{4}\/\d{2}\/\d{2}$/.test(s)) return s.replace(/\//g, '-');
-  const slashParts = s.split('/');
-  if (slashParts.length === 3 && slashParts[0].length <= 2) {
-    const [day, month, year] = slashParts;
-    return `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
-  }
-  return s;
+const formatDisplayDate = (dateStr) => {
+  const normalized = txTradeDateYmd({ trade_date: dateStr }) || txSettlementDateYmd({ settlement_date: dateStr });
+  if (!normalized) return 'N/A';
+  return normalized.replace(/-/g, '/');
+};
+
+const isSettlementReady = (row) => {
+  return String(row?.settlement_status || '').toLowerCase() === 'ready';
 };
 
 const TradeConfirmation = () => {
@@ -49,6 +51,21 @@ const TradeConfirmation = () => {
   const [historicalGroupedData, setHistoricalGroupedData] = useState({ sales: {}, purchases: {} });
   const [historicalLoading, setHistoricalLoading] = useState(false);
   const [historicalError, setHistoricalError] = useState('');
+  const [pendingSettlementBuys, setPendingSettlementBuys] = useState([]);
+  const [pendingSettlementSells, setPendingSettlementSells] = useState([]);
+  const [pendingSettlementLoading, setPendingSettlementLoading] = useState(false);
+  const [pendingSettlementError, setPendingSettlementError] = useState('');
+  const [settlingBuyIds, setSettlingBuyIds] = useState([]);
+  const [settlingSellIds, setSettlingSellIds] = useState([]);
+  const [bulkSettling, setBulkSettling] = useState(false);
+  const [sessionSettledRows, setSessionSettledRows] = useState([]);
+  const [postEntryTransactions, setPostEntryTransactions] = useState([]);
+  const [postEntryLoading, setPostEntryLoading] = useState(false);
+  const [postEntryError, setPostEntryError] = useState('');
+  const [buyModalTransactions, setBuyModalTransactions] = useState([]);
+  const [sellModalTransactions, setSellModalTransactions] = useState([]);
+  const [showPostParsedModal, setShowPostParsedModal] = useState(false);
+  const [postParsedTransaction, setPostParsedTransaction] = useState(null);
 
   const fetchTransactions = useCallback(async () => {
     try {
@@ -99,6 +116,275 @@ const TradeConfirmation = () => {
     }
   }, [activeTab, fetchUnupdatedTransactions, showUpdateBuyModal, showUpdateSellModal]);
 
+  const fetchPostEntries = useCallback(async () => {
+    try {
+      setPostEntryLoading(true);
+      setPostEntryError('');
+      const data = await parsedTradeTransactionAPI.getUnupdatedParsedTransactions();
+      setPostEntryTransactions(data || []);
+    } catch (err) {
+      console.error('Error fetching post entries:', err);
+      setPostEntryError('Failed to fetch parsed trades pending save. Please try again.');
+      setPostEntryTransactions([]);
+    } finally {
+      setPostEntryLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (activeTab === 'post-entries') {
+      fetchPostEntries();
+    }
+  }, [activeTab, fetchPostEntries, showUpdateBuyModal, showUpdateSellModal, showPostParsedModal]);
+
+  const fetchPendingSettlements = useCallback(async () => {
+    try {
+      setPendingSettlementLoading(true);
+      setPendingSettlementError('');
+      let buys = [];
+      let sells = [];
+      const errors = [];
+
+      try {
+        buys = await transactionEntryAPI.getPendingSettlementBuys();
+      } catch (err) {
+        console.error('Error fetching pending buy settlements:', err);
+        errors.push('buys');
+      }
+
+      try {
+        sells = await transactionEntryAPI.getPendingSettlementSells();
+      } catch (err) {
+        console.error('Error fetching pending sell settlements:', err);
+        errors.push('sells');
+      }
+
+      setPendingSettlementBuys(buys || []);
+      setPendingSettlementSells(sells || []);
+
+      if (errors.length === 2) {
+        setPendingSettlementError('Failed to fetch pending settlements. Please try again.');
+      } else if (errors.length === 1) {
+        setPendingSettlementError(`Failed to fetch pending ${errors[0]}. ${errors[0] === 'buys' ? 'Sell' : 'Buy'} rows may still be shown.`);
+      }
+    } catch (err) {
+      console.error('Error fetching pending settlements:', err);
+      setPendingSettlementError('Failed to fetch pending settlements. Please try again.');
+      setPendingSettlementBuys([]);
+      setPendingSettlementSells([]);
+    } finally {
+      setPendingSettlementLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (activeTab === 'pending-settlement') {
+      fetchPendingSettlements();
+    } else {
+      setSessionSettledRows([]);
+    }
+  }, [activeTab, fetchPendingSettlements]);
+
+  const settlementRowKey = (side, id) => `${side}-${id}`;
+
+  const markSessionSettled = (side, row) => {
+    const key = settlementRowKey(side, row.id);
+    setSessionSettledRows((prev) => {
+      if (prev.some((item) => settlementRowKey(item.side, item.id) === key)) {
+        return prev;
+      }
+      return [
+        ...prev,
+        {
+          ...row,
+          side,
+          settlementAmount: side === 'buy'
+            ? row.settlement_payable_amount ?? row.settlementAmount
+            : row.settlement_receivable_amount ?? row.settlementAmount,
+          sessionSettled: true,
+        },
+      ];
+    });
+  };
+
+  const fetchEquitiesAndPortfolios = async () => {
+    try {
+      const [equitiesData, portfoliosData] = await Promise.all([
+        equityAPI.getAllEquities(),
+        portfolioAPI.getAllPortfolios()
+      ]);
+      setEquities(equitiesData);
+      setPortfolios(portfoliosData);
+    } catch (err) {
+      console.error('Error fetching equities/portfolios:', err);
+    }
+  };
+
+  const openBuyModal = (transactions) => {
+    setBuyModalTransactions(transactions || []);
+    setShowUpdateBuyModal(true);
+    fetchEquitiesAndPortfolios();
+  };
+
+  const openSellModal = (transactions) => {
+    setSellModalTransactions(transactions || []);
+    setShowUpdateSellModal(true);
+    fetchEquitiesAndPortfolios();
+  };
+
+  const handleCloseBuyModal = () => {
+    setShowUpdateBuyModal(false);
+    fetchUnupdatedTransactions();
+    fetchPostEntries();
+  };
+
+  const handleCloseSellModal = () => {
+    setShowUpdateSellModal(false);
+    fetchUnupdatedTransactions();
+    fetchPostEntries();
+  };
+
+  const handleUpdateBuyTransactions = () => {
+    const purchaseTransactions = (unupdatedTransactions || []).filter(
+      (t) => (t.buy_sell || '').toUpperCase() === 'B'
+    );
+    openBuyModal(purchaseTransactions);
+    fetchUnupdatedTransactions();
+  };
+
+  const handleUpdateSellTransactions = () => {
+    const sellTransactions = (unupdatedTransactions || []).filter(
+      (t) => (t.buy_sell || '').toUpperCase() === 'S'
+    );
+    openSellModal(sellTransactions);
+    fetchUnupdatedTransactions();
+  };
+
+  const openPostParsedModal = (transaction) => {
+    setPostParsedTransaction(transaction);
+    setShowPostParsedModal(true);
+    fetchEquitiesAndPortfolios();
+  };
+
+  const handleClosePostParsedModal = (didPost) => {
+    setShowPostParsedModal(false);
+    setPostParsedTransaction(null);
+    if (didPost) {
+      fetchPostEntries();
+      fetchUnupdatedTransactions();
+    }
+  };
+
+  const handlePostParsedEntry = (transaction) => {
+    openPostParsedModal(transaction);
+  };
+
+  const handlePostAllParsedEntries = () => {
+    if ((postEntryTransactions || []).length === 0) {
+      window.alert('No parsed trades are pending post.');
+      return;
+    }
+    window.alert('Please post transactions one at a time so portfolio and broker can be confirmed for each trade.');
+  };
+
+  const handleSettle = async (side, transactionId) => {
+    const sourceList = side === 'buy' ? pendingSettlementBuys : pendingSettlementSells;
+    const rowSnapshot = (sourceList || []).find((row) => row.id === transactionId);
+    const setSettlingIds = side === 'buy' ? setSettlingBuyIds : setSettlingSellIds;
+    setSettlingIds((prev) => [...prev, transactionId]);
+    try {
+      if (side === 'buy') {
+        await transactionEntryAPI.postBuySettlementGl(transactionId);
+      } else {
+        await transactionEntryAPI.postSellSettlementGl(transactionId);
+      }
+      if (rowSnapshot) {
+        markSessionSettled(side, rowSnapshot);
+      }
+      await fetchPendingSettlements();
+    } catch (err) {
+      console.error(`Error posting ${side} settlement GL:`, err);
+      const detail = err.settlementDate && err.serverToday
+        ? `\nSettlement: ${err.settlementDate}\nServer today: ${err.serverToday}`
+        : '';
+      window.alert((err.message || 'Failed to post settlement GL.') + detail);
+    } finally {
+      setSettlingIds((prev) => prev.filter((id) => id !== transactionId));
+    }
+  };
+
+  const handleSettleAllReady = async () => {
+    const readyQueue = [
+      ...(pendingSettlementBuys || [])
+        .filter((row) => isSettlementReady(row))
+        .map((row) => ({ side: 'buy', id: row.id, row })),
+      ...(pendingSettlementSells || [])
+        .filter((row) => isSettlementReady(row))
+        .map((row) => ({ side: 'sell', id: row.id, row })),
+    ];
+
+    if (readyQueue.length === 0) {
+      window.alert('No transactions are ready to settle today.');
+      return;
+    }
+
+    setBulkSettling(true);
+    const failures = [];
+
+    try {
+      for (const item of readyQueue) {
+        const setSettlingIds = item.side === 'buy' ? setSettlingBuyIds : setSettlingSellIds;
+        setSettlingIds((prev) => (prev.includes(item.id) ? prev : [...prev, item.id]));
+
+        try {
+          if (item.side === 'buy') {
+            await transactionEntryAPI.postBuySettlementGl(item.id);
+          } else {
+            await transactionEntryAPI.postSellSettlementGl(item.id);
+          }
+          markSessionSettled(item.side, item.row);
+        } catch (err) {
+          console.error(`Error settling ${item.side} #${item.id}:`, err);
+          const detail = err.settlementDate && err.serverToday
+            ? ` (settlement ${err.settlementDate}, server today ${err.serverToday})`
+            : '';
+          failures.push({
+            side: item.side,
+            id: item.id,
+            message: (err.message || 'Failed to post settlement GL') + detail,
+          });
+        } finally {
+          setSettlingIds((prev) => prev.filter((id) => id !== item.id));
+        }
+      }
+
+      await fetchPendingSettlements();
+      // After the full Settle All run, clear settled rows so they leave the table.
+      setSessionSettledRows([]);
+
+      if (failures.length > 0) {
+        const succeeded = readyQueue.length - failures.length;
+        const lines = failures
+          .slice(0, 8)
+          .map((f) => `${f.side.toUpperCase()} #${f.id}: ${f.message}`)
+          .join('\n');
+        const more = failures.length > 8 ? `\n…and ${failures.length - 8} more` : '';
+        window.alert(
+          `Settled ${succeeded} of ${readyQueue.length} ready transaction(s).\n\nFailed:\n${lines}${more}`
+        );
+      }
+    } catch (err) {
+      console.error('Error settling all ready transactions:', err);
+      window.alert(err.message || 'Failed to settle ready transactions.');
+      await fetchPendingSettlements();
+      setSessionSettledRows([]);
+    } finally {
+      setBulkSettling(false);
+      setSettlingBuyIds([]);
+      setSettlingSellIds([]);
+    }
+  };
+
   const fetchHistoricalReport = useCallback(async (date) => {
     if (!date) {
       setHistoricalGroupedData({ sales: {}, purchases: {} });
@@ -125,7 +411,7 @@ const TradeConfirmation = () => {
     if (activeTab !== 'by-date') return;
 
     if (!historicalSelectedDate && latestTradeDate) {
-      setHistoricalSelectedDate(toInputDateValue(latestTradeDate));
+      setHistoricalSelectedDate(txTradeDateYmd({ trade_date: latestTradeDate }) || '');
       return;
     }
 
@@ -363,9 +649,9 @@ const TradeConfirmation = () => {
               <h3>Trade Date: {date}</h3>
             </div>
             <div className="tc-table-container">
-              <table className="tc-unupdated-table">
+              <table className="tc-unupdated-table tc-to-be-updated-table">
                 <thead>
-                  <tr className="tc-table-header-row">
+                  <tr>
                     <th>Buy/Sell</th>
                     <th>Company</th>
                     <th>Quantity</th>
@@ -386,8 +672,8 @@ const TradeConfirmation = () => {
                       <td>{transaction.settlement_date || 'N/A'}</td>
                       <td className="tc-unupdated-reason">
                         {transaction.not_updated_reason || 'Not saved yet'}
-                          </td>
-                        </tr>
+                      </td>
+                    </tr>
                   ))}
                 </tbody>
               </table>
@@ -398,29 +684,255 @@ const TradeConfirmation = () => {
     );
   };
 
-  const fetchEquitiesAndPortfolios = async () => {
-    try {
-      const [equitiesData, portfoliosData] = await Promise.all([
-        equityAPI.getAllEquities(),
-        portfolioAPI.getAllPortfolios()
-      ]);
-      setEquities(equitiesData);
-      setPortfolios(portfoliosData);
-    } catch (err) {
-      console.error('Error fetching equities/portfolios:', err);
+  const renderPostEntries = () => {
+    if (postEntryLoading) {
+      return (
+        <div className="tc-loading">
+          <div className="tc-spinner"></div>
+          <p>Loading post entries...</p>
+        </div>
+      );
     }
+
+    if (postEntryError) {
+      return (
+        <div className="tc-error">
+          <h3>Error Loading Post Entries</h3>
+          <p>{postEntryError}</p>
+          <button onClick={fetchPostEntries} className="tc-retry-btn">Retry</button>
+        </div>
+      );
+    }
+
+    const entries = [...(postEntryTransactions || [])].sort((a, b) => {
+      const dateA = txTradeDateYmd(a) || '';
+      const dateB = txTradeDateYmd(b) || '';
+      if (dateA !== dateB) return dateB.localeCompare(dateA);
+      return (Number(b.id) || 0) - (Number(a.id) || 0);
+    });
+
+    if (entries.length === 0) {
+      return (
+        <div className="tc-no-data">
+          <p>No parsed trades are waiting to be posted.</p>
+        </div>
+      );
+    }
+
+    return (
+      <div className="tc-unupdated-list">
+        <div className="tc-unupdated-group">
+          <div className="tc-unupdated-header">
+            <h3>Post Entries</h3>
+            <div className="tc-pending-settlement-actions">
+              <span>{entries.length} parsed transaction{entries.length === 1 ? '' : 's'} not yet posted</span>
+              <button
+                type="button"
+                className="tc-settle-all-btn"
+                onClick={handlePostAllParsedEntries}
+                disabled={entries.length === 0}
+              >
+                {`Post All (${entries.length})`}
+              </button>
+            </div>
+          </div>
+          <div className="tc-table-container">
+            <table className="tc-unupdated-table tc-post-entries-table">
+              <thead>
+                <tr>
+                  <th>Buy/Sell</th>
+                  <th>Trade Date</th>
+                  <th>Company</th>
+                  <th>Quantity</th>
+                  <th>Price</th>
+                  <th>Execution ID</th>
+                  <th>Settlement Date</th>
+                  <th>Status</th>
+                  <th className="tc-col-action">Post</th>
+                </tr>
+              </thead>
+              <tbody>
+                {entries.map((row) => {
+                  const side = (row.buy_sell || '').toUpperCase();
+                  return (
+                    <tr key={row.id}>
+                      <td>{side === 'B' ? 'BUY' : side === 'S' ? 'SELL' : 'N/A'}</td>
+                      <td>{formatDisplayDate(row.trade_date)}</td>
+                      <td>{row.company_id || row.symbol || 'N/A'}</td>
+                      <td>{formatCurrency(row.quantity)}</td>
+                      <td>{formatCurrency(row.price)}</td>
+                      <td>{row.execution_id || 'N/A'}</td>
+                      <td>{formatDisplayDate(row.settlement_date)}</td>
+                      <td className="tc-unupdated-reason">{row.not_updated_reason || 'Not saved yet'}</td>
+                      <td className="tc-col-action">
+                        <button
+                          type="button"
+                          className="tc-post-entry-btn"
+                          onClick={() => handlePostParsedEntry(row)}
+                          disabled={showPostParsedModal}
+                        >
+                          Post
+                        </button>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    );
   };
 
-  const handleUpdateBuyTransactions = () => {
-    setShowUpdateBuyModal(true);
-    fetchEquitiesAndPortfolios();
-    fetchUnupdatedTransactions();
-  };
+  const renderPendingSettlement = () => {
+    if (pendingSettlementLoading) {
+      return (
+        <div className="tc-loading">
+          <div className="tc-spinner"></div>
+          <p>Loading pending settlements...</p>
+        </div>
+      );
+    }
 
-  const handleUpdateSellTransactions = () => {
-    setShowUpdateSellModal(true);
-    fetchEquitiesAndPortfolios();
-    fetchUnupdatedTransactions();
+    if (pendingSettlementError) {
+      return (
+        <div className="tc-error">
+          <h3>Error Loading Pending Settlement</h3>
+          <p>{pendingSettlementError}</p>
+          <button onClick={fetchPendingSettlements} className="tc-retry-btn">Retry</button>
+        </div>
+      );
+    }
+
+    const pendingRows = [
+      ...(pendingSettlementBuys || []).map((row) => ({
+        ...row,
+        side: 'buy',
+        settlementAmount: row.settlement_payable_amount,
+      })),
+      ...(pendingSettlementSells || []).map((row) => ({
+        ...row,
+        side: 'sell',
+        settlementAmount: row.settlement_receivable_amount,
+      })),
+    ];
+
+    const pendingKeys = new Set(
+      pendingRows.map((row) => settlementRowKey(row.side, row.id))
+    );
+
+    const settledOnlyRows = (sessionSettledRows || []).filter(
+      (row) => !pendingKeys.has(settlementRowKey(row.side, row.id))
+    );
+
+    const rows = [
+      ...pendingRows.map((row) => {
+        const settled = (sessionSettledRows || []).some(
+          (item) => settlementRowKey(item.side, item.id) === settlementRowKey(row.side, row.id)
+        );
+        return { ...row, sessionSettled: settled };
+      }),
+      ...settledOnlyRows,
+    ];
+
+    const readyCount = rows.filter((row) => !row.sessionSettled && isSettlementReady(row)).length;
+    const settledCount = rows.filter((row) => row.sessionSettled).length;
+
+    if (rows.length === 0) {
+      return (
+        <div className="tc-no-data">
+          <p>No buy or sell transactions awaiting bank settlement.</p>
+        </div>
+      );
+    }
+
+    return (
+      <div className="tc-unupdated-list">
+        <div className="tc-unupdated-group">
+          <div className="tc-unupdated-header">
+            <h3>Pending Settlement</h3>
+            <div className="tc-pending-settlement-actions">
+              <span>
+                {rows.length - settledCount} pending
+                {settledCount > 0 ? ` · ${settledCount} settled` : ''}
+              </span>
+              <button
+                type="button"
+                className="tc-settle-all-btn"
+                onClick={handleSettleAllReady}
+                disabled={bulkSettling || readyCount === 0}
+              >
+                {bulkSettling ? 'Settling...' : `Settle All Ready (${readyCount})`}
+              </button>
+            </div>
+          </div>
+          <div className="tc-table-container">
+            <table className="tc-unupdated-table tc-pending-settlement-table">
+              <thead>
+                <tr>
+                  <th>Buy/Sell</th>
+                  <th>Trade Date</th>
+                  <th>Settlement Date</th>
+                  <th>Company</th>
+                  <th>Quantity</th>
+                  <th>Settlement Amount</th>
+                  <th>Status</th>
+                  <th className="tc-col-action">Settle</th>
+                </tr>
+              </thead>
+              <tbody>
+                {rows.map((row) => {
+                  const isSettled = Boolean(row.sessionSettled);
+                  const isReady = !isSettled && isSettlementReady(row);
+                  const isSettling = row.side === 'buy'
+                    ? settlingBuyIds.includes(row.id)
+                    : settlingSellIds.includes(row.id);
+                  return (
+                    <tr
+                      key={`${row.side}-${row.id}`}
+                      className={isSettled ? 'tc-settlement-row-settled' : undefined}
+                    >
+                      <td>{row.side === 'buy' ? 'BUY' : 'SELL'}</td>
+                      <td>{formatDisplayDate(row.trade_date)}</td>
+                      <td>{formatDisplayDate(row.settlement_date)}</td>
+                      <td>{row.symbol || row.company_name || 'N/A'}</td>
+                      <td>{formatCurrency(row.quantity)}</td>
+                      <td>{formatCurrency(row.settlementAmount)}</td>
+                      <td>
+                        <span
+                          className={`tc-settlement-badge ${
+                            isSettled
+                              ? 'tc-settlement-badge-settled'
+                              : isReady
+                                ? 'tc-settlement-badge-ready'
+                                : 'tc-settlement-badge-upcoming'
+                          }`}
+                        >
+                          {isSettled ? 'Settled' : isReady ? 'Ready' : 'Upcoming'}
+                        </span>
+                      </td>
+                      <td className="tc-col-action">
+                        {!isSettled && (
+                          <button
+                            type="button"
+                            className="tc-post-entry-btn"
+                            onClick={() => handleSettle(row.side, row.id)}
+                            disabled={!isReady || isSettling || bulkSettling}
+                          >
+                            {isSettling ? 'Settling...' : 'Settle'}
+                          </button>
+                        )}
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    );
   };
 
   const renderUpdatePortfolio = () => {
@@ -565,26 +1077,6 @@ const TradeConfirmation = () => {
                  </div>
                </div>
              </div>
-        {showUpdateBuyModal && (
-          <UpdateBuyTransactionsModal
-            isOpen={showUpdateBuyModal}
-            onClose={() => setShowUpdateBuyModal(false)}
-            purchaseTransactions={purchaseTransactions}
-            equities={equities}
-            portfolios={portfolios}
-            latestTradeDate={latestTradeDate}
-          />
-        )}
-        {showUpdateSellModal && (
-          <UpdateSellTransactionsModal
-            isOpen={showUpdateSellModal}
-            onClose={() => setShowUpdateSellModal(false)}
-            sellTransactions={sellTransactions}
-            equities={equities}
-            portfolios={portfolios}
-            latestTradeDate={latestTradeDate}
-          />
-        )}
       </div>
     );
   };
@@ -886,6 +1378,18 @@ const TradeConfirmation = () => {
             Update Portfolio
           </button>
           <button
+            className={`tc-tab ${activeTab === 'post-entries' ? 'tc-tab-active' : ''}`}
+            onClick={() => setActiveTab('post-entries')}
+          >
+            Post Entries
+          </button>
+          <button
+            className={`tc-tab ${activeTab === 'pending-settlement' ? 'tc-tab-active' : ''}`}
+            onClick={() => setActiveTab('pending-settlement')}
+          >
+            Pending Settlement
+          </button>
+          <button
             className={`tc-tab ${activeTab === 'by-date' ? 'tc-tab-active' : ''}`}
             onClick={() => setActiveTab('by-date')}
           >
@@ -900,8 +1404,40 @@ const TradeConfirmation = () => {
         {activeTab === 'trade-report' && renderTradeReport()}
         {activeTab === 'to-be-updated' && renderToBeUpdated()}
         {activeTab === 'update-portfolio' && renderUpdatePortfolio()}
+        {activeTab === 'post-entries' && renderPostEntries()}
+        {activeTab === 'pending-settlement' && renderPendingSettlement()}
         {activeTab === 'by-date' && renderTradeReportByDate()}
       </div>
+
+      {showUpdateBuyModal && (
+        <UpdateBuyTransactionsModal
+          isOpen={showUpdateBuyModal}
+          onClose={handleCloseBuyModal}
+          purchaseTransactions={buyModalTransactions}
+          equities={equities}
+          portfolios={portfolios}
+          latestTradeDate={latestTradeDate}
+        />
+      )}
+      {showUpdateSellModal && (
+        <UpdateSellTransactionsModal
+          isOpen={showUpdateSellModal}
+          onClose={handleCloseSellModal}
+          sellTransactions={sellModalTransactions}
+          equities={equities}
+          portfolios={portfolios}
+          latestTradeDate={latestTradeDate}
+        />
+      )}
+      {showPostParsedModal && postParsedTransaction && (
+        <PostParsedTradeModal
+          isOpen={showPostParsedModal}
+          onClose={handleClosePostParsedModal}
+          transaction={postParsedTransaction}
+          equities={equities}
+          portfolios={portfolios}
+        />
+      )}
     </div>
   );
 };

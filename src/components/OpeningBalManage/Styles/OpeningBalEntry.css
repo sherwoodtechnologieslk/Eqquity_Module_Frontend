@@ -479,3 +479,348 @@
     letter-spacing: 0.03em;
   }
 }
+
+/* Refined visual treatment */
+.opening-bal-entry-container {
+  --opening-bal-content-max: 1120px;
+  --opening-bal-primary: #2563eb;
+  --opening-bal-primary-dark: #1e40af;
+  --opening-bal-border: #dce5f1;
+  --opening-bal-muted: #64748b;
+  position: relative;
+  padding: 1.5rem 1.5rem 2.5rem;
+  background: transparent;
+}
+
+.opening-bal-entry-container .opening-bal-page-header {
+  margin-bottom: 1.25rem;
+}
+
+.opening-bal-entry-container .opening-bal-header-section {
+  align-items: center;
+  gap: 1rem;
+  min-height: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.opening-bal-entry-container .opening-bal-header-section::before,
+.opening-bal-entry-container .opening-bal-header-section::after {
+  content: none;
+  display: none;
+}
+
+.opening-bal-entry-container .opening-bal-header-badge {
+  flex-shrink: 0;
+  padding: 0.35rem 0.65rem;
+  border-radius: 6px;
+  background: linear-gradient(
+    135deg,
+    var(--opening-bal-primary-dark) 0%,
+    var(--opening-bal-primary) 100%
+  );
+  color: #fff;
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  line-height: 1.2;
+}
+
+.opening-bal-entry-container .opening-bal-header-text-group {
+  gap: 0;
+  padding-top: 0;
+}
+
+.opening-bal-entry-container .opening-bal-main-title {
+  color: #0f172a;
+  font-size: 1.45rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1.2;
+}
+
+.opening-bal-entry-container .opening-bal-subtitle {
+  max-width: 34rem;
+  margin-top: 0.2rem;
+  color: var(--opening-bal-muted);
+  font-size: 0.82rem;
+  font-weight: 500;
+  line-height: 1.4;
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+.opening-bal-entry-container .opening-bal-success-message {
+  border: 1px solid #a7f3d0;
+  border-radius: 0.75rem;
+  background: #ecfdf5;
+  box-shadow: 0 8px 24px rgba(5, 150, 105, 0.08);
+}
+
+.opening-bal-entry-container .opening-bal-form-card {
+  overflow: visible;
+  border: 1px solid rgba(203, 213, 225, 0.85);
+  border-radius: 1rem;
+  background: rgba(255, 255, 255, 0.96);
+  box-shadow: 0 16px 40px rgba(15, 23, 42, 0.08);
+}
+
+.opening-bal-entry-container .opening-bal-form {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1.25rem;
+  padding: 1.5rem;
+}
+
+.opening-bal-entry-container .form-section {
+  min-width: 0;
+  margin: 0;
+  padding: 1.4rem;
+  border: 1px solid var(--opening-bal-border);
+  border-radius: 0.875rem;
+  background: linear-gradient(180deg, #fff 0%, #fbfdff 100%);
+}
+
+.opening-bal-entry-container .form-section-title {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  margin-bottom: 1.25rem;
+  padding-bottom: 0.8rem;
+  color: #172554;
+  font-size: 0.95rem;
+  font-weight: 750;
+  letter-spacing: -0.01em;
+  text-transform: none;
+  border-bottom-color: #e8eef7;
+}
+
+.opening-bal-entry-container .form-section-title::before {
+  content: "";
+  display: block;
+  width: 0.3rem;
+  height: 1.1rem;
+  border-radius: 999px;
+  background: linear-gradient(180deg, #60a5fa, #2563eb);
+  box-shadow: 0 2px 7px rgba(37, 99, 235, 0.3);
+}
+
+.opening-bal-entry-container .form-row {
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.opening-bal-entry-container .form-group {
+  gap: 0.45rem;
+}
+
+.opening-bal-entry-container .form-label {
+  color: #334155;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+}
+
+.opening-bal-entry-container .form-input,
+.opening-bal-entry-container .form-select {
+  min-height: 2.7rem;
+  box-sizing: border-box;
+  padding: 0.7rem 0.8rem;
+  border-color: #cbd5e1;
+  border-radius: 0.65rem;
+  color: #172033;
+  font-size: 0.84rem;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.025);
+  transition:
+    border-color 0.18s ease,
+    box-shadow 0.18s ease,
+    background-color 0.18s ease;
+}
+
+.opening-bal-entry-container .form-input:hover:not(:disabled),
+.opening-bal-entry-container .form-select:hover:not(:disabled) {
+  border-color: #94a3b8;
+}
+
+.opening-bal-entry-container .form-input:focus,
+.opening-bal-entry-container .form-select:focus {
+  border-color: var(--opening-bal-primary);
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.13);
+}
+
+.opening-bal-entry-container .form-input:disabled,
+.opening-bal-entry-container .form-select:disabled {
+  border-color: #e2e8f0;
+  background-color: #f1f5f9;
+  color: #94a3b8;
+}
+
+.opening-bal-entry-container .form-textarea {
+  min-height: 5.75rem;
+  line-height: 1.5;
+}
+
+.opening-bal-entry-container .input-hint {
+  color: var(--opening-bal-muted);
+  font-size: 0.72rem;
+  line-height: 1.45;
+}
+
+.opening-bal-entry-container .selected-account-info {
+  margin-top: 0.25rem;
+  padding: 0.65rem 0.75rem;
+  border: 1px solid #bfdbfe;
+  border-radius: 0.65rem;
+  background: #eff6ff;
+  color: #1e3a8a;
+}
+
+.opening-bal-entry-container .balance-type-options {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.65rem;
+  margin-top: 0.1rem;
+}
+
+.opening-bal-entry-container .balance-type-option {
+  position: relative;
+  width: 100%;
+}
+
+.opening-bal-entry-container .balance-type-option input[type="radio"] {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: 0;
+  opacity: 0;
+}
+
+.opening-bal-entry-container .balance-type-label {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 0.7rem 0.75rem;
+  border-radius: 0.65rem;
+  background: #fff;
+  text-align: center;
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
+.opening-bal-entry-container .balance-type-option:hover .balance-type-label {
+  border-color: #94a3b8;
+  background: #f8fafc;
+}
+
+.opening-bal-entry-container .balance-type-option input[type="radio"]:focus-visible + .balance-type-label {
+  outline: 3px solid rgba(37, 99, 235, 0.2);
+  outline-offset: 2px;
+}
+
+.opening-bal-entry-container .balance-type-option input[type="radio"]:checked + .balance-type-label.debit {
+  border-color: #60a5fa;
+  background: linear-gradient(180deg, #eff6ff, #dbeafe);
+  box-shadow: inset 0 0 0 1px rgba(37, 99, 235, 0.08);
+}
+
+.opening-bal-entry-container .balance-type-option input[type="radio"]:checked + .balance-type-label.credit {
+  border-color: #fbbf24;
+  background: linear-gradient(180deg, #fffbeb, #fef3c7);
+  box-shadow: inset 0 0 0 1px rgba(217, 119, 6, 0.08);
+}
+
+.opening-bal-entry-container .submit-error,
+.opening-bal-entry-container .form-actions {
+  grid-column: 1 / -1;
+}
+
+.opening-bal-entry-container .form-actions {
+  margin-top: 0;
+  padding: 1.2rem 0.15rem 0;
+}
+
+.opening-bal-entry-container .btn-primary,
+.opening-bal-entry-container .btn-secondary {
+  min-height: 2.75rem;
+  padding: 0.7rem 1.25rem;
+  border-radius: 0.65rem;
+  font-size: 0.84rem;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.06);
+  transition:
+    transform 0.15s ease,
+    box-shadow 0.15s ease,
+    background 0.15s ease,
+    border-color 0.15s ease;
+}
+
+.opening-bal-entry-container .btn-primary {
+  border-color: var(--opening-bal-primary);
+  background: linear-gradient(135deg, #2563eb, #1d4ed8);
+  box-shadow: 0 7px 16px rgba(37, 99, 235, 0.22);
+}
+
+.opening-bal-entry-container .btn-primary:hover:not(:disabled) {
+  transform: translateY(-1px);
+  background: linear-gradient(135deg, #1d4ed8, #1e40af);
+  box-shadow: 0 9px 20px rgba(37, 99, 235, 0.28);
+}
+
+.opening-bal-entry-container .btn-secondary:hover:not(:disabled) {
+  transform: translateY(-1px);
+  background: #f8fafc;
+}
+
+.opening-bal-entry-container .opening-bal-footer-section {
+  padding: 0.8rem 1rem;
+  border: 1px solid #dbeafe;
+  border-radius: 0.75rem;
+  background: rgba(239, 246, 255, 0.75);
+  color: #475569;
+}
+
+@media (max-width: 960px) {
+  .opening-bal-entry-container .opening-bal-form {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 768px) {
+  .opening-bal-entry-container {
+    padding: 1rem;
+  }
+
+  .opening-bal-entry-container .opening-bal-header-section {
+    min-height: auto;
+    padding: 0;
+    border-radius: 0;
+  }
+
+  .opening-bal-entry-container .opening-bal-form-card {
+    border-radius: 0.85rem;
+  }
+
+  .opening-bal-entry-container .opening-bal-form {
+    gap: 1rem;
+    padding: 1rem;
+  }
+
+  .opening-bal-entry-container .form-section {
+    padding: 1.1rem;
+  }
+
+  .opening-bal-entry-container .form-actions {
+    padding-top: 1rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .opening-bal-entry-container .form-section {
+    padding: 1rem 0.85rem;
+  }
+
+  .opening-bal-entry-container .balance-type-options {
+    grid-template-columns: 1fr;
+  }
+}

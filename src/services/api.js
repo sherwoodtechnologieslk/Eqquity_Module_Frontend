@@ -1085,10 +1085,11 @@ export const transactionEntryAPI = {
         },
         body: JSON.stringify(data),
       });
+      const result = await response.json().catch(() => ({}));
       if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+        throw new Error(result.error || result.message || `HTTP error! status: ${response.status}`);
       }
-      return await response.json();
+      return result;
     } catch (error) {
       console.error('Error saving buy transaction:', error);
       throw error;
@@ -1104,10 +1105,11 @@ export const transactionEntryAPI = {
         },
         body: JSON.stringify(data),
       });
+      const result = await response.json().catch(() => ({}));
       if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+        throw new Error(result.error || result.message || `HTTP error! status: ${response.status}`);
       }
-      return await response.json();
+      return result;
     } catch (error) {
       console.error('Error saving sell transaction:', error);
       throw error;
@@ -1253,6 +1255,154 @@ export const transactionEntryAPI = {
       console.error('Error fetching all buy transactions:', error);
       throw error;
     }
+  },
+  getPendingPostEntryBuys: async () => {
+    const response = await fetch(`${API_BASE_URL}/transaction-entries/buy/pending-post-entries`, {
+      headers: getAuthHeaders()
+    });
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    return response.json();
+  },
+  postBuyTradeGl: async (transactionId) => {
+    const response = await fetch(`${API_BASE_URL}/transaction-entries/buy/${transactionId}/post-trade-gl`, {
+      method: 'POST',
+      headers: getAuthHeaders()
+    });
+    const data = await response.json().catch(() => ({}));
+    if (!response.ok) {
+      throw new Error(data.error || `HTTP error! status: ${response.status}`);
+    }
+    return data;
+  },
+  postBuyTradeGlBulk: async (ids) => {
+    const response = await fetch(`${API_BASE_URL}/transaction-entries/buy/post-trade-gl/bulk`, {
+      method: 'POST',
+      headers: {
+        ...getAuthHeaders(),
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ ids })
+    });
+    const data = await response.json().catch(() => ({}));
+    if (!response.ok) {
+      throw new Error(data.error || `HTTP error! status: ${response.status}`);
+    }
+    return data;
+  },
+  getPendingSettlementBuys: async () => {
+    const response = await fetch(`${API_BASE_URL}/transaction-entries/buy/pending-settlement`, {
+      headers: getAuthHeaders()
+    });
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    return response.json();
+  },
+  postBuySettlementGl: async (transactionId) => {
+    const response = await fetch(`${API_BASE_URL}/transaction-entries/buy/${transactionId}/post-settlement-gl`, {
+      method: 'POST',
+      headers: getAuthHeaders()
+    });
+    const data = await response.json().catch(() => ({}));
+    if (!response.ok) {
+      const err = new Error(data.error || `HTTP error! status: ${response.status}`);
+      err.settlementDate = data.settlementDate;
+      err.serverToday = data.serverToday;
+      throw err;
+    }
+    return data;
+  },
+  postBuySettlementGlBulk: async (ids) => {
+    const response = await fetch(`${API_BASE_URL}/transaction-entries/buy/post-settlement-gl/bulk`, {
+      method: 'POST',
+      headers: {
+        ...getAuthHeaders(),
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ ids })
+    });
+    const data = await response.json().catch(() => ({}));
+    if (!response.ok) {
+      throw new Error(data.error || `HTTP error! status: ${response.status}`);
+    }
+    return data;
+  },
+  getPendingPostEntrySells: async () => {
+    const response = await fetch(`${API_BASE_URL}/transaction-entries/sell/pending-post-entries`, {
+      headers: getAuthHeaders()
+    });
+    const data = await response.json().catch(() => ({}));
+    if (!response.ok) {
+      throw new Error(data.error || data.message || `HTTP error! status: ${response.status}`);
+    }
+    return data;
+  },
+  postSellTradeGl: async (transactionId) => {
+    const response = await fetch(`${API_BASE_URL}/transaction-entries/sell/${transactionId}/post-trade-gl`, {
+      method: 'POST',
+      headers: getAuthHeaders()
+    });
+    const data = await response.json().catch(() => ({}));
+    if (!response.ok) {
+      throw new Error(data.error || data.message || `HTTP error! status: ${response.status}`);
+    }
+    return data;
+  },
+  postSellTradeGlBulk: async (ids) => {
+    const response = await fetch(`${API_BASE_URL}/transaction-entries/sell/post-trade-gl/bulk`, {
+      method: 'POST',
+      headers: {
+        ...getAuthHeaders(),
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ ids })
+    });
+    const data = await response.json().catch(() => ({}));
+    if (!response.ok) {
+      throw new Error(data.error || data.message || `HTTP error! status: ${response.status}`);
+    }
+    return data;
+  },
+  getPendingSettlementSells: async () => {
+    const response = await fetch(`${API_BASE_URL}/transaction-entries/sell/pending-settlement`, {
+      headers: getAuthHeaders()
+    });
+    const data = await response.json().catch(() => ({}));
+    if (!response.ok) {
+      throw new Error(data.error || data.message || `HTTP error! status: ${response.status}`);
+    }
+    return data;
+  },
+  postSellSettlementGl: async (transactionId) => {
+    const response = await fetch(`${API_BASE_URL}/transaction-entries/sell/${transactionId}/post-settlement-gl`, {
+      method: 'POST',
+      headers: getAuthHeaders()
+    });
+    const data = await response.json().catch(() => ({}));
+    if (!response.ok) {
+      const err = new Error(data.error || data.message || `HTTP error! status: ${response.status}`);
+      err.settlementDate = data.settlementDate;
+      err.serverToday = data.serverToday;
+      throw err;
+    }
+    return data;
+  },
+  postSellSettlementGlBulk: async (ids) => {
+    const response = await fetch(`${API_BASE_URL}/transaction-entries/sell/post-settlement-gl/bulk`, {
+      method: 'POST',
+      headers: {
+        ...getAuthHeaders(),
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ ids })
+    });
+    const data = await response.json().catch(() => ({}));
+    if (!response.ok) {
+      throw new Error(data.error || data.message || `HTTP error! status: ${response.status}`);
+    }
+    return data;
   }
 };
 
