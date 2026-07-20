@@ -97,7 +97,7 @@ const Login = ({ onLogin, switchToSignup, switchToForgotPassword }) => {
                     </div>
                     <h1 className="auth-brand-headline">Sign in to manage positions, valuations, and reporting.</h1>
                     <p className="auth-brand-copy">
-                        Welcome back to your workspace.
+                        Secure access to your portfolio
                     </p>
                 </div>
                 <p className="auth-brand-bottom auth-brand-meta">Sherwood Technologies (Pvt) Ltd</p>
@@ -106,7 +106,7 @@ const Login = ({ onLogin, switchToSignup, switchToForgotPassword }) => {
             <div className="auth-card">
                 <div className="auth-card-header">
                     <h2>Sign in</h2>
-                    <p className="auth-subtitle">Welcome back to your workspace</p>
+                    <p className="auth-subtitle">Welcome Back</p>
                 </div>
 
                 {authNotice && (
