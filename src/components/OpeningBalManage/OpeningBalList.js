@@ -557,6 +557,18 @@ const OpeningBalList = () => {
 
   return (
     <div className="opening-bal-list-container">
+      <header className="opening-bal-list-toolbar">
+        <div className="opening-bal-list-toolbar__left">
+          <span className="opening-bal-list-toolbar__badge">LIST</span>
+          <div className="opening-bal-list-toolbar__heading">
+            <h1 className="opening-bal-list-toolbar__title">Opening Balance List</h1>
+            <p className="opening-bal-list-toolbar__subtitle">
+              Review opening balances, trial balance, and opening statement of financial position
+            </p>
+          </div>
+        </div>
+      </header>
+
       {/* Error Message */}
       {error && (
         <div className="opening-bal-list-error-message">
@@ -803,7 +815,7 @@ const OpeningBalList = () => {
                   <div className="opening-tb-header-actions">
                     <button
                       type="button"
-                      className="opening-tb-export-btn"
+                      className="opening-tb-export-btn opening-tb-export-btn--pdf"
                       disabled={tbExporting}
                       onClick={() => runOpeningTbExport(exportOpeningTrialBalanceToPdf)}
                     >
@@ -811,7 +823,7 @@ const OpeningBalList = () => {
                     </button>
                     <button
                       type="button"
-                      className="opening-tb-export-btn"
+                      className="opening-tb-export-btn opening-tb-export-btn--excel"
                       disabled={tbExporting}
                       onClick={() => runOpeningTbExport(exportOpeningTrialBalanceToExcel)}
                     >

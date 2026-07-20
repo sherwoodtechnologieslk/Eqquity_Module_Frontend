@@ -73,7 +73,7 @@ body {
   flex-direction: column;
   min-width: 0;
   background: var(--app-bg, #f5f7fa);
-  margin-left: 274px; /* Account for sidebar width */
+  margin-left: 254px; /* Account for sidebar width */
   transition: margin-left 0.3s ease, background-color 0.25s ease;
   position: relative;
   z-index: 1;
@@ -83,7 +83,7 @@ body {
 .navbar {
   position: fixed;
   top: 0;
-  left: 274px; /* Start where sidebar ends */
+  left: 254px; /* Start where sidebar ends */
   right: 0; /* Extend to the right edge */
   height: 80px; /* Match the margin-top in .dashboard-content */
   background: white;
@@ -104,7 +104,7 @@ body {
   max-width: none;
   margin: 0;
   width: 100%;
-  margin-top: 132px;
+  margin-top: 118px;
   padding-top: 0.25rem;
   background: var(--app-bg-subtle);
   transition: background-color 0.25s ease;
@@ -221,11 +221,11 @@ textarea {
 /* Responsive tweaks */
 @media (max-width: 1200px) {
   .dashboard-main {
-    margin-left: 250px;
+    margin-left: 240px;
   }
   
   .navbar {
-    left: 250px; /* Match sidebar width at this breakpoint */
+    left: 240px; /* Match sidebar width at this breakpoint */
   }
   
   .dashboard-content {
@@ -263,7 +263,7 @@ textarea {
   }
   
   .dashboard-content {
-    margin-top: 132px; /* Minimal space for stacked navbar + dynamic header on mobile */
+    margin-top: 118px; /* Minimal space for stacked navbar + dynamic header on mobile */
     padding-top: 0.25rem; /* Minimal top padding */
   }
 }

@@ -409,8 +409,6 @@ export const equityManagerMenuItems = [
       </svg>
     ),
     name: "Mandatory Corporate Actions",
-    premium: true,
-    premiumVariant: 'mandatoryCorporateActions',
     subTopics: [
       
       "Dividends",
@@ -700,11 +698,120 @@ export const wealthManagerMenuItems = [
   }
 ];
 
+/** Sidebar section labels — visual grouping only; menu item indices stay unchanged. */
+const EQUITY_CATEGORY_ORDER = [
+  'Overview',
+  'Governance',
+  'Master Data',
+  'Trading',
+  'Accounting',
+  'Reports',
+  'Valuation',
+  'Corporate Actions',
+  'Risk & Compliance',
+  'Integrations',
+];
+
+const EQUITY_MENU_CATEGORIES = {
+  Dashboard: 'Overview',
+  'View Portfolio': 'Overview',
+  'Portfolio Monitoring': 'Overview',
+  'Charts and Insights': 'Overview',
+  'CSE Announcements': 'Overview',
+  'Company Governance': 'Governance',
+  'Business Approvals': 'Governance',
+  'Master Data Management': 'Master Data',
+  'Holiday Calendar': 'Master Data',
+  'Funds Centers': 'Master Data',
+  'Account Management': 'Master Data',
+  'Opening Balance Management': 'Master Data',
+  'Trade Capture': 'Trading',
+  'Batch Transaction Import': 'Trading',
+  TradeCore: 'Trading',
+  IPO: 'Trading',
+  'Equity Entries': 'Accounting',
+  'GSec Entries': 'Accounting',
+  'Accounting Entries': 'Accounting',
+  Vouchers: 'Accounting',
+  'Settlement and Accounting': 'Accounting',
+  'Fixed Assets': 'Accounting',
+  'Valuation and MTM': 'Valuation',
+  'Predictive Valuation Model (PVM)': 'Valuation',
+  'Corporate Actions': 'Corporate Actions',
+  'Security Identity': 'Corporate Actions',
+  'Voluntary Corporate Actions': 'Corporate Actions',
+  'Mandatory Corporate Actions': 'Corporate Actions',
+  'Risk and Limit Management': 'Risk & Compliance',
+  'Reporting and Compliance': 'Risk & Compliance',
+  'Financial Reporting': 'Reports',
+  'Financial Reports Export': 'Reports',
+  'Integration and Automation': 'Integrations',
+  'Portfolio Transfers': 'Integrations',
+};
+
+const WEALTH_CATEGORY_ORDER = [
+  'Overview',
+  'Clients',
+  'Masters',
+  'Operations',
+  'Valuation',
+  'Accounting',
+  'Reports',
+  'Risk & Compliance',
+  'Settings',
+];
+
+const WEALTH_MENU_CATEGORIES = {
+  Dashboard: 'Overview',
+  'Client Management': 'Clients',
+  'Fund Master': 'Masters',
+  'Portfolio Master': 'Masters',
+  'Expense Master': 'Masters',
+  'Unit Trust Operations': 'Operations',
+  Transactions: 'Operations',
+  'Valuation & NAV': 'Valuation',
+  'Accounting Entries': 'Accounting',
+  Reporting: 'Reports',
+  'Risk & Compliance': 'Risk & Compliance',
+  'Settings & Configuration': 'Settings',
+};
+
+function groupNavigationByCategory(navigationItems, categoryMap, categoryOrder) {
+  const buckets = new Map();
+  categoryOrder.forEach((label) => buckets.set(label, []));
+  const uncategorized = [];
+
+  navigationItems.forEach((entry) => {
+    const label = categoryMap[entry.item.name];
+    if (label && buckets.has(label)) {
+      buckets.get(label).push(entry);
+    } else if (label) {
+      if (!buckets.has(label)) buckets.set(label, []);
+      buckets.get(label).push(entry);
+    } else {
+      uncategorized.push(entry);
+    }
+  });
+
+  const groups = categoryOrder
+    .map((label) => ({ label, items: buckets.get(label) || [] }))
+    .filter((group) => group.items.length > 0);
+
+  if (uncategorized.length > 0) {
+    groups.push({ label: 'Other', items: uncategorized });
+  }
+
+  return groups;
+}
+
 const Sidebar = ({ onSelect, onPremiumFeature, activeIndex = 0, onLogout, onManagerChange, selectedManager: selectedManagerProp = 'equity', isClientView = false, onClientViewToggle, user = null }) => {
   const [active, setActive] = useState(activeIndex);
   const [selectedManager, setSelectedManager] = useState(selectedManagerProp); // 'equity' or 'wealth'
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [dropdownPosition, setDropdownPosition] = useState({ top: 0, left: 0, width: 0 });
+  const [expandedCategories, setExpandedCategories] = useState({
+    'equity:Governance': true,
+  });
   const dropdownButtonRef = useRef(null);
 
   // Sync internal state with prop changes
@@ -736,6 +843,54 @@ const Sidebar = ({ onSelect, onPremiumFeature, activeIndex = 0, onLogout, onMana
     [visibleMenuItems, currentMenuItems]
   );
 
+  const navigationGroups = useMemo(() => {
+    const categoryMap =
+      selectedManager === 'equity' ? EQUITY_MENU_CATEGORIES : WEALTH_MENU_CATEGORIES;
+    const categoryOrder =
+      selectedManager === 'equity' ? EQUITY_CATEGORY_ORDER : WEALTH_CATEGORY_ORDER;
+    return groupNavigationByCategory(navigationItems, categoryMap, categoryOrder);
+  }, [navigationItems, selectedManager]);
+
+  const categoryStorageKey = (label) => `${selectedManager}:${label}`;
+
+  const isCategoryExpanded = (label) => {
+    const key = categoryStorageKey(label);
+    if (Object.prototype.hasOwnProperty.call(expandedCategories, key)) {
+      return expandedCategories[key];
+    }
+    // Keep Governance expanded by default on Equity
+    if (selectedManager === 'equity' && label === 'Governance') {
+      return true;
+    }
+    // Default: only the category that holds the active item is open
+    return navigationGroups.some(
+      (group) => group.label === label && group.items.some(({ index }) => index === active)
+    );
+  };
+
+  const toggleCategory = (label) => {
+    const key = categoryStorageKey(label);
+    setExpandedCategories((prev) => ({
+      ...prev,
+      [key]: !isCategoryExpanded(label),
+    }));
+  };
+
+  // Keep the active item's category open when selection changes
+  useEffect(() => {
+    const activeGroup = navigationGroups.find((group) =>
+      group.items.some(({ index }) => index === active)
+    );
+    if (!activeGroup) return;
+
+    const key = `${selectedManager}:${activeGroup.label}`;
+    setExpandedCategories((prev) => {
+      if (prev[key] === true) return prev;
+      if (!Object.prototype.hasOwnProperty.call(prev, key)) return prev;
+      return { ...prev, [key]: true };
+    });
+  }, [active, navigationGroups, selectedManager]);
+
   // When a sidebar item is clicked, provide both its index and its subTopics to parent
   const handleClick = (menuItem, originalIndex) => {
     if (menuItem?.premium) {
@@ -764,6 +919,9 @@ const Sidebar = ({ onSelect, onPremiumFeature, activeIndex = 0, onLogout, onMana
     setSelectedManager(managerType);
     setIsDropdownOpen(false);
     setActive(0);
+    setExpandedCategories(
+      managerType === 'equity' ? { 'equity:Governance': true } : {}
+    );
     const baseMenuItems = managerType === 'equity' ? equityManagerMenuItems : wealthManagerMenuItems;
     const newMenuItems =
       managerType === 'equity' ? filterEquityMenuItems(user, baseMenuItems) : baseMenuItems;
@@ -928,34 +1086,64 @@ const Sidebar = ({ onSelect, onPremiumFeature, activeIndex = 0, onLogout, onMana
       {/* Navigation Menu */}
       <div className="sidebar-content">
         <div className="menu-section">
-          <h3 className="menu-title">Navigation</h3>
-          <ul className="sidebar-menu">
-            {navigationItems.length > 0 ? (
-              navigationItems.map(({ item, index }) => (
-              <li
-                key={item.name}
-                className={`sidebar-item${active === index ? ' active' : ''}${
-                  item.name === 'Company Governance' || item.name === 'Business Approvals'
-                    ? ' sidebar-item--governance'
-                    : ''
-                }`}
-                onClick={() => handleClick(item, index)}
-                tabIndex={0}
-                role="button"
-                aria-pressed={active === index}
-                // title={item.name} // Remove this line to disable native tooltip
-              >
-                <span className="item-icon" style={{fontSize:"1.2rem"}}>{item.icon}</span>
-                <span className="item-text">{item.name}</span>
-                <div className="item-indicator"></div>
-              </li>
-              ))
-            ) : (
+          {navigationGroups.length > 0 ? (
+            navigationGroups.map((group) => {
+              const expanded = isCategoryExpanded(group.label);
+              return (
+                <div
+                  key={group.label}
+                  className={`menu-category${expanded ? ' is-expanded' : ' is-collapsed'}`}
+                >
+                  <button
+                    type="button"
+                    className="menu-category-toggle"
+                    onClick={() => toggleCategory(group.label)}
+                    aria-expanded={expanded}
+                  >
+                    <span className="menu-category-title">{group.label}</span>
+                    <span className="menu-category-meta">
+                      <svg
+                        className={`menu-category-chevron${expanded ? ' open' : ''}`}
+                        fill="currentColor"
+                        viewBox="0 0 20 20"
+                        aria-hidden="true"
+                      >
+                        <path d="M5 7.5L10 14l5-6.5H5z" />
+                      </svg>
+                    </span>
+                  </button>
+                  {expanded && (
+                    <ul className="sidebar-menu sidebar-menu--nested">
+                      {group.items.map(({ item, index }) => (
+                        <li
+                          key={item.name}
+                          className={`sidebar-item${active === index ? ' active' : ''}${
+                            item.name === 'Company Governance' || item.name === 'Business Approvals'
+                              ? ' sidebar-item--governance'
+                              : ''
+                          }`}
+                          onClick={() => handleClick(item, index)}
+                          tabIndex={0}
+                          role="button"
+                          aria-pressed={active === index}
+                        >
+                          <span className="item-icon" style={{ fontSize: '1.2rem' }}>{item.icon}</span>
+                          <span className="item-text">{item.name}</span>
+                          <div className="item-indicator"></div>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </div>
+              );
+            })
+          ) : (
+            <ul className="sidebar-menu">
               <li className="sidebar-empty-state">
                 <span className="empty-state-text">Menu items coming soon...</span>
               </li>
-            )}
-          </ul>
+            </ul>
+          )}
         </div>
       </div>
 
@@ -968,11 +1156,11 @@ const Sidebar = ({ onSelect, onPremiumFeature, activeIndex = 0, onLogout, onMana
               onClick={onLogout}
               title="Logout"
             >
-              <svg className="logout-icon" fill="currentColor" viewBox="0 0 24 24">
-                <path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zM9 6c0-1.66 1.34-3 3-3s3 1.34 3 3v2H9V6zm9 14H6V10h12v10z"/>
-                <circle cx="12" cy="15" r="2"/>
+              <svg className="logout-icon" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24" aria-hidden="true">
+                <rect x="5" y="11" width="14" height="10" rx="2" />
+                <path d="M8 11V8a4 4 0 018 0v3" />
               </svg>
-              <span className="logout-text">Logout</span>
+              <span className="logout-text">LOGOUT</span>
             </button>
           )}
         </div>
