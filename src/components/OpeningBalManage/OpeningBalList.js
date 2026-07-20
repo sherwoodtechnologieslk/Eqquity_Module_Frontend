@@ -124,7 +124,7 @@ const OpeningBalList = () => {
   };
 
   // Filter opening balances
-  const filteredBalances = openingBalances.filter(balance => {
+  const filteredRawBalances = openingBalances.filter(balance => {
     if (!balance) return false;
     
     const searchLower = searchTerm.toLowerCase();
@@ -146,6 +146,43 @@ const OpeningBalList = () => {
     
     return matchesSearch && matchesType;
   });
+
+  // Aggregate entries so each account appears as a single line
+  // (debits/credits summed, earliest date kept, descriptions merged).
+  const filteredBalances = Object.values(
+    filteredRawBalances.reduce((acc, balance) => {
+      const key =
+        normalizeAccountCode(balance.account_code || balance.accountCode) ||
+        (balance.account_name || balance.accountName || `id-${balance.id}`);
+      const debit = parseFloat(balance.debit) || 0;
+      const credit = parseFloat(balance.credit) || 0;
+      const date = balance.opening_balance_date || balance.openingBalanceDate || null;
+      const description = (balance.description || '').trim();
+
+      if (!acc[key]) {
+        acc[key] = {
+          ...balance,
+          debit,
+          credit,
+          opening_balance_date: date,
+          description,
+          entryCount: 1
+        };
+      } else {
+        const agg = acc[key];
+        agg.debit += debit;
+        agg.credit += credit;
+        agg.entryCount += 1;
+        if (date && (!agg.opening_balance_date || new Date(date) < new Date(agg.opening_balance_date))) {
+          agg.opening_balance_date = date;
+        }
+        if (description && !agg.description.includes(description)) {
+          agg.description = agg.description ? `${agg.description}; ${description}` : description;
+        }
+      }
+      return acc;
+    }, {})
+  );
 
   // Calculate totals
   const totals = filteredBalances.reduce((acc, balance) => {
@@ -520,6 +557,18 @@ const OpeningBalList = () => {
 
   return (
     <div className="opening-bal-list-container">
+      <header className="opening-bal-list-toolbar">
+        <div className="opening-bal-list-toolbar__left">
+          <span className="opening-bal-list-toolbar__badge">LIST</span>
+          <div className="opening-bal-list-toolbar__heading">
+            <h1 className="opening-bal-list-toolbar__title">Opening Balance List</h1>
+            <p className="opening-bal-list-toolbar__subtitle">
+              Review opening balances, trial balance, and opening statement of financial position
+            </p>
+          </div>
+        </div>
+      </header>
+
       {/* Error Message */}
       {error && (
         <div className="opening-bal-list-error-message">
@@ -681,7 +730,7 @@ const OpeningBalList = () => {
               
               <div className="table-summary">
                 <p>
-                  Showing <strong>{filteredBalances.length}</strong> of <strong>{openingBalances.length}</strong> opening balance{openingBalances.length !== 1 ? 's' : ''}
+                  Showing <strong>{filteredBalances.length}</strong> account{filteredBalances.length !== 1 ? 's' : ''} (aggregated from <strong>{filteredRawBalances.length}</strong> of <strong>{openingBalances.length}</strong> opening balance entr{openingBalances.length !== 1 ? 'ies' : 'y'})
                 </p>
               </div>
             </>
@@ -740,7 +789,7 @@ const OpeningBalList = () => {
 
               <div className="table-summary">
                 <p>
-                  Classified <strong>{assetsLiabilitiesTotals.assetCount + assetsLiabilitiesTotals.liabilityCount}</strong> of <strong>{filteredBalances.length}</strong> filtered opening balance entries
+                  Classified <strong>{assetsLiabilitiesTotals.assetCount + assetsLiabilitiesTotals.liabilityCount}</strong> of <strong>{filteredBalances.length}</strong> filtered opening balance accounts
                   {assetsLiabilitiesTotals.otherCount > 0 ? ` (${assetsLiabilitiesTotals.otherCount} not in Asset/Liability)` : ''}
                 </p>
               </div>
@@ -766,7 +815,7 @@ const OpeningBalList = () => {
                   <div className="opening-tb-header-actions">
                     <button
                       type="button"
-                      className="opening-tb-export-btn"
+                      className="opening-tb-export-btn opening-tb-export-btn--pdf"
                       disabled={tbExporting}
                       onClick={() => runOpeningTbExport(exportOpeningTrialBalanceToPdf)}
                     >
@@ -774,7 +823,7 @@ const OpeningBalList = () => {
                     </button>
                     <button
                       type="button"
-                      className="opening-tb-export-btn"
+                      className="opening-tb-export-btn opening-tb-export-btn--excel"
                       disabled={tbExporting}
                       onClick={() => runOpeningTbExport(exportOpeningTrialBalanceToExcel)}
                     >

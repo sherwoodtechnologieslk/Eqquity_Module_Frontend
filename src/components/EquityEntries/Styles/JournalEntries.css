@@ -239,19 +239,19 @@
 
 .je-table {
   width: 100%;
-  min-width: 1180px;
+  min-width: 1080px;
   table-layout: auto;
   border-collapse: collapse;
 }
 
-.je-table thead {
+.je-page-container .je-table thead {
   position: sticky;
   top: 0;
   z-index: 2;
   background: #f1f5f9;
 }
 
-.je-table th {
+.je-page-container .je-table th {
   padding: 0.6rem 0.75rem;
   font-size: 0.72rem;
   font-weight: 700;
@@ -262,10 +262,13 @@
   border-bottom: 1px solid #e5e7eb;
 }
 
-.je-table td {
-  padding: 0.6rem 0.75rem;
+.je-page-container .je-table td {
+  padding: 0.55rem 0.7rem;
   vertical-align: top;
   border-bottom: 1px solid #e5e7eb;
+  font-size: 0.78rem;
+  line-height: 1.35;
+  color: #334155;
 }
 
 .je-table tbody tr:hover {
@@ -291,25 +294,48 @@
   max-width: 12rem;
 }
 
-.je-account-code {
+.je-page-container .je-account-code {
   font-family: 'Courier New', Courier, ui-monospace, monospace;
-  font-size: 0.78rem;
+  font-size: 0.75rem !important;
   font-weight: 600;
   color: #1e293b;
 }
 
-.je-col-name {
+/* Unique scoped text nodes — resist global table/td overrides */
+.je-page-container .je-col-acct-name {
   min-width: 9rem;
   max-width: 14rem;
   word-break: break-word;
 }
 
-.je-col-desc {
+.je-page-container .je-acct-name-text {
+  display: inline-block;
+  max-width: 100%;
+  font-size: 0.75rem !important;
+  font-weight: 500 !important;
+  line-height: 1.35 !important;
+  letter-spacing: normal !important;
+  color: #334155 !important;
+  word-break: break-word;
+}
+
+.je-page-container .je-col-entry-desc {
   min-width: 12rem;
   max-width: 20rem;
   word-break: break-word;
   overflow-wrap: anywhere;
-  color: #334155;
+}
+
+.je-page-container .je-entry-desc-text {
+  display: inline-block;
+  max-width: 100%;
+  font-size: 0.75rem !important;
+  font-weight: 500 !important;
+  line-height: 1.35 !important;
+  letter-spacing: normal !important;
+  color: #475569 !important;
+  word-break: break-word;
+  overflow-wrap: anywhere;
 }
 
 .je-col-ref {
@@ -318,7 +344,7 @@
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  font-size: 0.78rem;
+  font-size: 0.75rem;
   color: #475569;
 }
 
@@ -331,13 +357,13 @@
   display: flex;
   flex-direction: column;
   gap: 0.15rem;
-  font-size: 0.75rem;
+  font-size: 0.72rem;
   line-height: 1.35;
   color: #475569;
 }
 
 .je-payment-primary {
-  font-weight: 700;
+  font-weight: 600;
   color: #0f172a;
 }
 
@@ -345,7 +371,7 @@
   color: #64748b;
 }
 
-.je-col-amount {
+.je-page-container .je-col-amount {
   text-align: right;
   white-space: nowrap;
   min-width: 6.5rem;
@@ -354,19 +380,11 @@
   font-variant-numeric: tabular-nums;
 }
 
-.je-debit {
-  color: #15803d;
-}
-
-.je-credit {
-  background: linear-gradient(135deg, #1d4ed8 0%, #2563eb 55%, #3b82f6 100%);
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
-}
-
-.je-balance {
-  color: #0f172a;
+.je-page-container .je-amount-value {
+  color: #0f172a !important;
+  background: none !important;
+  -webkit-background-clip: unset !important;
+  background-clip: unset !important;
 }
 
 .je-col-type {

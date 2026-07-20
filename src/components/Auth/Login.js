@@ -89,22 +89,28 @@ const Login = ({ onLogin, switchToSignup, switchToForgotPassword }) => {
 
     return (
         <div className="auth-container">
+            <aside className="auth-brand-panel" aria-label="Sherwood Equity">
+                <div className="auth-brand-top">
+                    <div className="auth-brand-mark">
+                        <span className="auth-brand-mark__sherwood">Sherwood</span>
+                        <span className="auth-brand-mark__equity">Equity</span>
+                    </div>
+                    <h1 className="auth-brand-headline">Sign in to manage positions, valuations, and reporting.</h1>
+                    <p className="auth-brand-copy">
+                        Welcome back to your workspace.
+                    </p>
+                </div>
+                <p className="auth-brand-bottom auth-brand-meta">Sherwood Technologies (Pvt) Ltd</p>
+            </aside>
+
             <div className="auth-card">
-                <h2>Sign In to Equity Module</h2>
-                <p className="auth-subtitle">Sign in to your account</p>
-                
+                <div className="auth-card-header">
+                    <h2>Sign in</h2>
+                    <p className="auth-subtitle">Welcome back to your workspace</p>
+                </div>
+
                 {authNotice && (
-                    <div
-                        className="success-message"
-                        style={{
-                            backgroundColor: '#d1fae5',
-                            color: '#065f46',
-                            padding: '1rem',
-                            borderRadius: '0.5rem',
-                            marginBottom: '1rem',
-                        }}
-                        role="status"
-                    >
+                    <div className="success-message" role="status">
                         {authNotice}
                     </div>
                 )}
@@ -131,14 +137,13 @@ const Login = ({ onLogin, switchToSignup, switchToForgotPassword }) => {
                     </div>
 
                     <div className="form-group">
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem' }}>
-                            <label htmlFor="password" style={{ marginBottom: 0 }}>Password</label>
+                        <div className="form-group-label-row">
+                            <label htmlFor="password">Password</label>
                             {switchToForgotPassword && (
-                                <button 
+                                <button
                                     type="button"
                                     className="link-button"
                                     onClick={switchToForgotPassword}
-                                    style={{ fontSize: '0.875rem', padding: 0 }}
                                 >
                                     Forgot password?
                                 </button>
@@ -156,8 +161,8 @@ const Login = ({ onLogin, switchToSignup, switchToForgotPassword }) => {
                         {errors.password && <span className="error-text">{errors.password}</span>}
                     </div>
 
-                    <button 
-                        type="submit" 
+                    <button
+                        type="submit"
                         className="auth-button primary"
                         disabled={isLoading}
                     >
@@ -168,8 +173,8 @@ const Login = ({ onLogin, switchToSignup, switchToForgotPassword }) => {
                 <div className="auth-footer">
                     <p>
                         Don't have an account?{' '}
-                        <button 
-                            type="button" 
+                        <button
+                            type="button"
                             className="link-button"
                             onClick={switchToSignup}
                         >

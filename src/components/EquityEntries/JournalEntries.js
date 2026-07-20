@@ -403,20 +403,19 @@ const JournalEntries = ({ onTabChange }) => {
                 <tr>
                   <th className="je-col-date">Date</th>
                   <th className="je-col-code">Account Code</th>
-                  <th className="je-col-name">Account Name</th>
-                  <th className="je-col-desc">Description</th>
+                  <th className="je-col-acct-name">Account Name</th>
+                  <th className="je-col-entry-desc">Description</th>
                   <th className="je-col-ref">Reference</th>
                   <th className="je-col-payment">Payment Details</th>
                   <th className="je-col-amount">Debit</th>
                   <th className="je-col-amount">Credit</th>
-                  <th className="je-col-amount">Balance</th>
                   <th className="je-col-type">Type</th>
                 </tr>
               </thead>
               <tbody>
                 {!isLoading && entries.length === 0 ? (
                   <tr>
-                    <td colSpan="10" className="je-no-data">
+                    <td colSpan="9" className="je-no-data">
                       No journal entries found for the selected filters.
                     </td>
                   </tr>
@@ -427,8 +426,16 @@ const JournalEntries = ({ onTabChange }) => {
                       <td className="je-col-code je-account-code" title={entry.account_code || ''}>
                         {entry.account_code || '—'}
                       </td>
-                      <td className="je-col-name">{entry.account_name || '—'}</td>
-                      <td className="je-col-desc">{entry.description || '—'}</td>
+                      <td className="je-col-acct-name">
+                        <span className="je-acct-name-text" title={entry.account_name || ''}>
+                          {entry.account_name || '—'}
+                        </span>
+                      </td>
+                      <td className="je-col-entry-desc">
+                        <span className="je-entry-desc-text" title={entry.description || ''}>
+                          {entry.description || '—'}
+                        </span>
+                      </td>
                       <td className="je-col-ref">{entry.reference || '—'}</td>
                       <td className="je-col-payment">
                         {entry.transaction_account_name ? (
@@ -448,13 +455,12 @@ const JournalEntries = ({ onTabChange }) => {
                           '—'
                         )}
                       </td>
-                      <td className="je-col-amount je-debit">
+                      <td className="je-col-amount je-amount-value">
                         {Number(entry.debit) > 0 ? formatCurrency(entry.debit) : '—'}
                       </td>
-                      <td className="je-col-amount je-credit">
+                      <td className="je-col-amount je-amount-value">
                         {Number(entry.credit) > 0 ? formatCurrency(entry.credit) : '—'}
                       </td>
-                      <td className="je-col-amount je-balance">{formatCurrency(entry.balance)}</td>
                       <td className="je-col-type">
                         <span className="je-type-badge">{entry.transaction_type || '—'}</span>
                       </td>

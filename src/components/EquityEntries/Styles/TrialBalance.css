@@ -320,12 +320,12 @@
 }
 
 .tb-debit-balance {
-  color: #dc2626;
+  color: #334155;
   font-weight: 700;
 }
 
 .tb-credit-balance {
-  color: #059669;
+  color: #334155;
   font-weight: 700;
 }
 
@@ -374,12 +374,12 @@
 }
 
 .tb-subtotal-debit {
-  color: #dc2626;
+  color: #334155;
   font-weight: 700;
 }
 
 .tb-subtotal-credit {
-  color: #059669;
+  color: #334155;
   font-weight: 700;
 }
 

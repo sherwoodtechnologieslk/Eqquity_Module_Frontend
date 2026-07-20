@@ -1,8 +1,8 @@
 /* Dynamic Header — Top Gainers ticker below navbar */
 .dynamic-header {
   position: fixed;
-  top: 94px; /* Below navbar (84px) with reduced spacing (10px) */
-  left: 274px; /* Start where sidebar ends */
+  top: 70px; /* Below navbar */
+  left: 254px; /* Start where sidebar ends */
   right: 0;
   height: 38px;
 
@@ -177,7 +177,7 @@
 /* Responsive adjustments - Match navbar breakpoints */
 @media (max-width: 1200px) {
   .dynamic-header {
-    left: 280px; /* Match navbar left position */
+    left: 240px; /* Match navbar left position */
   }
   
   .ticker-item {
@@ -193,7 +193,7 @@
 
 @media (max-width: 900px) {
   .dynamic-header {
-    left: 260px; /* Match navbar left position */
+    left: 230px; /* Match navbar left position */
     height: 36px;
   }
   

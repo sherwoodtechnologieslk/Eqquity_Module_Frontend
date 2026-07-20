@@ -906,11 +906,14 @@ const BuyTransactionEntry = () => {
       
       const result = await transactionEntryAPI.saveBuyTransaction(submitForm);
       console.log('Save transaction result:', result);
-      if (result && result.warning) {
-        // Transaction saved but GL entries failed — show the real error
+      if (result && (result.warning || result.accountingError) && !result.glPosted) {
         alert(
-          `Buy Transaction saved (ID: ${result.transactionId}), but accounting (GL) entries could NOT be created.\n\nReason: ${result.accountingError || result.warning}\n\nPlease check the backend console and contact support.`
+          `Buy Transaction saved (ID: ${result.transactionId || result.id}), but trade-date GL could NOT be posted.\n\nReason: ${result.accountingError || result.warning}\n\nGo to Trade Confirmation → Post Entries to post GL manually.`
         );
+      } else if (result && result.glPosted === false && result.message) {
+        alert(`${result.message}\n\nGo to Trade Confirmation → Post Entries to post trade-date GL.`);
+      } else if (result && result.glPosted) {
+        alert(`Buy Transaction saved and trade-date GL posted successfully (ID: ${result.transactionId || result.id}).`);
       } else {
         alert('Buy Transaction submitted successfully!');
       }

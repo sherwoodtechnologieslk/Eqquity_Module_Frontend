@@ -735,7 +735,7 @@ const RightsIssueEntry = () => {
           {/* Card header with title + status */}
           <div className="rights-card-header">
             <div className="rights-card-header-text">
-              <h2 className="rights-card-title">Rights Issue Entry</h2>
+              <h2 className="rights-card-title">Rights Issues</h2>
               <p className="rights-card-subtitle">
                 Record and track CSE rights issues, entitlements, subscriptions and allotments
               </p>

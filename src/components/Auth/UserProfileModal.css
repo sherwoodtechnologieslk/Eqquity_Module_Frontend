@@ -1,21 +1,21 @@
-/* User Profile Modal — Identity header + data grid layout */
+/* User Profile Modal — cleaner layout, same blue palette */
 
 .upm-modal-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(15, 23, 42, 0.55);
+  background: rgba(15, 23, 42, 0.5);
   display: flex;
   align-items: center;
   justify-content: center;
   z-index: 10000;
   padding: 20px;
-  backdrop-filter: blur(6px);
+  backdrop-filter: blur(4px);
 }
 
 .upm-modal-content {
-  background: white;
-  border-radius: 0;
-  box-shadow: 0 25px 60px -12px rgba(0, 0, 0, 0.3);
+  background: #ffffff;
+  border-radius: 0.75rem;
+  box-shadow: 0 16px 40px rgba(15, 23, 42, 0.18);
   width: 100%;
   max-width: 640px;
   max-height: 90vh;
@@ -23,26 +23,31 @@
   flex-direction: column;
   overflow: hidden;
   border: 1px solid #e2e8f0;
-  animation: upm-modalSlideIn 0.3s cubic-bezier(0.23, 1, 0.32, 1);
+  animation: upm-modalSlideIn 0.28s ease-out;
 }
 
 @keyframes upm-modalSlideIn {
   from {
     opacity: 0;
-    transform: translateY(-20px) scale(0.96);
+    transform: translateY(10px);
   }
   to {
     opacity: 1;
-    transform: translateY(0) scale(1);
+    transform: translateY(0);
   }
 }
 
 /* ===== HEADER ===== */
 .upm-modal-header {
   position: relative;
-  background: linear-gradient(135deg, #1d4ed8 0%, #3b82f6 100%);
+  background: linear-gradient(
+    90deg,
+    var(--navbar-bg-start, #1e40af) 0%,
+    var(--navbar-bg-mid, #2563eb) 55%,
+    var(--navbar-bg-end, #3b82f6) 100%
+  );
   color: white;
-  padding: 1.5rem 2rem 1.75rem;
+  padding: 1.35rem 1.75rem 1.5rem;
   overflow: hidden;
   flex-shrink: 0;
 }
@@ -51,9 +56,7 @@
   content: '';
   position: absolute;
   inset: 0;
-  background:
-    radial-gradient(circle at 0% 0%, rgba(255, 255, 255, 0.18), transparent 60%),
-    radial-gradient(circle at 100% 100%, rgba(96, 165, 250, 0.25), transparent 55%);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.1) 0%, transparent 60%);
   pointer-events: none;
 }
 
@@ -61,32 +64,34 @@
   position: absolute;
   top: 1rem;
   right: 1rem;
-  width: 2rem;
-  height: 2rem;
-  background: rgba(255, 255, 255, 0.15);
-  border: 1px solid rgba(255, 255, 255, 0.22);
+  width: 2.15rem;
+  height: 2.15rem;
+  background: rgba(255, 255, 255, 0.18);
+  border: 1.5px solid rgba(255, 255, 255, 0.5);
   color: white;
-  border-radius: 0;
+  border-radius: 50%;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: background 0.2s ease, transform 0.2s ease;
+  transition: background 0.18s ease, border-color 0.18s ease;
   z-index: 2;
+  box-shadow: none;
 }
 
 .upm-close-button svg {
-  width: 1rem;
-  height: 1rem;
+  width: 0.95rem;
+  height: 0.95rem;
 }
 
 .upm-close-button:hover {
   background: rgba(255, 255, 255, 0.28);
-  transform: scale(1.05);
+  border-color: rgba(255, 255, 255, 0.7);
+  transform: none;
 }
 
 .upm-close-button:active {
-  transform: scale(0.95);
+  transform: none;
 }
 
 .upm-header-meta {
@@ -94,21 +99,23 @@
   z-index: 1;
   display: flex;
   flex-direction: column;
-  gap: 0.25rem;
-  margin-bottom: 1.5rem;
+  gap: 0.2rem;
+  margin-bottom: 1.25rem;
+  padding-right: 2.5rem;
 }
 
 .upm-header-eyebrow {
-  font-size: 0.75rem;
+  font-size: 0.7rem;
   font-weight: 700;
-  letter-spacing: 0.14em;
+  letter-spacing: 0.12em;
   text-transform: uppercase;
-  color: rgba(255, 255, 255, 0.78);
+  color: rgba(255, 255, 255, 0.75);
 }
 
 .upm-header-tagline {
-  font-size: 0.95rem;
+  font-size: 0.9rem;
   color: rgba(255, 255, 255, 0.9);
+  font-weight: 400;
 }
 
 .upm-identity {
@@ -116,35 +123,36 @@
   z-index: 1;
   display: flex;
   align-items: center;
-  gap: 1rem;
+  gap: 0.9rem;
 }
 
 .upm-profile-avatar {
-  width: 3.5rem;
-  height: 3.5rem;
-  background: rgba(255, 255, 255, 0.95);
-  color: #1d4ed8;
+  width: 3.25rem;
+  height: 3.25rem;
+  background: rgba(255, 255, 255, 0.2);
+  color: #ffffff;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 1.15rem;
-  font-weight: 800;
+  font-size: 0.95rem;
+  font-weight: 700;
   letter-spacing: 0.02em;
-  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
+  border: 2px solid rgba(255, 255, 255, 0.55);
+  box-shadow: none;
   flex-shrink: 0;
 }
 
 .upm-identity-text {
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
+  gap: 0.4rem;
   min-width: 0;
 }
 
 .upm-identity-name {
   margin: 0;
-  font-size: 1.4rem;
+  font-size: 1.25rem;
   font-weight: 700;
   letter-spacing: -0.01em;
   color: white;
@@ -162,55 +170,44 @@
 .upm-user-role {
   display: inline-flex;
   align-items: center;
-  font-size: 0.7rem;
+  font-size: 0.68rem;
   font-weight: 700;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.06em;
   text-transform: uppercase;
   color: white;
   background: rgba(255, 255, 255, 0.15);
-  border: 1px solid rgba(255, 255, 255, 0.28);
-  padding: 0.2rem 0.6rem;
-  border-radius: 0;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  padding: 0.2rem 0.55rem;
+  border-radius: 999px;
 }
 
 .upm-status-badge {
   display: inline-flex;
   align-items: center;
   gap: 0.35rem;
-  font-size: 0.7rem;
+  font-size: 0.68rem;
   font-weight: 700;
-  letter-spacing: 0.06em;
+  letter-spacing: 0.05em;
   text-transform: uppercase;
   padding: 0.2rem 0.6rem;
   border-radius: 999px;
-  background: rgba(16, 185, 129, 0.2);
+  background: rgba(16, 185, 129, 0.22);
   color: #ecfdf5;
-  border: 1px solid rgba(110, 231, 183, 0.5);
+  border: 1px solid rgba(110, 231, 183, 0.45);
 }
 
 .upm-status-dot {
-  width: 0.4rem;
-  height: 0.4rem;
+  width: 0.35rem;
+  height: 0.35rem;
   border-radius: 50%;
   background: #34d399;
-  box-shadow: 0 0 8px rgba(52, 211, 153, 0.7);
-  animation: upm-pulse 2s infinite;
-}
-
-@keyframes upm-pulse {
-  0%, 100% {
-    opacity: 1;
-    transform: scale(1);
-  }
-  50% {
-    opacity: 0.6;
-    transform: scale(1.2);
-  }
+  box-shadow: none;
+  animation: none;
 }
 
 /* ===== BODY ===== */
 .upm-modal-body {
-  padding: 1.5rem 2rem 2rem;
+  padding: 1.35rem 1.75rem 1.75rem;
   background: #f8fafc;
   overflow-y: auto;
   flex: 1;
@@ -220,7 +217,7 @@
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  margin-bottom: 0.85rem;
+  margin-bottom: 0.75rem;
 }
 
 .upm-section-heading h4 {
@@ -228,7 +225,7 @@
   font-size: 0.7rem;
   font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.14em;
+  letter-spacing: 0.12em;
   color: #64748b;
 }
 
@@ -236,18 +233,69 @@
   content: '';
   flex: 1;
   height: 1px;
-  background: linear-gradient(to right, rgba(148, 163, 184, 0.4), transparent);
+  background: #e2e8f0;
 }
 
 .upm-section-heading--spaced {
-  margin-top: 1.35rem;
+  margin-top: 1.25rem;
 }
 
+.upm-info-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.55rem;
+}
+
+.upm-info-cell {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  padding: 0.7rem 0.85rem;
+  background: white;
+  border: 1px solid #e2e8f0;
+  border-radius: 0.45rem;
+  min-width: 0;
+  transition: border-color 0.18s ease, background 0.18s ease;
+}
+
+.upm-info-cell:hover {
+  border-color: #bfdbfe;
+  background: #ffffff;
+  box-shadow: none;
+  transform: none;
+}
+
+.upm-info-cell--wide {
+  grid-column: 1 / -1;
+}
+
+.upm-info-label {
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #94a3b8;
+}
+
+.upm-info-value {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #0f172a;
+  word-break: break-word;
+  line-height: 1.35;
+}
+
+.upm-info-value--funds {
+  color: #1d4ed8;
+  font-size: 0.85rem;
+}
+
+/* ===== SECURITY / PASSWORD ===== */
 .upm-password-form {
   padding: 1rem;
   background: white;
   border: 1px solid #e2e8f0;
-  border-left: 3px solid #3b82f6;
+  border-radius: 0.45rem;
 }
 
 .upm-password-hint {
@@ -262,6 +310,7 @@
   padding: 0.65rem 0.75rem;
   font-size: 0.84rem;
   line-height: 1.45;
+  border-radius: 0.35rem;
 }
 
 .upm-password-alert--error {
@@ -274,6 +323,12 @@
   color: #15803d;
   background: #f0fdf4;
   border: 1px solid #bbf7d0;
+}
+
+.upm-password-alert--info {
+  color: #1d4ed8;
+  background: #eff6ff;
+  border: 1px solid #bfdbfe;
 }
 
 .upm-password-grid {
@@ -289,43 +344,34 @@
 }
 
 .upm-password-field span {
-  font-size: 0.68rem;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: #94a3b8;
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  text-transform: none;
+  color: #64748b;
 }
 
 .upm-password-field input {
   width: 100%;
   box-sizing: border-box;
-  padding: 0.65rem 0.75rem;
+  padding: 0.6rem 0.75rem;
   font-family: inherit;
   font-size: 0.9rem;
-  border: 1px solid #cbd5e1;
-  background: #fff;
+  border: 1px solid #d5dde6;
+  border-radius: 0.35rem;
+  background: #fbfbfa;
+  color: #0f172a;
 }
 
 .upm-password-field input:focus {
   outline: none;
   border-color: #3b82f6;
-  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+  background: #fff;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.14);
 }
 
 .upm-password-field--wide {
   grid-column: 1 / -1;
-}
-
-.upm-password-alert--success {
-  color: #15803d;
-  background: #f0fdf4;
-  border: 1px solid #bbf7d0;
-}
-
-.upm-password-alert--info {
-  color: #1d4ed8;
-  background: #eff6ff;
-  border: 1px solid #bfdbfe;
 }
 
 .upm-password-otp-meta {
@@ -347,13 +393,15 @@
 }
 
 .upm-password-secondary {
-  padding: 0.6rem 1rem;
+  padding: 0.55rem 1rem;
   font-size: 0.85rem;
   font-weight: 600;
   color: #475569;
   background: #fff;
   border: 1px solid #e2e8f0;
+  border-radius: 999px;
   cursor: pointer;
+  transition: background 0.18s ease;
 }
 
 .upm-password-secondary:hover:not(:disabled) {
@@ -367,13 +415,15 @@
 
 .upm-password-submit {
   margin-top: 0;
-  padding: 0.6rem 1rem;
+  padding: 0.55rem 1.15rem;
   font-size: 0.85rem;
   font-weight: 600;
   color: #fff;
   background: #2563eb;
   border: none;
+  border-radius: 999px;
   cursor: pointer;
+  transition: background 0.18s ease;
 }
 
 .upm-password-submit:hover:not(:disabled) {
@@ -383,57 +433,6 @@
 .upm-password-submit:disabled {
   opacity: 0.65;
   cursor: not-allowed;
-}
-
-.upm-info-grid {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 0.6rem;
-}
-
-.upm-info-cell {
-  display: flex;
-  flex-direction: column;
-  gap: 0.3rem;
-  padding: 0.75rem 0.9rem;
-  background: white;
-  border: 1px solid #e2e8f0;
-  border-left: 3px solid #3b82f6;
-  border-radius: 0;
-  min-width: 0;
-  transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
-}
-
-.upm-info-cell:hover {
-  border-color: #bfdbfe;
-  border-left-color: #1d4ed8;
-  box-shadow: 0 4px 14px rgba(15, 23, 42, 0.06);
-  transform: translateY(-1px);
-}
-
-.upm-info-cell--wide {
-  grid-column: 1 / -1;
-}
-
-.upm-info-label {
-  font-size: 0.65rem;
-  font-weight: 700;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  color: #94a3b8;
-}
-
-.upm-info-value {
-  font-size: 0.95rem;
-  font-weight: 600;
-  color: #0f172a;
-  word-break: break-word;
-  line-height: 1.35;
-}
-
-.upm-info-value--funds {
-  color: #1d4ed8;
-  font-size: 0.875rem;
 }
 
 /* ===== Scrollbar ===== */
@@ -447,7 +446,7 @@
 
 .upm-modal-body::-webkit-scrollbar-thumb {
   background: #cbd5e1;
-  border-radius: 0;
+  border-radius: 999px;
 }
 
 .upm-modal-body::-webkit-scrollbar-thumb:hover {
@@ -466,30 +465,34 @@
     padding: 12px;
   }
 
+  .upm-modal-content {
+    border-radius: 0.6rem;
+  }
+
   .upm-modal-header {
-    padding: 1.25rem 1.25rem 1.5rem;
+    padding: 1.15rem 1.15rem 1.35rem;
   }
 
   .upm-header-tagline {
-    font-size: 0.875rem;
+    font-size: 0.85rem;
   }
 
   .upm-identity {
-    gap: 0.85rem;
+    gap: 0.75rem;
   }
 
   .upm-profile-avatar {
-    width: 3rem;
-    height: 3rem;
-    font-size: 1rem;
+    width: 2.9rem;
+    height: 2.9rem;
+    font-size: 0.85rem;
   }
 
   .upm-identity-name {
-    font-size: 1.2rem;
+    font-size: 1.1rem;
   }
 
   .upm-modal-body {
-    padding: 1.25rem;
+    padding: 1.15rem;
   }
 
   .upm-info-grid {
@@ -498,6 +501,16 @@
 
   .upm-password-grid {
     grid-template-columns: 1fr;
+  }
+
+  .upm-password-actions {
+    flex-direction: column-reverse;
+  }
+
+  .upm-password-secondary,
+  .upm-password-submit {
+    width: 100%;
+    text-align: center;
   }
 }
 
@@ -526,6 +539,7 @@
     background: #e5e7eb;
     color: #1f2937;
     box-shadow: none;
+    border-color: #94a3b8;
   }
   .upm-identity-name,
   .upm-header-eyebrow,

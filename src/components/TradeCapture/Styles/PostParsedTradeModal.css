@@ -1,0 +1,503 @@
+/* Post Parsed Trade — aligned with Trade Confirmation compact slate/blue language */
+
+.pptm-modal-overlay {
+  --pptm-accent: #2563eb;
+  --pptm-accent-strong: #1d4ed8;
+  --pptm-accent-soft: #eff6ff;
+  --pptm-accent-border: #bfdbfe;
+  --pptm-buy: #059669;
+  --pptm-buy-dark: #047857;
+  --pptm-sell: #e11d48;
+  --pptm-sell-dark: #9f1239;
+  --pptm-bg: #f8fafc;
+  --pptm-card: #ffffff;
+  --pptm-border: #e5e7eb;
+  --pptm-text: #1e293b;
+  --pptm-muted: #64748b;
+
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.48);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10000;
+  padding: 1rem;
+}
+
+.pptm-modal-content {
+  background: var(--pptm-bg);
+  border-radius: 10px;
+  width: 100%;
+  max-width: 760px;
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  box-shadow:
+    0 1px 3px rgba(15, 23, 42, 0.08),
+    0 16px 40px rgba(15, 23, 42, 0.18);
+  border: 1px solid var(--pptm-border);
+  overflow: hidden;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+}
+
+.pptm-modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.7rem 1rem;
+  background: var(--pptm-card);
+  border-bottom: 1px solid var(--pptm-border);
+  color: var(--pptm-text);
+}
+
+.pptm-modal-header h2 {
+  margin: 0;
+  font-size: 0.95rem;
+  font-weight: 700;
+  letter-spacing: -0.015em;
+  color: #0f172a;
+}
+
+.pptm-close-btn {
+  background: #f1f5f9;
+  border: 1px solid var(--pptm-border);
+  color: var(--pptm-muted);
+  font-size: 1.15rem;
+  line-height: 1;
+  width: 1.75rem;
+  height: 1.75rem;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+
+.pptm-close-btn:hover {
+  background: #e2e8f0;
+  color: #0f172a;
+}
+
+.pptm-modal-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 0.85rem 1rem 1rem;
+}
+
+.pptm-section {
+  margin-bottom: 0.7rem;
+}
+
+.pptm-section:last-child {
+  margin-bottom: 0;
+}
+
+.pptm-section h3 {
+  margin: 0 0 0.55rem;
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--pptm-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.pptm-section-inputs,
+.pptm-section-card {
+  background: var(--pptm-card);
+  border: 1px solid var(--pptm-border);
+  border-radius: 8px;
+  padding: 0.7rem 0.85rem;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+}
+
+.pptm-section-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin-bottom: 0.55rem;
+}
+
+.pptm-section-head h3 {
+  margin: 0;
+}
+
+.pptm-side-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.12rem 0.5rem;
+  border-radius: 999px;
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+}
+
+.pptm-side-badge-buy {
+  background: #ecfdf5;
+  color: var(--pptm-buy-dark);
+  border: 1px solid #a7f3d0;
+}
+
+.pptm-side-badge-sell {
+  background: #fff1f2;
+  color: var(--pptm-sell-dark);
+  border: 1px solid #fecdd3;
+}
+
+.pptm-phase-tag {
+  display: inline-block;
+  margin-left: 0.3rem;
+  padding: 0.1rem 0.4rem;
+  border-radius: 999px;
+  background: var(--pptm-accent-soft);
+  color: var(--pptm-accent-strong);
+  border: 1px solid var(--pptm-accent-border);
+  font-size: 0.6rem;
+  font-weight: 600;
+  text-transform: none;
+  letter-spacing: 0;
+  vertical-align: middle;
+}
+
+.pptm-form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.65rem;
+}
+
+.pptm-field label {
+  display: block;
+  font-size: 0.68rem;
+  font-weight: 600;
+  color: var(--pptm-muted);
+  margin-bottom: 0.28rem;
+}
+
+.pptm-field select,
+.pptm-field input {
+  width: 100%;
+  padding: 0.4rem 0.55rem;
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+  font-size: 0.78rem;
+  color: var(--pptm-text);
+  background: #fff;
+  font-family: inherit;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+.pptm-field select:focus,
+.pptm-field input:focus {
+  outline: none;
+  border-color: var(--pptm-accent);
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+}
+
+/* Compact key/value summary — denser than tile cards */
+.pptm-summary-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0;
+  border: 1px solid var(--pptm-border);
+  border-radius: 6px;
+  overflow: hidden;
+  background: #fff;
+}
+
+.pptm-summary-item {
+  display: grid;
+  grid-template-columns: minmax(5.5rem, 38%) 1fr;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.32rem 0.55rem;
+  border-bottom: 1px solid #f1f5f9;
+  border-right: 1px solid #f1f5f9;
+  min-height: 0;
+  background: transparent;
+}
+
+.pptm-summary-item:nth-child(2n) {
+  border-right: none;
+}
+
+.pptm-summary-item-wide {
+  grid-column: 1 / -1;
+  border-right: none;
+  background: #f8fafc;
+}
+
+.pptm-summary-label {
+  color: var(--pptm-muted);
+  font-size: 0.62rem;
+  font-weight: 600;
+  text-transform: none;
+  letter-spacing: 0;
+}
+
+.pptm-summary-value {
+  color: #0f172a;
+  font-weight: 600;
+  font-size: 0.74rem;
+  line-height: 1.25;
+  word-break: break-word;
+  text-align: right;
+}
+
+.pptm-summary-item-wide .pptm-summary-value {
+  text-align: left;
+}
+
+.pptm-mono {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: 'tnum';
+}
+
+.pptm-highlight {
+  color: var(--pptm-accent-strong);
+}
+
+.pptm-gain {
+  color: var(--pptm-buy-dark);
+}
+
+.pptm-loss {
+  color: var(--pptm-sell-dark);
+}
+
+.pptm-fees-panel {
+  margin-top: 0.55rem;
+  border: 1px solid var(--pptm-border);
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.pptm-fees-title {
+  padding: 0.35rem 0.55rem;
+  background: #f8fafc;
+  border-bottom: 1px solid var(--pptm-border);
+  font-size: 0.62rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--pptm-muted);
+}
+
+.pptm-fees-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0;
+  background: #fff;
+}
+
+.pptm-fee-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.28rem 0.55rem;
+  border-bottom: 1px solid #f1f5f9;
+  font-size: 0.7rem;
+  color: #334155;
+}
+
+.pptm-fee-row:nth-child(odd) {
+  border-right: 1px solid #f1f5f9;
+}
+
+.pptm-fee-row span:last-child {
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  color: #0f172a;
+}
+
+.pptm-fee-total {
+  grid-column: 1 / -1;
+  background: var(--pptm-accent-soft);
+  border-top: 1px solid var(--pptm-accent-border);
+  border-bottom: none;
+  border-right: none;
+  font-weight: 600;
+  padding: 0.35rem 0.55rem;
+}
+
+.pptm-fee-total span:last-child {
+  color: var(--pptm-accent-strong);
+}
+
+.pptm-section-gl h3 {
+  margin-bottom: 0.45rem;
+}
+
+.pptm-gl-table-wrap {
+  border: 1px solid var(--pptm-border);
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.pptm-gl-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.7rem;
+}
+
+.pptm-gl-table th,
+.pptm-gl-table td {
+  padding: 0.35rem 0.5rem;
+  text-align: left;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.pptm-gl-table th {
+  background: #f8fafc;
+  font-weight: 700;
+  color: var(--pptm-muted);
+  font-size: 0.58rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.pptm-gl-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.pptm-gl-table tbody tr:hover {
+  background: #f8fafc;
+}
+
+.pptm-col-amount {
+  text-align: right !important;
+  white-space: nowrap;
+}
+
+.pptm-account-code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 0.65rem;
+  color: var(--pptm-muted);
+}
+
+.pptm-dr-cr {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 1.75rem;
+  padding: 0.08rem 0.35rem;
+  border-radius: 4px;
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+}
+
+.pptm-dr-cr-dr {
+  background: #fff1f2;
+  color: var(--pptm-sell-dark);
+  border: 1px solid #fecdd3;
+}
+
+.pptm-dr-cr-cr {
+  background: #ecfdf5;
+  color: var(--pptm-buy-dark);
+  border: 1px solid #a7f3d0;
+}
+
+.pptm-note {
+  margin-top: 0.5rem;
+  padding: 0.45rem 0.6rem;
+  background: var(--pptm-accent-soft);
+  border: 1px solid var(--pptm-accent-border);
+  border-radius: 6px;
+  color: #1e40af;
+  font-size: 0.68rem;
+  line-height: 1.4;
+}
+
+.pptm-error {
+  padding: 0.5rem 0.7rem;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  color: #b91c1c;
+  border-radius: 6px;
+  margin-bottom: 0.7rem;
+  font-size: 0.74rem;
+  line-height: 1.4;
+}
+
+.pptm-loading {
+  text-align: center;
+  padding: 1.5rem 0.75rem;
+  color: var(--pptm-muted);
+  font-size: 0.78rem;
+}
+
+.pptm-modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.5rem;
+  padding: 0.65rem 1rem;
+  border-top: 1px solid var(--pptm-border);
+  background: var(--pptm-card);
+}
+
+.pptm-btn {
+  padding: 0.4rem 0.9rem;
+  border-radius: 6px;
+  font-size: 0.74rem;
+  font-weight: 600;
+  cursor: pointer;
+  border: none;
+  font-family: inherit;
+  transition: background 0.15s, box-shadow 0.15s, transform 0.1s;
+}
+
+.pptm-btn:active:not(:disabled) {
+  transform: translateY(1px);
+}
+
+.pptm-btn-cancel {
+  background: #fff;
+  color: #475569;
+  border: 1px solid #cbd5e1;
+}
+
+.pptm-btn-cancel:hover:not(:disabled) {
+  background: #f8fafc;
+}
+
+.pptm-btn-submit {
+  background: var(--pptm-accent);
+  color: #fff;
+  box-shadow: 0 1px 2px rgba(37, 99, 235, 0.25);
+}
+
+.pptm-btn-submit:hover:not(:disabled) {
+  background: var(--pptm-accent-strong);
+  box-shadow: 0 4px 10px rgba(37, 99, 235, 0.28);
+}
+
+.pptm-btn-submit:disabled,
+.pptm-btn-cancel:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+@media (max-width: 640px) {
+  .pptm-form-grid,
+  .pptm-summary-grid,
+  .pptm-fees-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .pptm-summary-item {
+    border-right: none;
+  }
+
+  .pptm-fee-row:nth-child(odd) {
+    border-right: none;
+  }
+
+  .pptm-modal-body {
+    padding: 0.75rem;
+  }
+}
