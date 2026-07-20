@@ -95,8 +95,8 @@ const ScripDividendEntry = () => {
             </svg>
           </div>
           <div className="scrip-header-text-group">
-            <h1 className="scrip-main-title">Scrip Dividend Entry Screen</h1>
-            <p className="scrip-subtitle">Record stock dividends and bonus share allotments</p>
+            <h1 className="scrip-main-title">Splits & Bonus</h1>
+            <p className="scrip-subtitle">Record stock dividends, splits, and bonus share allotments</p>
           </div>
         </div>
 

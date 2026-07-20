@@ -104,6 +104,13 @@ const Navbar = ({ activeTab, onTabChange, visibleTabs = [], user, onLogout, onOp
     }
   }, []);
 
+  useEffect(() => {
+    const activeButton = navbarRef.current?.querySelector('.nav-button.active');
+    if (activeButton && typeof activeButton.scrollIntoView === 'function') {
+      activeButton.scrollIntoView({ behavior: 'smooth', inline: 'nearest', block: 'nearest' });
+    }
+  }, [activeTab]);
+
   const handleTabClick = (tabName) => {
     setTimeout(() => onTabChange(tabName), 100);
   };
@@ -162,8 +169,10 @@ const Navbar = ({ activeTab, onTabChange, visibleTabs = [], user, onLogout, onOp
       <div className="navbar-container">
         <div className="navbar-brand">
           <div className="brand-icon">
-            <svg className="brand-logo" fill="currentColor" viewBox="0 0 20 20">
-              <path fillRule="evenodd" d="M4 2a2 2 0 00-2 2v12a2 2 0 002 2h12a2 2 0 002-2V4a2 2 0 00-2-2H4zm3 5a1 1 0 011-1h4a1 1 0 110 2H8a1 1 0 01-1-1zm0 3a1 1 0 011-1h4a1 1 0 110 2H8a1 1 0 01-1-1zm-1 4a1 1 0 011-1h6a1 1 0 110 2H7a1 1 0 01-1-1z" clipRule="evenodd" />
+            <svg className="brand-logo" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+              <rect x="5.5" y="4.2" width="9" height="2.5" rx="1.25" />
+              <rect x="3" y="8.75" width="14" height="2.5" rx="1.25" />
+              <rect x="5.5" y="13.3" width="9" height="2.5" rx="1.25" />
             </svg>
           </div>
          

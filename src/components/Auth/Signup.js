@@ -123,10 +123,26 @@ const Signup = ({ onSignup, switchToLogin }) => {
 
     return (
         <div className="auth-container">
-            <div className="auth-card">
-                <h2>Create Account</h2>
-                <p className="auth-subtitle">Join us today</p>
-                
+            <aside className="auth-brand-panel" aria-label="Sherwood Equity">
+                <div className="auth-brand-top">
+                    <div className="auth-brand-mark">
+                        <span className="auth-brand-mark__sherwood">Sherwood</span>
+                        <span className="auth-brand-mark__equity">Equity</span>
+                    </div>
+                    <h1 className="auth-brand-headline">Manage investment operations with integrated accounting and financial controls.</h1>
+                    <p className="auth-brand-copy">
+                        Create an account to capture trades, track performance, and stay audit-ready.
+                    </p>
+                </div>
+                <p className="auth-brand-bottom auth-brand-meta">Sherwood Technologies (Pvt) Ltd</p>
+            </aside>
+
+            <div className="auth-card auth-card--compact">
+                <div className="auth-card-header">
+                    <h2>Create account</h2>
+                    <p className="auth-subtitle">Set up access in a few steps</p>
+                </div>
+
                 {serverError && (
                     <div className="error-message">
                         {serverError}
@@ -226,8 +242,8 @@ const Signup = ({ onSignup, switchToLogin }) => {
                         {errors.confirmPassword && <span className="error-text">{errors.confirmPassword}</span>}
                     </div>
 
-                    <button 
-                        type="submit" 
+                    <button
+                        type="submit"
                         className="auth-button primary"
                         disabled={isLoading}
                     >
@@ -238,8 +254,8 @@ const Signup = ({ onSignup, switchToLogin }) => {
                 <div className="auth-footer">
                     <p>
                         Already have an account?{' '}
-                        <button 
-                            type="button" 
+                        <button
+                            type="button"
                             className="link-button"
                             onClick={switchToLogin}
                         >

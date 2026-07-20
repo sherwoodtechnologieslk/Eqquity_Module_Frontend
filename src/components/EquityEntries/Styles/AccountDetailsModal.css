@@ -766,12 +766,12 @@
 /* Responsive */
 @media (max-width: 1200px) {
   .account-modal-overlay {
-    padding-left: 280px;
+    padding-left: 260px;
   }
 
   .account-details-modal.account-modal-content {
-    max-width: min(1180px, calc(100vw - 280px - 2rem));
-    width: min(calc(100vw - 280px - 2rem), 1180px);
+    max-width: min(1180px, calc(100vw - 260px - 2rem));
+    width: min(calc(100vw - 260px - 2rem), 1180px);
   }
 }
 

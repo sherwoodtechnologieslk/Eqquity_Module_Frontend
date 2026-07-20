@@ -78,7 +78,7 @@ const DividendEntry = () => {
             
           </div>
           <div className="div-header-text-group">
-            <h1 className="div-main-title">Dividend Entry Screen</h1>
+            <h1 className="div-main-title">Dividends</h1>
             <p className="div-subtitle">Record dividends declared for your holdings</p>
           </div>
         </div>

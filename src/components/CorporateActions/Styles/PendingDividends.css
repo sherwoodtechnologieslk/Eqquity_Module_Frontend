@@ -1,767 +1,748 @@
-/* Page Layout */
+/**
+ * Pending Dividends — scoped pending-div-* styles (self-contained).
+ * Blue palette to match Equity Module chrome (not purple).
+ */
+
 .pending-div-page-container {
-  min-height: 100vh;
-  padding: 2rem 1rem;
+  --pd-border: #e2e8f0;
+  --pd-text: #0f172a;
+  --pd-muted: #64748b;
+  --pd-blue: #2563eb;
+  --pd-blue-soft: #eff6ff;
+
+  min-height: 100%;
+  margin: -0.25rem -2rem -2rem -0.75rem;
+  padding: 0.85rem 1rem 1.5rem 12px;
+  background: transparent;
+  color: var(--pd-text);
+  font-family: inherit;
   box-sizing: border-box;
-  background: #f8fafc;
+}
+
+.pending-div-page-container *,
+.pending-div-page-container *::before,
+.pending-div-page-container *::after {
+  box-sizing: border-box;
 }
 
 .pending-div-content-wrapper {
-  max-width: 1400px;
+  max-width: 1280px;
   margin: 0 auto;
 }
 
-/* Header Section */
-.pending-div-header-section {
+/* Header */
+.pending-div-page-container .pending-div-header-section {
   display: flex;
-  align-items: center;
-  gap: 2rem;
-  margin-bottom: 1.25rem;
-  text-align: left;
-  padding-top: 1.25rem;
-  padding-bottom: 0.75rem;
+  align-items: flex-start;
+  gap: 0.85rem;
+  margin-bottom: 0.85rem;
+  padding: 0.15rem 0 0.35rem;
 }
 
-.pending-div-header-icon {
+.pending-div-page-container .pending-div-header-icon {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 4rem;
-  height: 4rem;
-  background: linear-gradient(135deg, #9333ea, #a855f7);
-  border-radius: 0.18rem;
-  margin: 0;
-  box-shadow: 0 8px 32px 0 rgba(147, 51, 234, 0.09), 0 2px 8px 0 rgba(147, 51, 234, 0.04);
+  width: 2.5rem;
+  height: 2.5rem;
+  background: var(--pd-blue);
+  border-radius: 0.45rem;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  box-shadow: none;
   flex-shrink: 0;
 }
 
-.pending-div-icon {
-  width: 2rem;
-  height: 2rem;
+.pending-div-page-container .pending-div-icon {
+  width: 1.25rem;
+  height: 1.25rem;
   color: #fff;
 }
 
-.pending-div-header-text-group {
+.pending-div-page-container .pending-div-header-text-group {
   display: flex;
   flex-direction: column;
-  align-items: flex-start;
-  gap: 0.25rem;
+  gap: 0.15rem;
+  min-width: 0;
 }
 
-.pending-div-main-title {
-  font-size: 2rem;
-  font-weight: 800;
-  color: #1f2937;
-  margin: 0 0 0.5rem 0;
-  letter-spacing: -0.01em;
-  line-height: 1.1;
-}
-
-.pending-div-subtitle {
-  color: #475569;
-  font-size: 1.1rem;
-  font-weight: 400;
+.pending-div-page-container .pending-div-main-title {
   margin: 0;
-  letter-spacing: 0.01em;
+  font-size: 1.35rem;
+  font-weight: 700;
+  line-height: 1.2;
+  letter-spacing: normal;
+  color: var(--pd-text);
 }
 
-/* Dividend Type Buttons Section */
-.pending-div-buttons-section {
+.pending-div-page-container .pending-div-subtitle {
+  margin: 0;
+  font-size: 0.8125rem;
+  line-height: 1.4;
+  font-weight: 400;
+  color: var(--pd-muted);
+}
+
+/* Type toggle */
+.pending-div-page-container .pending-div-buttons-section {
   display: flex;
-  gap: 0.75rem;
-  margin-bottom: 2rem;
-  padding: 0 0.5rem;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+  flex-wrap: wrap;
 }
 
-/* PDF Text Display Section */
-.pending-div-pdf-display-section {
-  background: #fff;
-  border-radius: 0.18rem;
-  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.22);
-  border: 1px solid #e9d5ff;
+.pending-div-page-container .pending-div-type-btn {
+  padding: 0.45rem 1rem;
+  background: #ffffff;
+  border: 1px solid #cbd5e1;
+  border-radius: 999px;
+  color: #475569;
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+  box-shadow: none;
+}
+
+.pending-div-page-container .pending-div-type-btn:hover {
+  background: #f8fafc;
+  border-color: #94a3b8;
+  transform: none;
+  box-shadow: none;
+}
+
+.pending-div-page-container .pending-div-type-btn.active {
+  background: #2563eb;
+  color: #ffffff;
+  border-color: #2563eb;
+  box-shadow: none;
+}
+
+/* PDF display */
+.pending-div-page-container .pending-div-pdf-display-section {
+  background: #ffffff;
+  border-radius: 0.55rem;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+  border: 1px solid var(--pd-border);
   overflow: hidden;
-  margin-bottom: 2rem;
+  margin-bottom: 1rem;
 }
 
-.pending-div-pdf-display-header {
-  background: linear-gradient(90deg, #9333ea 0%, #a855f7 100%);
-  padding: 1rem 1.5rem;
+.pending-div-page-container .pending-div-pdf-display-header {
+  background: linear-gradient(135deg, #1e3a8a 0%, #1d4ed8 45%, #2563eb 100%);
+  padding: 0.85rem 1.1rem;
   display: flex;
   justify-content: space-between;
   align-items: center;
   flex-wrap: wrap;
-  gap: 1rem;
+  gap: 0.75rem;
 }
 
-.pending-div-pdf-header-left {
+.pending-div-page-container .pending-div-pdf-header-left {
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
+  gap: 0.4rem;
 }
 
-.pending-div-pdf-display-header h3 {
-  color: white;
-  font-size: 1.125rem;
+.pending-div-page-container .pending-div-pdf-display-header h3 {
+  color: #ffffff;
+  font-size: 0.9375rem;
   font-weight: 600;
   margin: 0;
 }
 
-.pending-div-languages {
+.pending-div-page-container .pending-div-languages {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: 0.4rem;
   flex-wrap: wrap;
 }
 
-.pending-div-languages-label {
+.pending-div-page-container .pending-div-languages-label {
   color: rgba(255, 255, 255, 0.8);
-  font-size: 0.75rem;
+  font-size: 0.72rem;
   font-weight: 500;
 }
 
-.pending-div-language-badge {
+.pending-div-page-container .pending-div-language-badge {
   display: inline-flex;
   align-items: center;
-  gap: 0.25rem;
-  background: rgba(255, 255, 255, 0.2);
-  color: white;
-  padding: 0.25rem 0.5rem;
-  border-radius: 0.15rem;
-  font-size: 0.75rem;
+  gap: 0.2rem;
+  background: rgba(255, 255, 255, 0.16);
+  color: #ffffff;
+  padding: 0.2rem 0.45rem;
+  border-radius: 999px;
+  font-size: 0.7rem;
   font-weight: 500;
-  border: 1px solid rgba(255, 255, 255, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.22);
 }
 
-.pending-div-pdf-actions {
+.pending-div-page-container .pending-div-pdf-actions {
   display: flex;
-  gap: 0.75rem;
+  gap: 0.5rem;
 }
 
-.pending-div-parse-btn {
-  padding: 0.5rem 1.25rem;
-  background: white;
-  color: #9333ea;
+.pending-div-page-container .pending-div-parse-btn {
+  padding: 0.45rem 0.95rem;
+  background: #ffffff;
+  color: #1d4ed8;
   border: none;
-  border-radius: 0.15rem;
+  border-radius: 999px;
   font-weight: 600;
-  font-size: 0.875rem;
+  font-size: 0.78rem;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: background 0.15s ease;
 }
 
-.pending-div-parse-btn:hover {
-  background: #faf5ff;
-  transform: translateY(-1px);
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+.pending-div-page-container .pending-div-parse-btn:hover {
+  background: #eff6ff;
+  transform: none;
+  box-shadow: none;
 }
 
-.pending-div-close-btn {
-  padding: 0.5rem 1.25rem;
-  background: rgba(255, 255, 255, 0.2);
-  color: white;
-  border: 1px solid rgba(255, 255, 255, 0.3);
-  border-radius: 0.15rem;
+.pending-div-page-container .pending-div-close-btn {
+  padding: 0.45rem 0.95rem;
+  background: rgba(255, 255, 255, 0.14);
+  color: #ffffff;
+  border: 1px solid rgba(255, 255, 255, 0.28);
+  border-radius: 999px;
   font-weight: 500;
-  font-size: 0.875rem;
+  font-size: 0.78rem;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: background 0.15s ease;
 }
 
-.pending-div-close-btn:hover {
-  background: rgba(255, 255, 255, 0.3);
+.pending-div-page-container .pending-div-close-btn:hover {
+  background: rgba(255, 255, 255, 0.24);
 }
 
-.pending-div-pdf-text-container {
-  max-height: 400px;
+.pending-div-page-container .pending-div-pdf-text-container {
+  max-height: 360px;
   overflow-y: auto;
-  padding: 1.5rem;
-  background: #f9fafb;
+  padding: 1rem 1.1rem;
+  background: #f8fafc;
 }
 
-.pending-div-pdf-text {
-  font-family: 'Courier New', monospace;
-  font-size: 0.875rem;
-  line-height: 1.6;
-  color: #374151;
+.pending-div-page-container .pending-div-pdf-text {
+  font-family: 'Courier New', Courier, monospace;
+  font-size: 0.75rem;
+  line-height: 1.55;
+  color: #334155;
   margin: 0;
   white-space: pre-wrap;
   word-wrap: break-word;
 }
 
-/* Parsed Data Info */
-.pending-div-parsed-info {
-  background: #f0fdf4;
-  border: 1px solid #86efac;
-  border-radius: 0.15rem;
-  padding: 0.75rem 1rem;
+.pending-div-page-container .pending-div-parsed-info {
+  background: #ecfdf5;
+  border: 1px solid #a7f3d0;
+  border-radius: 0.45rem;
+  padding: 0.65rem 0.9rem;
   margin-bottom: 1rem;
-  color: #166534;
-  font-size: 0.875rem;
+  color: #065f46;
+  font-size: 0.8125rem;
   font-weight: 500;
 }
 
-/* Upload Section */
-.pending-div-upload-section {
-  margin-bottom: 2rem;
+/* Upload */
+.pending-div-page-container .pending-div-upload-section {
+  margin-bottom: 1rem;
 }
 
-.pending-div-upload-card {
-  background: #fff;
-  border-radius: 0.18rem;
-  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.22);
-  border: 1px solid #e9d5ff;
+.pending-div-page-container .pending-div-upload-card {
+  background: #ffffff;
+  border-radius: 0.55rem;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+  border: 1px solid var(--pd-border);
   overflow: hidden;
 }
 
-.pending-div-upload-header {
-  background: linear-gradient(90deg, #9333ea 0%, #a855f7 100%);
-  padding: 1.5rem 2rem;
+.pending-div-page-container .pending-div-upload-header {
+  background: linear-gradient(135deg, #1e3a8a 0%, #1d4ed8 45%, #2563eb 100%);
+  padding: 0.85rem 1.15rem;
   display: flex;
   align-items: center;
-  gap: 1rem;
-  border-radius: 0.18rem 0.18rem 0 0;
+  gap: 0.65rem;
 }
 
-.pending-div-upload-icon {
-  width: 1.5rem;
-  height: 1.5rem;
-  color: white;
+.pending-div-page-container .pending-div-upload-icon {
+  width: 1.15rem;
+  height: 1.15rem;
+  color: #ffffff;
 }
 
-.pending-div-upload-title {
-  font-size: 1.25rem;
+.pending-div-page-container .pending-div-upload-title {
+  font-size: 0.9375rem;
   font-weight: 600;
-  color: white;
+  color: #ffffff;
   margin: 0;
 }
 
-.pending-div-upload-content {
-  padding: 2rem;
+.pending-div-page-container .pending-div-upload-content {
+  padding: 1.15rem;
   display: flex;
   align-items: center;
-  gap: 1.5rem;
+  gap: 0.85rem;
   flex-wrap: wrap;
 }
 
-.pending-div-file-input-wrapper {
+.pending-div-page-container .pending-div-file-input-wrapper {
   flex: 1;
-  min-width: 300px;
+  min-width: 240px;
 }
 
-.pending-div-file-input {
+.pending-div-page-container .pending-div-file-input {
   display: none;
 }
 
-.pending-div-file-label-container {
+.pending-div-page-container .pending-div-file-label-container {
   position: relative;
   display: flex;
   align-items: center;
   width: 100%;
 }
 
-.pending-div-file-label {
+.pending-div-page-container .pending-div-file-label {
   display: inline-block;
-  padding: 0.75rem 1.5rem;
-  padding-right: 3rem;
-  background: #faf5ff;
-  border: 2px dashed #9333ea;
-  border-radius: 0.15rem;
-  color: #7c3aed;
+  padding: 0.65rem 1.1rem;
+  padding-right: 2.75rem;
+  background: var(--pd-blue-soft);
+  border: 1px dashed #93c5fd;
+  border-radius: 0.45rem;
+  color: #1d4ed8;
   font-weight: 500;
+  font-size: 0.8125rem;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: background 0.15s ease, border-color 0.15s ease;
   width: 100%;
   text-align: center;
-  box-sizing: border-box;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-.pending-div-file-label:hover {
-  background: #f3e8ff;
-  border-color: #a855f7;
+.pending-div-page-container .pending-div-file-label:hover {
+  background: #dbeafe;
+  border-color: #60a5fa;
 }
 
-.pending-div-file-remove-btn {
+.pending-div-page-container .pending-div-file-remove-btn {
   position: absolute;
-  right: 0.5rem;
+  right: 0.45rem;
   top: 50%;
   transform: translateY(-50%);
-  background: rgba(147, 51, 234, 0.1);
+  background: rgba(37, 99, 235, 0.1);
   border: none;
-  border-radius: 0.15rem;
+  border-radius: 0.35rem;
   width: 28px;
   height: 28px;
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  transition: all 0.2s;
-  color: #9333ea;
+  color: #2563eb;
   flex-shrink: 0;
 }
 
-.pending-div-file-remove-btn:hover {
-  background: rgba(147, 51, 234, 0.2);
-  transform: translateY(-50%) scale(1.1);
-  color: #7c3aed;
+.pending-div-page-container .pending-div-file-remove-btn:hover {
+  background: rgba(37, 99, 235, 0.18);
+  transform: translateY(-50%);
+  color: #1d4ed8;
 }
 
-.pending-div-file-remove-btn:active {
-  transform: translateY(-50%) scale(0.95);
-}
-
-.pending-div-upload-btn {
-  padding: 0.75rem 2rem;
-  background: linear-gradient(135deg, #9333ea, #a855f7);
-  color: white;
+.pending-div-page-container .pending-div-upload-btn {
+  padding: 0.55rem 1.25rem;
+  background: #2563eb;
+  color: #ffffff;
   border: none;
-  border-radius: 0.15rem;
+  border-radius: 999px;
   font-weight: 600;
+  font-size: 0.8125rem;
   cursor: pointer;
-  transition: all 0.2s;
-  box-shadow: 0 4px 6px -1px rgba(147, 51, 234, 0.3);
+  transition: background 0.15s ease;
+  box-shadow: none;
 }
 
-.pending-div-upload-btn:hover:not(:disabled) {
-  transform: translateY(-1px);
-  box-shadow: 0 6px 12px -1px rgba(147, 51, 234, 0.4);
+.pending-div-page-container .pending-div-upload-btn:hover:not(:disabled) {
+  background: #1d4ed8;
+  transform: none;
+  box-shadow: none;
 }
 
-.pending-div-upload-btn:disabled {
-  opacity: 0.6;
+.pending-div-page-container .pending-div-upload-btn:disabled {
+  opacity: 0.55;
   cursor: not-allowed;
 }
 
-/* Table Card */
-.pending-div-table-card {
-  background: #fff;
-  border-radius: 0.18rem;
-  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.22);
-  border: 1px solid #e9d5ff;
+/* Table card */
+.pending-div-page-container .pending-div-table-card {
+  background: #ffffff;
+  border-radius: 0.55rem;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+  border: 1px solid var(--pd-border);
   overflow: hidden;
-  margin-bottom: 2rem;
+  margin-bottom: 1rem;
 }
 
-.pending-div-table-header {
-  background: linear-gradient(90deg, #9333ea 0%, #a855f7 100%);
-  padding: 1.5rem 2rem;
+.pending-div-page-container .pending-div-table-header {
+  background: linear-gradient(135deg, #1e3a8a 0%, #1d4ed8 45%, #2563eb 100%);
+  padding: 0.85rem 1.15rem;
   display: flex;
   justify-content: space-between;
   align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
 }
 
-.pending-div-table-title {
-  font-size: 1.25rem;
+.pending-div-page-container .pending-div-table-title {
+  font-size: 0.9375rem;
   font-weight: 600;
-  color: white;
+  color: #ffffff;
   margin: 0;
 }
 
-.pending-div-type-btn {
-  padding: 0.625rem 1.5rem;
-  background: #fff;
-  border: 2px solid #e9d5ff;
-  border-radius: 0.15rem;
-  color: #9333ea;
-  font-size: 0.875rem;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.2s;
-  box-shadow: 0 2px 4px rgba(147, 51, 234, 0.1);
-}
-
-.pending-div-type-btn:hover {
-  background: #faf5ff;
-  border-color: #c4b5fd;
-  transform: translateY(-1px);
-  box-shadow: 0 4px 6px rgba(147, 51, 234, 0.15);
-}
-
-.pending-div-type-btn.active {
-  background: linear-gradient(135deg, #9333ea, #a855f7);
-  color: white;
-  border-color: #9333ea;
-  font-weight: 600;
-  box-shadow: 0 4px 8px rgba(147, 51, 234, 0.3);
-}
-
-.pending-div-tax-info {
+.pending-div-page-container .pending-div-tax-info {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
-  background: rgba(255, 255, 255, 0.2);
-  padding: 0.5rem 1rem;
-  border-radius: 0.15rem;
-  transition: all 0.2s;
+  gap: 0.4rem;
+  background: rgba(255, 255, 255, 0.14);
+  padding: 0.35rem 0.75rem;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
 }
 
-.pending-div-tax-clickable {
+.pending-div-page-container .pending-div-tax-clickable {
   cursor: pointer;
   user-select: none;
 }
 
-.pending-div-tax-clickable:hover {
-  background: rgba(255, 255, 255, 0.3);
+.pending-div-page-container .pending-div-tax-clickable:hover {
+  background: rgba(255, 255, 255, 0.22);
 }
 
-.pending-div-tax-label {
-  color: white;
-  font-size: 0.875rem;
+.pending-div-page-container .pending-div-tax-label {
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 0.75rem;
   font-weight: 500;
 }
 
-.pending-div-tax-value {
-  color: white;
-  font-size: 1rem;
+.pending-div-page-container .pending-div-tax-value {
+  color: #ffffff;
+  font-size: 0.8125rem;
   font-weight: 700;
 }
 
-
-.pending-div-tax-input {
-  width: 60px;
-  padding: 0.25rem 0.5rem;
-  background: white;
-  border: 2px solid rgba(255, 255, 255, 0.5);
-  border-radius: 0.15rem;
-  color: #9333ea;
-  font-size: 1rem;
+.pending-div-page-container .pending-div-tax-input {
+  width: 56px;
+  padding: 0.2rem 0.35rem;
+  background: #ffffff;
+  border: 1px solid rgba(255, 255, 255, 0.55);
+  border-radius: 0.35rem;
+  color: #1d4ed8;
+  font-size: 0.8125rem;
   font-weight: 700;
   text-align: center;
   outline: none;
 }
 
-.pending-div-tax-input:focus {
-  border-color: white;
-  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.3);
+.pending-div-page-container .pending-div-tax-input:focus {
+  border-color: #ffffff;
+  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.25);
 }
 
-.pending-div-table-wrapper {
+.pending-div-page-container .pending-div-table-wrapper {
   overflow-x: auto;
 }
 
-.pending-div-table {
+.pending-div-page-container .pending-div-table {
   width: 100%;
+  min-width: 920px;
   border-collapse: collapse;
 }
 
-.pending-div-table thead {
-  background: #faf5ff;
+.pending-div-page-container .pending-div-table thead {
+  background: #f1f5f9;
 }
 
-.pending-div-table th {
-  padding: 1rem 1.5rem;
+.pending-div-page-container .pending-div-table th {
+  padding: 0.65rem 0.85rem;
   text-align: left;
-  font-weight: 600;
-  color: #1f2937;
-  font-size: 0.875rem;
+  font-weight: 700;
+  color: #475569;
+  font-size: 0.7rem;
   text-transform: uppercase;
-  letter-spacing: 0.05em;
-  border-bottom: 2px solid #e9d5ff;
-}
-
-.pending-div-table td {
-  padding: 1rem 1.5rem;
+  letter-spacing: 0.04em;
   border-bottom: 1px solid #e5e7eb;
-  color: #374151;
-  font-size: 0.95rem;
 }
 
-.pending-div-table tbody tr:hover {
-  background: #f9fafb;
-}
-
-.pending-div-table tbody tr.pending-div-matched {
-  background: #faf5ff;
-}
-
-.pending-div-check-icon {
-  width: 1rem;
-  height: 1rem;
-  color: #9333ea;
-  margin-left: 0.5rem;
+.pending-div-page-container .pending-div-table td {
+  padding: 0.65rem 0.85rem;
+  border-bottom: 1px solid #e5e7eb;
+  color: #334155;
+  font-size: 0.78rem;
   vertical-align: middle;
 }
 
-.pending-div-status {
-  display: inline-block;
-  padding: 0.375rem 0.75rem;
-  border-radius: 0.15rem;
-  font-size: 0.75rem;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
+.pending-div-page-container .pending-div-table tbody tr:hover {
+  background: #f8fafc;
 }
 
-.pending-div-status-pending {
+.pending-div-page-container .pending-div-table tbody tr.pending-div-matched {
+  background: #eff6ff;
+}
+
+.pending-div-page-container .pending-div-check-icon {
+  width: 0.9rem;
+  height: 0.9rem;
+  color: #2563eb;
+  margin-left: 0.35rem;
+  vertical-align: middle;
+}
+
+.pending-div-page-container .pending-div-status {
+  display: inline-block;
+  padding: 0.2rem 0.55rem;
+  border-radius: 999px;
+  font-size: 0.68rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.pending-div-page-container .pending-div-status-pending {
   background: #fef3c7;
   color: #92400e;
 }
 
-.pending-div-status-matched {
-  background: #e9d5ff;
-  color: #6b21a8;
+.pending-div-page-container .pending-div-status-matched {
+  background: #dbeafe;
+  color: #1e40af;
 }
 
-.pending-div-actions {
+.pending-div-page-container .pending-div-actions {
   display: flex;
-  gap: 0.5rem;
+  gap: 0.4rem;
 }
 
-.pending-div-btn {
-  padding: 0.5rem 1rem;
-  border: none;
-  border-radius: 0.15rem;
+.pending-div-page-container .pending-div-btn {
+  padding: 0.35rem 0.75rem;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+.pending-div-page-container .pending-div-btn-match {
+  background: #2563eb;
+  color: #ffffff;
+}
+
+.pending-div-page-container .pending-div-btn-match:hover {
+  background: #1d4ed8;
+  transform: none;
+}
+
+.pending-div-page-container .pending-div-btn-cancel {
+  background: #fef2f2;
+  color: #b91c1c;
+  border-color: #fecaca;
+}
+
+.pending-div-page-container .pending-div-btn-cancel:hover {
+  background: #fee2e2;
+  transform: none;
+}
+
+.pending-div-page-container .pending-div-empty {
+  text-align: center;
+  padding: 2.25rem 1rem;
+  color: var(--pd-muted);
   font-size: 0.875rem;
   font-weight: 500;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-
-.pending-div-btn-match {
-  background: #9333ea;
-  color: white;
-}
-
-.pending-div-btn-match:hover {
-  background: #a855f7;
-  transform: translateY(-1px);
-}
-
-.pending-div-btn-cancel {
-  background: #fee2e2;
-  color: #991b1b;
-}
-
-.pending-div-btn-cancel:hover {
-  background: #fecaca;
-  transform: translateY(-1px);
-}
-
-.pending-div-empty {
-  text-align: center;
-  padding: 3rem;
-  color: #9ca3af;
-  font-size: 1rem;
 }
 
 /* Footer */
-.pending-div-footer-section {
+.pending-div-page-container .pending-div-footer-section {
   text-align: center;
-  padding: 2rem;
-  color: #6b7280;
-  font-size: 0.875rem;
+  padding: 0.75rem 0 0.25rem;
+  color: #94a3b8;
+  font-size: 0.75rem;
 }
 
-/* Password Modal */
+/* Password modal */
+.pending-div-page-container .pending-div-password-modal-overlay,
 .pending-div-password-modal-overlay {
   position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0, 0, 0, 0.6);
-  backdrop-filter: blur(4px);
+  inset: 0;
+  background: rgba(15, 23, 42, 0.55);
+  backdrop-filter: blur(3px);
   display: flex;
   align-items: center;
   justify-content: center;
   z-index: 10000;
-  padding: 20px;
+  padding: 1.25rem;
 }
 
 .pending-div-password-modal {
-  background: white;
-  border-radius: 0.18rem;
-  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
-  max-width: 480px;
+  background: #ffffff;
+  border-radius: 0.55rem;
+  box-shadow: 0 20px 40px rgba(15, 23, 42, 0.25);
+  max-width: 440px;
   width: 100%;
   overflow: hidden;
-  animation: pending-div-modal-slide-up 0.3s ease-out;
-}
-
-@keyframes pending-div-modal-slide-up {
-  from {
-    transform: translateY(20px);
-    opacity: 0;
-  }
-  to {
-    transform: translateY(0);
-    opacity: 1;
-  }
+  border: 1px solid var(--pd-border);
 }
 
 .pending-div-password-modal-header {
-  background: linear-gradient(90deg, #9333ea 0%, #a855f7 100%);
-  padding: 1.25rem 1.5rem;
+  background: linear-gradient(135deg, #1e3a8a 0%, #1d4ed8 45%, #2563eb 100%);
+  padding: 0.9rem 1.1rem;
   display: flex;
   justify-content: space-between;
   align-items: center;
 }
 
 .pending-div-password-modal-header h3 {
-  color: white;
-  font-size: 1.125rem;
+  color: #ffffff;
+  font-size: 0.95rem;
   font-weight: 600;
   margin: 0;
 }
 
 .pending-div-password-modal-close {
-  background: rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.16);
   border: none;
-  color: white;
-  font-size: 1.5rem;
-  width: 32px;
-  height: 32px;
-  border-radius: 0.15rem;
+  color: #ffffff;
+  font-size: 1.35rem;
+  width: 30px;
+  height: 30px;
+  border-radius: 999px;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: all 0.2s;
   line-height: 1;
 }
 
 .pending-div-password-modal-close:hover {
-  background: rgba(255, 255, 255, 0.3);
+  background: rgba(255, 255, 255, 0.26);
 }
 
 .pending-div-password-modal-content {
-  padding: 1.5rem;
+  padding: 1.15rem;
 }
 
 .pending-div-password-modal-message {
-  color: #374151;
-  font-size: 0.95rem;
-  margin: 0 0 1rem 0;
-  line-height: 1.5;
+  color: #334155;
+  font-size: 0.8125rem;
+  margin: 0 0 0.85rem;
+  line-height: 1.45;
 }
 
 .pending-div-password-error {
-  color: #dc2626;
-  font-size: 0.875rem;
-  margin: 0 0 1rem 0;
-  padding: 0.75rem;
+  color: #b91c1c;
+  font-size: 0.78rem;
+  margin: 0 0 0.85rem;
+  padding: 0.6rem 0.75rem;
   background: #fef2f2;
   border: 1px solid #fecaca;
-  border-radius: 0.15rem;
+  border-radius: 0.4rem;
 }
 
 .pending-div-password-input-group {
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
+  gap: 0.35rem;
 }
 
 .pending-div-password-input-group label {
-  font-size: 0.875rem;
-  font-weight: 500;
-  color: #374151;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #475569;
 }
 
 .pending-div-password-input {
   width: 100%;
-  padding: 0.75rem 1rem;
-  border: 2px solid #e9d5ff;
-  border-radius: 0.15rem;
-  font-size: 1rem;
-  background: #faf5ff;
-  color: #1f2937;
-  transition: all 0.2s;
-  box-sizing: border-box;
+  padding: 0.55rem 0.7rem;
+  border: 1px solid #cbd5e1;
+  border-radius: 0.4rem;
+  font-size: 0.8125rem;
+  background: #ffffff;
+  color: var(--pd-text);
 }
 
 .pending-div-password-input:focus {
   outline: none;
-  border-color: #9333ea;
-  background: white;
-  box-shadow: 0 0 0 3px rgba(147, 51, 234, 0.1);
+  border-color: #2563eb;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
 }
 
 .pending-div-password-modal-actions {
-  padding: 1rem 1.5rem;
-  border-top: 1px solid #e5e7eb;
+  padding: 0.85rem 1.1rem;
+  border-top: 1px solid var(--pd-border);
   display: flex;
-  gap: 0.75rem;
+  gap: 0.5rem;
   justify-content: flex-end;
 }
 
 .pending-div-password-btn-cancel,
 .pending-div-password-btn-submit {
-  padding: 0.625rem 1.5rem;
-  border: none;
-  border-radius: 0.15rem;
-  font-size: 0.875rem;
-  font-weight: 500;
+  padding: 0.45rem 1rem;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  font-size: 0.78rem;
+  font-weight: 600;
   cursor: pointer;
-  transition: all 0.2s;
 }
 
 .pending-div-password-btn-cancel {
-  background: #f3f4f6;
-  color: #374151;
+  background: #f8fafc;
+  color: #334155;
+  border-color: #cbd5e1;
 }
 
 .pending-div-password-btn-cancel:hover {
-  background: #e5e7eb;
+  background: #f1f5f9;
 }
 
 .pending-div-password-btn-submit {
-  background: linear-gradient(135deg, #9333ea, #a855f7);
-  color: white;
+  background: #2563eb;
+  color: #ffffff;
 }
 
 .pending-div-password-btn-submit:hover:not(:disabled) {
-  background: linear-gradient(135deg, #a855f7, #9333ea);
-  transform: translateY(-1px);
-  box-shadow: 0 4px 8px rgba(147, 51, 234, 0.3);
+  background: #1d4ed8;
+  transform: none;
+  box-shadow: none;
 }
 
 .pending-div-password-btn-submit:disabled {
-  opacity: 0.6;
+  opacity: 0.55;
   cursor: not-allowed;
 }
 
-/* Responsive Design */
 @media (max-width: 768px) {
-  .pending-div-header-section {
+  .pending-div-page-container {
+    margin: 0;
+    padding: 0.75rem;
+  }
+
+  .pending-div-page-container .pending-div-upload-content {
     flex-direction: column;
+    align-items: stretch;
+  }
+
+  .pending-div-page-container .pending-div-file-input-wrapper {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .pending-div-page-container .pending-div-type-btn {
+    flex: 1;
     text-align: center;
   }
 
-  .pending-div-upload-content {
-    flex-direction: column;
-  }
-
-  .pending-div-file-input-wrapper {
-    width: 100%;
-  }
-
-  .pending-div-table-header {
-    flex-direction: column;
-    gap: 1rem;
-    align-items: flex-start;
-  }
-
-  .pending-div-buttons-section {
-    flex-wrap: wrap;
-  }
-
-  .pending-div-type-btn {
-    flex: 1;
-    min-width: 120px;
-  }
-
-  .pending-div-table {
-    font-size: 0.875rem;
-  }
-
-  .pending-div-table th,
-  .pending-div-table td {
-    padding: 0.75rem 1rem;
-  }
-
-  .pending-div-actions {
+  .pending-div-page-container .pending-div-actions {
     flex-direction: column;
   }
 }
