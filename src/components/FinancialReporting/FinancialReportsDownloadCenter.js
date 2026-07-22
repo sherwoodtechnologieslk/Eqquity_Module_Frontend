@@ -738,10 +738,41 @@ const FinancialReportsDownloadCenter = () => {
     });
   };
 
+  const fetchAllGsecLedgerEntriesForPeriod = async (asOfDate) => {
+    const dateFrom = asOfYearStart(asOfDate);
+    const dateTo = String(asOfDate || '').slice(0, 10);
+    if (!dateTo) return [];
+
+    const exportLimit = 100;
+    let page = 1;
+    let totalPages = 1;
+    const allEntries = [];
+
+    do {
+      const response = await gsecEntriesAPI.getSavedLedgerEntries({
+        page,
+        limit: exportLimit,
+        dateFrom,
+        dateTo
+      });
+
+      if (!response?.success) {
+        throw new Error(response?.error || 'Failed to fetch GSec ledger entries');
+      }
+
+      // Prefer server-filtered rows; keep a light client guard for older backends.
+      const pageEntries = filterGsecEntriesByPeriod(response.entries || [], asOfDate);
+      allEntries.push(...pageEntries);
+      totalPages = response.pagination?.totalPages || 1;
+      page += 1;
+    } while (page <= totalPages);
+
+    return allEntries;
+  };
+
   const exportGsecGeneralLedgerPdf = () =>
     run('gsec-gl-pdf', async () => {
-      const raw = await gsecEntriesAPI.getSavedLedgerEntries(null);
-      const entries = filterGsecEntriesByPeriod(raw, filters.asOfDate);
+      const entries = await fetchAllGsecLedgerEntriesForPeriod(filters.asOfDate);
       if (!entries.length) {
         throw new Error(
           'No GSec ledger entries in this period. Import GSec data or widen the as-of date range.'
@@ -759,8 +790,7 @@ const FinancialReportsDownloadCenter = () => {
 
   const exportGsecGeneralLedgerExcel = () =>
     run('gsec-gl-xls', async () => {
-      const raw = await gsecEntriesAPI.getSavedLedgerEntries(null);
-      const entries = filterGsecEntriesByPeriod(raw, filters.asOfDate);
+      const entries = await fetchAllGsecLedgerEntriesForPeriod(filters.asOfDate);
       if (!entries.length) {
         throw new Error(
           'No GSec ledger entries in this period. Import GSec data or widen the as-of date range.'

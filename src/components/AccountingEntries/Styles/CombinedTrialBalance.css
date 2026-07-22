@@ -632,9 +632,36 @@
 
 .ctb-grid {
   width: 100%;
+  table-layout: fixed;
   border-collapse: collapse;
   font-size: 0.8125rem;
 }
+
+/* Default: Code | Name | Type | Net | DR/CR */
+.ctb-colw-code { width: 18%; }
+.ctb-colw-name { width: 40%; }
+.ctb-colw-type { width: 12%; }
+.ctb-colw-amount { width: 18%; }
+.ctb-colw-drcr { width: 12%; }
+.ctb-colw-sources { width: 12%; }
+
+/* With Debit + Credit visible */
+.ctb-grid--with-dc .ctb-colw-code { width: 13%; }
+.ctb-grid--with-dc .ctb-colw-name { width: 24%; }
+.ctb-grid--with-dc .ctb-colw-type { width: 9%; }
+.ctb-grid--with-dc .ctb-colw-amount { width: 13%; }
+.ctb-grid--with-dc .ctb-colw-drcr { width: 9%; }
+
+/* With Sources visible */
+.ctb-grid--with-sources:not(.ctb-grid--with-dc) .ctb-colw-name { width: 34%; }
+.ctb-grid--with-sources:not(.ctb-grid--with-dc) .ctb-colw-amount { width: 16%; }
+.ctb-grid--with-sources:not(.ctb-grid--with-dc) .ctb-colw-drcr { width: 10%; }
+
+.ctb-grid--with-dc.ctb-grid--with-sources .ctb-colw-code { width: 12%; }
+.ctb-grid--with-dc.ctb-grid--with-sources .ctb-colw-name { width: 20%; }
+.ctb-grid--with-dc.ctb-grid--with-sources .ctb-colw-type { width: 8%; }
+.ctb-grid--with-dc.ctb-grid--with-sources .ctb-colw-amount { width: 12%; }
+.ctb-grid--with-dc.ctb-grid--with-sources .ctb-colw-drcr { width: 8%; }
 
 .ctb-grid thead {
   position: sticky;
@@ -648,7 +675,7 @@
 }
 
 .ctb-grid th {
-  padding: 10px 12px;
+  padding: 10px 14px;
   font-size: 0.6875rem;
   font-weight: 700;
   letter-spacing: 0.05em;
@@ -658,8 +685,17 @@
   white-space: nowrap;
 }
 
+.ctb-grid th.ctb-col-num {
+  text-align: right;
+}
+
+.ctb-grid th.ctb-col-drcr,
+.ctb-grid th.ctb-col-sources {
+  text-align: center;
+}
+
 .ctb-grid td {
-  padding: 10px 12px;
+  padding: 10px 14px;
   border-bottom: 1px solid var(--ctb-border-soft);
   vertical-align: middle;
 }
@@ -680,46 +716,62 @@
   background: #f1f5f9;
 }
 
+/* Keep last data rows clear of sticky totals bar */
+.ctb-grid tbody {
+  border-bottom: 52px solid transparent;
+}
+
 .ctb-col-num {
   text-align: right;
+  white-space: nowrap;
+  overflow: visible;
+}
+
+.ctb-col-num .ctb-amount {
+  display: inline-block;
   white-space: nowrap;
 }
 
 .ctb-col-drcr {
   text-align: center;
-  font-size: 0.75rem;
-  font-weight: 600;
-  letter-spacing: 0.03em;
-  text-transform: uppercase;
-  color: var(--ctb-text-secondary);
   white-space: nowrap;
+  padding-left: 8px;
+  padding-right: 8px;
 }
 
 .ctb-col-sources {
   text-align: center;
 }
 
-/* ── Source badges ── */
-
 .ctb-col-code {
-  width: 1%;
   white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .ctb-code {
-  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   font-size: 0.75rem;
   font-weight: 600;
+  letter-spacing: 0.01em;
+  text-decoration: none;
 }
 
 .ctb-drilldown {
   cursor: pointer;
   color: var(--ctb-text);
   transition: color 140ms ease;
+  text-decoration: none;
 }
 
 .ctb-drilldown:hover {
   color: #1e40af;
+  text-decoration: none;
+}
+
+.ctb-drilldown:hover .ctb-code {
+  color: #1e40af;
+  text-decoration: none;
 }
 
 .ctb-drilldown:focus {
@@ -730,22 +782,58 @@
 .ctb-col-name {
   font-weight: 500;
   color: var(--ctb-text);
-  max-width: 280px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .ctb-col-type {
   font-size: 0.75rem;
   color: var(--ctb-text-secondary);
-  max-width: 200px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
-/* ── Financial amounts ── */
+.ctb-drcr-pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 42px;
+  padding: 3px 8px;
+  border-radius: 999px;
+  font-size: 0.625rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  border: 1px solid transparent;
+}
+
+.ctb-drcr-pill--dr {
+  color: #047857;
+  background: #ecfdf5;
+  border-color: #a7f3d0;
+}
+
+.ctb-drcr-pill--cr {
+  color: #b91c1c;
+  background: #fef2f2;
+  border-color: #fecaca;
+}
+
+.ctb-drcr-pill--zero {
+  color: #64748b;
+  background: #f8fafc;
+  border-color: #e2e8f0;
+}
+
+/* ── Financial amounts (match Trial Balance money font) ── */
 .ctb-amount {
-  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Courier New', monospace;
+  font-family: 'Courier New', Courier, monospace;
   font-variant-numeric: tabular-nums;
   font-weight: 600;
   font-size: 0.8125rem;
-  letter-spacing: -0.01em;
+  letter-spacing: 0;
 }
 
 .ctb-amount--debit {
@@ -766,7 +854,7 @@
 
 .ctb-amount--emphasis {
   font-weight: 700;
-  font-size: 0.875rem;
+  font-size: 0.8125rem;
 }
 
 /* ── Totals status text ── */

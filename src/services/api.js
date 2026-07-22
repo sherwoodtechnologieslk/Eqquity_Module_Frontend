@@ -897,6 +897,26 @@ export const generalLedgerAPI = {
     }
   },
 
+  /** Paginated Equity + GSec combined ledger for Combined General Ledger screen */
+  getCombinedEntries: async (filters = {}) => {
+    const queryParams = new URLSearchParams({
+      _ts: Date.now().toString(),
+    });
+
+    if (filters.page) queryParams.append('page', String(filters.page));
+    if (filters.limit) queryParams.append('limit', String(filters.limit));
+    if (filters.source && filters.source !== 'all') queryParams.append('source', filters.source);
+    if (filters.account_code) queryParams.append('account_code', filters.account_code);
+    if (filters.dateFrom) queryParams.append('dateFrom', filters.dateFrom);
+    if (filters.dateTo) queryParams.append('dateTo', filters.dateTo);
+    if (filters.search) queryParams.append('search', filters.search);
+
+    return await makeAuthenticatedRequest(
+      `${API_BASE_URL}/general-ledger/combined?${queryParams.toString()}`,
+      { method: 'GET' }
+    );
+  },
+
   // Get general ledger entries by portfolio
   getByPortfolio: async (portfolio) => {
     try {
@@ -2951,15 +2971,33 @@ export const gsecEntriesAPI = {
     }
   },
 
-  // Get saved GSec ledger entries (optional filter by deal_number)
-  getSavedLedgerEntries: async (dealNumber = null) => {
+  // Paginated GSec ledger entries (avoids API Gateway 413 on large datasets)
+  // Accepts filters object, or legacy string deal_number for older callers.
+  getSavedLedgerEntries: async (filters = {}) => {
     try {
-      let url = `${API_BASE_URL}/gsec-entries`;
-      if (dealNumber) {
-        url += `?deal_number=${encodeURIComponent(dealNumber)}`;
+      if (typeof filters === 'string') {
+        filters = { deal_number: filters };
+      } else if (filters == null) {
+        filters = {};
       }
 
-      return await makeAuthenticatedRequest(url, { method: 'GET' });
+      const queryParams = new URLSearchParams({
+        _ts: Date.now().toString(),
+        page: String(filters.page || 1),
+        limit: String(Math.min(Math.max(parseInt(filters.limit, 10) || 50, 1), 100)),
+      });
+
+      if (filters.deal_number) queryParams.append('deal_number', filters.deal_number);
+      if (filters.account_code) queryParams.append('account_code', filters.account_code);
+      if (filters.account_category) queryParams.append('account_category', filters.account_category);
+      if (filters.dateFrom) queryParams.append('dateFrom', filters.dateFrom);
+      if (filters.dateTo) queryParams.append('dateTo', filters.dateTo);
+      if (filters.search) queryParams.append('search', filters.search);
+
+      return await makeAuthenticatedRequest(
+        `${API_BASE_URL}/gsec-entries?${queryParams.toString()}`,
+        { method: 'GET' }
+      );
     } catch (error) {
       console.error('Error fetching saved GSec ledger entries:', error);
       const message = error.message || 'Failed to fetch saved GSec ledger entries';

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { gsecEntriesAPI } from '../../services/api';
 import {
   exportGsecGeneralLedgerToExcel,
@@ -8,7 +8,20 @@ import './Styles/GsecGeneralLedger.css';
 
 const GsecGeneralLedger = () => {
   const [entries, setEntries] = useState([]);
+  const [totals, setTotals] = useState({
+    totalEntries: 0,
+    totalDebit: 0,
+    totalCredit: 0,
+    netBalance: 0
+  });
+  const [pagination, setPagination] = useState({
+    page: 1,
+    limit: 50,
+    total: 0,
+    totalPages: 1
+  });
   const [loading, setLoading] = useState(true);
+  const [exporting, setExporting] = useState(false);
   const [error, setError] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
   const [filters, setFilters] = useState({
@@ -20,32 +33,99 @@ const GsecGeneralLedger = () => {
   });
   const [currentPage, setCurrentPage] = useState(1);
   const [entriesPerPage] = useState(50);
+  const hasLoadedOnceRef = useRef(false);
 
-  const fetchEntries = async () => {
-    try {
-      setLoading(true);
-      setError('');
+  const fetchEntries = useCallback(
+    async (pageOverride) => {
+      const page = pageOverride ?? currentPage;
 
-      const data = await gsecEntriesAPI.getSavedLedgerEntries(filters.deal_number || null);
-      setEntries(Array.isArray(data) ? data : []);
-      setLoading(false);
-    } catch (err) {
-      console.error('Error fetching GSec ledger entries:', err);
-      setError(err.message || 'Failed to fetch GSec ledger entries');
-      setLoading(false);
-    }
-  };
+      try {
+        if (!hasLoadedOnceRef.current) {
+          setLoading(true);
+        }
+        setError('');
+
+        const response = await gsecEntriesAPI.getSavedLedgerEntries({
+          page,
+          limit: entriesPerPage,
+          deal_number: filters.deal_number || undefined,
+          account_code: filters.account_code || undefined,
+          account_category: filters.account_category || undefined,
+          dateFrom: filters.dateFrom || undefined,
+          dateTo: filters.dateTo || undefined,
+          search: searchTerm || undefined
+        });
+
+        if (!response?.success) {
+          throw new Error(response?.error || 'Failed to fetch GSec ledger entries');
+        }
+
+        setEntries(Array.isArray(response.entries) ? response.entries : []);
+        setTotals(
+          response.totals || {
+            totalEntries: 0,
+            totalDebit: 0,
+            totalCredit: 0,
+            netBalance: 0
+          }
+        );
+        setPagination(
+          response.pagination || {
+            page,
+            limit: entriesPerPage,
+            total: 0,
+            totalPages: 1
+          }
+        );
+        hasLoadedOnceRef.current = true;
+      } catch (err) {
+        console.error('Error fetching GSec ledger entries:', err);
+        setError(err.message || 'Failed to fetch GSec ledger entries');
+      } finally {
+        setLoading(false);
+      }
+    },
+    [currentPage, entriesPerPage, filters, searchTerm]
+  );
+
+  const fetchAllFilteredEntries = useCallback(async () => {
+    const exportLimit = 100;
+    let page = 1;
+    let totalPages = 1;
+    const allEntries = [];
+
+    do {
+      const response = await gsecEntriesAPI.getSavedLedgerEntries({
+        page,
+        limit: exportLimit,
+        deal_number: filters.deal_number || undefined,
+        account_code: filters.account_code || undefined,
+        account_category: filters.account_category || undefined,
+        dateFrom: filters.dateFrom || undefined,
+        dateTo: filters.dateTo || undefined,
+        search: searchTerm || undefined
+      });
+
+      if (!response?.success) {
+        throw new Error(response?.error || 'Failed to fetch GSec ledger entries for export');
+      }
+
+      allEntries.push(...(response.entries || []));
+      totalPages = response.pagination?.totalPages || 1;
+      page += 1;
+    } while (page <= totalPages);
+
+    return allEntries;
+  }, [filters, searchTerm]);
 
   useEffect(() => {
-    fetchEntries();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+    const delay = searchTerm ? 400 : 0;
+    const timer = window.setTimeout(() => {
+      fetchEntries();
+    }, delay);
 
-  useEffect(() => {
-    // Refetch when deal_number filter changes (server-side filter)
-    fetchEntries();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [filters.deal_number]);
+    return () => window.clearTimeout(timer);
+  }, [fetchEntries, searchTerm]);
 
   const handleFilterChange = (e) => {
     const { name, value } = e.target;
@@ -73,49 +153,11 @@ const GsecGeneralLedger = () => {
     setCurrentPage(1);
   };
 
-  const normalizeDate = (value) => {
-    if (!value) return '';
-    const d = new Date(value);
-    if (Number.isNaN(d.getTime())) return value;
-    return d.toISOString().slice(0, 10); // YYYY-MM-DD
-  };
-
-  const filteredEntries = entries.filter((entry) => {
-    const search = searchTerm.toLowerCase();
-
-    const matchesSearch =
-      !search ||
-      (entry.account_code && entry.account_code.toLowerCase().includes(search)) ||
-      (entry.account_name && entry.account_name.toLowerCase().includes(search)) ||
-      (entry.description && entry.description.toLowerCase().includes(search)) ||
-      (entry.deal_number && entry.deal_number.toLowerCase().includes(search));
-
-    const entryDate = normalizeDate(entry.entry_date);
-
-    const matchesFilters =
-      (!filters.account_code || (entry.account_code || '').includes(filters.account_code)) &&
-      (!filters.deal_number || (entry.deal_number || '') === filters.deal_number) &&
-      (!filters.account_category || (entry.account_category || '') === filters.account_category) &&
-      (!filters.dateFrom || entryDate >= filters.dateFrom) &&
-      (!filters.dateTo || entryDate <= filters.dateTo);
-
-    return matchesSearch && matchesFilters;
-  });
-
-  const totalDebits = filteredEntries.reduce(
-    (sum, e) => sum + (parseFloat(e.debit_amount) || 0),
-    0
-  );
-  const totalCredits = filteredEntries.reduce(
-    (sum, e) => sum + (parseFloat(e.credit_amount) || 0),
-    0
-  );
-  const netBalance = totalCredits - totalDebits;
-
-  const indexOfLast = currentPage * entriesPerPage;
-  const indexOfFirst = indexOfLast - entriesPerPage;
-  const currentEntries = filteredEntries.slice(indexOfFirst, indexOfLast);
-  const totalPages = Math.ceil(filteredEntries.length / entriesPerPage) || 1;
+  const totalDebits = totals.totalDebit || 0;
+  const totalCredits = totals.totalCredit || 0;
+  const netBalance = totals.netBalance || 0;
+  const filteredCount = totals.totalEntries || pagination.total || 0;
+  const totalPages = pagination.totalPages || 1;
 
   const formatCurrency = (amount) => {
     const n = Number(amount) || 0;
@@ -133,22 +175,58 @@ const GsecGeneralLedger = () => {
     return d.toLocaleDateString('en-LK');
   };
 
-  const handleExportPdf = () => {
-    if (!filteredEntries.length) return;
-    exportGsecGeneralLedgerToPdf({
-      entries: filteredEntries,
-      totalDebits,
-      totalCredits
-    });
+  const handleExportPdf = async () => {
+    if (!filteredCount) return;
+    setExporting(true);
+    setError('');
+    try {
+      const exportEntries = await fetchAllFilteredEntries();
+      const exportDebits = exportEntries.reduce(
+        (sum, e) => sum + (parseFloat(e.debit_amount) || 0),
+        0
+      );
+      const exportCredits = exportEntries.reduce(
+        (sum, e) => sum + (parseFloat(e.credit_amount) || 0),
+        0
+      );
+      exportGsecGeneralLedgerToPdf({
+        entries: exportEntries,
+        totalDebits: exportDebits,
+        totalCredits: exportCredits
+      });
+    } catch (err) {
+      console.error('Failed to export GSec GL PDF:', err);
+      setError('Failed to export PDF: ' + (err.message || 'Unknown error'));
+    } finally {
+      setExporting(false);
+    }
   };
 
-  const handleExportExcel = () => {
-    if (!filteredEntries.length) return;
-    exportGsecGeneralLedgerToExcel({
-      entries: filteredEntries,
-      totalDebits,
-      totalCredits
-    });
+  const handleExportExcel = async () => {
+    if (!filteredCount) return;
+    setExporting(true);
+    setError('');
+    try {
+      const exportEntries = await fetchAllFilteredEntries();
+      const exportDebits = exportEntries.reduce(
+        (sum, e) => sum + (parseFloat(e.debit_amount) || 0),
+        0
+      );
+      const exportCredits = exportEntries.reduce(
+        (sum, e) => sum + (parseFloat(e.credit_amount) || 0),
+        0
+      );
+      exportGsecGeneralLedgerToExcel({
+        entries: exportEntries,
+        totalDebits: exportDebits,
+        totalCredits: exportCredits
+      });
+    } catch (err) {
+      console.error('Failed to export GSec GL Excel:', err);
+      setError('Failed to export Excel: ' + (err.message || 'Unknown error'));
+    } finally {
+      setExporting(false);
+    }
   };
 
   if (loading) {
@@ -274,7 +352,7 @@ const GsecGeneralLedger = () => {
         {/* Summary stats */}
         <div className="gsec-gl-summary-stats">
           <div className="gsec-gl-stat-card">
-            <div className="gsec-gl-stat-value">{filteredEntries.length}</div>
+            <div className="gsec-gl-stat-value">{filteredCount}</div>
             <div className="gsec-gl-stat-label">Total Entries</div>
           </div>
           <div className="gsec-gl-stat-card">
@@ -297,32 +375,32 @@ const GsecGeneralLedger = () => {
         <div className="gsec-gl-table-card">
           <div className="gsec-gl-card-header">
             <h2 className="gsec-gl-card-title">
-              GSec Ledger Entries ({filteredEntries.length} records)
+              GSec Ledger Entries ({filteredCount} records)
             </h2>
             <div className="gsec-gl-table-actions">
               <button
                 type="button"
                 className="gsec-gl-refresh-btn"
                 onClick={handleExportPdf}
-                disabled={!filteredEntries.length}
-                title="Download current filtered rows as PDF"
+                disabled={!filteredCount || exporting}
+                title="Download filtered rows as PDF"
               >
-                Export PDF
+                {exporting ? 'Exporting...' : 'Export PDF'}
               </button>
               <button
                 type="button"
                 className="gsec-gl-refresh-btn"
                 onClick={handleExportExcel}
-                disabled={!filteredEntries.length}
-                title="Download current filtered rows as Excel"
+                disabled={!filteredCount || exporting}
+                title="Download filtered rows as Excel"
               >
-                Export Excel
+                {exporting ? 'Exporting...' : 'Export Excel'}
               </button>
               <button
                 type="button"
                 className="gsec-gl-refresh-btn"
-                onClick={fetchEntries}
-                disabled={loading}
+                onClick={() => fetchEntries()}
+                disabled={loading || exporting}
               >
                 {loading ? 'Refreshing...' : 'Refresh'}
               </button>
@@ -332,7 +410,7 @@ const GsecGeneralLedger = () => {
           <div className="gsec-gl-table-container">
             {error && <div className="gsec-gl-error">{error}</div>}
 
-            {filteredEntries.length === 0 ? (
+            {entries.length === 0 ? (
               <div className="gsec-gl-no-data">
                 No GSec ledger entries found matching the current filters.
               </div>
@@ -353,7 +431,7 @@ const GsecGeneralLedger = () => {
                     </tr>
                   </thead>
                   <tbody>
-                    {currentEntries.map((entry) => (
+                    {entries.map((entry) => (
                       <tr key={entry.id}>
                         <td className="gsec-gl-date">{formatDateDisplay(entry.entry_date)}</td>
                         <td className="gsec-gl-deal-number">{entry.deal_number}</td>
@@ -377,7 +455,7 @@ const GsecGeneralLedger = () => {
                   <div className="gsec-gl-pagination">
                     <button
                       onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
-                      disabled={currentPage === 1}
+                      disabled={currentPage === 1 || loading}
                       className="gsec-gl-pagination-btn"
                     >
                       Previous
@@ -389,7 +467,7 @@ const GsecGeneralLedger = () => {
 
                     <button
                       onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
-                      disabled={currentPage === totalPages}
+                      disabled={currentPage === totalPages || loading}
                       className="gsec-gl-pagination-btn"
                     >
                       Next
@@ -406,4 +484,3 @@ const GsecGeneralLedger = () => {
 };
 
 export default GsecGeneralLedger;
-
