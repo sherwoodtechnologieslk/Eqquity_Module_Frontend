@@ -139,15 +139,24 @@ const CostingMethodSelection = () => {
 
   const getMethodLabel = (value) => {
     const method = methods.find((m) => m.value === value);
-    return method ? `${method.abbr} — ${method.title}` : value;
+    return method ? `${method.abbr} - ${method.title}` : value;
   };
 
   return (
     <div className="eqt-page-container">
       <div className="eqt-content-wrapper">
         <div className="eqt-header-section">
+          <div className="eqt-header-icon">
+            <svg className="eqt-icon" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
+              <path
+                fillRule="evenodd"
+                d="M6 2a2 2 0 00-2 2v12a2 2 0 002 2h8a2 2 0 002-2V4a2 2 0 00-2-2H6zm1 2a1 1 0 000 2h6a1 1 0 100-2H7zm6 7a1 1 0 011 1v3a1 1 0 11-2 0v-3a1 1 0 011-1zm-3 3a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zm-4-3a1 1 0 011 1v3a1 1 0 11-2 0v-3a1 1 0 011-1z"
+                clipRule="evenodd"
+              />
+            </svg>
+          </div>
           <div className="eqt-header-text-group">
-            <h1 className="eqt-main-title">Portfolio Costing Method</h1>
+            <h1 className="eqt-main-title">Valuation Method</h1>
             <p className="eqt-subtitle">
               Assign the default carrying-value method for position costing, unrealised P/L and limit checks.
             </p>
@@ -178,7 +187,7 @@ const CostingMethodSelection = () => {
                     </option>
                     {portfolios.map((p) => (
                       <option key={p.portfolioId} value={p.portfolioId}>
-                        {p.portfolioId} — {p.portfolioName}
+                        {p.portfolioId} - {p.portfolioName}
                       </option>
                     ))}
                   </select>
@@ -218,14 +227,19 @@ const CostingMethodSelection = () => {
                       type="button"
                       className={`pcm-method-card${
                         selectedMethod === m.value ? ' pcm-method-card--selected' : ''
-                      }`}
+                      }${m.premium ? ' pcm-method-card--premium' : ''}`}
                       onClick={() => handleMethodSelect(m.value)}
                       disabled={isAssigned}
                     >
-                      {m.premium && <span className="pcm-method-lock">Premium</span>}
-                      <span className="pcm-method-abbr">{m.abbr}</span>
-                      <span className="pcm-method-title">{m.title}</span>
-                      <span className="pcm-method-desc">{m.desc}</span>
+                      <span className="pcm-method-radio" aria-hidden="true" />
+                      <span className="pcm-method-body">
+                        <span className="pcm-method-top">
+                          <span className="pcm-method-abbr">{m.abbr}</span>
+                          {m.premium && <span className="pcm-method-lock">Premium</span>}
+                        </span>
+                        <span className="pcm-method-title">{m.title}</span>
+                        <span className="pcm-method-desc">{m.desc}</span>
+                      </span>
                     </button>
                   ))}
                 </div>
@@ -302,7 +316,7 @@ const CostingMethodSelection = () => {
                       return (
                         <tr key={index}>
                           <td>{assignment.portfolioId}</td>
-                          <td>{portfolio ? portfolio.portfolioName : '—'}</td>
+                          <td>{portfolio ? portfolio.portfolioName : '-'}</td>
                           <td>{getMethodLabel(assignment.costing_method)}</td>
                           <td>
                             <span className="pcm-status-active">Active</span>
@@ -349,13 +363,13 @@ const CostingMethodSelection = () => {
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                     <polyline points="20,6 9,17 4,12" />
                   </svg>
-                  <span>FIFO — oldest lots relieved first</span>
+                  <span>FIFO - oldest lots relieved first</span>
                 </div>
                 <div className="eqt-upgrade-feature">
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                     <polyline points="20,6 9,17 4,12" />
                   </svg>
-                  <span>Cherry picking — lot-level selection</span>
+                  <span>Cherry picking - lot-level selection</span>
                 </div>
               </div>
             </div>

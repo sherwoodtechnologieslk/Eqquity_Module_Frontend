@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import './Styles/EquityMasterEntry.css';
+import './Styles/PortfolioMaster.css';
 import { portfolioAPI } from '../../services/api';
 import PortfolioListView from './PortfolioListView';
 
@@ -220,7 +221,7 @@ const PortfolioMaster = () => {
 
   if (showListView) {
     return (
-      <div className="eqt-page-container">
+      <div className="eqt-page-container prt-page">
         <div className="eqt-content-wrapper">
           <div className="eqt-view-toggle">
             <button onClick={toggleView} className="eqt-back-btn">
@@ -233,73 +234,100 @@ const PortfolioMaster = () => {
               Refresh
             </button>
           </div>
-          <PortfolioListView />
+          <div className="eqt-form-card eqt-list-card">
+            <div className="eqt-card-header">
+              <h2 className="eqt-card-title">Existing Portfolios</h2>
+            </div>
+            <PortfolioListView />
+          </div>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="eqt-page-container">
+    <div className="eqt-page-container prt-page">
       <div className="eqt-content-wrapper">
         <div className="eqt-header-section">
+          <div className="eqt-header-icon">
+            <svg className="eqt-icon" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
+              <path d="M4 4a2 2 0 00-2 2v1h16V6a2 2 0 00-2-2H4z" />
+              <path
+                fillRule="evenodd"
+                d="M18 9H2v5a2 2 0 002 2h12a2 2 0 002-2V9zM4 13a1 1 0 011-1h1a1 1 0 110 2H5a1 1 0 01-1-1zm5-1a1 1 0 100 2h1a1 1 0 100-2H9z"
+                clipRule="evenodd"
+              />
+            </svg>
+          </div>
           <div className="eqt-header-text-group">
             <h1 className="eqt-main-title">Portfolio Master Entry</h1>
             <p className="eqt-subtitle">Create and configure new investment portfolios for your treasury management system</p>
           </div>
         </div>
 
-        <div className="eqt-form-card">
+        <div className="eqt-form-card prt-form-shell">
           <div className="eqt-card-header">
             <h2 className="eqt-card-title">Portfolio Configuration</h2>
           </div>
 
-          <div className="eqt-form-content">
+          <div className="eqt-form-content prt-form-body">
             <form onSubmit={handleSubmit}>
-              <div className="eqt-section-header">
-                <h3 className="eqt-section-title">Basic Information</h3>
-              </div>
+              <section className="prt-section-panel">
+                <div className="prt-section-heading">
+                  <h3 className="prt-section-heading__title">Basic Information</h3>
+                  <p className="prt-section-heading__hint">Core identity and ownership details</p>
+                </div>
+                <div className="eqt-form-grid prt-form-grid">
+                  {renderField('portfolioId', form.portfolioId)}
+                  {renderField('portfolioName', form.portfolioName)}
+                  {renderField('portfolioType', form.portfolioType)}
+                  {renderField('entity', form.entity)}
+                  {renderField('fundManager', form.fundManager)}
+                  {renderField('baseCurrency', form.baseCurrency)}
+                </div>
+              </section>
 
-              <div className="eqt-form-grid">
-                {renderField('portfolioId', form.portfolioId)}
-                {renderField('portfolioName', form.portfolioName)}
-                {renderField('portfolioType', form.portfolioType)}
-                {renderField('entity', form.entity)}
-                {renderField('fundManager', form.fundManager)}
-                {renderField('baseCurrency', form.baseCurrency)}
-              </div>
+              <section className="prt-section-panel">
+                <div className="prt-section-heading">
+                  <h3 className="prt-section-heading__title">Investment Parameters</h3>
+                  <p className="prt-section-heading__hint">Risk, horizon, and performance settings</p>
+                </div>
+                <div className="eqt-form-grid prt-form-grid">
+                  {renderField('benchmark', form.benchmark)}
+                  {renderField('riskProfile', form.riskProfile)}
+                  {renderField('investmentHorizon', form.investmentHorizon)}
+                  {renderField('targetYield', form.targetYield)}
+                  {renderField('startDate', form.startDate)}
+                  {renderField('endDate', form.endDate)}
+                </div>
+              </section>
 
-              <div className="eqt-section-header">
-                <h3 className="eqt-section-title">Investment Parameters</h3>
-              </div>
+              <section className="prt-section-panel">
+                <div className="prt-section-heading">
+                  <h3 className="prt-section-heading__title">Operations & Compliance</h3>
+                  <p className="prt-section-heading__hint">Status, accounting, and operational controls</p>
+                </div>
+                <div className="eqt-form-grid prt-form-grid">
+                  {renderField('status', form.status)}
+                  {renderField('complianceRulesId', form.complianceRulesId)}
+                  {renderField('parentPortfolioId', form.parentPortfolioId)}
+                  {renderField('valuationMethod', form.valuationMethod)}
+                  {renderField('accountingTreatment', form.accountingTreatment)}
+                  {renderField('rebalancingFrequency', form.rebalancingFrequency)}
+                  {renderField('externalRefCode', form.externalRefCode)}
+                  {renderField('tags', form.tags)}
+                </div>
+              </section>
 
-              <div className="eqt-form-grid">
-                {renderField('benchmark', form.benchmark)}
-                {renderField('riskProfile', form.riskProfile)}
-                {renderField('investmentHorizon', form.investmentHorizon)}
-                {renderField('targetYield', form.targetYield)}
-                {renderField('startDate', form.startDate)}
-                {renderField('endDate', form.endDate)}
-              </div>
-
-              <div className="eqt-section-header">
-                <h3 className="eqt-section-title">Operations & Compliance</h3>
-              </div>
-
-              <div className="eqt-form-grid">
-                {renderField('status', form.status)}
-                {renderField('complianceRulesId', form.complianceRulesId)}
-                {renderField('parentPortfolioId', form.parentPortfolioId)}
-                {renderField('valuationMethod', form.valuationMethod)}
-                {renderField('accountingTreatment', form.accountingTreatment)}
-                {renderField('rebalancingFrequency', form.rebalancingFrequency)}
-                {renderField('externalRefCode', form.externalRefCode)}
-                {renderField('tags', form.tags)}
-              </div>
-
-              <div className="eqt-notes-section">
-                {renderField('notes', form.notes)}
-              </div>
+              <section className="prt-section-panel prt-section-panel--notes">
+                <div className="prt-section-heading">
+                  <h3 className="prt-section-heading__title">Notes</h3>
+                  <p className="prt-section-heading__hint">Optional comments for this portfolio</p>
+                </div>
+                <div className="eqt-notes-section prt-notes">
+                  {renderField('notes', form.notes)}
+                </div>
+              </section>
 
               {submitMessage && (
                 <div className={`eqt-message ${submitMessage.includes('Error') ? 'eqt-error' : 'eqt-success'}`}>
@@ -307,7 +335,7 @@ const PortfolioMaster = () => {
                 </div>
               )}
 
-              <div className="eqt-button-section">
+              <div className="eqt-button-section prt-form-actions">
                 <button
                   type="reset"
                   onClick={handleReset}
