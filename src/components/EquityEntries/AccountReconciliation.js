@@ -1033,27 +1033,40 @@ const AccountReconciliation = () => {
 
   return (
     <div className="account-reconciliation">
+      <div className="account-reconciliation-page">
       {/* Header Section */}
       <div className="account-reconciliation-header">
         <div className="account-reconciliation-header-left">
-          <h1>Account Reconciliation</h1>
-          {selectedAccount && (
-            <div className="account-reconciliation-info">
-              <span className="account-reconciliation-code">
-                {selectedAccount.account_code || selectedAccount.accountCode || selectedAccount.code}
-              </span>
-              <span className="account-reconciliation-name">
-                {selectedAccount.account_name ||
-                  selectedAccount.accountName ||
-                  selectedAccount.name ||
-                  selectedAccount.description ||
-                  'Unnamed account'}
-              </span>
-            </div>
-          )}
+          <div className="account-reconciliation-header-icon" aria-hidden="true">
+            <svg fill="currentColor" viewBox="0 0 20 20">
+              <path d="M4 4a2 2 0 00-2 2v1h16V6a2 2 0 00-2-2H4z" />
+              <path
+                fillRule="evenodd"
+                d="M18 9H2v5a2 2 0 002 2h12a2 2 0 002-2V9zM4 13a1 1 0 011-1h1a1 1 0 110 2H5a1 1 0 01-1-1zm5-1a1 1 0 100 2h1a1 1 0 100-2H9z"
+                clipRule="evenodd"
+              />
+            </svg>
+          </div>
+          <div className="account-reconciliation-header-text">
+            <h1>Account Reconciliation</h1>
+            {selectedAccount && (
+              <div className="account-reconciliation-info">
+                <span className="account-reconciliation-code">
+                  {selectedAccount.account_code || selectedAccount.accountCode || selectedAccount.code}
+                </span>
+                <span className="account-reconciliation-name">
+                  {selectedAccount.account_name ||
+                    selectedAccount.accountName ||
+                    selectedAccount.name ||
+                    selectedAccount.description ||
+                    'Unnamed account'}
+                </span>
+              </div>
+            )}
+          </div>
         </div>
         <div className="account-reconciliation-header-right">
-          <div className="reconciliation-status-info">
+          <div className={`reconciliation-status-info reconciliation-status-info--${reconciliationStatus}`}>
             Status: {reconciliationStatus.toUpperCase()}
           </div>
         </div>
@@ -1924,6 +1937,7 @@ const AccountReconciliation = () => {
           {error}
         </div>
       )}
+      </div>
     </div>
   );
 };

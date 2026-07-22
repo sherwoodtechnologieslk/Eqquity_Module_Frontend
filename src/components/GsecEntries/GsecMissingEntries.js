@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { gsecEntriesAPI } from '../../services/api';
-import './Styles/GsecEntries.css';
+import './Styles/GsecShared.css';
 import './Styles/GsecMissingEntries.css';
 
 const formatDateHeader = (dateStr) => {

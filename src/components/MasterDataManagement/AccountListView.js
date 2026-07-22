@@ -78,8 +78,8 @@ const AccountListView = ({ onEditAccount }) => {
                   <td>{account.account_number}</td>
                   <td>{account.bank_name}</td>
                   <td>{account.branch_name}</td>
-                  <td>{account.swift_code || '-'}</td>
-                  <td>{account.iban || '-'}</td>
+                  <td>{account.swift_code || ''}</td>
+                  <td>{account.iban || ''}</td>
                   <td>
                     <div className="acct-action-buttons">
                       <button

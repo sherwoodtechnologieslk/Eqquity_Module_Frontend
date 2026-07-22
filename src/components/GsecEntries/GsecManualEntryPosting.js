@@ -5,7 +5,7 @@ import {
   shouldSubmitGsecForApproval,
   gsecSubmittingLabel,
 } from '../../utils/gsecMakerChecker';
-import './Styles/GsecEntries.css';
+import './Styles/GsecShared.css';
 import './Styles/GsecManualEntryPosting.css';
 
 const INITIAL_SHARED = {
