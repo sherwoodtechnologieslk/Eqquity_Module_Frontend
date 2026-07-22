@@ -198,63 +198,62 @@ const GsecEntries = () => {
   };
 
   return (
-    <div className="gsec-page-container">
-      {/* Header aligned with GL/Trial Balance style */}
-      <div className="gsec-header-section">
-        <div className="gsec-header-icon">
-          <svg className="gsec-icon" fill="currentColor" viewBox="0 0 20 20">
+    <div className="gsec-ext-page">
+      <div className="gsec-ext-wrapper">
+      <div className="gsec-ext-header">
+        <div className="gsec-ext-header-icon">
+          <svg className="gsec-ext-icon" fill="currentColor" viewBox="0 0 20 20">
             <path fillRule="evenodd" d="M4 4a2 2 0 00-2 2v8a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2H4zm2 2v8h8V6H6z" clipRule="evenodd" />
             <path d="M8 8a1 1 0 011-1h2a1 1 0 110 2H9a1 1 0 01-1-1zm0 2a1 1 0 011-1h2a1 1 0 110 2H9a1 1 0 01-1-1zm1 1a1 1 0 100 2h2a1 1 0 100-2H9z" />
           </svg>
         </div>
-        <div className="gsec-header-text-group">
-          <h1 className="gsec-main-title">GSec Ledger Entries</h1>
-          <p className="gsec-subtitle">
+        <div className="gsec-ext-header-text">
+          <h1 className="gsec-ext-title">GSec Ledger Entries</h1>
+          <p className="gsec-ext-subtitle">
             View GSec accounting entries returned by the external ledger service.
           </p>
         </div>
       </div>
 
-      {/* Filters card, similar to Trial Balance */}
-      <div className="gsec-filters-card">
-        <div className="gsec-card-header">
-          <h2 className="gsec-card-title">Filters</h2>
+      <div className="gsec-ext-filters-card">
+        <div className="gsec-ext-card-header">
+          <h2 className="gsec-ext-card-title">Filters</h2>
         </div>
-        <form className="gsec-filters-content" onSubmit={handleSubmit}>
-          <div className="gsec-filters-grid">
-            <div className="gsec-filter-group">
-              <label className="gsec-filter-label">Start Date</label>
+        <form className="gsec-ext-filters-body" onSubmit={handleSubmit}>
+          <div className="gsec-ext-filters-grid">
+            <div className="gsec-ext-field">
+              <label className="gsec-ext-label">Start Date</label>
               <input
                 type="date"
                 value={startDate || ''}
                 onChange={(e) => setStartDate(e.target.value)}
-                className="gsec-filter-input"
+                className="gsec-ext-input"
               />
             </div>
-            <div className="gsec-filter-group">
-              <label className="gsec-filter-label">End Date</label>
+            <div className="gsec-ext-field">
+              <label className="gsec-ext-label">End Date</label>
               <input
                 type="date"
                 value={endDate || ''}
                 onChange={(e) => setEndDate(e.target.value)}
-                className="gsec-filter-input"
+                className="gsec-ext-input"
               />
             </div>
-            <div className="gsec-filter-group">
-              <label className="gsec-filter-label">Page Size</label>
+            <div className="gsec-ext-field">
+              <label className="gsec-ext-label">Page Size</label>
               <input
                 type="number"
                 min={1}
                 max={500}
                 value={pageSize}
                 onChange={(e) => setPageSize(Number(e.target.value) || 50)}
-                className="gsec-filter-input"
+                className="gsec-ext-input"
               />
             </div>
-            <div className="gsec-filter-actions">
+            <div className="gsec-ext-filter-actions">
               <button
                 type="submit"
-                className="gsec-refresh-button"
+                className="gsec-ext-btn-primary"
                 disabled={loading}
               >
                 {loading ? 'Loading…' : 'Load'}
@@ -264,10 +263,10 @@ const GsecEntries = () => {
         </form>
       </div>
 
-      {error && <div className="gsec-error">{error}</div>}
+      {error && <div className="gsec-ext-error">{error}</div>}
 
       {missingInfo && (
-        <div className="gsec-missing-banner">
+        <div className="gsec-ext-missing-banner">
           <span>
             <strong>{missingInfo.totalMissing}</strong>{' '}
             {missingInfo.totalMissing === 1 ? 'entry' : 'entries'} in the remote
@@ -281,7 +280,7 @@ const GsecEntries = () => {
           </span>
           <button
             type="button"
-            className="gsec-button-ghost"
+            className="gsec-ext-btn-ghost"
             onClick={clearMissingView}
             disabled={loading}
           >
@@ -290,16 +289,16 @@ const GsecEntries = () => {
         </div>
       )}
 
-      <div className="gsec-toolbar">
-        <span className="gsec-toolbar-text">
+      <div className="gsec-ext-toolbar">
+        <span className="gsec-ext-toolbar-text">
           {missingInfo
             ? `Missing entries for ${missingInfo.date} • ${rows.length} row(s)`
             : `Page ${page} • ${rows.length} row(s) on this page • Total ${total}`}
         </span>
-        <div className="gsec-toolbar-actions">
+        <div className="gsec-ext-toolbar-actions">
           <button
             type="button"
-            className="gsec-refresh-button"
+            className="gsec-ext-btn-primary"
             onClick={openDateModal}
             disabled={loading}
           >
@@ -307,17 +306,17 @@ const GsecEntries = () => {
           </button>
           <button
             type="button"
-            className="gsec-refresh-button"
+            className="gsec-ext-btn-primary"
             onClick={handleSaveToDatabase}
             disabled={saving || loading || rows.length === 0}
           >
             {saving ? gsecSubmittingLabel() : gsecSaveButtonLabel()}
           </button>
-          <div className="gsec-pagination">
+          <div className="gsec-ext-pagination">
             <button
               type="button"
               onClick={handlePrevPage}
-              className="gsec-button-ghost"
+              className="gsec-ext-btn-ghost"
               disabled={loading || page <= 1 || !!missingInfo}
             >
               Previous
@@ -325,7 +324,7 @@ const GsecEntries = () => {
             <button
               type="button"
               onClick={handleNextPage}
-              className="gsec-button-ghost"
+              className="gsec-ext-btn-ghost"
               disabled={loading || !!missingInfo}
             >
               Next
@@ -334,46 +333,51 @@ const GsecEntries = () => {
         </div>
       </div>
 
-      <div className="gsec-table-card">
-        <div className="gsec-table-container">
-          <table className="gsec-table">
-          <thead>
-            <tr>
-              {columns.length === 0
-                ? <th>No data</th>
-                : columns.map((col) => (
-                    <th key={col}>{col}</th>
-                  ))}
-            </tr>
-          </thead>
-          <tbody>
-            {rows.length === 0
-              ? (
-                <tr>
-                  <td colSpan={columns.length || 1} className="gsec-empty">
-                    {loading ? 'Loading…' : 'No records found for the selected filters.'}
-                  </td>
-                </tr>
-              )
-              : rows.map((row, idx) => (
-                  <tr key={idx}>
-                    {columns.map((col) => (
-                      <td
-                        key={col}
-                        title={formatCellValue(col, row[col])}
-                      >
-                        {formatCellValue(col, row[col])}
-                      </td>
+      <div className="gsec-ext-table-card">
+        <div className="gsec-ext-card-header">
+          <h2 className="gsec-ext-card-title">
+            {missingInfo ? 'Missing Remote Entries' : 'Ledger Entries'}
+          </h2>
+        </div>
+        <div className="gsec-ext-table-wrap">
+          <table className="gsec-ext-table">
+            <thead>
+              <tr>
+                {columns.length === 0
+                  ? <th>No data</th>
+                  : columns.map((col) => (
+                      <th key={col}>{col}</th>
                     ))}
+              </tr>
+            </thead>
+            <tbody>
+              {rows.length === 0
+                ? (
+                  <tr>
+                    <td colSpan={columns.length || 1} className="gsec-ext-empty">
+                      {loading ? 'Loading…' : 'No records found for the selected filters.'}
+                    </td>
                   </tr>
-                ))}
-          </tbody>
-        </table>
-      </div>
+                )
+                : rows.map((row, idx) => (
+                    <tr key={idx}>
+                      {columns.map((col) => (
+                        <td
+                          key={col}
+                          title={formatCellValue(col, row[col])}
+                        >
+                          {formatCellValue(col, row[col])}
+                        </td>
+                      ))}
+                    </tr>
+                  ))}
+            </tbody>
+          </table>
+        </div>
       </div>
 
       {rawResponse && (
-        <details className="gsec-debug">
+        <details className="gsec-ext-debug">
           <summary>Show raw API response (debug)</summary>
           <pre>{JSON.stringify(rawResponse, null, 2)}</pre>
         </details>
@@ -381,24 +385,24 @@ const GsecEntries = () => {
 
       {showDateModal && (
         <div
-          className="gsec-modal-overlay"
+          className="gsec-ext-modal-overlay"
           onClick={closeDateModal}
           role="presentation"
         >
           <div
-            className="gsec-modal"
+            className="gsec-ext-modal"
             role="dialog"
             aria-modal="true"
-            aria-labelledby="gsec-date-modal-title"
+            aria-labelledby="gsec-ext-date-modal-title"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="gsec-modal-header">
-              <h3 id="gsec-date-modal-title" className="gsec-modal-title">
+            <div className="gsec-ext-modal-header">
+              <h3 id="gsec-ext-date-modal-title" className="gsec-ext-modal-title">
                 Load Entries by Date
               </h3>
               <button
                 type="button"
-                className="gsec-modal-close"
+                className="gsec-ext-modal-close"
                 onClick={closeDateModal}
                 aria-label="Close"
               >
@@ -406,37 +410,37 @@ const GsecEntries = () => {
               </button>
             </div>
 
-            <div className="gsec-modal-body">
-              <label className="gsec-filter-label" htmlFor="gsec-specific-date">
+            <div className="gsec-ext-modal-body">
+              <label className="gsec-ext-label" htmlFor="gsec-ext-specific-date">
                 Select a date
               </label>
               <input
-                id="gsec-specific-date"
+                id="gsec-ext-specific-date"
                 ref={dateInputRef}
                 type="date"
                 value={specificDate}
                 onChange={(e) => setSpecificDate(e.target.value)}
-                className="gsec-filter-input"
+                className="gsec-ext-input"
                 aria-label="Select a date to load GSec entries"
               />
-              <p className="gsec-modal-hint">
+              <p className="gsec-ext-modal-hint">
                 For the selected date only, we compare the remote ledger with
                 your database and show the entries that exist remotely but are
                 missing locally.
               </p>
             </div>
 
-            <div className="gsec-modal-footer">
+            <div className="gsec-ext-modal-footer">
               <button
                 type="button"
-                className="gsec-button-ghost"
+                className="gsec-ext-btn-ghost"
                 onClick={closeDateModal}
               >
                 Cancel
               </button>
               <button
                 type="button"
-                className="gsec-refresh-button"
+                className="gsec-ext-btn-primary"
                 onClick={handleApplyDate}
                 disabled={!specificDate || loading}
               >
@@ -446,6 +450,7 @@ const GsecEntries = () => {
           </div>
         </div>
       )}
+      </div>
     </div>
   );
 };

@@ -6,7 +6,7 @@ import {
   gsecSaveButtonLabel,
   gsecSubmittingLabel,
 } from '../../utils/gsecMakerChecker';
-import './Styles/GsecEntries.css';
+import './Styles/GsecShared.css';
 import './Styles/GsecManualEntryPosting.css';
 import './Styles/GsecBulkEntryGrid.css';
 
