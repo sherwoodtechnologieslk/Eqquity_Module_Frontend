@@ -669,10 +669,18 @@ const FinancialReportsDownloadCenter = () => {
 
       const combinedAccounts = [...equityAccounts, ...gsecAccounts];
 
+      const getBalanceSides = (net) => {
+        const n = Number(net) || 0;
+        if (Math.abs(n) < 0.005) return { debit: 0, credit: 0 };
+        if (n > 0) return { debit: Math.abs(n), credit: 0 };
+        return { debit: 0, credit: Math.abs(n) };
+      };
+
       const totals = combinedAccounts.reduce(
         (acc, a) => {
-          acc.debit += a.total_debit || 0;
-          acc.credit += a.total_credit || 0;
+          const sides = getBalanceSides(a.net_balance);
+          acc.debit += sides.debit;
+          acc.credit += sides.credit;
           return acc;
         },
         { debit: 0, credit: 0 }
@@ -684,21 +692,20 @@ const FinancialReportsDownloadCenter = () => {
         'Account Name',
         'Type / Category',
         'Debit',
-        'Credit',
-        'Net',
-        'DR/CR'
+        'Credit'
       ];
 
-      const body = combinedAccounts.map((acc) => [
-        acc.source,
-        acc.account_code,
-        acc.account_name,
-        acc.account_type,
-        fmt(acc.total_debit, 2),
-        fmt(acc.total_credit, 2),
-        fmt(acc.net_balance, 2),
-        acc.balance_type
-      ]);
+      const body = combinedAccounts.map((acc) => {
+        const sides = getBalanceSides(acc.net_balance);
+        return [
+          acc.source,
+          acc.account_code,
+          acc.account_name,
+          acc.account_type,
+          sides.debit > 0 ? fmt(sides.debit, 2) : '-',
+          sides.credit > 0 ? fmt(sides.credit, 2) : '-',
+        ];
+      });
 
       const foot = [
         'Totals',
@@ -707,8 +714,6 @@ const FinancialReportsDownloadCenter = () => {
         '',
         fmt(totals.debit, 2),
         fmt(totals.credit, 2),
-        '',
-        Math.abs(totals.debit - totals.credit) < 0.01 ? 'BALANCED' : 'OUT OF BALANCE'
       ];
 
       pdfTable({

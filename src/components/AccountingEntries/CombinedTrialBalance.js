@@ -160,7 +160,6 @@ const CombinedTrialBalance = () => {
   const [sourceFilter, setSourceFilter] = useState('all'); // all | equity | gsec
   const [searchTerm, setSearchTerm] = useState('');
   const [showSourcesColumn, setShowSourcesColumn] = useState(false);
-  const [showDebitCreditColumns, setShowDebitCreditColumns] = useState(false);
   const [reportExpanded, setReportExpanded] = useState(false);
 
   const [accountModalOpen, setAccountModalOpen] = useState(false);
@@ -409,20 +408,19 @@ const CombinedTrialBalance = () => {
         'Account Name',
         'Type / Category',
         'Debit',
-        'Credit',
-        'Net',
-        'DR/CR'
+        'Credit'
       ];
 
-      const body = filteredAccounts.map((acc) => [
-        acc.account_code,
-        acc.account_name,
-        acc.account_type,
-        acc.total_debit > 0 ?         formatCurrency(acc.total_debit) : '-',
-        acc.total_credit > 0 ? formatCurrency(acc.total_credit) : '-',
-        formatNetBalance(acc.net_balance).text,
-        acc.balance_type
-      ]);
+      const body = filteredAccounts.map((acc) => {
+        const sides = getBalanceSides(acc.net_balance);
+        return [
+          acc.account_code,
+          acc.account_name,
+          acc.account_type,
+          sides.debit > 0 ? formatCurrency(sides.debit) : '-',
+          sides.credit > 0 ? formatCurrency(sides.credit) : '-',
+        ];
+      });
 
       const foot = [
         'Totals',
@@ -430,8 +428,6 @@ const CombinedTrialBalance = () => {
         '',
         formatCurrency(totals.debit),
         formatCurrency(totals.credit),
-        isBalanced ? formatCurrency(0) : netDifferenceDisplay.text,
-        isBalanced ? 'BALANCED' : 'OUT OF BALANCE'
       ];
 
       autoTable(doc, {
@@ -531,6 +527,14 @@ const CombinedTrialBalance = () => {
     }
     const side = n > 0 ? 'DR' : 'CR';
     return { text: formatCurrency(Math.abs(n)), side };
+  };
+
+  /** Put account closing balance on the Debit or Credit side (classic TB). */
+  const getBalanceSides = (net) => {
+    const n = Number(net) || 0;
+    if (Math.abs(n) < 0.005) return { debit: 0, credit: 0 };
+    if (n > 0) return { debit: Math.abs(n), credit: 0 };
+    return { debit: 0, credit: Math.abs(n) };
   };
 
   const formatDate = (dateString) => {
@@ -677,8 +681,9 @@ const CombinedTrialBalance = () => {
 
   const totals = filteredAccounts.reduce(
     (acc, a) => {
-      acc.debit += a.total_debit || 0;
-      acc.credit += a.total_credit || 0;
+      const sides = getBalanceSides(a.net_balance);
+      acc.debit += sides.debit;
+      acc.credit += sides.credit;
       return acc;
     },
     { debit: 0, credit: 0 }
@@ -700,19 +705,13 @@ const CombinedTrialBalance = () => {
     }
 
     return (
-      <table className={`ctb-grid${showDebitCreditColumns ? ' ctb-grid--with-dc' : ''}${showSourcesColumn ? ' ctb-grid--with-sources' : ''}`}>
+      <table className={`ctb-grid${showSourcesColumn ? ' ctb-grid--with-sources' : ''}`}>
         <colgroup>
           <col className="ctb-colw-code" />
           <col className="ctb-colw-name" />
           <col className="ctb-colw-type" />
-          {showDebitCreditColumns && (
-            <>
-              <col className="ctb-colw-amount" />
-              <col className="ctb-colw-amount" />
-            </>
-          )}
           <col className="ctb-colw-amount" />
-          <col className="ctb-colw-drcr" />
+          <col className="ctb-colw-amount" />
           {showSourcesColumn && <col className="ctb-colw-sources" />}
         </colgroup>
         <thead>
@@ -720,20 +719,14 @@ const CombinedTrialBalance = () => {
             <th className="ctb-col-code">Account Code</th>
             <th className="ctb-col-name">Account Name</th>
             <th className="ctb-col-type">Type / Category</th>
-            {showDebitCreditColumns && (
-              <>
-                <th className="ctb-col-num">Debit</th>
-                <th className="ctb-col-num">Credit</th>
-              </>
-            )}
-            <th className="ctb-col-num">Net</th>
-            <th className="ctb-col-drcr">DR / CR</th>
+            <th className="ctb-col-num">Debit</th>
+            <th className="ctb-col-num">Credit</th>
             {showSourcesColumn && <th className="ctb-col-sources">Sources</th>}
           </tr>
         </thead>
         <tbody>
           {filteredAccounts.map((acc, idx) => {
-            const netDisplay = formatNetBalance(acc.net_balance);
+            const sides = getBalanceSides(acc.net_balance);
             return (
               <tr key={acc.id} className={idx % 2 === 1 ? 'ctb-grid__row--alt' : ''}>
                 <td
@@ -767,44 +760,14 @@ const CombinedTrialBalance = () => {
                   {acc.account_name}
                 </td>
                 <td className="ctb-col-type">{acc.account_type}</td>
-                {showDebitCreditColumns && (
-                  <>
-                    <td className="ctb-col-num">
-                      <span className="ctb-amount">
-                        {acc.total_debit > 0 ? formatCurrency(acc.total_debit) : '—'}
-                      </span>
-                    </td>
-                    <td className="ctb-col-num">
-                      <span className="ctb-amount">
-                        {acc.total_credit > 0 ? formatCurrency(acc.total_credit) : '—'}
-                      </span>
-                    </td>
-                  </>
-                )}
                 <td className="ctb-col-num">
-                  <span
-                    className={`ctb-amount${
-                      netDisplay.side === 'DR'
-                        ? ' ctb-amount--debit'
-                        : netDisplay.side === 'CR'
-                          ? ' ctb-amount--credit'
-                          : ''
-                    }`}
-                  >
-                    {netDisplay.text}
+                  <span className={`ctb-amount${sides.debit > 0 ? ' ctb-amount--debit' : ''}`}>
+                    {sides.debit > 0 ? formatCurrency(sides.debit) : '—'}
                   </span>
                 </td>
-                <td className="ctb-col-drcr">
-                  <span
-                    className={`ctb-drcr-pill${
-                      acc.balance_type === 'DR'
-                        ? ' ctb-drcr-pill--dr'
-                        : acc.balance_type === 'CR'
-                          ? ' ctb-drcr-pill--cr'
-                          : ' ctb-drcr-pill--zero'
-                    }`}
-                  >
-                    {acc.balance_type || '—'}
+                <td className="ctb-col-num">
+                  <span className={`ctb-amount${sides.credit > 0 ? ' ctb-amount--credit' : ''}`}>
+                    {sides.credit > 0 ? formatCurrency(sides.credit) : '—'}
                   </span>
                 </td>
                 {showSourcesColumn && (
@@ -825,31 +788,15 @@ const CombinedTrialBalance = () => {
         <tfoot>
           <tr className="ctb-grid__totals">
             <td colSpan={3} className="ctb-totals-label">Totals</td>
-            {showDebitCreditColumns && (
-              <>
-                <td className="ctb-col-num">
-                  <span className="ctb-amount ctb-amount--emphasis">{formatCurrency(totals.debit)}</span>
-                </td>
-                <td className="ctb-col-num">
-                  <span className="ctb-amount ctb-amount--emphasis">{formatCurrency(totals.credit)}</span>
-                </td>
-              </>
-            )}
             <td className="ctb-col-num">
-              <span
-                className={`ctb-amount ctb-amount--emphasis${
-                  isBalanced
-                    ? ''
-                    : netDifferenceDisplay.side === 'DR'
-                      ? ' ctb-amount--debit'
-                      : ' ctb-amount--credit'
-                }`}
-              >
-                {isBalanced ? formatCurrency(0) : netDifferenceDisplay.text}
+              <span className="ctb-amount ctb-amount--emphasis ctb-amount--debit">
+                {formatCurrency(totals.debit)}
               </span>
             </td>
-            <td className={`ctb-col-drcr ctb-totals-status${isBalanced ? ' ctb-totals-status--ok' : ' ctb-totals-status--warn'}`}>
-              {isBalanced ? 'Balanced' : 'Out of Balance'}
+            <td className="ctb-col-num">
+              <span className="ctb-amount ctb-amount--emphasis ctb-amount--credit">
+                {formatCurrency(totals.credit)}
+              </span>
             </td>
             {showSourcesColumn && <td className="ctb-col-sources" />}
           </tr>
@@ -1047,15 +994,6 @@ const CombinedTrialBalance = () => {
             <div className="ctb-report__actions">
               <button
                 type="button"
-                className={`ctb-btn ctb-btn--sources${showDebitCreditColumns ? ' ctb-btn--sources-active' : ''}`}
-                onClick={() => setShowDebitCreditColumns((prev) => !prev)}
-                aria-pressed={showDebitCreditColumns}
-                title={showDebitCreditColumns ? 'Hide Debit / Credit columns' : 'Show Debit / Credit columns'}
-              >
-                Debit / Credit
-              </button>
-              <button
-                type="button"
                 className={`ctb-btn ctb-btn--sources${showSourcesColumn ? ' ctb-btn--sources-active' : ''}`}
                 onClick={() => setShowSourcesColumn((prev) => !prev)}
                 aria-pressed={showSourcesColumn}
@@ -1129,15 +1067,6 @@ const CombinedTrialBalance = () => {
                   </p>
                 </div>
                 <div className="ctb-expand-modal__actions">
-                  <button
-                    type="button"
-                    className={`ctb-btn ctb-btn--sources${showDebitCreditColumns ? ' ctb-btn--sources-active' : ''}`}
-                    onClick={() => setShowDebitCreditColumns((prev) => !prev)}
-                    aria-pressed={showDebitCreditColumns}
-                    title={showDebitCreditColumns ? 'Hide Debit / Credit columns' : 'Show Debit / Credit columns'}
-                  >
-                    Debit / Credit
-                  </button>
                   <button
                     type="button"
                     className={`ctb-btn ctb-btn--sources${showSourcesColumn ? ' ctb-btn--sources-active' : ''}`}
