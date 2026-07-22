@@ -1,4 +1,16 @@
+/* GSec Trial Balance — green theme (matches GSec General Ledger) */
+
 .gsec-bs-page-container {
+  --gsec-green-gradient: linear-gradient(90deg, #22c55e 0%, #16a34a 100%);
+  --gsec-green-gradient-alt: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+  --gsec-green-icon-gradient: linear-gradient(135deg, #4ade80, #16a34a);
+  --gsec-green-primary: #16a34a;
+  --gsec-green-accent: #22c55e;
+  --gsec-green-dark: #15803d;
+  --gsec-green-border: #bbf7d0;
+  --gsec-green-focus-ring: rgba(34, 197, 94, 0.15);
+  --gsec-green-hover-bg: #ecfdf5;
+
   min-height: 100vh;
   padding: 1rem 1rem 1.25rem;
   box-sizing: border-box;
@@ -13,43 +25,43 @@
 .gsec-bs-header-section {
   display: flex;
   align-items: center;
-  gap: 1.25rem;
+  gap: 1rem;
   margin-bottom: 0.75rem;
-  padding-top: 0.25rem;
-  padding-bottom: 0.6rem;
+  padding-top: 0.15rem;
+  padding-bottom: 0.5rem;
 }
 
 .gsec-bs-header-icon {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 3.25rem;
-  height: 3.25rem;
-  background: linear-gradient(135deg, #22c55e, #15803d);
-  border-radius: 0.18rem;
-  box-shadow: 0 8px 32px rgba(22, 163, 74, 0.25), 0 2px 8px rgba(22, 163, 74, 0.18);
+  width: 3rem;
+  height: 3rem;
+  background: var(--gsec-green-icon-gradient);
+  border-radius: 0.25rem;
+  box-shadow: 0 8px 24px rgba(22, 163, 74, 0.2);
   flex-shrink: 0;
 }
 
 .gsec-bs-icon {
-  width: 1.5rem;
-  height: 1.5rem;
+  width: 1.45rem;
+  height: 1.45rem;
   color: #fff;
 }
 
 .gsec-bs-header-text-group {
   display: flex;
   flex-direction: column;
-  gap: 0.25rem;
+  gap: 0.2rem;
 }
 
 .gsec-bs-main-title {
-  font-size: 1.65rem;
+  font-size: 1.5rem;
   font-weight: 800;
-  color: #022c22;
+  color: #0f172a;
   margin: 0;
   line-height: 1.15;
-  letter-spacing: -0.02em;
+  letter-spacing: -0.01em;
 }
 
 .gsec-bs-subtitle {
@@ -58,18 +70,19 @@
   margin: 0;
 }
 
-.gsec-bs-filters-card {
+.gsec-bs-filters-card,
+.gsec-bs-main-card {
   background: #ffffff;
-  border-radius: 0.18rem;
-  box-shadow: 0 15px 35px rgba(15, 23, 42, 0.12);
-  border: 1px solid #dbeafe;
+  border-radius: 0.25rem;
+  box-shadow: 0 10px 25px rgba(15, 23, 42, 0.06);
+  border: 1px solid var(--gsec-green-border);
   margin-bottom: 1rem;
   overflow: hidden;
 }
 
 .gsec-bs-card-header {
-  padding: 0.7rem 1.25rem;
-  background: linear-gradient(90deg, #22c55e 0%, #16a34a 100%);
+  padding: 0.65rem 1.15rem;
+  background: var(--gsec-green-gradient);
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -89,94 +102,96 @@
 }
 
 .gsec-bs-export-btn {
-  padding: 0.5rem 0.95rem;
+  padding: 0.4rem 0.95rem;
   border-radius: 999px;
-  font-size: 0.78rem;
-  font-weight: 700;
+  font-size: 0.75rem;
+  font-weight: 600;
   cursor: pointer;
   border: 1px solid rgba(255, 255, 255, 0.35);
-  background: rgba(255, 255, 255, 0.14);
+  background: rgba(255, 255, 255, 0.16);
   color: #ffffff;
   transition: all 0.15s ease;
-  backdrop-filter: blur(8px);
 }
 
 .gsec-bs-export-btn:hover:not(:disabled) {
-  background: rgba(255, 255, 255, 0.22);
-  transform: translateY(-1px);
+  background: rgba(255, 255, 255, 0.28);
 }
 
 .gsec-bs-export-btn:disabled {
   opacity: 0.6;
   cursor: not-allowed;
-  transform: none;
 }
 
 .gsec-bs-filters-content {
-  padding: 0.85rem 1.25rem 1rem;
+  padding: 0.85rem 1.15rem 1rem;
 }
 
 .gsec-bs-filters-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-  gap: 0.85rem;
+  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+  gap: 0.75rem;
   align-items: end;
 }
 
 .gsec-bs-filter-group {
   display: flex;
   flex-direction: column;
-  gap: 0.4rem;
+  gap: 0.3rem;
 }
 
 .gsec-bs-filter-label {
-  font-size: 0.8rem;
-  font-weight: 600;
-  letter-spacing: 0.06em;
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
   text-transform: uppercase;
   color: #374151;
 }
 
 .gsec-bs-filter-input {
-  padding: 0.6rem 0.85rem;
+  padding: 0.5rem 0.75rem;
   border-radius: 0.4rem;
   border: 1px solid #d1d5db;
-  font-size: 0.85rem;
+  font-size: 0.8125rem;
   background: #ffffff;
   transition: all 0.15s ease;
+  min-height: 36px;
 }
 
 .gsec-bs-filter-input:focus {
   outline: none;
-  border-color: #22c55e;
-  box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.18);
+  border-color: var(--gsec-green-accent);
+  box-shadow: 0 0 0 3px var(--gsec-green-focus-ring);
 }
 
 .gsec-bs-filter-actions {
   display: flex;
+  flex-direction: row;
+  flex-wrap: nowrap;
   gap: 0.5rem;
   justify-content: flex-end;
+  align-items: flex-end;
 }
 
 .gsec-bs-apply-btn,
 .gsec-bs-clear-btn {
-  padding: 0.55rem 1.2rem;
+  padding: 0.5rem 1.25rem;
   border-radius: 999px;
   font-size: 0.8rem;
   font-weight: 600;
   cursor: pointer;
   border: none;
   transition: all 0.15s ease;
+  min-height: 36px;
 }
 
 .gsec-bs-apply-btn {
-  background: #22c55e;
+  background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
   color: #ffffff;
   box-shadow: 0 4px 10px rgba(34, 197, 94, 0.35);
 }
 
 .gsec-bs-apply-btn:hover {
-  background: #16a34a;
+  background: linear-gradient(135deg, #16a34a 0%, #15803d 100%);
   box-shadow: 0 6px 14px rgba(34, 197, 94, 0.4);
 }
 
@@ -184,10 +199,12 @@
   background: #f3f4f6;
   color: #374151;
   border: 1px solid #d1d5db;
+  box-shadow: none;
 }
 
 .gsec-bs-clear-btn:hover {
   background: #e5e7eb;
+  border-color: #cbd5e1;
 }
 
 .gsec-bs-summary-row {
@@ -202,7 +219,7 @@
   border-radius: 0.75rem;
   border: 1px solid #e5e7eb;
   box-shadow: 0 4px 8px rgba(15, 23, 42, 0.05);
-  padding: 0.7rem 0.95rem;
+  padding: 0.85rem 1rem;
 }
 
 .gsec-bs-summary-label {
@@ -211,11 +228,14 @@
   letter-spacing: 0.08em;
   color: #6b7280;
   margin-bottom: 0.25rem;
+  font-weight: 600;
 }
 
 .gsec-bs-summary-value {
   font-size: 1.1rem;
   font-weight: 700;
+  font-family: 'Courier New', Courier, monospace;
+  font-variant-numeric: tabular-nums;
 }
 
 .gsec-bs-summary-value.debit {
@@ -231,19 +251,15 @@
 }
 
 .gsec-bs-main-card {
-  background: #ffffff;
-  border-radius: 0.25rem;
-  border: 1px solid #dbeafe;
-  box-shadow: 0 12px 30px rgba(15, 23, 42, 0.12);
-  overflow: hidden;
+  margin-bottom: 0;
 }
 
 .gsec-bs-main-header {
-  background: linear-gradient(90deg, #22c55e 0%, #16a34a 100%);
+  background: var(--gsec-green-gradient);
 }
 
 .gsec-bs-table-container {
-  padding: 0.85rem 1.25rem 1rem;
+  padding: 0.85rem 1.15rem 1rem;
 }
 
 .gsec-bs-no-data {
@@ -253,7 +269,7 @@
 }
 
 .gsec-bs-category-section {
-  margin-bottom: 0.85rem;
+  margin-bottom: 1rem;
 }
 
 .gsec-bs-category-header {
@@ -261,45 +277,67 @@
   align-items: center;
   justify-content: space-between;
   margin-bottom: 0.5rem;
+  gap: 0.75rem;
+  flex-wrap: wrap;
 }
 
 .gsec-bs-category-title {
-  font-size: 1rem;
+  font-size: 0.9375rem;
   font-weight: 700;
-  color: #0f172a;
+  color: #14532d;
 }
 
 .gsec-bs-category-subtotals {
-  font-size: 0.8rem;
+  font-size: 0.75rem;
   color: #4b5563;
   display: flex;
   gap: 0.75rem;
+  font-weight: 600;
 }
 
 .gsec-bs-table {
   width: 100%;
   border-collapse: collapse;
-  font-size: 0.8rem;
+  font-size: 0.8125rem;
 }
 
 .gsec-bs-table thead {
   background: #f1f5f9;
 }
 
-.gsec-bs-table th,
+.gsec-bs-table th {
+  color: #374151;
+  padding: 0.55rem 0.75rem;
+  border-bottom: 2px solid #e2e8f0;
+  text-align: left;
+  font-weight: 700;
+  font-size: 0.625rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  white-space: nowrap;
+}
+
 .gsec-bs-table td {
   padding: 0.55rem 0.75rem;
   border-bottom: 1px solid #e5e7eb;
   text-align: left;
+  color: #334155;
 }
 
-.gsec-bs-table th {
-  font-weight: 600;
-  color: #374151;
+.gsec-bs-table tbody tr:nth-child(even) {
+  background: #f8fafc;
+}
+
+.gsec-bs-table tbody tr:hover {
+  background: var(--gsec-green-hover-bg);
 }
 
 .gsec-bs-account-code {
   white-space: nowrap;
+  font-family: 'Courier New', Courier, monospace;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #14532d;
 }
 
 .gsec-bs-account-name {
@@ -310,6 +348,17 @@
 .gsec-bs-credit,
 .gsec-bs-net {
   text-align: right;
+  font-family: 'Courier New', Courier, monospace;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.gsec-bs-debit {
+  color: #dc2626;
+}
+
+.gsec-bs-credit {
+  color: #059669;
 }
 
 .gsec-bs-actions {
@@ -317,27 +366,26 @@
 }
 
 .gsec-bs-view-details-btn {
-  padding: 0.4rem 0.9rem;
+  padding: 0.35rem 0.9rem;
   border-radius: 999px;
   border: none;
-  background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+  background: var(--gsec-green-gradient-alt);
   color: #ffffff;
-  font-size: 0.75rem;
+  font-size: 0.6875rem;
   font-weight: 600;
   cursor: pointer;
-  box-shadow: 0 3px 8px rgba(22, 163, 74, 0.35);
+  box-shadow: 0 2px 6px rgba(22, 163, 74, 0.25);
   transition: all 0.15s ease;
 }
 
 .gsec-bs-view-details-btn:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 5px 12px rgba(22, 163, 74, 0.4);
+  background: linear-gradient(135deg, #16a34a 0%, #15803d 100%);
 }
 
 .gsec-bs-loading {
   padding: 2rem 1rem;
   text-align: center;
-  color: #4b5563;
+  color: #166534;
 }
 
 .gsec-bs-error {
@@ -361,8 +409,8 @@
 }
 
 .gsec-bs-retry-btn {
-  padding: 0.55rem 1.2rem;
-  border-radius: 999px;
+  padding: 0.5rem 1rem;
+  border-radius: 0.4rem;
   border: none;
   background: #ef4444;
   color: #ffffff;
@@ -394,11 +442,13 @@
   box-shadow: 0 24px 60px rgba(15, 23, 42, 0.35);
   display: flex;
   flex-direction: column;
+  border: none;
 }
 
 .gsec-bs-modal-header {
   padding: 1rem 1.25rem;
   border-bottom: 1px solid #e5e7eb;
+  background: #ffffff;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -462,30 +512,50 @@
   background: #f1f5f9;
 }
 
-.gsec-bs-modal-table th,
+.gsec-bs-modal-table th {
+  color: #374151;
+  padding: 0.5rem 0.75rem;
+  border-bottom: 1px solid #e5e7eb;
+  font-weight: 600;
+  font-size: 0.8rem;
+  text-transform: none;
+  letter-spacing: normal;
+  text-align: left;
+}
+
 .gsec-bs-modal-table td {
   padding: 0.5rem 0.75rem;
   border-bottom: 1px solid #e5e7eb;
+  color: #334155;
+  font-family: inherit;
+  font-weight: 400;
 }
 
-.gsec-bs-modal-table th {
-  font-weight: 600;
-  color: #374151;
+.gsec-bs-modal-table td.gsec-bs-debit,
+.gsec-bs-modal-table td.gsec-bs-credit {
+  text-align: right;
+  color: #334155;
+  font-family: inherit;
+  font-weight: 400;
+}
+
+.gsec-bs-modal-table tbody tr:hover {
+  background: #f8fafc;
 }
 
 @media (max-width: 768px) {
   .gsec-bs-header-icon {
-    width: 2.875rem;
-    height: 2.875rem;
+    width: 2.75rem;
+    height: 2.75rem;
   }
 
   .gsec-bs-icon {
-    width: 1.35rem;
-    height: 1.35rem;
+    width: 1.25rem;
+    height: 1.25rem;
   }
 
   .gsec-bs-main-title {
-    font-size: 1.35rem;
+    font-size: 1.25rem;
   }
 
   .gsec-bs-subtitle {
@@ -493,15 +563,14 @@
   }
 
   .gsec-bs-card-header {
-    padding: 0.85rem 1rem;
+    padding: 0.6rem 1rem;
   }
 
   .gsec-bs-filters-content {
-    padding: 1rem;
+    padding: 0.85rem 1rem;
   }
 
   .gsec-bs-table-container {
-    padding: 1rem;
+    padding: 0.85rem 1rem;
   }
 }
-

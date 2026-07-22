@@ -1,5 +1,5 @@
-import React, { useEffect, useMemo, useState } from 'react';
-import { generalLedgerAPI, gsecEntriesAPI } from '../../services/api';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { generalLedgerAPI } from '../../services/api';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import * as XLSX from 'xlsx';
@@ -64,12 +64,25 @@ const IconSpinner = () => (
 );
 
 const CombinedGL = ({ onTabChange }) => {
-  const [equityEntries, setEquityEntries] = useState([]);
-  const [gsecEntries, setGsecEntries] = useState([]);
+  const [entries, setEntries] = useState([]);
+  const [totals, setTotals] = useState({
+    totalEntries: 0,
+    totalDebit: 0,
+    totalCredit: 0,
+    netBalance: 0,
+    isBalanced: true,
+  });
+  const [pagination, setPagination] = useState({
+    page: 1,
+    limit: 25,
+    total: 0,
+    totalPages: 1,
+  });
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState('');
   const [actionMessage, setActionMessage] = useState('');
   const [exporting, setExporting] = useState(false);
+  const hasLoadedOnceRef = useRef(false);
 
   const [filters, setFilters] = useState({
     source: 'all',
@@ -81,36 +94,93 @@ const CombinedGL = ({ onTabChange }) => {
   const [currentPage, setCurrentPage] = useState(1);
   const [entriesPerPage] = useState(25);
 
-  const fetchData = async () => {
+  const fetchData = useCallback(async (pageOverride) => {
+    const page = pageOverride ?? currentPage;
+
     try {
-      setLoading(true);
+      if (!hasLoadedOnceRef.current) {
+        setLoading(true);
+      }
       setLoadError('');
 
-      const [equityData, gsecData] = await Promise.all([
-        generalLedgerAPI.getAllEntries(null),
-        gsecEntriesAPI.getSavedLedgerEntries(null),
-      ]);
+      const response = await generalLedgerAPI.getCombinedEntries({
+        page,
+        limit: entriesPerPage,
+        source: filters.source,
+        account_code: filters.account_code,
+        dateFrom: filters.dateFrom,
+        dateTo: filters.dateTo,
+        search: searchTerm || undefined,
+      });
 
-      setEquityEntries(Array.isArray(equityData) ? equityData : []);
-      setGsecEntries(Array.isArray(gsecData) ? gsecData : []);
+      if (!response?.success) {
+        throw new Error(response?.error || 'Failed to fetch combined general ledger data');
+      }
+
+      setEntries(Array.isArray(response.entries) ? response.entries : []);
+      setTotals(
+        response.totals || {
+          totalEntries: 0,
+          totalDebit: 0,
+          totalCredit: 0,
+          netBalance: 0,
+          isBalanced: true,
+        }
+      );
+      setPagination(
+        response.pagination || {
+          page,
+          limit: entriesPerPage,
+          total: 0,
+          totalPages: 1,
+        }
+      );
+      hasLoadedOnceRef.current = true;
     } catch (err) {
       console.error('Error fetching combined GL data:', err);
       setLoadError(err.message || 'Failed to fetch combined general ledger data');
     } finally {
       setLoading(false);
     }
-  };
+  }, [currentPage, entriesPerPage, filters, searchTerm]);
+
+  const fetchAllFilteredEntries = useCallback(async () => {
+    const exportLimit = 100;
+    let page = 1;
+    let totalPages = 1;
+    const allEntries = [];
+
+    do {
+      const response = await generalLedgerAPI.getCombinedEntries({
+        page,
+        limit: exportLimit,
+        source: filters.source,
+        account_code: filters.account_code,
+        dateFrom: filters.dateFrom,
+        dateTo: filters.dateTo,
+        search: searchTerm || undefined,
+      });
+
+      if (!response?.success) {
+        throw new Error(response?.error || 'Failed to fetch combined general ledger data for export');
+      }
+
+      allEntries.push(...(response.entries || []));
+      totalPages = response.pagination?.totalPages || 1;
+      page += 1;
+    } while (page <= totalPages);
+
+    return allEntries;
+  }, [filters, searchTerm]);
 
   useEffect(() => {
-    fetchData();
-  }, []);
+    const delay = searchTerm ? 400 : 0;
+    const timer = window.setTimeout(() => {
+      fetchData();
+    }, delay);
 
-  const normalizeDate = (value) => {
-    if (!value) return '';
-    const d = new Date(value);
-    if (Number.isNaN(d.getTime())) return '';
-    return d.toISOString().slice(0, 10);
-  };
+    return () => window.clearTimeout(timer);
+  }, [fetchData, searchTerm]);
 
   const handleFilterChange = (e) => {
     const { name, value } = e.target;
@@ -132,81 +202,15 @@ const CombinedGL = ({ onTabChange }) => {
     setCurrentPage(1);
   };
 
-  const combinedEntries = useMemo(() => {
-    const equityNormalized = equityEntries.map((e) => ({
-      id: `equity-${e.id}`,
-      source: 'Equity',
-      date: e.date,
-      account_code: e.account_code,
-      account_name: e.account_name,
-      description: e.description,
-      reference: e.reference,
-      debit: Number(e.debit) || 0,
-      credit: Number(e.credit) || 0,
-      balance: typeof e.balance === 'number' ? e.balance : (Number(e.debit) || 0) - (Number(e.credit) || 0),
-      transaction_type: e.transaction_type,
-      status: e.status,
-    }));
-
-    const gsecNormalized = gsecEntries.map((g) => ({
-      id: `gsec-${g.id}`,
-      source: 'GSec',
-      date: g.entry_date,
-      account_code: g.account_code,
-      account_name: g.account_name,
-      description: g.description,
-      reference: g.deal_number,
-      debit: Number(g.debit_amount) || 0,
-      credit: Number(g.credit_amount) || 0,
-      balance: (Number(g.debit_amount) || 0) - (Number(g.credit_amount) || 0),
-      transaction_type: g.transaction_code || 'GSec',
-      status: '',
-    }));
-
-    return [...equityNormalized, ...gsecNormalized];
-  }, [equityEntries, gsecEntries]);
-
-  const filteredEntries = useMemo(() => {
-    const search = searchTerm.toLowerCase();
-
-    return combinedEntries.filter((entry) => {
-      if (filters.source === 'equity' && entry.source !== 'Equity') return false;
-      if (filters.source === 'gsec' && entry.source !== 'GSec') return false;
-
-      if (filters.account_code && !(entry.account_code || '').includes(filters.account_code)) {
-        return false;
-      }
-
-      const dateKey = normalizeDate(entry.date);
-      if (filters.dateFrom && (!dateKey || dateKey < filters.dateFrom)) return false;
-      if (filters.dateTo && (!dateKey || dateKey > filters.dateTo)) return false;
-
-      if (
-        search &&
-        !(
-          (entry.account_code && entry.account_code.toLowerCase().includes(search)) ||
-          (entry.account_name && entry.account_name.toLowerCase().includes(search)) ||
-          (entry.description && entry.description.toLowerCase().includes(search)) ||
-          (entry.reference && entry.reference.toLowerCase().includes(search)) ||
-          (entry.source && entry.source.toLowerCase().includes(search))
-        )
-      ) {
-        return false;
-      }
-
-      return true;
-    });
-  }, [combinedEntries, filters, searchTerm]);
-
-  const totalDebits = filteredEntries.reduce((sum, e) => sum + (e.debit || 0), 0);
-  const totalCredits = filteredEntries.reduce((sum, e) => sum + (e.credit || 0), 0);
-  const netBalance = totalCredits - totalDebits;
-  const isBalanced = Math.abs(netBalance) < 0.01;
-
-  const indexOfLast = currentPage * entriesPerPage;
-  const indexOfFirst = indexOfLast - entriesPerPage;
-  const currentEntries = filteredEntries.slice(indexOfFirst, indexOfLast);
-  const totalPages = Math.ceil(filteredEntries.length / entriesPerPage) || 1;
+  const totalDebits = totals.totalDebit || 0;
+  const totalCredits = totals.totalCredit || 0;
+  const netBalance = totals.netBalance || 0;
+  const isBalanced = totals.isBalanced ?? Math.abs(netBalance) < 0.01;
+  const filteredEntries = entries;
+  const totalPages = pagination.totalPages || 1;
+  const filteredCount = totals.totalEntries || pagination.total || 0;
+  const indexOfFirst = filteredCount === 0 ? 0 : (currentPage - 1) * entriesPerPage + 1;
+  const indexOfLast = Math.min(currentPage * entriesPerPage, filteredCount);
 
   const formatCurrency = (amount) => {
     const n = Number(amount) || 0;
@@ -244,6 +248,7 @@ const CombinedGL = ({ onTabChange }) => {
     setExporting(true);
     setActionMessage('');
     try {
+      const exportEntries = await fetchAllFilteredEntries();
       const doc = new jsPDF('p', 'pt', 'a4');
       const stamp = new Date().toISOString().slice(0, 10);
 
@@ -263,7 +268,7 @@ const CombinedGL = ({ onTabChange }) => {
         doc.text(filterSummary, 40, 74);
       }
 
-      const rows = filteredEntries.map((e) => ([
+      const rows = exportEntries.map((e) => ([
         formatDateDisplay(e.date) || '',
         e.account_code || '',
         e.account_name || '',
@@ -312,9 +317,10 @@ const CombinedGL = ({ onTabChange }) => {
     setExporting(true);
     setActionMessage('');
     try {
+      const exportEntries = await fetchAllFilteredEntries();
       const stamp = new Date().toISOString().slice(0, 10);
 
-      const data = filteredEntries.map((e) => ({
+      const data = exportEntries.map((e) => ({
         Date: formatDateDisplay(e.date) || '',
         AccountCode: e.account_code || '',
         AccountName: e.account_name || '',
@@ -363,7 +369,7 @@ const CombinedGL = ({ onTabChange }) => {
     }
   };
 
-  if (loading) {
+  if (loading && !hasLoadedOnceRef.current) {
     return (
       <div className="cgl-page-container">
         <div className="cgl-loading-state">
@@ -380,7 +386,7 @@ const CombinedGL = ({ onTabChange }) => {
         <div className="cgl-error-state">
           <p className="cgl-error-state__title">Unable to load Combined General Ledger</p>
           <p className="cgl-error-state__text">{loadError}</p>
-          <button type="button" className="cgl-btn cgl-btn--primary" onClick={fetchData}>
+          <button type="button" className="cgl-btn cgl-btn--primary" onClick={() => fetchData(currentPage)}>
             Retry
           </button>
         </div>
@@ -410,7 +416,7 @@ const CombinedGL = ({ onTabChange }) => {
             </div>
             <div className="cgl-meta-chip">
               <span className="cgl-meta-chip__label">Entries</span>
-              <span className="cgl-meta-chip__value">{filteredEntries.length.toLocaleString()}</span>
+              <span className="cgl-meta-chip__value">{filteredCount.toLocaleString()}</span>
             </div>
           </div>
         </header>
@@ -521,7 +527,7 @@ const CombinedGL = ({ onTabChange }) => {
           <div className="cgl-status-banner__metrics">
             <div className="cgl-metric">
               <span className="cgl-metric__label">Total Entries</span>
-              <span className="cgl-metric__value">{filteredEntries.length.toLocaleString()}</span>
+              <span className="cgl-metric__value">{filteredCount.toLocaleString()}</span>
             </div>
             <div className="cgl-metric">
               <span className="cgl-metric__label">Total Debits</span>
@@ -552,7 +558,7 @@ const CombinedGL = ({ onTabChange }) => {
               <h2 className="cgl-report__title">Ledger Entries</h2>
               <p className="cgl-report__meta">
                 {periodLabel} · {SOURCE_FILTER_LABELS[filters.source] || 'All Ledgers'} ·{' '}
-                {filteredEntries.length.toLocaleString()} records
+                {filteredCount.toLocaleString()} records
                 {totalPages > 1 ? ` · Page ${currentPage} of ${totalPages}` : ''}
               </p>
             </div>
@@ -561,7 +567,7 @@ const CombinedGL = ({ onTabChange }) => {
                 type="button"
                 className="cgl-btn cgl-btn--export"
                 onClick={handleExportPdf}
-                disabled={exporting || filteredEntries.length === 0}
+                disabled={exporting || filteredCount === 0}
                 title="Export current filtered ledger to PDF"
               >
                 {exporting ? <IconSpinner /> : <IconPdf />}
@@ -571,7 +577,7 @@ const CombinedGL = ({ onTabChange }) => {
                 type="button"
                 className="cgl-btn cgl-btn--export"
                 onClick={handleExportExcel}
-                disabled={exporting || filteredEntries.length === 0}
+                disabled={exporting || filteredCount === 0}
                 title="Export current filtered ledger to Excel"
               >
                 {exporting ? <IconSpinner /> : <IconExcel />}
@@ -594,7 +600,7 @@ const CombinedGL = ({ onTabChange }) => {
           </div>
 
           <div className="cgl-table-wrap">
-            {filteredEntries.length === 0 ? (
+            {filteredCount === 0 ? (
               <div className="cgl-empty-state">
                 <p className="cgl-empty-state__title">No ledger entries found</p>
                 <p className="cgl-empty-state__text">Adjust your date range, ledger filter, account code, or search terms.</p>
@@ -617,7 +623,7 @@ const CombinedGL = ({ onTabChange }) => {
                   </tr>
                 </thead>
                 <tbody>
-                  {currentEntries.map((entry, idx) => (
+                  {entries.map((entry, idx) => (
                     <tr key={entry.id} className={idx % 2 === 1 ? 'cgl-grid__row--alt' : ''}>
                       <td className="cgl-col-date">{formatDateDisplay(entry.date)}</td>
                       <td className="cgl-col-code">
@@ -661,12 +667,12 @@ const CombinedGL = ({ onTabChange }) => {
             )}
           </div>
 
-          {filteredEntries.length > 0 && totalPages > 1 && (
+          {filteredCount > 0 && totalPages > 1 && (
             <div className="cgl-pagination">
               <button
                 type="button"
                 onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
-                disabled={currentPage === 1}
+                disabled={currentPage === 1 || loading}
                 className="cgl-btn cgl-btn--secondary cgl-pagination__btn"
               >
                 Previous
@@ -674,13 +680,13 @@ const CombinedGL = ({ onTabChange }) => {
               <div className="cgl-pagination__info">
                 Page {currentPage} of {totalPages}
                 <span className="cgl-pagination__count">
-                  Showing {indexOfFirst + 1}–{Math.min(indexOfLast, filteredEntries.length)} of {filteredEntries.length}
+                  Showing {indexOfFirst}–{indexOfLast} of {filteredCount}
                 </span>
               </div>
               <button
                 type="button"
                 onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
-                disabled={currentPage === totalPages}
+                disabled={currentPage === totalPages || loading}
                 className="cgl-btn cgl-btn--secondary cgl-pagination__btn"
               >
                 Next
