@@ -637,31 +637,19 @@
   font-size: 0.8125rem;
 }
 
-/* Default: Code | Name | Type | Net | DR/CR */
-.ctb-colw-code { width: 18%; }
-.ctb-colw-name { width: 40%; }
-.ctb-colw-type { width: 12%; }
+/* Default: Code | Name | Type | Debit | Credit */
+.ctb-colw-code { width: 16%; }
+.ctb-colw-name { width: 34%; }
+.ctb-colw-type { width: 14%; }
 .ctb-colw-amount { width: 18%; }
-.ctb-colw-drcr { width: 12%; }
-.ctb-colw-sources { width: 12%; }
-
-/* With Debit + Credit visible */
-.ctb-grid--with-dc .ctb-colw-code { width: 13%; }
-.ctb-grid--with-dc .ctb-colw-name { width: 24%; }
-.ctb-grid--with-dc .ctb-colw-type { width: 9%; }
-.ctb-grid--with-dc .ctb-colw-amount { width: 13%; }
-.ctb-grid--with-dc .ctb-colw-drcr { width: 9%; }
+.ctb-colw-sources { width: 14%; }
 
 /* With Sources visible */
-.ctb-grid--with-sources:not(.ctb-grid--with-dc) .ctb-colw-name { width: 34%; }
-.ctb-grid--with-sources:not(.ctb-grid--with-dc) .ctb-colw-amount { width: 16%; }
-.ctb-grid--with-sources:not(.ctb-grid--with-dc) .ctb-colw-drcr { width: 10%; }
-
-.ctb-grid--with-dc.ctb-grid--with-sources .ctb-colw-code { width: 12%; }
-.ctb-grid--with-dc.ctb-grid--with-sources .ctb-colw-name { width: 20%; }
-.ctb-grid--with-dc.ctb-grid--with-sources .ctb-colw-type { width: 8%; }
-.ctb-grid--with-dc.ctb-grid--with-sources .ctb-colw-amount { width: 12%; }
-.ctb-grid--with-dc.ctb-grid--with-sources .ctb-colw-drcr { width: 8%; }
+.ctb-grid--with-sources .ctb-colw-code { width: 14%; }
+.ctb-grid--with-sources .ctb-colw-name { width: 28%; }
+.ctb-grid--with-sources .ctb-colw-type { width: 12%; }
+.ctb-grid--with-sources .ctb-colw-amount { width: 16%; }
+.ctb-grid--with-sources .ctb-colw-sources { width: 14%; }
 
 .ctb-grid thead {
   position: sticky;
