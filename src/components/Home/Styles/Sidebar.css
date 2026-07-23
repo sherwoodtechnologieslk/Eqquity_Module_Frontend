@@ -18,6 +18,9 @@ html, body {
   flex-direction: column;
   z-index: 3000;
   overflow: hidden;
+  font-family: 'Source Sans 3', 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 .sidebar::before {
@@ -485,14 +488,15 @@ html, body {
 }
 
 .menu-category-title {
-  font-size: 0.8125rem;
+  font-family: 'Source Sans 3', 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif;
+  font-size: 0.875rem;
   font-weight: 600;
   color: inherit;
   text-transform: none;
-  letter-spacing: 0.04em;
+  letter-spacing: 0.01em;
   margin: 0;
   padding: 0;
-  line-height: 1.3;
+  line-height: 1.35;
   text-align: left;
 }
 
@@ -548,7 +552,7 @@ html, body {
 
 .sidebar-menu--nested .sidebar-item {
   padding: 0.55rem 0.7rem;
-  font-size: 0.78rem;
+  font-size: 0.85rem;
   background: rgba(255, 255, 255, 0.04);
   border-color: rgba(255, 255, 255, 0.08);
   border-radius: 0.4rem;
@@ -587,7 +591,8 @@ html, body {
   gap: 0.6rem;
   padding: 0.7rem 0.8rem;
   margin: 0;
-  font-size: 0.8125rem;
+  font-family: 'Source Sans 3', 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif;
+  font-size: 0.85rem;
   font-weight: 500;
   color: rgba(255, 255, 255, 0.88);
   background: rgba(255, 255, 255, 0.07);
@@ -601,6 +606,7 @@ html, body {
   border: 1px solid rgba(255, 255, 255, 0.12);
   box-sizing: border-box;
   width: 100%;
+  letter-spacing: 0.01em;
 }
 
 .sidebar-item::before {
@@ -681,7 +687,8 @@ html, body {
 .item-text {
   flex: 1;
   min-width: 0;
-  line-height: 1.35;
+  font-family: inherit;
+  line-height: 1.4;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;

@@ -8,6 +8,7 @@ import {
 } from '../../utils/gsecMakerChecker';
 import './Styles/GsecEntries.css';
 
+/** GSec external ledger entries (remote API). */
 const GsecEntries = () => {
   // Empty by default so initial load does NOT filter by date
   const [startDate, setStartDate] = useState('');
@@ -361,14 +362,24 @@ const GsecEntries = () => {
                 )
                 : rows.map((row, idx) => (
                     <tr key={idx}>
-                      {columns.map((col) => (
-                        <td
-                          key={col}
-                          title={formatCellValue(col, row[col])}
-                        >
-                          {formatCellValue(col, row[col])}
-                        </td>
-                      ))}
+                      {columns.map((col) => {
+                        const isDescription =
+                          String(col).toLowerCase() === 'description';
+                        const display = formatCellValue(col, row[col]);
+                        return (
+                          <td
+                            key={col}
+                            className={isDescription ? 'gsec-ext-cell-desc' : undefined}
+                            title={isDescription ? undefined : display}
+                          >
+                            {isDescription ? (
+                              <span className="gsec-ext-cell-desc-inner">{display}</span>
+                            ) : (
+                              display
+                            )}
+                          </td>
+                        );
+                      })}
                     </tr>
                   ))}
             </tbody>
