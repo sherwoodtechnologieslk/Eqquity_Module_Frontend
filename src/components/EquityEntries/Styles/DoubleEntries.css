@@ -81,18 +81,18 @@
 
 .de-main-title {
   margin: 0;
-  font-size: 1.5rem;
+  font-size: 1.125rem;
   font-weight: 700;
-  letter-spacing: -0.03em;
-  line-height: 1.2;
+  letter-spacing: -0.02em;
+  line-height: 1.25;
   color: var(--de-text);
 }
 
 .de-subtitle {
-  margin: 6px 0 0;
+  margin: 4px 0 0;
   max-width: 40rem;
   font-size: 0.8125rem;
-  line-height: 1.5;
+  line-height: 1.45;
   color: var(--de-text-secondary);
 }
 

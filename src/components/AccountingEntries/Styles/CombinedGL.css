@@ -81,9 +81,9 @@
 
 .cgl-main-title {
   margin: 0;
-  font-size: 1.5rem;
+  font-size: 1.25rem;
   font-weight: 700;
-  letter-spacing: -0.03em;
+  letter-spacing: -0.02em;
   line-height: 1.2;
   color: var(--cgl-text);
 }
@@ -818,7 +818,7 @@
   }
 
   .cgl-main-title {
-    font-size: 1.35rem;
+    font-size: 1.2rem;
   }
 
   .cgl-toolbar__row--primary,

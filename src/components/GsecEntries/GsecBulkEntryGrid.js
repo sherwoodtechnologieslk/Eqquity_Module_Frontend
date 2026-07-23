@@ -6,8 +6,6 @@ import {
   gsecSaveButtonLabel,
   gsecSubmittingLabel,
 } from '../../utils/gsecMakerChecker';
-import './Styles/GsecShared.css';
-import './Styles/GsecManualEntryPosting.css';
 import './Styles/GsecBulkEntryGrid.css';
 
 const coaDisplayName = (row) =>
@@ -30,13 +28,13 @@ const COLUMNS = [
   { key: 'credit_amount', label: 'credit_amount', type: 'number', width: 130 },
   { key: 'currency', label: 'currency', type: 'text', width: 90 },
   { key: 'description', label: 'description', type: 'text', width: 220 },
-  { key: 'created_at', label: 'created_at', type: 'text', width: 150, readOnly: true },
-  { key: 'updated_at', label: 'updated_at', type: 'text', width: 150, readOnly: true },
   { key: 'account_code', label: 'account_code', type: 'text', width: 140, required: true },
   { key: 'account_name', label: 'account_name', type: 'text', width: 200 },
   { key: 'account_category', label: 'account_category', type: 'text', width: 150 },
   { key: 'transaction_code', label: 'transaction_code', type: 'text', width: 150 },
-  { key: 'transaction_description', label: 'transaction_description', type: 'text', width: 230 }
+  { key: 'transaction_description', label: 'transaction_description', type: 'text', width: 230 },
+  { key: 'created_at', label: 'created_at', type: 'text', width: 150, readOnly: true },
+  { key: 'updated_at', label: 'updated_at', type: 'text', width: 150, readOnly: true }
 ];
 
 const EDITABLE_COLUMNS = COLUMNS.filter((c) => !c.readOnly);
@@ -132,7 +130,7 @@ function AccountSearchCell({ field, value, coaList, onChange, onPick, placeholde
       <input
         ref={inputRef}
         type="text"
-        className="gsec-grid-input"
+        className="gsec-bulk-input"
         value={value ?? ''}
         placeholder={placeholder}
         autoComplete="off"
@@ -145,7 +143,7 @@ function AccountSearchCell({ field, value, coaList, onChange, onPick, placeholde
       />
       {open && rect && (
         <div
-          className="gsec-grid-ac-dropdown"
+          className="gsec-bulk-ac-dropdown"
           style={{ top: rect.top, left: rect.left, width: rect.width }}
           role="listbox"
         >
@@ -155,17 +153,17 @@ function AccountSearchCell({ field, value, coaList, onChange, onPick, placeholde
                 key={r.id ?? r.account_code}
                 type="button"
                 role="option"
-                className="gsec-manual-account-option"
+                className="gsec-bulk-ac-option"
                 onMouseDown={(e) => e.preventDefault()}
                 onClick={() => pick(r)}
               >
-                <div className="gsec-manual-account-option-code">{r.account_code}</div>
-                <div className="gsec-manual-account-option-name">{coaDisplayName(r) || '—'}</div>
+                <div className="gsec-bulk-ac-option-code">{r.account_code}</div>
+                <div className="gsec-bulk-ac-option-name">{coaDisplayName(r) || '—'}</div>
               </button>
             ))
           ) : (
-            <div className="gsec-manual-account-option" style={{ cursor: 'default' }}>
-              <span className="gsec-manual-account-option-name">
+            <div className="gsec-bulk-ac-option" style={{ cursor: 'default' }}>
+              <span className="gsec-bulk-ac-option-name">
                 {showQuery ? 'No matching accounts' : 'No accounts available'}
               </span>
             </div>
@@ -328,157 +326,143 @@ const GsecBulkEntryGrid = () => {
   };
 
   return (
-    <div className="gsec-page-container">
-      <div className="gsec-header-section">
-        <div className="gsec-header-icon">
-          <svg className="gsec-icon" fill="currentColor" viewBox="0 0 20 20">
-            <path
-              fillRule="evenodd"
-              d="M4 4a2 2 0 00-2 2v8a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2H4zm2 2v8h8V6H6z"
-              clipRule="evenodd"
-            />
-            <path d="M8 8a1 1 0 011-1h2a1 1 0 110 2H9a1 1 0 01-1-1zm0 2a1 1 0 011-1h2a1 1 0 110 2H9a1 1 0 01-1-1zm1 1a1 1 0 100 2h2a1 1 0 100-2H9z" />
-          </svg>
+    <div className="gsec-bulk-page">
+      <div className="gsec-bulk-wrapper">
+        <div className="gsec-bulk-header">
+          <div className="gsec-bulk-header-text">
+            <h1 className="gsec-bulk-title">GSec Bulk Entry Grid</h1>
+            <p className="gsec-bulk-subtitle">
+              Add or remove rows in an editable grid and save many GSec entries at once. Columns mirror
+              the GSec ledger table. <strong>created_at</strong> and <strong>updated_at</strong> are set
+              by the database. Duplicate rows (same deal number, account code and entry date) are skipped
+              automatically on save.
+            </p>
+          </div>
         </div>
-        <div className="gsec-header-text-group">
-          <h1 className="gsec-main-title">GSec Bulk Entry Grid</h1>
-          <p className="gsec-subtitle">
-            Add or remove rows in an editable grid and save many GSec entries at once. Columns mirror
-            the GSec ledger table. <strong>created_at</strong> and <strong>updated_at</strong> are set
-            by the database. Duplicate rows (same deal number, account code and entry date) are skipped
-            automatically on save.
+
+        <div className="gsec-bulk-toolbar">
+          <span className="gsec-bulk-toolbar-text">
+            {rows.length} row(s) • {nonBlankRows.length} with data
+          </span>
+          <div className="gsec-bulk-toolbar-actions">
+            <button type="button" className="gsec-bulk-btn-ghost" onClick={addRow}>
+              + Add row
+            </button>
+            <button type="button" className="gsec-bulk-btn-ghost" onClick={addFiveRows}>
+              + Add 5 rows
+            </button>
+            <button type="button" className="gsec-bulk-btn-ghost" onClick={clearAll} disabled={saving}>
+              Clear all
+            </button>
+            <button
+              type="button"
+              className="gsec-bulk-btn-primary"
+              onClick={handleSave}
+              disabled={saving || nonBlankRows.length === 0}
+            >
+              {saving ? gsecSubmittingLabel() : gsecSaveButtonLabel()}
+            </button>
+          </div>
+        </div>
+
+        {message.text && (
+          <div className={message.type === 'error' ? 'gsec-bulk-error' : 'gsec-bulk-success'}>
+            {message.text}
+          </div>
+        )}
+
+        {coaLoadError && (
+          <p className="gsec-bulk-hint gsec-bulk-hint--error">
+            Chart of accounts unavailable ({coaLoadError}). You can still type account code and name
+            manually.
           </p>
-        </div>
-      </div>
+        )}
 
-      <div className="gsec-toolbar">
-        <span className="gsec-toolbar-text">
-          {rows.length} row(s) • {nonBlankRows.length} with data
-        </span>
-        <div className="gsec-toolbar-actions">
-          <button type="button" className="gsec-button-ghost" onClick={addRow}>
-            + Add row
-          </button>
-          <button type="button" className="gsec-button-ghost" onClick={addFiveRows}>
-            + Add 5 rows
-          </button>
-          <button type="button" className="gsec-button-ghost" onClick={clearAll} disabled={saving}>
-            Clear all
-          </button>
-          <button
-            type="button"
-            className="gsec-refresh-button"
-            onClick={handleSave}
-            disabled={saving || nonBlankRows.length === 0}
-          >
-            {saving ? gsecSubmittingLabel() : gsecSaveButtonLabel()}
-          </button>
-        </div>
-      </div>
-
-      {message.text && (
-        <div className={message.type === 'error' ? 'gsec-error' : 'gsec-manual-success'}>
-          {message.text}
-        </div>
-      )}
-
-      {coaLoadError && (
-        <div className="gsec-manual-hint" style={{ marginBottom: '0.5rem', color: '#b91c1c' }}>
-          Chart of accounts unavailable ({coaLoadError}). You can still type account code and name
-          manually.
-        </div>
-      )}
-
-      <div className="gsec-table-card">
-        <div className="gsec-table-container">
-          <table className="gsec-table gsec-grid-table">
-            <thead>
-              <tr>
-                <th className="gsec-grid-rownum-col">#</th>
-                {COLUMNS.map((col) => (
-                  <th key={col.key}>
-                    {col.label}
-                    {col.required && <span className="gsec-grid-required">*</span>}
-                  </th>
-                ))}
-                <th className="gsec-grid-actions-col">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {rows.map((row, idx) => (
-                <tr key={row._rid}>
-                  <td className="gsec-grid-rownum-col">{idx + 1}</td>
-                  {COLUMNS.map((col) => {
-                    const isAccountField =
-                      col.key === 'account_code' || col.key === 'account_name';
-                    return (
-                      <td key={col.key} style={{ minWidth: col.width }}>
-                        {isAccountField && coaReady ? (
-                          <AccountSearchCell
-                            field={col.key}
-                            value={row[col.key]}
-                            coaList={coaList}
-                            onChange={(v) => updateCell(row._rid, col.key, v)}
-                            onPick={(acc) => applyAccount(row._rid, acc)}
-                            placeholder={
-                              coaLoading
-                                ? 'Loading accounts…'
-                                : col.key === 'account_code'
-                                  ? 'Search code or name…'
-                                  : 'Search name or code…'
-                            }
-                          />
-                        ) : (
-                          <input
-                            type={col.type}
-                            className={`gsec-grid-input${col.readOnly ? ' gsec-manual-readonly' : ''}`}
-                            value={row[col.key] ?? ''}
-                            readOnly={col.readOnly}
-                            placeholder={
-                              col.readOnly
-                                ? 'set by database'
-                                : isAccountField && coaLoading
-                                  ? 'Loading accounts…'
-                                  : col.placeholder || ''
-                            }
-                            step={col.type === 'number' ? 'any' : undefined}
-                            onChange={(e) => updateCell(row._rid, col.key, e.target.value)}
-                          />
-                        )}
-                      </td>
-                    );
-                  })}
-                  <td className="gsec-grid-actions-col">
-                    <div className="gsec-grid-row-actions">
-                      <button
-                        type="button"
-                        className="gsec-button-ghost gsec-grid-icon-btn"
-                        title="Duplicate row"
-                        onClick={() => duplicateRow(row._rid)}
-                      >
-                        Copy
-                      </button>
-                      <button
-                        type="button"
-                        className="gsec-grid-remove-btn"
-                        title="Remove row"
-                        onClick={() => removeRow(row._rid)}
-                      >
-                        Remove
-                      </button>
-                    </div>
-                  </td>
+        <div className="gsec-bulk-table-card">
+          <div className="gsec-bulk-table-wrap">
+            <table className="gsec-bulk-table">
+              <thead>
+                <tr>
+                  <th className="gsec-bulk-rownum">#</th>
+                  {COLUMNS.map((col) => (
+                    <th key={col.key}>
+                      {col.label}
+                      {col.required && <span className="gsec-bulk-required">*</span>}
+                    </th>
+                  ))}
+                  <th className="gsec-bulk-actions-col">Actions</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {rows.map((row, idx) => (
+                  <tr key={row._rid}>
+                    <td className="gsec-bulk-rownum">{idx + 1}</td>
+                    {COLUMNS.map((col) => {
+                      const isAccountField =
+                        col.key === 'account_code' || col.key === 'account_name';
+                      return (
+                        <td key={col.key} style={{ minWidth: col.width }}>
+                          {isAccountField && coaReady ? (
+                            <AccountSearchCell
+                              field={col.key}
+                              value={row[col.key]}
+                              coaList={coaList}
+                              onChange={(v) => updateCell(row._rid, col.key, v)}
+                              onPick={(acc) => applyAccount(row._rid, acc)}
+                              placeholder={
+                                coaLoading
+                                  ? 'Loading accounts…'
+                                  : col.key === 'account_code'
+                                    ? 'Search code or name…'
+                                    : 'Search name or code…'
+                              }
+                            />
+                          ) : (
+                            <input
+                              type={col.type}
+                              className={`gsec-bulk-input${col.readOnly ? ' gsec-bulk-input--readonly' : ''}`}
+                              value={row[col.key] ?? ''}
+                              readOnly={col.readOnly}
+                              placeholder={
+                                col.readOnly
+                                  ? 'set by database'
+                                  : isAccountField && coaLoading
+                                    ? 'Loading accounts…'
+                                    : col.placeholder || ''
+                              }
+                              step={col.type === 'number' ? 'any' : undefined}
+                              onChange={(e) => updateCell(row._rid, col.key, e.target.value)}
+                            />
+                          )}
+                        </td>
+                      );
+                    })}
+                    <td className="gsec-bulk-actions-col">
+                      <div className="gsec-bulk-row-actions">
+                        <button
+                          type="button"
+                          className="gsec-bulk-btn-ghost gsec-bulk-icon-btn"
+                          title="Duplicate row"
+                          onClick={() => duplicateRow(row._rid)}
+                        >
+                          Copy
+                        </button>
+                        <button
+                          type="button"
+                          className="gsec-bulk-remove-btn"
+                          title="Remove row"
+                          onClick={() => removeRow(row._rid)}
+                        >
+                          Remove
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
-      </div>
-
-      <div className="gsec-grid-footer">
-        <button type="button" className="gsec-button-ghost" onClick={addRow}>
-          + Add row
-        </button>
       </div>
     </div>
   );
