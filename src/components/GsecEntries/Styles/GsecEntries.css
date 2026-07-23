@@ -179,11 +179,11 @@
   font-size: 0.8125rem;
   color: #64748b;
   margin-bottom: 0.85rem;
-  padding: 0.85rem 1.1rem;
-  background: #ffffff;
-  border: 1px solid #e2e8f0;
-  border-radius: 0.65rem;
-  box-shadow: 0 4px 18px rgba(15, 23, 42, 0.04);
+  padding: 0.15rem 0 0.35rem;
+  background: transparent;
+  border: none;
+  border-radius: 0;
+  box-shadow: none;
   flex-wrap: wrap;
 }
 
@@ -271,6 +271,35 @@
   text-overflow: ellipsis;
   overflow: hidden;
   max-width: 280px;
+}
+
+.gsec-ext-table td.gsec-ext-cell-desc {
+  max-width: 220px;
+  overflow: hidden;
+  vertical-align: middle;
+}
+
+.gsec-ext-cell-desc-inner {
+  display: block;
+  max-width: 220px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  line-height: 1.4;
+}
+
+.gsec-ext-table td.gsec-ext-cell-desc:hover {
+  max-width: 28rem;
+  overflow: visible;
+  white-space: normal;
+}
+
+.gsec-ext-table td.gsec-ext-cell-desc:hover .gsec-ext-cell-desc-inner {
+  max-width: none;
+  white-space: normal;
+  overflow: visible;
+  text-overflow: unset;
+  word-break: break-word;
 }
 
 .gsec-ext-empty {

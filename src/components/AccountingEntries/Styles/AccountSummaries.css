@@ -71,7 +71,7 @@
 
 .cas-main-title {
   margin: 0;
-  font-size: 1.5rem;
+  font-size: 1.25rem;
   font-weight: 700;
   letter-spacing: -0.03em;
   line-height: 1.2;
@@ -197,6 +197,18 @@
 }
 
 /* ── Buttons ── */
+.cas-toolbar__actions .cas-btn--primary {
+  height: 30px;
+  padding: 0 12px;
+  font-size: 0.75rem;
+  border-radius: 999px;
+}
+
+.cas-toolbar__actions .cas-btn--ghost {
+  height: 30px;
+  font-size: 0.75rem;
+}
+
 .cas-btn {
   display: inline-flex;
   align-items: center;

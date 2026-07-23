@@ -44,12 +44,6 @@ const mapEquityEntry = (e) => {
   };
 };
 
-/** Sources shown in the table — Opening Balance is never displayed in this column. */
-const getDisplaySources = (sources) =>
-  Array.from(sources)
-    .filter((src) => src !== 'Opening Balance')
-    .sort();
-
 /** Comparable timestamp for sorting entries by date (newest first). */
 const entryDateValue = (e) => {
   const t = new Date(e.date).getTime();
@@ -159,7 +153,6 @@ const CombinedTrialBalance = () => {
   const [appliedFilters, setAppliedFilters] = useState({ startDate: '', endDate: '' });
   const [sourceFilter, setSourceFilter] = useState('all'); // all | equity | gsec
   const [searchTerm, setSearchTerm] = useState('');
-  const [showSourcesColumn, setShowSourcesColumn] = useState(false);
   const [reportExpanded, setReportExpanded] = useState(false);
 
   const [accountModalOpen, setAccountModalOpen] = useState(false);
@@ -705,14 +698,13 @@ const CombinedTrialBalance = () => {
     }
 
     return (
-      <table className={`ctb-grid${showSourcesColumn ? ' ctb-grid--with-sources' : ''}`}>
+      <table className="ctb-grid">
         <colgroup>
           <col className="ctb-colw-code" />
           <col className="ctb-colw-name" />
           <col className="ctb-colw-type" />
           <col className="ctb-colw-amount" />
           <col className="ctb-colw-amount" />
-          {showSourcesColumn && <col className="ctb-colw-sources" />}
         </colgroup>
         <thead>
           <tr>
@@ -721,7 +713,6 @@ const CombinedTrialBalance = () => {
             <th className="ctb-col-type">Type / Category</th>
             <th className="ctb-col-num">Debit</th>
             <th className="ctb-col-num">Credit</th>
-            {showSourcesColumn && <th className="ctb-col-sources">Sources</th>}
           </tr>
         </thead>
         <tbody>
@@ -770,17 +761,6 @@ const CombinedTrialBalance = () => {
                     {sides.credit > 0 ? formatCurrency(sides.credit) : '—'}
                   </span>
                 </td>
-                {showSourcesColumn && (
-                  <td className="ctb-col-sources">
-                    <div className="ctb-source-badges">
-                      {getDisplaySources(acc.sources).map((src) => (
-                        <span key={src} className="ctb-source-badge" data-source={src}>
-                          {src}
-                        </span>
-                      ))}
-                    </div>
-                  </td>
-                )}
               </tr>
             );
           })}
@@ -798,7 +778,6 @@ const CombinedTrialBalance = () => {
                 {formatCurrency(totals.credit)}
               </span>
             </td>
-            {showSourcesColumn && <td className="ctb-col-sources" />}
           </tr>
         </tfoot>
       </table>
@@ -994,15 +973,6 @@ const CombinedTrialBalance = () => {
             <div className="ctb-report__actions">
               <button
                 type="button"
-                className={`ctb-btn ctb-btn--sources${showSourcesColumn ? ' ctb-btn--sources-active' : ''}`}
-                onClick={() => setShowSourcesColumn((prev) => !prev)}
-                aria-pressed={showSourcesColumn}
-                title={showSourcesColumn ? 'Hide Sources column' : 'Show Sources column'}
-              >
-                Sources
-              </button>
-              <button
-                type="button"
                 className="ctb-btn ctb-btn--export"
                 onClick={() => setReportExpanded(true)}
                 title="Expand trial balance"
@@ -1067,15 +1037,6 @@ const CombinedTrialBalance = () => {
                   </p>
                 </div>
                 <div className="ctb-expand-modal__actions">
-                  <button
-                    type="button"
-                    className={`ctb-btn ctb-btn--sources${showSourcesColumn ? ' ctb-btn--sources-active' : ''}`}
-                    onClick={() => setShowSourcesColumn((prev) => !prev)}
-                    aria-pressed={showSourcesColumn}
-                    title={showSourcesColumn ? 'Hide Sources column' : 'Show Sources column'}
-                  >
-                    Sources
-                  </button>
                   <button
                     type="button"
                     className="ctb-btn ctb-btn--export"
