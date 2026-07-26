@@ -6,6 +6,7 @@ export const NON_TRADING_SOURCES = {
   LIABILITY_SETTLEMENT: 'liability_settlement',
   ASSET_DERECOGNITION: 'asset_derecognition',
   REVERSE: 'reverse',
+  SINGLE_ENTRY: 'single_entry',
 };
 
 export const NON_TRADING_SOURCE_LABELS = {
@@ -14,6 +15,7 @@ export const NON_TRADING_SOURCE_LABELS = {
   [NON_TRADING_SOURCES.LIABILITY_SETTLEMENT]: 'Liability Settlement',
   [NON_TRADING_SOURCES.ASSET_DERECOGNITION]: 'Asset Derecognition',
   [NON_TRADING_SOURCES.REVERSE]: 'Reverse Transaction',
+  [NON_TRADING_SOURCES.SINGLE_ENTRY]: 'Single Entry',
 };
 
 export function getNonTradingSessionUser() {
