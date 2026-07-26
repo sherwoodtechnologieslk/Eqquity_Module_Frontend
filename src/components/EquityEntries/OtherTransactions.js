@@ -66,6 +66,17 @@ const generateLiabilitySettlementVoucherNumber = () => {
   return `LS-${year}${month}${day}-${hour}${minute}${second}`;
 };
 
+const generateSingleEntryVoucherNumber = () => {
+  const date = new Date();
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  const hour = String(date.getHours()).padStart(2, '0');
+  const minute = String(date.getMinutes()).padStart(2, '0');
+  const second = String(date.getSeconds()).padStart(2, '0');
+  return `SE-${year}${month}${day}-${hour}${minute}${second}`;
+};
+
 // Letterhead used by all printable documents (Voucher / Invoice / Request Letter).
 // Replace these placeholder values (or wire to a company-settings API) when ready.
 const PRINT_LETTERHEAD = {
@@ -900,7 +911,7 @@ const OtherTransactions = ({ initialTab = 'create' }) => {
   });
   
   // New states for viewing vouchers and general ledger
-  const [activeTab, setActiveTab] = useState(initialTab); // 'create', 'defineTransaction', 'view', 'generalLedger', 'reverseTransaction'
+  const [activeTab, setActiveTab] = useState(initialTab); // 'create', 'singleEntry', 'defineTransaction', 'view', 'generalLedger', 'reverseTransaction'
   const [activeCategory, setActiveCategory] = useState('all'); // 'all', 'income', 'expense', 'asset', 'liability'
   
   // Form type state for Create Voucher tab (voucher, assetDepreciation, assetDerecognition, liabilitySettlement, glToGl)
@@ -1008,6 +1019,21 @@ const OtherTransactions = ({ initialTab = 'create' }) => {
   const [reverseMessage, setReverseMessage] = useState('');
   // Transaction types for Reverse Transaction tab
   const [transactionTypesForReverse, setTransactionTypesForReverse] = useState([]);
+
+  // Single Entry tab — one GL + debit or credit + description + date
+  const [singleEntryForm, setSingleEntryForm] = useState({
+    voucherNumber: generateSingleEntryVoucherNumber(),
+    glAccountCode: '',
+    coaDescription: '',
+    debitAmount: '',
+    creditAmount: '',
+    description: '',
+    date: getToday(),
+  });
+  const [singleEntrySubmitting, setSingleEntrySubmitting] = useState(false);
+  const [singleEntryMessage, setSingleEntryMessage] = useState('');
+  const [singleEntryAccountSearch, setSingleEntryAccountSearch] = useState('');
+  const [showSingleEntryAccountList, setShowSingleEntryAccountList] = useState(false);
 
   // States for Define Transaction tab
   const [transactionTypeForm, setTransactionTypeForm] = useState({
@@ -1570,6 +1596,20 @@ const OtherTransactions = ({ initialTab = 'create' }) => {
         }
       };
       loadCoA();
+    } else if (activeTab === 'singleEntry') {
+      const loadCoA = async () => {
+        try {
+          setChartAccountsLoading(true);
+          const coa = await chartOfAccountsAPI.getAll();
+          setChartAccounts(Array.isArray(coa) ? coa : []);
+        } catch (e) {
+          console.error('Error fetching chart of accounts:', e);
+          setChartAccounts([]);
+        } finally {
+          setChartAccountsLoading(false);
+        }
+      };
+      loadCoA();
     }
   }, [activeTab, activeFormType]);
 
@@ -1911,6 +1951,7 @@ const OtherTransactions = ({ initialTab = 'create' }) => {
     if (catLower === 'liability' || catLower.includes('liability')) return 'liability';
     if (catLower === 'equity') return 'equity';
     if (catLower === 'gl_to_gl' || catLower === 'gl to gl') return 'gl_to_gl';
+    if (catLower === 'single_entry' || catLower === 'single entry') return 'single_entry';
     return null;
   };
 
@@ -2725,6 +2766,134 @@ const OtherTransactions = ({ initialTab = 'create' }) => {
       setSubmitMessage(`Error posting GL to GL transaction: ${error.message}`);
     } finally {
       setIsSubmitting(false);
+    }
+  };
+
+  const handleSingleEntryChange = (e) => {
+    const { name, value } = e.target;
+    setSingleEntryForm((prev) => {
+      const next = { ...prev, [name]: value };
+      if (name === 'debitAmount' && value) {
+        next.creditAmount = '';
+      }
+      if (name === 'creditAmount' && value) {
+        next.debitAmount = '';
+      }
+      return next;
+    });
+    if (singleEntryMessage) setSingleEntryMessage('');
+  };
+
+  const handleSingleEntryAccountSearchChange = (e) => {
+    const value = e.target.value;
+    setSingleEntryAccountSearch(value);
+    setShowSingleEntryAccountList(true);
+    setSingleEntryForm((prev) => ({
+      ...prev,
+      glAccountCode: '',
+      coaDescription: '',
+    }));
+    if (singleEntryMessage) setSingleEntryMessage('');
+  };
+
+  const handleSingleEntryAccountSelect = (acc) => {
+    const code = acc.account_code || '';
+    const name = acc.description || acc.account_name || '';
+    setSingleEntryForm((prev) => ({
+      ...prev,
+      glAccountCode: code,
+      coaDescription: name,
+    }));
+    setSingleEntryAccountSearch(name ? `${code} — ${name}` : code);
+    setShowSingleEntryAccountList(false);
+    if (singleEntryMessage) setSingleEntryMessage('');
+  };
+
+  const handleSingleEntryReset = () => {
+    setSingleEntryForm({
+      voucherNumber: generateSingleEntryVoucherNumber(),
+      glAccountCode: '',
+      coaDescription: '',
+      debitAmount: '',
+      creditAmount: '',
+      description: '',
+      date: getToday(),
+    });
+    setSingleEntryAccountSearch('');
+    setShowSingleEntryAccountList(false);
+    setSingleEntryMessage('');
+  };
+
+  const handleSingleEntrySubmit = async (e) => {
+    e.preventDefault();
+
+    const code = (singleEntryForm.glAccountCode || '').trim();
+    const debit = parseFloat(String(singleEntryForm.debitAmount || '').replace(/,/g, ''));
+    const credit = parseFloat(String(singleEntryForm.creditAmount || '').replace(/,/g, ''));
+    const hasDebit = Number.isFinite(debit) && debit > 0;
+    const hasCredit = Number.isFinite(credit) && credit > 0;
+
+    if (!code) {
+      setSingleEntryMessage('Please select a GL account.');
+      return;
+    }
+    if (!singleEntryForm.date) {
+      setSingleEntryMessage('Please select an entry date.');
+      return;
+    }
+    if (hasDebit && hasCredit) {
+      setSingleEntryMessage('Enter either a debit amount or a credit amount, not both.');
+      return;
+    }
+    if (!hasDebit && !hasCredit) {
+      setSingleEntryMessage('Enter a debit amount or a credit amount greater than zero.');
+      return;
+    }
+    if (!(singleEntryForm.description || '').trim()) {
+      setSingleEntryMessage('Please enter a description.');
+      return;
+    }
+
+    setSingleEntrySubmitting(true);
+    setSingleEntryMessage('');
+
+    try {
+      const user = authService.getStoredUser();
+      const userEmail = user?.email || '';
+      const amount = hasDebit ? debit : credit;
+      const entrySide = hasDebit ? 'debit' : 'credit';
+
+      const payload = {
+        voucherNumber: singleEntryForm.voucherNumber || generateSingleEntryVoucherNumber(),
+        accountType: 'single_entry',
+        transactionType: 'SINGLE_ENTRY',
+        glAccountCode: code,
+        coaDescription: singleEntryForm.coaDescription || null,
+        description: singleEntryForm.description.trim(),
+        amount: String(amount),
+        debitAmount: hasDebit ? amount : null,
+        creditAmount: hasCredit ? amount : null,
+        entrySide,
+        date: singleEntryForm.date,
+        currency: 'LKR',
+        fxRate: '1.00',
+        userEmail,
+      };
+
+      await otherTransactionAPI.saveOrSubmitTransaction(payload, {
+        source: NON_TRADING_SOURCES.SINGLE_ENTRY,
+      });
+      setSingleEntryMessage(
+        shouldSubmitNonTradingForApproval()
+          ? 'Single entry submitted for checker approval.'
+          : 'Single entry posted successfully!'
+      );
+      handleSingleEntryReset();
+    } catch (error) {
+      console.error('Error posting single entry:', error);
+      setSingleEntryMessage(`Error posting single entry: ${error.message}`);
+    } finally {
+      setSingleEntrySubmitting(false);
     }
   };
 
@@ -3572,11 +3741,6 @@ const isVoucherSettled = (voucher) => {
     <div className="other-trans-page-container">
       <div className="other-trans-content-wrapper">
         <div className="other-trans-header-section">
-          <div className="other-trans-header-icon">
-            <svg className="other-trans-icon" fill="currentColor" viewBox="0 0 20 20">
-              <path fillRule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clipRule="evenodd"/>
-            </svg>
-          </div>
           <div className="other-trans-header-text-group">
             <h1 className="other-trans-main-title">Non-Trading Transactions</h1>
             <p className="other-trans-subtitle">Manage other income, expenses, and assets. Multi-currency supported.</p>
@@ -3587,6 +3751,7 @@ const isVoucherSettled = (voucher) => {
         <div className="other-trans-tab-navigation">
           {[
             { id: 'create', label: 'Create Voucher' },
+            { id: 'singleEntry', label: 'Single Entry' },
             { id: 'defineTransaction', label: 'Define Transaction' },
             { id: 'view', label: 'View Vouchers' },
             { id: 'generalLedger', label: 'General Ledger' },
@@ -4017,24 +4182,13 @@ const isVoucherSettled = (voucher) => {
                 <div style={{ 
                   display: 'flex',
                   alignItems: 'center',
-                  gap: '0.75rem',
+                  gap: '0.5rem',
                   marginBottom: '1.5rem'
                 }}>
-                  <div style={{
-                    width: '2.5rem',
-                    height: '2.5rem',
-                    background: 'linear-gradient(135deg, #60a5fa, #2563eb)',
-                    borderRadius: '0.15rem',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    boxShadow: '0 4px 6px -1px rgba(59, 130, 246, 0.11)'
-                  }}>
-                    <svg style={{ width: '1.25rem', height: '1.25rem', color: 'white' }} fill="currentColor" viewBox="0 0 20 20">
-                      <path d="M4 4a2 2 0 00-2 2v1h16V6a2 2 0 00-2-2H4z"/>
-                      <path fillRule="evenodd" d="M18 9H2v5a2 2 0 002 2h12a2 2 0 002-2V9zM4 13a1 1 0 011-1h1a1 1 0 110 2H5a1 1 0 01-1-1zm5-1a1 1 0 100 2h1a1 1 0 100-2H9z" clipRule="evenodd"/>
-                    </svg>
-                  </div>
+                  <svg style={{ width: '1.25rem', height: '1.25rem', color: '#2563eb', flexShrink: 0 }} fill="currentColor" viewBox="0 0 20 20">
+                    <path d="M4 4a2 2 0 00-2 2v1h16V6a2 2 0 00-2-2H4z"/>
+                    <path fillRule="evenodd" d="M18 9H2v5a2 2 0 002 2h12a2 2 0 002-2V9zM4 13a1 1 0 011-1h1a1 1 0 110 2H5a1 1 0 01-1-1zm5-1a1 1 0 100 2h1a1 1 0 100-2H9z" clipRule="evenodd"/>
+                  </svg>
                   <h3 style={{ fontSize: '1.125rem', fontWeight: '600', color: '#1f2937', margin: 0 }}>Payment & Settlement Details</h3>
                 </div>
                 
@@ -4596,21 +4750,8 @@ const isVoucherSettled = (voucher) => {
                     <label className="other-trans-field-label" style={{ marginBottom: 0 }}>Voucher Number</label>
                     <button
                       type="button"
+                      className="other-trans-btn-regenerate"
                       onClick={() => setAssetDepreciationForm(prev => ({ ...prev, voucherNumber: generateVoucherNumber() }))}
-                      style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '0.5rem',
-                        padding: '0.5rem 1rem',
-                        background: 'linear-gradient(90deg, #3b82f6 0%, #2563eb 100%)',
-                        color: 'white',
-                        border: 'none',
-                        borderRadius: '0.15rem',
-                        cursor: 'pointer',
-                        fontSize: '0.875rem',
-                        fontWeight: '500',
-                        transition: 'all 0.2s ease'
-                      }}
                     >
                       <svg width="16" height="16" fill="currentColor" viewBox="0 0 20 20">
                         <path fillRule="evenodd" d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01.61-1.276z" clipRule="evenodd"/>
@@ -4659,23 +4800,12 @@ const isVoucherSettled = (voucher) => {
                   <div style={{ 
                     display: 'flex',
                     alignItems: 'center',
-                    gap: '0.75rem',
+                    gap: '0.5rem',
                     marginBottom: '1.5rem'
                   }}>
-                    <div style={{
-                      width: '2.5rem',
-                      height: '2.5rem',
-                      background: 'linear-gradient(135deg, #10b981, #059669)',
-                      borderRadius: '0.15rem',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      boxShadow: '0 4px 6px -1px rgba(16, 185, 129, 0.11)'
-                    }}>
-                      <svg style={{ width: '1.25rem', height: '1.25rem', color: 'white' }} fill="currentColor" viewBox="0 0 20 20">
-                        <path fillRule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z" clipRule="evenodd"/>
-                      </svg>
-                    </div>
+                    <svg style={{ width: '1.25rem', height: '1.25rem', color: '#059669', flexShrink: 0 }} fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z" clipRule="evenodd"/>
+                    </svg>
                     <h3 style={{ fontSize: '1.125rem', fontWeight: '600', color: '#1f2937', margin: 0 }}>Asset Account</h3>
                   </div>
                   
@@ -4713,23 +4843,12 @@ const isVoucherSettled = (voucher) => {
                   <div style={{ 
                     display: 'flex',
                     alignItems: 'center',
-                    gap: '0.75rem',
+                    gap: '0.5rem',
                     marginBottom: '1.5rem'
                   }}>
-                    <div style={{
-                      width: '2.5rem',
-                      height: '2.5rem',
-                      background: 'linear-gradient(135deg, #f59e0b, #d97706)',
-                      borderRadius: '0.15rem',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      boxShadow: '0 4px 6px -1px rgba(245, 158, 11, 0.11)'
-                    }}>
-                      <svg style={{ width: '1.25rem', height: '1.25rem', color: 'white' }} fill="currentColor" viewBox="0 0 20 20">
-                        <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clipRule="evenodd"/>
-                      </svg>
-                    </div>
+                    <svg style={{ width: '1.25rem', height: '1.25rem', color: '#d97706', flexShrink: 0 }} fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clipRule="evenodd"/>
+                    </svg>
                     <h3 style={{ fontSize: '1.125rem', fontWeight: '600', color: '#1f2937', margin: 0 }}>Depreciation Expense Account</h3>
                   </div>
                   
@@ -4767,23 +4886,12 @@ const isVoucherSettled = (voucher) => {
                   <div style={{ 
                     display: 'flex',
                     alignItems: 'center',
-                    gap: '0.75rem',
+                    gap: '0.5rem',
                     marginBottom: '1.5rem'
                   }}>
-                    <div style={{
-                      width: '2.5rem',
-                      height: '2.5rem',
-                      background: 'linear-gradient(135deg, #8b5cf6, #7c3aed)',
-                      borderRadius: '0.15rem',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      boxShadow: '0 4px 6px -1px rgba(139, 92, 246, 0.11)'
-                    }}>
-                      <svg style={{ width: '1.25rem', height: '1.25rem', color: 'white' }} fill="currentColor" viewBox="0 0 20 20">
-                        <path fillRule="evenodd" d="M3 3a1 1 0 000 2v8a2 2 0 002 2h2.586l-1.293 1.293a1 1 0 101.414 1.414L10 15.414l2.293 2.293a1 1 0 001.414-1.414L12.414 15H15a2 2 0 002-2V5a1 1 0 100-2H3zm11.707 4.707a1 1 0 00-1.414-1.414L10 9.586 8.707 8.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd"/>
-                      </svg>
-                    </div>
+                    <svg style={{ width: '1.25rem', height: '1.25rem', color: '#7c3aed', flexShrink: 0 }} fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M3 3a1 1 0 000 2v8a2 2 0 002 2h2.586l-1.293 1.293a1 1 0 101.414 1.414L10 15.414l2.293 2.293a1 1 0 001.414-1.414L12.414 15H15a2 2 0 002-2V5a1 1 0 100-2H3zm11.707 4.707a1 1 0 00-1.414-1.414L10 9.586 8.707 8.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd"/>
+                    </svg>
                     <h3 style={{ fontSize: '1.125rem', fontWeight: '600', color: '#1f2937', margin: 0 }}>Accumulated Depreciation Account</h3>
                   </div>
                   
@@ -4898,21 +5006,8 @@ const isVoucherSettled = (voucher) => {
                     <label className="other-trans-field-label" style={{ marginBottom: 0 }}>Voucher Number</label>
                     <button
                       type="button"
+                      className="other-trans-btn-regenerate"
                       onClick={() => setAssetDerecognitionForm(prev => ({ ...prev, voucherNumber: generateVoucherNumber() }))}
-                      style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '0.5rem',
-                        padding: '0.5rem 1rem',
-                        background: 'linear-gradient(90deg, #3b82f6 0%, #2563eb 100%)',
-                        color: 'white',
-                        border: 'none',
-                        borderRadius: '0.15rem',
-                        cursor: 'pointer',
-                        fontSize: '0.875rem',
-                        fontWeight: '500',
-                        transition: 'all 0.2s ease'
-                      }}
                     >
                       <svg width="16" height="16" fill="currentColor" viewBox="0 0 20 20">
                         <path fillRule="evenodd" d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01.61-1.276z" clipRule="evenodd"/>
@@ -4961,23 +5056,12 @@ const isVoucherSettled = (voucher) => {
                   <div style={{ 
                     display: 'flex',
                     alignItems: 'center',
-                    gap: '0.75rem',
+                    gap: '0.5rem',
                     marginBottom: '1.5rem'
                   }}>
-                    <div style={{
-                      width: '2.5rem',
-                      height: '2.5rem',
-                      background: 'linear-gradient(135deg, #10b981, #059669)',
-                      borderRadius: '0.15rem',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      boxShadow: '0 4px 6px -1px rgba(16, 185, 129, 0.11)'
-                    }}>
-                      <svg style={{ width: '1.25rem', height: '1.25rem', color: 'white' }} fill="currentColor" viewBox="0 0 20 20">
-                        <path fillRule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z" clipRule="evenodd"/>
-                      </svg>
-                    </div>
+                    <svg style={{ width: '1.25rem', height: '1.25rem', color: '#059669', flexShrink: 0 }} fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z" clipRule="evenodd"/>
+                    </svg>
                     <h3 style={{ fontSize: '1.125rem', fontWeight: '600', color: '#1f2937', margin: 0 }}>Asset Being Sold/Disposed</h3>
                   </div>
                   
@@ -5041,24 +5125,13 @@ const isVoucherSettled = (voucher) => {
                   <div style={{ 
                     display: 'flex',
                     alignItems: 'center',
-                    gap: '0.75rem',
+                    gap: '0.5rem',
                     marginBottom: '1.5rem'
                   }}>
-                    <div style={{
-                      width: '2.5rem',
-                      height: '2.5rem',
-                      background: 'linear-gradient(135deg, #3b82f6, #2563eb)',
-                      borderRadius: '0.15rem',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      boxShadow: '0 4px 6px -1px rgba(59, 130, 246, 0.11)'
-                    }}>
-                      <svg style={{ width: '1.25rem', height: '1.25rem', color: 'white' }} fill="currentColor" viewBox="0 0 20 20">
-                        <path d="M8 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0zM15 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0z"/>
-                        <path d="M3 4a1 1 0 00-1 1v10a1 1 0 001 1h1.05a2.5 2.5 0 014.9 0H10a1 1 0 001-1V5a1 1 0 00-1-1H3zM14 7a1 1 0 00-1 1v6.05A2.5 2.5 0 0115.95 16H17a1 1 0 001-1v-5a1 1 0 00-.293-.707l-2-2A1 1 0 0015 7h-1z"/>
-                      </svg>
-                    </div>
+                    <svg style={{ width: '1.25rem', height: '1.25rem', color: '#2563eb', flexShrink: 0 }} fill="currentColor" viewBox="0 0 20 20">
+                      <path d="M8 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0zM15 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0z"/>
+                      <path d="M3 4a1 1 0 00-1 1v10a1 1 0 001 1h1.05a2.5 2.5 0 014.9 0H10a1 1 0 001-1V5a1 1 0 00-1-1H3zM14 7a1 1 0 00-1 1v6.05A2.5 2.5 0 0115.95 16H17a1 1 0 001-1v-5a1 1 0 00-.293-.707l-2-2A1 1 0 0015 7h-1z"/>
+                    </svg>
                     <h3 style={{ fontSize: '1.125rem', fontWeight: '600', color: '#1f2937', margin: 0 }}>Financial Details</h3>
                   </div>
                   
@@ -5125,24 +5198,13 @@ const isVoucherSettled = (voucher) => {
                   <div style={{ 
                     display: 'flex',
                     alignItems: 'center',
-                    gap: '0.75rem',
+                    gap: '0.5rem',
                     marginBottom: '1.5rem'
                   }}>
-                    <div style={{
-                      width: '2.5rem',
-                      height: '2.5rem',
-                      background: 'linear-gradient(135deg, #10b981, #059669)',
-                      borderRadius: '0.15rem',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      boxShadow: '0 4px 6px -1px rgba(16, 185, 129, 0.11)'
-                    }}>
-                      <svg style={{ width: '1.25rem', height: '1.25rem', color: 'white' }} fill="currentColor" viewBox="0 0 20 20">
-                        <path d="M4 4a2 2 0 00-2 2v1h16V6a2 2 0 00-2-2H4z"/>
-                        <path fillRule="evenodd" d="M18 9H2v5a2 2 0 002 2h12a2 2 0 002-2V9zM4 13a1 1 0 011-1h1a1 1 0 110 2H5a1 1 0 01-1-1zm5-1a1 1 0 100 2h1a1 1 0 100-2H9z" clipRule="evenodd"/>
-                      </svg>
-                    </div>
+                    <svg style={{ width: '1.25rem', height: '1.25rem', color: '#059669', flexShrink: 0 }} fill="currentColor" viewBox="0 0 20 20">
+                      <path d="M4 4a2 2 0 00-2 2v1h16V6a2 2 0 00-2-2H4z"/>
+                      <path fillRule="evenodd" d="M18 9H2v5a2 2 0 002 2h12a2 2 0 002-2V9zM4 13a1 1 0 011-1h1a1 1 0 110 2H5a1 1 0 01-1-1zm5-1a1 1 0 100 2h1a1 1 0 100-2H9z" clipRule="evenodd"/>
+                    </svg>
                     <h3 style={{ fontSize: '1.125rem', fontWeight: '600', color: '#1f2937', margin: 0 }}>Proceeds Account (Cash/Bank)</h3>
                   </div>
                   
@@ -5180,23 +5242,12 @@ const isVoucherSettled = (voucher) => {
                   <div style={{ 
                     display: 'flex',
                     alignItems: 'center',
-                    gap: '0.75rem',
+                    gap: '0.5rem',
                     marginBottom: '1.5rem'
                   }}>
-                    <div style={{
-                      width: '2.5rem',
-                      height: '2.5rem',
-                      background: 'linear-gradient(135deg, #ef4444, #dc2626)',
-                      borderRadius: '0.15rem',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      boxShadow: '0 4px 6px -1px rgba(239, 68, 68, 0.11)'
-                    }}>
-                      <svg style={{ width: '1.25rem', height: '1.25rem', color: 'white' }} fill="currentColor" viewBox="0 0 20 20">
-                        <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd"/>
-                      </svg>
-                    </div>
+                    <svg style={{ width: '1.25rem', height: '1.25rem', color: '#dc2626', flexShrink: 0 }} fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd"/>
+                    </svg>
                     <h3 style={{ fontSize: '1.125rem', fontWeight: '600', color: '#1f2937', margin: 0 }}>Gain/Loss on Disposal Account</h3>
                   </div>
                   
@@ -5392,23 +5443,12 @@ const isVoucherSettled = (voucher) => {
                   <div style={{ 
                     display: 'flex',
                     alignItems: 'center',
-                    gap: '0.75rem',
+                    gap: '0.5rem',
                     marginBottom: '1.5rem'
                   }}>
-                    <div style={{
-                      width: '2.5rem',
-                      height: '2.5rem',
-                      background: 'linear-gradient(135deg, #ef4444, #dc2626)',
-                      borderRadius: '0.15rem',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      boxShadow: '0 4px 6px -1px rgba(239, 68, 68, 0.11)'
-                    }}>
-                      <svg style={{ width: '1.25rem', height: '1.25rem', color: 'white' }} fill="currentColor" viewBox="0 0 20 20">
-                        <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd"/>
-                      </svg>
-                    </div>
+                    <svg style={{ width: '1.25rem', height: '1.25rem', color: '#dc2626', flexShrink: 0 }} fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd"/>
+                    </svg>
                     <h3 style={{ fontSize: '1.125rem', fontWeight: '600', color: '#1f2937', margin: 0 }}>Liability Account</h3>
                   </div>
                   
@@ -5624,24 +5664,13 @@ const isVoucherSettled = (voucher) => {
                   <div style={{ 
                     display: 'flex',
                     alignItems: 'center',
-                    gap: '0.75rem',
+                    gap: '0.5rem',
                     marginBottom: '1.5rem'
                   }}>
-                    <div style={{
-                      width: '2.5rem',
-                      height: '2.5rem',
-                      background: 'linear-gradient(135deg, #10b981, #059669)',
-                      borderRadius: '0.15rem',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      boxShadow: '0 4px 6px -1px rgba(16, 185, 129, 0.11)'
-                    }}>
-                      <svg style={{ width: '1.25rem', height: '1.25rem', color: 'white' }} fill="currentColor" viewBox="0 0 20 20">
-                        <path d="M4 4a2 2 0 00-2 2v1h16V6a2 2 0 00-2-2H4z"/>
-                        <path fillRule="evenodd" d="M18 9H2v5a2 2 0 002 2h12a2 2 0 002-2V9zM4 13a1 1 0 011-1h1a1 1 0 110 2H5a1 1 0 01-1-1zm5-1a1 1 0 100 2h1a1 1 0 100-2H9z" clipRule="evenodd"/>
-                      </svg>
-                    </div>
+                    <svg style={{ width: '1.25rem', height: '1.25rem', color: '#059669', flexShrink: 0 }} fill="currentColor" viewBox="0 0 20 20">
+                      <path d="M4 4a2 2 0 00-2 2v1h16V6a2 2 0 00-2-2H4z"/>
+                      <path fillRule="evenodd" d="M18 9H2v5a2 2 0 002 2h12a2 2 0 002-2V9zM4 13a1 1 0 011-1h1a1 1 0 110 2H5a1 1 0 01-1-1zm5-1a1 1 0 100 2h1a1 1 0 100-2H9z" clipRule="evenodd"/>
+                    </svg>
                     <h3 style={{ fontSize: '1.125rem', fontWeight: '600', color: '#1f2937', margin: 0 }}>Payment Account (Cash/Bank)</h3>
                   </div>
                   
@@ -5896,6 +5925,214 @@ const isVoucherSettled = (voucher) => {
             )}
           </div>
         </div>
+        ) : activeTab === 'singleEntry' ? (
+          <div className="other-trans-form-card">
+            <div className="other-trans-card-header">
+              <h2 className="other-trans-card-title">Single Entry</h2>
+              <p className="other-trans-card-subtitle">
+                Post one GL line with a debit or credit amount, description, and date to the same other-transaction tables.
+              </p>
+            </div>
+            <div className="other-trans-form-content">
+              <form onSubmit={handleSingleEntrySubmit}>
+                <div className="other-trans-form-grid">
+                  <div className="other-trans-field-group" style={{ gridColumn: '1 / -1' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
+                      <label className="other-trans-field-label" style={{ marginBottom: 0 }}>Voucher Number</label>
+                      <button
+                        type="button"
+                        className="other-trans-btn-regenerate"
+                        onClick={() =>
+                          setSingleEntryForm((prev) => ({
+                            ...prev,
+                            voucherNumber: generateSingleEntryVoucherNumber(),
+                          }))
+                        }
+                      >
+                        <svg width="16" height="16" fill="currentColor" viewBox="0 0 20 20">
+                          <path fillRule="evenodd" d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01.61-1.276z" clipRule="evenodd"/>
+                        </svg>
+                        Regenerate
+                      </button>
+                    </div>
+                    <input
+                      name="voucherNumber"
+                      value={singleEntryForm.voucherNumber}
+                      onChange={handleSingleEntryChange}
+                      className="other-trans-form-input"
+                    />
+                  </div>
+
+                  <div className="other-trans-field-group" style={{ position: 'relative' }}>
+                    <label className="other-trans-field-label">GL Account *</label>
+                    <input
+                      type="text"
+                      value={singleEntryAccountSearch}
+                      onChange={handleSingleEntryAccountSearchChange}
+                      onFocus={() => setShowSingleEntryAccountList(true)}
+                      onBlur={() => {
+                        window.setTimeout(() => setShowSingleEntryAccountList(false), 150);
+                      }}
+                      className="other-trans-form-input"
+                      placeholder={
+                        chartAccountsLoading
+                          ? 'Loading accounts…'
+                          : 'Type to search by code or name'
+                      }
+                      disabled={chartAccountsLoading}
+                      autoComplete="off"
+                    />
+                    {!chartAccountsLoading && showSingleEntryAccountList && (
+                      <div className="other-trans-single-entry-account-list">
+                        {(() => {
+                          const term = (singleEntryAccountSearch || '').toLowerCase().trim();
+                          const filtered = chartAccounts.filter((acc) => {
+                            if (!term) return true;
+                            const code = (acc.account_code || '').toLowerCase();
+                            const name = (acc.description || acc.account_name || '').toLowerCase();
+                            return code.includes(term) || name.includes(term);
+                          });
+
+                          if (chartAccounts.length === 0) {
+                            return (
+                              <div className="other-trans-single-entry-account-empty">
+                                No accounts loaded
+                              </div>
+                            );
+                          }
+                          if (filtered.length === 0) {
+                            return (
+                              <div className="other-trans-single-entry-account-empty">
+                                No accounts matching “{singleEntryAccountSearch}”
+                              </div>
+                            );
+                          }
+
+                          return filtered.slice(0, 80).map((acc) => {
+                            const code = acc.account_code || '';
+                            const name = acc.description || acc.account_name || '';
+                            return (
+                              <button
+                                key={code || acc.id}
+                                type="button"
+                                className="other-trans-single-entry-account-option"
+                                onMouseDown={(e) => e.preventDefault()}
+                                onClick={() => handleSingleEntryAccountSelect(acc)}
+                              >
+                                <span className="other-trans-single-entry-account-code">{code}</span>
+                                <span className="other-trans-single-entry-account-name">
+                                  {name || '—'}
+                                </span>
+                              </button>
+                            );
+                          });
+                        })()}
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="other-trans-field-group">
+                    <label className="other-trans-field-label">Account Name</label>
+                    <input
+                      type="text"
+                      name="coaDescription"
+                      value={singleEntryForm.coaDescription}
+                      className="other-trans-form-input other-trans-readonly-field"
+                      readOnly
+                      placeholder="Filled when you select a GL account"
+                    />
+                  </div>
+
+                  <div className="other-trans-field-group">
+                    <label className="other-trans-field-label">Entry Date *</label>
+                    <input
+                      type="date"
+                      name="date"
+                      value={singleEntryForm.date}
+                      onChange={handleSingleEntryChange}
+                      className="other-trans-form-input"
+                      required
+                    />
+                  </div>
+
+                  <div className="other-trans-field-group">
+                    <label className="other-trans-field-label">Debit Amount</label>
+                    <input
+                      type="number"
+                      name="debitAmount"
+                      value={singleEntryForm.debitAmount}
+                      onChange={handleSingleEntryChange}
+                      className="other-trans-form-input"
+                      min="0"
+                      step="0.01"
+                      placeholder="0.00"
+                    />
+                    <small className="other-trans-field-hint">Fill debit or credit — not both</small>
+                  </div>
+
+                  <div className="other-trans-field-group">
+                    <label className="other-trans-field-label">Credit Amount</label>
+                    <input
+                      type="number"
+                      name="creditAmount"
+                      value={singleEntryForm.creditAmount}
+                      onChange={handleSingleEntryChange}
+                      className="other-trans-form-input"
+                      min="0"
+                      step="0.01"
+                      placeholder="0.00"
+                    />
+                  </div>
+
+                  <div className="other-trans-field-group" style={{ gridColumn: '1 / -1' }}>
+                    <label className="other-trans-field-label">Description *</label>
+                    <textarea
+                      name="description"
+                      value={singleEntryForm.description}
+                      onChange={handleSingleEntryChange}
+                      className="other-trans-form-input other-trans-form-textarea"
+                      rows={3}
+                      placeholder="Entry description"
+                      required
+                    />
+                  </div>
+                </div>
+
+                {singleEntryMessage && (
+                  <div
+                    className={`other-trans-message ${
+                      /error|please|enter|select|fill/i.test(singleEntryMessage)
+                        ? 'other-trans-error'
+                        : 'other-trans-success'
+                    }`}
+                    role="status"
+                  >
+                    {singleEntryMessage}
+                  </div>
+                )}
+
+                <div className="other-trans-button-section">
+                  <button
+                    type="button"
+                    className="other-trans-btn other-trans-btn-secondary"
+                    onClick={handleSingleEntryReset}
+                    disabled={singleEntrySubmitting}
+                  >
+                    Reset Form
+                  </button>
+                  <button
+                    type="submit"
+                    className="other-trans-btn other-trans-btn-primary"
+                    disabled={singleEntrySubmitting}
+                  >
+                    {singleEntrySubmitting
+                      ? nonTradingPostingLabel('Posting…')
+                      : nonTradingPostButtonLabel('Post Single Entry')}
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
         ) : activeTab === 'defineTransaction' ? (
           /* Define Transaction Tab */
           <div className="other-trans-form-card">
@@ -6512,7 +6749,8 @@ const isVoucherSettled = (voucher) => {
                 { key: 'asset', label: 'Asset', color: '#8b5cf6' },
                 { key: 'liability', label: 'Liability', color: '#f59e0b' },
                 { key: 'equity', label: 'Equity', color: '#ec4899' },
-                { key: 'gl_to_gl', label: 'GL_TO_GL', color: '#0ea5e9' }
+                { key: 'gl_to_gl', label: 'GL_TO_GL', color: '#0ea5e9' },
+                { key: 'single_entry', label: 'Single Entry', color: '#6366f1' }
               ].map((chip) => {
                 const isActive = activeCategory === chip.key;
                 return (
@@ -6566,6 +6804,7 @@ const isVoucherSettled = (voucher) => {
                                  baseCat === 'expense' || baseCat === 'provisions' ? '#fee2e2' :
                                  baseCat === 'asset' ? '#ede9fe' :
                                  baseCat === 'gl_to_gl' ? '#e0f2fe' :
+                                 baseCat === 'single_entry' ? '#e0e7ff' :
                                  baseCat === 'equity' ? '#fce7f3' : '#fef3c7';
                         })(),
                         color: (() => {
@@ -6574,6 +6813,7 @@ const isVoucherSettled = (voucher) => {
                                  baseCat === 'expense' || baseCat === 'provisions' ? '#991b1b' :
                                  baseCat === 'asset' ? '#6d28d9' :
                                  baseCat === 'gl_to_gl' ? '#075985' :
+                                 baseCat === 'single_entry' ? '#3730a3' :
                                  baseCat === 'equity' ? '#9d174d' : '#92400e';
                         })()
                       }}>
