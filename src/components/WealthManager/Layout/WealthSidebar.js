@@ -25,7 +25,7 @@ const WealthSidebar = ({
   const handleClick = (i) => {
     setActive(i);
     if (onSelect && menuItems[i]) {
-      onSelect(i, menuItems[i].subTopics || []);
+      onSelect(i, menuItems[i].subTopics || [], 'wealth');
     }
   };
 
@@ -62,7 +62,7 @@ const WealthSidebar = ({
       {/* Brand section — mirrors equity .sidebar-brand */}
       <div className="wm-sidebar__brand sidebar-brand">
         <div className="navbar-brand">
-          <div className="brand-icon">
+          <div className="brand-icon" aria-hidden="true">
             <svg className="brand-logo" fill="currentColor" viewBox="0 0 20 20">
               <path d="M4 4a2 2 0 00-2 2v1h16V6a2 2 0 00-2-2H4z" />
               <path
@@ -110,7 +110,7 @@ const WealthSidebar = ({
                   {onManagerChange && (
                     <button
                       type="button"
-                      className="dropdown-item"
+                      className="dropdown-item dropdown-item--equity"
                       onClick={() => {
                         setIsDropdownOpen(false);
                         onManagerChange('equity');
@@ -126,7 +126,7 @@ const WealthSidebar = ({
                   )}
                   <button
                     type="button"
-                    className="dropdown-item active"
+                    className="dropdown-item dropdown-item--wealth active"
                     onClick={() => setIsDropdownOpen(false)}
                   >
                     <svg className="dropdown-icon" fill="currentColor" viewBox="0 0 20 20" aria-hidden>
@@ -151,62 +151,54 @@ const WealthSidebar = ({
                 </div>
               )}
 
-              {/* Client / Admin View toggle — mirrors equity .client-view-toggle */}
-              {onClientViewToggle && (
-                <div
-                  className="client-view-toggle"
-                  style={{
-                    marginTop: '1rem',
-                    padding: '0.75rem',
-                    background: 'rgba(255, 255, 255, 0.10)',
-                    borderRadius: '0',
-                  }}
-                >
-                  <button
-                    type="button"
-                    onClick={() => onClientViewToggle(!isClientView)}
-                    style={{
-                      width: '100%',
-                      padding: '0.5rem',
-                      background: isClientView ? 'rgba(255, 255, 255, 0.20)' : 'transparent',
-                      border: '1px solid rgba(255, 255, 255, 0.30)',
-                      borderRadius: '0',
-                      color: 'white',
-                      fontSize: '0.875rem',
-                      cursor: 'pointer',
-                      transition: 'all 0.2s ease',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      gap: '0.5rem',
-                    }}
-                    title={isClientView ? 'Switch to Admin View' : 'Switch to Client View'}
-                  >
-                    {isClientView ? (
-                      <>
-                        <svg fill="currentColor" viewBox="0 0 20 20" width="16" height="16">
-                          <path
-                            fillRule="evenodd"
-                            d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z"
-                            clipRule="evenodd"
-                          />
-                        </svg>
-                        <span>Admin View</span>
-                      </>
-                    ) : (
-                      <>
-                        <svg fill="currentColor" viewBox="0 0 20 20" width="16" height="16">
-                          <path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z" />
-                        </svg>
-                        <span>Client Portal</span>
-                      </>
-                    )}
-                  </button>
-                </div>
-              )}
             </div>
           </div>
         </div>
+
+        {onClientViewToggle && (
+          <div className="wm-portal-entry">
+            <div className="wm-portal-entry__meta">
+              <span className="wm-portal-entry__label">Client access</span>
+              <span className={`wm-portal-entry__status${isClientView ? ' is-on' : ''}`}>
+                {isClientView ? 'Active' : 'Admin'}
+              </span>
+            </div>
+            <button
+              type="button"
+              className={`wm-portal-entry__btn${isClientView ? ' is-on' : ''}`}
+              onClick={() => onClientViewToggle(!isClientView)}
+              title={isClientView ? 'Switch to Admin View' : 'Switch to Client View'}
+            >
+              <span className="wm-portal-entry__icon" aria-hidden>
+                {isClientView ? (
+                  <svg fill="currentColor" viewBox="0 0 20 20" width="15" height="15">
+                    <path
+                      fillRule="evenodd"
+                      d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z"
+                      clipRule="evenodd"
+                    />
+                  </svg>
+                ) : (
+                  <svg fill="currentColor" viewBox="0 0 20 20" width="15" height="15">
+                    <path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z" />
+                  </svg>
+                )}
+              </span>
+              <span className="wm-portal-entry__text">
+                {isClientView ? 'Admin View' : 'Client Portal'}
+              </span>
+              <span className="wm-portal-entry__chevron" aria-hidden>
+                <svg fill="currentColor" viewBox="0 0 20 20" width="12" height="12">
+                  <path
+                    fillRule="evenodd"
+                    d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z"
+                    clipRule="evenodd"
+                  />
+                </svg>
+              </span>
+            </button>
+          </div>
+        )}
       </div>
 
       {/* Navigation Menu — mirrors equity .sidebar-content > .menu-section */}

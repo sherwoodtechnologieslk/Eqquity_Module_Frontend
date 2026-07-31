@@ -210,7 +210,10 @@ const FundPerformance = () => {
           <div className="wfp-summary-header">
             <span className="wfp-summary-label">Total Fund AUM</span>
           </div>
-          <div className="wfp-summary-value">{formatCurrency(fundData.summary.totalAUM)}</div>
+          <div className="wfp-summary-value">
+            <span className="wfp-summary-ccy">LKR</span>
+            {formatCurrency(fundData.summary.totalAUM)}
+          </div>
           <div className="wfp-summary-note">Across {fundData.summary.totalFunds} active funds</div>
         </div>
 
@@ -257,10 +260,18 @@ const FundPerformance = () => {
       {/* Category Snapshot */}
       <div className="wfp-section">
         <div className="wfp-section-header">
-          <h3>Category Snapshot</h3>
-          <div className="wfp-view-toggle">
+          <div>
+            <p className="wfp-section-kicker">Performance desk</p>
+            <h3>Category Snapshot</h3>
+            <p className="wfp-section-blurb">
+              Fund-level returns, risk, and manager ownership for the selected horizon.
+            </p>
+          </div>
+          <div className="wfp-view-toggle" role="tablist" aria-label="Snapshot view">
             <button
               type="button"
+              role="tab"
+              aria-selected={viewMode === 'funds'}
               className={`wfp-toggle-btn ${viewMode === 'funds' ? 'active' : ''}`}
               onClick={() => setViewMode('funds')}
             >
@@ -268,6 +279,8 @@ const FundPerformance = () => {
             </button>
             <button
               type="button"
+              role="tab"
+              aria-selected={viewMode === 'categories'}
               className={`wfp-toggle-btn ${viewMode === 'categories' ? 'active' : ''}`}
               onClick={() => setViewMode('categories')}
             >
@@ -282,23 +295,29 @@ const FundPerformance = () => {
               <thead>
                 <tr>
                   <th>Category</th>
-                  <th>Funds</th>
-                  <th>Total AUM</th>
-                  <th>Avg 1Y Return</th>
-                  <th>Avg 3Y Return</th>
+                  <th className="wfp-num">Funds</th>
+                  <th className="wfp-num">Total AUM</th>
+                  <th className="wfp-num">Avg 1Y Return</th>
+                  <th className="wfp-num">Avg 3Y Return</th>
                 </tr>
               </thead>
               <tbody>
                 {fundData.categories.map((cat) => (
                   <tr key={cat.name}>
-                    <td>{cat.name}</td>
-                    <td>{cat.funds}</td>
-                    <td>{formatCurrency(cat.aum)}</td>
-                    <td style={{ color: getPerformanceColor(cat.return1Y) }}>
-                      {formatPercent(cat.return1Y)}
+                    <td>
+                      <strong className="wfp-cat-name">{cat.name}</strong>
                     </td>
-                    <td style={{ color: getPerformanceColor(cat.return3Y) }}>
-                      {formatPercent(cat.return3Y)}
+                    <td className="wfp-num">{cat.funds}</td>
+                    <td className="wfp-num">{formatCurrency(cat.aum)}</td>
+                    <td className="wfp-num">
+                      <span className={`wfp-delta${cat.return1Y >= 0 ? ' is-up' : ' is-down'}`}>
+                        {formatPercent(cat.return1Y)}
+                      </span>
+                    </td>
+                    <td className="wfp-num">
+                      <span className={`wfp-delta${cat.return3Y >= 0 ? ' is-up' : ' is-down'}`}>
+                        {formatPercent(cat.return3Y)}
+                      </span>
                     </td>
                   </tr>
                 ))}
@@ -312,12 +331,12 @@ const FundPerformance = () => {
                 <tr>
                   <th>Fund</th>
                   <th>Category</th>
-                  <th>AUM</th>
-                  <th>NAV</th>
-                  <th>1D</th>
-                  <th>{selectedHorizon} Return</th>
-                  <th>1Y Volatility</th>
-                  <th>1Y Sharpe</th>
+                  <th className="wfp-num">AUM</th>
+                  <th className="wfp-num">NAV</th>
+                  <th className="wfp-num">1D</th>
+                  <th className="wfp-num">{selectedHorizon} Return</th>
+                  <th className="wfp-num">1Y Volatility</th>
+                  <th className="wfp-num">1Y Sharpe</th>
                   <th>Manager</th>
                 </tr>
               </thead>
@@ -332,18 +351,26 @@ const FundPerformance = () => {
                           <span className="wfp-fund-name">{fund.name}</span>
                         </div>
                       </td>
-                      <td>{fund.category}</td>
-                      <td>{formatCurrency(fund.aum)}</td>
-                      <td>{fund.nav.toFixed(2)}</td>
-                      <td style={{ color: getPerformanceColor(fund.change1D) }}>
-                        {formatPercent(fund.change1D, 2)}
+                      <td>
+                        <span className="wfp-cat-chip">{fund.category}</span>
                       </td>
-                      <td style={{ color: getPerformanceColor(horizonReturn) }}>
-                        {formatPercent(horizonReturn, 2)}
+                      <td className="wfp-num">{formatCurrency(fund.aum)}</td>
+                      <td className="wfp-num">{fund.nav.toFixed(2)}</td>
+                      <td className="wfp-num">
+                        <span className={`wfp-delta${fund.change1D >= 0 ? ' is-up' : ' is-down'}`}>
+                          {formatPercent(fund.change1D, 2)}
+                        </span>
                       </td>
-                      <td>{fund.volatility1Y.toFixed(2)}%</td>
-                      <td>{fund.sharpe1Y.toFixed(2)}</td>
-                      <td>{fund.manager}</td>
+                      <td className="wfp-num">
+                        <span className={`wfp-delta${horizonReturn >= 0 ? ' is-up' : ' is-down'}`}>
+                          {formatPercent(horizonReturn, 2)}
+                        </span>
+                      </td>
+                      <td className="wfp-num">{fund.volatility1Y.toFixed(2)}%</td>
+                      <td className="wfp-num">{fund.sharpe1Y.toFixed(2)}</td>
+                      <td>
+                        <span className="wfp-manager">{fund.manager}</span>
+                      </td>
                     </tr>
                   );
                 })}

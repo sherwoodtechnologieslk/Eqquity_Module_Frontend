@@ -6,7 +6,7 @@ import './UserProfileModal.css';
 
 const PIN_VALIDITY_SECONDS = 2 * 60;
 
-const UserProfileModal = ({ user, isOpen, onClose, onPasswordChanged }) => {
+const UserProfileModal = ({ user, isOpen, onClose, onPasswordChanged, variant = 'equity' }) => {
     const [passwordForm, setPasswordForm] = useState({
         currentPassword: '',
         newPassword: '',
@@ -186,8 +186,14 @@ const UserProfileModal = ({ user, isOpen, onClose, onPasswordChanged }) => {
     };
 
     return (
-        <div className="upm-modal-overlay" onClick={handleBackdropClick}>
-            <div className="upm-modal-content" onClick={(e) => e.stopPropagation()}>
+        <div
+            className={`upm-modal-overlay${variant === 'wealth' ? ' upm-modal-overlay--wealth' : ''}`}
+            onClick={handleBackdropClick}
+        >
+            <div
+                className={`upm-modal-content${variant === 'wealth' ? ' upm-modal-content--wealth' : ''}`}
+                onClick={(e) => e.stopPropagation()}
+            >
                 <div className="upm-modal-header">
                     <button
                         className="upm-close-button"

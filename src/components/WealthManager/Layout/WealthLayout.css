@@ -13,10 +13,10 @@
 }
 
 :root {
-  /* Light surface palette */
-  --wm-bg: #f5fafa;
+  /* Light surface palette — cream canvas matches Operations Dashboard */
+  --wm-bg: #f7f4ee;
   --wm-panel: #ffffff;
-  --wm-panel-2: #f8fafc;
+  --wm-panel-2: #f3efe7;
   --wm-border: rgba(15, 23, 42, 0.10);
   --wm-border-strong: rgba(15, 23, 42, 0.16);
   --wm-text: #0f172a;
@@ -58,7 +58,7 @@
   --wm-shadow-soft: 0 4px 14px rgba(15, 23, 42, 0.06);
   --wm-radius: 18px;
   --wm-radius-sm: 14px;
-  --wm-sidebar-width: 280px;
+  --wm-sidebar-width: 260px;
 }
 
 .wm-root {
@@ -66,38 +66,52 @@
   min-height: 100vh;
   width: 100vw;
   position: relative;
-  background:
-    radial-gradient(1100px 680px at 18% 8%, rgba(20, 184, 166, 0.08), transparent 60%),
-    radial-gradient(900px 620px at 82% 18%, rgba(6, 182, 212, 0.06), transparent 64%),
-    radial-gradient(1200px 720px at 40% 120%, rgba(15, 118, 110, 0.05), transparent 55%),
-    linear-gradient(180deg, #ffffff 0%, #f5fafa 42%, #f1f5f4 100%);
   color: var(--wm-text);
   font-family: 'Inter', sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
+/* Single Sherwood Wealth canvas (Operations Dashboard cream) — do not repeat on screens */
 .wm-main {
   flex: 1;
   min-width: 0;
   display: flex;
   flex-direction: column;
   margin-left: var(--wm-sidebar-width);
+  min-height: 100vh;
+  background: var(--wm-bg);
 }
 
 .wm-content {
   flex: 1;
   min-width: 0;
   padding: 1.6rem 1.8rem 2.25rem;
-  margin-top: 92px; /* navbar */
+  margin-top: 70px; /* navbar */
+}
+
+/* App.js tab wrapper — inherit shell canvas */
+.wm-content > div {
+  background: transparent;
+}
+
+/* Legacy full-page washes on screen roots (cards/panels keep their own fills) */
+.wm-content :is(
+  .wao-container,
+  .wfp-container,
+  .wcs-container,
+  .fpm-container,
+  .wmwm-define-expenses__root
+) {
+  background: none;
 }
 
 @media (max-width: 1200px) {
-  :root { --wm-sidebar-width: 280px; }
+  :root { --wm-sidebar-width: 240px; }
 }
 
 @media (max-width: 900px) {
-  :root { --wm-sidebar-width: 260px; }
+  :root { --wm-sidebar-width: 230px; }
 }
 
 @media (max-width: 768px) {
@@ -106,79 +120,173 @@
   .wm-content { padding: 1.25rem 1rem 2rem; }
 }
 
-/* Wealth navbar — light, signature gradient top strip */
+/* Wealth navbar — Equity-style chrome in Wealth teal */
 .wm-navbar {
+  --wm-nav-list-bg: rgba(255, 255, 255, 0.12);
+  --wm-nav-list-border: rgba(255, 255, 255, 0.18);
+
   position: fixed;
   top: 0;
   left: var(--wm-sidebar-width);
   right: 0;
-  height: 92px;
+  height: 70px;
   z-index: 120;
-  display: flex;
-  align-items: center;
-  padding: 0 1.25rem;
-  border-bottom: 1px solid var(--wm-border);
-  background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.96) 0%, rgba(255, 255, 255, 0.88) 100%);
-  backdrop-filter: blur(12px);
-  box-shadow: 0 6px 18px rgba(15, 23, 42, 0.05);
+  padding: 0;
+  border-bottom: 1px solid rgba(15, 23, 42, 0.14);
+  background: linear-gradient(
+    90deg,
+    #134e4a 0%,
+    #0f766e 42%,
+    #0e7490 100%
+  );
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.12) inset,
+    0 6px 18px rgba(15, 118, 110, 0.2);
+  overflow: visible;
 }
 
-/* Signature top accent strip — same gradient as the onboarding form */
 .wm-navbar::before {
   content: '';
   position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 3px;
-  background: var(--wm-gradient-h);
+  inset: 0;
+  background: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.1) 0%,
+    transparent 55%
+  );
   pointer-events: none;
 }
 
-.wm-navbar-title {
-  font-family: 'Inter', sans-serif;
-  font-weight: 700;
-  letter-spacing: 0.01em;
-  color: var(--wm-text-strong);
-  font-size: 1.15rem;
+.wm-navbar-inner {
+  position: relative;
+  z-index: 1;
+  height: 100%;
+  display: grid;
+  grid-template-columns: minmax(3rem, 1fr) auto minmax(3rem, 1fr);
+  align-items: center;
+  gap: 1rem;
+  padding: 0 1.35rem;
+}
+
+.wm-navbar-brand {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+}
+
+.wm-navbar-brand-icon {
+  width: 2.4rem;
+  height: 2.4rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  background: linear-gradient(
+    160deg,
+    rgba(94, 234, 212, 0.55) 0%,
+    rgba(20, 184, 166, 0.45) 40%,
+    rgba(13, 148, 136, 0.55) 100%
+  );
+  border: 1px solid rgba(255, 255, 255, 0.55);
+  box-shadow:
+    0 4px 14px rgba(15, 118, 110, 0.35),
+    inset 0 1px 0 rgba(255, 255, 255, 0.5);
+}
+
+.wm-root .wm-navbar-brand-icon {
+  border-radius: 0.75rem !important;
+}
+
+.wm-navbar-brand-logo {
+  width: 0.95rem;
+  height: 0.95rem;
+  color: #0f766e;
+  background: #ffffff;
+  padding: 0.22rem 0.2rem;
+  box-sizing: content-box;
+  display: block;
+  box-shadow: 0 1px 3px rgba(15, 118, 110, 0.15);
+}
+
+.wm-root .wm-navbar-brand-logo {
+  border-radius: 0.28rem !important;
+}
+
+.wm-navbar-center {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-width: 0;
+  max-width: min(72vw, 920px);
+  overflow: hidden;
 }
 
 .wm-navbar-pills {
   display: flex;
-  gap: 8px;
-  padding: 8px;
-  border-radius: 999px;
-  border: 1px solid var(--wm-border);
-  background: var(--wm-panel-2);
+  align-items: center;
+  gap: 0.25rem;
+  width: max-content;
+  max-width: 100%;
+  min-width: 0;
+  margin: 0;
+  padding: 0.28rem 0.35rem;
+  border: 1px solid var(--wm-nav-list-border);
+  background: var(--wm-nav-list-bg);
+  overflow-x: auto;
+  overflow-y: hidden;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.45) transparent;
+}
+
+.wm-navbar-pills::-webkit-scrollbar {
+  height: 4px;
+}
+
+.wm-navbar-pills::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.wm-navbar-pills::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.4);
+}
+
+.wm-root .wm-navbar-pills::-webkit-scrollbar-thumb {
+  border-radius: 999px !important;
+}
+
+.wm-navbar-empty {
+  padding: 0.4rem 0.75rem;
+  font-size: 0.78rem;
+  color: rgba(255, 255, 255, 0.7);
+  white-space: nowrap;
 }
 
 .wm-pill {
-  padding: 0.55rem 0.9rem;
-  border-radius: 999px;
-  border: 1px solid transparent;
+  flex: 0 0 auto;
+  padding: 0.45rem 0.85rem;
+  border: none;
   background: transparent;
-  color: var(--wm-muted);
-  font-size: 0.86rem;
+  color: rgba(255, 255, 255, 0.84);
+  font-size: 0.78rem;
+  font-weight: 500;
+  letter-spacing: 0.01em;
   cursor: pointer;
   white-space: nowrap;
-  transition: background 160ms ease, border-color 160ms ease, color 160ms ease;
+  transition: background 0.18s ease, color 0.18s ease, box-shadow 0.18s ease;
 }
 
 .wm-pill:hover {
-  background: var(--wm-accent-soft-2);
-  color: var(--wm-text);
+  background: rgba(255, 255, 255, 0.12);
+  color: #ffffff;
 }
 
 .wm-pill.is-active {
-  border-color: rgba(15, 118, 110, 0.45);
-  background: var(--wm-accent-soft);
-  color: var(--wm-accent-strong);
+  background: #ffffff;
+  color: #0f766e;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.12);
+  font-weight: 650;
 }
 
-/* Round the navbar tabs + their track. The global `.wm-root *` rule forces
-   border-radius: 0 !important everywhere, so we re-enable the pill shape here
-   with matching !important specificity (same approach as the sidebar tabs). */
 .wm-root .wm-navbar-pills {
   border-radius: 999px !important;
 }
@@ -187,33 +295,55 @@
   border-radius: 999px !important;
 }
 
-.wm-kpi-chip {
-  display: inline-flex;
-  gap: 10px;
+.wm-navbar-actions {
+  display: flex;
   align-items: center;
-  padding: 0.55rem 0.75rem;
-  border-radius: 999px;
-  border: 1px solid var(--wm-border);
-  background: var(--wm-panel-2);
-  color: var(--wm-text);
+  justify-content: flex-end;
+  gap: 0.65rem;
 }
 
 .wm-avatar {
-  width: 42px;
-  height: 42px;
-  border-radius: 999px;
-  border: 1px solid rgba(15, 118, 110, 0.40);
-  background:
-    radial-gradient(circle at 25% 25%, rgba(15, 118, 110, 0.22), rgba(255, 255, 255, 0.5) 55%, transparent 70%),
-    #ffffff;
-  color: var(--wm-accent-strong);
+  width: 2.35rem;
+  height: 2.35rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid rgba(255, 255, 255, 0.55);
+  background: rgba(255, 255, 255, 0.95);
+  color: #0f766e;
   cursor: pointer;
+  font-size: 0.75rem;
   font-weight: 700;
+  letter-spacing: 0.02em;
+  transition: background 0.15s ease, box-shadow 0.15s ease;
+  box-shadow: 0 2px 8px rgba(15, 118, 110, 0.25);
+}
+
+.wm-root .wm-avatar {
+  border-radius: 999px !important;
+}
+
+.wm-avatar:hover {
+  background: #ffffff;
+  box-shadow: 0 4px 12px rgba(15, 118, 110, 0.35);
+}
+
+@media (max-width: 768px) {
+  .wm-navbar {
+    left: 0;
+  }
+
+  .wm-navbar-inner {
+    padding: 0 0.85rem;
+    gap: 0.5rem;
+  }
 }
 
 /* ---- Wealth content pages (scoped to .wm-root) — light overrides ---- */
 
 .wm-root .wm-dashboard,
+.wm-root .wdash,
+.wm-root .wdb,
 .wm-root .wmp-container,
 .wm-root .wcs-container,
 .wm-root .wao-container {

@@ -160,7 +160,13 @@ const DashboardMarketPulse = ({
 
     return (
         <div className="market-pulse-widget">
-            <div className="market-pulse-widget__header market-pulse-widget__header--bare">
+            <div className="market-pulse-widget__header">
+                <div className="market-pulse-widget__heading">
+                    <div>
+                        <h2>Market pulse</h2>
+                        <p>Latest CSE announcements</p>
+                    </div>
+                </div>
                 <div className="market-pulse-widget__actions">
                         <button
                             type="button"
