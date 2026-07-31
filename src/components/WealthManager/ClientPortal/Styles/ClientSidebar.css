@@ -1,205 +1,221 @@
-/* Client Portal sidebar — light mode (white + emerald) */
+/**
+ * Client Portal sidebar — Sherwood Wealth teal (matches Wealth Manager).
+ */
 
 .cp-sidebar {
+  --cp-ink: #ecfdf5;
+  --cp-mute: rgba(236, 253, 245, 0.55);
+  --cp-line: rgba(255, 255, 255, 0.1);
+  --cp-teal: #14b8a6;
+
   position: fixed;
   left: 0;
   top: 0;
   width: 260px;
   height: 100vh;
-  background: linear-gradient(180deg, #ffffff 0%, #f6faf7 100%);
   display: flex;
   flex-direction: column;
   z-index: 1000;
-  box-shadow: 4px 0 18px rgba(15, 23, 42, 0.05);
-  border-right: 1px solid rgba(15, 23, 42, 0.08);
+  background: #0b2e2b;
+  border-right: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 4px 0 24px rgba(0, 0, 0, 0.22);
+  color: var(--cp-ink);
+}
+
+.cp-sidebar::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(180deg, rgba(20, 184, 166, 0.1) 0%, transparent 30%),
+    radial-gradient(480px 240px at 0% 100%, rgba(6, 182, 212, 0.12), transparent 60%);
+  pointer-events: none;
 }
 
 .cp-sidebar-header {
-  padding: 1.5rem;
-  border-bottom: 1px solid rgba(15, 23, 42, 0.08);
+  position: relative;
+  z-index: 1;
+  padding: 1.15rem 1rem;
+  border-bottom: 1px solid var(--cp-line);
+  background: rgba(0, 0, 0, 0.18);
 }
 
 .cp-logo {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
-  color: #15803d;
+  gap: 0.65rem;
+  color: #5eead4;
 }
 
 .cp-logo svg {
-  width: 28px;
-  height: 28px;
+  width: 1.35rem;
+  height: 1.35rem;
+  padding: 0.4rem;
+  box-sizing: content-box;
+  background: linear-gradient(145deg, #0f766e 0%, #14b8a6 55%, #06b6d4 100%);
+  color: #ffffff;
 }
 
 .cp-logo-text {
-  font-size: 1.25rem;
-  font-weight: 600;
-  color: #0b1220;
+  font-size: 0.95rem;
+  font-weight: 750;
+  letter-spacing: -0.01em;
+  color: #ffffff;
 }
 
 .cp-sidebar-content {
+  position: relative;
+  z-index: 1;
   flex: 1;
   overflow-y: auto;
-  padding: 1rem 0;
+  padding: 0.85rem 0;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.2) transparent;
 }
 
 .cp-user-info {
-  padding: 1rem 1.5rem;
-  margin-bottom: 1rem;
-  border-bottom: 1px solid rgba(15, 23, 42, 0.08);
+  padding: 0.85rem 1rem 1rem;
+  margin: 0 0.65rem 0.85rem;
+  border: 1px solid var(--cp-line);
+  background: rgba(255, 255, 255, 0.04);
 }
 
 .cp-user-avatar {
-  width: 48px;
-  height: 48px;
-  border-radius: 0;
-  background: #dcfce7;
+  width: 2.5rem;
+  height: 2.5rem;
+  background: linear-gradient(135deg, #0f766e 0%, #14b8a6 100%);
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 1.25rem;
-  font-weight: 600;
-  color: #15803d;
-  margin-bottom: 0.75rem;
+  font-size: 0.9rem;
+  font-weight: 750;
+  color: #ffffff;
+  margin-bottom: 0.65rem;
 }
 
 .cp-user-details {
-  color: #0f172a;
+  color: #ffffff;
 }
 
 .cp-user-name {
-  font-weight: 600;
-  font-size: 0.95rem;
-  margin-bottom: 0.25rem;
-  color: #0b1220;
+  font-weight: 700;
+  font-size: 0.875rem;
+  margin-bottom: 0.15rem;
+  color: #ffffff;
 }
 
 .cp-user-email {
-  font-size: 0.75rem;
-  color: #64748b;
+  font-size: 0.7rem;
+  color: var(--cp-mute);
+  word-break: break-all;
 }
 
 .cp-nav {
-  padding: 0 0.75rem;
+  padding: 0 0.55rem;
 }
 
 .cp-nav-section {
-  margin-bottom: 0.25rem;
+  margin-bottom: 0.15rem;
 }
 
 .cp-nav-item {
   width: 100%;
   display: flex;
   align-items: center;
-  gap: 0.75rem;
-  padding: 0.875rem 1rem;
+  gap: 0.65rem;
+  padding: 0.65rem 0.75rem;
   background: transparent;
   border: none;
-  color: #475569;
-  font-size: 0.95rem;
+  border-left: 3px solid transparent;
+  color: rgba(255, 255, 255, 0.78);
+  font-size: 0.8125rem;
+  font-weight: 500;
   cursor: pointer;
-  transition: all 0.2s ease;
-  border-radius: 0;
   text-align: left;
+  transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
 }
 
 .cp-nav-item:hover {
-  background: #ecfdf5;
-  color: #0b1220;
+  background: rgba(255, 255, 255, 0.06);
+  color: #ffffff;
+  border-left-color: rgba(94, 234, 212, 0.4);
 }
 
 .cp-nav-item.active {
-  background: #dcfce7;
-  color: #15803d;
-  font-weight: 600;
-  border-left: 3px solid #16a34a;
-  padding-left: calc(1rem - 3px);
+  background: rgba(20, 184, 166, 0.16);
+  color: #ffffff;
+  font-weight: 650;
+  border-left-color: #5eead4;
 }
 
-/* Strong, distinct green styles for Create, Redeem, Transfer */
-.cp-nav-item-create {
-  background: #ecfdf5;
-  color: #047857;
-  border-left: 3px solid #34d399;
-  padding-left: calc(1rem - 3px);
+.cp-nav-item-create,
+.cp-nav-item-redeem,
+.cp-nav-item-transfer {
+  background: transparent;
+  color: rgba(255, 255, 255, 0.78);
+  border-left: 3px solid transparent;
+  padding-left: 0.75rem;
 }
 
 .cp-nav-item-create:hover,
-.cp-nav-item-create.active {
-  background: #d1fae5;
-  color: #065f46;
-}
-
-.cp-nav-item-redeem {
-  background: #f0fdf4;
-  color: #15803d;
-  border-left: 3px solid #4ade80;
-  padding-left: calc(1rem - 3px);
-}
-
+.cp-nav-item-create.active,
 .cp-nav-item-redeem:hover,
-.cp-nav-item-redeem.active {
-  background: #dcfce7;
-  color: #14532d;
-}
-
-.cp-nav-item-transfer {
-  background: #f0fdfa;
-  color: #0f766e;
-  border-left: 3px solid #5eead4;
-  padding-left: calc(1rem - 3px);
-}
-
+.cp-nav-item-redeem.active,
 .cp-nav-item-transfer:hover,
 .cp-nav-item-transfer.active {
-  background: #ccfbf1;
-  color: #134e4a;
+  background: rgba(20, 184, 166, 0.16);
+  color: #ffffff;
+  border-left-color: #5eead4;
 }
 
 .cp-nav-icon {
-  width: 20px;
-  height: 20px;
+  width: 1.1rem;
+  height: 1.1rem;
   display: flex;
   align-items: center;
   justify-content: center;
+  flex-shrink: 0;
+  opacity: 0.9;
 }
 
 .cp-nav-icon svg {
-  width: 20px;
-  height: 20px;
+  width: 100%;
+  height: 100%;
 }
 
 .cp-nav-text {
   flex: 1;
+  min-width: 0;
 }
 
 .cp-sidebar-footer {
-  padding: 1rem 1.5rem;
-  border-top: 1px solid rgba(15, 23, 42, 0.08);
+  position: relative;
+  z-index: 1;
+  padding: 0.85rem 0.9rem;
+  border-top: 1px solid var(--cp-line);
+  background: rgba(0, 0, 0, 0.22);
 }
 
 .cp-logout-btn {
   width: 100%;
   display: flex;
   align-items: center;
-  gap: 0.75rem;
-  padding: 0.875rem 1rem;
-  background: #ffffff;
-  border: 1px solid rgba(15, 23, 42, 0.10);
-  color: #0f172a;
-  font-size: 0.95rem;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.65rem 0.85rem;
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  color: #ffffff;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
   cursor: pointer;
-  transition: all 0.2s ease;
-  border-radius: 0;
+  transition: background 0.15s ease, border-color 0.15s ease;
 }
 
 .cp-logout-btn:hover {
-  background: #fef2f2;
-  color: #b91c1c;
-  border-color: rgba(220, 38, 38, 0.30);
-}
-
-.cp-logout-btn svg {
-  width: 20px;
-  height: 20px;
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(248, 113, 113, 0.55);
+  color: #fecaca;
 }

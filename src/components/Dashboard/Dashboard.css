@@ -44,10 +44,6 @@
   width: 100%;
 }
 
-.dashboard-body .market-pulse-widget__featured-thumb-wrap {
-  aspect-ratio: 16 / 6;
-}
-
 .dashboard-body .market-pulse-widget__list-viewport {
   max-height: 240px;
 }
@@ -3214,4 +3210,204 @@
 .dashboard-footer-section p { 
   margin: 0; 
   line-height: 1.5;
+}
+
+/* Wealth-dashboard visual language, retaining the Equity background and palette. */
+.equity-dashboard {
+  --dash-ink: #1a1f1c;
+  --dash-ink-soft: #3d4540;
+  --dash-muted: #6b746e;
+  --dash-line: #e6e2d9;
+  --dash-card-border: var(--dash-line);
+  --dash-card-shadow: 0 4px 14px rgba(26, 31, 28, 0.04);
+  --dash-card-shadow-hover: 0 10px 28px rgba(26, 31, 28, 0.06);
+  --dash-radius: 1.05rem;
+  --dash-radius-sm: 0.65rem;
+  --dash-card-surface: #ffffff;
+  --dash-space-1: 0.35rem;
+  --dash-space-2: 0.55rem;
+  --dash-space-3: 0.9rem;
+
+  color: var(--dash-ink);
+  font-family: 'DM Sans', 'Segoe UI', sans-serif;
+}
+
+.equity-dashboard .dashboard-body {
+  max-width: 1480px;
+  gap: var(--dash-space-2);
+  padding: 0.1rem 0.1rem 1.5rem;
+}
+
+.equity-dashboard .dashboard-body__left,
+.equity-dashboard .dashboard-body__right,
+.equity-dashboard .left-column,
+.equity-dashboard .right-column {
+  gap: var(--dash-space-2);
+}
+
+.equity-dashboard .content-card,
+.equity-dashboard .market-pulse-widget,
+.equity-dashboard .market-movers-board.mmx,
+.equity-dashboard .market-news-widget,
+.equity-dashboard .market-strip,
+.equity-dashboard .dashboard-hero--portfolio-only {
+  border-color: var(--dash-line);
+  border-radius: var(--dash-radius);
+  box-shadow: var(--dash-card-shadow);
+  font-family: inherit;
+}
+
+.equity-dashboard .content-card:hover,
+.equity-dashboard .market-pulse-widget:hover,
+.equity-dashboard .market-movers-board.mmx:hover,
+.equity-dashboard .market-news-widget:hover {
+  border-color: #d7d2c8;
+  box-shadow: var(--dash-card-shadow-hover);
+}
+
+.equity-dashboard .content-card,
+.equity-dashboard .content-card.dashboard-cost-vs-mv-card,
+.equity-dashboard .content-card.dashboard-sector-mix-card,
+.equity-dashboard .content-card.health-card,
+.equity-dashboard .content-card.insights-card,
+.equity-dashboard .content-card.dashboard-quick-actions-card {
+  padding: 0.8rem 0.9rem 0.9rem;
+  border-radius: var(--dash-radius);
+}
+
+.equity-dashboard .dashboard-hero--portfolio-only,
+.equity-dashboard .market-strip {
+  padding: 0.7rem 0.8rem;
+}
+
+.equity-dashboard .card-header,
+.equity-dashboard .content-card.dashboard-cost-vs-mv-card .card-header,
+.equity-dashboard .content-card.dashboard-sector-mix-card .card-header,
+.equity-dashboard .health-card .card-header,
+.equity-dashboard .insights-card .card-header,
+.equity-dashboard .dashboard-quick-actions-card .card-header,
+.equity-dashboard .cse-card__head {
+  margin-bottom: 0.65rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid var(--dash-line);
+}
+
+.equity-dashboard .header-left h3,
+.equity-dashboard .health-card .header-left h3,
+.equity-dashboard .insights-card .header-left h3,
+.equity-dashboard .dashboard-quick-actions-card .header-left h3,
+.equity-dashboard .cse-card__title,
+.equity-dashboard .market-news-widget__title-text {
+  margin: 0;
+  color: var(--dash-ink);
+  font-family: inherit;
+  font-size: 0.95rem;
+  font-weight: 800;
+  line-height: 1.2;
+  letter-spacing: -0.015em;
+}
+
+.equity-dashboard .card-subtitle,
+.equity-dashboard .health-card .card-subtitle,
+.equity-dashboard .insights-card .card-subtitle,
+.equity-dashboard .cse-card__sub,
+.equity-dashboard .market-news-widget__subtitle-text {
+  color: var(--dash-muted);
+  font-family: inherit;
+  font-size: 0.7rem;
+  font-weight: 500;
+  line-height: 1.4;
+}
+
+.equity-dashboard .dashboard-hero__eyebrow,
+.equity-dashboard .pnl-stat__label,
+.equity-dashboard .health-card .health-kpi__label,
+.equity-dashboard .health-card .health-block__title,
+.equity-dashboard .insights-card .pi-col__title {
+  color: var(--dash-muted);
+  font-family: inherit;
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.equity-dashboard .pnl-stats {
+  gap: var(--dash-space-2);
+  padding: var(--dash-space-2);
+  border-color: var(--dash-line);
+  border-radius: var(--dash-radius);
+}
+
+.equity-dashboard .pnl-stat {
+  gap: 0.18rem;
+  padding: 0.7rem 0.8rem;
+  border-color: var(--dash-line);
+  border-radius: var(--dash-radius);
+  box-shadow: var(--dash-card-shadow);
+}
+
+.equity-dashboard .pnl-stat__value {
+  font-family: inherit;
+  font-size: 1.15rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+
+.equity-dashboard .dashboard-hero__portfolio-select,
+.equity-dashboard .market-pulse-widget__refresh,
+.equity-dashboard .market-pulse-widget__more,
+.equity-dashboard .market-news-widget__refresh,
+.equity-dashboard .market-news-widget__more,
+.equity-dashboard .cse-refresh {
+  border-radius: var(--dash-radius-sm);
+  font-family: inherit;
+}
+
+.equity-dashboard .health-card .health-top,
+.equity-dashboard .health-card .health-bottom,
+.equity-dashboard .insights-card .pi-grid,
+.equity-dashboard .dashboard-quick-actions-card .actions-grid,
+.equity-dashboard .market-pulse-widget__list-viewport,
+.equity-dashboard .mmx__list {
+  gap: var(--dash-space-2);
+  padding: var(--dash-space-2);
+  border-color: var(--dash-line);
+  border-radius: 0.75rem;
+}
+
+.equity-dashboard .health-card .health-score,
+.equity-dashboard .health-card .health-kpi,
+.equity-dashboard .health-card .health-block,
+.equity-dashboard .insights-card .pi-col,
+.equity-dashboard .dashboard-quick-actions-card .action-card,
+.equity-dashboard .mmx-spot,
+.equity-dashboard .mmx__seg-btn,
+.equity-dashboard .mmx-row {
+  border-color: var(--dash-line);
+  border-radius: 0.75rem;
+  box-shadow: var(--dash-card-shadow);
+}
+
+.equity-dashboard .dashboard-footer-section {
+  max-width: 1480px;
+  margin: 0.75rem auto 0;
+  color: var(--dash-muted);
+  font-size: 0.72rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+@media (max-width: 1100px) {
+  .equity-dashboard .dashboard-body {
+    padding-right: var(--dash-space-2);
+    padding-left: var(--dash-space-2);
+  }
+}
+
+@media (max-width: 720px) {
+  .equity-dashboard .dashboard-body {
+    padding-right: 0.55rem;
+    padding-left: 0.55rem;
+  }
 }

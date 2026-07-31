@@ -24,6 +24,16 @@ const VARIANT_COPY = {
       'Priority support & onboarding',
     ],
   },
+  clientPortal: {
+    featureName: 'Sherwood Wealth Client Portal',
+    comingSoon: true,
+    benefits: [
+      'Client onboarding & digital KYC',
+      'Portfolio view & fund documents',
+      'Investment planner & statements',
+      'Secure client self-service access',
+    ],
+  },
   portfolioTransfers: {
     featureName: 'Portfolio Transfers',
     comingSoon: true,

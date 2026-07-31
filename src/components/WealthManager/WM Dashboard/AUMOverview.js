@@ -55,12 +55,6 @@ const AUMOverview = () => {
     return `${value >= 0 ? '+' : ''}${value.toFixed(2)}%`;
   };
 
-  const getPerformanceColor = (val) => {
-    if (val > 0) return '#16a34a';
-    if (val < 0) return '#dc2626';
-    return '#64748b';
-  };
-
   // Build data for simple horizontal bar chart of asset classes
   const maxAumAsset = Math.max(...assetClasses.map((a) => a.aum));
 
@@ -99,11 +93,10 @@ const AUMOverview = () => {
             <span className="wao-summary-label">Total AUM</span>
           </div>
           <div className="wao-summary-value">
+            <span className="wao-summary-ccy">{currency}</span>
             {currency === 'LKR' ? formatCurrency(totalAum) : formatCurrency(totalAum / 360)}
           </div>
-          <div className="wao-summary-note">
-            {currency === 'LKR' ? 'LKR' : 'USD'} across all segments
-          </div>
+          <div className="wao-summary-note">Across all client segments</div>
         </div>
 
         <div className="wao-summary-card wao-card-2">
@@ -119,6 +112,7 @@ const AUMOverview = () => {
             <span className="wao-summary-label">1M Net Inflow</span>
           </div>
           <div className="wao-summary-value">
+            <span className="wao-summary-ccy">{currency}</span>
             {currency === 'LKR'
               ? formatCurrency(oneMonthNetFlow)
               : formatCurrency(oneMonthNetFlow / 360)}
@@ -143,10 +137,18 @@ const AUMOverview = () => {
       {/* Segment breakdown */}
       <div className="wao-section">
         <div className="wao-section-header">
-          <h3>Client Segment AUM</h3>
-          <div className="wao-view-toggle">
+          <div>
+            <p className="wao-section-kicker">Book composition</p>
+            <h3>Client Segment AUM</h3>
+            <p className="wao-section-blurb">
+              Assets, client concentration, and monthly movement across the wealth book.
+            </p>
+          </div>
+          <div className="wao-view-toggle" role="tablist" aria-label="AUM breakdown view">
             <button
               type="button"
+              role="tab"
+              aria-selected={viewMode === 'segments'}
               className={`wao-toggle-btn ${viewMode === 'segments' ? 'active' : ''}`}
               onClick={() => setViewMode('segments')}
             >
@@ -154,6 +156,8 @@ const AUMOverview = () => {
             </button>
             <button
               type="button"
+              role="tab"
+              aria-selected={viewMode === 'funds'}
               className={`wao-toggle-btn ${viewMode === 'funds' ? 'active' : ''}`}
               onClick={() => setViewMode('funds')}
             >
@@ -168,10 +172,10 @@ const AUMOverview = () => {
               <thead>
                 <tr>
                   <th>Segment</th>
-                  <th>Clients</th>
-                  <th>AUM</th>
-                  <th>Avg. AUM / Client</th>
-                  <th>1M Change</th>
+                  <th className="wao-num">Clients</th>
+                  <th className="wao-num">AUM</th>
+                  <th className="wao-num">Avg. AUM / Client</th>
+                  <th className="wao-num">1M Change</th>
                 </tr>
               </thead>
               <tbody>
@@ -179,12 +183,14 @@ const AUMOverview = () => {
                   const avg = s.clients > 0 ? s.aum / s.clients : 0;
                   return (
                     <tr key={s.name}>
-                      <td>{s.name}</td>
-                      <td>{s.clients}</td>
-                      <td>{formatCurrency(s.aum)}</td>
-                      <td>{formatCurrency(avg)}</td>
-                      <td style={{ color: getPerformanceColor(s.change1M) }}>
-                        {formatPercent(s.change1M)}
+                      <td><strong className="wao-primary-cell">{s.name}</strong></td>
+                      <td className="wao-num">{s.clients}</td>
+                      <td className="wao-num">{formatCurrency(s.aum)}</td>
+                      <td className="wao-num">{formatCurrency(avg)}</td>
+                      <td className="wao-num">
+                        <span className={`wao-delta${s.change1M >= 0 ? ' is-up' : ' is-down'}`}>
+                          {formatPercent(s.change1M)}
+                        </span>
                       </td>
                     </tr>
                   );
@@ -199,17 +205,17 @@ const AUMOverview = () => {
                 <tr>
                   <th>Fund</th>
                   <th>Code</th>
-                  <th>AUM</th>
+                  <th className="wao-num">AUM</th>
                   <th>Key Segments</th>
                 </tr>
               </thead>
               <tbody>
                 {funds.map((f) => (
                   <tr key={f.code}>
-                    <td>{f.name}</td>
-                    <td>{f.code}</td>
-                    <td>{formatCurrency(f.aum)}</td>
-                    <td>{f.segment}</td>
+                    <td><strong className="wao-primary-cell">{f.name}</strong></td>
+                    <td><span className="wao-code">{f.code}</span></td>
+                    <td className="wao-num">{formatCurrency(f.aum)}</td>
+                    <td><span className="wao-segment-chip">{f.segment}</span></td>
                   </tr>
                 ))}
               </tbody>
@@ -221,7 +227,13 @@ const AUMOverview = () => {
       {/* Asset class allocation */}
       <div className="wao-section">
         <div className="wao-section-header">
-          <h3>Asset Class Allocation</h3>
+          <div>
+            <p className="wao-section-kicker">Allocation</p>
+            <h3>Asset Class Allocation</h3>
+            <p className="wao-section-blurb">
+              Relative exposure and capital concentration by asset class.
+            </p>
+          </div>
         </div>
         <div className="wao-asset-grid">
           <div className="wao-asset-bars">
