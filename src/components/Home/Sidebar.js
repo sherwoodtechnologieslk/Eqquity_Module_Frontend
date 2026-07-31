@@ -902,7 +902,7 @@ const Sidebar = ({ onSelect, onPremiumFeature, activeIndex = 0, onLogout, onMana
 
     setActive(originalIndex);
     if (onSelect && menuItem) {
-      onSelect(originalIndex, menuItem.subTopics || []);
+      onSelect(originalIndex, menuItem.subTopics || [], selectedManager);
     }
   };
 
@@ -922,15 +922,22 @@ const Sidebar = ({ onSelect, onPremiumFeature, activeIndex = 0, onLogout, onMana
     setExpandedCategories(
       managerType === 'equity' ? { 'equity:Governance': true } : {}
     );
-    const baseMenuItems = managerType === 'equity' ? equityManagerMenuItems : wealthManagerMenuItems;
-    const newMenuItems =
-      managerType === 'equity' ? filterEquityMenuItems(user, baseMenuItems) : baseMenuItems;
+
+    // Switching to Wealth: App.handleManagerChange already applied the Wealth
+    // dashboard tabs. Calling onSelect here would run under a stale
+    // selectedManager === 'equity' and Equity-filter Wealth-only tabs away.
+    if (managerType === 'wealth') {
+      return;
+    }
+
+    const baseMenuItems = equityManagerMenuItems;
+    const newMenuItems = filterEquityMenuItems(user, baseMenuItems);
     if (onSelect && newMenuItems.length > 0) {
       const first = newMenuItems[0];
       const originalIndex = baseMenuItems.findIndex((item) => item.name === first.name);
-      onSelect(originalIndex >= 0 ? originalIndex : 0, first?.subTopics || []);
+      onSelect(originalIndex >= 0 ? originalIndex : 0, first?.subTopics || [], 'equity');
     } else if (onSelect) {
-      onSelect(0, []);
+      onSelect(0, [], 'equity');
     }
   };
 
@@ -965,10 +972,14 @@ const Sidebar = ({ onSelect, onPremiumFeature, activeIndex = 0, onLogout, onMana
       {/* Brand/logo section */}
       <div className="sidebar-brand">
         <div className="navbar-brand">
-          <div className="brand-icon">
+          <div className="brand-icon" aria-hidden="true">
             <svg className="brand-logo" fill="currentColor" viewBox="0 0 20 20">
-              <path d="M4 4a2 2 0 00-2 2v1h16V6a2 2 0 00-2-2H4z"/>
-              <path fillRule="evenodd" d="M18 9H2v5a2 2 0 002 2h12a2 2 0 002-2V9zM4 13a1 1 0 011-1h1a1 1 0 110 2H5a1 1 0 01-1-1zm5-1a1 1 0 100 2h1a1 1 0 100-2H9z" clipRule="evenodd"/>
+              <path d="M4 4a2 2 0 00-2 2v1h16V6a2 2 0 00-2-2H4z" />
+              <path
+                fillRule="evenodd"
+                d="M18 9H2v5a2 2 0 002 2h12a2 2 0 002-2V9zM4 13a1 1 0 011-1h1a1 1 0 110 2H5a1 1 0 01-1-1zm5-1a1 1 0 100 2h1a1 1 0 100-2H9z"
+                clipRule="evenodd"
+              />
             </svg>
           </div>
           <div className="brand-text-container">
@@ -1002,7 +1013,7 @@ const Sidebar = ({ onSelect, onPremiumFeature, activeIndex = 0, onLogout, onMana
                   }}
                 >
                   <button
-                    className={`dropdown-item ${selectedManager === 'equity' ? 'active' : ''}`}
+                    className={`dropdown-item dropdown-item--equity${selectedManager === 'equity' ? ' active' : ''}`}
                     onClick={() => handleManagerSwitch('equity')}
                     type="button"
                   >
@@ -1019,7 +1030,7 @@ const Sidebar = ({ onSelect, onPremiumFeature, activeIndex = 0, onLogout, onMana
                     )}
                   </button>
                   <button
-                    className={`dropdown-item ${selectedManager === 'wealth' ? 'active' : ''}`}
+                    className={`dropdown-item dropdown-item--wealth${selectedManager === 'wealth' ? ' active' : ''}`}
                     onClick={() => handleManagerSwitch('wealth')}
                     type="button"
                   >
@@ -1038,49 +1049,46 @@ const Sidebar = ({ onSelect, onPremiumFeature, activeIndex = 0, onLogout, onMana
                   </button>
                 </div>
               )}
-              {/* Temporary Client/Admin Toggle for Wealth Manager */}
-              {selectedManager === 'wealth' && onClientViewToggle && (
-                <div className="client-view-toggle" style={{ marginTop: '1rem', padding: '0.75rem', background: 'rgba(255, 255, 255, 0.1)', borderRadius: '0' }}>
-                  <button
-                    onClick={() => onClientViewToggle(!isClientView)}
-                    style={{
-                      width: '100%',
-                      padding: '0.5rem',
-                      background: isClientView ? 'rgba(255, 255, 255, 0.2)' : 'transparent',
-                      border: '1px solid rgba(255, 255, 255, 0.3)',
-                      borderRadius: '0',
-                      color: 'white',
-                      fontSize: '0.875rem',
-                      cursor: 'pointer',
-                      transition: 'all 0.2s ease',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      gap: '0.5rem'
-                    }}
-                    title={isClientView ? 'Switch to Admin View' : 'Switch to Client View'}
-                  >
-                    {isClientView ? (
-                      <>
-                        <svg fill="currentColor" viewBox="0 0 20 20" width="16" height="16">
-                          <path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd"/>
-                        </svg>
-                        <span>Admin View</span>
-                      </>
-                    ) : (
-                      <>
-                        <svg fill="currentColor" viewBox="0 0 20 20" width="16" height="16">
-                          <path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z"/>
-                        </svg>
-                        <span>Client Portal</span>
-                      </>
-                    )}
-                  </button>
-                </div>
-              )}
             </div>
           </div>
         </div>
+
+        {selectedManager === 'wealth' && onClientViewToggle && (
+          <div className="eq-portal-entry">
+            <div className="eq-portal-entry__meta">
+              <span className="eq-portal-entry__label">Client access</span>
+              <span className={`eq-portal-entry__status${isClientView ? ' is-on' : ''}`}>
+                {isClientView ? 'Active' : 'Admin'}
+              </span>
+            </div>
+            <button
+              type="button"
+              className={`eq-portal-entry__btn${isClientView ? ' is-on' : ''}`}
+              onClick={() => onClientViewToggle(!isClientView)}
+              title={isClientView ? 'Switch to Admin View' : 'Switch to Client View'}
+            >
+              <span className="eq-portal-entry__icon" aria-hidden>
+                {isClientView ? (
+                  <svg fill="currentColor" viewBox="0 0 20 20" width="15" height="15">
+                    <path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd"/>
+                  </svg>
+                ) : (
+                  <svg fill="currentColor" viewBox="0 0 20 20" width="15" height="15">
+                    <path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z"/>
+                  </svg>
+                )}
+              </span>
+              <span className="eq-portal-entry__text">
+                {isClientView ? 'Admin View' : 'Client Portal'}
+              </span>
+              <span className="eq-portal-entry__chevron" aria-hidden>
+                <svg fill="currentColor" viewBox="0 0 20 20" width="12" height="12">
+                  <path fillRule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clipRule="evenodd"/>
+                </svg>
+              </span>
+            </button>
+          </div>
+        )}
       </div>
 
       {/* Navigation Menu */}

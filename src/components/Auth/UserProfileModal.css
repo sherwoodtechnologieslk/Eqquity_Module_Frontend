@@ -553,3 +553,130 @@
     border-color: #000;
   }
 }
+
+/* ===== Wealth Manager variant ===== */
+.upm-modal-overlay--wealth {
+  background: rgba(15, 55, 52, 0.52);
+  backdrop-filter: blur(5px);
+}
+
+.upm-modal-content--wealth {
+  border-color: rgba(15, 118, 110, 0.18);
+  box-shadow:
+    0 20px 48px rgba(15, 118, 110, 0.22),
+    0 1px 0 rgba(255, 255, 255, 0.4) inset;
+}
+
+.upm-modal-content--wealth .upm-modal-header {
+  background: linear-gradient(
+    90deg,
+    #134e4a 0%,
+    #0f766e 42%,
+    #0e7490 100%
+  );
+}
+
+.upm-modal-content--wealth .upm-modal-header::before {
+  background: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.12) 0%,
+    transparent 60%
+  );
+}
+
+.upm-modal-content--wealth .upm-close-button {
+  background: rgba(255, 255, 255, 0.16);
+  border-color: rgba(255, 255, 255, 0.45);
+}
+
+.upm-modal-content--wealth .upm-close-button:hover {
+  background: rgba(255, 255, 255, 0.28);
+  border-color: rgba(255, 255, 255, 0.7);
+}
+
+.upm-modal-content--wealth .upm-profile-avatar {
+  background: rgba(255, 255, 255, 0.18);
+  border-color: rgba(255, 255, 255, 0.55);
+}
+
+.upm-modal-content--wealth .upm-status-badge {
+  background: rgba(45, 212, 191, 0.22);
+  color: #ecfdf5;
+  border-color: rgba(94, 234, 212, 0.45);
+}
+
+.upm-modal-content--wealth .upm-status-dot {
+  background: #5eead4;
+}
+
+.upm-modal-content--wealth .upm-modal-body {
+  background: #f5fafa;
+}
+
+.upm-modal-content--wealth .upm-section-heading::after {
+  background: rgba(15, 118, 110, 0.16);
+}
+
+.upm-modal-content--wealth .upm-section-heading h4 {
+  color: #0f766e;
+}
+
+.upm-modal-content--wealth .upm-info-cell {
+  border-color: rgba(15, 118, 110, 0.14);
+  background: #ffffff;
+}
+
+.upm-modal-content--wealth .upm-info-cell:hover {
+  border-color: rgba(20, 184, 166, 0.45);
+  background: #f0fdfa;
+}
+
+.upm-modal-content--wealth .upm-info-value--funds {
+  color: #0f766e;
+}
+
+.upm-modal-content--wealth .upm-password-form {
+  border-color: rgba(15, 118, 110, 0.14);
+}
+
+.upm-modal-content--wealth .upm-password-alert--info {
+  color: #0f766e;
+  background: #f0fdfa;
+  border-color: #99f6e4;
+}
+
+.upm-modal-content--wealth .upm-password-field input {
+  border-color: #cbd5e1;
+  background: #ffffff;
+}
+
+.upm-modal-content--wealth .upm-password-field input:focus {
+  border-color: #14b8a6;
+  box-shadow: 0 0 0 3px rgba(20, 184, 166, 0.16);
+}
+
+.upm-modal-content--wealth .upm-password-secondary {
+  border-color: rgba(15, 118, 110, 0.2);
+  color: #0f766e;
+}
+
+.upm-modal-content--wealth .upm-password-secondary:hover:not(:disabled) {
+  background: #f0fdfa;
+}
+
+.upm-modal-content--wealth .upm-password-submit {
+  background: linear-gradient(135deg, #0f766e 0%, #14b8a6 55%, #06b6d4 100%);
+  box-shadow: 0 2px 8px rgba(15, 118, 110, 0.28);
+}
+
+.upm-modal-content--wealth .upm-password-submit:hover:not(:disabled) {
+  background: linear-gradient(135deg, #0d9488 0%, #14b8a6 50%, #22d3ee 100%);
+}
+
+.upm-modal-content--wealth .upm-modal-body::-webkit-scrollbar-thumb {
+  background: rgba(15, 118, 110, 0.35);
+}
+
+.upm-modal-content--wealth .upm-modal-body::-webkit-scrollbar-thumb:hover {
+  background: rgba(15, 118, 110, 0.5);
+}

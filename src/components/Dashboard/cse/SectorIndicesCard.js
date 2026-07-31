@@ -70,10 +70,15 @@ const SectorIndicesCard = () => {
         >
             <header className="card-header cse-sector-indices__header">
                 <div className="header-left cse-sector-indices__heading">
+                    <h2>Sector indices</h2>
                     <span className="cse-sector-indices__hint">
-                        Live CSE sector index values · Colombo Stock Exchange
+                        Performance and market flow by CSE sector
                     </span>
                 </div>
+                <span className="cse-sector-indices__badge">
+                    <span className="cse-sector-indices__badge-dot" aria-hidden />
+                    Live CSE
+                </span>
             </header>
 
             {loading && items.length === 0 ? (

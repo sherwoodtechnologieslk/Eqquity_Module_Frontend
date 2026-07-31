@@ -235,7 +235,6 @@ const ImportHistory = () => {
         {/* Toolbar */}
         <header className="ih-toolbar">
           <div className="ih-toolbar__left">
-            <span className="ih-toolbar__badge">IMPORT HISTORY</span>
             <div className="ih-toolbar__heading">
               <h1 className="ih-toolbar__title">Import History</h1>
               <p className="ih-toolbar__subtitle">Review and audit bulk transaction imports</p>

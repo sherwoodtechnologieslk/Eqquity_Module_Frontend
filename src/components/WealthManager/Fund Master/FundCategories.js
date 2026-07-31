@@ -184,7 +184,11 @@ const FundCategories = () => {
     return (
       <div className="fc-container">
         <div className="fc-header">
-          <h2>Fund Categories List</h2>
+          <div className="fc-header-copy">
+            <span className="fc-eyebrow">Fund administration</span>
+            <h2>Fund Categories List</h2>
+            <p>Review and maintain the classifications used across the unit-trust catalogue.</p>
+          </div>
           <button 
             className="fc-btn fc-btn-primary"
             onClick={() => setShowListView(false)}
@@ -235,7 +239,11 @@ const FundCategories = () => {
   return (
     <div className="fc-container">
       <div className="fc-header">
-        <h2>Fund Category Entry</h2>
+        <div className="fc-header-copy">
+          <span className="fc-eyebrow">Fund administration</span>
+          <h2>Fund Category Entry</h2>
+          <p>Define category characteristics, risk expectations, and regulatory treatment.</p>
+        </div>
         <div className="fc-header-actions">
           <button 
             className="fc-btn fc-btn-secondary"

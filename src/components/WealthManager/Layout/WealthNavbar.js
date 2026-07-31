@@ -1,61 +1,66 @@
-import React, { useMemo } from 'react';
+import React, { useEffect, useMemo, useRef } from 'react';
 import './WealthLayout.css';
 
 const WealthNavbar = ({ activeTab, visibleTabs = [], onTabChange, user, onOpenProfile }) => {
   const tabs = useMemo(() => visibleTabs, [visibleTabs]);
+  const pillsRef = useRef(null);
+
+  useEffect(() => {
+    const active = pillsRef.current?.querySelector('.wm-pill.is-active');
+    if (active && typeof active.scrollIntoView === 'function') {
+      active.scrollIntoView({ behavior: 'smooth', inline: 'nearest', block: 'nearest' });
+    }
+  }, [activeTab, tabs]);
 
   return (
-    <div className="wm-navbar">
-      <div style={{ minWidth: 220 }}>
-        <div className="wm-navbar-title">{activeTab || 'Wealth Manager'}</div>
-      </div>
-
-      <div style={{ flex: 1, display: 'flex', justifyContent: 'center' }}>
-        <div className="wm-navbar-pills">
-          {tabs.map((t) => (
-            <button
-              key={t}
-              type="button"
-              onClick={() => onTabChange && onTabChange(t)}
-              className={`wm-pill ${activeTab === t ? 'is-active' : ''}`}
-              title={t}
-            >
-              {t}
-            </button>
-          ))}
-        </div>
-      </div>
-
-      <div style={{ minWidth: 360, display: 'flex', justifyContent: 'flex-end', gap: 10, alignItems: 'center' }}>
-        <div className="wm-kpi-chip">
-          <div style={{ display: 'flex', flexDirection: 'column', lineHeight: 1.1 }}>
-            <div style={{ fontSize: '0.74rem', color: '#64748b' }}>AUM</div>
-            <div style={{ fontSize: '0.92rem', color: '#0f172a', fontWeight: 700 }}>—</div>
-          </div>
-          <div style={{ width: 1, height: 22, background: 'rgba(15,23,42,0.10)' }} />
-          <div style={{ display: 'flex', flexDirection: 'column', lineHeight: 1.1 }}>
-            <div style={{ fontSize: '0.74rem', color: '#64748b' }}>Clients</div>
-            <div style={{ fontSize: '0.92rem', color: '#0f172a', fontWeight: 700 }}>—</div>
-          </div>
-          <div style={{ width: 1, height: 22, background: 'rgba(15,23,42,0.10)' }} />
-          <div style={{ display: 'flex', flexDirection: 'column', lineHeight: 1.1 }}>
-            <div style={{ fontSize: '0.74rem', color: '#64748b' }}>Funds</div>
-            <div style={{ fontSize: '0.92rem', color: '#0f172a', fontWeight: 700 }}>—</div>
+    <nav className="wm-navbar" aria-label="Wealth manager navigation">
+      <div className="wm-navbar-inner">
+        <div className="wm-navbar-brand">
+          <div className="wm-navbar-brand-icon" aria-hidden="true">
+            <svg className="wm-navbar-brand-logo" viewBox="0 0 20 20" fill="currentColor">
+              <rect x="5.5" y="4.2" width="9" height="2.5" rx="1.25" />
+              <rect x="3" y="8.75" width="14" height="2.5" rx="1.25" />
+              <rect x="5.5" y="13.3" width="9" height="2.5" rx="1.25" />
+            </svg>
           </div>
         </div>
 
-        <button
-          type="button"
-          onClick={onOpenProfile}
-          title="User Profile"
-          className="wm-avatar"
-        >
-          {(user?.first_name?.[0] || 'U') + (user?.last_name?.[0] || '')}
-        </button>
+        <div className="wm-navbar-center">
+          <div className="wm-navbar-pills" role="tablist" ref={pillsRef}>
+            {tabs.length === 0 ? (
+              <span className="wm-navbar-empty">No tabs available</span>
+            ) : (
+              tabs.map((t) => (
+                <button
+                  key={t}
+                  type="button"
+                  role="tab"
+                  aria-selected={activeTab === t}
+                  onClick={() => onTabChange && onTabChange(t)}
+                  className={`wm-pill${activeTab === t ? ' is-active' : ''}`}
+                  title={t}
+                >
+                  {t}
+                </button>
+              ))
+            )}
+          </div>
+        </div>
+
+        <div className="wm-navbar-actions">
+          <button
+            type="button"
+            onClick={onOpenProfile}
+            title="User Profile"
+            className="wm-avatar"
+            aria-label="Open user profile"
+          >
+            {(user?.first_name?.[0] || 'U') + (user?.last_name?.[0] || '')}
+          </button>
+        </div>
       </div>
-    </div>
+    </nav>
   );
 };
 
 export default WealthNavbar;
-

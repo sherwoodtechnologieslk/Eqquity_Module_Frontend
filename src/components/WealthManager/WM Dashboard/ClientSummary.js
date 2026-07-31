@@ -95,12 +95,6 @@ const ClientSummary = () => {
     return `${value >= 0 ? '+' : ''}${value.toFixed(2)}%`;
   };
 
-  const getPerformanceColor = (v) => {
-    if (v > 0) return '#16a34a';
-    if (v < 0) return '#dc2626';
-    return '#64748b';
-  };
-
   const filteredClients = useMemo(
     () =>
       clients.filter((c) => {
@@ -204,7 +198,10 @@ const ClientSummary = () => {
           <div className="wcs-summary-header">
             <span className="wcs-summary-label">Total Client AUM</span>
           </div>
-          <div className="wcs-summary-value">{formatCurrency(totalAum)}</div>
+          <div className="wcs-summary-value">
+            <span className="wcs-summary-ccy">LKR</span>
+            {formatCurrency(totalAum)}
+          </div>
           <div className="wcs-summary-note">All client segments</div>
         </div>
 
@@ -212,12 +209,7 @@ const ClientSummary = () => {
           <div className="wcs-summary-header">
             <span className="wcs-summary-label">Average YTD Return</span>
           </div>
-          <div
-            className="wcs-summary-value"
-            style={{ color: getPerformanceColor(avgYtdReturn) }}
-          >
-            {formatPercent(avgYtdReturn)}
-          </div>
+          <div className="wcs-summary-value">{formatPercent(avgYtdReturn)}</div>
           <div className="wcs-summary-note">Weighted equally across clients</div>
         </div>
 
@@ -227,9 +219,7 @@ const ClientSummary = () => {
           </div>
           <div className="wcs-summary-value-small">
             {topClient?.name || '-'}
-            <span className="wcs-pill">
-              {formatCurrency(topClient?.aum ?? 0)} AUM
-            </span>
+            <span className="wcs-pill">{formatCurrency(topClient?.aum ?? 0)} AUM</span>
           </div>
           <div className="wcs-summary-note">{topClient?.segment}</div>
         </div>
@@ -238,7 +228,13 @@ const ClientSummary = () => {
       {/* Client table */}
       <div className="wcs-section">
         <div className="wcs-section-header">
-          <h3>Client List</h3>
+          <div>
+            <p className="wcs-section-kicker">Client book</p>
+            <h3>Client List</h3>
+            <p className="wcs-section-blurb">
+              Filtered client roster with AUM, risk profile, and relationship ownership.
+            </p>
+          </div>
           <span className="wcs-section-tag">
             Showing {filteredClients.length} of {clients.length} clients
           </span>
@@ -252,9 +248,9 @@ const ClientSummary = () => {
                 <th>Type</th>
                 <th>Segment</th>
                 <th>Risk Profile</th>
-                <th>Portfolios</th>
-                <th>AUM</th>
-                <th>YTD Return</th>
+                <th className="wcs-num">Portfolios</th>
+                <th className="wcs-num">AUM</th>
+                <th className="wcs-num">YTD Return</th>
                 <th>Relationship Manager</th>
               </tr>
             </thead>
@@ -278,10 +274,12 @@ const ClientSummary = () => {
                       {c.riskProfile}
                     </span>
                   </td>
-                  <td>{c.portfolios}</td>
-                  <td>{formatCurrency(c.aum)}</td>
-                  <td style={{ color: getPerformanceColor(c.ytdReturn) }}>
-                    {formatPercent(c.ytdReturn)}
+                  <td className="wcs-num">{c.portfolios}</td>
+                  <td className="wcs-num">{formatCurrency(c.aum)}</td>
+                  <td className="wcs-num">
+                    <span className={`wcs-delta${c.ytdReturn >= 0 ? ' is-up' : ' is-down'}`}>
+                      {formatPercent(c.ytdReturn)}
+                    </span>
                   </td>
                   <td>{c.rm}</td>
                 </tr>
@@ -294,16 +292,22 @@ const ClientSummary = () => {
       {/* Relationship manager breakdown */}
       <div className="wcs-section">
         <div className="wcs-section-header">
-          <h3>Relationship Manager Summary</h3>
+          <div>
+            <p className="wcs-section-kicker">Coverage</p>
+            <h3>Relationship Manager Summary</h3>
+            <p className="wcs-section-blurb">
+              Client count and book size by relationship manager.
+            </p>
+          </div>
         </div>
         <div className="wcs-table-container">
           <table className="wcs-table">
             <thead>
               <tr>
                 <th>Relationship Manager</th>
-                <th>Clients</th>
-                <th>Total AUM</th>
-                <th>Avg AUM / Client</th>
+                <th className="wcs-num">Clients</th>
+                <th className="wcs-num">Total AUM</th>
+                <th className="wcs-num">Avg AUM / Client</th>
               </tr>
             </thead>
             <tbody>
@@ -312,9 +316,9 @@ const ClientSummary = () => {
                 return (
                   <tr key={rm.rm}>
                     <td>{rm.rm}</td>
-                    <td>{rm.clients}</td>
-                    <td>{formatCurrency(rm.aum)}</td>
-                    <td>{formatCurrency(avgAum)}</td>
+                    <td className="wcs-num">{rm.clients}</td>
+                    <td className="wcs-num">{formatCurrency(rm.aum)}</td>
+                    <td className="wcs-num">{formatCurrency(avgAum)}</td>
                   </tr>
                 );
               })}

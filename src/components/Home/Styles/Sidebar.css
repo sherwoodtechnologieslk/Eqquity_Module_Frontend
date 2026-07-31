@@ -31,66 +31,96 @@ html, body {
   pointer-events: none;
 }
 
-/* Brand Section */
+/* Brand Section — matches Wealth wordmark layout (Equity blue) */
 .sidebar-brand {
   position: relative;
   z-index: 10;
-  padding: 1rem 0.875rem 0.875rem;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-  background: transparent;
+  padding: 1rem 0.85rem 0.95rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  background:
+    linear-gradient(180deg, rgba(37, 99, 235, 0.14) 0%, transparent 70%),
+    rgba(0, 0, 0, 0.18);
   backdrop-filter: none;
   overflow: visible;
-  min-height: 70px;
+  min-height: 0;
   box-sizing: border-box;
   display: flex;
-  align-items: center;
+  flex-direction: column;
+  gap: 0.65rem;
+  align-items: stretch;
 }
 
 .sidebar .navbar-brand {
   display: flex;
-  align-items: center;
-  gap: 0.65rem;
+  align-items: flex-start;
+  gap: 0.7rem;
   width: 100%;
   min-width: 0;
 }
 
 .sidebar .brand-icon {
-  width: 2.15rem;
-  height: 2.15rem;
-  background: #2563eb;
-  border-radius: 0.4rem;
+  width: 1.95rem;
+  height: 1.95rem;
+  margin-top: 0.25rem;
+  background: linear-gradient(
+    145deg,
+    rgba(37, 99, 235, 0.92) 0%,
+    rgba(59, 130, 246, 0.88) 55%,
+    rgba(96, 165, 250, 0.85) 100%
+  );
+  border-radius: 0.45rem;
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: none;
-  border: 1px solid rgba(255, 255, 255, 0.15);
+  box-shadow:
+    0 4px 14px rgba(37, 99, 235, 0.35),
+    inset 0 1px 0 rgba(255, 255, 255, 0.4),
+    inset 0 -1px 0 rgba(15, 23, 42, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.28);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
   position: relative;
   overflow: hidden;
   flex-shrink: 0;
 }
 
 .sidebar .brand-icon::before {
-  content: none;
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    45deg,
+    transparent 28%,
+    rgba(255, 255, 255, 0.18) 48%,
+    rgba(255, 255, 255, 0.48) 50%,
+    rgba(255, 255, 255, 0.18) 52%,
+    transparent 72%
+  );
+  transform: translateX(-120%);
+  animation: brandIconShimmer 3.2s infinite;
+  pointer-events: none;
+  z-index: 2;
 }
 
-@keyframes shimmer {
-  0% { transform: translateX(-100%); }
-  50% { transform: translateX(100%); }
-  100% { transform: translateX(100%); }
+@keyframes brandIconShimmer {
+  0% { transform: translateX(-120%); }
+  45% { transform: translateX(120%); }
+  100% { transform: translateX(120%); }
 }
 
 .sidebar .brand-logo {
-  width: 1.375rem;
-  height: 1.375rem;
-  color: white;
+  width: 1.45rem;
+  height: 1.45rem;
+  color: #ffffff;
   position: relative;
   z-index: 1;
+  filter: drop-shadow(0 1px 1px rgba(15, 23, 42, 0.2));
 }
 
 .sidebar .brand-text-container {
   display: flex;
   flex-direction: column;
-  gap: 0.125rem;
+  gap: 0;
   overflow: visible;
   position: relative;
   flex: 1;
@@ -115,7 +145,7 @@ html, body {
   text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
 }
 
-/* Sherwood stacked wordmark (Montserrat) — EQUITY/WEALTH centered under SHERWOOD */
+/* Sherwood stacked wordmark (Montserrat) — EQUITY/WEALTH under SHERWOOD */
 .sherwood-mark {
   display: flex;
   align-items: center;
@@ -128,31 +158,32 @@ html, body {
 .sherwood-mark__inner {
   display: flex;
   flex-direction: column;
-  align-items: center;
+  align-items: flex-start;
   justify-content: center;
-  gap: 2px;
+  gap: 0.2rem;
   line-height: 1;
   width: fit-content;
   max-width: 100%;
 }
 
 .sherwood-mark__line1 {
-  font-weight: 700;
-  font-size: 0.8125rem;
-  letter-spacing: 0.14em;
-  color: #f8fafc;
+  font-weight: 800;
+  font-size: 0.92rem;
+  letter-spacing: 0.16em;
+  color: #ffffff;
   text-transform: uppercase;
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.25);
+  text-shadow: none;
+  line-height: 1.05;
 }
 
 .sherwood-mark__line2 {
-  font-weight: 600;
-  font-size: 0.5625rem;
-  letter-spacing: 0.3em;
+  font-weight: 700;
+  font-size: 0.68rem;
+  letter-spacing: 0.26em;
   text-transform: uppercase;
+  line-height: 1.1;
 }
 
-/* Second line: blues aligned with sidebar accents */
 .sherwood-mark--equity .sherwood-mark__line2 {
   color: #93c5fd;
 }
@@ -161,15 +192,14 @@ html, body {
   color: #5eead4;
 }
 
-/* Switcher row — slightly larger */
 .app-name-switcher .sherwood-mark .sherwood-mark__line1 {
-  font-size: 0.8125rem;
-  letter-spacing: 0.12em;
+  font-size: 0.92rem;
+  letter-spacing: 0.16em;
 }
 
 .app-name-switcher .sherwood-mark .sherwood-mark__line2 {
-  font-size: 0.5625rem;
-  letter-spacing: 0.28em;
+  font-size: 0.68rem;
+  letter-spacing: 0.26em;
 }
 
 .sherwood-mark--compact .sherwood-mark__line1 {
@@ -191,7 +221,10 @@ html, body {
   z-index: 1;
 }
 
-/* Manager Dropdown Container */
+.dropdown-item-brand .sherwood-mark__inner {
+  align-items: flex-start;
+}
+
 .manager-dropdown-container {
   position: relative;
   width: 100%;
@@ -199,36 +232,38 @@ html, body {
   overflow: visible;
 }
 
-/* Trigger button — frosted glass on dark sidebar */
+/* Borderless underline switcher — matches Wealth */
 .app-name-switcher {
   display: flex;
   align-items: center;
-  gap: 0.625rem;
-  background: rgba(255, 255, 255, 0.04);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  padding: 0.55rem 0.75rem;
-  border-radius: 10px;
+  gap: 0.5rem;
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 0;
+  padding: 0.15rem 0 0.55rem;
   cursor: pointer;
-  transition: background 0.18s ease, border-color 0.18s ease;
+  transition: border-color 0.18s ease;
   width: 100%;
   text-align: left;
   position: relative;
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+  box-shadow: none;
+  color: #ffffff;
 }
 
 .app-name-switcher:hover {
-  background: rgba(255, 255, 255, 0.07);
-  border-color: rgba(20, 184, 166, 0.35);
+  background: transparent;
+  border-bottom-color: rgba(147, 197, 253, 0.55);
 }
 
 .app-name-switcher:active {
-  background: rgba(255, 255, 255, 0.05);
+  background: transparent;
 }
 
 .app-name-switcher:focus-visible {
   outline: none;
-  border-color: rgba(20, 184, 166, 0.55);
-  box-shadow: 0 0 0 3px rgba(20, 184, 166, 0.18);
+  border-bottom-color: #93c5fd;
+  box-shadow: none;
 }
 
 .app-name-switcher .app-name,
@@ -238,9 +273,9 @@ html, body {
 }
 
 .switch-icon {
-  width: 14px;
-  height: 14px;
-  color: rgba(255, 255, 255, 0.55);
+  width: 13px;
+  height: 13px;
+  color: rgba(255, 255, 255, 0.45);
   transition: transform 0.22s cubic-bezier(0.4, 0, 0.2, 1), color 0.18s ease;
   flex-shrink: 0;
   stroke-width: 2;
@@ -248,11 +283,164 @@ html, body {
 
 .switch-icon.open {
   transform: rotate(180deg);
-  color: #5eead4;
+  color: #93c5fd;
 }
 
 .app-name-switcher:hover .switch-icon {
   color: #ffffff;
+}
+
+/* Client Portal control — glass card (matches Wealth layout, Equity blue) */
+.sidebar .eq-portal-entry {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+  margin: 0;
+  width: 100%;
+  box-sizing: border-box;
+  padding: 0.55rem 0.5rem 0.6rem;
+  background: rgba(0, 0, 0, 0.22);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 0.55rem;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06);
+}
+
+.sidebar .eq-portal-entry__meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding: 0 0.15rem;
+}
+
+.sidebar .eq-portal-entry__label {
+  margin: 0;
+  font-size: 0.56rem;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.48);
+}
+
+.sidebar .eq-portal-entry__status {
+  font-size: 0.52rem;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.55);
+  padding: 0.15rem 0.45rem;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.sidebar .eq-portal-entry__status.is-on {
+  color: #dbeafe;
+  background: rgba(59, 130, 246, 0.28);
+  border-color: rgba(147, 197, 253, 0.35);
+}
+
+.sidebar .eq-portal-entry__btn {
+  width: 100%;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0.55rem;
+  background: linear-gradient(
+    145deg,
+    rgba(29, 78, 216, 0.75) 0%,
+    rgba(37, 99, 235, 0.55) 50%,
+    rgba(59, 130, 246, 0.45) 100%
+  );
+  border: 1px solid rgba(147, 197, 253, 0.32);
+  border-radius: 0.5rem;
+  color: #ffffff;
+  font-size: 0.76rem;
+  font-weight: 650;
+  letter-spacing: 0.01em;
+  cursor: pointer;
+  text-align: left;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  box-shadow:
+    0 2px 8px rgba(0, 0, 0, 0.15),
+    inset 0 1px 0 rgba(255, 255, 255, 0.22);
+  transition:
+    background 0.18s ease,
+    border-color 0.18s ease,
+    box-shadow 0.18s ease,
+    transform 0.15s ease;
+}
+
+.sidebar .eq-portal-entry__btn:hover {
+  background: linear-gradient(
+    145deg,
+    rgba(29, 78, 216, 0.9) 0%,
+    rgba(37, 99, 235, 0.7) 50%,
+    rgba(59, 130, 246, 0.6) 100%
+  );
+  border-color: rgba(147, 197, 253, 0.5);
+  box-shadow:
+    0 4px 12px rgba(37, 99, 235, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.28);
+  transform: translateY(-1px);
+}
+
+.sidebar .eq-portal-entry__btn.is-on {
+  background: linear-gradient(145deg, #1d4ed8 0%, #2563eb 55%, #3b82f6 100%);
+  border-color: rgba(147, 197, 253, 0.55);
+  box-shadow:
+    0 4px 14px rgba(37, 99, 235, 0.4),
+    inset 0 1px 0 rgba(255, 255, 255, 0.3);
+}
+
+.sidebar .eq-portal-entry__icon {
+  width: 1.65rem;
+  height: 1.65rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  border-radius: 0.38rem;
+  background: linear-gradient(
+    145deg,
+    rgba(255, 255, 255, 0.18) 0%,
+    rgba(255, 255, 255, 0.08) 100%
+  );
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: #eff6ff;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.25);
+}
+
+.sidebar .eq-portal-entry__icon svg {
+  width: 0.9rem;
+  height: 0.9rem;
+}
+
+.sidebar .eq-portal-entry__text {
+  flex: 1;
+  min-width: 0;
+  line-height: 1.25;
+}
+
+.sidebar .eq-portal-entry__chevron {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.35rem;
+  height: 1.35rem;
+  flex-shrink: 0;
+  color: rgba(255, 255, 255, 0.7);
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.15);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.sidebar .eq-portal-entry__btn:hover .eq-portal-entry__chevron {
+  color: #ffffff;
+  background: rgba(0, 0, 0, 0.22);
+  border-color: rgba(255, 255, 255, 0.2);
 }
 
 /* Popup menu — refined dark card with soft teal undertone */
@@ -316,9 +504,25 @@ html, body {
   transition: height 0.18s ease;
 }
 
+.dropdown-item--equity::before {
+  background: #3b82f6;
+}
+
+.dropdown-item--wealth::before {
+  background: #14b8a6;
+}
+
 .dropdown-item:hover {
   color: #ffffff;
   background: rgba(255, 255, 255, 0.05);
+}
+
+.dropdown-item--equity:hover {
+  background: rgba(59, 130, 246, 0.08);
+}
+
+.dropdown-item--wealth:hover {
+  background: rgba(20, 184, 166, 0.08);
 }
 
 .dropdown-item:hover::before {
@@ -326,9 +530,16 @@ html, body {
 }
 
 .dropdown-item.active {
-  background: rgba(20, 184, 166, 0.12);
   color: #ffffff;
   font-weight: 600;
+}
+
+.dropdown-item--equity.active {
+  background: rgba(59, 130, 246, 0.16);
+}
+
+.dropdown-item--wealth.active {
+  background: rgba(20, 184, 166, 0.12);
 }
 
 .dropdown-item.active::before {
@@ -354,10 +565,25 @@ html, body {
   transform: none;
 }
 
-.dropdown-item.active .dropdown-icon {
+.dropdown-item--equity:hover .dropdown-icon {
+  color: #93c5fd;
+}
+
+.dropdown-item--wealth:hover .dropdown-icon {
   color: #5eead4;
+}
+
+.dropdown-item.active .dropdown-icon {
   background: transparent;
   box-shadow: none;
+}
+
+.dropdown-item--equity.active .dropdown-icon {
+  color: #93c5fd;
+}
+
+.dropdown-item--wealth.active .dropdown-icon {
+  color: #5eead4;
 }
 
 .dropdown-item span {
@@ -369,12 +595,19 @@ html, body {
 .check-icon {
   width: 16px;
   height: 16px;
-  color: #14b8a6;
   flex-shrink: 0;
   position: relative;
   z-index: 1;
   animation: checkFadeIn 0.18s ease;
   filter: none;
+}
+
+.dropdown-item--equity .check-icon {
+  color: #60a5fa;
+}
+
+.dropdown-item--wealth .check-icon {
+  color: #14b8a6;
 }
 
 @keyframes checkFadeIn {
@@ -821,14 +1054,14 @@ html, body {
     padding: 1.5rem 1rem;
   }
   
-  .brand-icon {
-    width: 2.5rem;
-    height: 2.5rem;
+  .sidebar .brand-icon {
+    width: 1.95rem;
+    height: 1.95rem;
   }
   
-  .brand-logo {
-    width: 1.5rem;
-    height: 1.5rem;
+  .sidebar .brand-logo {
+    width: 1.45rem;
+    height: 1.45rem;
   }
   
   .sidebar-item {

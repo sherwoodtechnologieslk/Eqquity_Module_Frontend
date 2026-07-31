@@ -3,7 +3,6 @@
 .wmwm-define-expenses__root {
   min-height: 100vh;
   padding: 2.25rem 2.5rem;
-  background: radial-gradient(circle at top left, #f0fdfa 0, #f6faf7 50%, #f1f5f4 100%);
   box-sizing: border-box;
 }
 

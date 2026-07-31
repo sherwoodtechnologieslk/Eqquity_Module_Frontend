@@ -152,7 +152,7 @@ const FundMaster = () => {
       fundType: ['Open-Ended', 'Close-Ended'],
       status: ['Active', 'Inactive', 'Suspended', 'Closed'],
       riskRating: ['Very Low', 'Low', 'Medium', 'High', 'Very High'],
-      baseCurrency: ['LKR', 'USD', 'EUR', 'GBP'],
+      baseCurrency: ['LKR'],
       distributionFrequency: ['Monthly', 'Quarterly', 'Semi-Annual', 'Annual', 'None'],
       dividendPolicy: ['Distribution', 'Reinvestment', 'Both']
     };
@@ -197,7 +197,8 @@ const FundMaster = () => {
             name={fieldName}
             value={value}
             onChange={handleChange}
-            className="fm-form-select"
+            className={`fm-form-select${fieldName === 'baseCurrency' ? ' fm-form-locked' : ''}`}
+            disabled={fieldName === 'baseCurrency'}
           >
             <option value="">Select {label}</option>
             {selectOptions.map(option => (
@@ -230,7 +231,11 @@ const FundMaster = () => {
     return (
       <div className="fm-container">
         <div className="fm-header">
-          <h2>Fund Master List</h2>
+          <div className="fm-header-copy">
+            <span className="fm-eyebrow">Fund administration</span>
+            <h2>Fund Master List</h2>
+            <p>Review and maintain the unit trusts available across Sherwood Wealth.</p>
+          </div>
           <button 
             className="fm-btn fm-btn-primary"
             onClick={() => setShowListView(false)}
@@ -279,7 +284,11 @@ const FundMaster = () => {
   return (
     <div className="fm-container">
       <div className="fm-header">
-        <h2>Fund Master Entry</h2>
+        <div className="fm-header-copy">
+          <span className="fm-eyebrow">Fund administration</span>
+          <h2>Fund Master Entry</h2>
+          <p>Define the fund profile, dealing terms, fees, and appointed service providers.</p>
+        </div>
         <div className="fm-header-actions">
           <button 
             className="fm-btn fm-btn-secondary"

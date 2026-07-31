@@ -3,6 +3,7 @@ import './App.css';
 import Navbar from './components/Home/Navbar';
 import DynamicHeader from './components/Home/DynamicHeader';
 import Sidebar, { equityManagerMenuItems, wealthManagerMenuItems } from './components/Home/Sidebar';
+import ManagerSelection from './components/Home/ManagerSelection';
 import AuthContainer from './components/Auth/AuthContainer';
 import UserProfileModal from './components/Auth/UserProfileModal';
 import PremiumModal from './components/PremiumModal/premiumModal';
@@ -150,6 +151,7 @@ function App() {
   const [activeSidebarItem, setActiveSidebarItem] = useState(0);
   const [visibleTabs, setVisibleTabs] = useState(['Dashboard', 'Portfolio Overview', 'Market Summary', 'Recent Activity', 'Performance Metrics']);
   const [selectedManager, setSelectedManager] = useState('equity'); // 'equity' or 'wealth'
+  const [hasSelectedManager, setHasSelectedManager] = useState(false);
   const [isClientView, setIsClientView] = useState(false); // Temporary toggle for client/admin view in wealth manager
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [user, setUser] = useState(null);
@@ -230,18 +232,42 @@ function App() {
   }, [selectedManager, user]);
 
   const handleManagerChange = (managerType) => {
-    if (managerType === 'wealth') {
-      setPremiumModalVariant('wealth');
-      setIsPremiumModalOpen(true);
-      return false;
-    }
-
     setSelectedManager(managerType);
     setActiveSidebarItem(0);
+    setTabContext(null);
+
+    if (managerType === 'wealth') {
+      const wealthTabs = wealthManagerMenuItems[0]?.subTopics || [
+        'Dashboard',
+        'Portfolio Overview',
+        'Fund Performance',
+        'Client Summary',
+        'AUM Overview',
+      ];
+      setVisibleTabs(wealthTabs);
+      setActiveTab(wealthTabs[0] || 'Dashboard');
+      return true;
+    }
+
     setVisibleTabs(['Dashboard', 'Portfolio Overview', 'Market Summary', 'Recent Activity', 'Performance Metrics']);
     setActiveTab('Dashboard');
     return true;
   };
+
+  const handleManagerSelection = (managerType) => {
+    handleManagerChange(managerType);
+    setHasSelectedManager(true);
+  };
+
+  /** Client Portal preview is gated — show coming-soon modal instead of navigating. */
+  const handleClientViewToggle = useCallback((next) => {
+    if (next) {
+      setPremiumModalVariant('clientPortal');
+      setIsPremiumModalOpen(true);
+      return;
+    }
+    setIsClientView(false);
+  }, []);
 
   // Tab component mappings
   const tabToComponent = {
@@ -384,13 +410,16 @@ function App() {
   };
 
   // Handle sidebar selection
-  const handleSidebarSelect = (index, subTopics) => {
+  const handleSidebarSelect = (index, subTopics, managerType) => {
+    const mode = managerType || selectedManager;
     setActiveSidebarItem(index);
     setTabContext(null);
 
-    const allowedTabs = Array.isArray(subTopics)
-      ? subTopics.filter((tab) => !user || canAccessTab(user, tab, equityManagerMenuItems))
-      : [];
+    const topics = Array.isArray(subTopics) ? subTopics : [];
+    const allowedTabs =
+      mode === 'wealth'
+        ? topics
+        : topics.filter((tab) => !user || canAccessTab(user, tab, equityManagerMenuItems));
 
     if (allowedTabs.length > 0) {
       setVisibleTabs(allowedTabs);
@@ -450,6 +479,8 @@ function App() {
     authService.logout();
     setIsAuthenticated(false);
     setUser(null);
+    setSelectedManager('equity');
+    setHasSelectedManager(false);
     setActiveTab('Dashboard');
     setVisibleTabs(DEFAULT_EQUITY_TABS);
   };
@@ -492,6 +523,16 @@ function App() {
     );
   }
 
+  if (!hasSelectedManager) {
+    return (
+      <ManagerSelection
+        user={user}
+        onSelect={handleManagerSelection}
+        onLogout={handleLogout}
+      />
+    );
+  }
+
   // Show Client Portal if in wealth manager mode and client view is enabled
   // TODO: Replace isClientView with user.role === 'client' check when backend is ready
   if (selectedManager === 'wealth' && isClientView) {
@@ -499,6 +540,7 @@ function App() {
   }
 
   return (
+    <>
     <div className={selectedManager === 'wealth' ? 'wm-root' : 'dashboard-root'}>
       {selectedManager === 'wealth' ? (
         <WealthSidebar
@@ -507,7 +549,7 @@ function App() {
           onLogout={handleLogout}
           onManagerChange={handleManagerChange}
           isClientView={isClientView}
-          onClientViewToggle={setIsClientView}
+          onClientViewToggle={handleClientViewToggle}
         />
       ) : (
         <Sidebar
@@ -521,7 +563,7 @@ function App() {
           onManagerChange={handleManagerChange}
           selectedManager={selectedManager}
           isClientView={isClientView}
-          onClientViewToggle={setIsClientView}
+          onClientViewToggle={handleClientViewToggle}
           user={user}
         />
       )}
@@ -581,13 +623,15 @@ function App() {
           )}
         </div>
       </div>
-      
-      {/* User Profile Modal */}
+    </div>
+
+      {/* Modals outside .wm-root so Wealth sharp-corner override does not flatten them */}
       <UserProfileModal
         user={user}
         isOpen={isProfileModalOpen}
         onClose={() => setIsProfileModalOpen(false)}
         onPasswordChanged={handlePasswordChanged}
+        variant={selectedManager === 'wealth' ? 'wealth' : 'equity'}
       />
 
       <PremiumModal
@@ -609,7 +653,7 @@ function App() {
             voluntaryCorporateActions: 'Upgrade Request - Voluntary Corporate Actions',
             mandatoryCorporateActions: 'Upgrade Request - Mandatory Corporate Actions',
             chartsAndInsights: 'Upgrade Request - Charts and Insights',
-            wealth: 'Upgrade Request - Sherwood Wealth',
+            clientPortal: 'Client Portal Access Request',
           };
           const subject =
             subjectMap[premiumModalVariant] || 'Upgrade Request - Premium Feature';
@@ -653,7 +697,7 @@ function App() {
           )}
         </>
       )}
-    </div>
+    </>
   );
 }
 
