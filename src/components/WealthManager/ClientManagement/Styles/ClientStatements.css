@@ -1,0 +1,631 @@
+/**
+ * Client Statements — Ops Dashboard visual language.
+ * Prefix: wmcls-* under .wmcls (scoped, isolated from other WM screens).
+ */
+
+.wmcls {
+  --ink: #1a1f1c;
+  --ink-soft: #3d4540;
+  --mute: #6b746e;
+  --line: #e6e2d9;
+  --paper: #ffffff;
+  --wash: #f3efe7;
+  --forest: #0f4c3a;
+  --forest-mid: #14624a;
+  --up: #15803d;
+  --down: #b91c1c;
+  --warn: #b45309;
+  --radius: 1rem;
+  --radius-sm: 0.65rem;
+  --radius-pill: 999px;
+  --shadow-sm: 0 4px 14px rgba(26, 31, 28, 0.04);
+  --sans: 'DM Sans', 'Segoe UI', sans-serif;
+
+  max-width: 1480px;
+  margin: 0 auto;
+  padding: 0.1rem 0.1rem 1.5rem;
+  color: var(--ink);
+  font-family: var(--sans);
+}
+
+.wmcls *,
+.wmcls *::before,
+.wmcls *::after {
+  box-sizing: border-box;
+}
+
+.wmcls-label {
+  display: block;
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--mute);
+}
+
+/* Rail */
+.wmcls-rail {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.75rem 1.1rem;
+  padding: 0.15rem 0.1rem 0.7rem;
+  margin-bottom: 0.55rem;
+}
+
+.wmcls-rail__brand {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.8rem;
+  min-width: 0;
+}
+
+.wm-root .wmcls .wmcls-rail__mark {
+  width: 2.5rem;
+  height: 2.5rem;
+  margin-top: 0.15rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  background: var(--forest);
+  color: #fff;
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  border-radius: 0.7rem !important;
+}
+
+.wmcls-rail__eyebrow {
+  margin: 0 0 0.2rem;
+  font-size: 0.6rem;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--forest-mid);
+}
+
+.wm-root .wmcls .wmcls-rail__title {
+  margin: 0 0 0.2rem;
+  font-family: var(--sans);
+  font-size: clamp(1.35rem, 2.2vw, 1.75rem);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1.1;
+  color: var(--ink);
+  text-align: left !important;
+  -webkit-text-fill-color: currentColor;
+  background: none;
+}
+
+.wmcls-rail__blurb {
+  margin: 0;
+  max-width: 38rem;
+  font-size: 0.82rem;
+  line-height: 1.45;
+  color: var(--mute);
+}
+
+.wmcls-rail__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+  padding-top: 0.25rem;
+}
+
+/* Buttons */
+.wmcls-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  min-height: 2.15rem;
+  padding: 0.4rem 0.9rem;
+  border: 1px solid transparent;
+  font: inherit;
+  font-size: 0.78rem;
+  font-weight: 650;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.wm-root .wmcls .wmcls-btn {
+  border-radius: 0.65rem !important;
+}
+
+.wmcls-btn--solid {
+  background: var(--forest);
+  border-color: var(--forest);
+  color: #fff;
+}
+
+.wmcls-btn--solid:hover:not(:disabled) {
+  background: var(--forest-mid);
+  border-color: var(--forest-mid);
+  box-shadow: 0 4px 12px rgba(15, 76, 58, 0.18);
+}
+
+.wmcls-btn--ghost {
+  background: var(--wash);
+  border-color: var(--line);
+  color: var(--ink-soft);
+}
+
+.wmcls-btn--ghost:hover:not(:disabled) {
+  background: #fff;
+  border-color: #d2ccc0;
+}
+
+.wmcls-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.wmcls-toast {
+  margin-bottom: 0.55rem;
+  padding: 0.65rem 0.85rem;
+  border: 1px solid #bbf7d0;
+  background: #f0fdf4;
+  color: var(--up);
+  font-size: 0.78rem;
+  font-weight: 600;
+}
+
+.wm-root .wmcls .wmcls-toast {
+  border-radius: var(--radius-sm) !important;
+}
+
+/* Spotlight */
+.wmcls-spotlight {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 0.55rem;
+  margin-bottom: 0.55rem;
+}
+
+.wmcls-stat {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  padding: 0.7rem 0.8rem;
+  background: var(--paper);
+  border: 1px solid var(--line);
+  box-shadow: var(--shadow-sm);
+  min-width: 0;
+}
+
+.wm-root .wmcls .wmcls-stat {
+  border-radius: var(--radius) !important;
+}
+
+.wmcls-stat strong {
+  font-size: 1.35rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+  color: var(--ink);
+}
+
+.wmcls-stat__meta {
+  font-size: 0.68rem;
+  color: var(--mute);
+}
+
+/* Toolbar */
+.wmcls-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.65rem;
+  margin-bottom: 0.55rem;
+  padding: 0.45rem 0.55rem;
+  background: var(--paper);
+  border: 1px solid var(--line);
+  box-shadow: var(--shadow-sm);
+}
+
+.wm-root .wmcls .wmcls-toolbar {
+  border-radius: 1.05rem !important;
+}
+
+.wmcls-tabs {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+}
+
+.wmcls-tab {
+  border: none;
+  background: transparent;
+  color: var(--mute);
+  padding: 0.4rem 0.8rem;
+  font: inherit;
+  font-size: 0.74rem;
+  font-weight: 650;
+  cursor: pointer;
+}
+
+.wm-root .wmcls .wmcls-tab {
+  border-radius: var(--radius-pill) !important;
+}
+
+.wmcls-tab.is-on {
+  background: var(--forest);
+  color: #fff;
+}
+
+.wmcls-tab:hover:not(.is-on) {
+  background: var(--wash);
+  color: var(--ink);
+}
+
+.wmcls-toolbar__right {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.wmcls-search {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  min-width: 220px;
+  min-height: 2.15rem;
+  padding: 0.3rem 0.65rem;
+  background: var(--wash);
+  border: 1px solid var(--line);
+  color: var(--mute);
+}
+
+.wm-root .wmcls .wmcls-search {
+  border-radius: 0.65rem !important;
+}
+
+.wmcls-search__icon {
+  font-size: 0.85rem;
+  opacity: 0.7;
+}
+
+.wmcls-search input {
+  width: 100%;
+  border: none;
+  outline: none;
+  background: transparent;
+  font: inherit;
+  font-size: 0.8rem;
+  color: var(--ink);
+}
+
+.wmcls-select {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  min-height: 2.15rem;
+  padding: 0.3rem 0.55rem;
+  background: var(--wash);
+  border: 1px solid var(--line);
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--mute);
+}
+
+.wm-root .wmcls .wmcls-select {
+  border-radius: 0.65rem !important;
+}
+
+.wmcls-select select {
+  border: none;
+  outline: none;
+  background: transparent;
+  font: inherit;
+  font-size: 0.78rem;
+  font-weight: 550;
+  letter-spacing: normal;
+  text-transform: none;
+  color: var(--ink);
+  max-width: 12rem;
+}
+
+/* Board */
+.wmcls-board {
+  display: grid;
+  grid-template-columns: minmax(0, 1.55fr) minmax(280px, 0.85fr);
+  gap: 0.55rem;
+  align-items: start;
+}
+
+.wmcls-side {
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+  min-width: 0;
+}
+
+.wmcls-panel {
+  background: var(--paper);
+  border: 1px solid var(--line);
+  padding: 0.8rem 0.9rem 0.9rem;
+  box-shadow: var(--shadow-sm);
+  min-width: 0;
+}
+
+.wm-root .wmcls .wmcls-panel {
+  border-radius: 1.05rem !important;
+}
+
+.wmcls-panel__head {
+  margin-bottom: 0.65rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid var(--line);
+}
+
+.wm-root .wmcls .wmcls-panel__head h2 {
+  margin: 0;
+  font-size: 0.95rem;
+  font-weight: 800;
+  letter-spacing: -0.015em;
+  color: var(--ink);
+  text-align: left !important;
+  -webkit-text-fill-color: currentColor;
+  background: none;
+}
+
+.wmcls-panel__head p {
+  margin: 0.18rem 0 0;
+  font-size: 0.7rem;
+  color: var(--mute);
+}
+
+/* Table */
+.wmcls-table-wrap {
+  overflow-x: auto;
+}
+
+.wmcls-table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 780px;
+}
+
+.wmcls-table th {
+  padding: 0.55rem 0.65rem;
+  border-bottom: 1px solid var(--line);
+  background: var(--wash);
+  color: var(--mute);
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  text-align: left;
+  white-space: nowrap;
+}
+
+.wmcls-table td {
+  padding: 0.65rem;
+  border-bottom: 1px solid var(--line);
+  font-size: 0.8rem;
+  color: var(--ink-soft);
+  vertical-align: middle;
+}
+
+.wmcls-table tbody tr {
+  cursor: pointer;
+  transition: background 0.12s ease;
+}
+
+.wmcls-table tbody tr:hover {
+  background: #faf8f3;
+}
+
+.wmcls-table tbody tr.is-selected {
+  background: #ecfdf5;
+}
+
+.wmcls-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.wmcls-entity {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+}
+
+.wmcls-entity strong {
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--ink);
+}
+
+.wmcls-entity span {
+  font-size: 0.68rem;
+  color: var(--mute);
+}
+
+/* Pills */
+.wmcls-pill {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.16rem 0.5rem;
+  font-size: 0.68rem;
+  font-weight: 700;
+  border: 1px solid transparent;
+  white-space: nowrap;
+}
+
+.wm-root .wmcls .wmcls-pill {
+  border-radius: var(--radius-pill) !important;
+}
+
+.wmcls-pill--ok {
+  color: var(--up);
+  background: #f0fdf4;
+  border-color: #bbf7d0;
+}
+
+.wmcls-pill--warn {
+  color: var(--warn);
+  background: #fffbeb;
+  border-color: #fde68a;
+}
+
+.wmcls-pill--bad {
+  color: var(--down);
+  background: #fef2f2;
+  border-color: #fecaca;
+}
+
+.wmcls-pill--soft {
+  color: var(--ink-soft);
+  background: var(--wash);
+  border-color: var(--line);
+}
+
+/* Detail */
+.wmcls-detail__name {
+  display: block;
+  margin: 0.15rem 0 0;
+  font-size: 1.05rem;
+  font-weight: 750;
+  color: var(--ink);
+}
+
+.wmcls-detail__meta {
+  margin: 0.25rem 0 0;
+  font-size: 0.74rem;
+  color: var(--mute);
+}
+
+.wmcls-detail__chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  margin: 0.65rem 0 0.75rem;
+}
+
+.wmcls-facts {
+  margin: 0 0 0.85rem;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.45rem;
+}
+
+.wmcls-facts > div {
+  padding: 0.5rem 0.6rem;
+  background: var(--wash);
+  border: 1px solid var(--line);
+}
+
+.wm-root .wmcls .wmcls-facts > div {
+  border-radius: var(--radius-sm) !important;
+}
+
+.wmcls-facts dt {
+  font-size: 0.58rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--mute);
+}
+
+.wmcls-facts dd {
+  margin: 0.15rem 0 0;
+  font-size: 0.8rem;
+  font-weight: 650;
+  color: var(--ink);
+}
+
+.wmcls-detail__actions {
+  display: grid;
+  gap: 0.4rem;
+}
+
+/* Notes */
+.wmcls-panel--notes {
+  background: linear-gradient(180deg, #faf8f3 0%, #fff 70%);
+}
+
+.wmcls-notes {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0.4rem;
+}
+
+.wmcls-notes li {
+  position: relative;
+  padding: 0.55rem 0.65rem 0.55rem 1.15rem;
+  background: var(--wash);
+  border: 1px solid var(--line);
+  font-size: 0.76rem;
+  line-height: 1.45;
+  color: var(--ink-soft);
+}
+
+.wm-root .wmcls .wmcls-notes li {
+  border-radius: var(--radius-sm) !important;
+}
+
+.wmcls-notes li::before {
+  content: '';
+  position: absolute;
+  left: 0.55rem;
+  top: 0.85rem;
+  width: 0.35rem;
+  height: 0.35rem;
+  background: var(--forest-mid);
+  border-radius: 50%;
+}
+
+.wmcls-empty {
+  margin: 0.35rem 0;
+  padding: 1.1rem;
+  border: 1px dashed var(--line);
+  background: var(--wash);
+  color: var(--mute);
+  font-size: 0.8rem;
+  text-align: center;
+}
+
+.wm-root .wmcls .wmcls-empty {
+  border-radius: var(--radius-sm) !important;
+}
+
+/* Responsive */
+@media (max-width: 1200px) {
+  .wmcls-spotlight {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 1100px) {
+  .wmcls-board {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 720px) {
+  .wmcls-spotlight {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .wmcls-toolbar__right {
+    width: 100%;
+  }
+
+  .wmcls-search {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .wmcls-facts {
+    grid-template-columns: 1fr;
+  }
+}

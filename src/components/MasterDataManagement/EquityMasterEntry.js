@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { equityAPI } from '../../services/api';
 import EquityListView from './EquityListView';
-import './Styles/EquityMasterEntry.css';
+import './Styles/EquityMasterEntryScreen.css';
 
 const EquityMasterEntry = () => {
   const [form, setForm] = useState({
@@ -40,7 +40,6 @@ const EquityMasterEntry = () => {
       return;
     }
 
-    // Check if ticker symbol already exists
     try {
       const symbolCheck = await equityAPI.checkSymbolExists(form.tickerSymbol.trim());
       if (symbolCheck.exists) {
@@ -70,7 +69,7 @@ const EquityMasterEntry = () => {
       };
 
       const result = await equityAPI.createEquity(equityData);
-      
+
       console.log('Equity created:', result);
       setListRefreshKey((key) => key + 1);
       setForm({
@@ -85,7 +84,7 @@ const EquityMasterEntry = () => {
         notes: ''
       });
       setSubmitMessage('Equity saved successfully!');
-      
+
     } catch (error) {
       console.error('Error saving equity:', error);
       setSubmitMessage('Error saving equity. Please try again.');
@@ -110,211 +109,191 @@ const EquityMasterEntry = () => {
   };
 
   return (
-    <div className="eqt-page-container">
-      <div className="eqt-content-wrapper">
-        <div className="eqt-header-section">
-          <div className="eqt-header-icon">
-            <svg className="eqt-icon" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
-              <path d="M4 4a2 2 0 00-2 2v1h16V6a2 2 0 00-2-2H4z" />
-              <path
-                fillRule="evenodd"
-                d="M18 9H2v5a2 2 0 002 2h12a2 2 0 002-2V9zM4 13a1 1 0 011-1h1a1 1 0 110 2H5a1 1 0 01-1-1zm5-1a1 1 0 100 2h1a1 1 0 100-2H9z"
-                clipRule="evenodd"
+    <div className="eqme">
+      <header className="eqme-rail">
+        <div className="eqme-rail__brand">
+          <span className="eqme-rail__mark">EM</span>
+          <div>
+            <p className="eqme-rail__eyebrow">Master data</p>
+            <h1 className="eqme-rail__title">Equity Master Entry</h1>
+            <p className="eqme-rail__blurb">
+              Register listed securities for portfolios — ticker, ISIN, sector, and market defaults.
+            </p>
+          </div>
+        </div>
+      </header>
+
+      <section className="eqme-panel">
+        <div className="eqme-panel__head">
+          <div>
+            <h2>Security information</h2>
+            <p>Required fields marked with *. Market, country, and currency are locked for CSE books.</p>
+          </div>
+        </div>
+
+        <form onSubmit={handleSubmit} className="eqme-form">
+          <div className="eqme-grid">
+            <div className="eqme-field">
+              <label className="eqme-label">Company Name <span className="eqme-req">*</span></label>
+              <input
+                name="companyName"
+                placeholder="Enter company name"
+                value={form.companyName}
+                onChange={handleChange}
+                className="eqme-input"
               />
-            </svg>
+            </div>
+
+            <div className="eqme-field">
+              <label className="eqme-label">Ticker Symbol <span className="eqme-req">*</span></label>
+              <input
+                name="tickerSymbol"
+                placeholder="e.g., COMB.N0000"
+                value={form.tickerSymbol}
+                onChange={handleChange}
+                className="eqme-input"
+              />
+            </div>
+
+            <div className="eqme-field">
+              <label className="eqme-label">ISIN</label>
+              <input
+                name="isin"
+                placeholder="e.g., LK0027N00009"
+                value={form.isin}
+                onChange={handleChange}
+                className="eqme-input"
+              />
+            </div>
+
+            <div className="eqme-field">
+              <label className="eqme-label">Sector</label>
+              <select
+                name="sector"
+                value={form.sector}
+                onChange={handleChange}
+                className="eqme-select"
+              >
+                <option value="">Select Sector</option>
+                <option value="Technology">Technology</option>
+                <option value="Healthcare">Healthcare</option>
+                <option value="Financial Services">Financial Services</option>
+                <option value="Consumer Goods">Consumer Goods</option>
+                <option value="Energy">Energy</option>
+                <option value="Construction & Engineering">Construction & Engineering</option>
+                <option value="Manufacturing">Manufacturing</option>
+                <option value="Telecommunications">Telecommunications</option>
+                <option value="Transportation">Transportation</option>
+                <option value="Real Estate & Property Development">Real Estate & Property Development</option>
+                <option value="Retail & Trading">Retail & Trading</option>
+                <option value="Investment Trusts & Holdings">Investment Trusts & Holdings</option>
+                <option value="Utilities">Utilities</option>
+                <option value="Hospitality & Tourism">Hospitality & Tourism</option>
+                <option value="Plantations/Agriculture">Plantations/Agriculture</option>
+                <option value="Other">Other</option>
+              </select>
+            </div>
+
+            <div className="eqme-field">
+              <label className="eqme-label">Market</label>
+              <input
+                name="market"
+                value={form.market}
+                readOnly
+                className="eqme-input eqme-input--locked"
+              />
+            </div>
+
+            <div className="eqme-field">
+              <label className="eqme-label">Country</label>
+              <input
+                name="country"
+                value={form.country}
+                readOnly
+                className="eqme-input eqme-input--locked"
+              />
+            </div>
+
+            <div className="eqme-field">
+              <label className="eqme-label">Currency</label>
+              <input
+                name="currency"
+                value={form.currency}
+                readOnly
+                className="eqme-input eqme-input--locked"
+              />
+            </div>
+
+            <div className="eqme-field">
+              <label className="eqme-label">Status</label>
+              <div className="eqme-toggle-row">
+                <label className="eqme-toggle">
+                  <input
+                    type="checkbox"
+                    name="status"
+                    checked={form.status}
+                    onChange={handleChange}
+                  />
+                  <span className={`eqme-toggle__track${form.status ? ' is-on' : ''}`}>
+                    <span className="eqme-toggle__thumb" />
+                  </span>
+                </label>
+                <span className={`eqme-toggle__text${form.status ? ' is-on' : ''}`}>
+                  {form.status ? 'Active' : 'Inactive'}
+                </span>
+              </div>
+            </div>
           </div>
-          <div className="eqt-header-text-group">
-            <h1 className="eqt-main-title">Equity Master Entry</h1>
-            <p className="eqt-subtitle">Add new equity securities and manage existing records below</p>
+
+          <div className="eqme-field eqme-field--full">
+            <label className="eqme-label">Notes & Description</label>
+            <textarea
+              name="notes"
+              placeholder="Add any additional notes or description about this equity…"
+              value={form.notes}
+              onChange={handleChange}
+              rows="4"
+              className="eqme-textarea"
+            />
+          </div>
+
+          {submitMessage && (
+            <div className={`eqme-alert ${submitMessage.includes('Error') ? 'eqme-alert--err' : 'eqme-alert--ok'}`}>
+              {submitMessage}
+            </div>
+          )}
+
+          <div className="eqme-actions">
+            <button
+              type="button"
+              onClick={handleReset}
+              className="eqme-btn eqme-btn--ghost"
+              disabled={isSubmitting}
+            >
+              Reset Form
+            </button>
+            <button
+              type="submit"
+              className="eqme-btn eqme-btn--solid"
+              disabled={isSubmitting}
+            >
+              {isSubmitting ? 'Saving…' : 'Save Equity'}
+            </button>
+          </div>
+        </form>
+      </section>
+
+      <section className="eqme-panel eqme-panel--list">
+        <div className="eqme-panel__head">
+          <div>
+            <h2>Existing equities</h2>
+            <p>Search, edit, or deactivate securities already on the master.</p>
           </div>
         </div>
-
-        {/* Form Card */}
-        <div className="eqt-form-card">
-          <div className="eqt-card-header">
-            <h2 className="eqt-card-title">Security Information</h2>
-          </div>
-
-          <div className="eqt-form-content">
-            <form onSubmit={handleSubmit}>
-              <div className="eqt-form-grid">
-
-                {/* Company Name */}
-                <div className="eqt-field-group">
-                  <label className="eqt-field-label">Company Name *</label>
-                  <input
-                    name="companyName"
-                    placeholder="Enter company name"
-                    value={form.companyName}
-                    onChange={handleChange}
-                    className="eqt-form-input"
-                  />
-                </div>
-
-                {/* Ticker Symbol */}
-                <div className="eqt-field-group">
-                  <label className="eqt-field-label">Ticker Symbol *</label>
-                  <input
-                    name="tickerSymbol"
-                    placeholder="e.g., AAPL"
-                    value={form.tickerSymbol}
-                    onChange={handleChange}
-                    className="eqt-form-input"
-                  />
-                </div>
-
-                {/* ISIN */}
-                <div className="eqt-field-group">
-                  <label className="eqt-field-label">ISIN</label>
-                  <input
-                    name="isin"
-                    placeholder="e.g., US0378331005"
-                    value={form.isin}
-                    onChange={handleChange}
-                    className="eqt-form-input"
-                  />
-                </div>
-
-                {/* Sector */}
-                <div className="eqt-field-group">
-                  <label className="eqt-field-label">Sector</label>
-                  <select
-                    name="sector"
-                    value={form.sector}
-                    onChange={handleChange}
-                    className="eqt-form-select"
-                  >
-                    <option value="">Select Sector</option>
-                    <option value="Technology">Technology</option>
-                    <option value="Healthcare">Healthcare</option>
-                    <option value="Financial Services">Financial Services</option>
-                    <option value="Consumer Goods">Consumer Goods</option>
-                    <option value="Energy">Energy</option>
-                    <option value="Construction & Engineering">Construction & Engineering</option>
-                    <option value="Manufacturing">Manufacturing</option>
-                    <option value="Telecommunications">Telecommunications</option>
-                    <option value="Transportation">Transportation</option>
-                    <option value="Real Estate & Property Development">Real Estate & Property Development</option>
-                    <option value="Retail & Trading">Retail & Trading</option>
-                    <option value="Investment Trusts & Holdings">Investment Trusts & Holdings</option>
-                    <option value="Utilities">Utilities</option>
-                    <option value="Hospitality & Tourism">Hospitality & Tourism</option>
-                    <option value="Plantations/Agriculture">Plantations/Agriculture</option>
-                    <option value="Other">Other</option>
-                  </select>
-                </div>
-
-                {/* Market */}
-                <div className="eqt-field-group">
-                  <label className="eqt-field-label">Market</label>
-                  <input
-                    name="market"
-                    value={form.market}
-                    readOnly
-                    className="eqt-form-input eqt-readonly-field"
-                  />
-                </div>
-
-                {/* Country */}
-                <div className="eqt-field-group">
-                  <label className="eqt-field-label">Country</label>
-                  <input
-                    name="country"
-                    value={form.country}
-                    readOnly
-                    className="eqt-form-input eqt-readonly-field"
-                  />
-                </div>
-
-                {/* Currency */}
-                <div className="eqt-field-group">
-                  <label className="eqt-field-label">Currency</label>
-                  <input
-                    name="currency"
-                    value={form.currency}
-                    readOnly
-                    className="eqt-form-input eqt-readonly-field"
-                  />
-                </div>
-
-                {/* Status Toggle */}
-                <div className="eqt-field-group">
-                  <label className="eqt-field-label">Status</label>
-                  <div className="eqt-status-container">
-                    <label className="eqt-toggle-wrapper">
-                      <input
-                        type="checkbox"
-                        name="status"
-                        checked={form.status}
-                        onChange={handleChange}
-                        className="eqt-toggle-input"
-                      />
-                      <div className={`eqt-toggle-slider ${form.status ? 'active' : ''}`}>
-                        <div className="eqt-toggle-thumb"></div>
-                      </div>
-                    </label>
-                    <span className={`eqt-status-text ${form.status ? 'active' : ''}`}>
-                      {form.status ? 'Active' : 'Inactive'}
-                    </span>
-                  </div>
-                </div>
-              </div>
-
-              {/* Notes */}
-              <div className="eqt-notes-section">
-                <label className="eqt-field-label">Notes & Description</label>
-                <textarea
-                  name="notes"
-                  placeholder="Add any additional notes or description about this equity..."
-                  value={form.notes}
-                  onChange={handleChange}
-                  rows="4"
-                  className="eqt-form-textarea"
-                ></textarea>
-              </div>
-
-              {/* Success/Error Message */}
-              {submitMessage && (
-                <div className={`eqt-message ${submitMessage.includes('Error') ? 'eqt-error' : 'eqt-success'}`}>
-                  {submitMessage}
-                </div>
-              )}
-
-              {/* Buttons */}
-              <div className="eqt-button-section">
-                <button
-                  type="reset"
-                  onClick={handleReset}
-                  className="eqt-btn eqt-btn-secondary"
-                  disabled={isSubmitting}
-                >
-                  Reset Form
-                </button>
-                <button
-                  type="submit"
-                  className="eqt-btn eqt-btn-primary"
-                  disabled={isSubmitting}
-                >
-                  {isSubmitting ? 'Saving...' : 'Save Equity'}
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-
-        {/* Existing Equities */}
-        <div className="eqt-form-card eqt-list-card">
-          <div className="eqt-card-header">
-            <h2 className="eqt-card-title">Existing Equities</h2>
-          </div>
+        <div className="eqme-list-shell">
           <EquityListView embedded refreshKey={listRefreshKey} />
         </div>
-
-        {/* Footer */}
-        <div className="eqt-footer-section">
-          <p>SHERWOOD TECHNOLOGIES (PVT) LTD • Secure equity management system • All data is encrypted and protected</p>
-        </div>
-      </div>
+      </section>
     </div>
   );
 };

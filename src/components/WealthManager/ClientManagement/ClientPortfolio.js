@@ -1,7 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import './Styles/ClientPortfolio.css';
 
-// Simple currency formatter reused across the screen
 const formatCurrency = (value) =>
   new Intl.NumberFormat('en-US', {
     minimumFractionDigits: 0,
@@ -11,8 +10,9 @@ const formatCurrency = (value) =>
 const formatPercent = (value) =>
   `${value >= 0 ? '+' : ''}${value.toFixed(2)}%`;
 
+const ALLOC_COLORS = ['#0f4c3a', '#14624a', '#c4a574', '#d6c7a8'];
+
 const ClientPortfolio = () => {
-  // In a real app these would come from an API
   const [clientPortfolios] = useState([
     {
       id: 1,
@@ -22,7 +22,7 @@ const ClientPortfolio = () => {
       riskProfile: 'Moderate Growth',
       rm: 'Sherwood Wealth Team',
       since: '2022-07-15',
-      totalMarketValue: 502, // in LKR millions (for display only)
+      totalMarketValue: 502,
       totalCost: 468,
       totalUnrealized: 34,
       totalReturnPct: 7.26
@@ -52,6 +52,71 @@ const ClientPortfolio = () => {
       totalCost: 280,
       totalUnrealized: 45,
       totalReturnPct: 16.07
+    },
+    {
+      id: 4,
+      name: 'Nimal Perera – Retirement',
+      code: 'CLT-000441',
+      segment: 'Individual',
+      riskProfile: 'Conservative',
+      rm: 'Private Client Desk',
+      since: '2019-05-22',
+      totalMarketValue: 178,
+      totalCost: 172,
+      totalUnrealized: 6,
+      totalReturnPct: 3.49
+    },
+    {
+      id: 5,
+      name: 'Lanka Logistics PLC – Surplus',
+      code: 'CLT-000512',
+      segment: 'Corporate',
+      riskProfile: 'Balanced Income',
+      rm: 'Corporate Coverage',
+      since: '2023-01-18',
+      totalMarketValue: 1240,
+      totalCost: 1185,
+      totalUnrealized: 55,
+      totalReturnPct: 4.64
+    },
+    {
+      id: 6,
+      name: 'Dias Education Endowment',
+      code: 'CLT-000603',
+      segment: 'Trust / Foundation',
+      riskProfile: 'Moderate Growth',
+      rm: 'Sherwood Wealth Team',
+      since: '2018-09-04',
+      totalMarketValue: 412,
+      totalCost: 390,
+      totalUnrealized: 22,
+      totalReturnPct: 5.64
+    },
+    {
+      id: 7,
+      name: 'S. Fernando – High Net Worth',
+      code: 'CLT-000718',
+      segment: 'Private Wealth',
+      riskProfile: 'Aggressive Growth',
+      rm: 'Private Client Desk',
+      since: '2024-02-11',
+      totalMarketValue: 965,
+      totalCost: 880,
+      totalUnrealized: 85,
+      totalReturnPct: 9.66
+    },
+    {
+      id: 8,
+      name: 'Harbor Insurance – Reserves',
+      code: 'CLT-000804',
+      segment: 'Institutional',
+      riskProfile: 'Very Conservative',
+      rm: 'Institutional Desk',
+      since: '2020-06-30',
+      totalMarketValue: 2105,
+      totalCost: 2080,
+      totalUnrealized: 25,
+      totalReturnPct: 1.20
     }
   ]);
 
@@ -61,63 +126,63 @@ const ClientPortfolio = () => {
 
   const holdingsByClient = {
     1: [
-    {
-      id: 1,
-      instrument: 'CAL Equity Growth Fund',
-      instrumentCode: 'CAL-EQGF',
-      type: 'Unit Trust',
-      sector: 'Equity',
-      units: 185000.23,
-      avgCost: 145.75,
-      lastPrice: 162.4,
-      marketValue: 30058000,
-      costValue: 26963700,
-      unrealizedPnL: 3094300,
-      unrealizedReturn: 11.48
-    },
-    {
-      id: 2,
-      instrument: 'CAL Fixed Income Opportunities Fund',
-      instrumentCode: 'CAL-FIOF',
-      type: 'Unit Trust',
-      sector: 'Fixed Income',
-      units: 520000.0,
-      avgCost: 10.0,
-      lastPrice: 10.82,
-      marketValue: 5626400,
-      costValue: 5200000,
-      unrealizedPnL: 426400,
-      unrealizedReturn: 8.2
-    },
-    {
-      id: 3,
-      instrument: 'CAL Money Market Fund',
-      instrumentCode: 'CAL-MMF',
-      type: 'Unit Trust',
-      sector: 'Money Market',
-      units: 750000.0,
-      avgCost: 10.0,
-      lastPrice: 10.38,
-      marketValue: 7785000,
-      costValue: 7500000,
-      unrealizedPnL: 285000,
-      unrealizedReturn: 3.8
-    },
-    {
-      id: 4,
-      instrument: 'CAL Balanced Fund',
-      instrumentCode: 'CAL-BAL',
-      type: 'Unit Trust',
-      sector: 'Balanced',
-      units: 120000.0,
-      avgCost: 52.1,
-      lastPrice: 56.8,
-      marketValue: 6816000,
-      costValue: 6252000,
-      unrealizedPnL: 564000,
-      unrealizedReturn: 9.0
-    }
-  ],
+      {
+        id: 1,
+        instrument: 'CAL Equity Growth Fund',
+        instrumentCode: 'CAL-EQGF',
+        type: 'Unit Trust',
+        sector: 'Equity',
+        units: 185000.23,
+        avgCost: 145.75,
+        lastPrice: 162.4,
+        marketValue: 30058000,
+        costValue: 26963700,
+        unrealizedPnL: 3094300,
+        unrealizedReturn: 11.48
+      },
+      {
+        id: 2,
+        instrument: 'CAL Fixed Income Opportunities Fund',
+        instrumentCode: 'CAL-FIOF',
+        type: 'Unit Trust',
+        sector: 'Fixed Income',
+        units: 520000.0,
+        avgCost: 10.0,
+        lastPrice: 10.82,
+        marketValue: 5626400,
+        costValue: 5200000,
+        unrealizedPnL: 426400,
+        unrealizedReturn: 8.2
+      },
+      {
+        id: 3,
+        instrument: 'CAL Money Market Fund',
+        instrumentCode: 'CAL-MMF',
+        type: 'Unit Trust',
+        sector: 'Money Market',
+        units: 750000.0,
+        avgCost: 10.0,
+        lastPrice: 10.38,
+        marketValue: 7785000,
+        costValue: 7500000,
+        unrealizedPnL: 285000,
+        unrealizedReturn: 3.8
+      },
+      {
+        id: 4,
+        instrument: 'CAL Balanced Fund',
+        instrumentCode: 'CAL-BAL',
+        type: 'Unit Trust',
+        sector: 'Balanced',
+        units: 120000.0,
+        avgCost: 52.1,
+        lastPrice: 56.8,
+        marketValue: 6816000,
+        costValue: 6252000,
+        unrealizedPnL: 564000,
+        unrealizedReturn: 9.0
+      }
+    ],
     2: [
       {
         id: 1,
@@ -177,6 +242,198 @@ const ClientPortfolio = () => {
         unrealizedPnL: 564000,
         unrealizedReturn: 14.03
       }
+    ],
+    4: [
+      {
+        id: 1,
+        instrument: 'CAL Money Market Fund',
+        instrumentCode: 'CAL-MMF',
+        type: 'Unit Trust',
+        sector: 'Money Market',
+        units: 9800000.0,
+        avgCost: 10.0,
+        lastPrice: 10.28,
+        marketValue: 100744000,
+        costValue: 98000000,
+        unrealizedPnL: 2744000,
+        unrealizedReturn: 2.8
+      },
+      {
+        id: 2,
+        instrument: 'CAL Fixed Income Opportunities Fund',
+        instrumentCode: 'CAL-FIOF',
+        type: 'Unit Trust',
+        sector: 'Fixed Income',
+        units: 7200000.0,
+        avgCost: 10.0,
+        lastPrice: 10.55,
+        marketValue: 75960000,
+        costValue: 72000000,
+        unrealizedPnL: 3960000,
+        unrealizedReturn: 5.5
+      }
+    ],
+    5: [
+      {
+        id: 1,
+        instrument: 'CAL Corporate Bond Fund',
+        instrumentCode: 'CAL-CBF',
+        type: 'Unit Trust',
+        sector: 'Fixed Income',
+        units: 45000000.0,
+        avgCost: 10.0,
+        lastPrice: 10.48,
+        marketValue: 471600000,
+        costValue: 450000000,
+        unrealizedPnL: 21600000,
+        unrealizedReturn: 4.8
+      },
+      {
+        id: 2,
+        instrument: 'CAL Money Market Fund',
+        instrumentCode: 'CAL-MMF',
+        type: 'Unit Trust',
+        sector: 'Money Market',
+        units: 38000000.0,
+        avgCost: 10.0,
+        lastPrice: 10.32,
+        marketValue: 392160000,
+        costValue: 380000000,
+        unrealizedPnL: 12160000,
+        unrealizedReturn: 3.2
+      },
+      {
+        id: 3,
+        instrument: 'CAL Balanced Fund',
+        instrumentCode: 'CAL-BAL',
+        type: 'Unit Trust',
+        sector: 'Balanced',
+        units: 6200000.0,
+        avgCost: 51.0,
+        lastPrice: 55.2,
+        marketValue: 342240000,
+        costValue: 316200000,
+        unrealizedPnL: 26040000,
+        unrealizedReturn: 8.24
+      }
+    ],
+    6: [
+      {
+        id: 1,
+        instrument: 'CAL Balanced Fund',
+        instrumentCode: 'CAL-BAL',
+        type: 'Unit Trust',
+        sector: 'Balanced',
+        units: 3100000.0,
+        avgCost: 49.8,
+        lastPrice: 56.1,
+        marketValue: 173910000,
+        costValue: 154380000,
+        unrealizedPnL: 19530000,
+        unrealizedReturn: 12.65
+      },
+      {
+        id: 2,
+        instrument: 'CAL Equity Growth Fund',
+        instrumentCode: 'CAL-EQGF',
+        type: 'Unit Trust',
+        sector: 'Equity',
+        units: 820000.0,
+        avgCost: 140.0,
+        lastPrice: 158.5,
+        marketValue: 129970000,
+        costValue: 114800000,
+        unrealizedPnL: 15170000,
+        unrealizedReturn: 13.21
+      },
+      {
+        id: 3,
+        instrument: 'CAL Fixed Income Opportunities Fund',
+        instrumentCode: 'CAL-FIOF',
+        type: 'Unit Trust',
+        sector: 'Fixed Income',
+        units: 10500000.0,
+        avgCost: 10.0,
+        lastPrice: 10.62,
+        marketValue: 111510000,
+        costValue: 105000000,
+        unrealizedPnL: 6510000,
+        unrealizedReturn: 6.2
+      }
+    ],
+    7: [
+      {
+        id: 1,
+        instrument: 'CAL Equity Growth Fund',
+        instrumentCode: 'CAL-EQGF',
+        type: 'Unit Trust',
+        sector: 'Equity',
+        units: 2850000.0,
+        avgCost: 152.0,
+        lastPrice: 171.8,
+        marketValue: 489630000,
+        costValue: 433200000,
+        unrealizedPnL: 56430000,
+        unrealizedReturn: 13.03
+      },
+      {
+        id: 2,
+        instrument: 'CAL Balanced Fund',
+        instrumentCode: 'CAL-BAL',
+        type: 'Unit Trust',
+        sector: 'Balanced',
+        units: 4200000.0,
+        avgCost: 53.5,
+        lastPrice: 58.9,
+        marketValue: 247380000,
+        costValue: 224700000,
+        unrealizedPnL: 22680000,
+        unrealizedReturn: 10.09
+      },
+      {
+        id: 3,
+        instrument: 'CAL Money Market Fund',
+        instrumentCode: 'CAL-MMF',
+        type: 'Unit Trust',
+        sector: 'Money Market',
+        units: 18500000.0,
+        avgCost: 10.0,
+        lastPrice: 10.4,
+        marketValue: 192400000,
+        costValue: 185000000,
+        unrealizedPnL: 7400000,
+        unrealizedReturn: 4.0
+      }
+    ],
+    8: [
+      {
+        id: 1,
+        instrument: 'CAL Money Market Fund',
+        instrumentCode: 'CAL-MMF',
+        type: 'Unit Trust',
+        sector: 'Money Market',
+        units: 125000000.0,
+        avgCost: 10.0,
+        lastPrice: 10.18,
+        marketValue: 1272500000,
+        costValue: 1250000000,
+        unrealizedPnL: 22500000,
+        unrealizedReturn: 1.8
+      },
+      {
+        id: 2,
+        instrument: 'CAL Corporate Bond Fund',
+        instrumentCode: 'CAL-CBF',
+        type: 'Unit Trust',
+        sector: 'Fixed Income',
+        units: 82000000.0,
+        avgCost: 10.0,
+        lastPrice: 10.12,
+        marketValue: 829840000,
+        costValue: 820000000,
+        unrealizedPnL: 9840000,
+        unrealizedReturn: 1.2
+      }
     ]
   };
 
@@ -186,8 +443,7 @@ const ClientPortfolio = () => {
     null;
 
   const holdings = holdingsByClient[selectedClientId] || [];
-
-  const [view, setView] = useState('holdings'); // 'holdings' | 'summary' (reserved for future)
+  const [view, setView] = useState('holdings');
 
   const aggregates = useMemo(() => {
     if (!client) {
@@ -196,11 +452,11 @@ const ClientPortfolio = () => {
         totalCost: 0,
         totalUnrealized: 0,
         totalReturnPct: 0,
-        allocation: []
+        allocation: [],
+        holdingsCount: 0
       };
     }
 
-    // Use client-level aggregates for the header
     const totalMarketValue = client.totalMarketValue * 1_000_000;
     const totalCost = client.totalCost * 1_000_000;
     const totalUnrealized = client.totalUnrealized * 1_000_000;
@@ -219,274 +475,249 @@ const ClientPortfolio = () => {
       .filter((h) => h.sector === 'Money Market')
       .reduce((sum, h) => sum + h.marketValue, 0);
 
+    const holdingsTotal = equity + fixedIncome + balanced + moneyMarket;
     const withTotal = (val) =>
-      totalMarketValue > 0 ? (val / totalMarketValue) * 100 : 0;
+      holdingsTotal > 0 ? (val / holdingsTotal) * 100 : 0;
 
     return {
       totalMarketValue,
       totalCost,
       totalUnrealized,
       totalReturnPct,
+      holdingsCount: holdings.length,
       allocation: [
         { label: 'Equity', value: equity, pct: withTotal(equity) },
-        {
-          label: 'Fixed Income',
-          value: fixedIncome,
-          pct: withTotal(fixedIncome)
-        },
+        { label: 'Fixed Income', value: fixedIncome, pct: withTotal(fixedIncome) },
         { label: 'Balanced', value: balanced, pct: withTotal(balanced) },
-        {
-          label: 'Money Market',
-          value: moneyMarket,
-          pct: withTotal(moneyMarket)
-        }
-      ]
+        { label: 'Money Market', value: moneyMarket, pct: withTotal(moneyMarket) }
+      ].filter((a) => a.value > 0)
     };
   }, [holdings, client]);
 
+  const donutStyle = useMemo(() => {
+    let cursor = 0;
+    const stops = aggregates.allocation.map((item, i) => {
+      const start = cursor;
+      cursor += item.pct;
+      return `${ALLOC_COLORS[i % ALLOC_COLORS.length]} ${start.toFixed(2)}% ${cursor.toFixed(2)}%`;
+    });
+    return {
+      background: stops.length
+        ? `conic-gradient(${stops.join(', ')})`
+        : 'conic-gradient(#e6e2d9 0% 100%)'
+    };
+  }, [aggregates.allocation]);
+
   const getReturnClass = (value) => {
-    if (value > 0) return 'wmcp-return-positive';
-    if (value < 0) return 'wmcp-return-negative';
-    return 'wmcp-return-neutral';
+    if (value > 0) return 'is-up';
+    if (value < 0) return 'is-down';
+    return 'is-flat';
   };
 
+  if (!client) {
+    return (
+      <div className="wmclp">
+        <p className="wmclp-empty">No client portfolios available.</p>
+      </div>
+    );
+  }
+
   return (
-    <div className="wmcp-container">
-      {/* Client list */}
-      <div className="wmcp-header-card wmcp-list-card">
-        <div className="wmcp-card-header">
+    <div className="wmclp">
+      <header className="wmclp-rail">
+        <div className="wmclp-rail__brand">
+          <span className="wmclp-rail__mark">CP</span>
           <div>
-            <h2>Client Portfolios</h2>
-            <p>
-              Select a client portfolio to view detailed holdings and asset
-              allocation.
+            <p className="wmclp-rail__eyebrow">Client Management</p>
+            <h1 className="wmclp-rail__title">Client Portfolios</h1>
+            <p className="wmclp-rail__blurb">
+              Select a client book, review holdings, and track allocation across unit trusts.
             </p>
           </div>
         </div>
-        <div className="wmcp-table-wrapper">
-          <table className="wmcp-table wmcp-client-table">
-            <thead>
-              <tr>
-                <th>Client</th>
-                <th>Code</th>
-                <th>Segment</th>
-                <th>Risk</th>
-                <th>Since</th>
-                <th className="wmcp-num">Value (LKR Mn)</th>
-                <th className="wmcp-num">Unrealized P&amp;L (LKR Mn)</th>
-                <th className="wmcp-num">% Return</th>
-              </tr>
-            </thead>
-            <tbody>
-              {clientPortfolios.map((p) => (
-                <tr
-                  key={p.id}
-                  className={
-                    p.id === selectedClientId ? 'wmcp-row-selected' : ''
-                  }
-                  onClick={() => setSelectedClientId(p.id)}
-                  style={{ cursor: 'pointer' }}
-                >
-                  <td>
-                    <div className="wmcp-client-cell">
-                      <div className="wmcp-client-name">{p.name}</div>
-                      <div className="wmcp-client-sub">
-                        {p.rm} • {p.segment}
-                      </div>
-                    </div>
-                  </td>
-                  <td>{p.code}</td>
-                  <td>{p.segment}</td>
-                  <td>{p.riskProfile}</td>
-                  <td>{p.since}</td>
-                  <td className="wmcp-num">
-                    {p.totalMarketValue.toLocaleString(undefined, {
-                      minimumFractionDigits: 1,
-                      maximumFractionDigits: 1
-                    })}
-                  </td>
-                  <td className={`wmcp-num ${getReturnClass(p.totalUnrealized)}`}>
-                    {p.totalUnrealized.toLocaleString(undefined, {
-                      minimumFractionDigits: 1,
-                      maximumFractionDigits: 1
-                    })}
-                  </td>
-                  <td className={`wmcp-num ${getReturnClass(p.totalReturnPct)}`}>
-                    {formatPercent(p.totalReturnPct)}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+        <div className="wmclp-rail__meta">
+          <strong>{clientPortfolios.length}</strong>
+          <span>Active books</span>
         </div>
-      </div>
+      </header>
 
-      {/* Header */}
-      <div className="wmcp-header-card">
-        <div className="wmcp-header-main">
-          <div className="wmcp-header-left">
-            <div className="wmcp-header-label">Client Portfolio</div>
-            <h1 className="wmcp-header-title">{client.name}</h1>
-            <div className="wmcp-header-meta">
-              <span>ID: {client.code}</span>
-              <span>Segment: {client.segment}</span>
-              <span>Since: {client.since}</span>
-            </div>
-          </div>
-          <div className="wmcp-header-right">
-            <div className="wmcp-chip wmcp-chip-risk">
-              <span className="wmcp-chip-label">Risk Profile</span>
-              <span className="wmcp-chip-value">{client.riskProfile}</span>
-            </div>
-            <div className="wmcp-chip wmcp-chip-rm">
-              <span className="wmcp-chip-label">Relationship Team</span>
-              <span className="wmcp-chip-value">{client.rm}</span>
-            </div>
+      <section className="wmclp-picker" aria-label="Client portfolio list">
+        <div className="wmclp-panel__head">
+          <div>
+            <h2>Client books</h2>
+            <p>Click a row to open holdings and allocation for that client.</p>
           </div>
         </div>
-
-        <div className="wmcp-header-summary">
-          <div className="wmcp-summary-item">
-            <div className="wmcp-summary-label">Total Portfolio Value</div>
-            <div className="wmcp-summary-value">
-              LKR {formatCurrency(aggregates.totalMarketValue)}
-            </div>
-          </div>
-          <div className="wmcp-summary-item">
-            <div className="wmcp-summary-label">Total Cost</div>
-            <div className="wmcp-summary-value">
-              LKR {formatCurrency(aggregates.totalCost)}
-            </div>
-          </div>
-          <div className="wmcp-summary-item">
-            <div className="wmcp-summary-label">Unrealized P&amp;L</div>
-            <div
-              className={`wmcp-summary-value ${getReturnClass(
-                aggregates.totalUnrealized
-              )}`}
+        <div className="wmclp-picker__grid">
+          {clientPortfolios.map((p) => (
+            <button
+              type="button"
+              key={p.id}
+              className={`wmclp-book${p.id === selectedClientId ? ' is-on' : ''}`}
+              onClick={() => setSelectedClientId(p.id)}
             >
-              LKR {formatCurrency(aggregates.totalUnrealized)}
-            </div>
-          </div>
-          <div className="wmcp-summary-item">
-            <div className="wmcp-summary-label">Unrealized Return</div>
-            <div
-              className={`wmcp-summary-value ${getReturnClass(
-                aggregates.totalReturnPct
-              )}`}
-            >
-              {formatPercent(aggregates.totalReturnPct)}
-            </div>
-          </div>
+              <div className="wmclp-book__top">
+                <div>
+                  <strong>{p.name}</strong>
+                  <span>
+                    {p.code} · {p.segment}
+                  </span>
+                </div>
+                <span className={`wmclp-pill ${getReturnClass(p.totalReturnPct)}`}>
+                  {formatPercent(p.totalReturnPct)}
+                </span>
+              </div>
+              <div className="wmclp-book__stats">
+                <div>
+                  <em>Value</em>
+                  <b>{p.totalMarketValue.toFixed(1)} Mn</b>
+                </div>
+                <div>
+                  <em>P&amp;L</em>
+                  <b className={getReturnClass(p.totalUnrealized)}>
+                    {p.totalUnrealized.toFixed(1)} Mn
+                  </b>
+                </div>
+                <div>
+                  <em>Risk</em>
+                  <b>{p.riskProfile}</b>
+                </div>
+                <div>
+                  <em>Since</em>
+                  <b>{p.since}</b>
+                </div>
+              </div>
+            </button>
+          ))}
         </div>
-      </div>
+      </section>
 
-      {/* View Toggle */}
-      <div className="wmcp-toolbar">
-        <div className="wmcp-toggle-group">
+      <section className="wmclp-spotlight" aria-label="Selected portfolio metrics">
+        <article className="wmclp-stat wmclp-stat--wide">
+          <span className="wmclp-label">Selected client</span>
+          <strong className="wmclp-stat__name">{client.name}</strong>
+          <span className="wmclp-stat__meta">
+            {client.code} · {client.segment} · Since {client.since}
+          </span>
+          <div className="wmclp-stat__chips">
+            <span className="wmclp-pill wmclp-pill--info">{client.riskProfile}</span>
+            <span className="wmclp-pill wmclp-pill--soft">{client.rm}</span>
+          </div>
+        </article>
+        <article className="wmclp-stat">
+          <span className="wmclp-label">Portfolio value</span>
+          <strong>LKR {formatCurrency(aggregates.totalMarketValue)}</strong>
+          <span className="wmclp-stat__meta">Market value</span>
+        </article>
+        <article className="wmclp-stat">
+          <span className="wmclp-label">Total cost</span>
+          <strong>LKR {formatCurrency(aggregates.totalCost)}</strong>
+          <span className="wmclp-stat__meta">Book cost</span>
+        </article>
+        <article className="wmclp-stat">
+          <span className="wmclp-label">Unrealized P&amp;L</span>
+          <strong className={getReturnClass(aggregates.totalUnrealized)}>
+            LKR {formatCurrency(aggregates.totalUnrealized)}
+          </strong>
+          <span className={`wmclp-pill ${getReturnClass(aggregates.totalReturnPct)}`}>
+            {formatPercent(aggregates.totalReturnPct)}
+          </span>
+        </article>
+        <article className="wmclp-stat">
+          <span className="wmclp-label">Holdings</span>
+          <strong>{aggregates.holdingsCount}</strong>
+          <span className="wmclp-stat__meta">Unit trust lines</span>
+        </article>
+      </section>
+
+      <div className="wmclp-toolbar">
+        <div className="wmclp-tabs" role="tablist" aria-label="Portfolio view">
           <button
             type="button"
-            className={`wmcp-toggle-btn ${
-              view === 'holdings' ? 'active' : ''
-            }`}
+            role="tab"
+            aria-selected={view === 'holdings'}
+            className={`wmclp-tab${view === 'holdings' ? ' is-on' : ''}`}
             onClick={() => setView('holdings')}
           >
             Holdings
           </button>
           <button
             type="button"
-            className={`wmcp-toggle-btn ${
-              view === 'summary' ? 'active' : ''
-            }`}
+            role="tab"
+            aria-selected={view === 'summary'}
+            className={`wmclp-tab${view === 'summary' ? ' is-on' : ''}`}
             onClick={() => setView('summary')}
           >
-            Allocation Summary
+            Allocation summary
           </button>
         </div>
       </div>
 
-      <div className="wmcp-main-grid">
-        {/* Left: Holdings / Allocation Summary */}
-        <div className="wmcp-card">
+      <div className="wmclp-board">
+        <section className="wmclp-panel wmclp-panel--main">
           {view === 'holdings' ? (
             <>
-              <div className="wmcp-card-header">
+              <div className="wmclp-panel__head">
                 <div>
-                  <h2>Current Holdings</h2>
+                  <h2>Current holdings</h2>
                   <p>
-                    Instrument-level view of the client&apos;s portfolio with
-                    cost, market value and unrealized performance.
+                    Instrument-level view with cost, market value and unrealized performance.
                   </p>
                 </div>
               </div>
-
-              <div className="wmcp-table-wrapper">
-                <table className="wmcp-table">
+              <div className="wmclp-table-wrap">
+                <table className="wmclp-table">
                   <thead>
                     <tr>
                       <th>Instrument</th>
                       <th>Type</th>
                       <th>Sector</th>
-                      <th className="wmcp-num">Units</th>
-                      <th className="wmcp-num">Avg Cost</th>
-                      <th className="wmcp-num">Last Price</th>
-                      <th className="wmcp-num">Cost Value</th>
-                      <th className="wmcp-num">Market Value</th>
-                      <th className="wmcp-num">Unrealized P&amp;L</th>
-                      <th className="wmcp-num">% Return</th>
+                      <th className="wmclp-num">Units</th>
+                      <th className="wmclp-num">Avg Cost</th>
+                      <th className="wmclp-num">Last Price</th>
+                      <th className="wmclp-num">Cost Value</th>
+                      <th className="wmclp-num">Market Value</th>
+                      <th className="wmclp-num">Unrealized P&amp;L</th>
+                      <th className="wmclp-num">% Return</th>
                     </tr>
                   </thead>
                   <tbody>
                     {holdings.map((h) => (
                       <tr key={h.id}>
                         <td>
-                          <div className="wmcp-instrument-cell">
-                            <div className="wmcp-instrument-name">
-                              {h.instrument}
-                            </div>
-                            <div className="wmcp-instrument-code">
-                              {h.instrumentCode}
-                            </div>
+                          <div className="wmclp-entity">
+                            <strong>{h.instrument}</strong>
+                            <span>{h.instrumentCode}</span>
                           </div>
                         </td>
                         <td>{h.type}</td>
-                        <td>{h.sector}</td>
-                        <td className="wmcp-num">
+                        <td>
+                          <span className="wmclp-pill wmclp-pill--soft">{h.sector}</span>
+                        </td>
+                        <td className="wmclp-num">
                           {h.units.toLocaleString(undefined, {
                             minimumFractionDigits: 2,
                             maximumFractionDigits: 2
                           })}
                         </td>
-                        <td className="wmcp-num">
+                        <td className="wmclp-num">
                           {h.avgCost.toLocaleString(undefined, {
                             minimumFractionDigits: 2,
                             maximumFractionDigits: 2
                           })}
                         </td>
-                        <td className="wmcp-num">
+                        <td className="wmclp-num">
                           {h.lastPrice.toLocaleString(undefined, {
                             minimumFractionDigits: 2,
                             maximumFractionDigits: 2
                           })}
                         </td>
-                        <td className="wmcp-num">
-                          {formatCurrency(h.costValue)}
-                        </td>
-                        <td className="wmcp-num">
-                          {formatCurrency(h.marketValue)}
-                        </td>
-                        <td
-                          className={`wmcp-num ${getReturnClass(
-                            h.unrealizedPnL
-                          )}`}
-                        >
+                        <td className="wmclp-num">{formatCurrency(h.costValue)}</td>
+                        <td className="wmclp-num">{formatCurrency(h.marketValue)}</td>
+                        <td className={`wmclp-num ${getReturnClass(h.unrealizedPnL)}`}>
                           {formatCurrency(h.unrealizedPnL)}
                         </td>
-                        <td
-                          className={`wmcp-num ${getReturnClass(
-                            h.unrealizedReturn
-                          )}`}
-                        >
+                        <td className={`wmclp-num ${getReturnClass(h.unrealizedReturn)}`}>
                           {formatPercent(h.unrealizedReturn)}
                         </td>
                       </tr>
@@ -497,34 +728,27 @@ const ClientPortfolio = () => {
             </>
           ) : (
             <>
-              <div className="wmcp-card-header">
+              <div className="wmclp-panel__head">
                 <div>
-                  <h2>Allocation Summary</h2>
-                  <p>
-                    Summary of the client&apos;s portfolio by asset class with
-                    weights and values.
-                  </p>
+                  <h2>Allocation summary</h2>
+                  <p>Weights and market values by asset class.</p>
                 </div>
               </div>
-              <div className="wmcp-table-wrapper">
-                <table className="wmcp-table">
+              <div className="wmclp-table-wrap">
+                <table className="wmclp-table">
                   <thead>
                     <tr>
                       <th>Asset Class</th>
-                      <th className="wmcp-num">Weight %</th>
-                      <th className="wmcp-num">Market Value (LKR)</th>
+                      <th className="wmclp-num">Weight %</th>
+                      <th className="wmclp-num">Market Value (LKR)</th>
                     </tr>
                   </thead>
                   <tbody>
                     {aggregates.allocation.map((item) => (
                       <tr key={item.label}>
                         <td>{item.label}</td>
-                        <td className="wmcp-num">
-                          {item.pct.toFixed(1)}%
-                        </td>
-                        <td className="wmcp-num">
-                          {formatCurrency(item.value)}
-                        </td>
+                        <td className="wmclp-num">{item.pct.toFixed(1)}%</td>
+                        <td className="wmclp-num">{formatCurrency(item.value)}</td>
                       </tr>
                     ))}
                   </tbody>
@@ -532,76 +756,61 @@ const ClientPortfolio = () => {
               </div>
             </>
           )}
-        </div>
+        </section>
 
-        {/* Right: Allocation & quick summary */}
-        <div className="wmcp-side-column">
-          <div className="wmcp-card">
-            <div className="wmcp-card-header">
+        <aside className="wmclp-side">
+          <section className="wmclp-panel">
+            <div className="wmclp-panel__head">
               <div>
-                <h2>Allocation by Asset Class</h2>
-                <p>Breakdown of the portfolio by high-level asset class.</p>
+                <h2>Fund allocation</h2>
+                <p>Asset-class mix for the selected book.</p>
               </div>
             </div>
-            <div className="wmcp-allocation-list">
-              {aggregates.allocation.map((item) => (
-                <div key={item.label} className="wmcp-allocation-row">
-                  <div className="wmcp-allocation-label">
-                    <span className="wmcp-allocation-pill">
-                      {item.label}
-                    </span>
-                  </div>
-                  <div className="wmcp-allocation-bar-wrapper">
-                    <div className="wmcp-allocation-bar-bg">
-                      <div
-                        className="wmcp-allocation-bar-fill"
-                        style={{ width: `${item.pct.toFixed(1)}%` }}
-                      />
-                    </div>
-                  </div>
-                  <div className="wmcp-allocation-values">
-                    <span className="wmcp-allocation-pct">
-                      {item.pct.toFixed(1)}%
-                    </span>
-                    <span className="wmcp-allocation-amount">
-                      LKR {formatCurrency(item.value)}
-                    </span>
-                  </div>
+            <div className="wmclp-alloc">
+              <div className="wmclp-donut" style={donutStyle}>
+                <div className="wmclp-donut__hole">
+                  <strong>{aggregates.holdingsCount}</strong>
+                  <span>lines</span>
                 </div>
-              ))}
+              </div>
+              <ul className="wmclp-legend">
+                {aggregates.allocation.map((item, i) => (
+                  <li key={item.label}>
+                    <i style={{ background: ALLOC_COLORS[i % ALLOC_COLORS.length] }} />
+                    <span>{item.label}</span>
+                    <b>{item.pct.toFixed(1)}%</b>
+                  </li>
+                ))}
+              </ul>
             </div>
-          </div>
+          </section>
 
-          <div className="wmcp-card wmcp-note-card">
-            <div className="wmcp-card-header">
+          <section className="wmclp-panel wmclp-panel--notes">
+            <div className="wmclp-panel__head">
               <div>
-                <h2>Advisory Notes</h2>
-                <p>
-                  Use this view as a starting point for your next portfolio
-                  review with the client.
-                </p>
+                <h2>Advisory notes</h2>
+                <p>Talking points for the next client review.</p>
               </div>
             </div>
-            <ul className="wmcp-notes-list">
+            <ul className="wmclp-notes">
               <li>
-                Equity allocation is tilted towards growth – monitor volatility
-                and drawdown against client comfort.
+                Equity allocation is tilted towards growth – monitor volatility and
+                drawdown against client comfort.
               </li>
               <li>
                 Fixed income and money market exposures provide liquidity and
                 stability; consider top-ups if risk appetite changes.
               </li>
               <li>
-                Balanced fund can be used to gradually adjust risk without
-                large one-off switches.
+                Balanced fund can be used to gradually adjust risk without large
+                one-off switches.
               </li>
             </ul>
-          </div>
-        </div>
+          </section>
+        </aside>
       </div>
     </div>
   );
 };
 
 export default ClientPortfolio;
-
