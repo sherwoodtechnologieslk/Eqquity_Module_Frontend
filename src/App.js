@@ -24,6 +24,9 @@ import ClientSummary from './components/WealthManager/WM Dashboard/ClientSummary
 import AUMOverview from './components/WealthManager/WM Dashboard/AUMOverview';
 import ClientPortfolio from './components/WealthManager/ClientManagement/ClientPortfolio';
 import ClientAccounts from './components/WealthManager/ClientManagement/ClientAccounts';
+import ClientStatements from './components/WealthManager/ClientManagement/ClientStatements';
+import ClientOnboarding from './components/WealthManager/ClientManagement/ClientOnboarding';
+import KYCManagement from './components/WealthManager/ClientManagement/KYCManagement';
 import ClientPortal from './components/WealthManager/ClientPortal/ClientPortal';
 import FundMaster from './components/WealthManager/Fund Master/FundMaster';
 import FundCategories from './components/WealthManager/Fund Master/FundCategories';
@@ -282,6 +285,9 @@ function App() {
     'AUM Overview': <AUMOverview />,
     'Client Accounts': <ClientAccounts />,
     'Client Portfolio': <ClientPortfolio />,
+    'Client Statements': <ClientStatements />,
+    'Client Onboarding': <ClientOnboarding />,
+    'KYC Management': <KYCManagement />,
     'Market Summary': <MarketSummary />,
     'Recent Activity': <RecentActivity />,
     'Performance Metrics': <PerformanceMetrics />,
