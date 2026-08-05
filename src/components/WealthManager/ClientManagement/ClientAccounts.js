@@ -183,38 +183,36 @@ const ClientAccounts = () => {
       </header>
 
       <section className="wca-strip" aria-label="Account summary">
-        <article className="wca-aum">
+        <article className="wca-stat wca-stat--aum">
           <span className="wca-k">AUM (LKR)</span>
           <strong>LKR {formatCurrency(summary.totalAumLkr)}</strong>
           <span className="wca-m">Local currency total</span>
         </article>
-        <div className="wca-strip__stats">
-          <article>
-            <span className="wca-k">Total clients</span>
-            <strong>{summary.totalClients}</strong>
-            <span className="wca-m">Across {summary.segments} segments</span>
-          </article>
-          <article>
-            <span className="wca-k">Active</span>
-            <strong>{summary.active}</strong>
-            <span className="wca-m">Currently onboarded</span>
-          </article>
-          <article>
-            <span className="wca-k">Pending KYC</span>
-            <strong>{summary.pending}</strong>
-            <span className="wca-m">Action required</span>
-          </article>
-          <article>
-            <span className="wca-k">Inactive</span>
-            <strong>{summary.inactive}</strong>
-            <span className="wca-m">Dormant / closed</span>
-          </article>
-          <article>
-            <span className="wca-k">AUM (USD)</span>
-            <strong>USD {formatCurrency(summary.totalAumUsd)}</strong>
-            <span className="wca-m">Foreign currency total</span>
-          </article>
-        </div>
+        <article className="wca-stat">
+          <span className="wca-k">Total clients</span>
+          <strong>{summary.totalClients}</strong>
+          <span className="wca-m">Across {summary.segments} segments</span>
+        </article>
+        <article className="wca-stat">
+          <span className="wca-k">Active</span>
+          <strong>{summary.active}</strong>
+          <span className="wca-m">Currently onboarded</span>
+        </article>
+        <article className="wca-stat">
+          <span className="wca-k">Pending KYC</span>
+          <strong>{summary.pending}</strong>
+          <span className="wca-m">Action required</span>
+        </article>
+        <article className="wca-stat">
+          <span className="wca-k">Inactive</span>
+          <strong>{summary.inactive}</strong>
+          <span className="wca-m">Dormant / closed</span>
+        </article>
+        <article className="wca-stat">
+          <span className="wca-k">AUM (USD)</span>
+          <strong>USD {formatCurrency(summary.totalAumUsd)}</strong>
+          <span className="wca-m">Foreign currency total</span>
+        </article>
       </section>
 
       <section className="wca-toolbar">
@@ -258,81 +256,85 @@ const ClientAccounts = () => {
         </div>
       </section>
 
-      <div className="wca-stage">
-        <section className="wca-list" aria-label="Accounts overview">
-          <header className="wca-list__head">
-            <div>
-              <h2>Accounts</h2>
-              <p>
-                {filteredAccounts.length} matching · select a client for details
-              </p>
-            </div>
-          </header>
+      <section className="wca-board" aria-label="Accounts overview">
+        <header className="wca-board__head">
+          <div>
+            <h2>Accounts</h2>
+            <p>{filteredAccounts.length} matching · select a client for details</p>
+          </div>
+        </header>
 
-          {filteredAccounts.length === 0 ? (
-            <div className="wca-empty">No accounts match your filters.</div>
-          ) : (
-            <ul className="wca-cards">
-              {filteredAccounts.map((a) => (
-                <li key={a.id}>
-                  <button
-                    type="button"
-                    className={`wca-card${a.id === selectedAccountId ? ' is-selected' : ''}`}
+        {filteredAccounts.length === 0 ? (
+          <div className="wca-empty">No accounts match your filters.</div>
+        ) : (
+          <div className="wca-table-wrap">
+            <table className="wca-table">
+              <thead>
+                <tr>
+                  <th>Client</th>
+                  <th>Type</th>
+                  <th>Segment</th>
+                  <th>Status</th>
+                  <th>KYC</th>
+                  <th>Risk profile</th>
+                  <th>Balance</th>
+                  <th>Holdings</th>
+                  <th>AUM Δ</th>
+                  <th>Last activity</th>
+                </tr>
+              </thead>
+              <tbody>
+                {filteredAccounts.map((a) => (
+                  <tr
+                    key={a.id}
+                    className={a.id === selectedAccountId ? 'is-selected' : ''}
                     onClick={() => setSelectedAccountId(a.id)}
+                    tabIndex={0}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        setSelectedAccountId(a.id);
+                      }
+                    }}
                   >
-                    <div className="wca-card__top">
-                      <div className="wca-card__id">
-                        <strong>{a.clientName}</strong>
-                        <span>
-                          {a.clientCode} · {a.accountType}
-                        </span>
-                      </div>
+                    <td>
+                      <strong className="wca-table__name">{a.clientName}</strong>
+                      <span className="wca-table__code">{a.clientCode}</span>
+                    </td>
+                    <td>{a.accountType}</td>
+                    <td>{a.segment}</td>
+                    <td>
                       <span className={statusClass(a.status)}>{a.status}</span>
-                    </div>
-
-                    <div className="wca-card__meta">
-                      <span>{a.segment}</span>
-                      <span>{a.riskProfile}</span>
+                    </td>
+                    <td>
                       <span className={kycClass(a.kycStatus)}>KYC {a.kycStatus}</span>
-                    </div>
+                    </td>
+                    <td>{a.riskProfile}</td>
+                    <td className="wca-table__num">
+                      {a.currency} {formatCurrency(a.balance)}
+                    </td>
+                    <td className="wca-table__num">{a.holdingsCount}</td>
+                    <td className={`wca-table__num ${a.aumChangePct >= 0 ? 'is-up' : 'is-down'}`}>
+                      {formatPct(a.aumChangePct)}
+                    </td>
+                    <td>{a.lastActivity}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </section>
 
-                    <div className="wca-card__foot">
-                      <div>
-                        <em>Balance</em>
-                        <b>
-                          {a.currency} {formatCurrency(a.balance)}
-                        </b>
-                      </div>
-                      <div>
-                        <em>Holdings</em>
-                        <b>{a.holdingsCount}</b>
-                      </div>
-                      <div>
-                        <em>AUM Δ</em>
-                        <b className={a.aumChangePct >= 0 ? 'is-up' : 'is-down'}>
-                          {formatPct(a.aumChangePct)}
-                        </b>
-                      </div>
-                      <div>
-                        <em>Last activity</em>
-                        <b>{a.lastActivity}</b>
-                      </div>
-                    </div>
-                  </button>
-                </li>
-              ))}
-            </ul>
-          )}
-        </section>
-
-        <aside className="wca-detail" aria-label="Selected client">
-          {!selectedAccount ? (
-            <div className="wca-empty wca-empty--panel">
-              No client selected. Adjust filters to see results.
-            </div>
-          ) : (
-            <>
-              <div className="wca-detail__hero">
+      <aside className="wca-detail" aria-label="Selected client">
+        {!selectedAccount ? (
+          <div className="wca-empty wca-empty--panel">
+            No client selected. Adjust filters to see results.
+          </div>
+        ) : (
+          <>
+            <div className="wca-detail__hero">
+              <div>
                 <p className="wca-eyebrow">Selected client</p>
                 <h2>{selectedAccount.clientName}</h2>
                 <p>
@@ -348,55 +350,6 @@ const ClientAccounts = () => {
                   </span>
                 </div>
               </div>
-
-              <dl className="wca-facts">
-                <div>
-                  <dt>Relationship Manager</dt>
-                  <dd>{selectedAccount.rm}</dd>
-                </div>
-                <div>
-                  <dt>Risk Profile</dt>
-                  <dd>{selectedAccount.riskProfile}</dd>
-                </div>
-                <div>
-                  <dt>Balance</dt>
-                  <dd>
-                    {selectedAccount.currency} {formatCurrency(selectedAccount.balance)}
-                  </dd>
-                </div>
-                <div>
-                  <dt>AUM Change</dt>
-                  <dd className={selectedAccount.aumChangePct >= 0 ? 'is-up' : 'is-down'}>
-                    {formatPct(selectedAccount.aumChangePct)}
-                  </dd>
-                </div>
-                <div>
-                  <dt>Email</dt>
-                  <dd>{selectedAccount.email}</dd>
-                </div>
-                <div>
-                  <dt>Phone</dt>
-                  <dd>{selectedAccount.phone}</dd>
-                </div>
-                <div>
-                  <dt>Opened</dt>
-                  <dd>{selectedAccount.openedDate}</dd>
-                </div>
-                <div>
-                  <dt>Last activity</dt>
-                  <dd>{selectedAccount.lastActivity}</dd>
-                </div>
-              </dl>
-
-              <div className="wca-products">
-                <h3>Enrolled products</h3>
-                <div>
-                  {selectedAccount.products.map((p) => (
-                    <span key={p}>{p}</span>
-                  ))}
-                </div>
-              </div>
-
               <div className="wca-detail__actions">
                 <button type="button" className="wca-btn wca-btn--solid" onClick={() => {}}>
                   Open Client Portfolio
@@ -408,6 +361,56 @@ const ClientAccounts = () => {
                   Download KYC
                 </button>
               </div>
+            </div>
+
+            <dl className="wca-facts">
+              <div>
+                <dt>Relationship Manager</dt>
+                <dd>{selectedAccount.rm}</dd>
+              </div>
+              <div>
+                <dt>Risk Profile</dt>
+                <dd>{selectedAccount.riskProfile}</dd>
+              </div>
+              <div>
+                <dt>Balance</dt>
+                <dd>
+                  {selectedAccount.currency} {formatCurrency(selectedAccount.balance)}
+                </dd>
+              </div>
+              <div>
+                <dt>AUM Change</dt>
+                <dd className={selectedAccount.aumChangePct >= 0 ? 'is-up' : 'is-down'}>
+                  {formatPct(selectedAccount.aumChangePct)}
+                </dd>
+              </div>
+              <div>
+                <dt>Email</dt>
+                <dd>{selectedAccount.email}</dd>
+              </div>
+              <div>
+                <dt>Phone</dt>
+                <dd>{selectedAccount.phone}</dd>
+              </div>
+              <div>
+                <dt>Opened</dt>
+                <dd>{selectedAccount.openedDate}</dd>
+              </div>
+              <div>
+                <dt>Last activity</dt>
+                <dd>{selectedAccount.lastActivity}</dd>
+              </div>
+            </dl>
+
+            <div className="wca-detail__lower">
+              <div className="wca-products">
+                <h3>Enrolled products</h3>
+                <div>
+                  {selectedAccount.products.map((p) => (
+                    <span key={p}>{p}</span>
+                  ))}
+                </div>
+              </div>
 
               <div className="wca-ops">
                 <h3>Ops checklist</h3>
@@ -418,10 +421,10 @@ const ClientAccounts = () => {
                   <li>Schedule review meeting / quarterly update</li>
                 </ul>
               </div>
-            </>
-          )}
-        </aside>
-      </div>
+            </div>
+          </>
+        )}
+      </aside>
     </div>
   );
 };
