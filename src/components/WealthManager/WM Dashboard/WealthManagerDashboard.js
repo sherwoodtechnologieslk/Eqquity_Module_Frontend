@@ -158,7 +158,6 @@ const WealthManagerDashboard = () => {
     <div className="wdb">
       <header className="wdb-rail">
         <div className="wdb-rail__brand">
-          <span className="wdb-rail__mark">SW</span>
           <div>
             <p className="wdb-rail__eyebrow">Sherwood Wealth</p>
             <h1 className="wdb-rail__title">Operations Dashboard</h1>

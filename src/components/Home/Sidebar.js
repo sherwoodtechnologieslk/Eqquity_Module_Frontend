@@ -1047,6 +1047,24 @@ const Sidebar = ({ onSelect, onPremiumFeature, activeIndex = 0, onLogout, onMana
                       </svg>
                     )}
                   </button>
+                  <button
+                    className="dropdown-item dropdown-item--treasury"
+                    onClick={() => {
+                      window.open('http://10.40.80.89/live1/login', '_blank', 'noopener,noreferrer');
+                      setIsDropdownOpen(false);
+                    }}
+                    type="button"
+                  >
+                    <svg className="dropdown-icon" fill="currentColor" viewBox="0 0 20 20">
+                      <path d="M4 4a2 2 0 00-2 2v8a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2H4zm2 3a1 1 0 011-1h6a1 1 0 110 2H7a1 1 0 01-1-1zm1 4a1 1 0 100 2h4a1 1 0 100-2H7z" />
+                    </svg>
+                    <span className="dropdown-item-brand">
+                      <SherwoodManagerMark tier="treasury" compact />
+                    </span>
+                    <svg className="external-link-icon" fill="none" viewBox="0 0 20 20" aria-hidden="true">
+                      <path stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" d="M8 5H5a2 2 0 00-2 2v8a2 2 0 002 2h8a2 2 0 002-2v-3M11 3h6v6M10 10l7-7" />
+                    </svg>
+                  </button>
                 </div>
               )}
             </div>

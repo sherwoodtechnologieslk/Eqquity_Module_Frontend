@@ -29,7 +29,7 @@ const FundCategories = () => {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setForm(prev => ({ ...prev, [name]: value }));
+    setForm((prev) => ({ ...prev, [name]: value }));
   };
 
   const handleReset = () => {
@@ -48,25 +48,17 @@ const FundCategories = () => {
     });
   };
 
-  const isRequired = (fieldName) => {
-    const requiredFields = [
-      'categoryCode',
-      'categoryName',
-      'riskLevel',
-      'status'
-    ];
-    return requiredFields.includes(fieldName);
-  };
+  const isRequired = (fieldName) =>
+    ['categoryCode', 'categoryName', 'riskLevel', 'status'].includes(fieldName);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsSubmitting(true);
     setSubmitMessage('');
 
-    // Validate required fields
     const requiredFields = ['categoryCode', 'categoryName', 'riskLevel', 'status'];
-    const missingFields = requiredFields.filter(field => !form[field]);
-    
+    const missingFields = requiredFields.filter((field) => !form[field]);
+
     if (missingFields.length > 0) {
       setSubmitMessage(`Please fill in all required fields: ${missingFields.join(', ')}`);
       setIsSubmitting(false);
@@ -74,10 +66,8 @@ const FundCategories = () => {
     }
 
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      // Add to list (in real app, this would be an API call)
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+
       const newCategory = {
         id: categoriesList.length + 1,
         categoryCode: form.categoryCode,
@@ -91,7 +81,7 @@ const FundCategories = () => {
         regulatoryCategory: form.regulatoryCategory,
         taxTreatment: form.taxTreatment
       };
-      
+
       setCategoriesList([...categoriesList, newCategory]);
       setSubmitMessage('Fund Category created successfully!');
       setTimeout(() => {
@@ -109,8 +99,22 @@ const FundCategories = () => {
     const options = {
       riskLevel: ['Very Low', 'Low', 'Medium', 'High', 'Very High'],
       status: ['Active', 'Inactive', 'Suspended'],
-      regulatoryCategory: ['Equity Fund', 'Debt Fund', 'Hybrid Fund', 'Money Market Fund', 'Real Estate Fund', 'Index Fund', 'Capital Preservation Fund'],
-      taxTreatment: ['Capital Gains Tax', 'Interest Income Tax', 'Dividend Tax', 'Mixed Tax Treatment', 'Tax-Free']
+      regulatoryCategory: [
+        'Equity Fund',
+        'Debt Fund',
+        'Hybrid Fund',
+        'Money Market Fund',
+        'Real Estate Fund',
+        'Index Fund',
+        'Capital Preservation Fund'
+      ],
+      taxTreatment: [
+        'Capital Gains Tax',
+        'Interest Income Tax',
+        'Dividend Tax',
+        'Mixed Tax Treatment',
+        'Tax-Free'
+      ]
     };
     return options[fieldName] || [];
   };
@@ -119,24 +123,24 @@ const FundCategories = () => {
     const selectOptions = getSelectOptions(fieldName);
     const isSelect = selectOptions.length > 0;
     const required = isRequired(fieldName);
-
     const label = fieldName
       .replace(/([A-Z])/g, ' $1')
-      .replace(/^./, str => str.toUpperCase());
+      .replace(/^./, (str) => str.toUpperCase());
 
     if (fieldName === 'description' || fieldName === 'notes') {
       return (
-        <div key={fieldName} className="fc-field-group">
-          <label className="fc-field-label">
+        <div key={fieldName} className="fc-field">
+          <label className="fc-field__label" htmlFor={`fc-${fieldName}`}>
             {label} {required && <span className="fc-required">*</span>}
           </label>
           <textarea
+            id={`fc-${fieldName}`}
             name={fieldName}
             value={value}
             onChange={handleChange}
-            placeholder={`Enter ${label.toLowerCase()}...`}
+            placeholder={`Enter ${label.toLowerCase()}…`}
             rows="4"
-            className="fc-form-textarea"
+            className="fc-input fc-input--area"
           />
         </div>
       );
@@ -144,19 +148,22 @@ const FundCategories = () => {
 
     if (isSelect) {
       return (
-        <div key={fieldName} className="fc-field-group">
-          <label className="fc-field-label">
+        <div key={fieldName} className="fc-field">
+          <label className="fc-field__label" htmlFor={`fc-${fieldName}`}>
             {label} {required && <span className="fc-required">*</span>}
           </label>
           <select
+            id={`fc-${fieldName}`}
             name={fieldName}
             value={value}
             onChange={handleChange}
-            className="fc-form-select"
+            className="fc-input"
           >
             <option value="">Select {label}</option>
-            {selectOptions.map(option => (
-              <option key={option} value={option}>{option}</option>
+            {selectOptions.map((option) => (
+              <option key={option} value={option}>
+                {option}
+              </option>
             ))}
           </select>
         </div>
@@ -164,157 +171,179 @@ const FundCategories = () => {
     }
 
     return (
-      <div key={fieldName} className="fc-field-group">
-        <label className="fc-field-label">
+      <div key={fieldName} className="fc-field">
+        <label className="fc-field__label" htmlFor={`fc-${fieldName}`}>
           {label} {required && <span className="fc-required">*</span>}
         </label>
         <input
+          id={`fc-${fieldName}`}
           type="text"
           name={fieldName}
           value={value}
           onChange={handleChange}
           placeholder={`Enter ${label.toLowerCase()}`}
-          className="fc-form-input"
+          className="fc-input"
         />
       </div>
     );
   };
 
+  const riskClass = (level) =>
+    `fc-badge fc-badge--risk-${String(level || '')
+      .toLowerCase()
+      .replace(/\s+/g, '-')}`;
+
+  const statusClass = (status) =>
+    `fc-badge fc-badge--status-${String(status || '').toLowerCase()}`;
+
   if (showListView) {
     return (
-      <div className="fc-container">
-        <div className="fc-header">
-          <div className="fc-header-copy">
-            <span className="fc-eyebrow">Fund administration</span>
-            <h2>Fund Categories List</h2>
-            <p>Review and maintain the classifications used across the unit-trust catalogue.</p>
+      <div className="fc">
+        <header className="fc-rail">
+          <div className="fc-rail__brand">
+            <div>
+              <p className="fc-rail__eyebrow">Sherwood Wealth</p>
+              <h1 className="fc-rail__title">Fund Categories</h1>
+              <p className="fc-rail__blurb">
+                Review and maintain the classifications used across the unit-trust catalogue.
+              </p>
+            </div>
           </div>
-          <button 
-            className="fc-btn fc-btn-primary"
-            onClick={() => setShowListView(false)}
-          >
-            Add New Category
-          </button>
-        </div>
-        
-        <div className="fc-table-container">
-          <table className="fc-table">
-            <thead>
-              <tr>
-                <th>Category Code</th>
-                <th>Category Name</th>
-                <th>Description</th>
-                <th>Risk Level</th>
-                <th>Typical Return</th>
-                <th>Typical Horizon</th>
-                <th>Min. Investment</th>
-                <th>Status</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {categoriesList.map(category => (
-                <tr key={category.id}>
-                  <td><strong>{category.categoryCode}</strong></td>
-                  <td>{category.categoryName}</td>
-                  <td className="fc-description-cell">{category.description}</td>
-                  <td><span className={`fc-risk-badge fc-risk-${category.riskLevel.toLowerCase().replace(' ', '-')}`}>{category.riskLevel}</span></td>
-                  <td>{category.typicalReturn}</td>
-                  <td>{category.typicalHorizon}</td>
-                  <td>{category.minimumInvestment}</td>
-                  <td><span className={`fc-status-badge fc-status-${category.status.toLowerCase()}`}>{category.status}</span></td>
-                  <td>
-                    <button className="fc-action-btn fc-edit">Edit</button>
-                    <button className="fc-action-btn fc-delete">Delete</button>
-                  </td>
+          <div className="fc-rail__actions">
+            <button type="button" className="fc-btn fc-btn--primary" onClick={() => setShowListView(false)}>
+              Add New Category
+            </button>
+          </div>
+        </header>
+
+        <div className="fc-panel fc-panel--table">
+          <div className="fc-table-wrap">
+            <table className="fc-table">
+              <thead>
+                <tr>
+                  <th>Code</th>
+                  <th>Name</th>
+                  <th>Description</th>
+                  <th>Risk</th>
+                  <th>Return</th>
+                  <th>Horizon</th>
+                  <th>Min. Investment</th>
+                  <th>Status</th>
+                  <th>Actions</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {categoriesList.map((category) => (
+                  <tr key={category.id}>
+                    <td>
+                      <strong className="fc-code">{category.categoryCode}</strong>
+                    </td>
+                    <td>{category.categoryName}</td>
+                    <td className="fc-desc">{category.description}</td>
+                    <td>
+                      <span className={riskClass(category.riskLevel)}>{category.riskLevel}</span>
+                    </td>
+                    <td>{category.typicalReturn}</td>
+                    <td>{category.typicalHorizon}</td>
+                    <td>{category.minimumInvestment}</td>
+                    <td>
+                      <span className={statusClass(category.status)}>{category.status}</span>
+                    </td>
+                    <td className="fc-row-actions">
+                      <button type="button" className="fc-link-btn">
+                        Edit
+                      </button>
+                      <button type="button" className="fc-link-btn fc-link-btn--danger">
+                        Delete
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="fc-container">
-      <div className="fc-header">
-        <div className="fc-header-copy">
-          <span className="fc-eyebrow">Fund administration</span>
-          <h2>Fund Category Entry</h2>
-          <p>Define category characteristics, risk expectations, and regulatory treatment.</p>
+    <div className="fc">
+      <header className="fc-rail">
+        <div className="fc-rail__brand">
+          <div>
+            <p className="fc-rail__eyebrow">Sherwood Wealth</p>
+            <h1 className="fc-rail__title">Fund Category Entry</h1>
+            <p className="fc-rail__blurb">
+              Define category characteristics, risk expectations, and regulatory treatment.
+            </p>
+          </div>
         </div>
-        <div className="fc-header-actions">
-          <button 
-            className="fc-btn fc-btn-secondary"
-            onClick={() => setShowListView(true)}
-          >
+        <div className="fc-rail__actions">
+          <button type="button" className="fc-btn fc-btn--ghost" onClick={() => setShowListView(true)}>
             View Categories List
           </button>
         </div>
-      </div>
+      </header>
 
       {submitMessage && (
-        <div className={`fc-message ${submitMessage.includes('Error') ? 'fc-error' : 'fc-success'}`}>
+        <div
+          className={`fc-message${
+            submitMessage.includes('Error') || submitMessage.includes('required')
+              ? ' fc-message--error'
+              : ' fc-message--success'
+          }`}
+          role="status"
+        >
           {submitMessage}
         </div>
       )}
 
-      <div className="fc-form-container">
-        <form onSubmit={handleSubmit} className="fc-form">
-          <div className="fc-form-section">
-            <h3 className="fc-section-title">Basic Information</h3>
-            <div className="fc-form-grid">
-              {renderField('categoryCode', form.categoryCode)}
-              {renderField('categoryName', form.categoryName)}
-              {renderField('description', form.description)}
-              {renderField('riskLevel', form.riskLevel)}
-              {renderField('status', form.status)}
-            </div>
+      <form onSubmit={handleSubmit} className="fc-form">
+        <section className="fc-panel">
+          <h2 className="fc-panel__title">Basic Information</h2>
+          <div className="fc-grid fc-grid--basic">
+            {renderField('categoryCode', form.categoryCode)}
+            {renderField('categoryName', form.categoryName)}
+            {renderField('riskLevel', form.riskLevel)}
+            {renderField('status', form.status)}
+            {renderField('description', form.description)}
           </div>
+        </section>
 
-          <div className="fc-form-section">
-            <h3 className="fc-section-title">Investment Characteristics</h3>
-            <div className="fc-form-grid">
-              {renderField('typicalReturn', form.typicalReturn)}
-              {renderField('typicalHorizon', form.typicalHorizon)}
-              {renderField('minimumInvestment', form.minimumInvestment)}
-            </div>
+        <section className="fc-panel">
+          <h2 className="fc-panel__title">Investment Characteristics</h2>
+          <div className="fc-grid">
+            {renderField('typicalReturn', form.typicalReturn)}
+            {renderField('typicalHorizon', form.typicalHorizon)}
+            {renderField('minimumInvestment', form.minimumInvestment)}
           </div>
+        </section>
 
-          <div className="fc-form-section">
-            <h3 className="fc-section-title">Regulatory & Tax Information</h3>
-            <div className="fc-form-grid">
-              {renderField('regulatoryCategory', form.regulatoryCategory)}
-              {renderField('taxTreatment', form.taxTreatment)}
-            </div>
+        <section className="fc-panel">
+          <h2 className="fc-panel__title">Regulatory & Tax</h2>
+          <div className="fc-grid">
+            {renderField('regulatoryCategory', form.regulatoryCategory)}
+            {renderField('taxTreatment', form.taxTreatment)}
           </div>
+        </section>
 
-          <div className="fc-form-section">
-            <h3 className="fc-section-title">Additional Information</h3>
-            <div className="fc-form-grid">
-              {renderField('notes', form.notes)}
-            </div>
+        <section className="fc-panel">
+          <h2 className="fc-panel__title">Additional Notes</h2>
+          <div className="fc-grid fc-grid--single">
+            {renderField('notes', form.notes)}
           </div>
+        </section>
 
-          <div className="fc-form-actions">
-            <button 
-              type="button" 
-              className="fc-btn fc-btn-secondary"
-              onClick={handleReset}
-            >
-              Reset
-            </button>
-            <button 
-              type="submit" 
-              className="fc-btn fc-btn-primary"
-              disabled={isSubmitting}
-            >
-              {isSubmitting ? 'Submitting...' : 'Submit'}
-            </button>
-          </div>
-        </form>
-      </div>
+        <div className="fc-actions">
+          <button type="button" className="fc-btn fc-btn--ghost" onClick={handleReset}>
+            Reset
+          </button>
+          <button type="submit" className="fc-btn fc-btn--primary" disabled={isSubmitting}>
+            {isSubmitting ? 'Submitting…' : 'Submit'}
+          </button>
+        </div>
+      </form>
     </div>
   );
 };

@@ -155,6 +155,8 @@ function App() {
   const [visibleTabs, setVisibleTabs] = useState(['Dashboard', 'Portfolio Overview', 'Market Summary', 'Recent Activity', 'Performance Metrics']);
   const [selectedManager, setSelectedManager] = useState('equity'); // 'equity' or 'wealth'
   const [hasSelectedManager, setHasSelectedManager] = useState(false);
+  const [pendingManager, setPendingManager] = useState(null);
+  const [showAuthFromManagers, setShowAuthFromManagers] = useState(false);
   const [isClientView, setIsClientView] = useState(false); // Temporary toggle for client/admin view in wealth manager
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [user, setUser] = useState(null);
@@ -260,6 +262,12 @@ function App() {
   const handleManagerSelection = (managerType) => {
     handleManagerChange(managerType);
     setHasSelectedManager(true);
+  };
+
+  const handlePreAuthManagerSelection = (managerType) => {
+    setPendingManager(managerType);
+    handleManagerChange(managerType);
+    setShowAuthFromManagers(true);
   };
 
   /** Client Portal preview is gated — show coming-soon modal instead of navigating. */
@@ -469,15 +477,19 @@ function App() {
   const handleAuthSuccess = (userData, token) => {
     setUser(userData);
     setIsAuthenticated(true);
+    setShowAuthFromManagers(false);
     if (token) {
       localStorage.setItem('token', token);
     }
-    if (userData?.company_role !== 'superuser') {
-      const nav = applyEquityNavigation(userData);
-      setActiveSidebarItem(nav.sectionIndex);
-      setVisibleTabs(nav.visibleTabs);
-      setActiveTab(nav.tab || 'Dashboard');
+    if (userData?.company_role === 'superuser') {
+      setHasSelectedManager(true);
+      return;
     }
+
+    const managerToEnter = pendingManager || selectedManager || 'equity';
+    handleManagerChange(managerToEnter);
+    setHasSelectedManager(true);
+    setPendingManager(null);
   };
 
   // Handle logout
@@ -487,6 +499,8 @@ function App() {
     setUser(null);
     setSelectedManager('equity');
     setHasSelectedManager(false);
+    setPendingManager(null);
+    setShowAuthFromManagers(false);
     setActiveTab('Dashboard');
     setVisibleTabs(DEFAULT_EQUITY_TABS);
   };
@@ -500,13 +514,30 @@ function App() {
     handleLogout();
   };
 
-  // If not authenticated, show auth container
+  // If not authenticated, show manager selection first, then sign-in
   if (isLoading) {
     return <div className="loading-screen">Loading...</div>;
   }
 
   if (!isAuthenticated) {
-    return <AuthContainer onAuthSuccess={handleAuthSuccess} />;
+    if (!showAuthFromManagers) {
+      return (
+        <ManagerSelection
+          preAuth
+          onSelect={handlePreAuthManagerSelection}
+        />
+      );
+    }
+
+    return (
+      <AuthContainer
+        onAuthSuccess={handleAuthSuccess}
+        onBack={() => {
+          setShowAuthFromManagers(false);
+          setPendingManager(null);
+        }}
+      />
+    );
   }
 
   // Superuser: governance-only shell (no equity manager UI)

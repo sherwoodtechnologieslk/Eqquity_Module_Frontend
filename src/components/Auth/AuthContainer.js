@@ -6,7 +6,7 @@ import ResetEnterPin from './ResetEnterPin';
 import SetNewPassword from './SetNewPassword';
 import './Auth.css';
 
-const AuthContainer = ({ onAuthSuccess }) => {
+const AuthContainer = ({ onAuthSuccess, onBack }) => {
     const [view, setView] = useState('login');
     const [resetEmail, setResetEmail] = useState('');
     const [resetPin, setResetPin] = useState('');
@@ -57,6 +57,7 @@ const AuthContainer = ({ onAuthSuccess }) => {
                     onLogin={handleLogin}
                     switchToSignup={switchToSignup}
                     switchToForgotPassword={switchToForgotPassword}
+                    onBackToManagers={onBack}
                 />
             )}
             {view === 'signup' && <Signup onSignup={handleSignup} switchToLogin={switchToLogin} />}
