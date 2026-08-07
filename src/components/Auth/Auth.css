@@ -28,6 +28,32 @@
     font-family: var(--auth-font-body);
 }
 
+.auth-managers-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    align-self: flex-start;
+    margin: 0 0 1.25rem;
+    padding: 0;
+    border: none;
+    background: none;
+    color: var(--auth-muted);
+    font: inherit;
+    font-size: 0.88rem;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.auth-managers-link svg {
+    width: 1rem;
+    height: 1rem;
+    flex-shrink: 0;
+}
+
+.auth-managers-link:hover {
+    color: var(--auth-accent);
+}
+
 .auth-wrapper::before {
     content: none;
 }

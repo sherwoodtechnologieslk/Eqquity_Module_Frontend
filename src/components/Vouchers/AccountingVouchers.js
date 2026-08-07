@@ -29,7 +29,6 @@ import {
   getVoucherTypeLabelFromRecord,
   mapGlEntriesToJournalLines
 } from './accountingVoucherUtils';
-import '../EquityEntries/Styles/OtherTransactions.css';
 import './Styles/AccountingVouchers.css';
 
 const AccountingVouchers = ({ initialVoucherType = 'payment' }) => {
@@ -286,18 +285,18 @@ const AccountingVouchers = ({ initialVoucherType = 'payment' }) => {
     onAdd,
     onRemove
   ) => (
-    <div className="other-trans-field-group av-lines-block">
-      <div className="other-trans-gl2gl-section-header">
-        <div className="other-trans-gl2gl-section-title-row">
-          <label className="other-trans-field-label other-trans-gl2gl-section-label">
+    <section className="av-lines-block">
+      <div className="av-lines-toolbar">
+        <div className="av-lines-toolbar__left">
+          <h3 className="av-lines-heading">
             {side === 'debit' ? 'Debit lines' : 'Credit lines'}
-          </label>
+          </h3>
           {fixed ? (
             <>
-              <span className="other-trans-gl2gl-fixed-badge">Saved</span>
+              <span className="av-badge av-badge--ok">Saved</span>
               <button
                 type="button"
-                className="other-trans-gl2gl-edit-lines-btn"
+                className="av-chip-btn"
                 onClick={() => {
                   setFixed(false);
                   setFixMessage('');
@@ -309,7 +308,7 @@ const AccountingVouchers = ({ initialVoucherType = 'payment' }) => {
           ) : (
             <button
               type="button"
-              className="other-trans-gl2gl-save-lines-btn"
+              className="av-chip-btn av-chip-btn--primary"
               onClick={() => fixSide(lines, setFixed, setFixMessage, side)}
             >
               Save
@@ -317,17 +316,13 @@ const AccountingVouchers = ({ initialVoucherType = 'payment' }) => {
           )}
         </div>
         {!fixed && (
-          <button type="button" onClick={onAdd} className="other-trans-btn other-trans-btn-secondary">
+          <button type="button" onClick={onAdd} className="av-btn-secondary av-btn-sm">
             + Add {side} line
           </button>
         )}
       </div>
       {fixMessage && (
-        <p
-          className={`other-trans-gl2gl-side-fix-message${
-            fixed ? ' other-trans-gl2gl-fix-message--ok' : ' other-trans-gl2gl-fix-message--err'
-          }`}
-        >
+        <p className={`av-side-msg${fixed ? ' av-side-msg--ok' : ' av-side-msg--err'}`}>
           {fixMessage}
         </p>
       )}
@@ -338,53 +333,53 @@ const AccountingVouchers = ({ initialVoucherType = 'payment' }) => {
           </option>
         ))}
       </datalist>
-      <div className="other-trans-gl2gl-lines">
+      <div className="av-lines-list">
         {lines.map((line, idx) => (
           <div
             key={line.id}
-            className={`other-trans-gl2gl-line-card${fixed ? ' other-trans-gl2gl-line-card--locked' : ''}`}
+            className={`av-line-card${fixed ? ' av-line-card--locked' : ''}`}
           >
-            <div className="other-trans-gl2gl-line-card-header">
-              <span className="other-trans-gl2gl-line-title">
+            <div className="av-line-card__head">
+              <span className="av-line-card__title">
                 {side === 'debit' ? 'Debit' : 'Credit'} line {idx + 1}
               </span>
               {!fixed && lines.length > 1 && (
-                <button type="button" onClick={() => onRemove(line.id)} className="other-trans-gl2gl-remove-btn">
+                <button type="button" onClick={() => onRemove(line.id)} className="av-remove-btn">
                   Remove
                 </button>
               )}
             </div>
-            <div className="other-trans-form-grid other-trans-form-grid--compact">
-              <div className="other-trans-field-group">
-                <label className="other-trans-field-label">GL code *</label>
+            <div className="av-line-grid">
+              <div className="av-field av-field--code">
+                <label className="av-label">GL code *</label>
                 <input
                   value={line.accountCode}
                   onChange={(e) => updateLine(setLines, line.id, 'accountCode', e.target.value)}
-                  className="other-trans-form-input"
+                  className="av-input"
                   list={fixed ? undefined : datalistId}
                   placeholder={chartAccountsLoading ? 'Loading…' : 'Account code'}
                   readOnly={fixed}
                 />
               </div>
-              <div className="other-trans-field-group">
-                <label className="other-trans-field-label">Amount *</label>
+              <div className="av-field av-field--amount">
+                <label className="av-label">Amount *</label>
                 <input
                   type="number"
                   value={line.amount}
                   onChange={(e) => updateLine(setLines, line.id, 'amount', e.target.value)}
-                  className="other-trans-form-input"
+                  className="av-input"
                   step="0.01"
                   min="0"
                   placeholder="0.00"
                   readOnly={fixed}
                 />
               </div>
-              <div className="other-trans-field-group" style={{ gridColumn: '1 / -1' }}>
-                <label className="other-trans-field-label">Account description</label>
+              <div className="av-field av-field--desc">
+                <label className="av-label">Account description</label>
                 <input
                   value={line.accountName}
                   onChange={(e) => updateLine(setLines, line.id, 'accountName', e.target.value)}
-                  className="other-trans-form-input"
+                  className="av-input"
                   placeholder="From chart of accounts when code matches"
                   readOnly={fixed}
                 />
@@ -393,11 +388,22 @@ const AccountingVouchers = ({ initialVoucherType = 'payment' }) => {
           </div>
         ))}
       </div>
-    </div>
+    </section>
   );
 
   return (
     <div className="av-root">
+      <header className="av-rail">
+        <div>
+          <p className="av-rail__eyebrow">Accounting</p>
+          <h1 className="av-rail__title">Vouchers</h1>
+          <p className="av-rail__blurb">
+            Create payment, receipt, journal, and contra vouchers, then review posted
+            entries from Other Transactions.
+          </p>
+        </div>
+      </header>
+
       <nav className="av-screen-tabs" aria-label="Accounting vouchers">
         <button
           type="button"
@@ -419,34 +425,52 @@ const AccountingVouchers = ({ initialVoucherType = 'payment' }) => {
       </nav>
 
       {screenTab === 'create' ? (
-        <div className="other-trans-form-card av-form-card">
-          <div className="other-trans-card-header">
-            <h2 className="other-trans-card-title">Create accounting voucher</h2>
+        <div className="av-form-card">
+          <div className="av-form-card__head">
+            <h2 className="av-form-card__title">Create accounting voucher</h2>
+            <div className="av-type-nav" role="tablist" aria-label="Voucher type">
+              {VOUCHER_TYPES.map((type) => (
+                <button
+                  key={type.id}
+                  type="button"
+                  role="tab"
+                  aria-selected={voucherType === type.id}
+                  className={`av-type-btn${voucherType === type.id ? ' active' : ''}`}
+                  onClick={() => handleVoucherTypeChange(type.id)}
+                >
+                  {type.label}
+                </button>
+              ))}
+            </div>
           </div>
 
-          <div className="av-type-nav" role="tablist" aria-label="Voucher type">
-            {VOUCHER_TYPES.map((type) => (
-              <button
-                key={type.id}
-                type="button"
-                role="tab"
-                aria-selected={voucherType === type.id}
-                className={`av-type-btn${voucherType === type.id ? ' active' : ''}`}
-                onClick={() => handleVoucherTypeChange(type.id)}
+          <form onSubmit={handleSubmit} className="av-form-body">
+            <div className="av-balance-bar">
+              <div className="av-balance-bar__item">
+                <span className="av-balance-bar__lbl">Debits</span>
+                <span className="av-balance-bar__val">{formatCurrency(drTotal)}</span>
+              </div>
+              <div className="av-balance-bar__item">
+                <span className="av-balance-bar__lbl">Credits</span>
+                <span className="av-balance-bar__val">{formatCurrency(crTotal)}</span>
+              </div>
+              <div
+                className={`av-balance-bar__item av-balance-bar__item--outcome${
+                  Math.abs(balanceDiff) < 0.01 ? ' is-ok' : ' is-warn'
+                }`}
               >
-                {type.label}
-              </button>
-            ))}
-          </div>
+                <span className="av-balance-bar__lbl">Out of balance</span>
+                <span className="av-balance-bar__val">{formatCurrency(balanceDiff)}</span>
+              </div>
+            </div>
 
-          <form onSubmit={handleSubmit} className="other-trans-form-content other-trans-form-content--gl2gl av-form-body">
-            <div className="other-trans-form-grid">
-              <div className="other-trans-field-group other-trans-field-group--full">
-                <div className="other-trans-voucher-row">
-                  <label className="other-trans-field-label other-trans-field-label--inline">Voucher number</label>
+            <div className="av-grid">
+              <div className="av-field av-span-4">
+                <div className="av-label-row">
+                  <label className="av-label">Voucher number</label>
                   <button
                     type="button"
-                    className="other-trans-btn-regenerate"
+                    className="av-regenerate"
                     onClick={() =>
                       setHeader((prev) => ({
                         ...prev,
@@ -461,44 +485,27 @@ const AccountingVouchers = ({ initialVoucherType = 'payment' }) => {
                   name="voucherNumber"
                   value={header.voucherNumber}
                   onChange={handleHeaderChange}
-                  className="other-trans-form-input"
+                  className="av-input"
                 />
-                <small className="other-trans-field-hint">
+                <small className="av-hint">
                   Format: {VOUCHER_TYPES.find((t) => t.id === voucherType)?.prefix}-YYYYMMDD-001
                 </small>
               </div>
 
-              <div className="other-trans-field-group">
-                <label className="other-trans-field-label">Date *</label>
+              <div className="av-field av-span-4">
+                <label className="av-label">Date *</label>
                 <input
                   type="date"
                   name="date"
                   value={header.date}
                   onChange={handleHeaderChange}
-                  className="other-trans-form-input"
+                  className="av-input"
                   required
                 />
               </div>
 
-              <div className="other-trans-field-group">
-                <label className="other-trans-field-label">Journal balance</label>
-                <div className="other-trans-gl2gl-balance-card">
-                  <div><strong>Debits:</strong> {formatCurrency(drTotal)}</div>
-                  <div><strong>Credits:</strong> {formatCurrency(crTotal)}</div>
-                  <div
-                    className={`other-trans-gl2gl-balance-outcome ${
-                      Math.abs(balanceDiff) < 0.01
-                        ? 'other-trans-gl2gl-balance-ok'
-                        : 'other-trans-gl2gl-balance-warn'
-                    }`}
-                  >
-                    <strong>Out of balance:</strong> {formatCurrency(balanceDiff)}
-                  </div>
-                </div>
-              </div>
-
-              <div className="other-trans-field-group">
-                <label className="other-trans-field-label">
+              <div className="av-field av-span-4">
+                <label className="av-label">
                   {partyLabel}
                   {(voucherType === 'payment' || voucherType === 'receipt') && ' *'}
                 </label>
@@ -506,19 +513,19 @@ const AccountingVouchers = ({ initialVoucherType = 'payment' }) => {
                   name="party"
                   value={header.party}
                   onChange={handleHeaderChange}
-                  className="other-trans-form-input"
+                  className="av-input"
                   placeholder={voucherType === 'receipt' ? 'Customer or payer name' : 'Payee name'}
                 />
               </div>
 
               {bankVisible && (
-                <div className="other-trans-field-group">
-                  <label className="other-trans-field-label">Payment type</label>
+                <div className="av-field av-span-4">
+                  <label className="av-label">Payment type</label>
                   <select
                     name="paymentMethod"
                     value={header.paymentMethod}
                     onChange={handleHeaderChange}
-                    className="other-trans-form-select"
+                    className="av-input"
                   >
                     {PAYMENT_METHODS.map((m) => (
                       <option key={m} value={m}>{m}</option>
@@ -527,116 +534,112 @@ const AccountingVouchers = ({ initialVoucherType = 'payment' }) => {
                 </div>
               )}
 
-              <div className="other-trans-field-group" style={{ gridColumn: '1 / -1' }}>
-                <label className="other-trans-field-label">Narration / description</label>
-                <input
-                  name="description"
-                  value={header.description}
-                  onChange={handleHeaderChange}
-                  className="other-trans-form-input"
-                  placeholder="Purpose of this voucher"
-                />
-              </div>
-
-              <div className="other-trans-field-group">
-                <label className="other-trans-field-label">Document attached</label>
+              <div className="av-field av-span-4">
+                <label className="av-label">Document attached</label>
                 <input
                   name="reference"
                   value={header.reference}
                   onChange={handleHeaderChange}
-                  className="other-trans-form-input"
+                  className="av-input"
                   placeholder="Supporting document reference"
+                />
+              </div>
+
+              <div className={`av-field ${bankVisible ? 'av-span-4' : 'av-span-8'}`}>
+                <label className="av-label">Narration / description</label>
+                <input
+                  name="description"
+                  value={header.description}
+                  onChange={handleHeaderChange}
+                  className="av-input"
+                  placeholder="Purpose of this voucher"
                 />
               </div>
 
               {bankVisible && (
                 <>
-                  <div className="av-bank-section-label">Bank / cheque details</div>
-                  <div className="other-trans-field-group">
-                    <label className="other-trans-field-label">Branch code</label>
-                    <input name="branchCode" value={header.branchCode} onChange={handleHeaderChange} className="other-trans-form-input" />
+                  <div className="av-section-label av-span-12">Bank / cheque details</div>
+                  <div className="av-field av-span-3">
+                    <label className="av-label">Branch code</label>
+                    <input name="branchCode" value={header.branchCode} onChange={handleHeaderChange} className="av-input" />
                   </div>
-                  <div className="other-trans-field-group">
-                    <label className="other-trans-field-label">Branch account</label>
-                    <input name="branchAccount" value={header.branchAccount} onChange={handleHeaderChange} className="other-trans-form-input" />
+                  <div className="av-field av-span-3">
+                    <label className="av-label">Branch account</label>
+                    <input name="branchAccount" value={header.branchAccount} onChange={handleHeaderChange} className="av-input" />
                   </div>
-                  <div className="other-trans-field-group">
-                    <label className="other-trans-field-label">Branch name</label>
-                    <input name="branchName" value={header.branchName} onChange={handleHeaderChange} className="other-trans-form-input" />
+                  <div className="av-field av-span-3">
+                    <label className="av-label">Branch name</label>
+                    <input name="branchName" value={header.branchName} onChange={handleHeaderChange} className="av-input" />
                   </div>
-                  <div className="other-trans-field-group">
-                    <label className="other-trans-field-label">Cheque no.</label>
-                    <input name="chequeNumber" value={header.chequeNumber} onChange={handleHeaderChange} className="other-trans-form-input" />
+                  <div className="av-field av-span-3">
+                    <label className="av-label">Cheque no.</label>
+                    <input name="chequeNumber" value={header.chequeNumber} onChange={handleHeaderChange} className="av-input" />
                   </div>
                 </>
               )}
+            </div>
 
-              {renderLineBlock(
-                'debit',
-                debitLines,
-                setDebitLines,
-                debitFixed,
-                setDebitFixed,
-                debitFixMessage,
-                setDebitFixMessage,
-                'avDebitAccounts',
-                () => setDebitLines((prev) => [...prev, emptyLine()]),
-                (id) => setDebitLines((prev) => prev.filter((l) => l.id !== id))
-              )}
+            {renderLineBlock(
+              'debit',
+              debitLines,
+              setDebitLines,
+              debitFixed,
+              setDebitFixed,
+              debitFixMessage,
+              setDebitFixMessage,
+              'avDebitAccounts',
+              () => setDebitLines((prev) => [...prev, emptyLine()]),
+              (id) => setDebitLines((prev) => prev.filter((l) => l.id !== id))
+            )}
 
-              {renderLineBlock(
-                'credit',
-                creditLines,
-                setCreditLines,
-                creditFixed,
-                setCreditFixed,
-                creditFixMessage,
-                setCreditFixMessage,
-                'avCreditAccounts',
-                () => setCreditLines((prev) => [...prev, emptyLine()]),
-                (id) => setCreditLines((prev) => prev.filter((l) => l.id !== id))
-              )}
+            {renderLineBlock(
+              'credit',
+              creditLines,
+              setCreditLines,
+              creditFixed,
+              setCreditFixed,
+              creditFixMessage,
+              setCreditFixMessage,
+              'avCreditAccounts',
+              () => setCreditLines((prev) => [...prev, emptyLine()]),
+              (id) => setCreditLines((prev) => prev.filter((l) => l.id !== id))
+            )}
 
-              <p className="other-trans-gl2gl-helper">
-                Select voucher type, complete header fields, then <strong>Save</strong> debit and credit lines.
-                Totals must balance before posting. Vouchers are saved to <strong>Other Transactions</strong>.
-              </p>
+            <p className="av-helper">
+              Select voucher type, complete header fields, then <strong>Save</strong> debit and credit lines.
+              Totals must balance before posting. Vouchers are saved to <strong>Other Transactions</strong>.
+            </p>
 
-              <div className="other-trans-field-group" style={{ gridColumn: '1 / -1' }}>
-                <label className="other-trans-field-label">Notes</label>
-                <textarea
-                  name="notes"
-                  value={header.notes}
-                  onChange={handleHeaderChange}
-                  rows="2"
-                  className="other-trans-form-textarea"
-                  placeholder="Internal notes (optional)"
-                />
-              </div>
+            <div className="av-field av-notes">
+              <label className="av-label">Notes</label>
+              <textarea
+                name="notes"
+                value={header.notes}
+                onChange={handleHeaderChange}
+                rows="2"
+                className="av-input av-textarea"
+                placeholder="Internal notes (optional)"
+              />
             </div>
 
             {submitMessage && (
-              <div
-                className={`other-trans-message ${
-                  isErrorMessage(submitMessage) ? 'other-trans-error' : 'other-trans-success'
-                }`}
-              >
+              <div className={`av-message${isErrorMessage(submitMessage) ? ' av-message--err' : ' av-message--ok'}`}>
                 {submitMessage}
               </div>
             )}
 
-            <div className="other-trans-button-section">
+            <div className="av-actions">
               <button
                 type="button"
                 onClick={() => resetForm()}
-                className="other-trans-btn other-trans-btn-secondary"
+                className="av-btn-secondary"
                 disabled={isSubmitting}
               >
                 Reset form
               </button>
               <button
                 type="submit"
-                className="other-trans-btn other-trans-btn-primary"
+                className="av-btn-primary"
                 disabled={isSubmitting}
               >
                 {isSubmitting

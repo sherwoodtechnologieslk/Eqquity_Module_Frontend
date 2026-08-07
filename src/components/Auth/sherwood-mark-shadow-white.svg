@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 320" fill="none">
+  <!-- Shadow-white Sherwood mark for dark navy canvases -->
+  <circle cx="130" cy="178" r="108" fill="rgba(255,255,255,0.1)"/>
+  <circle cx="130" cy="178" r="104" fill="rgba(255,255,255,0.28)"/>
+  <circle cx="130" cy="178" r="104" stroke="rgba(255,255,255,0.55)" stroke-width="2.5" fill="none"/>
+
+  <circle cx="130" cy="178" r="54" stroke="rgba(255,255,255,0.72)" stroke-width="13" fill="none"/>
+  <circle cx="130" cy="178" r="24" stroke="rgba(255,255,255,0.78)" stroke-width="11" fill="none"/>
+
+  <g transform="rotate(-42 130 178)">
+    <rect x="130" y="170" width="138" height="16" rx="3" fill="rgba(255,255,255,0.88)"/>
+    <circle cx="130" cy="178" r="8" fill="rgba(255,255,255,0.92)"/>
+    <path d="M248 158 L286 146 L286 170 L248 170 Z" fill="rgba(255,255,255,0.88)"/>
+    <path d="M248 198 L286 210 L286 186 L248 186 Z" fill="rgba(255,255,255,0.88)"/>
+  </g>
+</svg>

@@ -1,5 +1,9 @@
 .vm-page {
-  min-height: 100vh;
-  padding: 0.35rem 1rem 2rem;
+  min-height: 100%;
+  padding: 0.5rem 1rem 2rem;
   box-sizing: border-box;
+  background:
+    radial-gradient(ellipse 80% 50% at 100% 0%, rgba(37, 99, 235, 0.06), transparent 55%),
+    radial-gradient(ellipse 60% 40% at 0% 100%, rgba(59, 130, 246, 0.04), transparent 50%),
+    #f8fafc;
 }

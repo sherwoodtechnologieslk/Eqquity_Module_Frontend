@@ -512,6 +512,10 @@ html, body {
   background: #14b8a6;
 }
 
+.dropdown-item--treasury::before {
+  background: #3b82f6;
+}
+
 .dropdown-item:hover {
   color: #ffffff;
   background: rgba(255, 255, 255, 0.05);
@@ -523,6 +527,10 @@ html, body {
 
 .dropdown-item--wealth:hover {
   background: rgba(20, 184, 166, 0.08);
+}
+
+.dropdown-item--treasury:hover {
+  background: rgba(59, 130, 246, 0.08);
 }
 
 .dropdown-item:hover::before {
@@ -573,6 +581,10 @@ html, body {
   color: #5eead4;
 }
 
+.dropdown-item--treasury:hover .dropdown-icon {
+  color: #60a5fa;
+}
+
 .dropdown-item.active .dropdown-icon {
   background: transparent;
   box-shadow: none;
@@ -608,6 +620,20 @@ html, body {
 
 .dropdown-item--wealth .check-icon {
   color: #14b8a6;
+}
+
+.external-link-icon {
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
+  opacity: 0.65;
+  position: relative;
+  z-index: 1;
+}
+
+.dropdown-item--treasury:hover .external-link-icon {
+  opacity: 1;
+  color: #93c5fd;
 }
 
 @keyframes checkFadeIn {

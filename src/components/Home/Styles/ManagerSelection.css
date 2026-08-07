@@ -1,37 +1,51 @@
+/**
+ * Manager selection — full-screen dark navy grid canvas
+ * with Equity / Wealth / Treasury cards.
+ */
+
 .manager-selection {
-  --selection-ink: #0b1f33;
-  --selection-muted: #627386;
+  --selection-ink: #e8eef5;
+  --selection-muted: #8fa3b8;
+  --selection-navy: #0b1f31;
+  --selection-line: rgba(148, 175, 200, 0.28);
+
   position: relative;
   min-height: 100vh;
+  min-height: 100dvh;
+  width: 100%;
   display: flex;
   flex-direction: column;
   color: var(--selection-ink);
-  background:
-    radial-gradient(circle at 15% 5%, rgba(26, 107, 92, 0.1), transparent 30%),
-    radial-gradient(circle at 90% 90%, rgba(174, 133, 44, 0.1), transparent 32%),
-    #f6f7f5;
+  background-color: var(--selection-navy);
+  background-image:
+    linear-gradient(var(--selection-line) 1px, transparent 1px),
+    linear-gradient(90deg, var(--selection-line) 1px, transparent 1px);
+  background-size: 48px 48px;
+  background-position: center top;
   font-family: 'Source Sans 3', 'Segoe UI', sans-serif;
+  overflow-x: hidden;
 }
 
 .manager-selection__back {
   position: absolute;
   top: 1.6rem;
   left: 1.8rem;
+  z-index: 2;
   display: inline-flex;
   align-items: center;
   gap: 0.55rem;
   padding: 0.55rem 1.1rem 0.55rem 0.85rem;
-  border: 1px solid rgba(11, 31, 51, 0.13);
+  border: 1px solid rgba(148, 175, 200, 0.22);
   border-radius: 10px;
-  background: rgba(255, 255, 255, 0.85);
-  backdrop-filter: blur(8px);
-  box-shadow: 0 2px 10px rgba(11, 31, 51, 0.07);
+  background: rgba(11, 31, 49, 0.72);
+  backdrop-filter: blur(10px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
   color: var(--selection-ink);
   font: inherit;
   font-size: 0.9rem;
   font-weight: 600;
   cursor: pointer;
-  transition: border-color 150ms ease, box-shadow 150ms ease, background 150ms ease, color 150ms ease;
+  transition: border-color 150ms ease, background 150ms ease, color 150ms ease;
 }
 
 .manager-selection__back svg {
@@ -46,28 +60,31 @@
 }
 
 .manager-selection__back:hover {
-  border-color: rgba(26, 107, 92, 0.4);
-  background: rgba(255, 255, 255, 0.98);
-  box-shadow: 0 4px 18px rgba(11, 31, 51, 0.12);
-  color: #1a6b5c;
+  border-color: rgba(94, 196, 176, 0.55);
+  background: rgba(16, 42, 64, 0.92);
+  color: #7ddec8;
 }
 
 .manager-selection__back:hover svg {
-  color: #1a6b5c;
+  color: #7ddec8;
 }
 
 .manager-selection__content {
+  position: relative;
+  z-index: 1;
   flex: 1;
   display: flex;
   align-items: center;
   justify-content: center;
-  width: min(100% - 3rem, 1050px);
+  width: min(100% - 3rem, 1280px);
   margin: 0 auto;
-  padding: 4.5rem 0 1.5rem;
+  padding: 5rem 0 2rem;
   text-align: center;
 }
 
 .manager-selection__footer {
+  position: relative;
+  z-index: 1;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -82,13 +99,15 @@
   object-fit: contain;
   flex-shrink: 0;
   display: block;
+  opacity: 0.92;
+  filter: drop-shadow(0 0 10px rgba(255, 255, 255, 0.22));
 }
 
 .manager-selection__brand-copy {
   display: flex;
   align-items: center;
   height: 2.75rem;
-  color: #14261f;
+  color: rgba(232, 238, 245, 0.78);
   font-family: 'Montserrat', 'Segoe UI', sans-serif;
   font-size: 0.82rem;
   font-weight: 700;
@@ -102,7 +121,7 @@
 .manager-selection__grid {
   display: grid;
   width: 100%;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 1.25rem;
 }
 
@@ -112,16 +131,17 @@
   min-height: 355px;
   flex-direction: column;
   align-items: flex-start;
-  padding: clamp(1.6rem, 3vw, 2.4rem);
+  padding: clamp(1.6rem, 3vw, 2.2rem);
   overflow: hidden;
-  border: 1px solid rgba(11, 31, 51, 0.12);
+  border: 1px solid rgba(148, 175, 200, 0.2);
   border-radius: 18px;
   color: var(--selection-ink);
-  background: rgba(255, 255, 255, 0.9);
-  box-shadow: 0 18px 50px rgba(11, 31, 51, 0.07);
+  background: rgba(14, 36, 56, 0.78);
+  backdrop-filter: blur(12px);
+  box-shadow: 0 18px 50px rgba(0, 0, 0, 0.28);
   text-align: left;
   cursor: pointer;
-  transition: transform 180ms ease, border-color 180ms ease, box-shadow 180ms ease;
+  transition: transform 180ms ease, border-color 180ms ease, box-shadow 180ms ease, background 180ms ease;
 }
 
 .manager-option::after {
@@ -132,32 +152,43 @@
   right: -60px;
   top: -70px;
   border-radius: 50%;
-  opacity: 0.12;
+  opacity: 0.18;
+  pointer-events: none;
 }
 
 .manager-option--equity::after {
-  background: #1a6b5c;
+  background: #2dd4bf;
 }
 
 .manager-option--wealth::after {
-  background: #ae852c;
+  background: #e0b34d;
+}
+
+.manager-option--treasury::after {
+  background: #60a5fa;
 }
 
 .manager-option:hover,
 .manager-option:focus-visible {
   transform: translateY(-5px);
-  box-shadow: 0 24px 60px rgba(11, 31, 51, 0.13);
+  background: rgba(18, 46, 70, 0.9);
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.38);
   outline: none;
 }
 
 .manager-option--equity:hover,
 .manager-option--equity:focus-visible {
-  border-color: rgba(26, 107, 92, 0.55);
+  border-color: rgba(45, 212, 191, 0.55);
 }
 
 .manager-option--wealth:hover,
 .manager-option--wealth:focus-visible {
-  border-color: rgba(174, 133, 44, 0.6);
+  border-color: rgba(224, 179, 77, 0.55);
+}
+
+.manager-option--treasury:hover,
+.manager-option--treasury:focus-visible {
+  border-color: rgba(96, 165, 250, 0.55);
 }
 
 .manager-option__icon {
@@ -170,13 +201,18 @@
 }
 
 .manager-option--equity .manager-option__icon {
-  color: #1a6b5c;
-  background: rgba(26, 107, 92, 0.1);
+  color: #5eead4;
+  background: rgba(45, 212, 191, 0.14);
 }
 
 .manager-option--wealth .manager-option__icon {
-  color: #946f20;
-  background: rgba(174, 133, 44, 0.12);
+  color: #f0d78c;
+  background: rgba(224, 179, 77, 0.14);
+}
+
+.manager-option--treasury .manager-option__icon {
+  color: #93c5fd;
+  background: rgba(96, 165, 250, 0.14);
 }
 
 .manager-option__icon svg {
@@ -199,15 +235,16 @@
 
 .manager-option__title {
   font-family: 'Montserrat', 'Segoe UI', sans-serif;
-  font-size: clamp(1.45rem, 3vw, 2rem);
+  font-size: clamp(1.35rem, 2.4vw, 1.85rem);
   font-weight: 750;
+  color: #f4f7fb;
 }
 
 .manager-option__description {
   max-width: 42ch;
   margin-top: 0.8rem;
   color: var(--selection-muted);
-  font-size: 0.98rem;
+  font-size: 0.95rem;
   line-height: 1.55;
 }
 
@@ -219,7 +256,7 @@
   gap: 0.7rem;
   margin-top: auto;
   padding: 0.55rem 0.65rem 0.55rem 0.8rem;
-  border: 1px solid rgba(11, 31, 51, 0.1);
+  border: 1px solid rgba(148, 175, 200, 0.22);
   border-radius: 10px;
   font-size: 0.88rem;
   font-weight: 650;
@@ -227,15 +264,21 @@
 }
 
 .manager-option--equity .manager-option__action {
-  border-color: rgba(26, 107, 92, 0.2);
-  color: #155a4d;
-  background: rgba(26, 107, 92, 0.07);
+  border-color: rgba(45, 212, 191, 0.28);
+  color: #99f6e4;
+  background: rgba(45, 212, 191, 0.1);
 }
 
 .manager-option--wealth .manager-option__action {
-  border-color: rgba(174, 133, 44, 0.24);
-  color: #805f19;
-  background: rgba(174, 133, 44, 0.08);
+  border-color: rgba(224, 179, 77, 0.3);
+  color: #f5dfa0;
+  background: rgba(224, 179, 77, 0.1);
+}
+
+.manager-option--treasury .manager-option__action {
+  border-color: rgba(96, 165, 250, 0.3);
+  color: #bfdbfe;
+  background: rgba(96, 165, 250, 0.1);
 }
 
 .manager-option__action span {
@@ -261,19 +304,34 @@
 }
 
 .manager-option--equity .manager-option__action span {
-  background: #1a6b5c;
+  background: #0f766e;
 }
 
 .manager-option--wealth .manager-option__action span {
-  background: #ae852c;
+  background: #a16207;
+}
+
+.manager-option--treasury .manager-option__action span {
+  background: #1d4ed8;
 }
 
 .manager-option:hover .manager-option__action {
-  background: #fff;
+  background: rgba(255, 255, 255, 0.06);
 }
 
 .manager-option:hover .manager-option__action span {
   transform: translateX(2px);
+}
+
+@media (max-width: 1100px) {
+  .manager-selection__content {
+    width: min(100% - 2rem, 560px);
+    padding-top: 4.5rem;
+  }
+
+  .manager-selection__grid {
+    grid-template-columns: 1fr;
+  }
 }
 
 @media (max-width: 700px) {
@@ -282,11 +340,11 @@
     left: 1rem;
   }
 
-  .manager-selection__grid {
-    grid-template-columns: 1fr;
-  }
-
   .manager-option {
     min-height: 300px;
+  }
+
+  .manager-selection__brand-copy {
+    font-size: 0.7rem;
   }
 }

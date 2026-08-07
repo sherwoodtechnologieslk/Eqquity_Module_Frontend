@@ -20,56 +20,58 @@
 }
 
 .other-trans-content-wrapper {
-  max-width: 1280px;
+  max-width: 1400px;
   margin: 0 auto;
 }
 
-/* Header — matched to Internal Bank Transfer (eqt-header) */
+/* Header — matched to Vouchers / Equity Master rail */
 .other-trans-header-section {
   display: flex;
-  align-items: center;
-  gap: 1rem;
+  align-items: flex-start;
+  gap: 0.85rem;
   margin-bottom: 0.85rem;
   text-align: left;
-  padding-top: 0.15rem;
-  padding-bottom: 0.5rem;
-  border-bottom: none;
-}
-
-.other-trans-header-icon {
-  display: none;
-}
-
-.other-trans-icon {
-  width: 1.45rem;
-  height: 1.45rem;
-  color: #ffffff;
+  padding: 0.15rem 0.1rem 0.85rem;
+  border-bottom: 1px solid var(--ot-border);
 }
 
 .other-trans-header-text-group {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  gap: 0.2rem;
+  gap: 0.15rem;
   min-width: 0;
 }
 
+.other-trans-header-eyebrow {
+  margin: 0 0 0.05rem;
+  font-size: 0.6rem;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--ot-blue);
+}
+
 .other-trans-main-title {
-  font-size: 1.5rem;
-  font-weight: 800;
-  color: #0f172a;
+  font-size: clamp(1.25rem, 2vw, 1.55rem);
+  font-weight: 700;
+  color: var(--ot-text);
   margin: 0;
-  letter-spacing: -0.01em;
+  letter-spacing: -0.02em;
   line-height: 1.15;
+  text-align: left !important;
+  -webkit-text-fill-color: currentColor;
+  background: none;
 }
 
 .other-trans-subtitle {
-  color: #475569;
-  font-size: 0.875rem;
+  color: var(--ot-text-secondary);
+  font-size: 0.8rem;
   font-weight: 400;
   margin: 0;
+  max-width: 40rem;
   letter-spacing: 0;
-  line-height: 1.4;
+  line-height: 1.45;
 }
 
 /* Main tab navigation — separate floating “fresh cake” buttons */
@@ -1020,13 +1022,76 @@
 }
 
 .other-trans-form-content--gl2gl .other-trans-form-grid {
-  gap: 0.5rem;
+  gap: 0.65rem;
   margin-bottom: 0.5rem;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+}
+
+.other-trans-form-content--gl2gl > form > .other-trans-form-grid {
+  grid-template-columns: 1fr;
 }
 
 .other-trans-form-content--gl2gl .other-trans-field-group {
   gap: 0.25rem;
+  min-width: 0;
+}
+
+/* Full-width balance strip (matches Accounting Vouchers) */
+.other-trans-gl2gl-balance-bar {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.45rem;
+  padding: 0.5rem 0.7rem;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 0.375rem;
+}
+
+.other-trans-gl2gl-balance-bar__item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+  min-width: 0;
+}
+
+.other-trans-gl2gl-balance-bar__lbl {
+  font-size: 0.625rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #64748b;
+}
+
+.other-trans-gl2gl-balance-bar__val {
+  font-size: 0.9rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: #0f172a;
+}
+
+.other-trans-gl2gl-balance-bar__item--outcome.is-ok .other-trans-gl2gl-balance-bar__val {
+  color: #065f46;
+}
+
+.other-trans-gl2gl-balance-bar__item--outcome.is-warn .other-trans-gl2gl-balance-bar__val {
+  color: #92400e;
+}
+
+/* Voucher | Description | Date — one aligned row */
+.other-trans-gl2gl-fields-row {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: minmax(0, 1.1fr) minmax(0, 2fr) minmax(140px, 0.85fr);
+  gap: 0.65rem;
+  align-items: start;
+}
+
+.other-trans-gl2gl-label-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  min-height: 1.6rem;
 }
 
 .other-trans-form-content--gl2gl .other-trans-form-input,
@@ -1067,7 +1132,21 @@
   margin-bottom: 0;
 }
 
-/* GL to GL helpers */
+.other-trans-form-content--gl2gl .other-trans-gl2gl-line-grid {
+  display: grid;
+  grid-template-columns: minmax(140px, 0.9fr) minmax(0, 2.2fr) minmax(120px, 0.75fr);
+  gap: 0.55rem;
+  align-items: start;
+  margin: 0;
+}
+
+@media (max-width: 768px) {
+  .other-trans-form-content--gl2gl .other-trans-gl2gl-line-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Legacy balance card (kept for any residual use) */
 .other-trans-gl2gl-balance-card {
   padding: 0.5rem 0.7rem;
   background: #f8fafc;
@@ -1294,9 +1373,9 @@
 /* Responsive Design */
 @media (max-width: 1100px) {
   .other-trans-header-section {
-    gap: 1rem;
-    padding-top: 0.25rem;
-    padding-bottom: 0.65rem;
+    gap: 0.75rem;
+    padding-top: 0.15rem;
+    padding-bottom: 0.75rem;
   }
 
   .other-trans-tab-navigation {
@@ -1310,17 +1389,7 @@
   }
   
   .other-trans-main-title {
-    font-size: 1.5rem;
-  }
-  
-  .other-trans-header-icon {
-    width: 3rem;
-    height: 3rem;
-  }
-  
-  .other-trans-icon {
-    width: 1.5rem;
-    height: 1.5rem;
+    font-size: clamp(1.2rem, 2vw, 1.45rem);
   }
 }
 
@@ -1403,6 +1472,11 @@
   .other-trans-form-grid {
     grid-template-columns: 1fr;
     gap: 1rem;
+  }
+
+  .other-trans-gl2gl-fields-row,
+  .other-trans-gl2gl-balance-bar {
+    grid-template-columns: 1fr;
   }
   
   .other-trans-button-section {

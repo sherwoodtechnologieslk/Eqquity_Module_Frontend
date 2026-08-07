@@ -137,9 +137,6 @@ const WMPortfolioOverview = () => {
     <div className="wpo">
       <header className="wpo-rail">
         <div className="wpo-rail__brand">
-          <span className="wpo-rail__mark" aria-hidden>
-            PO
-          </span>
           <div>
             <p className="wpo-rail__eyebrow">Sherwood Wealth</p>
             <h1 className="wpo-rail__title">Portfolio Overview</h1>

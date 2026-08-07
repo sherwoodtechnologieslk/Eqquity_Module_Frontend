@@ -1565,6 +1565,21 @@ export const costOfFundsAPI = {
   }
 };
 
+// API service for Cash Flow Mapping (paginated)
+export const cashFlowAPI = {
+  getCashFlows: async (filters = {}) => {
+    const params = new URLSearchParams();
+    Object.entries(filters).forEach(([key, value]) => {
+      if (value === undefined || value === null || value === '') return;
+      params.set(key, String(value));
+    });
+    const qs = params.toString();
+    return makeAuthenticatedRequest(
+      `${API_BASE_URL}/cash-flow${qs ? `?${qs}` : ''}`
+    );
+  },
+};
+
 // API service for Other Transactions operations
 export const otherTransactionAPI = {
   // Get all other transactions

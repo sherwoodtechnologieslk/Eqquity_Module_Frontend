@@ -1,6 +1,5 @@
 import React, { useMemo, useState } from 'react';
 import { getToday, formatCurrency, formatDisplayDate } from './accountingVoucherUtils';
-import '../MasterDataManagement/Styles/EquityMasterEntry.css';
 import './Styles/InternalBankTransfer.css';
 
 const TRANSFER_PREFIX = 'BT';
@@ -116,332 +115,341 @@ const InternalBankTransfer = ({ chartAccounts = [], chartAccountsLoading = false
   }, [form.amount]);
 
   return (
-    <div className="eqt-page-container ibt-page">
-      <div className="eqt-content-wrapper">
-        <div className="eqt-header-section">
-          <div className="eqt-header-text-group">
-            <h1 className="eqt-main-title">Internal Bank Transfer</h1>
-            <p className="eqt-subtitle">
-              Move funds between bank or cash accounts within the organisation.
-            </p>
-          </div>
+    <div className="ibt-root">
+      <header className="ibt-rail">
+        <div className="ibt-rail__mark" aria-hidden="true">
+          BT
         </div>
-
-        <nav className="ibt-screen-tabs" aria-label="Internal bank transfer">
-          <button
-            type="button"
-            className={`ibt-screen-tab${mode === 'create' ? ' active' : ''}`}
-            onClick={() => setMode('create')}
-          >
-            New transfer
-          </button>
-          <button
-            type="button"
-            className={`ibt-screen-tab${mode === 'view' ? ' active' : ''}`}
-            onClick={() => setMode('view')}
-          >
-            View transfers
-            {transfers.length > 0 && <span className="ibt-tab-count">{transfers.length}</span>}
-          </button>
-          <button
-            type="button"
-            className={`ibt-screen-tab${mode === 'letter' ? ' active' : ''}`}
-            onClick={() => setMode('letter')}
-          >
-            Generate transfer letter
-          </button>
-        </nav>
-
-        {mode === 'create' && (
-          <div className="eqt-form-card">
-            <div className="eqt-card-header eqt-card-header-row">
-              <h2 className="eqt-card-title">Transfer details</h2>
-              <span className="ibt-preview-pill">UI preview</span>
-            </div>
-
-            <div className="eqt-form-content">
-              <form onSubmit={handleSubmit}>
-                <div className="eqt-form-grid">
-                  <div className="eqt-field-group">
-                    <label className="eqt-field-label">Transfer reference</label>
-                    <input
-                      name="reference"
-                      value={form.reference}
-                      onChange={handleChange}
-                      className="eqt-form-input eqt-readonly-field"
-                      readOnly
-                    />
-                    <span className="eqt-help-text">Format: BT-YYYYMMDD-001</span>
-                  </div>
-
-                  <div className="eqt-field-group">
-                    <label className="eqt-field-label">Transfer date *</label>
-                    <input
-                      type="date"
-                      name="transferDate"
-                      value={form.transferDate}
-                      onChange={handleChange}
-                      className="eqt-form-input"
-                      required
-                    />
-                  </div>
-
-                  <div className="eqt-field-group">
-                    <label className="eqt-field-label">Value date</label>
-                    <input
-                      type="date"
-                      name="valueDate"
-                      value={form.valueDate}
-                      onChange={handleChange}
-                      className="eqt-form-input"
-                    />
-                  </div>
-                </div>
-
-                <div className="ibt-accounts-section">
-                  <div className="ibt-accounts-row">
-                    <div className="ibt-account-panel">
-                      <div className="ibt-account-heading">From account *</div>
-                      <div className="eqt-field-group">
-                        <label className="eqt-field-label">GL account</label>
-                        <select
-                          className="eqt-form-select"
-                          value={form.fromAccountCode}
-                          onChange={(e) => handleAccountChange('from', e.target.value)}
-                          disabled={chartAccountsLoading}
-                        >
-                          <option value="">
-                            {chartAccountsLoading
-                              ? 'Loading accounts...'
-                              : 'Select source account'}
-                          </option>
-                          {chartAccounts.map((a) => (
-                            <option key={`from-${a.account_code}`} value={a.account_code}>
-                              {a.account_code} — {a.description}
-                            </option>
-                          ))}
-                        </select>
-                      </div>
-                      <div className="eqt-field-group">
-                        <label className="eqt-field-label">Account name</label>
-                        <input
-                          value={form.fromAccountName}
-                          className="eqt-form-input eqt-readonly-field"
-                          readOnly
-                          placeholder="Auto-filled from chart of accounts"
-                        />
-                      </div>
-                    </div>
-
-                    <div className="ibt-transfer-bridge" aria-hidden="true">
-                      <div className="ibt-transfer-icon">
-                        <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor">
-                          <path d="M13 5l7 7-7 7V5zm-9 0v14h2V5H4z" />
-                        </svg>
-                      </div>
-                      {previewAmount > 0 && (
-                        <span className="ibt-transfer-amount">{formatCurrency(previewAmount)}</span>
-                      )}
-                    </div>
-
-                    <div className="ibt-account-panel ibt-account-panel--to">
-                      <div className="ibt-account-heading">To account *</div>
-                      <div className="eqt-field-group">
-                        <label className="eqt-field-label">GL account</label>
-                        <select
-                          className="eqt-form-select"
-                          value={form.toAccountCode}
-                          onChange={(e) => handleAccountChange('to', e.target.value)}
-                          disabled={chartAccountsLoading}
-                        >
-                          <option value="">
-                            {chartAccountsLoading
-                              ? 'Loading accounts...'
-                              : 'Select destination account'}
-                          </option>
-                          {chartAccounts.map((a) => (
-                            <option key={`to-${a.account_code}`} value={a.account_code}>
-                              {a.account_code} — {a.description}
-                            </option>
-                          ))}
-                        </select>
-                      </div>
-                      <div className="eqt-field-group">
-                        <label className="eqt-field-label">Account name</label>
-                        <input
-                          value={form.toAccountName}
-                          className="eqt-form-input eqt-readonly-field"
-                          readOnly
-                          placeholder="Auto-filled from chart of accounts"
-                        />
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="eqt-form-grid">
-                  <div className="eqt-field-group">
-                    <label className="eqt-field-label">Amount *</label>
-                    <input
-                      type="number"
-                      name="amount"
-                      value={form.amount}
-                      onChange={handleChange}
-                      className="eqt-form-input"
-                      step="0.01"
-                      min="0"
-                      placeholder="0.00"
-                      required
-                    />
-                  </div>
-
-                  <div className="eqt-field-group">
-                    <label className="eqt-field-label">Narration</label>
-                    <input
-                      name="narration"
-                      value={form.narration}
-                      onChange={handleChange}
-                      className="eqt-form-input"
-                      placeholder="Purpose of internal transfer"
-                    />
-                  </div>
-                </div>
-
-                <div className="eqt-notes-section">
-                  <label className="eqt-field-label">Notes</label>
-                  <textarea
-                    name="notes"
-                    value={form.notes}
-                    onChange={handleChange}
-                    rows="3"
-                    className="eqt-form-textarea"
-                    placeholder="Internal notes (optional)"
-                  />
-                </div>
-
-                <div className="ibt-preview-section">
-                  <div className="ibt-preview-title">Posting preview</div>
-                  <p className="ibt-preview-hint">Journal entries shown for review — not posted until backend is connected.</p>
-                  <div className="eqt-data-table-wrapper">
-                    <table className="eqt-data-table ibt-preview-table">
-                      <thead>
-                        <tr>
-                          <th>Account</th>
-                          <th>DR / CR</th>
-                          <th className="ibt-num">Amount</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        <tr>
-                          <td>
-                            {form.toAccountCode || '—'}
-                            {form.toAccountName ? ` — ${form.toAccountName}` : ''}
-                          </td>
-                          <td>DR</td>
-                          <td className="ibt-num">
-                            {previewAmount > 0 ? formatCurrency(previewAmount) : '—'}
-                          </td>
-                        </tr>
-                        <tr>
-                          <td>
-                            {form.fromAccountCode || '—'}
-                            {form.fromAccountName ? ` — ${form.fromAccountName}` : ''}
-                          </td>
-                          <td>CR</td>
-                          <td className="ibt-num">
-                            {previewAmount > 0 ? formatCurrency(previewAmount) : '—'}
-                          </td>
-                        </tr>
-                      </tbody>
-                    </table>
-                  </div>
-                </div>
-
-                {message && (
-                  <div className={`eqt-message ${isErrorMessage(message) ? 'eqt-error' : 'eqt-success'}`}>
-                    {message}
-                  </div>
-                )}
-
-                <div className="eqt-button-section">
-                  <button type="button" onClick={resetForm} className="eqt-btn eqt-btn-secondary">
-                    Reset
-                  </button>
-                  <button type="submit" className="eqt-btn eqt-btn-primary">
-                    Save transfer (preview)
-                  </button>
-                </div>
-              </form>
-            </div>
-          </div>
-        )}
-
-        {mode === 'view' && (
-          <div className="eqt-form-card eqt-list-card">
-            <div className="eqt-card-header eqt-card-header-row">
-              <h2 className="eqt-card-title">Session transfers</h2>
-              <button
-                type="button"
-                className="eqt-btn eqt-btn-tertiary ibt-header-btn"
-                onClick={() => setMode('create')}
-              >
-                + New transfer
-              </button>
-            </div>
-
-            <div className="ibt-list-body">
-              <p className="ibt-list-hint">
-                Transfers listed here are UI preview records for this session only.
-              </p>
-
-              {transfers.length === 0 ? (
-                <div className="ibt-empty">
-                  <p className="ibt-empty-title">No transfers yet</p>
-                  <p className="ibt-empty-text">Create a transfer to see it listed here.</p>
-                  <button type="button" className="eqt-btn eqt-btn-primary" onClick={() => setMode('create')}>
-                    Create transfer
-                  </button>
-                </div>
-              ) : (
-                <div className="eqt-data-table-wrapper">
-                  <table className="eqt-data-table">
-                    <thead>
-                      <tr>
-                        <th>Reference</th>
-                        <th>Date</th>
-                        <th>From</th>
-                        <th>To</th>
-                        <th className="ibt-num">Amount</th>
-                        <th>Status</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {transfers.map((row) => (
-                        <tr key={row.id}>
-                          <td>{row.reference}</td>
-                          <td>{formatDisplayDate(row.transferDate)}</td>
-                          <td>{row.fromAccountCode || '—'}</td>
-                          <td>{row.toAccountCode || '—'}</td>
-                          <td className="ibt-num">{formatCurrency(row.amount)}</td>
-                          <td>
-                            <span className="ibt-status-draft">{row.status}</span>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              )}
-            </div>
-          </div>
-        )}
-
-        <div className="eqt-footer-section">
-          <p>
-            SHERWOOD TECHNOLOGIES (PVT) LTD • Internal bank transfers between organisation accounts
+        <div>
+          <p className="ibt-rail__eyebrow">Accounting</p>
+          <h1 className="ibt-rail__title">Internal Bank Transfer</h1>
+          <p className="ibt-rail__blurb">
+            Move funds between bank or cash accounts within the organisation.
           </p>
         </div>
-      </div>
+      </header>
+
+      <nav className="ibt-screen-tabs" aria-label="Internal bank transfer">
+        <button
+          type="button"
+          className={`ibt-screen-tab${mode === 'create' ? ' active' : ''}`}
+          onClick={() => setMode('create')}
+        >
+          New transfer
+        </button>
+        <button
+          type="button"
+          className={`ibt-screen-tab${mode === 'view' ? ' active' : ''}`}
+          onClick={() => setMode('view')}
+        >
+          View transfers
+          {transfers.length > 0 && <span className="ibt-tab-count">{transfers.length}</span>}
+        </button>
+        <button
+          type="button"
+          className={`ibt-screen-tab${mode === 'letter' ? ' active' : ''}`}
+          onClick={() => setMode('letter')}
+        >
+          Generate transfer letter
+        </button>
+      </nav>
+
+      {mode === 'create' && (
+        <div className="ibt-card">
+          <div className="ibt-card__head">
+            <h2 className="ibt-card__title">Transfer details</h2>
+            <span className="ibt-preview-pill">UI preview</span>
+          </div>
+
+          <form onSubmit={handleSubmit} className="ibt-form-body">
+            <div className="ibt-grid">
+              <div className="ibt-field ibt-span-4">
+                <label className="ibt-label">Transfer reference</label>
+                <input
+                  name="reference"
+                  value={form.reference}
+                  onChange={handleChange}
+                  className="ibt-input ibt-input--locked"
+                  readOnly
+                />
+                <small className="ibt-hint">Format: BT-YYYYMMDD-001</small>
+              </div>
+
+              <div className="ibt-field ibt-span-4">
+                <label className="ibt-label">Transfer date *</label>
+                <input
+                  type="date"
+                  name="transferDate"
+                  value={form.transferDate}
+                  onChange={handleChange}
+                  className="ibt-input"
+                  required
+                />
+              </div>
+
+              <div className="ibt-field ibt-span-4">
+                <label className="ibt-label">Value date</label>
+                <input
+                  type="date"
+                  name="valueDate"
+                  value={form.valueDate}
+                  onChange={handleChange}
+                  className="ibt-input"
+                />
+              </div>
+            </div>
+
+            <div className="ibt-accounts">
+              <div className="ibt-account-panel">
+                <div className="ibt-account-heading">From account *</div>
+                <div className="ibt-field">
+                  <label className="ibt-label">GL account</label>
+                  <select
+                    className="ibt-input"
+                    value={form.fromAccountCode}
+                    onChange={(e) => handleAccountChange('from', e.target.value)}
+                    disabled={chartAccountsLoading}
+                  >
+                    <option value="">
+                      {chartAccountsLoading ? 'Loading accounts…' : 'Select source account'}
+                    </option>
+                    {chartAccounts.map((a) => (
+                      <option key={`from-${a.account_code}`} value={a.account_code}>
+                        {a.account_code} — {a.description}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div className="ibt-field">
+                  <label className="ibt-label">Account name</label>
+                  <input
+                    value={form.fromAccountName}
+                    className="ibt-input ibt-input--locked"
+                    readOnly
+                    placeholder="Auto-filled from chart of accounts"
+                  />
+                </div>
+              </div>
+
+              <div className="ibt-bridge" aria-hidden="true">
+                <div className="ibt-bridge__icon">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M13 5l7 7-7 7V5zm-9 0v14h2V5H4z" />
+                  </svg>
+                </div>
+                {previewAmount > 0 && (
+                  <span className="ibt-bridge__amount">{formatCurrency(previewAmount)}</span>
+                )}
+              </div>
+
+              <div className="ibt-account-panel">
+                <div className="ibt-account-heading">To account *</div>
+                <div className="ibt-field">
+                  <label className="ibt-label">GL account</label>
+                  <select
+                    className="ibt-input"
+                    value={form.toAccountCode}
+                    onChange={(e) => handleAccountChange('to', e.target.value)}
+                    disabled={chartAccountsLoading}
+                  >
+                    <option value="">
+                      {chartAccountsLoading ? 'Loading accounts…' : 'Select destination account'}
+                    </option>
+                    {chartAccounts.map((a) => (
+                      <option key={`to-${a.account_code}`} value={a.account_code}>
+                        {a.account_code} — {a.description}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div className="ibt-field">
+                  <label className="ibt-label">Account name</label>
+                  <input
+                    value={form.toAccountName}
+                    className="ibt-input ibt-input--locked"
+                    readOnly
+                    placeholder="Auto-filled from chart of accounts"
+                  />
+                </div>
+              </div>
+            </div>
+
+            <div className="ibt-grid">
+              <div className="ibt-field ibt-span-4">
+                <label className="ibt-label">Amount *</label>
+                <input
+                  type="number"
+                  name="amount"
+                  value={form.amount}
+                  onChange={handleChange}
+                  className="ibt-input"
+                  step="0.01"
+                  min="0"
+                  placeholder="0.00"
+                  required
+                />
+              </div>
+
+              <div className="ibt-field ibt-span-8">
+                <label className="ibt-label">Narration</label>
+                <input
+                  name="narration"
+                  value={form.narration}
+                  onChange={handleChange}
+                  className="ibt-input"
+                  placeholder="Purpose of internal transfer"
+                />
+              </div>
+
+              <div className="ibt-field ibt-span-12">
+                <label className="ibt-label">Notes</label>
+                <textarea
+                  name="notes"
+                  value={form.notes}
+                  onChange={handleChange}
+                  rows="2"
+                  className="ibt-input ibt-textarea"
+                  placeholder="Internal notes (optional)"
+                />
+              </div>
+            </div>
+
+            <div className="ibt-preview">
+              <div className="ibt-preview__title">Posting preview</div>
+              <p className="ibt-preview__hint">
+                Journal entries shown for review — not posted until backend is connected.
+              </p>
+              <div className="ibt-table-wrap">
+                <table className="ibt-table">
+                  <thead>
+                    <tr>
+                      <th>Account</th>
+                      <th>DR / CR</th>
+                      <th className="ibt-num">Amount</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        {form.toAccountCode || '—'}
+                        {form.toAccountName ? ` — ${form.toAccountName}` : ''}
+                      </td>
+                      <td>DR</td>
+                      <td className="ibt-num">
+                        {previewAmount > 0 ? formatCurrency(previewAmount) : '—'}
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        {form.fromAccountCode || '—'}
+                        {form.fromAccountName ? ` — ${form.fromAccountName}` : ''}
+                      </td>
+                      <td>CR</td>
+                      <td className="ibt-num">
+                        {previewAmount > 0 ? formatCurrency(previewAmount) : '—'}
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            {message && (
+              <div className={`ibt-message${isErrorMessage(message) ? ' ibt-message--err' : ' ibt-message--ok'}`}>
+                {message}
+              </div>
+            )}
+
+            <div className="ibt-actions">
+              <button type="button" onClick={resetForm} className="ibt-btn ibt-btn--secondary">
+                Reset
+              </button>
+              <button type="submit" className="ibt-btn ibt-btn--primary">
+                Save transfer (preview)
+              </button>
+            </div>
+          </form>
+        </div>
+      )}
+
+      {mode === 'view' && (
+        <div className="ibt-card">
+          <div className="ibt-card__head">
+            <h2 className="ibt-card__title">Session transfers</h2>
+            <button
+              type="button"
+              className="ibt-btn ibt-btn--secondary ibt-btn--sm"
+              onClick={() => setMode('create')}
+            >
+              + New transfer
+            </button>
+          </div>
+
+          <div className="ibt-list-body">
+            <p className="ibt-list-hint">
+              Transfers listed here are UI preview records for this session only.
+            </p>
+
+            {transfers.length === 0 ? (
+              <div className="ibt-empty">
+                <p className="ibt-empty__title">No transfers yet</p>
+                <p className="ibt-empty__text">Create a transfer to see it listed here.</p>
+                <button type="button" className="ibt-btn ibt-btn--primary" onClick={() => setMode('create')}>
+                  Create transfer
+                </button>
+              </div>
+            ) : (
+              <div className="ibt-table-wrap">
+                <table className="ibt-table">
+                  <thead>
+                    <tr>
+                      <th>Reference</th>
+                      <th>Date</th>
+                      <th>From</th>
+                      <th>To</th>
+                      <th className="ibt-num">Amount</th>
+                      <th>Status</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {transfers.map((row) => (
+                      <tr key={row.id}>
+                        <td>{row.reference}</td>
+                        <td>{formatDisplayDate(row.transferDate)}</td>
+                        <td>{row.fromAccountCode || '—'}</td>
+                        <td>{row.toAccountCode || '—'}</td>
+                        <td className="ibt-num">{formatCurrency(row.amount)}</td>
+                        <td>
+                          <span className="ibt-status">{row.status}</span>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {mode === 'letter' && (
+        <div className="ibt-card">
+          <div className="ibt-card__head">
+            <h2 className="ibt-card__title">Generate transfer letter</h2>
+          </div>
+          <div className="ibt-list-body">
+            <div className="ibt-empty">
+              <p className="ibt-empty__title">Letter generator</p>
+              <p className="ibt-empty__text">
+                Transfer letter export will be available once backend posting is connected.
+              </p>
+              <button type="button" className="ibt-btn ibt-btn--secondary" onClick={() => setMode('create')}>
+                Back to new transfer
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

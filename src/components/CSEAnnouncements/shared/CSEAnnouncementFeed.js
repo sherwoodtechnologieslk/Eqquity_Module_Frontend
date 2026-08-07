@@ -22,7 +22,7 @@ const FALLBACK_LOGO =
         '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48">' +
             '<rect width="100%" height="100%" rx="8" fill="#eff6ff"/>' +
             '<text x="50%" y="54%" dominant-baseline="middle" text-anchor="middle" ' +
-            'fill="#1e40af" font-family="Inter, sans-serif" font-size="16" font-weight="700">CSE</text>' +
+            'fill="#1e40af" font-family="DM Sans, Segoe UI, sans-serif" font-size="16" font-weight="700">CSE</text>' +
             '</svg>'
     );
 
@@ -75,7 +75,7 @@ const CHEVRON_ICON = (
  *
  * Props:
  *  - loader: () => Promise<{ items, lastUpdated?, note? }>
- *  - title, subtitle: optional page header text
+ *  - eyebrow, title, subtitle: optional page header text
  *  - filterTabs?: [{ id, label, icon?, matches?: (item) => boolean }] — first tab is treated as the "all" tab
  *  - dropdownAxis?: 'company' | 'category' (defaults to 'company')
  *  - emptyMessage?: friendly text shown when there is nothing to render
@@ -84,6 +84,7 @@ const CHEVRON_ICON = (
  */
 const CSEAnnouncementFeed = ({
     loader,
+    eyebrow,
     title,
     subtitle,
     filterTabs = [],
@@ -206,16 +207,19 @@ const CSEAnnouncementFeed = ({
 
     return (
         <div className="cse-feed">
-            {(title || subtitle) && (
-                <div className="cse-feed__intro">
-                    {title && <h1 className="cse-feed__title">{title}</h1>}
-                    {subtitle && <p className="cse-feed__intro-text">{subtitle}</p>}
-                </div>
+            {(eyebrow || title || subtitle) && (
+                <header className="cse-feed__rail">
+                    <div>
+                        {eyebrow && <p className="cse-feed__eyebrow">{eyebrow}</p>}
+                        {title && <h1 className="cse-feed__title">{title}</h1>}
+                        {subtitle && <p className="cse-feed__blurb">{subtitle}</p>}
+                    </div>
+                </header>
             )}
 
             <div className="cse-feed__toolbar">
                 {filterTabs.length > 0 && (
-                    <div className="cse-feed__chips" role="tablist" aria-label="Filter">
+                    <nav className="cse-feed__tabs" role="tablist" aria-label="Filter">
                         {filterTabs.map((tab) => {
                             const count = tabCounts[tab.id] ?? 0;
                             const isActive = filterTab === tab.id;
@@ -225,22 +229,22 @@ const CSEAnnouncementFeed = ({
                                     key={tab.id}
                                     role="tab"
                                     aria-selected={isActive}
-                                    className={`cse-feed__chip${isActive ? ' is-active' : ''}`}
+                                    className={`cse-feed__tab${isActive ? ' is-active' : ''}`}
                                     onClick={() => setFilterTab(tab.id)}
                                 >
                                     {tab.icon && (
-                                        <span className="cse-feed__chip-icon" aria-hidden="true">
+                                        <span className="cse-feed__tab-icon" aria-hidden="true">
                                             {tab.icon}
                                         </span>
                                     )}
-                                    <span className="cse-feed__chip-label">{tab.label}</span>
-                                    <span className="cse-feed__chip-count">
+                                    <span>{tab.label}</span>
+                                    <span className="cse-feed__tab-count">
                                         {isLoading ? '…' : count.toLocaleString()}
                                     </span>
                                 </button>
                             );
                         })}
-                    </div>
+                    </nav>
                 )}
 
                 <button
@@ -345,25 +349,25 @@ const CSEAnnouncementFeed = ({
                         return (
                             <li key={item.id} className="cse-feed__card">
                                 <CardTag className="cse-feed__card-link" {...cardProps}>
-                                    <div className="cse-feed__card-head">
-                                        <img
-                                            className="cse-feed__logo"
-                                            src={item.logoUrl || FALLBACK_LOGO}
-                                            alt=""
-                                            loading="lazy"
-                                            onError={(e) => { e.currentTarget.src = FALLBACK_LOGO; }}
-                                        />
-                                        <div className="cse-feed__head-meta">
-                                            <span className="cse-feed__symbol">
-                                                {item.symbol || (item.company ? '—' : '')}
-                                            </span>
+                                    <img
+                                        className="cse-feed__logo"
+                                        src={item.logoUrl || FALLBACK_LOGO}
+                                        alt=""
+                                        loading="lazy"
+                                        onError={(e) => { e.currentTarget.src = FALLBACK_LOGO; }}
+                                    />
+
+                                    <div className="cse-feed__body">
+                                        <div className="cse-feed__meta-inline">
+                                            {(item.symbol || item.company) && (
+                                                <span className="cse-feed__symbol">
+                                                    {item.symbol || '—'}
+                                                </span>
+                                            )}
                                             <time className="cse-feed__time">
                                                 {formatPublishedAt(item.date)}
                                             </time>
                                         </div>
-                                    </div>
-
-                                    <div className="cse-feed__body">
                                         <h3 className="cse-feed__company">
                                             {item.company || 'Colombo Stock Exchange'}
                                         </h3>
@@ -380,7 +384,7 @@ const CSEAnnouncementFeed = ({
                                         {link ? (
                                             <span className="cse-feed__cta">
                                                 Open PDF
-                                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
                                                     <polyline points="9 18 15 12 9 6" />
                                                 </svg>
                                             </span>
