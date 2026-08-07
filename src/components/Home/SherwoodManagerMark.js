@@ -1,12 +1,18 @@
 import React from 'react';
 
 /**
- * Stacked SHERWOOD + EQUITY / WEALTH wordmark for sidebar (dark blue theme).
- * EQUITY/WEALTH is centered under SHERWOOD.
+ * Stacked SHERWOOD + EQUITY / WEALTH / TREASURY wordmark for sidebar (dark blue theme).
+ * Sub-line is centered under SHERWOOD.
  */
 export default function SherwoodManagerMark({ tier = 'equity', compact = false, className = '' }) {
-  const sub = tier === 'wealth' ? 'WEALTH' : 'EQUITY';
-  const label = tier === 'wealth' ? 'Sherwood Wealth' : 'Sherwood Equity';
+  const sub =
+    tier === 'wealth' ? 'WEALTH' : tier === 'treasury' ? 'TREASURY' : 'EQUITY';
+  const label =
+    tier === 'wealth'
+      ? 'Sherwood Wealth'
+      : tier === 'treasury'
+        ? 'Sherwood Treasury'
+        : 'Sherwood Equity';
   return (
     <div
       className={`sherwood-mark sherwood-mark--${tier} ${compact ? 'sherwood-mark--compact' : ''} ${className}`.trim()}

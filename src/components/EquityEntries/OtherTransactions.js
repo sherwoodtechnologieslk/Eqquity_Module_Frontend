@@ -3740,12 +3740,15 @@ const isVoucherSettled = (voucher) => {
   return (
     <div className="other-trans-page-container">
       <div className="other-trans-content-wrapper">
-        <div className="other-trans-header-section">
+        <header className="other-trans-header-section">
           <div className="other-trans-header-text-group">
+            <p className="other-trans-header-eyebrow">Accounting</p>
             <h1 className="other-trans-main-title">Non-Trading Transactions</h1>
-            <p className="other-trans-subtitle">Manage other income, expenses, and assets. Multi-currency supported.</p>
+            <p className="other-trans-subtitle">
+              Manage other income, expenses, and assets. Multi-currency supported.
+            </p>
           </div>
-        </div>
+        </header>
 
         {/* Tab Navigation */}
         <div className="other-trans-tab-navigation">
@@ -4372,80 +4375,104 @@ const isVoucherSettled = (voucher) => {
             /* GL to GL Form — one voucher; multiple debit/credit lines (multi-line post when backend ready) */
             <form onSubmit={handleGlToGlSubmit}>
               <div className="other-trans-form-grid">
-                {/* Voucher Number */}
-                <div className="other-trans-field-group other-trans-field-group--full">
-                  <div className="other-trans-voucher-row">
-                    <label className="other-trans-field-label other-trans-field-label--inline">Voucher Number</label>
-                    <button
-                      type="button"
-                      className="other-trans-btn-regenerate"
-                      onClick={() =>
-                        setGlToGlForm((prev) => ({
-                          ...prev,
-                          voucherNumber: generateGlToGlVoucherNumber(prev.date || getToday(), vouchers),
-                        }))
-                      }
-                    >
-                      <svg width="16" height="16" fill="currentColor" viewBox="0 0 20 20">
-                        <path fillRule="evenodd" d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01.61-1.276z" clipRule="evenodd"/>
-                      </svg>
-                      Regenerate
-                    </button>
+                {/* Journal balance — full-width strip */}
+                <div className="other-trans-gl2gl-balance-bar">
+                  {(() => {
+                    const parseAmt = (raw) => {
+                      const n = parseFloat(String(raw || '').replace(/,/g, ''));
+                      return Number.isFinite(n) ? n : 0;
+                    };
+                    const dr = glToGlDebitLines.reduce(
+                      (s, l) => s + ((l.accountCode || '').trim() ? parseAmt(l.amount) : 0),
+                      0
+                    );
+                    const cr = glToGlCreditLines.reduce(
+                      (s, l) => s + ((l.accountCode || '').trim() ? parseAmt(l.amount) : 0),
+                      0
+                    );
+                    const bal = dr - cr;
+                    const fmt = (n) =>
+                      n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+                    return (
+                      <>
+                        <div className="other-trans-gl2gl-balance-bar__item">
+                          <span className="other-trans-gl2gl-balance-bar__lbl">Debits</span>
+                          <span className="other-trans-gl2gl-balance-bar__val">{fmt(dr)}</span>
+                        </div>
+                        <div className="other-trans-gl2gl-balance-bar__item">
+                          <span className="other-trans-gl2gl-balance-bar__lbl">Credits</span>
+                          <span className="other-trans-gl2gl-balance-bar__val">{fmt(cr)}</span>
+                        </div>
+                        <div
+                          className={`other-trans-gl2gl-balance-bar__item other-trans-gl2gl-balance-bar__item--outcome${
+                            Math.abs(bal) < 0.01 ? ' is-ok' : ' is-warn'
+                          }`}
+                        >
+                          <span className="other-trans-gl2gl-balance-bar__lbl">Out of balance</span>
+                          <span className="other-trans-gl2gl-balance-bar__val">{fmt(bal)}</span>
+                        </div>
+                      </>
+                    );
+                  })()}
+                </div>
+
+                {/* Voucher Number | Description | Date */}
+                <div className="other-trans-gl2gl-fields-row">
+                  <div className="other-trans-field-group">
+                    <div className="other-trans-gl2gl-label-row">
+                      <label className="other-trans-field-label other-trans-field-label--inline">Voucher Number</label>
+                      <button
+                        type="button"
+                        className="other-trans-btn-regenerate"
+                        onClick={() =>
+                          setGlToGlForm((prev) => ({
+                            ...prev,
+                            voucherNumber: generateGlToGlVoucherNumber(prev.date || getToday(), vouchers),
+                          }))
+                        }
+                      >
+                        <svg width="16" height="16" fill="currentColor" viewBox="0 0 20 20">
+                          <path fillRule="evenodd" d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01.61-1.276z" clipRule="evenodd"/>
+                        </svg>
+                        Regenerate
+                      </button>
+                    </div>
+                    <input
+                      name="voucherNumber"
+                      value={glToGlForm.voucherNumber}
+                      onChange={handleGlToGlHeaderChange}
+                      className="other-trans-form-input"
+                    />
+                    <small className="other-trans-field-hint">
+                      Format: YYYYMMDD-001
+                    </small>
                   </div>
-                  <input
-                    name="voucherNumber"
-                    value={glToGlForm.voucherNumber}
-                    onChange={handleGlToGlHeaderChange}
-                    className="other-trans-form-input"
-                  />
-                  <small className="other-trans-field-hint">
-                    Format: YYYYMMDD-001 (sequence resets per date for GL to GL vouchers)
-                  </small>
-                </div>
 
-                {/* Date */}
-                <div className="other-trans-field-group">
-                  <label className="other-trans-field-label">Date *</label>
-                  <input
-                    type="date"
-                    name="date"
-                    value={glToGlForm.date}
-                    onChange={handleGlToGlHeaderChange}
-                    className="other-trans-form-input"
-                    required
-                  />
-                </div>
+                  <div className="other-trans-field-group">
+                    <div className="other-trans-gl2gl-label-row">
+                      <label className="other-trans-field-label other-trans-field-label--inline">Description</label>
+                    </div>
+                    <input
+                      name="description"
+                      value={glToGlForm.description}
+                      onChange={handleGlToGlHeaderChange}
+                      className="other-trans-form-input"
+                      placeholder="Narration for the journal"
+                    />
+                  </div>
 
-                {/* Totals hint */}
-                <div className="other-trans-field-group" style={{ alignSelf: 'end' }}>
-                  <label className="other-trans-field-label">Journal balance</label>
-                  <div className="other-trans-gl2gl-balance-card">
-                    {(() => {
-                      const parseAmt = (raw) => {
-                        const n = parseFloat(String(raw || '').replace(/,/g, ''));
-                        return Number.isFinite(n) ? n : 0;
-                      };
-                      const dr = glToGlDebitLines.reduce(
-                        (s, l) => s + ((l.accountCode || '').trim() ? parseAmt(l.amount) : 0),
-                        0
-                      );
-                      const cr = glToGlCreditLines.reduce(
-                        (s, l) => s + ((l.accountCode || '').trim() ? parseAmt(l.amount) : 0),
-                        0
-                      );
-                      const bal = dr - cr;
-                      return (
-                        <>
-                          <div><strong>Debits:</strong> {dr.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
-                          <div><strong>Credits:</strong> {cr.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
-                          <div
-                            className={`other-trans-gl2gl-balance-outcome ${Math.abs(bal) < 0.01 ? 'other-trans-gl2gl-balance-ok' : 'other-trans-gl2gl-balance-warn'}`}
-                          >
-                            <strong>Out of balance:</strong> {bal.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                          </div>
-                        </>
-                      );
-                    })()}
+                  <div className="other-trans-field-group">
+                    <div className="other-trans-gl2gl-label-row">
+                      <label className="other-trans-field-label other-trans-field-label--inline">Date *</label>
+                    </div>
+                    <input
+                      type="date"
+                      name="date"
+                      value={glToGlForm.date}
+                      onChange={handleGlToGlHeaderChange}
+                      className="other-trans-form-input"
+                      required
+                    />
                   </div>
                 </div>
 
@@ -4519,7 +4546,7 @@ const isVoucherSettled = (voucher) => {
                             </button>
                           )}
                         </div>
-                        <div className="other-trans-form-grid other-trans-form-grid--compact">
+                        <div className="other-trans-form-grid other-trans-form-grid--compact other-trans-gl2gl-line-grid">
                           <div className="other-trans-field-group">
                             <label className="other-trans-field-label">GL code *</label>
                             <input
@@ -4528,6 +4555,16 @@ const isVoucherSettled = (voucher) => {
                               className="other-trans-form-input"
                               list={glToGlDebitFixed ? undefined : 'glToGlDebitAccounts'}
                               placeholder={chartAccountsLoading ? 'Loading…' : 'Account code'}
+                              readOnly={glToGlDebitFixed}
+                            />
+                          </div>
+                          <div className="other-trans-field-group other-trans-gl2gl-line-grid__name">
+                            <label className="other-trans-field-label">Account name (optional)</label>
+                            <input
+                              value={line.accountName}
+                              onChange={(e) => handleGlToGlDebitLineChange(line.id, 'accountName', e.target.value)}
+                              className="other-trans-form-input"
+                              placeholder="Defaults from Chart of Accounts when code matches"
                               readOnly={glToGlDebitFixed}
                             />
                           </div>
@@ -4541,16 +4578,6 @@ const isVoucherSettled = (voucher) => {
                               step="0.01"
                               min="0"
                               placeholder="0.00"
-                              readOnly={glToGlDebitFixed}
-                            />
-                          </div>
-                          <div className="other-trans-field-group" style={{ gridColumn: '1 / -1' }}>
-                            <label className="other-trans-field-label">Account name (optional)</label>
-                            <input
-                              value={line.accountName}
-                              onChange={(e) => handleGlToGlDebitLineChange(line.id, 'accountName', e.target.value)}
-                              className="other-trans-form-input"
-                              placeholder="Defaults from Chart of Accounts when code matches"
                               readOnly={glToGlDebitFixed}
                             />
                           </div>
@@ -4630,7 +4657,7 @@ const isVoucherSettled = (voucher) => {
                             </button>
                           )}
                         </div>
-                        <div className="other-trans-form-grid other-trans-form-grid--compact">
+                        <div className="other-trans-form-grid other-trans-form-grid--compact other-trans-gl2gl-line-grid">
                           <div className="other-trans-field-group">
                             <label className="other-trans-field-label">GL code *</label>
                             <input
@@ -4639,6 +4666,16 @@ const isVoucherSettled = (voucher) => {
                               className="other-trans-form-input"
                               list={glToGlCreditFixed ? undefined : 'glToGlCreditAccounts'}
                               placeholder={chartAccountsLoading ? 'Loading…' : 'Account code'}
+                              readOnly={glToGlCreditFixed}
+                            />
+                          </div>
+                          <div className="other-trans-field-group other-trans-gl2gl-line-grid__name">
+                            <label className="other-trans-field-label">Account name (optional)</label>
+                            <input
+                              value={line.accountName}
+                              onChange={(e) => handleGlToGlCreditLineChange(line.id, 'accountName', e.target.value)}
+                              className="other-trans-form-input"
+                              placeholder="Defaults from Chart of Accounts when code matches"
                               readOnly={glToGlCreditFixed}
                             />
                           </div>
@@ -4655,16 +4692,6 @@ const isVoucherSettled = (voucher) => {
                               readOnly={glToGlCreditFixed}
                             />
                           </div>
-                          <div className="other-trans-field-group" style={{ gridColumn: '1 / -1' }}>
-                            <label className="other-trans-field-label">Account name (optional)</label>
-                            <input
-                              value={line.accountName}
-                              onChange={(e) => handleGlToGlCreditLineChange(line.id, 'accountName', e.target.value)}
-                              className="other-trans-form-input"
-                              placeholder="Defaults from Chart of Accounts when code matches"
-                              readOnly={glToGlCreditFixed}
-                            />
-                          </div>
                         </div>
                       </div>
                     ))}
@@ -4674,18 +4701,6 @@ const isVoucherSettled = (voucher) => {
                 <p className="other-trans-gl2gl-helper">
                   Use <strong>Save</strong> beside Debit lines and Credit lines to lock each side locally. Totals must match before posting.
                 </p>
-
-                {/* Description */}
-                <div className="other-trans-field-group" style={{ gridColumn: '1 / -1' }}>
-                  <label className="other-trans-field-label">Description</label>
-                  <input
-                    name="description"
-                    value={glToGlForm.description}
-                    onChange={handleGlToGlHeaderChange}
-                    className="other-trans-form-input"
-                    placeholder="Narration for the journal"
-                  />
-                </div>
 
                 {/* Reference */}
                 <div className="other-trans-field-group">

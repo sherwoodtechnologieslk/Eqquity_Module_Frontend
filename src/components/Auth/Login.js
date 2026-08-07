@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { authService } from '../../services/authService';
 import './Auth.css';
 
-const Login = ({ onLogin, switchToSignup, switchToForgotPassword }) => {
+const Login = ({ onLogin, switchToSignup, switchToForgotPassword, onBackToManagers }) => {
     const [formData, setFormData] = useState({
         email: '',
         password: ''
@@ -104,6 +104,24 @@ const Login = ({ onLogin, switchToSignup, switchToForgotPassword }) => {
             </aside>
 
             <div className="auth-card">
+                {onBackToManagers && (
+                    <button
+                        type="button"
+                        className="auth-managers-link"
+                        onClick={onBackToManagers}
+                    >
+                        <svg viewBox="0 0 20 20" fill="none" aria-hidden="true">
+                            <path
+                                d="M12.5 4.5 7 10l5.5 5.5"
+                                stroke="currentColor"
+                                strokeWidth="1.8"
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                            />
+                        </svg>
+                        Back to managers
+                    </button>
+                )}
                 <div className="auth-card-header">
                     <h2>Sign in</h2>
                     <p className="auth-subtitle">Welcome Back</p>
