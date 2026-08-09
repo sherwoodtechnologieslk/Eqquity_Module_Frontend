@@ -1,16 +1,17 @@
 import React from 'react';
 import './Styles/ManagerSelection.css';
-import sherwoodMarkShadow from '../Auth/sherwood-mark-shadow-white.svg';
-
-const TREASURY_MANAGER_URL = 'http://10.40.80.89/live1/login';
+import sherwoodMarkWireframe from './assets/sherwood-mark-wire-clean.png'; // rim-restored watermark
+import { TREASURY_MANAGER_URL } from '../../constants/externalManagers';
 
 const managerOptions = [
   {
     id: 'equity',
+    index: '01',
     eyebrow: 'Trading & accounting',
     title: 'Equity Manager',
     description: 'Manage portfolios, trades, valuations, corporate actions, and financial reporting.',
-    action: 'Enter Equity Manager',
+    highlights: ['Portfolios', 'Trades', 'Valuations', 'Reporting'],
+    action: 'Enter',
     icon: (
       <svg viewBox="0 0 48 48" aria-hidden="true">
         <circle cx="32" cy="13" r="7" />
@@ -24,10 +25,12 @@ const managerOptions = [
   },
   {
     id: 'wealth',
+    index: '02',
     eyebrow: 'Funds & clients',
     title: 'Wealth Manager',
     description: 'Manage funds, client accounts, portfolios, performance, and assets under management.',
-    action: 'Enter Wealth Manager',
+    highlights: ['Funds', 'Clients', 'Performance', 'AUM'],
+    action: 'Enter',
     icon: (
       <svg viewBox="0 0 48 48" aria-hidden="true">
         <path d="M8 38V23m10 15V15m10 23V27m10 11V8" />
@@ -37,11 +40,13 @@ const managerOptions = [
   },
   {
     id: 'treasury',
+    index: '03',
     eyebrow: 'Fixed income & markets',
     title: 'Treasury Manager',
     description:
       'Run government securities, T-bill, T-bond, money market, repo, and buyback desks, with maturity handling, settlements, and treasury reporting.',
-    action: 'Open Treasury Manager',
+    highlights: ['G-Sec', 'Money market', 'Repo', 'Settlements'],
+    action: 'Enter',
     externalUrl: TREASURY_MANAGER_URL,
     icon: (
       <svg viewBox="0 0 48 48" aria-hidden="true">
@@ -65,53 +70,94 @@ const ManagerSelection = ({ onSelect, onLogout, preAuth = false }) => {
 
   return (
     <main className="manager-selection">
-      {!preAuth && onLogout && (
-        <button type="button" className="manager-selection__back" onClick={onLogout}>
-          <svg viewBox="0 0 20 20" fill="none" aria-hidden="true">
-            <path d="M13 10H4M8 6l-4 4 4 4" />
-          </svg>
-          Sign out
-        </button>
-      )}
+      <div className="manager-selection__shell">
+        <aside className="manager-selection__brand-panel" aria-label="Sherwood">
+          <div className="manager-selection__brand-glow" aria-hidden="true" />
+          <img
+            src={sherwoodMarkWireframe}
+            alt=""
+            className="manager-selection__brand-watermark"
+            aria-hidden="true"
+          />
 
-      <section className="manager-selection__content">
-        <div className="manager-selection__grid">
-          {managerOptions.map((option) => (
-            <button
-              type="button"
-              className={`manager-option manager-option--${option.id}`}
-              onClick={() => handleSelect(option)}
-              key={option.id}
-            >
-              <span className="manager-option__icon">{option.icon}</span>
-              <span className="manager-option__eyebrow">{option.eyebrow}</span>
-              <span className="manager-option__title">{option.title}</span>
-              <span className="manager-option__description">{option.description}</span>
-              <span className="manager-option__action">
-                {option.action}
-                <span aria-hidden="true">
-                  <svg viewBox="0 0 20 20" fill="none">
-                    {option.externalUrl ? (
-                      <>
-                        <path d="M8 5H5a2 2 0 00-2 2v8a2 2 0 002 2h8a2 2 0 002-2v-3" />
-                        <path d="M11 3h6v6" />
-                        <path d="M10 10L17 3" />
-                      </>
-                    ) : (
-                      <path d="M4 10h11M11 6l4 4-4 4" />
-                    )}
-                  </svg>
+          {!preAuth && onLogout && (
+            <div className="manager-selection__brand-top">
+              <button type="button" className="manager-selection__back" onClick={onLogout}>
+                <svg viewBox="0 0 20 20" fill="none" aria-hidden="true">
+                  <path d="M13 10H4M8 6l-4 4 4 4" />
+                </svg>
+                Sign out
+              </button>
+            </div>
+          )}
+
+          <div className="manager-selection__brand-copy">
+            <p className="manager-selection__kicker">
+              <span className="manager-selection__kicker-dot" aria-hidden="true" />
+              Sherwood Technologies
+            </p>
+            <div className="manager-selection__title-block">
+              <h1 className="manager-selection__brand">Sherwood</h1>
+              <p className="manager-selection__platform">
+                <span className="manager-selection__platform-line" aria-hidden="true" />
+                Platform
+              </p>
+            </div>
+            <p className="manager-selection__lede">Select a manager to continue.</p>
+          </div>
+        </aside>
+
+        <section className="manager-selection__panel">
+          <header className="manager-selection__panel-head">
+            <p className="manager-selection__panel-kicker">Workspace</p>
+          </header>
+
+          <div className="manager-selection__lanes" role="list">
+            {managerOptions.map((option, i) => (
+              <button
+                type="button"
+                role="listitem"
+                className={`manager-lane manager-lane--${option.id}`}
+                style={{ '--lane-delay': `${0.16 + i * 0.08}s` }}
+                onClick={() => handleSelect(option)}
+                key={option.id}
+              >
+                <span className="manager-lane__rail" aria-hidden="true" />
+                <span className="manager-lane__index">{option.index}</span>
+                <span className="manager-lane__icon">{option.icon}</span>
+                <span className="manager-lane__body">
+                  <span className="manager-lane__eyebrow">{option.eyebrow}</span>
+                  <span className="manager-lane__title">{option.title}</span>
+                  <span className="manager-lane__description">{option.description}</span>
+                  <span className="manager-lane__tags">
+                    {option.highlights.map((tag) => (
+                      <span className="manager-lane__tag" key={tag}>
+                        {tag}
+                      </span>
+                    ))}
+                  </span>
                 </span>
-              </span>
-            </button>
-          ))}
-        </div>
-      </section>
-
-      <footer className="manager-selection__footer">
-        <img src={sherwoodMarkShadow} alt="" className="manager-selection__brand-mark" />
-        <span className="manager-selection__brand-copy">Sherwood Technologies (Pvt) Ltd</span>
-      </footer>
+                <span className="manager-lane__cta">
+                  <span className="manager-lane__cta-label">{option.action}</span>
+                  <span className="manager-lane__arrow" aria-hidden="true">
+                    <svg viewBox="0 0 20 20" fill="none">
+                      {option.externalUrl ? (
+                        <>
+                          <path d="M8 5H5a2 2 0 00-2 2v8a2 2 0 002 2h8a2 2 0 002-2v-3" />
+                          <path d="M11 3h6v6" />
+                          <path d="M10 10L17 3" />
+                        </>
+                      ) : (
+                        <path d="M4 10h11M11 6l4 4-4 4" />
+                      )}
+                    </svg>
+                  </span>
+                </span>
+              </button>
+            ))}
+          </div>
+        </section>
+      </div>
     </main>
   );
 };

@@ -235,9 +235,8 @@ const ClientOnboarding = () => {
     <div className="wmco">
       <header className="wmco-rail">
         <div className="wmco-rail__brand">
-          <span className="wmco-rail__mark">CO</span>
           <div>
-            <p className="wmco-rail__eyebrow">Client Management</p>
+            <p className="wmco-rail__eyebrow">Sherwood Wealth</p>
             <h1 className="wmco-rail__title">Client Onboarding</h1>
             <p className="wmco-rail__blurb">
               Track new wealth applications from lead capture through documentation,

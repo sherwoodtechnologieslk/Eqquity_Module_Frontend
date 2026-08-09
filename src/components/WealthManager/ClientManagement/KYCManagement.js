@@ -249,9 +249,8 @@ const KYCManagement = () => {
     <div className="wmkyc">
       <header className="wmkyc-rail">
         <div className="wmkyc-rail__brand">
-          <span className="wmkyc-rail__mark">KY</span>
           <div>
-            <p className="wmkyc-rail__eyebrow">Client Management</p>
+            <p className="wmkyc-rail__eyebrow">Sherwood Wealth</p>
             <h1 className="wmkyc-rail__title">KYC Management</h1>
             <p className="wmkyc-rail__blurb">
               Monitor KYC status, document completeness, risk ratings, and renewal

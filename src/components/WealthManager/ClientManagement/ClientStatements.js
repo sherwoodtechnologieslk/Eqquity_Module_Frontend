@@ -113,9 +113,8 @@ const ClientStatements = () => {
     <div className="wmcls">
       <header className="wmcls-rail">
         <div className="wmcls-rail__brand">
-          <span className="wmcls-rail__mark">CS</span>
           <div>
-            <p className="wmcls-rail__eyebrow">Client Management</p>
+            <p className="wmcls-rail__eyebrow">Sherwood Wealth</p>
             <h1 className="wmcls-rail__title">Client Statements</h1>
             <p className="wmcls-rail__blurb">
               Generate, review, and deliver monthly, quarterly, annual, and tax statements
