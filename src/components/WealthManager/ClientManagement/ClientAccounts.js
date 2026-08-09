@@ -161,16 +161,18 @@ const ClientAccounts = () => {
 
   return (
     <div className="wca">
-      <header className="wca-top">
-        <div className="wca-top__copy">
-          <p className="wca-eyebrow">Client Management</p>
-          <h1 className="wca-title">Client Accounts</h1>
-          <p className="wca-sub">
-            View and manage all wealth management client accounts, with quick access to their
-            portfolio details.
-          </p>
+      <header className="wca-rail">
+        <div className="wca-rail__brand">
+          <div>
+            <p className="wca-rail__eyebrow">Sherwood Wealth</p>
+            <h1 className="wca-rail__title">Client Accounts</h1>
+            <p className="wca-rail__blurb">
+              View and manage all wealth management client accounts, with quick access to their
+              portfolio details.
+            </p>
+          </div>
         </div>
-        <div className="wca-top__actions">
+        <div className="wca-rail__actions">
           <button type="button" className="wca-btn wca-btn--ghost" onClick={() => {}}>
             <IconDownload />
             Export

@@ -526,9 +526,8 @@ const ClientPortfolio = () => {
     <div className="wmclp">
       <header className="wmclp-rail">
         <div className="wmclp-rail__brand">
-          <span className="wmclp-rail__mark">CP</span>
           <div>
-            <p className="wmclp-rail__eyebrow">Client Management</p>
+            <p className="wmclp-rail__eyebrow">Sherwood Wealth</p>
             <h1 className="wmclp-rail__title">Client Portfolios</h1>
             <p className="wmclp-rail__blurb">
               Select a client book, review holdings, and track allocation across unit trusts.
