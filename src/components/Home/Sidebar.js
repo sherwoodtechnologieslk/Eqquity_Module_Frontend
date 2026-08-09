@@ -5,6 +5,7 @@ import React, { useState, useEffect, useRef, useMemo } from 'react';
 import './Styles/Sidebar.css';
 import SherwoodManagerMark from './SherwoodManagerMark';
 import { filterEquityMenuItems } from '../../constants/governanceConstants';
+import { TREASURY_MANAGER_URL } from '../../constants/externalManagers';
 
 // Equity Manager menu items
 export const equityManagerMenuItems = [
@@ -1050,7 +1051,7 @@ const Sidebar = ({ onSelect, onPremiumFeature, activeIndex = 0, onLogout, onMana
                   <button
                     className="dropdown-item dropdown-item--treasury"
                     onClick={() => {
-                      window.open('http://10.40.80.89/live1/login', '_blank', 'noopener,noreferrer');
+                      window.open(TREASURY_MANAGER_URL, '_blank', 'noopener,noreferrer');
                       setIsDropdownOpen(false);
                     }}
                     type="button"
