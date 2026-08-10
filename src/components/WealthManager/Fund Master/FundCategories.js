@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import WealthPageHeader from '../Layout/WealthPageHeader';
 import './Styles/FundCategories.css';
 
 const FundCategories = () => {
@@ -199,22 +200,15 @@ const FundCategories = () => {
   if (showListView) {
     return (
       <div className="fc">
-        <header className="fc-rail">
-          <div className="fc-rail__brand">
-            <div>
-              <p className="fc-rail__eyebrow">Sherwood Wealth</p>
-              <h1 className="fc-rail__title">Fund Categories</h1>
-              <p className="fc-rail__blurb">
-                Review and maintain the classifications used across the unit-trust catalogue.
-              </p>
-            </div>
-          </div>
-          <div className="fc-rail__actions">
+        <WealthPageHeader
+          title="Fund Categories"
+          blurb="Review and maintain the classifications used across the unit-trust catalogue."
+          actions={
             <button type="button" className="fc-btn fc-btn--primary" onClick={() => setShowListView(false)}>
               Add New Category
             </button>
-          </div>
-        </header>
+          }
+        />
 
         <div className="fc-panel fc-panel--table">
           <div className="fc-table-wrap">
@@ -269,22 +263,15 @@ const FundCategories = () => {
 
   return (
     <div className="fc">
-      <header className="fc-rail">
-        <div className="fc-rail__brand">
-          <div>
-            <p className="fc-rail__eyebrow">Sherwood Wealth</p>
-            <h1 className="fc-rail__title">Fund Category Entry</h1>
-            <p className="fc-rail__blurb">
-              Define category characteristics, risk expectations, and regulatory treatment.
-            </p>
-          </div>
-        </div>
-        <div className="fc-rail__actions">
+      <WealthPageHeader
+        title="Fund Category Entry"
+        blurb="Define category characteristics, risk expectations, and regulatory treatment."
+        actions={
           <button type="button" className="fc-btn fc-btn--ghost" onClick={() => setShowListView(true)}>
             View Categories List
           </button>
-        </div>
-      </header>
+        }
+      />
 
       {submitMessage && (
         <div

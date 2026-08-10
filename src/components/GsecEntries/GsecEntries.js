@@ -201,24 +201,18 @@ const GsecEntries = () => {
   return (
     <div className="gsec-ext-page">
       <div className="gsec-ext-wrapper">
-      <div className="gsec-ext-header">
-        <div className="gsec-ext-header-icon">
-          <svg className="gsec-ext-icon" fill="currentColor" viewBox="0 0 20 20">
-            <path fillRule="evenodd" d="M4 4a2 2 0 00-2 2v8a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2H4zm2 2v8h8V6H6z" clipRule="evenodd" />
-            <path d="M8 8a1 1 0 011-1h2a1 1 0 110 2H9a1 1 0 01-1-1zm0 2a1 1 0 011-1h2a1 1 0 110 2H9a1 1 0 01-1-1zm1 1a1 1 0 100 2h2a1 1 0 100-2H9z" />
-          </svg>
-        </div>
-        <div className="gsec-ext-header-text">
-          <h1 className="gsec-ext-title">GSec Ledger Entries</h1>
-          <p className="gsec-ext-subtitle">
-            View GSec accounting entries returned by the external ledger service.
-          </p>
-        </div>
-      </div>
+      <header className="gsec-ext-rail">
+        <p className="gsec-ext-rail__eyebrow">Accounting · GSec</p>
+        <h1 className="gsec-ext-rail__title">GSec Ledger Entries</h1>
+        <p className="gsec-ext-rail__blurb">
+          View GSec accounting entries returned by the external ledger service.
+        </p>
+      </header>
 
-      <div className="gsec-ext-filters-card">
-        <div className="gsec-ext-card-header">
-          <h2 className="gsec-ext-card-title">Filters</h2>
+      <section className="gsec-ext-panel" aria-label="Filters">
+        <div className="gsec-ext-panel__head">
+          <h2>Filters</h2>
+          <p>Date range and page size for the remote ledger pull.</p>
         </div>
         <form className="gsec-ext-filters-body" onSubmit={handleSubmit}>
           <div className="gsec-ext-filters-grid">
@@ -262,7 +256,7 @@ const GsecEntries = () => {
             </div>
           </div>
         </form>
-      </div>
+      </section>
 
       {error && <div className="gsec-ext-error">{error}</div>}
 
@@ -334,11 +328,16 @@ const GsecEntries = () => {
         </div>
       </div>
 
-      <div className="gsec-ext-table-card">
-        <div className="gsec-ext-card-header">
-          <h2 className="gsec-ext-card-title">
-            {missingInfo ? 'Missing Remote Entries' : 'Ledger Entries'}
-          </h2>
+      <section className="gsec-ext-panel" aria-label="Ledger entries">
+        <div className="gsec-ext-panel__head">
+          <div>
+            <h2>{missingInfo ? 'Missing Remote Entries' : 'Ledger Entries'}</h2>
+            <p>
+              {missingInfo
+                ? `Remote rows missing locally for ${missingInfo.date}.`
+                : 'Entries loaded from the external GSec ledger service.'}
+            </p>
+          </div>
         </div>
         <div className="gsec-ext-table-wrap">
           <table className="gsec-ext-table">
@@ -385,7 +384,7 @@ const GsecEntries = () => {
             </tbody>
           </table>
         </div>
-      </div>
+      </section>
 
       {rawResponse && (
         <details className="gsec-ext-debug">

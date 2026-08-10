@@ -10,6 +10,7 @@ import {
 import GovernancePermissionPicker from './GovernancePermissionPicker';
 import GovernanceActionModal from './GovernanceActionModal';
 import './AdminGovernancePortal.css';
+import './GovernanceScreen.css';
 
 const PORTAL_TABS = [
   { id: 'request', label: 'Request new user' },
@@ -458,30 +459,26 @@ const AdminGovernancePortal = ({ user, company }) => {
   );
 
   return (
-    <div className="agp-root agp-root--plain">
-      <header className="agp-page-header">
-        <div className="agp-header-main">
-          <div className="agp-header-icon" aria-hidden>
-            <svg fill="currentColor" viewBox="0 0 20 20">
-              <path d="M9 6a3 3 0 11-6 0 3 3 0 016 0zM17 6a3 3 0 11-6 0 3 3 0 016 0zM12.93 17c.046-.327.07-.66.07-1a6.97 6.97 0 00-1.5-4.33A5 5 0 0119 16v1h-6.07zM6 11a5 5 0 015 5v1H1v-1a5 5 0 015-5z" />
-            </svg>
-          </div>
-          <div className="agp-header-text">
-            <h1>User Requests</h1>
-            <p>
-              Maker–checker workflow for <strong>{company?.company_name || 'your company'}</strong>
-              {isOwner ? ' — view only' : ''}
-            </p>
-          </div>
+    <div className="agp-root agp-root--plain agp-root--gov">
+      <header className="agp-rail">
+        <div className="agp-rail__brand">
+          <p className="agp-rail__eyebrow">Governance · Maker-checker</p>
+          <h1 className="agp-rail__title">User Requests</h1>
+          <p className="agp-rail__blurb">
+            Maker–checker workflow for <strong>{company?.company_name || 'your company'}</strong>
+            {isOwner ? ' — view only' : ''}
+          </p>
         </div>
-        <div className="agp-header-stats">
-          <div className="agp-stat">
-            <span className="agp-stat-value">{pendingCount}</span>
-            <span className="agp-stat-label">User pending</span>
-          </div>
-          <div className="agp-stat">
-            <span className="agp-stat-value">{requests.length}</span>
-            <span className="agp-stat-label">Total requests</span>
+        <div className="agp-rail__actions">
+          <div className="agp-rail__stats">
+            <div className="agp-rail__stat">
+              <span className="agp-rail__stat-value">{pendingCount}</span>
+              <span className="agp-rail__stat-label">Pending</span>
+            </div>
+            <div className="agp-rail__stat">
+              <span className="agp-rail__stat-value">{requests.length}</span>
+              <span className="agp-rail__stat-label">Total</span>
+            </div>
           </div>
         </div>
       </header>

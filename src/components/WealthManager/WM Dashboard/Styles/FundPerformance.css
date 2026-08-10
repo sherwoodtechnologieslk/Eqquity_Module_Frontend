@@ -24,69 +24,6 @@
   text-align: left;
 }
 
-.wfp-header {
-  display: flex;
-  justify-content: flex-start;
-  align-items: flex-start;
-  gap: 0.85rem 1.2rem;
-  padding: 0.2rem 0.15rem 1.15rem;
-  margin-bottom: 1.1rem;
-  border-bottom: 1px solid rgba(26, 31, 28, 0.08);
-}
-
-.wfp-header-content {
-  flex: 0 1 auto;
-  position: relative;
-  padding-left: 0;
-  margin: 0;
-  text-align: left;
-}
-
-.wfp-header-content h2::before {
-  content: 'Sherwood Wealth';
-  display: block;
-  margin-bottom: 0.2rem;
-  font-size: 0.62rem;
-  font-weight: 700;
-  letter-spacing: 0.16em;
-  text-transform: uppercase;
-  color: var(--forest-mid);
-  text-align: left;
-}
-
-.wfp-header-content h2 {
-  margin: 0 0 0.28rem;
-  font-size: clamp(1.15rem, 1.9vw, 1.5rem);
-  font-weight: 800;
-  letter-spacing: -0.03em;
-  line-height: 1.1;
-  color: var(--ink);
-  text-align: left !important;
-}
-
-.wfp-subtitle {
-  max-width: 35rem;
-  margin: 0;
-  font-size: 0.76rem;
-  line-height: 1.4;
-  color: var(--mute);
-  text-align: left;
-}
-
-.wfp-header-actions {
-  display: inline-flex;
-  flex-wrap: nowrap;
-  margin-left: auto;
-  justify-content: flex-end;
-  align-items: center;
-  gap: 0.4rem;
-  padding: 0.28rem;
-  border: 1px solid var(--line);
-  background: rgba(255, 255, 255, 0.72);
-  box-shadow: 0 8px 18px rgba(26, 31, 28, 0.04);
-  border-radius: 0.9rem !important;
-}
-
 .wfp-select {
   appearance: none;
   min-width: 7.5rem;

@@ -1,0 +1,232 @@
+/* Business Approvals — Export Excel filter modal */
+
+.agp-export-overlay {
+  z-index: 12000;
+  padding: 1.5rem;
+  background: rgba(15, 23, 42, 0.5);
+  backdrop-filter: blur(6px);
+}
+
+.agp-export-modal {
+  max-width: 540px;
+  border: 1px solid #dbe3ef;
+  border-radius: 1.15rem;
+  background:
+    radial-gradient(700px 220px at 0% 0%, rgba(37, 99, 235, 0.08), transparent 55%),
+    #fff;
+  box-shadow: 0 28px 60px rgba(15, 23, 42, 0.22);
+  overflow: hidden;
+  font-family: 'DM Sans', 'Segoe UI', system-ui, sans-serif;
+}
+
+.agp-export-modal .gov-modal-header {
+  align-items: center;
+  padding: 1.2rem 1.35rem 1rem;
+  border-bottom: 1px solid #e8eef7;
+  background: rgba(248, 250, 252, 0.65);
+}
+
+.agp-export-modal .gov-modal-header h2 {
+  font-size: 1.15rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: #0f172a;
+}
+
+.agp-export-modal__eyebrow {
+  margin: 0 0 0.2rem;
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #1d4ed8;
+}
+
+.agp-export-modal .gov-modal-close {
+  width: 2.15rem;
+  height: 2.15rem;
+  border-radius: 999px;
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  color: #64748b;
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
+}
+
+.agp-export-modal .gov-modal-close:hover:not(:disabled) {
+  background: #eff6ff;
+  border-color: #bfdbfe;
+  color: #1d4ed8;
+}
+
+.agp-export-modal .gov-modal-body {
+  padding: 1.15rem 1.35rem 0.35rem;
+}
+
+.agp-export-modal .gov-modal-message {
+  margin: 0 0 1.1rem;
+  font-size: 0.88rem;
+  line-height: 1.5;
+  color: #64748b;
+}
+
+.agp-export-fieldset {
+  margin: 0 0 1.15rem;
+  padding: 0;
+  border: none;
+}
+
+.agp-export-fieldset legend {
+  margin: 0 0 0.55rem;
+  padding: 0;
+  font-size: 0.72rem;
+  font-weight: 750;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #64748b;
+}
+
+.agp-export-modules {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.55rem;
+}
+
+.agp-export-module {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  width: 100%;
+  padding: 0.75rem 0.85rem;
+  text-align: left;
+  font: inherit;
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 0.85rem;
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s, box-shadow 0.15s, transform 0.12s;
+}
+
+.agp-export-module:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.agp-export-module:hover:not(:disabled) {
+  border-color: #93c5fd;
+  background: #f8fafc;
+  transform: translateY(-1px);
+}
+
+.agp-export-module--selected {
+  border-color: #2563eb;
+  background: linear-gradient(180deg, #eff6ff 0%, #f8fbff 100%);
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+}
+
+.agp-export-module-label {
+  flex: 1;
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.agp-export-module-count {
+  min-width: 1.85rem;
+  padding: 0.18rem 0.5rem;
+  font-size: 0.72rem;
+  font-weight: 750;
+  text-align: center;
+  color: #334155;
+  background: #eef2f7;
+  border-radius: 999px;
+}
+
+.agp-export-module--selected .agp-export-module-count {
+  color: #fff;
+  background: #2563eb;
+}
+
+.agp-export-date-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.7rem;
+}
+
+.agp-export-date-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  font-size: 0.78rem;
+  font-weight: 650;
+  color: #475569;
+}
+
+.agp-export-date-field input[type='date'] {
+  width: 100%;
+  padding: 0.65rem 0.75rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  font-family: inherit;
+  color: #0f172a;
+  background: #fff;
+  border: 1px solid #d5dee9;
+  border-radius: 0.75rem;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+.agp-export-date-field input[type='date']:hover {
+  border-color: #93c5fd;
+}
+
+.agp-export-date-field input[type='date']:focus {
+  outline: none;
+  border-color: #2563eb;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.14);
+}
+
+.agp-export-modal .gov-modal-actions {
+  gap: 0.6rem;
+  padding: 1rem 1.35rem 1.25rem;
+  border-top: 1px solid #e8eef7;
+  background: rgba(248, 250, 252, 0.55);
+}
+
+.agp-export-modal .gov-modal-btn {
+  min-height: 2.45rem;
+  padding: 0.55rem 1.2rem;
+  border-radius: 999px;
+  font-weight: 700;
+}
+
+.agp-export-modal .gov-modal-btn--ghost {
+  background: #fff;
+  color: #334155;
+  border-color: #d5dee9;
+}
+
+.agp-export-modal .gov-modal-btn--ghost:hover:not(:disabled) {
+  background: #f1f5f9;
+  border-color: #cbd5e1;
+}
+
+.agp-export-modal .gov-modal-btn--success {
+  color: #fff;
+  background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+  border: 1px solid #1e40af;
+  box-shadow: 0 6px 14px rgba(37, 99, 235, 0.25);
+}
+
+.agp-export-modal .gov-modal-btn--success:hover:not(:disabled) {
+  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+}
+
+@media (max-width: 520px) {
+  .agp-export-modules,
+  .agp-export-date-row {
+    grid-template-columns: 1fr;
+  }
+
+  .agp-export-modal {
+    border-radius: 1rem;
+  }
+}

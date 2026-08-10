@@ -8,8 +8,23 @@ import {
 import { GSEC_SOURCE_LABELS } from '../../utils/gsecMakerChecker';
 import { NON_TRADING_SOURCE_LABELS } from '../../utils/nonTradingMakerChecker';
 import BusinessApprovalPayloadPreview from './BusinessApprovalPayloadPreview';
+import BusinessApprovalsExportModal from './BusinessApprovalsExportModal';
 import GovernanceActionModal from './GovernanceActionModal';
+import {
+  exportBusinessApprovalsToExcel,
+  fetchAllBusinessApprovalRequests,
+  filterBusinessApprovalRequests,
+} from '../../utils/businessApprovalsExport';
 import './AdminGovernancePortal.css';
+import './GovernanceScreen.css';
+
+const EMPTY_EXPORT_FILTERS = {
+  moduleId: '',
+  entryFrom: '',
+  entryTo: '',
+  createdFrom: '',
+  createdTo: '',
+};
 
 const LIST_PAGE_SIZE = 15;
 
@@ -76,6 +91,9 @@ const BusinessApprovalsPortal = ({ user, company }) => {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [businessActionModal, setBusinessActionModal] = useState(null);
+  const [exporting, setExporting] = useState(false);
+  const [exportModalOpen, setExportModalOpen] = useState(false);
+  const [exportFilters, setExportFilters] = useState(EMPTY_EXPORT_FILTERS);
 
   const isOwner = user?.company_role === 'company_owner';
   const canView = canAccessBusinessApprovals(user);
@@ -192,9 +210,88 @@ const BusinessApprovalsPortal = ({ user, company }) => {
     setBusinessActionModal(null);
   };
 
+  const openExportModal = (event) => {
+    if (event) {
+      event.preventDefault();
+      event.stopPropagation();
+    }
+    setError('');
+    setSuccess('');
+    setExportFilters({
+      ...EMPTY_EXPORT_FILTERS,
+      moduleId: activeModuleMeta?.id || visibleModules[0]?.id || '',
+    });
+    setExportModalOpen(true);
+  };
+
+  const updateExportFilter = useCallback((key, value) => {
+    setExportFilters((prev) => ({ ...prev, [key]: value }));
+  }, []);
+
+  const closeExportModal = useCallback(() => {
+    if (!exporting) setExportModalOpen(false);
+  }, [exporting]);
+
+  const handleExportExcel = async () => {
+    if (exporting || !visibleModules.length) return;
+    if (!exportFilters.moduleId) {
+      setError('Select a category to export.');
+      return;
+    }
+
+    const selectedModule = visibleModules.find((mod) => mod.id === exportFilters.moduleId);
+    if (!selectedModule) {
+      setError('You do not have access to that category.');
+      return;
+    }
+
+    if (
+      exportFilters.entryFrom &&
+      exportFilters.entryTo &&
+      exportFilters.entryFrom > exportFilters.entryTo
+    ) {
+      setError('Entry date from cannot be after to.');
+      return;
+    }
+    if (
+      exportFilters.createdFrom &&
+      exportFilters.createdTo &&
+      exportFilters.createdFrom > exportFilters.createdTo
+    ) {
+      setError('Created date from cannot be after to.');
+      return;
+    }
+
+    setExporting(true);
+    setError('');
+    setSuccess('');
+    try {
+      const allRequests = await fetchAllBusinessApprovalRequests([selectedModule.id]);
+      const filtered = filterBusinessApprovalRequests(allRequests, {
+        entryFrom: exportFilters.entryFrom,
+        entryTo: exportFilters.entryTo,
+        createdFrom: exportFilters.createdFrom,
+        createdTo: exportFilters.createdTo,
+      });
+      const { requestCount, detailCount } = exportBusinessApprovalsToExcel(filtered, {
+        companyName: company?.company_name || 'company',
+        moduleLabel: selectedModule.id,
+      });
+      setExportModalOpen(false);
+      setSuccess(
+        `Exported ${requestCount} ${selectedModule.label} approval request${requestCount === 1 ? '' : 's'} (${detailCount} detail row${detailCount === 1 ? '' : 's'}) to Excel.`
+      );
+    } catch (err) {
+      console.error('Business approvals Excel export failed:', err);
+      setError(err.response?.data?.message || err.message || 'Failed to export Excel report');
+    } finally {
+      setExporting(false);
+    }
+  };
+
   if (!canView) {
     return (
-      <div className="agp-root agp-root--plain">
+      <div className="agp-root agp-root--plain agp-root--gov">
         <div className="agp-empty">
           <h3>Access denied</h3>
           <p>You do not have permission to view business approval requests.</p>
@@ -205,7 +302,7 @@ const BusinessApprovalsPortal = ({ user, company }) => {
 
   if (!visibleModules.length) {
     return (
-      <div className="agp-root agp-root--plain">
+      <div className="agp-root agp-root--plain agp-root--gov">
         <div className="agp-empty">
           <h3>No module access</h3>
           <p>You do not have maker or checker permissions for any business approval module.</p>
@@ -215,35 +312,44 @@ const BusinessApprovalsPortal = ({ user, company }) => {
   }
 
   return (
-    <div className="agp-root agp-root--plain">
-      <header className="agp-page-header">
-        <div className="agp-header-main">
-          <div className="agp-header-icon" aria-hidden>
-            <svg fill="currentColor" viewBox="0 0 20 20">
+    <div className="agp-root agp-root--plain agp-root--gov">
+      <header className="agp-rail">
+        <div className="agp-rail__brand">
+          <p className="agp-rail__eyebrow">Governance · Maker-checker</p>
+          <h1 className="agp-rail__title">Business Approvals</h1>
+          <p className="agp-rail__blurb">
+            {activeModuleMeta?.label || 'Module'} approvals for{' '}
+            <strong>{company?.company_name || 'your company'}</strong>
+            {isOwner ? ' — view only' : ''}
+          </p>
+        </div>
+        <div className="agp-rail__actions">
+          <button
+            type="button"
+            className="agp-btn-export"
+            onClick={openExportModal}
+            disabled={exporting}
+            data-export-filters="true"
+            title="Choose category and dates, then download Excel"
+          >
+            <svg viewBox="0 0 20 20" fill="currentColor" aria-hidden>
               <path
                 fillRule="evenodd"
-                d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm2 6a1 1 0 011-1h6a1 1 0 110 2H7a1 1 0 01-1-1zm1 3a1 1 0 100 2h6a1 1 0 100-2H7z"
+                d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z"
                 clipRule="evenodd"
               />
             </svg>
-          </div>
-          <div className="agp-header-text">
-            <h1>Business Approvals</h1>
-            <p>
-              {activeModuleMeta?.label || 'Module'} approvals for{' '}
-              <strong>{company?.company_name || 'your company'}</strong>
-              {isOwner ? ' — view only' : ''}
-            </p>
-          </div>
-        </div>
-        <div className="agp-header-stats">
-          <div className="agp-stat">
-            <span className="agp-stat-value">{pendingCount}</span>
-            <span className="agp-stat-label">Pending</span>
-          </div>
-          <div className="agp-stat">
-            <span className="agp-stat-value">{totalCount}</span>
-            <span className="agp-stat-label">Total requests</span>
+            {exporting ? 'Exporting…' : 'Export to Excel'}
+          </button>
+          <div className="agp-rail__stats">
+            <div className="agp-rail__stat">
+              <span className="agp-rail__stat-value">{pendingCount}</span>
+              <span className="agp-rail__stat-label">Pending</span>
+            </div>
+            <div className="agp-rail__stat">
+              <span className="agp-rail__stat-value">{totalCount}</span>
+              <span className="agp-rail__stat-label">Total</span>
+            </div>
           </div>
         </div>
       </header>
@@ -447,6 +553,17 @@ const BusinessApprovalsPortal = ({ user, company }) => {
         loading={!!businessActionId}
         onConfirm={handleBusinessModalConfirm}
         onCancel={() => !businessActionId && setBusinessActionModal(null)}
+      />
+
+      <BusinessApprovalsExportModal
+        open={exportModalOpen}
+        exporting={exporting}
+        modules={visibleModules}
+        moduleSummary={moduleSummary}
+        filters={exportFilters}
+        onChangeFilter={updateExportFilter}
+        onClose={closeExportModal}
+        onConfirm={handleExportExcel}
       />
     </div>
   );
