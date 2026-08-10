@@ -1,4 +1,5 @@
 import React, { useMemo, useState } from 'react';
+import WealthPageHeader from '../Layout/WealthPageHeader';
 import './Styles/ClientOnboarding.css';
 
 const STATUS_TABS = ['All', 'New Lead', 'Documents Pending', 'Under Review', 'Approved', 'Rejected'];
@@ -233,26 +234,20 @@ const ClientOnboarding = () => {
 
   return (
     <div className="wmco">
-      <header className="wmco-rail">
-        <div className="wmco-rail__brand">
-          <div>
-            <p className="wmco-rail__eyebrow">Sherwood Wealth</p>
-            <h1 className="wmco-rail__title">Client Onboarding</h1>
-            <p className="wmco-rail__blurb">
-              Track new wealth applications from lead capture through documentation,
-              compliance review, and account activation.
-            </p>
-          </div>
-        </div>
-        <div className="wmco-rail__actions">
-          <button type="button" className="wmco-btn wmco-btn--ghost" onClick={() => flash('Onboarding pack template downloaded.')}>
-            Download pack
-          </button>
-          <button type="button" className="wmco-btn wmco-btn--solid" onClick={() => flash('New onboarding case started.')}>
-            New application
-          </button>
-        </div>
-      </header>
+      <WealthPageHeader
+        title="Client Onboarding"
+        blurb="Track new wealth applications from lead capture through documentation, compliance review, and account activation."
+        actions={
+          <>
+            <button type="button" className="wmco-btn wmco-btn--ghost" onClick={() => flash('Onboarding pack template downloaded.')}>
+              Download pack
+            </button>
+            <button type="button" className="wmco-btn wmco-btn--solid" onClick={() => flash('New onboarding case started.')}>
+              New application
+            </button>
+          </>
+        }
+      />
 
       {toast && <div className="wmco-toast" role="status">{toast}</div>}
 

@@ -1,4 +1,5 @@
 import React, { useMemo, useState } from 'react';
+import WealthPageHeader from '../Layout/WealthPageHeader';
 import './Styles/KYCManagement.css';
 
 const STATUS_TABS = ['All', 'Verified', 'Under Review', 'Pending', 'Expired', 'Rejected'];
@@ -247,26 +248,20 @@ const KYCManagement = () => {
 
   return (
     <div className="wmkyc">
-      <header className="wmkyc-rail">
-        <div className="wmkyc-rail__brand">
-          <div>
-            <p className="wmkyc-rail__eyebrow">Sherwood Wealth</p>
-            <h1 className="wmkyc-rail__title">KYC Management</h1>
-            <p className="wmkyc-rail__blurb">
-              Monitor KYC status, document completeness, risk ratings, and renewal
-              dates across wealth clients and onboarding cases.
-            </p>
-          </div>
-        </div>
-        <div className="wmkyc-rail__actions">
-          <button type="button" className="wmkyc-btn wmkyc-btn--ghost" onClick={() => flash('KYC ageing report exported.')}>
-            Export ageing
-          </button>
-          <button type="button" className="wmkyc-btn wmkyc-btn--solid" onClick={() => flash('Renewal campaign started for expired cases.')}>
-            Run renewals
-          </button>
-        </div>
-      </header>
+      <WealthPageHeader
+        title="KYC Management"
+        blurb="Monitor KYC status, document completeness, risk ratings, and renewal dates across wealth clients and onboarding cases."
+        actions={
+          <>
+            <button type="button" className="wmkyc-btn wmkyc-btn--ghost" onClick={() => flash('KYC ageing report exported.')}>
+              Export ageing
+            </button>
+            <button type="button" className="wmkyc-btn wmkyc-btn--solid" onClick={() => flash('Renewal campaign started for expired cases.')}>
+              Run renewals
+            </button>
+          </>
+        }
+      />
 
       {toast && <div className="wmkyc-toast" role="status">{toast}</div>}
 

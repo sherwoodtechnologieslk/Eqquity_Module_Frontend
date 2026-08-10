@@ -1,4 +1,5 @@
 import React, { useMemo, useState } from 'react';
+import WealthPageHeader from '../Layout/WealthPageHeader';
 import './Styles/ClientPortfolio.css';
 
 const formatCurrency = (value) =>
@@ -524,21 +525,16 @@ const ClientPortfolio = () => {
 
   return (
     <div className="wmclp">
-      <header className="wmclp-rail">
-        <div className="wmclp-rail__brand">
-          <div>
-            <p className="wmclp-rail__eyebrow">Sherwood Wealth</p>
-            <h1 className="wmclp-rail__title">Client Portfolios</h1>
-            <p className="wmclp-rail__blurb">
-              Select a client book, review holdings, and track allocation across unit trusts.
-            </p>
+      <WealthPageHeader
+        title="Client Portfolios"
+        blurb="Select a client book, review holdings, and track allocation across unit trusts."
+        actions={
+          <div className="wmclp-rail__meta">
+            <strong>{clientPortfolios.length}</strong>
+            <span>Active books</span>
           </div>
-        </div>
-        <div className="wmclp-rail__meta">
-          <strong>{clientPortfolios.length}</strong>
-          <span>Active books</span>
-        </div>
-      </header>
+        }
+      />
 
       <section className="wmclp-picker" aria-label="Client portfolio list">
         <div className="wmclp-panel__head">

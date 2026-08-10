@@ -1,4 +1,5 @@
 import React, { useMemo, useState } from 'react';
+import WealthPageHeader from '../Layout/WealthPageHeader';
 import './Styles/AUMOverview.css';
 
 const AUMOverview = () => {
@@ -60,31 +61,28 @@ const AUMOverview = () => {
 
   return (
     <div className="wao-container">
-      {/* Header */}
-      <div className="wao-header">
-        <div className="wao-header-content">
-          <h2>AUM Overview</h2>
-          <p className="wao-subtitle">
-            Total assets under management by client segment and asset class.
-          </p>
-        </div>
-        <div className="wao-header-actions">
-          <select
-            className="wao-select"
-            value={currency}
-            onChange={(e) => setCurrency(e.target.value)}
-          >
-            <option value="LKR">LKR</option>
-            <option value="USD">USD (view only)</option>
-          </select>
-          <button type="button" className="wao-btn wao-btn-primary">
-            <svg fill="currentColor" viewBox="0 0 20 20">
-              <path d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" />
-            </svg>
-            Export AUM Report
-          </button>
-        </div>
-      </div>
+      <WealthPageHeader
+        title="AUM Overview"
+        blurb="Total assets under management by client segment and asset class."
+        actions={
+          <>
+            <select
+              className="wao-select"
+              value={currency}
+              onChange={(e) => setCurrency(e.target.value)}
+            >
+              <option value="LKR">LKR</option>
+              <option value="USD">USD (view only)</option>
+            </select>
+            <button type="button" className="wao-btn wao-btn-primary">
+              <svg fill="currentColor" viewBox="0 0 20 20">
+                <path d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" />
+              </svg>
+              Export AUM Report
+            </button>
+          </>
+        }
+      />
 
       {/* Summary cards */}
       <div className="wao-summary-grid">

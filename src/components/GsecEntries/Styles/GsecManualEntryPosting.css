@@ -1,37 +1,50 @@
 .gsec-manual-page.gsec-page-container {
-  padding: 0.85rem 1rem 1rem;
+  --ink: #0f172a;
+  --mute: #64748b;
+  --line: #e2e8f0;
+  --blue: #2563eb;
+  --sans: 'DM Sans', 'Segoe UI', sans-serif;
+
+  padding: 0.35rem 1rem 1.5rem;
+  font-family: var(--sans);
+  background:
+    radial-gradient(ellipse 80% 50% at 100% 0%, rgba(37, 99, 235, 0.05), transparent 55%),
+    #f8fafc;
 }
 
-.gsec-manual-page .gsec-manual-header.gsec-header-section {
-  gap: 0.85rem;
-  margin-bottom: 0.65rem;
-  padding-top: 0;
-  padding-bottom: 0.25rem;
+.gsec-manual-rail {
+  padding: 0.1rem 0.05rem 0.85rem;
+  margin-bottom: 0.85rem;
+  border-bottom: 1px solid var(--line);
 }
 
-.gsec-manual-page .gsec-header-icon {
-  width: 2.75rem;
-  height: 2.75rem;
+.gsec-manual-rail__eyebrow {
+  margin: 0 0 0.15rem;
+  font-size: 0.6rem;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--blue);
 }
 
-.gsec-manual-page .gsec-icon {
-  width: 1.25rem;
-  height: 1.25rem;
-}
-
-.gsec-manual-page .gsec-header-text-group {
-  gap: 0.1rem;
-}
-
-.gsec-manual-page .gsec-main-title {
-  font-size: 1.35rem;
+.gsec-manual-rail__title {
+  margin: 0 0 0.15rem;
+  font-size: clamp(1.25rem, 2vw, 1.5rem);
+  font-weight: 700;
+  letter-spacing: -0.02em;
   line-height: 1.15;
+  color: var(--ink);
+  text-align: left !important;
+  background: none;
+  -webkit-text-fill-color: currentColor;
 }
 
-.gsec-manual-page .gsec-subtitle {
-  font-size: 0.8125rem;
+.gsec-manual-rail__blurb {
   margin: 0;
-  line-height: 1.35;
+  max-width: 48rem;
+  font-size: 0.8rem;
+  line-height: 1.45;
+  color: var(--mute);
 }
 
 .gsec-manual-page .gsec-filters-card {

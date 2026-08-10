@@ -240,30 +240,20 @@ const GsecGeneralLedger = () => {
   return (
     <div className="gsec-gl-page-container">
       <div className="gsec-gl-content-wrapper">
-        {/* Header */}
-        <div className="gsec-gl-header-section">
-          <div className="gsec-gl-header-icon">
-            <svg className="gsec-gl-icon" fill="currentColor" viewBox="0 0 20 20">
-              <path
-                fillRule="evenodd"
-                d="M4 4a2 2 0 00-2 2v8a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2H4zm2 2v8h8V6H6z"
-                clipRule="evenodd"
-              />
-              <path d="M8 8a1 1 0 011-1h2a1 1 0 110 2H9a1 1 0 01-1-1zm0 2a1 1 0 011-1h2a1 1 0 110 2H9a1 1 0 01-1-1zm1 1a1 1 0 100 2h2a1 1 0 100-2H9z" />
-            </svg>
-          </div>
-          <div className="gsec-gl-header-text-group">
-            <h1 className="gsec-gl-main-title">GSec General Ledger</h1>
-            <p className="gsec-gl-subtitle">
-              View saved GSec ledger snapshots from the external GSec system, grouped by deal number.
-            </p>
-          </div>
-        </div>
+        <header className="gsec-gl-rail">
+          <p className="gsec-gl-rail__eyebrow">Accounting · GSec</p>
+          <h1 className="gsec-gl-rail__title">GSec General Ledger</h1>
+          <p className="gsec-gl-rail__blurb">
+            View saved GSec ledger snapshots from the external GSec system, grouped by deal number.
+          </p>
+        </header>
 
-        {/* Filters & search */}
-        <div className="gsec-gl-filters-card">
-          <div className="gsec-gl-card-header">
-            <h2 className="gsec-gl-card-title">Filters & Search</h2>
+        <section className="gsec-gl-panel gsec-gl-panel--filters" aria-label="Filters and search">
+          <div className="gsec-gl-panel__head">
+            <div>
+              <h2>Filters & Search</h2>
+              <p>Search and filter saved GSec ledger rows.</p>
+            </div>
           </div>
           <div className="gsec-gl-filters-content">
             <div className="gsec-gl-search-section">
@@ -340,43 +330,42 @@ const GsecGeneralLedger = () => {
                 />
               </div>
 
-              <div className="gsec-gl-filter-group">
-                <button onClick={clearFilters} className="gsec-gl-clear-filters-btn">
+              <div className="gsec-gl-filter-group gsec-gl-filter-actions">
+                <button type="button" onClick={clearFilters} className="gsec-gl-clear-filters-btn">
                   Clear Filters
                 </button>
               </div>
             </div>
           </div>
-        </div>
+        </section>
 
-        {/* Summary stats */}
         <div className="gsec-gl-summary-stats">
           <div className="gsec-gl-stat-card">
-            <div className="gsec-gl-stat-value">{filteredCount}</div>
             <div className="gsec-gl-stat-label">Total Entries</div>
+            <div className="gsec-gl-stat-value">{filteredCount}</div>
           </div>
           <div className="gsec-gl-stat-card">
-            <div className="gsec-gl-stat-value debit">{formatCurrency(totalDebits)}</div>
             <div className="gsec-gl-stat-label">Total Debits</div>
+            <div className="gsec-gl-stat-value debit">{formatCurrency(totalDebits)}</div>
           </div>
           <div className="gsec-gl-stat-card">
-            <div className="gsec-gl-stat-value credit">{formatCurrency(totalCredits)}</div>
             <div className="gsec-gl-stat-label">Total Credits</div>
+            <div className="gsec-gl-stat-value credit">{formatCurrency(totalCredits)}</div>
           </div>
           <div className="gsec-gl-stat-card">
+            <div className="gsec-gl-stat-label">Net Balance</div>
             <div className={`gsec-gl-stat-value ${netBalance >= 0 ? 'positive' : 'negative'}`}>
               {formatCurrency(Math.abs(netBalance))}
             </div>
-            <div className="gsec-gl-stat-label">Net Balance</div>
           </div>
         </div>
 
-        {/* Table */}
-        <div className="gsec-gl-table-card">
-          <div className="gsec-gl-card-header">
-            <h2 className="gsec-gl-card-title">
-              GSec Ledger Entries ({filteredCount} records)
-            </h2>
+        <section className="gsec-gl-panel" aria-label="GSec ledger entries">
+          <div className="gsec-gl-panel__head">
+            <div>
+              <h2>GSec Ledger Entries</h2>
+              <p>{filteredCount} record{filteredCount === 1 ? '' : 's'} matching current filters.</p>
+            </div>
             <div className="gsec-gl-table-actions">
               <button
                 type="button"
@@ -398,7 +387,7 @@ const GsecGeneralLedger = () => {
               </button>
               <button
                 type="button"
-                className="gsec-gl-refresh-btn"
+                className="gsec-gl-refresh-btn gsec-gl-refresh-btn--solid"
                 onClick={() => fetchEntries()}
                 disabled={loading || exporting}
               >
@@ -454,6 +443,7 @@ const GsecGeneralLedger = () => {
                 {totalPages > 1 && (
                   <div className="gsec-gl-pagination">
                     <button
+                      type="button"
                       onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
                       disabled={currentPage === 1 || loading}
                       className="gsec-gl-pagination-btn"
@@ -466,6 +456,7 @@ const GsecGeneralLedger = () => {
                     </div>
 
                     <button
+                      type="button"
                       onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
                       disabled={currentPage === totalPages || loading}
                       className="gsec-gl-pagination-btn"
@@ -477,7 +468,7 @@ const GsecGeneralLedger = () => {
               </>
             )}
           </div>
-        </div>
+        </section>
       </div>
     </div>
   );

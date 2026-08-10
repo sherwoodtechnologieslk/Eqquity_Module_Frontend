@@ -1,4 +1,5 @@
 import React, { useState, useMemo } from 'react';
+import WealthPageHeader from '../Layout/WealthPageHeader';
 import './Styles/FundPerformance.css';
 
 const FundPerformance = () => {
@@ -162,47 +163,44 @@ const FundPerformance = () => {
 
   return (
     <div className="wfp-container">
-      {/* Header */}
-      <div className="wfp-header">
-        <div className="wfp-header-content">
-          <h2>Fund Performance</h2>
-          <p className="wfp-subtitle">
-            Analyze return, risk and consistency across all unit trust funds.
-          </p>
-        </div>
-        <div className="wfp-header-actions">
-          <select
-            className="wfp-select"
-            value={selectedCategory}
-            onChange={(e) => setSelectedCategory(e.target.value)}
-          >
-            <option value="all">All Categories</option>
-            {fundData.categories.map((cat) => (
-              <option key={cat.name} value={cat.name}>
-                {cat.name}
-              </option>
-            ))}
-          </select>
+      <WealthPageHeader
+        title="Fund Performance"
+        blurb="Analyze return, risk and consistency across all unit trust funds."
+        actions={
+          <>
+            <select
+              className="wfp-select"
+              value={selectedCategory}
+              onChange={(e) => setSelectedCategory(e.target.value)}
+            >
+              <option value="all">All Categories</option>
+              {fundData.categories.map((cat) => (
+                <option key={cat.name} value={cat.name}>
+                  {cat.name}
+                </option>
+              ))}
+            </select>
 
-          <select
-            className="wfp-select"
-            value={selectedHorizon}
-            onChange={(e) => setSelectedHorizon(e.target.value)}
-          >
-            <option value="1M">1M</option>
-            <option value="3M">3M</option>
-            <option value="6M">6M</option>
-            <option value="1Y">1Y</option>
-          </select>
+            <select
+              className="wfp-select"
+              value={selectedHorizon}
+              onChange={(e) => setSelectedHorizon(e.target.value)}
+            >
+              <option value="1M">1M</option>
+              <option value="3M">3M</option>
+              <option value="6M">6M</option>
+              <option value="1Y">1Y</option>
+            </select>
 
-          <button className="wfp-btn wfp-btn-primary" type="button">
-            <svg fill="currentColor" viewBox="0 0 20 20" width="20" height="20">
-              <path d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" />
-            </svg>
-            Export Fund Report
-          </button>
-        </div>
-      </div>
+            <button className="wfp-btn wfp-btn-primary" type="button">
+              <svg fill="currentColor" viewBox="0 0 20 20" width="20" height="20">
+                <path d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" />
+              </svg>
+              Export Fund Report
+            </button>
+          </>
+        }
+      />
 
       {/* Summary Cards */}
       <div className="wfp-summary-grid">

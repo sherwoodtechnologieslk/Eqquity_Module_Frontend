@@ -49,66 +49,6 @@
 }
 
 /* ===== Header ===== */
-.wdb-rail {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 0.55rem 1rem;
-  padding: 0.1rem 0.1rem 0.55rem;
-  margin-bottom: 0.1rem;
-}
-
-.wdb-rail__brand {
-  display: flex;
-  align-items: flex-start;
-  gap: 0.7rem;
-  min-width: 0;
-}
-
-.wdb-rail__mark {
-  width: 2.15rem;
-  height: 2.15rem;
-  margin-top: 0.1rem;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-  background: var(--forest);
-  color: #fff;
-  font-size: 0.62rem;
-  font-weight: 800;
-  letter-spacing: 0.04em;
-  border-radius: 0.6rem !important;
-}
-
-.wdb-rail__eyebrow {
-  margin: 0 0 0.15rem;
-  font-size: 0.58rem;
-  font-weight: 700;
-  letter-spacing: 0.15em;
-  text-transform: uppercase;
-  color: var(--forest-mid);
-}
-
-.wdb-rail__title {
-  margin: 0 0 0.15rem;
-  font-family: var(--sans);
-  font-size: clamp(1.2rem, 1.9vw, 1.45rem);
-  font-weight: 700;
-  letter-spacing: -0.02em;
-  line-height: 1.12;
-  color: var(--ink);
-}
-
-.wdb-rail__blurb {
-  margin: 0;
-  max-width: 34rem;
-  font-size: 0.78rem;
-  line-height: 1.4;
-  color: var(--mute);
-}
-
 .wdb-rail__clock {
   display: flex;
   flex-direction: column;
@@ -684,10 +624,6 @@
   border-radius: 1.05rem !important;
 }
 
-.wm-root .wdb .wdb-rail__mark {
-  border-radius: 0.6rem !important;
-}
-
 .wm-root .wdb .wdb-select,
 .wm-root .wdb .wdb-alerts li {
   border-radius: 0.65rem !important;
@@ -729,10 +665,6 @@
 }
 
 @media (max-width: 960px) {
-  .wdb-rail {
-    flex-direction: column;
-  }
-
   .wdb-rail__clock {
     align-items: flex-start;
   }

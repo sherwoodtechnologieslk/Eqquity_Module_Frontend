@@ -71,10 +71,52 @@
   font-weight: 600;
 }
 
+.agp-header-aside {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem 1rem;
+  flex-shrink: 0;
+}
+
 .agp-header-stats {
   display: flex;
   gap: 0.75rem;
   flex-shrink: 0;
+}
+
+.agp-btn-export {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  min-height: 2.75rem;
+  padding: 0.65rem 1.35rem;
+  font-size: 0.84rem;
+  font-weight: 650;
+  color: #1e3a5f;
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 999px;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.06);
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+}
+
+.agp-btn-export svg {
+  width: 1.05rem;
+  height: 1.05rem;
+  color: #2563eb;
+  flex-shrink: 0;
+}
+
+.agp-btn-export:hover:not(:disabled) {
+  background: #f8fafc;
+  border-color: #bfdbfe;
+}
+
+.agp-btn-export:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
 }
 
 .agp-stat {

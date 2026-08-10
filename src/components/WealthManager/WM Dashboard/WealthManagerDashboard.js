@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
+import WealthPageHeader from '../Layout/WealthPageHeader';
 import './Styles/WealthManagerDashboard.css';
 
 const MOCK_OPS_HEALTH = {
@@ -156,21 +157,16 @@ const WealthManagerDashboard = () => {
 
   return (
     <div className="wdb">
-      <header className="wdb-rail">
-        <div className="wdb-rail__brand">
-          <div>
-            <p className="wdb-rail__eyebrow">Sherwood Wealth</p>
-            <h1 className="wdb-rail__title">Operations Dashboard</h1>
-            <p className="wdb-rail__blurb">
-              AUM, fund performance, client flows, and desk health in one view.
-            </p>
+      <WealthPageHeader
+        title="Operations Dashboard"
+        blurb="AUM, fund performance, client flows, and desk health in one view."
+        actions={
+          <div className="wdb-rail__clock">
+            <strong>{formatTime(currentTime)}</strong>
+            <span>{formatDate(currentTime)}</span>
           </div>
-        </div>
-        <div className="wdb-rail__clock">
-          <strong>{formatTime(currentTime)}</strong>
-          <span>{formatDate(currentTime)}</span>
-        </div>
-      </header>
+        }
+      />
 
       <section className="wdb-spotlight" aria-label="Key metrics">
         <article className="wdb-stat wdb-stat--aum">
