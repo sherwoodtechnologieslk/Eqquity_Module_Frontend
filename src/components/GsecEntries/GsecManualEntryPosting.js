@@ -620,26 +620,15 @@ const GsecManualEntryPosting = () => {
 
   return (
     <div className="gsec-page-container gsec-manual-page">
-      <div className="gsec-header-section gsec-manual-header">
-        <div className="gsec-header-icon">
-          <svg className="gsec-icon" fill="currentColor" viewBox="0 0 20 20">
-            <path
-              fillRule="evenodd"
-              d="M4 4a2 2 0 00-2 2v8a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2H4zm2 2v8h8V6H6z"
-              clipRule="evenodd"
-            />
-            <path d="M8 8a1 1 0 011-1h2a1 1 0 110 2H9a1 1 0 01-1-1zm0 2a1 1 0 011-1h2a1 1 0 110 2H9a1 1 0 01-1-1zm1 1a1 1 0 100 2h2a1 1 0 100-2H9z" />
-          </svg>
-        </div>
-        <div className="gsec-header-text-group">
-          <h1 className="gsec-main-title">GSec Manual Entry Posting</h1>
-          <p className="gsec-subtitle">
-            Post a single ledger line, or a balanced double entry (two lines: total debits must equal
-            total credits). If the same deal, account, and date already exist, you can review them and
-            choose to pass the entry to save anyway (this screen only).
-          </p>
-        </div>
-      </div>
+      <header className="gsec-manual-rail">
+        <p className="gsec-manual-rail__eyebrow">Accounting · GSec</p>
+        <h1 className="gsec-manual-rail__title">GSec Manual Entry Posting</h1>
+        <p className="gsec-manual-rail__blurb">
+          Post a single ledger line, or a balanced double entry (two lines: total debits must equal
+          total credits). If the same deal, account, and date already exist, you can review them and
+          choose to pass the entry to save anyway (this screen only).
+        </p>
+      </header>
 
       <form className="gsec-filters-card" onSubmit={handleSubmit}>
         <div className="gsec-card-header">

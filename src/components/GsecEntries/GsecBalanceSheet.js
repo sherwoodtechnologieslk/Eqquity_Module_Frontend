@@ -202,30 +202,20 @@ const GsecBalanceSheet = () => {
   return (
     <div className="gsec-bs-page-container">
       <div className="gsec-bs-content-wrapper">
-        {/* Header */}
-        <div className="gsec-bs-header-section">
-          <div className="gsec-bs-header-icon">
-            <svg className="gsec-bs-icon" fill="currentColor" viewBox="0 0 20 20">
-              <path
-                fillRule="evenodd"
-                d="M4 3a2 2 0 00-2 2v10a1 1 0 001.447.894L8 14.118l4.553 1.776A1 1 0 0014 15V5a2 2 0 00-2-2H4z"
-                clipRule="evenodd"
-              />
-              <path d="M16 6h2v9a1 1 0 01-1.447.894L16 15.618V6z" />
-            </svg>
-          </div>
-          <div className="gsec-bs-header-text-group">
-            <h1 className="gsec-bs-main-title">Gsec Trial Balance</h1>
-            <p className="gsec-bs-subtitle">
-              Snapshot of GSec assets and related accounts based on imported GSec entries.
-            </p>
-          </div>
-        </div>
+        <header className="gsec-bs-rail">
+          <p className="gsec-bs-rail__eyebrow">Accounting · GSec</p>
+          <h1 className="gsec-bs-rail__title">Gsec Trial Balance</h1>
+          <p className="gsec-bs-rail__blurb">
+            Snapshot of GSec assets and related accounts based on imported GSec entries.
+          </p>
+        </header>
 
-        {/* Filters */}
-        <div className="gsec-bs-filters-card">
-          <div className="gsec-bs-card-header">
-            <h2 className="gsec-bs-card-title">Filters</h2>
+        <section className="gsec-bs-panel" aria-label="Filters">
+          <div className="gsec-bs-panel__head">
+            <div>
+              <h2>Filters</h2>
+              <p>Narrow the trial balance by period and account code.</p>
+            </div>
           </div>
           <div className="gsec-bs-filters-content">
             <div className="gsec-bs-filters-grid">
@@ -258,10 +248,11 @@ const GsecBalanceSheet = () => {
                 />
               </div>
               <div className="gsec-bs-filter-group gsec-bs-filter-actions">
-                <button className="gsec-bs-apply-btn" onClick={handleApplyFilters}>
+                <button type="button" className="gsec-bs-apply-btn" onClick={handleApplyFilters}>
                   Apply
                 </button>
                 <button
+                  type="button"
                   className="gsec-bs-clear-btn"
                   onClick={() => {
                     setFilters({ startDate: '', endDate: '', accountCode: '' });
@@ -273,9 +264,8 @@ const GsecBalanceSheet = () => {
               </div>
             </div>
           </div>
-        </div>
+        </section>
 
-        {/* Totals summary */}
         <div className="gsec-bs-summary-row">
           <div className="gsec-bs-summary-card">
             <div className="gsec-bs-summary-label">Total Debits</div>
@@ -297,10 +287,12 @@ const GsecBalanceSheet = () => {
           </div>
         </div>
 
-        {/* Balance Sheet by category */}
-        <div className="gsec-bs-main-card">
-          <div className="gsec-bs-card-header gsec-bs-main-header">
-            <h2 className="gsec-bs-card-title">Accounts by Category</h2>
+        <section className="gsec-bs-panel" aria-label="Accounts by category">
+          <div className="gsec-bs-panel__head">
+            <div>
+              <h2>Accounts by Category</h2>
+              <p>Debit and credit balances grouped from imported GSec entries.</p>
+            </div>
             <div className="gsec-bs-table-actions">
               <button
                 type="button"
@@ -386,7 +378,7 @@ const GsecBalanceSheet = () => {
               })
             )}
           </div>
-        </div>
+        </section>
         {details && (
           <div className="gsec-bs-modal-backdrop" onClick={() => setDetails(null)}>
             <div className="gsec-bs-modal" onClick={(e) => e.stopPropagation()}>
