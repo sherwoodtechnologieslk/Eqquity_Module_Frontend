@@ -1,12 +1,11 @@
 import React from 'react';
 import './Styles/ManagerSelection.css';
-import sherwoodMarkWireframe from './assets/sherwood-mark-wire-clean.png'; // rim-restored watermark
+import sherwoodMarkWireframe from './assets/sherwood-mark-wire-clean.png';
 import { TREASURY_MANAGER_URL } from '../../constants/externalManagers';
 
 const managerOptions = [
   {
     id: 'equity',
-    index: '01',
     eyebrow: 'Trading & accounting',
     title: 'Equity Manager',
     description: 'Manage portfolios, trades, valuations, corporate actions, and financial reporting.',
@@ -25,7 +24,6 @@ const managerOptions = [
   },
   {
     id: 'wealth',
-    index: '02',
     eyebrow: 'Funds & clients',
     title: 'Wealth Manager',
     description: 'Manage funds, client accounts, portfolios, performance, and assets under management.',
@@ -40,7 +38,6 @@ const managerOptions = [
   },
   {
     id: 'treasury',
-    index: '03',
     eyebrow: 'Fixed income & markets',
     title: 'Treasury Manager',
     description:
@@ -118,25 +115,28 @@ const ManagerSelection = ({ onSelect, onLogout, preAuth = false }) => {
                 type="button"
                 role="listitem"
                 className={`manager-lane manager-lane--${option.id}`}
-                style={{ '--lane-delay': `${0.16 + i * 0.08}s` }}
+                style={{ '--lane-delay': `${0.14 + i * 0.07}s` }}
                 onClick={() => handleSelect(option)}
                 key={option.id}
               >
-                <span className="manager-lane__rail" aria-hidden="true" />
-                <span className="manager-lane__index">{option.index}</span>
-                <span className="manager-lane__icon">{option.icon}</span>
-                <span className="manager-lane__body">
-                  <span className="manager-lane__eyebrow">{option.eyebrow}</span>
-                  <span className="manager-lane__title">{option.title}</span>
-                  <span className="manager-lane__description">{option.description}</span>
-                  <span className="manager-lane__tags">
-                    {option.highlights.map((tag) => (
-                      <span className="manager-lane__tag" key={tag}>
-                        {tag}
-                      </span>
-                    ))}
+                <span className="manager-lane__wash" aria-hidden="true" />
+
+                <span className="manager-lane__main">
+                  <span className="manager-lane__icon">{option.icon}</span>
+                  <span className="manager-lane__body">
+                    <span className="manager-lane__eyebrow">{option.eyebrow}</span>
+                    <span className="manager-lane__title">{option.title}</span>
+                    <span className="manager-lane__description">{option.description}</span>
+                    <span className="manager-lane__tags">
+                      {option.highlights.map((tag) => (
+                        <span className="manager-lane__tag" key={tag}>
+                          {tag}
+                        </span>
+                      ))}
+                    </span>
                   </span>
                 </span>
+
                 <span className="manager-lane__cta">
                   <span className="manager-lane__cta-label">{option.action}</span>
                   <span className="manager-lane__arrow" aria-hidden="true">

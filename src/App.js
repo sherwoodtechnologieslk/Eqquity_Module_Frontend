@@ -34,6 +34,7 @@ import FundPerfMetrics from './components/WealthManager/Fund Master/FundPerfMetr
 import WealthPortfolioMaster from './components/WealthManager/Portfolio Master/WealthPortfolioMaster';
 import ExpenseMaster from './components/WealthManager/Expense Master/ExpenseMaster';
 import DefineExpenses from './components/WealthManager/Expense Master/DefineExpenses';
+import PurchaseSubscription from './components/WealthManager/Unit Trust Operations/PurchaseSubscription';
 import PortfolioOverview from './components/Dashboard/DashboardTabs/PortfolioOverview';
 import EquityMasterEntry from './components/MasterDataManagement/EquityMasterEntry';
 import BuyTransactionEntry from './components/TradeCapture/BuyTransactionEntry';
@@ -310,6 +311,7 @@ function App() {
     'Fund Master': <FundMaster/>,
     'Fund Categories': <FundCategories/>,
     'Fund Performance Metrics': <FundPerfMetrics/>,
+    'Purchase/Subscription': <PurchaseSubscription />,
     'Valuation Method': <CostingMethodSelection/>,
     'Holiday Calendar': <HolidayCalendar mode="calendar" />,
     'Holiday List': <HolidayCalendar mode="list" />,
