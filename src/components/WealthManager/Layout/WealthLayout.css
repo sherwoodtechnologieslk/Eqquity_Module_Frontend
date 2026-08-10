@@ -1,6 +1,6 @@
 /* Wealth Manager layout — light mode (white + emerald green) */
 
-@import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700;9..40,800&display=swap');
 
 /* Global sharp-corner override for the Wealth Manager.
    .wm-root wraps only the non-portal WM (Client Portal renders outside this wrapper
@@ -351,9 +351,7 @@
 }
 
 .wm-root .wm-dashboard-header,
-.wm-root .wmp-header,
-.wm-root .wcs-header,
-.wm-root .wao-header {
+.wm-root .wmp-header {
   background: linear-gradient(135deg, #ffffff 0%, var(--wm-accent-soft-2) 100%) !important;
   border: 1px solid var(--wm-border) !important;
   box-shadow: var(--wm-shadow) !important;
@@ -366,9 +364,7 @@
 }
 
 .wm-root .wm-dashboard-header h1,
-.wm-root .wmp-header-content h2,
-.wm-root .wcs-header-content h2,
-.wm-root .wao-header-content h2 {
+.wm-root .wmp-header-content h2 {
   -webkit-text-fill-color: unset;
   font-family: 'Inter', sans-serif;
   color: var(--wm-text-strong) !important;
@@ -376,9 +372,7 @@
 }
 
 .wm-root .wm-dashboard-subtitle,
-.wm-root .wmp-subtitle,
-.wm-root .wcs-subtitle,
-.wm-root .wao-subtitle {
+.wm-root .wmp-subtitle {
   color: var(--wm-muted) !important;
 }
 

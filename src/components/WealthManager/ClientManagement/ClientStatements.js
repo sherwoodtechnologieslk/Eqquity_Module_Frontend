@@ -1,4 +1,5 @@
 import React, { useMemo, useState } from 'react';
+import WealthPageHeader from '../Layout/WealthPageHeader';
 import './Styles/ClientStatements.css';
 
 const clients = [
@@ -111,26 +112,20 @@ const ClientStatements = () => {
 
   return (
     <div className="wmcls">
-      <header className="wmcls-rail">
-        <div className="wmcls-rail__brand">
-          <div>
-            <p className="wmcls-rail__eyebrow">Sherwood Wealth</p>
-            <h1 className="wmcls-rail__title">Client Statements</h1>
-            <p className="wmcls-rail__blurb">
-              Generate, review, and deliver monthly, quarterly, annual, and tax statements
-              across client books.
-            </p>
-          </div>
-        </div>
-        <div className="wmcls-rail__actions">
-          <button type="button" className="wmcls-btn wmcls-btn--ghost" onClick={() => flash('Bulk export queued for available PDFs.')}>
-            Export list
-          </button>
-          <button type="button" className="wmcls-btn wmcls-btn--solid" onClick={() => flash('Statement generation run started for current period.')}>
-            Generate statements
-          </button>
-        </div>
-      </header>
+      <WealthPageHeader
+        title="Client Statements"
+        blurb="Generate, review, and deliver monthly, quarterly, annual, and tax statements across client books."
+        actions={
+          <>
+            <button type="button" className="wmcls-btn wmcls-btn--ghost" onClick={() => flash('Bulk export queued for available PDFs.')}>
+              Export list
+            </button>
+            <button type="button" className="wmcls-btn wmcls-btn--solid" onClick={() => flash('Statement generation run started for current period.')}>
+              Generate statements
+            </button>
+          </>
+        }
+      />
 
       {toast && <div className="wmcls-toast" role="status">{toast}</div>}
 

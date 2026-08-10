@@ -1,0 +1,85 @@
+/**
+ * Shared Wealth Manager page header.
+ * Visual source of truth: Fund Performance (wfp-header).
+ */
+
+.wm-page-header {
+  --wmph-ink: #1a1f1c;
+  --wmph-mute: #6b746e;
+  --wmph-line: #e6e2d9;
+  --wmph-forest: #14624a;
+
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-start;
+  align-items: flex-start;
+  gap: 0.85rem 1.2rem;
+  padding: 0.2rem 0.15rem 1.15rem;
+  margin-bottom: 1.1rem;
+  border-bottom: 1px solid rgba(26, 31, 28, 0.08);
+  background: transparent;
+  box-shadow: none;
+}
+
+.wm-page-header__brand {
+  flex: 0 1 auto;
+  position: relative;
+  min-width: 0;
+  margin: 0;
+  text-align: left;
+}
+
+.wm-page-header__eyebrow {
+  margin: 0 0 0.2rem;
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--wmph-forest);
+  text-align: left;
+}
+
+.wm-root .wm-page-header__title,
+.wm-page-header__title {
+  margin: 0 0 0.28rem;
+  font-family: 'DM Sans', 'Segoe UI', sans-serif;
+  font-size: clamp(1.15rem, 1.9vw, 1.5rem);
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  line-height: 1.1;
+  color: var(--wmph-ink);
+  text-align: left !important;
+  -webkit-text-fill-color: currentColor;
+  background: none !important;
+}
+
+.wm-page-header__blurb {
+  max-width: 35rem;
+  margin: 0;
+  font-size: 0.76rem;
+  line-height: 1.4;
+  color: var(--wmph-mute);
+  text-align: left;
+}
+
+.wm-page-header__actions {
+  display: inline-flex;
+  flex-wrap: wrap;
+  margin-left: auto;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.28rem;
+  border: 1px solid var(--wmph-line);
+  background: rgba(255, 255, 255, 0.72);
+  box-shadow: 0 8px 18px rgba(26, 31, 28, 0.04);
+  border-radius: 0.9rem !important;
+}
+
+@media (max-width: 720px) {
+  .wm-page-header__actions {
+    width: 100%;
+    margin-left: 0;
+    justify-content: flex-start;
+  }
+}

@@ -1,4 +1,5 @@
 import React, { useMemo, useState } from 'react';
+import WealthPageHeader from '../Layout/WealthPageHeader';
 import './Styles/WMPortfolioOverview.css';
 
 const ALLOCATION_COLORS = ['#0f4c3a', '#1a7a5c', '#14624a', '#c4a574', '#d6c7a8'];
@@ -135,19 +136,11 @@ const WMPortfolioOverview = () => {
 
   return (
     <div className="wpo">
-      <header className="wpo-rail">
-        <div className="wpo-rail__brand">
-          <div>
-            <p className="wpo-rail__eyebrow">Sherwood Wealth</p>
-            <h1 className="wpo-rail__title">Portfolio Overview</h1>
-            <p className="wpo-rail__blurb">
-              Book-level allocation, client mandates, benchmark-relative performance, and top fund exposures.
-            </p>
-          </div>
-        </div>
-        <div className="wpo-rail__filters" aria-label="Portfolio filters">
-          <label className="wpo-filter">
-            <span className="wpo-label">Portfolio</span>
+      <WealthPageHeader
+        title="Portfolio Overview"
+        blurb="Book-level allocation, client mandates, benchmark-relative performance, and top fund exposures."
+        actions={
+          <>
             <select
               className="wpo-select"
               value={selectedPortfolio}
@@ -161,9 +154,6 @@ const WMPortfolioOverview = () => {
                 </option>
               ))}
             </select>
-          </label>
-          <label className="wpo-filter">
-            <span className="wpo-label">Period</span>
             <select
               className="wpo-select"
               value={dateRange}
@@ -177,12 +167,12 @@ const WMPortfolioOverview = () => {
               <option value="3Y">3 years</option>
               <option value="5Y">5 years</option>
             </select>
-          </label>
-          <button type="button" className="wpo-btn wpo-btn--primary">
-            Export report
-          </button>
-        </div>
-      </header>
+            <button type="button" className="wpo-btn wpo-btn--primary">
+              Export report
+            </button>
+          </>
+        }
+      />
 
       <section className="wpo-spotlight" aria-label="Portfolio summary">
         <article className="wpo-stat wpo-stat--book">

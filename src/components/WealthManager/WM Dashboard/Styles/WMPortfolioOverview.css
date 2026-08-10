@@ -43,72 +43,12 @@
 }
 
 /* ===== Header ===== */
-.wpo-rail {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 0.55rem 1rem;
-  padding: 0.1rem 0.1rem 0.55rem;
-  margin-bottom: 0.1rem;
-}
-
-.wpo-rail__brand {
-  display: flex;
-  align-items: flex-start;
-  gap: 0.7rem;
-  min-width: 0;
-}
-
-.wpo-rail__mark {
-  width: 2.15rem;
-  height: 2.15rem;
-  margin-top: 0.1rem;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-  background: var(--forest);
-  color: #fff;
-  font-size: 0.62rem;
-  font-weight: 800;
-  letter-spacing: 0.04em;
-  border-radius: 0.6rem !important;
-}
-
-.wpo-rail__eyebrow {
-  margin: 0 0 0.15rem;
-  font-size: 0.58rem;
-  font-weight: 700;
-  letter-spacing: 0.15em;
-  text-transform: uppercase;
-  color: var(--forest-mid);
-}
-
-.wpo-rail__title {
-  margin: 0 0 0.15rem;
-  font-size: clamp(1.2rem, 1.9vw, 1.45rem);
-  font-weight: 700;
-  letter-spacing: -0.02em;
-  line-height: 1.12;
-  color: var(--ink);
-}
-
-.wpo-rail__blurb {
-  margin: 0;
-  max-width: 34rem;
-  font-size: 0.78rem;
-  line-height: 1.4;
-  color: var(--mute);
-}
-
 .wpo-rail__filters {
   display: flex;
   flex-wrap: wrap;
   align-items: flex-end;
   justify-content: flex-end;
   gap: 0.5rem 0.65rem;
-  padding-top: 0.15rem;
 }
 
 .wpo-filter {
@@ -616,10 +556,6 @@
 .wm-root .wpo .wpo-stat,
 .wm-root .wpo .wpo-panel {
   border-radius: 1.05rem !important;
-}
-
-.wm-root .wpo .wpo-rail__mark {
-  border-radius: 0.6rem !important;
 }
 
 .wm-root .wpo .wpo-select,

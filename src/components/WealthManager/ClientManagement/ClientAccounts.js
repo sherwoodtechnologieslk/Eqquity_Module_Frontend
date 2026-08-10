@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
+import WealthPageHeader from '../Layout/WealthPageHeader';
 import './Styles/ClientAccounts.css';
 
 const formatCurrency = (value) =>
@@ -161,28 +162,22 @@ const ClientAccounts = () => {
 
   return (
     <div className="wca">
-      <header className="wca-rail">
-        <div className="wca-rail__brand">
-          <div>
-            <p className="wca-rail__eyebrow">Sherwood Wealth</p>
-            <h1 className="wca-rail__title">Client Accounts</h1>
-            <p className="wca-rail__blurb">
-              View and manage all wealth management client accounts, with quick access to their
-              portfolio details.
-            </p>
-          </div>
-        </div>
-        <div className="wca-rail__actions">
-          <button type="button" className="wca-btn wca-btn--ghost" onClick={() => {}}>
-            <IconDownload />
-            Export
-          </button>
-          <button type="button" className="wca-btn wca-btn--solid" onClick={() => {}}>
-            <IconPlus />
-            New Client
-          </button>
-        </div>
-      </header>
+      <WealthPageHeader
+        title="Client Accounts"
+        blurb="View and manage all wealth management client accounts, with quick access to their portfolio details."
+        actions={
+          <>
+            <button type="button" className="wca-btn wca-btn--ghost" onClick={() => {}}>
+              <IconDownload />
+              Export
+            </button>
+            <button type="button" className="wca-btn wca-btn--solid" onClick={() => {}}>
+              <IconPlus />
+              New Client
+            </button>
+          </>
+        }
+      />
 
       <section className="wca-strip" aria-label="Account summary">
         <article className="wca-stat wca-stat--aum">

@@ -1,4 +1,5 @@
 import React, { useMemo, useState } from 'react';
+import WealthPageHeader from '../Layout/WealthPageHeader';
 import './Styles/ClientSummary.css';
 
 const ClientSummary = () => {
@@ -147,42 +148,40 @@ const ClientSummary = () => {
   return (
     <div className="wcs-container">
       {/* Header */}
-      <div className="wcs-header">
-        <div className="wcs-header-content">
-          <h2>Client Summary</h2>
-          <p className="wcs-subtitle">
-            Overview of client assets, segments and performance across all unit trust portfolios.
-          </p>
-        </div>
-        <div className="wcs-header-actions">
-          <select
-            className="wcs-select"
-            value={segmentFilter}
-            onChange={(e) => setSegmentFilter(e.target.value)}
-          >
-            <option value="all">All Client Types</option>
-            <option value="individual">Individuals</option>
-            <option value="corporate">Corporate / Funds</option>
-            <option value="hni">HNWI / Trust</option>
-          </select>
-          <select
-            className="wcs-select"
-            value={riskFilter}
-            onChange={(e) => setRiskFilter(e.target.value)}
-          >
-            <option value="all">All Risk Profiles</option>
-            <option value="conservative">Conservative</option>
-            <option value="balanced">Balanced / Moderate</option>
-            <option value="aggressive">Aggressive</option>
-          </select>
-          <button type="button" className="wcs-btn wcs-btn-primary">
-            <svg fill="currentColor" viewBox="0 0 20 20" width="20" height="20">
-              <path d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" />
-            </svg>
-            Export Client Report
-          </button>
-        </div>
-      </div>
+      <WealthPageHeader
+        title="Client Summary"
+        blurb="Overview of client assets, segments and performance across all unit trust portfolios."
+        actions={
+          <>
+            <select
+              className="wcs-select"
+              value={segmentFilter}
+              onChange={(e) => setSegmentFilter(e.target.value)}
+            >
+              <option value="all">All Client Types</option>
+              <option value="individual">Individuals</option>
+              <option value="corporate">Corporate / Funds</option>
+              <option value="hni">HNWI / Trust</option>
+            </select>
+            <select
+              className="wcs-select"
+              value={riskFilter}
+              onChange={(e) => setRiskFilter(e.target.value)}
+            >
+              <option value="all">All Risk Profiles</option>
+              <option value="conservative">Conservative</option>
+              <option value="balanced">Balanced / Moderate</option>
+              <option value="aggressive">Aggressive</option>
+            </select>
+            <button type="button" className="wcs-btn wcs-btn-primary">
+              <svg fill="currentColor" viewBox="0 0 20 20" width="20" height="20">
+                <path d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" />
+              </svg>
+              Export Client Report
+            </button>
+          </>
+        }
+      />
 
       {/* Summary cards */}
       <div className="wcs-summary-grid">
