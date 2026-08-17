@@ -342,6 +342,7 @@ const ChartOfAccounts = () => {
       {/* Header Section */}
       <div className="coa-header-section">
         <div className="coa-header-text-group">
+          <p className="coa-eyebrow">Accounting · Ledger</p>
           <h1 className="coa-main-title">Chart of Accounts</h1>
           <p className="coa-subtitle">View and manage your complete chart of accounts</p>
         </div>
@@ -598,11 +599,6 @@ const ChartOfAccounts = () => {
             </table>
           )}
         </div>
-      </div>
-
-      {/* Footer */}
-      <div className="coa-footer-section">
-        <p>SHERWOOD TECHNOLOGIES (PVT) LTD • Chart of Accounts Management • All data is encrypted and protected</p>
       </div>
       </div>
 

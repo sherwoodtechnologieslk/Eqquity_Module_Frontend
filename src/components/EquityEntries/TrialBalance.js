@@ -393,6 +393,7 @@ const TrialBalance = () => {
       {/* Header */}
       <div className="tb-header-section">
         <div className="tb-header-left">
+          <p className="tb-eyebrow">Accounting · Ledger</p>
           <h1 className="tb-main-title">Trial Balance</h1>
           <p className="tb-subtitle">
             Account-level debit and credit totals. Select dates to filter by period.

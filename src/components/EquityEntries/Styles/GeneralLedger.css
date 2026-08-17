@@ -1,149 +1,166 @@
-/* General Ledger — preserve existing blue palette, modern layout */
+/* General Ledger — desk layout */
+
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700;9..40,800&display=swap');
 
 .gl-page-container {
-  --gl-blue-gradient: linear-gradient(90deg, #3b82f6 0%, #2563eb 100%);
-  --gl-blue-gradient-alt: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
-  --gl-blue-icon-gradient: linear-gradient(135deg, #60a5fa, #2563eb);
   --gl-blue-primary: #2563eb;
-  --gl-blue-accent: #3b82f6;
   --gl-blue-dark: #1d4ed8;
-  --gl-blue-border: #dbeafe;
-  --gl-blue-focus-ring: rgba(59, 130, 246, 0.1);
-  --gl-blue-hover-bg: #f0f9ff;
-  --gl-blue-hover-shadow: rgba(59, 130, 246, 0.15);
+  --gl-blue-border: #e2e8f0;
 
-  min-height: 100vh;
-  padding: 1.25rem 1rem;
+  min-height: auto;
+  margin: 0;
+  padding: 0.15rem 0 1.75rem;
   box-sizing: border-box;
-  background-color: #f8fafc;
+  background: transparent;
+  font-family: 'DM Sans', 'Segoe UI', sans-serif;
+  color: #0f172a;
+}
+
+.gl-page-container *,
+.gl-page-container *::before,
+.gl-page-container *::after {
+  box-sizing: border-box;
+  font-style: normal;
 }
 
 .gl-content-wrapper {
-  max-width: 1400px;
-  margin: 0 auto;
+  max-width: none;
+  margin: 0;
 }
 
 .gl-header-section {
   display: flex;
-  align-items: center;
-  gap: 1rem;
-  margin-bottom: 1rem;
-  padding-top: 0.25rem;
-  padding-bottom: 0.5rem;
-}
-
-.gl-header-icon {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 3rem;
-  height: 3rem;
-  background: var(--gl-blue-icon-gradient);
-  border-radius: 0.25rem;
-  box-shadow: 0 8px 24px rgba(59, 130, 246, 0.18);
-  flex-shrink: 0;
-}
-
-.gl-icon {
-  width: 1.45rem;
-  height: 1.45rem;
-  color: #ffffff;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.65rem 1rem;
+  margin-bottom: 0.55rem;
+  padding: 0 0.05rem 0.5rem;
+  border-bottom: 1px solid var(--gl-blue-border);
 }
 
 .gl-header-text-group {
   display: flex;
   flex-direction: column;
-  gap: 0.25rem;
   min-width: 0;
 }
 
+.gl-eyebrow {
+  margin: 0 0 0.08rem;
+  font-size: 0.55rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--gl-blue-primary);
+}
+
 .gl-main-title {
-  font-size: 1.5rem;
-  font-weight: 800;
+  font-size: clamp(1.05rem, 1.6vw, 1.25rem);
+  font-weight: 750;
   color: #0f172a;
   margin: 0;
-  letter-spacing: -0.01em;
+  letter-spacing: -0.02em;
   line-height: 1.15;
 }
 
 .gl-subtitle {
-  color: #475569;
-  font-size: 0.9375rem;
-  margin: 0;
-  line-height: 1.4;
+  color: #64748b;
+  font-size: 0.72rem;
+  margin: 0.2rem 0 0;
+  line-height: 1.35;
 }
 
-.gl-filters-card,
+.gl-filters-card {
+  background: transparent;
+  border: none;
+  border-radius: 0;
+  box-shadow: none;
+  overflow: visible;
+  margin-bottom: 0.65rem;
+}
+
 .gl-table-card {
   background: #ffffff;
-  border-radius: 0.25rem;
+  border-radius: 0.4rem;
   border: 1px solid var(--gl-blue-border);
-  box-shadow: 0 10px 32px rgba(15, 23, 42, 0.1);
+  box-shadow: none;
   overflow: hidden;
-  margin-bottom: 1rem;
+  margin-bottom: 0.75rem;
 }
 
 .gl-card-header {
-  background: var(--gl-blue-gradient);
-  padding: 0.65rem 1.1rem;
+  background: #fcfdff;
+  padding: 0.55rem 0.75rem;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  gap: 1rem;
+  gap: 0.65rem;
   flex-wrap: wrap;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+  border-bottom: 1px solid var(--gl-blue-border);
+}
+
+.gl-filters-card .gl-card-header {
+  padding: 0 0.05rem 0.45rem;
+  margin-bottom: 0.15rem;
+  background: transparent;
 }
 
 .gl-card-title {
-  font-size: 0.95rem;
-  font-weight: 700;
-  color: #ffffff;
+  font-size: 0.84rem;
+  font-weight: 750;
+  color: #0f172a;
   margin: 0;
   line-height: 1.2;
 }
 
+.gl-filters-card .gl-card-title {
+  font-size: 0.55rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--gl-blue-primary);
+}
+
 .gl-filters-content {
-  padding: 1rem 1.1rem 1.1rem;
+  padding: 0.35rem 0 0.15rem;
 }
 
 .gl-search-section {
-  margin-bottom: 0.85rem;
+  margin-bottom: 0.65rem;
 }
 
 .gl-search-input {
   width: 100%;
   box-sizing: border-box;
-  padding: 0.65rem 0.9rem;
-  border: 1px solid #cbd5e1;
-  border-radius: 0.25rem;
-  font-size: 0.875rem;
-  background: #f8fafc;
-  transition: border-color 0.15s ease, background 0.15s ease, box-shadow 0.15s ease;
+  padding: 0.4rem 0.65rem;
+  border: 1px solid var(--gl-blue-border);
+  border-radius: 0.4rem;
+  font-size: 0.8rem;
+  font-family: inherit;
+  background: #ffffff;
 }
 
 .gl-search-input:focus {
   outline: none;
-  border-color: var(--gl-blue-accent);
-  background: #ffffff;
-  box-shadow: 0 0 0 3px var(--gl-blue-focus-ring);
+  border-color: #93c5fd;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
 }
 
 .gl-filters-grid {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 0.75rem;
+  gap: 0.65rem 0.85rem;
   align-items: end;
 }
 
 .gl-filter-group {
   display: flex;
   flex-direction: column;
-  gap: 0.3rem;
+  gap: 0.28rem;
   min-width: 0;
 }
 
 .gl-filter-label {
-  font-size: 0.68rem;
+  font-size: 0.66rem;
   font-weight: 700;
   color: #64748b;
   text-transform: uppercase;
@@ -153,159 +170,136 @@
 .gl-filter-input,
 .gl-filter-select {
   width: 100%;
+  min-height: 2.15rem;
   box-sizing: border-box;
-  padding: 0.5rem 0.65rem;
-  border: 1px solid #cbd5e1;
-  border-radius: 0;
-  font-size: 0.8125rem;
-  background: #f8fafc;
+  padding: 0.4rem 0.65rem;
+  border: 1px solid var(--gl-blue-border);
+  border-radius: 0.4rem;
+  font-size: 0.8rem;
+  font-family: inherit;
+  background: #ffffff;
   color: #0f172a;
-  transition: border-color 0.15s ease, background 0.15s ease, box-shadow 0.15s ease;
 }
 
 .gl-filter-input:focus,
 .gl-filter-select:focus {
   outline: none;
-  border-color: var(--gl-blue-accent);
-  background: #ffffff;
-  box-shadow: 0 0 0 2px var(--gl-blue-focus-ring);
+  border-color: #93c5fd;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
 }
 
 .gl-clear-filters-btn {
-  padding: 0.5rem 0.9rem;
+  padding: 0.35rem 0.9rem;
+  min-height: 2.15rem;
   background: #ffffff;
   color: #475569;
-  border: 1px solid #cbd5e1;
-  border-radius: 0;
-  font-size: 0.78rem;
-  font-weight: 600;
+  border: 1px solid var(--gl-blue-border);
+  border-radius: 0.4rem;
+  font-size: 0.76rem;
+  font-weight: 700;
+  font-family: inherit;
   cursor: pointer;
-  transition: background 0.15s ease, border-color 0.15s ease;
 }
 
 .gl-clear-filters-btn:hover {
   background: #f8fafc;
-  border-color: #94a3b8;
   color: #0f172a;
 }
 
 .gl-portfolio-status {
-  background: #ffffff;
-  border-radius: 0.25rem;
-  border: 1px solid var(--gl-blue-border);
-  box-shadow: 0 4px 14px rgba(15, 23, 42, 0.06);
-  margin-bottom: 1rem;
-  padding: 0.75rem 1rem;
-  position: relative;
-  overflow: hidden;
-}
-
-.gl-portfolio-status::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 3px;
-  background: var(--gl-blue-gradient);
-}
-
-.gl-portfolio-status-all::before {
-  background: linear-gradient(90deg, #6b7280 0%, #9ca3af 100%);
+  background: transparent;
+  border-radius: 0;
+  border: none;
+  border-bottom: 1px solid var(--gl-blue-border);
+  box-shadow: none;
+  margin-bottom: 0.65rem;
+  padding: 0.35rem 0.05rem 0.55rem;
 }
 
 .gl-portfolio-status-content {
   display: flex;
   align-items: center;
-  gap: 1rem;
+  gap: 0.65rem;
   justify-content: space-between;
   flex-wrap: wrap;
 }
 
 .gl-portfolio-status-text {
-  font-weight: 600;
+  font-weight: 500;
   flex: 1;
-  font-size: 0.875rem;
+  font-size: 0.72rem;
   line-height: 1.4;
-  color: #374151;
+  color: #64748b;
 }
 
 .gl-portfolio-status-text strong {
   font-weight: 700;
-  background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
+  color: #0f172a;
 }
 
 .gl-portfolio-status-clear {
-  padding: 0.45rem 0.85rem;
+  padding: 0.28rem 0.65rem;
   background: #ffffff;
   color: #475569;
-  border: 1px solid #cbd5e1;
-  border-radius: 0;
-  font-size: 0.78rem;
-  font-weight: 600;
+  border: 1px solid var(--gl-blue-border);
+  border-radius: 0.4rem;
+  font-size: 0.72rem;
+  font-weight: 700;
+  font-family: inherit;
   cursor: pointer;
-  transition: background 0.15s ease, border-color 0.15s ease;
 }
 
 .gl-portfolio-status-clear:hover {
   background: #f8fafc;
-  border-color: #94a3b8;
 }
 
 .gl-summary-stats {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 0.85rem;
-  margin-bottom: 1rem;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 0.65rem;
+  margin-bottom: 0.75rem;
 }
 
 .gl-stat-card {
   background: #ffffff;
-  padding: 0.95rem 1rem;
-  border-radius: 0.25rem;
-  box-shadow: 0 4px 14px rgba(15, 23, 42, 0.06);
-  border: 1px solid #e2e8f0;
-  text-align: center;
+  padding: 0.75rem 0.85rem;
+  border-radius: 0.4rem;
+  box-shadow: none;
+  border: 1px solid var(--gl-blue-border);
+  text-align: left;
 }
 
 .gl-stat-value {
   font-size: 1.05rem;
-  font-weight: 800;
+  font-weight: 750;
   color: #0f172a;
-  margin-bottom: 0.25rem;
+  margin-bottom: 0.2rem;
   font-variant-numeric: tabular-nums;
+  letter-spacing: -0.02em;
+  line-height: 1.15;
 }
 
-.gl-stat-value.debit {
-  color: #dc2626;
-}
-
-.gl-stat-value.credit {
-  color: #059669;
-}
-
-.gl-stat-value.positive {
-  color: #059669;
-}
-
+.gl-stat-value.debit,
 .gl-stat-value.negative {
   color: #dc2626;
 }
 
+.gl-stat-value.credit,
+.gl-stat-value.positive {
+  color: #15803d;
+}
+
 .gl-stat-label {
-  font-size: 0.72rem;
+  font-size: 0.66rem;
   color: #64748b;
   font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.07em;
+  letter-spacing: 0.06em;
 }
 
 .gl-table-actions {
   display: flex;
-  gap: 0.5rem;
+  gap: 0.4rem;
   flex-wrap: wrap;
   justify-content: flex-end;
 }
@@ -313,23 +307,31 @@
 .gl-refresh-btn,
 .gl-export-btn,
 .gl-print-btn {
-  padding: 0.42rem 0.85rem;
-  border: 1px solid rgba(255, 255, 255, 0.35);
-  background: rgba(255, 255, 255, 0.15);
-  color: #ffffff;
-  border-radius: 999px;
-  font-size: 0.74rem;
-  font-weight: 600;
+  padding: 0.35rem 0.85rem;
+  border: 1px solid var(--gl-blue-border);
+  background: #ffffff;
+  color: #475569;
+  border-radius: 0.4rem;
+  font-size: 0.72rem;
+  font-weight: 700;
+  font-family: inherit;
   cursor: pointer;
-  transition: background 0.15s ease, border-color 0.15s ease;
-  backdrop-filter: blur(8px);
 }
 
-.gl-refresh-btn:hover:not(:disabled),
+.gl-refresh-btn {
+  background: #2563eb;
+  color: #ffffff;
+  border-color: #1d4ed8;
+}
+
+.gl-refresh-btn:hover:not(:disabled) {
+  background: #1d4ed8;
+}
+
 .gl-export-btn:hover,
 .gl-print-btn:hover {
-  background: rgba(255, 255, 255, 0.22);
-  border-color: rgba(255, 255, 255, 0.45);
+  background: #f8fafc;
+  color: #0f172a;
 }
 
 .gl-refresh-btn:disabled {
@@ -339,7 +341,6 @@
 
 .gl-table-scroll {
   overflow-x: auto;
-  -webkit-overflow-scrolling: touch;
 }
 
 .gl-ledger-table {
@@ -347,29 +348,28 @@
   min-width: 1240px;
   border-collapse: collapse;
   font-size: 0.8rem;
-  table-layout: auto;
 }
 
 .gl-ledger-table thead {
-  background: var(--gl-blue-gradient-alt);
+  background: #fcfdff;
 }
 
 .gl-ledger-table th {
-  color: #ffffff;
-  padding: 0.55rem 0.75rem;
+  color: #64748b;
+  padding: 0.5rem 0.65rem;
   text-align: left;
   font-weight: 700;
-  font-size: 0.68rem;
-  border-bottom: 2px solid var(--gl-blue-dark);
+  font-size: 0.66rem;
+  border-bottom: 1px solid var(--gl-blue-border);
   text-transform: uppercase;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.06em;
   white-space: nowrap;
   vertical-align: middle;
 }
 
 .gl-ledger-table td {
-  padding: 0.6rem 0.75rem;
-  border-bottom: 1px solid #e5e7eb;
+  padding: 0.5rem 0.65rem;
+  border-bottom: 1px solid #f1f5f9;
   color: #334155;
   vertical-align: top;
 }
@@ -419,7 +419,6 @@
   text-align: right;
   white-space: nowrap;
   min-width: 6.75rem;
-  font-family: 'Courier New', monospace;
   font-variant-numeric: tabular-nums;
 }
 
@@ -439,10 +438,9 @@
 }
 
 .gl-account-code {
-  font-family: 'Courier New', monospace;
   font-weight: 700;
-  color: var(--gl-blue-primary);
-  font-size: 0.78rem;
+  color: #1e3a5f;
+  font-size: 0.76rem;
 }
 
 .gl-account-name,
@@ -452,7 +450,7 @@
 }
 
 .gl-reference {
-  font-size: 0.78rem;
+  font-size: 0.76rem;
   color: #64748b;
 }
 
@@ -463,7 +461,7 @@
 
 .gl-credit {
   font-weight: 700;
-  color: #059669;
+  color: #15803d;
 }
 
 .gl-balance {
@@ -471,7 +469,7 @@
 }
 
 .gl-balance.positive {
-  color: #059669;
+  color: #15803d;
 }
 
 .gl-balance.negative {
@@ -479,7 +477,7 @@
 }
 
 .gl-type {
-  font-size: 0.68rem;
+  font-size: 0.66rem;
   font-weight: 700;
   color: #475569;
   text-transform: uppercase;
@@ -488,28 +486,32 @@
 }
 
 .gl-status {
-  font-size: 0.65rem;
+  font-size: 0.66rem;
   font-weight: 700;
   text-transform: uppercase;
-  padding: 0.18rem 0.5rem;
-  border-radius: 999px;
+  padding: 0.12rem 0.35rem;
+  border-radius: 0.25rem;
   display: inline-block;
   letter-spacing: 0.04em;
+  border: 1px solid #e2e8f0;
 }
 
 .gl-status.posted {
-  background: #dcfce7;
-  color: #166534;
+  background: #f0fdf4;
+  color: #15803d;
+  border-color: #bbf7d0;
 }
 
 .gl-status.pending {
-  background: #fef3c7;
+  background: #fffbeb;
   color: #92400e;
+  border-color: #fde68a;
 }
 
 .gl-status.draft {
-  background: #e0e7ff;
-  color: #3730a3;
+  background: #eff6ff;
+  color: #1d4ed8;
+  border-color: #bfdbfe;
 }
 
 .payment-details {
@@ -532,26 +534,25 @@
   justify-content: space-between;
   align-items: center;
   gap: 1rem;
-  padding: 0.85rem 1rem;
-  background: #f9fafb;
-  border-top: 1px solid #e5e7eb;
+  padding: 0.55rem 0.75rem;
+  background: #fcfdff;
+  border-top: 1px solid var(--gl-blue-border);
 }
 
 .gl-pagination-btn {
-  padding: 0.45rem 1rem;
+  padding: 0.35rem 0.85rem;
   background: #ffffff;
-  border: 1px solid #cbd5e1;
-  border-radius: 999px;
+  border: 1px solid var(--gl-blue-border);
+  border-radius: 0.4rem;
   color: #334155;
-  font-size: 0.78rem;
-  font-weight: 600;
+  font-size: 0.76rem;
+  font-weight: 700;
+  font-family: inherit;
   cursor: pointer;
-  transition: background 0.15s ease, border-color 0.15s ease;
 }
 
 .gl-pagination-btn:hover:not(:disabled) {
   background: #f8fafc;
-  border-color: #94a3b8;
 }
 
 .gl-pagination-btn:disabled {
@@ -560,47 +561,47 @@
 }
 
 .gl-page-info {
-  font-size: 0.8125rem;
+  font-size: 0.72rem;
   color: #475569;
   font-weight: 600;
 }
 
 .gl-loading {
   display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 3rem 1rem;
-  color: #475569;
-  font-size: 1rem;
-  background: #f8fafc;
-  min-height: 100vh;
+  align-items: flex-start;
+  justify-content: flex-start;
+  padding: 1rem 0;
+  color: #64748b;
+  font-size: 0.8rem;
+  background: transparent;
+  min-height: auto;
 }
 
 .gl-error {
-  margin: 1rem;
-  padding: 0.85rem 1rem;
+  margin: 0.65rem;
+  padding: 0.5rem 0.75rem;
   color: #991b1b;
-  font-size: 0.875rem;
+  font-size: 0.76rem;
   font-weight: 600;
   background: #fef2f2;
   border: 1px solid #fecaca;
-  border-radius: 0.25rem;
+  border-radius: 0.4rem;
 }
 
 .gl-no-data {
-  padding: 2rem 1rem;
-  text-align: center;
+  padding: 1.1rem 0.85rem;
+  text-align: left;
   color: #64748b;
-  font-size: 0.875rem;
+  font-size: 0.8rem;
   font-weight: 600;
-  background: #f8fafc;
+  background: transparent;
 }
 
 .gl-footer-section {
-  text-align: center;
-  margin-top: 0.5rem;
+  text-align: left;
+  margin-top: 0.35rem;
   color: #94a3b8;
-  font-size: 0.75rem;
+  font-size: 0.66rem;
 }
 
 .gl-footer-section p {
@@ -611,22 +612,9 @@
   .gl-filters-grid {
     grid-template-columns: repeat(3, minmax(0, 1fr));
   }
-
-  .gl-summary-stats {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
 }
 
 @media (max-width: 768px) {
-  .gl-page-container {
-    padding: 1rem 0.75rem;
-  }
-
-  .gl-header-section {
-    flex-direction: column;
-    align-items: flex-start;
-  }
-
   .gl-filters-grid {
     grid-template-columns: 1fr 1fr;
   }
@@ -639,10 +627,6 @@
   .gl-table-actions {
     width: 100%;
     justify-content: flex-start;
-  }
-
-  .gl-summary-stats {
-    grid-template-columns: 1fr;
   }
 
   .gl-pagination {
