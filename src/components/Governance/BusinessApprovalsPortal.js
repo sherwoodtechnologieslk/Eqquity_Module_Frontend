@@ -77,6 +77,44 @@ function formatDate(value) {
   return new Date(value).toLocaleString();
 }
 
+function getRequestSourceLabel(req) {
+  return (
+    req.source_label ||
+    GSEC_SOURCE_LABELS[req.payload?.source] ||
+    NON_TRADING_SOURCE_LABELS[req.payload?.source] ||
+    req.payload?.source ||
+    null
+  );
+}
+
+/** App/sidebar screen the maker used to submit the request. */
+function getRequestScreenName(req) {
+  const source = req.source || req.payload?.source;
+  if (source && GSEC_SOURCE_LABELS[source]) {
+    if (source === 'gsec_ledger_entries') return 'GSEC ENTRIES';
+    return GSEC_SOURCE_LABELS[source];
+  }
+  if (source && NON_TRADING_SOURCE_LABELS[source]) {
+    return 'Other Transactions';
+  }
+  const label = req.source_label || null;
+  if (label && Object.values(NON_TRADING_SOURCE_LABELS).includes(label)) {
+    return 'Other Transactions';
+  }
+  if (label && Object.values(GSEC_SOURCE_LABELS).includes(label)) {
+    if (label === GSEC_SOURCE_LABELS.gsec_ledger_entries) return 'GSEC ENTRIES';
+    return label;
+  }
+  return getRequestSourceLabel(req);
+}
+
+function getRequestStatusLabel(status) {
+  if (status === 'pending') return 'Pending approval';
+  return status || '—';
+}
+
+const LIST_VIEW_KEY = 'businessApprovalsListView';
+
 const BusinessApprovalsPortal = ({ user, company }) => {
   const visibleModules = useMemo(() => getVisibleBusinessApprovalModules(user), [user]);
   const [activeModule, setActiveModule] = useState('trade');
@@ -94,6 +132,15 @@ const BusinessApprovalsPortal = ({ user, company }) => {
   const [exporting, setExporting] = useState(false);
   const [exportModalOpen, setExportModalOpen] = useState(false);
   const [exportFilters, setExportFilters] = useState(EMPTY_EXPORT_FILTERS);
+  const [listView, setListView] = useState(() => {
+    try {
+      const saved = localStorage.getItem(LIST_VIEW_KEY);
+      return saved === 'table' ? 'table' : 'cards';
+    } catch {
+      return 'cards';
+    }
+  });
+  const [expandedTableIds, setExpandedTableIds] = useState(() => new Set());
 
   const isOwner = user?.company_role === 'company_owner';
   const canView = canAccessBusinessApprovals(user);
@@ -168,6 +215,26 @@ const BusinessApprovalsPortal = ({ user, company }) => {
     if (moduleId === activeModule) return;
     setActiveModule(moduleId);
     setListPage(1);
+    setExpandedTableIds(new Set());
+  };
+
+  const handleListViewChange = (nextView) => {
+    if (nextView === listView) return;
+    setListView(nextView);
+    try {
+      localStorage.setItem(LIST_VIEW_KEY, nextView);
+    } catch {
+      /* ignore */
+    }
+  };
+
+  const toggleTableRow = (requestId) => {
+    setExpandedTableIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(requestId)) next.delete(requestId);
+      else next.add(requestId);
+      return next;
+    });
   };
 
   const runBusinessApprove = async (request) => {
@@ -368,28 +435,60 @@ const BusinessApprovalsPortal = ({ user, company }) => {
         </p>
       </div>
 
-      <nav className="agp-tabs" aria-label="Business approval modules">
-        {visibleModules.map((mod) => {
-          const summary = moduleSummary[mod.id] || { total: 0, pending_count: 0 };
-          return (
-            <button
-              key={mod.id}
-              type="button"
-              className={`agp-tab${activeModule === mod.id ? ' agp-tab--active' : ''}`}
-              onClick={() => handleModuleChange(mod.id)}
-              aria-selected={activeModule === mod.id}
-            >
-              {mod.label}
-              {summary.pending_count > 0 && (
-                <span className="agp-tab-badge">{summary.pending_count}</span>
-              )}
-              {summary.pending_count === 0 && summary.total > 0 && (
-                <span className="agp-tab-badge agp-tab-badge--muted">{summary.total}</span>
-              )}
-            </button>
-          );
-        })}
-      </nav>
+      <div className="agp-list-toolbar">
+        <nav className="agp-tabs" aria-label="Business approval modules">
+          {visibleModules.map((mod) => {
+            const summary = moduleSummary[mod.id] || { total: 0, pending_count: 0 };
+            return (
+              <button
+                key={mod.id}
+                type="button"
+                className={`agp-tab${activeModule === mod.id ? ' agp-tab--active' : ''}`}
+                onClick={() => handleModuleChange(mod.id)}
+                aria-selected={activeModule === mod.id}
+              >
+                {mod.label}
+                {summary.pending_count > 0 && (
+                  <span className="agp-tab-badge">{summary.pending_count}</span>
+                )}
+                {summary.pending_count === 0 && summary.total > 0 && (
+                  <span className="agp-tab-badge agp-tab-badge--muted">{summary.total}</span>
+                )}
+              </button>
+            );
+          })}
+        </nav>
+        <div className="agp-view-toggle" role="group" aria-label="List layout">
+          <button
+            type="button"
+            className={`agp-view-toggle__btn${listView === 'cards' ? ' agp-view-toggle__btn--active' : ''}`}
+            onClick={() => handleListViewChange('cards')}
+            aria-pressed={listView === 'cards'}
+            title="Card view"
+          >
+            <svg viewBox="0 0 20 20" fill="currentColor" aria-hidden>
+              <path d="M3 4.5A1.5 1.5 0 014.5 3h3A1.5 1.5 0 019 4.5v3A1.5 1.5 0 017.5 9h-3A1.5 1.5 0 013 7.5v-3zM11 4.5A1.5 1.5 0 0112.5 3h3A1.5 1.5 0 0117 4.5v3A1.5 1.5 0 0115.5 9h-3A1.5 1.5 0 0111 7.5v-3zM3 12.5A1.5 1.5 0 014.5 11h3A1.5 1.5 0 019 12.5v3A1.5 1.5 0 017.5 17h-3A1.5 1.5 0 013 15.5v-3zM11 12.5A1.5 1.5 0 0112.5 11h3a1.5 1.5 0 011.5 1.5v3a1.5 1.5 0 01-1.5 1.5h-3A1.5 1.5 0 0111 15.5v-3z" />
+            </svg>
+            Cards
+          </button>
+          <button
+            type="button"
+            className={`agp-view-toggle__btn${listView === 'table' ? ' agp-view-toggle__btn--active' : ''}`}
+            onClick={() => handleListViewChange('table')}
+            aria-pressed={listView === 'table'}
+            title="Table view"
+          >
+            <svg viewBox="0 0 20 20" fill="currentColor" aria-hidden>
+              <path
+                fillRule="evenodd"
+                d="M3 4.75A.75.75 0 013.75 4h12.5a.75.75 0 010 1.5H3.75A.75.75 0 013 4.75zM3 10a.75.75 0 01.75-.75h12.5a.75.75 0 010 1.5H3.75A.75.75 0 013 10zm0 5.25a.75.75 0 01.75-.75h12.5a.75.75 0 010 1.5H3.75a.75.75 0 01-.75-.75z"
+                clipRule="evenodd"
+              />
+            </svg>
+            Table
+          </button>
+        </div>
+      </div>
 
       {error && <div className="agp-alert agp-alert--error" role="alert">{error}</div>}
       {success && <div className="agp-alert agp-alert--success" role="status">{success}</div>}
@@ -413,93 +512,218 @@ const BusinessApprovalsPortal = ({ user, company }) => {
           </div>
         ) : (
           <>
-            <ul className="agp-request-list">
-              {businessRequests.map((req) => (
-                <li key={req.id} className="agp-request-item">
-                  <div className="agp-request-main">
-                    <div className="agp-request-top">
-                      <strong>{req.label || req.entity_type}</strong>
-                      <span className={`agp-status agp-status--${req.status}`}>
-                        {req.status === 'pending' ? 'Pending approval' : req.status}
-                      </span>
-                    </div>
-                    <div className="agp-request-email">
-                      {req.action_type}
-                      {(req.source_label || req.payload?.source) && (
-                        <>
-                          {' · '}
-                          {req.source_label ||
-                            GSEC_SOURCE_LABELS[req.payload?.source] ||
-                            NON_TRADING_SOURCE_LABELS[req.payload?.source] ||
-                            req.payload?.source}
-                        </>
-                      )}
-                      {req.voucher_number && (
-                        <>
-                          {' · '}
-                          {req.voucher_number}
-                        </>
-                      )}
-                      {req.entry_count != null && (
-                        <>
-                          {' · '}
-                          {req.entry_count} {req.entry_count === 1 ? 'entry' : 'entries'}
-                        </>
-                      )}
-                      {req.pass_duplicates && ' · duplicate check bypassed'}
-                    </div>
-                    <div className="agp-request-meta">
-                      <span>Requested by {req.requested_by_email || '—'}</span>
-                      <span>{formatDate(req.created_at)}</span>
-                      {req.expires_at && req.status === 'pending' && (
-                        <span>Expires {formatDate(req.expires_at)}</span>
-                      )}
-                    </div>
-                    {(req.live_tables || []).length > 0 && (
-                      <div className="agp-request-tags">
-                        {req.live_tables.map((table) => (
-                          <span key={table} className="agp-tag">
-                            {table}
+            {listView === 'cards' ? (
+              <ul className="agp-request-list">
+                {businessRequests.map((req) => {
+                  const sourceLabel = getRequestSourceLabel(req);
+                  return (
+                    <li key={req.id} className="agp-request-item">
+                      <div className="agp-request-main">
+                        <div className="agp-request-top">
+                          <strong>{req.label || req.entity_type}</strong>
+                          <span className={`agp-status agp-status--${req.status}`}>
+                            {getRequestStatusLabel(req.status)}
                           </span>
-                        ))}
+                        </div>
+                        <div className="agp-request-email">
+                          {req.action_type}
+                          {sourceLabel && (
+                            <>
+                              {' · '}
+                              {sourceLabel}
+                            </>
+                          )}
+                          {req.voucher_number && (
+                            <>
+                              {' · '}
+                              {req.voucher_number}
+                            </>
+                          )}
+                          {req.entry_count != null && (
+                            <>
+                              {' · '}
+                              {req.entry_count} {req.entry_count === 1 ? 'entry' : 'entries'}
+                            </>
+                          )}
+                          {req.pass_duplicates && ' · duplicate check bypassed'}
+                        </div>
+                        <div className="agp-request-meta">
+                          <span>Requested by {req.requested_by_email || '—'}</span>
+                          <span>{formatDate(req.created_at)}</span>
+                          {req.expires_at && req.status === 'pending' && (
+                            <span>Expires {formatDate(req.expires_at)}</span>
+                          )}
+                        </div>
+                        {(req.live_tables || []).length > 0 && (
+                          <div className="agp-request-tags">
+                            {req.live_tables.map((table) => (
+                              <span key={table} className="agp-tag">
+                                {table}
+                              </span>
+                            ))}
+                          </div>
+                        )}
+                        {req.rejection_reason && (
+                          <p className="agp-reject-reason">Reason: {req.rejection_reason}</p>
+                        )}
+                        {req.reviewed_by_email && (
+                          <p className="agp-reviewed-by">
+                            Reviewed by {req.reviewed_by_email} · {formatDate(req.reviewed_at)}
+                          </p>
+                        )}
+                        <BusinessApprovalPayloadPreview request={req} />
                       </div>
-                    )}
-                    {req.rejection_reason && (
-                      <p className="agp-reject-reason">Reason: {req.rejection_reason}</p>
-                    )}
-                    {req.reviewed_by_email && (
-                      <p className="agp-reviewed-by">
-                        Reviewed by {req.reviewed_by_email} · {formatDate(req.reviewed_at)}
-                      </p>
-                    )}
-                    <BusinessApprovalPayloadPreview request={req} />
-                  </div>
-                  {req.can_review && (
-                    <div className="agp-request-actions agp-request-actions--business">
-                      <button
-                        type="button"
-                        className="agp-biz-action-btn agp-biz-action-btn--approve"
-                        disabled={businessActionId === req.id}
-                        onClick={() => setBusinessActionModal({ type: 'approve', request: req })}
-                      >
-                        Approve
-                      </button>
-                      <button
-                        type="button"
-                        className="agp-biz-action-btn agp-biz-action-btn--reject"
-                        disabled={businessActionId === req.id}
-                        onClick={() => setBusinessActionModal({ type: 'reject', request: req })}
-                      >
-                        Reject
-                      </button>
-                    </div>
-                  )}
-                  {req.status === 'pending' && req.requested_by_user_id === user?.id && (
-                    <p className="agp-self-note">You cannot approve your own business request.</p>
-                  )}
-                </li>
-              ))}
-            </ul>
+                      {req.can_review && (
+                        <div className="agp-request-actions agp-request-actions--business">
+                          <button
+                            type="button"
+                            className="agp-biz-action-btn agp-biz-action-btn--approve"
+                            disabled={businessActionId === req.id}
+                            onClick={() => setBusinessActionModal({ type: 'approve', request: req })}
+                          >
+                            Approve
+                          </button>
+                          <button
+                            type="button"
+                            className="agp-biz-action-btn agp-biz-action-btn--reject"
+                            disabled={businessActionId === req.id}
+                            onClick={() => setBusinessActionModal({ type: 'reject', request: req })}
+                          >
+                            Reject
+                          </button>
+                        </div>
+                      )}
+                      {req.status === 'pending' && req.requested_by_user_id === user?.id && (
+                        <p className="agp-self-note">You cannot approve your own business request.</p>
+                      )}
+                    </li>
+                  );
+                })}
+              </ul>
+            ) : (
+              <div className="agp-table-wrap">
+                <table className="agp-requests-table">
+                  <thead>
+                    <tr>
+                      <th className="agp-requests-table__expand" aria-label="Expand" />
+                      <th>Request</th>
+                      <th>Status</th>
+                      <th>Source</th>
+                      <th>Voucher / Entries</th>
+                      <th>Requested by</th>
+                      <th>Requested at</th>
+                      <th>Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {businessRequests.map((req) => {
+                      const sourceLabel = getRequestSourceLabel(req);
+                      const screenName = getRequestScreenName(req);
+                      const expanded = expandedTableIds.has(req.id);
+                      const voucherOrEntries =
+                        req.voucher_number ||
+                        (req.entry_count != null
+                          ? `${req.entry_count} ${req.entry_count === 1 ? 'entry' : 'entries'}`
+                          : '—');
+                      return (
+                        <React.Fragment key={req.id}>
+                          <tr className={expanded ? 'agp-requests-table__row--expanded' : undefined}>
+                            <td className="agp-requests-table__expand">
+                              <button
+                                type="button"
+                                className={`agp-table-expand-btn${expanded ? ' agp-table-expand-btn--open' : ''}`}
+                                onClick={() => toggleTableRow(req.id)}
+                                aria-expanded={expanded}
+                                aria-label={expanded ? 'Hide details' : 'Show details'}
+                              >
+                                <svg viewBox="0 0 20 20" fill="currentColor" aria-hidden>
+                                  <path
+                                    fillRule="evenodd"
+                                    d="M7.21 14.77a.75.75 0 01.02-1.06L11.168 10 7.23 6.29a.75.75 0 111.04-1.08l4.5 4.24a.75.75 0 010 1.08l-4.5 4.24a.75.75 0 01-1.06-.02z"
+                                    clipRule="evenodd"
+                                  />
+                                </svg>
+                              </button>
+                            </td>
+                            <td>
+                              <div className="agp-table-request">
+                                <strong>{req.label || req.entity_type}</strong>
+                                {sourceLabel && sourceLabel !== screenName && (
+                                  <span>{sourceLabel}</span>
+                                )}
+                              </div>
+                            </td>
+                            <td>
+                              <span className={`agp-status agp-status--${req.status}`}>
+                                {getRequestStatusLabel(req.status)}
+                              </span>
+                            </td>
+                            <td>{screenName || '—'}</td>
+                            <td>{voucherOrEntries}</td>
+                            <td className="agp-table-email">{req.requested_by_email || '—'}</td>
+                            <td className="agp-table-date">{formatDate(req.created_at)}</td>
+                            <td className="agp-table-actions">
+                              {req.can_review ? (
+                                <div className="agp-request-actions agp-request-actions--business agp-request-actions--table">
+                                  <button
+                                    type="button"
+                                    className="agp-biz-action-btn agp-biz-action-btn--approve"
+                                    disabled={businessActionId === req.id}
+                                    onClick={() =>
+                                      setBusinessActionModal({ type: 'approve', request: req })
+                                    }
+                                  >
+                                    Approve
+                                  </button>
+                                  <button
+                                    type="button"
+                                    className="agp-biz-action-btn agp-biz-action-btn--reject"
+                                    disabled={businessActionId === req.id}
+                                    onClick={() =>
+                                      setBusinessActionModal({ type: 'reject', request: req })
+                                    }
+                                  >
+                                    Reject
+                                  </button>
+                                </div>
+                              ) : req.status === 'pending' && req.requested_by_user_id === user?.id ? (
+                                <span className="agp-self-note agp-self-note--inline">Own request</span>
+                              ) : (
+                                <span className="agp-table-muted">—</span>
+                              )}
+                            </td>
+                          </tr>
+                          {expanded && (
+                            <tr className="agp-requests-table__detail">
+                              <td colSpan={8}>
+                                <div className="agp-table-detail">
+                                  <div className="agp-request-meta">
+                                    {req.expires_at && req.status === 'pending' && (
+                                      <span>Expires {formatDate(req.expires_at)}</span>
+                                    )}
+                                    {req.reviewed_by_email && (
+                                      <span>
+                                        Reviewed by {req.reviewed_by_email} ·{' '}
+                                        {formatDate(req.reviewed_at)}
+                                      </span>
+                                    )}
+                                    {req.rejection_reason && (
+                                      <span>Reason: {req.rejection_reason}</span>
+                                    )}
+                                    {req.pass_duplicates && <span>Duplicate check bypassed</span>}
+                                  </div>
+                                  <BusinessApprovalPayloadPreview request={req} forceExpanded />
+                                </div>
+                              </td>
+                            </tr>
+                          )}
+                        </React.Fragment>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            )}
             {totalPages > 1 && (
               <div className="agp-list-pagination">
                 <span className="agp-payload-range">

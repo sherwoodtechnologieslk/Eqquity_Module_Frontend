@@ -263,6 +263,7 @@ const GlobalMarkets = () => {
     <div className="gm-container">
       <div className="gm-header">
         <div>
+          <p className="gm-eyebrow">Master Data · Markets</p>
           <h1 className="gm-title">Global Markets</h1>
           <p className="gm-subtitle">
             Live exchange open/close status powered by Alpha Vantage MARKET_STATUS
@@ -300,7 +301,7 @@ const GlobalMarkets = () => {
             <span className="gm-summary-total">/{summary.total}</span>
           </span>
         </div>
-        <div className="gm-summary-card gm-summary-positive">
+        <div className="gm-summary-card">
           <span className="gm-summary-label">Equity venues</span>
           <span className="gm-summary-value">{summary.equity}</span>
         </div>

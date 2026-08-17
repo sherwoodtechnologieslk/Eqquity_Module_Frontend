@@ -209,10 +209,12 @@ const GsecEntries = () => {
         </p>
       </header>
 
-      <section className="gsec-ext-panel" aria-label="Filters">
+      <section className="gsec-ext-panel gsec-ext-panel--filters" aria-label="Filters">
         <div className="gsec-ext-panel__head">
-          <h2>Filters</h2>
-          <p>Date range and page size for the remote ledger pull.</p>
+          <div>
+            <p className="gsec-ext-filters-eyebrow">Filters</p>
+            <p className="gsec-ext-filters-blurb">Date range and page size for the remote ledger pull.</p>
+          </div>
         </div>
         <form className="gsec-ext-filters-body" onSubmit={handleSubmit}>
           <div className="gsec-ext-filters-grid">

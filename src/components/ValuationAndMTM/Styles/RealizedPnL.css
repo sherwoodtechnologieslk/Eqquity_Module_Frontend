@@ -1,497 +1,476 @@
-/* Realized P&L Page Layout - Unique Styling */
-.realized-pnl-page {
-  min-height: 100vh;
-  padding: 2rem 1rem;
-  background-color: #f8fafc;
+/* Realized Gain/Loss Tracking — desk layout */
+
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700;9..40,800&display=swap');
+
+.realized-pnl-page,
+.realized-pnl-loading-container {
+  padding: 0.15rem 0 1.75rem;
+  background: transparent;
+  min-height: auto;
+  font-family: 'DM Sans', 'Segoe UI', sans-serif;
+  color: #0f172a;
+}
+
+.realized-pnl-page *,
+.realized-pnl-page *::before,
+.realized-pnl-page *::after {
+  font-style: normal;
 }
 
 .realized-pnl-page-wrapper {
-  max-width: 1400px;
-  margin: 0 auto;
+  max-width: none;
+  margin: 0;
+  width: 100%;
 }
 
 .realized-pnl-page-header {
   display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 32px;
-  padding-bottom: 16px;
-  border-bottom: 2px solid #e2e8f0;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 0.55rem;
+  margin-bottom: 0.55rem;
+  padding: 0 0.05rem 0.5rem;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.realized-pnl-eyebrow {
+  margin: 0 0 0.08rem;
+  font-size: 0.55rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #2563eb;
 }
 
 .realized-pnl-page-title {
-  font-size: 1.375rem;
-  font-weight: 700;
-  color: #1e293b;
   margin: 0;
-  line-height: 1.2;
+  font-size: clamp(1.05rem, 1.6vw, 1.25rem);
+  font-weight: 750;
+  color: #0f172a;
   letter-spacing: -0.02em;
+  line-height: 1.15;
+}
+
+.realized-pnl-page-subtitle {
+  margin: 0.2rem 0 0;
+  font-size: 0.72rem;
+  font-weight: 400;
+  color: #64748b;
+  line-height: 1.35;
+}
+
+.realized-pnl-toolbar {
+  background: transparent;
+  border: none;
+  box-shadow: none;
+  padding: 0.15rem 0 0;
 }
 
 .realized-pnl-page-controls {
   display: flex;
-  align-items: center;
-  gap: 24px;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 0.65rem 0.85rem;
 }
 
 .realized-pnl-time-selector,
 .realized-pnl-portfolio-selector {
   display: flex;
-  align-items: center;
-  gap: 12px;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 0.28rem;
+  min-width: 10.5rem;
 }
 
 .realized-pnl-time-label,
 .realized-pnl-portfolio-label {
-  font-size: 14px;
+  font-size: 0.72rem;
   font-weight: 600;
+  letter-spacing: 0;
+  text-transform: none;
   color: #475569;
 }
 
 .realized-pnl-time-dropdown,
 .realized-pnl-portfolio-dropdown {
-  padding: 8px 16px;
+  padding: 0.4rem 0.65rem;
   border: 1px solid #e2e8f0;
-  border-radius: 0;
-  font-size: 14px;
-  background-color: white;
-  color: #1e293b;
+  border-radius: 0.4rem;
+  font-size: 0.8rem;
+  font-family: inherit;
+  background: #ffffff;
+  color: #0f172a;
+  min-height: 2.15rem;
 }
 
 .realized-pnl-portfolio-dropdown:disabled {
-  background-color: #f8fafc;
+  background: #f8fafc;
   color: #94a3b8;
   cursor: not-allowed;
-}
-
-.realized-pnl-loading-indicator {
-  font-size: 12px;
-  color: #64748b;
-  margin-left: 8px;
-  cursor: pointer;
 }
 
 .realized-pnl-time-dropdown:focus,
 .realized-pnl-portfolio-dropdown:focus {
   outline: none;
-  border-color: #3b82f6;
-  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+  border-color: #93c5fd;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
 }
 
-/* Realized P&L Summary Cards - Clean card design with left accent */
+.realized-pnl-loading-indicator {
+  font-size: 0.66rem;
+  color: #64748b;
+  margin-top: 0.15rem;
+}
+
+.realized-pnl-kpi-panel {
+  margin-bottom: 0.85rem;
+}
+
+.realized-pnl-kpi-panel__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.35rem 1rem;
+  margin-bottom: 0.55rem;
+}
+
+.realized-pnl-kpi-panel__title {
+  margin: 0;
+  font-size: 0.66rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #64748b;
+}
+
+.realized-pnl-kpi-panel__meta {
+  margin: 0;
+  font-size: 0.72rem;
+  font-weight: 400;
+  color: #64748b;
+  font-variant-numeric: tabular-nums;
+}
+
 .realized-pnl-summary-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 14px;
-  margin-bottom: 32px;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 0.65rem;
 }
 
-.realized-pnl-summary-card {
-  background: #fff;
-  border-radius: 0;
-  padding: 16px 14px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
-  border: 1px solid #e2e8f0;
-  border-left: 4px solid #3b82f6;
-  transition: box-shadow 0.2s ease, border-color 0.2s ease;
-  position: relative;
+.realized-pnl-kpi {
   display: flex;
   flex-direction: column;
-  align-items: flex-start;
-  text-align: left;
+  padding: 0.75rem 0.85rem;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 0.4rem;
+  box-shadow: none;
 }
 
-.realized-pnl-summary-card:hover {
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-  border-left-color: #2563eb;
+.realized-pnl-kpi:hover {
+  border-color: #e2e8f0;
 }
 
-.realized-pnl-card-title {
-  font-size: 11px;
+.realized-pnl-kpi__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.35rem;
+  margin-bottom: 0.35rem;
+}
+
+.realized-pnl-kpi__label {
+  font-size: 0.66rem;
+  font-weight: 700;
+  line-height: 1.3;
+  color: #64748b;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.realized-pnl-kpi__badge {
+  font-size: 0.62rem;
   font-weight: 600;
   color: #64748b;
-  margin-bottom: 8px;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  line-height: 1.3;
 }
 
-.realized-pnl-card-amount {
-  font-size: 22px;
-  font-weight: 700;
-  margin-bottom: 6px;
+.realized-pnl-kpi__value {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.2rem 0.3rem;
+  margin-bottom: 0.25rem;
+}
+
+.realized-pnl-kpi__sign,
+.realized-pnl-kpi__figure {
+  font-size: 1.05rem;
+  font-weight: 750;
+  line-height: 1.15;
   letter-spacing: -0.02em;
-  line-height: 1.2;
-  color: #1e293b;
+  font-variant-numeric: tabular-nums;
+  color: #0f172a;
 }
 
-.realized-pnl-card-amount.positive {
-  color: #059669;
+.realized-pnl-kpi__currency {
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #94a3b8;
 }
 
-.realized-pnl-card-amount.negative {
+.realized-pnl-kpi__unit {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #64748b;
+}
+
+.realized-pnl-kpi__value--positive .realized-pnl-kpi__sign,
+.realized-pnl-kpi__value--positive .realized-pnl-kpi__figure {
+  color: #15803d;
+}
+
+.realized-pnl-kpi__value--negative .realized-pnl-kpi__sign,
+.realized-pnl-kpi__value--negative .realized-pnl-kpi__figure {
   color: #dc2626;
 }
 
-.realized-pnl-card-amount.neutral {
-  color: #1e293b;
-}
-
-.realized-pnl-card-description {
-  font-size: 12px;
-  color: #94a3b8;
+.realized-pnl-kpi__foot {
   margin: 0;
+  font-size: 0.66rem;
   font-weight: 400;
-  line-height: 1.4;
+  line-height: 1.35;
+  color: #94a3b8;
 }
 
-/* Realized P&L Navigation Tabs */
 .realized-pnl-tab-navigation {
   display: flex;
-  gap: 8px;
-  margin-bottom: 32px;
+  flex-wrap: wrap;
+  gap: 0.15rem;
+  margin: 0 0 0.75rem;
+  padding: 0;
+  background: transparent;
+  border: none;
   border-bottom: 1px solid #e2e8f0;
-  overflow-x: auto;
 }
 
 .realized-pnl-tab-button {
-  padding: 12px 24px;
+  padding: 0.45rem 0.7rem 0.5rem;
   border: none;
-  background: none;
+  border-bottom: 2px solid transparent;
+  border-radius: 0;
+  background: transparent;
   color: #64748b;
-  font-size: 14px;
-  font-weight: 600;
+  font-size: 0.76rem;
+  font-weight: 700;
+  font-family: inherit;
   cursor: pointer;
-  border-bottom: 3px solid transparent;
-  transition: all 0.2s;
   white-space: nowrap;
 }
 
-.realized-pnl-tab-button:hover {
-  color: #3b82f6;
-  background-color: #f1f5f9;
+.realized-pnl-tab-button:hover:not(.active) {
+  color: #0f172a;
+  background: transparent;
 }
 
 .realized-pnl-tab-button.active {
-  color: #3b82f6;
-  border-bottom-color: #3b82f6;
-  background-color: #f8fafc;
+  color: #2563eb;
+  background: transparent;
+  border-bottom-color: #2563eb;
 }
 
-/* Realized P&L Tab Content */
 .realized-pnl-tab-content {
-  background: white;
-  border-radius: 0;
-  padding: 32px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-  border: 1px solid #e2e8f0;
+  padding: 0;
+  background: transparent;
+  border: none;
+  box-shadow: none;
 }
 
-/* Realized P&L Overview Content */
-.realized-pnl-overview-section {
-  display: flex;
-  flex-direction: column;
-  gap: 32px;
-}
-
-.realized-pnl-chart-container {
-  border: 2px dashed #e2e8f0;
-  border-radius: 0;
-  padding: 48px;
-  text-align: center;
-  background-color: #f8fafc;
-}
-
-.realized-pnl-chart-header {
-  margin-bottom: 24px;
-}
-
-.realized-pnl-chart-title {
-  font-size: 20px;
-  font-weight: 600;
-  color: #1e293b;
-  margin: 0 0 8px 0;
-}
-
-.realized-pnl-chart-period {
-  font-size: 14px;
-  color: #64748b;
-  background-color: #e2e8f0;
-  padding: 4px 12px;
-  border-radius: 0;
-}
-
-.realized-pnl-chart-placeholder {
-  color: #64748b;
-  font-size: 16px;
-  line-height: 1.6;
-}
-
-.realized-pnl-chart-placeholder small {
-  color: #94a3b8;
-  font-size: 14px;
-}
-
-/* Realized P&L Top Performers */
-.realized-pnl-performers-title {
-  font-size: 20px;
-  font-weight: 600;
-  color: #1e293b;
-  margin: 0 0 24px 0;
-}
-
-.realized-pnl-performers-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 16px;
-}
-
-.realized-pnl-performer-card {
-  background-color: #f8fafc;
-  border: 1px solid #e2e8f0;
-  border-radius: 0;
-  padding: 16px;
-  text-align: center;
-}
-
-.realized-pnl-performer-symbol {
-  font-size: 18px;
+.realized-pnl-performance-title {
+  margin: 0 0 0.55rem;
+  padding: 0;
+  border: none;
+  background: transparent;
+  font-size: 0.66rem;
   font-weight: 700;
-  color: #1e293b;
-  margin-bottom: 8px;
-}
-
-.realized-pnl-performer-pnl {
-  font-size: 16px;
-  font-weight: 600;
-  margin-bottom: 8px;
-}
-
-.realized-pnl-performer-pnl.positive {
-  color: #059669;
-}
-
-.realized-pnl-performer-pnl.negative {
-  color: #dc2626;
-}
-
-.realized-pnl-performer-stats {
-  display: flex;
-  justify-content: space-between;
-  font-size: 12px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
   color: #64748b;
 }
 
-/* Realized P&L Trades Content */
-.realized-pnl-trades-title {
-  font-size: 20px;
-  font-weight: 600;
-  color: #1e293b;
-  margin: 0 0 24px 0;
+.realized-pnl-trade-history-section {
+  border-radius: 0.4rem;
+  border: 1px solid #e2e8f0;
+  box-shadow: none;
+  margin-bottom: 0;
+  overflow: hidden;
+  background: #ffffff;
 }
 
-.realized-pnl-trades-container {
-  overflow-x: auto;
-}
-
-.realized-pnl-trades-table {
+.realized-pnl-trade-history-table,
+.realized-pnl-performance-table {
   width: 100%;
   border-collapse: collapse;
-  font-size: 14px;
+  font-size: 0.8rem;
 }
 
-.realized-pnl-trades-header {
-  background-color: #f8fafc;
-  padding: 16px 12px;
+.realized-pnl-trade-history-header,
+.realized-pnl-performance-header {
+  background: #fcfdff;
+  color: #64748b;
+  padding: 0.5rem 0.65rem;
   text-align: left;
-  font-weight: 600;
-  color: #475569;
-  border-bottom: 2px solid #e2e8f0;
+  font-weight: 700;
+  font-size: 0.66rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  border-bottom: 1px solid #e2e8f0;
   white-space: nowrap;
 }
 
-.realized-pnl-trades-cell {
-  padding: 16px 12px;
+.realized-pnl-trade-history-cell,
+.realized-pnl-performance-cell {
+  padding: 0.5rem 0.65rem;
   border-bottom: 1px solid #f1f5f9;
-  vertical-align: middle;
+  color: #334155;
+  font-size: 0.8rem;
 }
 
-.realized-pnl-trades-row:hover {
-  background-color: #f8fafc;
+.realized-pnl-trade-history-row:hover,
+.realized-pnl-buy-row:hover,
+.realized-pnl-sell-row:hover,
+.realized-pnl-performance-table tbody tr:hover {
+  background: #f8fafc;
+}
+
+.realized-pnl-buy-row,
+.realized-pnl-sell-row {
+  background: transparent;
 }
 
 .realized-pnl-trade-symbol {
-  font-weight: 600;
-  color: #1e293b;
-}
-
-.realized-pnl-trade-type {
-  text-transform: uppercase;
-  font-weight: 600;
-  color: #3b82f6;
-}
-
-.realized-pnl-holding-period {
-  font-size: 12px;
-  padding: 4px 8px;
-  border-radius: 0;
-  font-weight: 500;
-}
-
-.realized-pnl-holding-period.short-term {
-  background-color: #fef3c7;
-  color: #92400e;
-}
-
-.realized-pnl-holding-period.long-term {
-  background-color: #dbeafe;
-  color: #1e40af;
+  font-weight: 700;
+  color: #0f172a;
 }
 
 .realized-pnl-trade-pnl,
 .realized-pnl-trade-pnl-percentage,
 .realized-pnl-trade-net-pnl {
+  font-variant-numeric: tabular-nums;
   font-weight: 600;
 }
 
 .realized-pnl-trade-pnl.positive,
 .realized-pnl-trade-pnl-percentage.positive,
-.realized-pnl-trade-net-pnl.positive {
-  color: #059669;
+.realized-pnl-trade-net-pnl.positive,
+.realized-pnl-performance-cell.positive {
+  color: #15803d;
 }
 
 .realized-pnl-trade-pnl.negative,
 .realized-pnl-trade-pnl-percentage.negative,
-.realized-pnl-trade-net-pnl.negative {
+.realized-pnl-trade-net-pnl.negative,
+.realized-pnl-performance-cell.negative {
   color: #dc2626;
 }
 
-/* Realized P&L Performance Content */
-.realized-pnl-performance-title {
-  font-size: 20px;
-  font-weight: 600;
-  color: #1e293b;
-  margin: 0 0 24px 0;
-}
-
-.realized-pnl-performance-container {
-  overflow-x: auto;
+.realized-pnl-holding-period {
+  font-size: 0.72rem;
+  font-weight: 500;
+  color: #64748b;
+  background: transparent;
+  border-radius: 0;
+  padding: 0;
 }
 
 .realized-pnl-performance-table {
-  width: 100%;
-  border-collapse: collapse;
-  font-size: 14px;
-}
-
-.realized-pnl-performance-header {
-  background-color: #f8fafc;
-  padding: 16px 12px;
-  text-align: left;
-  font-weight: 600;
-  color: #475569;
-  border-bottom: 2px solid #e2e8f0;
-}
-
-.realized-pnl-performance-cell {
-  padding: 16px 12px;
-  border-bottom: 1px solid #f1f5f9;
-}
-
-/* Realized P&L Tax Content */
-.realized-pnl-tax-title {
-  font-size: 20px;
-  font-weight: 600;
-  color: #1e293b;
-  margin: 0 0 24px 0;
-}
-
-.realized-pnl-tax-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-  gap: 24px;
-}
-
-.realized-pnl-tax-card {
-  background-color: #f8fafc;
   border: 1px solid #e2e8f0;
-  border-radius: 0;
-  padding: 24px;
-  text-align: center;
+  border-radius: 0.4rem;
+  overflow: hidden;
 }
 
-.realized-pnl-tax-card-title {
-  font-size: 16px;
-  font-weight: 600;
-  color: #475569;
-  margin: 0 0 16px 0;
-}
-
-.realized-pnl-tax-value {
-  font-size: 20px;
-  font-weight: 700;
-  margin-bottom: 8px;
-}
-
-.realized-pnl-tax-value.positive {
-  color: #059669;
-}
-
-.realized-pnl-tax-value.negative {
-  color: #dc2626;
-}
-
-.realized-pnl-tax-description {
-  font-size: 14px;
+.no-trades-message {
+  padding: 0.85rem 0.75rem;
+  text-align: left;
   color: #64748b;
-  margin: 0;
-  line-height: 1.5;
+  font-size: 0.76rem;
+  line-height: 1.45;
+  background: transparent;
 }
 
-/* Realized P&L Actions Section */
+.no-trades-message p {
+  margin: 0.2rem 0;
+}
+
 .realized-pnl-actions-container {
   display: flex;
-  gap: 16px;
-  margin-top: 32px;
-  padding-top: 24px;
-  border-top: 1px solid #e2e8f0;
   flex-wrap: wrap;
+  gap: 0.4rem;
+  margin-top: 0.85rem;
+  padding-top: 0.65rem;
+  border-top: 1px solid #e2e8f0;
 }
 
 .realized-pnl-action-button {
-  padding: 12px 24px;
-  background-color: #3b82f6;
-  color: white;
-  border: none;
-  border-radius: 0;
-  font-size: 14px;
-  font-weight: 600;
+  padding: 0.35rem 0.9rem;
+  border-radius: 0.4rem;
+  font-size: 0.76rem;
+  font-weight: 700;
+  font-family: inherit;
   cursor: pointer;
-  transition: background-color 0.2s;
+  box-shadow: none;
 }
 
-.realized-pnl-action-button:hover {
-  background-color: #2563eb;
+.realized-pnl-action-button--primary {
+  background: #2563eb;
+  color: #ffffff;
+  border: 1px solid #1d4ed8;
 }
 
-/* Realized P&L Loading State */
+.realized-pnl-action-button--primary:hover {
+  background: #1d4ed8;
+}
+
+.realized-pnl-action-button--excel {
+  background: #15803d;
+  color: #ffffff;
+  border: 1px solid #166534;
+}
+
+.realized-pnl-action-button--excel:hover {
+  background: #166534;
+}
+
+.realized-pnl-action-button--secondary {
+  background: #ffffff;
+  color: #1e3a5f;
+  border: 1px solid #cbd5e1;
+}
+
+.realized-pnl-action-button--secondary:hover {
+  background: #f8fafc;
+  border-color: #94a3b8;
+}
+
 .realized-pnl-loading-container {
   display: flex;
   flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  height: 400px;
+  align-items: flex-start;
+  justify-content: flex-start;
   color: #64748b;
+  font-size: 0.8rem;
 }
 
 .realized-pnl-loading-spinner {
-  width: 40px;
-  height: 40px;
-  border: 4px solid #e2e8f0;
-  border-top: 4px solid #3b82f6;
+  width: 1.35rem;
+  height: 1.35rem;
+  border: 2px solid #e2e8f0;
+  border-top: 2px solid #2563eb;
   border-radius: 50%;
-  animation: realized-pnl-spin 1s linear infinite;
-  margin-bottom: 16px;
+  animation: realized-pnl-spin 0.8s linear infinite;
+  margin-bottom: 0.65rem;
 }
 
 @keyframes realized-pnl-spin {
@@ -499,818 +478,21 @@
   100% { transform: rotate(360deg); }
 }
 
-/* Realized P&L Responsive Design */
-@media (max-width: 1024px) {
-  .realized-pnl-page-header {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 16px;
-  }
-  
+@media (max-width: 768px) {
   .realized-pnl-page-controls {
     flex-direction: column;
-    align-items: flex-start;
-    gap: 16px;
+    align-items: stretch;
   }
-  
-  .realized-pnl-summary-grid {
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  }
-  
-  .realized-pnl-trades-table {
-    font-size: 12px;
-  }
-  
-  .realized-pnl-trades-header,
-  .realized-pnl-trades-cell {
-    padding: 12px 8px;
-  }
-}
 
-@media (max-width: 768px) {
-  .realized-pnl-page {
-    padding: 16px;
-  }
-  
-  .realized-pnl-page-title {
-    font-size: 1.25rem;
-  }
-  
   .realized-pnl-summary-grid {
     grid-template-columns: 1fr;
   }
-  
-  .realized-pnl-tab-navigation {
-    gap: 4px;
-  }
-  
-  .realized-pnl-tab-button {
-    padding: 8px 16px;
-    font-size: 13px;
-  }
-  
-  .realized-pnl-tab-content {
-    padding: 20px;
-  }
-  
+
   .realized-pnl-actions-container {
     flex-direction: column;
   }
-  
+
   .realized-pnl-action-button {
     width: 100%;
-  }
-}
-
-@media (max-width: 480px) {
-  .realized-pnl-page-title {
-    font-size: 1.125rem;
-  }
-
-  .realized-pnl-trades-table {
-    font-size: 11px;
-  }
-  
-  .realized-pnl-trades-header,
-  .realized-pnl-trades-cell {
-    padding: 8px 4px;
-  }
-  
-  .realized-pnl-performer-card {
-    padding: 12px;
-  }
-  
-  .realized-pnl-tax-card {
-    padding: 16px;
-  }
-}
-
-/* Realized P&L Trade History Sections - Unique Styling */
-.realized-pnl-trade-history-section {
-  background: white;
-  border-radius: 0;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-  border: 1px solid #e2e8f0;
-  overflow: hidden;
-  margin-bottom: 2rem;
-}
-
-.realized-pnl-trade-history-title {
-  padding: 1.5rem 2rem;
-  border-bottom: 1px solid #e2e8f0;
-  background: #f8fafc;
-  margin: 0;
-  font-size: 1.5rem;
-  font-weight: 700;
-  color: #1f2937;
-}
-
-.realized-pnl-trade-history-table-container {
-  padding: 0;
-}
-
-.realized-pnl-trade-history-table {
-  width: 100%;
-  border-collapse: collapse;
-  font-size: 0.875rem;
-}
-
-.realized-pnl-trade-history-header {
-  background: #f8fafc;
-  color: #64748b;
-  padding: 1rem;
-  text-align: left;
-  font-weight: 600;
-  font-size: 0.875rem;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  position: sticky;
-  top: 0;
-  z-index: 10;
-}
-
-.realized-pnl-trade-history-cell {
-  padding: 1rem;
-  border-bottom: 1px solid #f1f5f9;
-  color: #374151;
-}
-
-.realized-pnl-trade-history-row:hover {
-  background: #f8fafc;
-}
-
-/* Realized P&L Buy Row Styling - Subtle blue tint */
-.realized-pnl-buy-row {
-  background-color: #f0f9ff;
-}
-
-.realized-pnl-buy-row:hover {
-  background-color: #e0f2fe;
-}
-
-/* Realized P&L Sell Row Styling - Subtle red tint */
-.realized-pnl-sell-row {
-  background-color: #fef2f2;
-}
-
-.realized-pnl-sell-row:hover {
-  background-color: #fee2e2;
-}
-
-/* ========================================================================
-   Realized P&L — refreshed layout (aligned with MTM / Portfolio Selection)
-   ======================================================================== */
-
-.realized-pnl-page {
-  --rpnl-surface: #ffffff;
-  --rpnl-border: #e2e8f0;
-  --rpnl-border-soft: #f1f5f9;
-  --rpnl-text: #0f172a;
-  --rpnl-text-muted: #64748b;
-  --rpnl-blue: #2563eb;
-  --rpnl-blue-dark: #1e40af;
-  --rpnl-blue-gradient: linear-gradient(135deg, #1e3a8a 0%, #1d4ed8 42%, #2563eb 72%, #3b82f6 100%);
-  --rpnl-table-header-bg: #f8fafc;
-  --rpnl-table-header-text: #64748b;
-  --rpnl-table-header-border: #e2e8f0;
-  --rpnl-shadow-sm: 0 1px 2px rgba(15, 23, 42, 0.06);
-  --rpnl-shadow-md: 0 4px 16px rgba(15, 23, 42, 0.08);
-  --rpnl-radius: 12px;
-  --rpnl-radius-sm: 8px;
-  --rpnl-mono: ui-monospace, 'SF Mono', 'Cascadia Code', 'Courier New', monospace;
-
-  min-height: auto !important;
-  padding: 1.5rem 1.75rem 2.5rem !important;
-  background: transparent !important;
-}
-
-.realized-pnl-page-wrapper {
-  max-width: none !important;
-  margin: 0 !important;
-  width: 100% !important;
-}
-
-.realized-pnl-page-header {
-  display: flex !important;
-  flex-direction: column !important;
-  align-items: stretch !important;
-  gap: 0.85rem !important;
-  margin-bottom: 1rem !important;
-  padding-bottom: 1rem !important;
-  border-bottom: 1px solid var(--rpnl-border) !important;
-}
-
-.realized-pnl-header-text {
-  display: flex;
-  flex-direction: column;
-  gap: 0.35rem;
-}
-
-.realized-pnl-page-title {
-  font-size: 1.625rem !important;
-  font-weight: 700 !important;
-  color: var(--rpnl-text) !important;
-  letter-spacing: -0.02em !important;
-}
-
-.realized-pnl-page-subtitle {
-  margin: 0;
-  font-size: 0.875rem;
-  font-weight: 500;
-  color: var(--rpnl-text-muted);
-  line-height: 1.45;
-}
-
-.realized-pnl-toolbar {
-  background: var(--rpnl-surface) !important;
-  border: 1px solid var(--rpnl-border) !important;
-  border-radius: var(--rpnl-radius) !important;
-  box-shadow: var(--rpnl-shadow-sm) !important;
-  padding: 0.75rem 0.9rem !important;
-}
-
-.realized-pnl-page-controls {
-  display: flex !important;
-  flex-wrap: wrap !important;
-  align-items: flex-end !important;
-  gap: 0.75rem 1rem !important;
-}
-
-.realized-pnl-time-selector,
-.realized-pnl-portfolio-selector {
-  flex-direction: column !important;
-  align-items: stretch !important;
-  gap: 0.35rem !important;
-  flex: 1 1 min(100%, 220px) !important;
-}
-
-.realized-pnl-time-label,
-.realized-pnl-portfolio-label {
-  font-size: 0.75rem !important;
-  font-weight: 700 !important;
-  letter-spacing: 0.04em !important;
-  text-transform: uppercase !important;
-  color: var(--rpnl-text-muted) !important;
-}
-
-.realized-pnl-time-dropdown,
-.realized-pnl-portfolio-dropdown {
-  padding: 0.55rem 0.75rem !important;
-  border: 1px solid var(--rpnl-border) !important;
-  border-radius: var(--rpnl-radius-sm) !important;
-  font-size: 0.875rem !important;
-  font-weight: 600 !important;
-  background: #f8fafc !important;
-  color: var(--rpnl-text) !important;
-  width: 100% !important;
-}
-
-.realized-pnl-time-dropdown:focus,
-.realized-pnl-portfolio-dropdown:focus {
-  border-color: var(--rpnl-blue) !important;
-  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12) !important;
-  background: var(--rpnl-surface) !important;
-}
-
-.realized-pnl-loading-indicator {
-  font-size: 0.75rem !important;
-  margin-left: 0 !important;
-  margin-top: 0.25rem !important;
-}
-
-/* Portfolio KPI panel */
-.realized-pnl-kpi-panel {
-  margin-bottom: 1.25rem !important;
-  padding: 0 !important;
-  background: transparent !important;
-  border: none !important;
-  border-radius: 0 !important;
-  box-shadow: none !important;
-}
-
-.realized-pnl-kpi-panel__head {
-  display: flex !important;
-  flex-wrap: wrap !important;
-  align-items: baseline !important;
-  justify-content: space-between !important;
-  gap: 0.35rem 1rem !important;
-  margin-bottom: 0.85rem !important;
-  padding-bottom: 0 !important;
-  border-bottom: none !important;
-}
-
-.realized-pnl-kpi-panel__title {
-  margin: 0 !important;
-  font-size: 0.9375rem !important;
-  font-weight: 700 !important;
-  letter-spacing: -0.01em !important;
-  color: var(--rpnl-text) !important;
-}
-
-.realized-pnl-kpi-panel__meta {
-  margin: 0 !important;
-  font-size: 0.75rem !important;
-  font-weight: 500 !important;
-  color: var(--rpnl-text-muted) !important;
-  font-family: var(--rpnl-mono) !important;
-  font-variant-numeric: tabular-nums !important;
-}
-
-.realized-pnl-summary-grid {
-  display: grid !important;
-  grid-template-columns: repeat(5, minmax(0, 1fr)) !important;
-  gap: 0.75rem !important;
-  margin-bottom: 0 !important;
-}
-
-.realized-pnl-kpi {
-  display: flex !important;
-  flex-direction: column !important;
-  min-height: 0 !important;
-  padding: 0.9rem 1rem !important;
-  background: var(--rpnl-surface) !important;
-  border: 1px solid var(--rpnl-border) !important;
-  border-radius: var(--rpnl-radius-sm) !important;
-  box-shadow: none !important;
-  transition: border-color 0.15s ease !important;
-}
-
-.realized-pnl-kpi::before {
-  display: none !important;
-}
-
-.realized-pnl-kpi--featured {
-  border-color: var(--rpnl-border) !important;
-  background: var(--rpnl-surface) !important;
-  box-shadow: none !important;
-}
-
-.realized-pnl-kpi--featured::before {
-  display: none !important;
-}
-
-.realized-pnl-kpi:hover {
-  border-color: #cbd5e1 !important;
-  background: var(--rpnl-surface) !important;
-}
-
-.realized-pnl-kpi__head {
-  display: flex !important;
-  align-items: center !important;
-  justify-content: space-between !important;
-  gap: 0.35rem !important;
-  margin-bottom: 0.55rem !important;
-  min-height: 1.25rem !important;
-}
-
-.realized-pnl-kpi__label {
-  font-size: 0.75rem !important;
-  font-weight: 600 !important;
-  line-height: 1.3 !important;
-  color: #334155 !important;
-  letter-spacing: 0 !important;
-  text-transform: none !important;
-}
-
-.realized-pnl-kpi__badge {
-  flex-shrink: 0 !important;
-  font-size: 0.625rem !important;
-  font-weight: 600 !important;
-  letter-spacing: 0 !important;
-  text-transform: none !important;
-  color: var(--rpnl-text-muted) !important;
-  background: transparent !important;
-  border: none !important;
-  border-radius: 0 !important;
-  padding: 0 !important;
-  line-height: 1.2 !important;
-}
-
-.realized-pnl-kpi__value {
-  display: flex !important;
-  flex-wrap: wrap !important;
-  align-items: baseline !important;
-  gap: 0.2rem 0.35rem !important;
-  margin-top: auto !important;
-  margin-bottom: 0.5rem !important;
-  min-height: 2.35rem !important;
-}
-
-.realized-pnl-kpi__value--metric {
-  align-items: baseline !important;
-  gap: 0.1rem !important;
-}
-
-.realized-pnl-kpi__sign {
-  font-size: 1.25rem !important;
-  font-weight: 700 !important;
-  line-height: 1 !important;
-  font-family: var(--rpnl-mono) !important;
-  color: inherit !important;
-}
-
-.realized-pnl-kpi__currency {
-  font-size: 0.6875rem !important;
-  font-weight: 700 !important;
-  letter-spacing: 0.06em !important;
-  text-transform: uppercase !important;
-  color: #94a3b8 !important;
-  line-height: 1.2 !important;
-}
-
-.realized-pnl-kpi__figure {
-  font-size: 1.25rem !important;
-  font-weight: 700 !important;
-  line-height: 1.1 !important;
-  letter-spacing: -0.02em !important;
-  font-family: var(--rpnl-mono) !important;
-  font-variant-numeric: tabular-nums !important;
-  color: var(--rpnl-text) !important;
-  word-break: break-word !important;
-}
-
-.realized-pnl-kpi--featured .realized-pnl-kpi__figure {
-  font-size: 1.3125rem !important;
-  font-weight: 800 !important;
-}
-
-.realized-pnl-kpi__unit {
-  font-size: 1rem !important;
-  font-weight: 700 !important;
-  color: #64748b !important;
-  font-family: var(--rpnl-mono) !important;
-}
-
-.realized-pnl-kpi__value--positive .realized-pnl-kpi__sign,
-.realized-pnl-kpi__value--positive .realized-pnl-kpi__figure {
-  color: #047857 !important;
-}
-
-.realized-pnl-kpi__value--negative .realized-pnl-kpi__sign,
-.realized-pnl-kpi__value--negative .realized-pnl-kpi__figure {
-  color: #b91c1c !important;
-}
-
-.realized-pnl-kpi__value--neutral .realized-pnl-kpi__sign,
-.realized-pnl-kpi__value--neutral .realized-pnl-kpi__figure {
-  color: var(--rpnl-text) !important;
-}
-
-.realized-pnl-kpi__value--metric .realized-pnl-kpi__figure {
-  font-size: 1.5rem !important;
-  color: #0f172a !important;
-}
-
-.realized-pnl-kpi__foot {
-  margin: 0 !important;
-  padding-top: 0.5rem !important;
-  border-top: none !important;
-  font-size: 0.6875rem !important;
-  font-weight: 400 !important;
-  line-height: 1.35 !important;
-  color: #94a3b8 !important;
-}
-
-/* Legacy summary classes — kept for compatibility */
-.realized-pnl-summary-card {
-  display: none !important;
-}
-
-.realized-pnl-card-title {
-  font-size: 0.6875rem !important;
-  font-weight: 700 !important;
-  letter-spacing: 0.05em !important;
-  text-transform: uppercase !important;
-  color: var(--rpnl-text-muted) !important;
-  margin-bottom: 0.35rem !important;
-}
-
-.realized-pnl-card-amount {
-  font-size: 1.125rem !important;
-  font-weight: 700 !important;
-  margin-bottom: 0.3rem !important;
-  font-family: var(--rpnl-mono) !important;
-  font-variant-numeric: tabular-nums !important;
-}
-
-.realized-pnl-card-description {
-  font-size: 0.75rem !important;
-  color: var(--rpnl-text-muted) !important;
-}
-
-/* Tabs — clean underline */
-.realized-pnl-tab-navigation {
-  display: flex !important;
-  flex-direction: row !important;
-  flex-wrap: wrap !important;
-  gap: 0 !important;
-  margin: 0 0 1rem !important;
-  padding: 0 !important;
-  max-width: none !important;
-  background: transparent !important;
-  border: none !important;
-  border-bottom: 1px solid var(--rpnl-border) !important;
-  border-radius: 0 !important;
-  box-shadow: none !important;
-  overflow: visible !important;
-}
-
-.realized-pnl-tab-button {
-  flex: 0 1 auto !important;
-  min-width: max-content !important;
-  height: auto !important;
-  display: inline-flex !important;
-  padding: 0.65rem 1rem !important;
-  border: none !important;
-  border-radius: 0 !important;
-  border-bottom: 2px solid transparent !important;
-  margin-bottom: -1px !important;
-  background: transparent !important;
-  color: var(--rpnl-text-muted) !important;
-  font-size: 0.8125rem !important;
-  font-weight: 600 !important;
-  transition: color 0.15s ease, border-color 0.15s ease !important;
-}
-
-.realized-pnl-tab-button:hover:not(.active) {
-  color: var(--rpnl-text) !important;
-  background: transparent !important;
-}
-
-.realized-pnl-tab-button.active {
-  color: var(--rpnl-blue) !important;
-  background: transparent !important;
-  border-bottom-color: var(--rpnl-blue) !important;
-  font-weight: 700 !important;
-  box-shadow: none !important;
-}
-
-.realized-pnl-tab-button:focus-visible {
-  outline: 2px solid var(--rpnl-blue) !important;
-  outline-offset: 2px !important;
-}
-
-/* Tab content panel */
-.realized-pnl-tab-content {
-  border-radius: 0 0 var(--rpnl-radius) var(--rpnl-radius) !important;
-  padding: 1.25rem 0 0 !important;
-  box-shadow: none !important;
-  border: none !important;
-  background: transparent !important;
-}
-
-.realized-pnl-performance-title,
-.realized-pnl-trade-history-title {
-  padding: 0 0 0.75rem !important;
-  margin: 0 0 0.85rem !important;
-  border-bottom: 1px solid var(--rpnl-border-soft) !important;
-  background: transparent !important;
-  font-size: 1.0625rem !important;
-  font-weight: 700 !important;
-  color: var(--rpnl-text) !important;
-}
-
-/* Trade history sections */
-.realized-pnl-trade-history-section {
-  border-radius: var(--rpnl-radius) !important;
-  border: 1px solid var(--rpnl-border) !important;
-  box-shadow: none !important;
-  margin-bottom: 1rem !important;
-  overflow: hidden !important;
-  background: var(--rpnl-surface) !important;
-}
-
-.realized-pnl-trade-history-section .realized-pnl-trade-history-title {
-  padding: 0.85rem 1rem !important;
-  margin: 0 !important;
-  background: var(--rpnl-surface) !important;
-  border-bottom: 1px solid var(--rpnl-border) !important;
-  font-size: 0.875rem !important;
-  font-weight: 600 !important;
-  color: var(--rpnl-text) !important;
-}
-
-.realized-pnl-trade-history-table {
-  font-size: 0.8125rem !important;
-  border-collapse: separate !important;
-  border-spacing: 0 !important;
-}
-
-.realized-pnl-trade-history-header {
-  background: var(--rpnl-table-header-bg) !important;
-  color: var(--rpnl-table-header-text) !important;
-  padding: 0.6rem 0.65rem !important;
-  font-size: 0.6875rem !important;
-  font-weight: 600 !important;
-  letter-spacing: 0.04em !important;
-  text-transform: uppercase !important;
-  border-bottom: 1px solid var(--rpnl-table-header-border) !important;
-  white-space: nowrap !important;
-}
-
-.realized-pnl-trade-history-header:first-child {
-  padding-left: 1rem !important;
-}
-
-.realized-pnl-trade-history-header:last-child {
-  padding-right: 1rem !important;
-}
-
-.realized-pnl-trade-history-cell {
-  padding: 0.65rem 0.65rem !important;
-  border-bottom: 1px solid var(--rpnl-border-soft) !important;
-  color: var(--rpnl-text) !important;
-  font-size: 0.8125rem !important;
-}
-
-.realized-pnl-trade-history-cell:first-child {
-  padding-left: 1rem !important;
-}
-
-.realized-pnl-trade-history-cell:last-child {
-  padding-right: 1rem !important;
-}
-
-.realized-pnl-trade-symbol {
-  font-family: var(--rpnl-mono) !important;
-  color: var(--rpnl-text) !important;
-  font-weight: 600 !important;
-}
-
-.realized-pnl-buy-row,
-.realized-pnl-sell-row {
-  background-color: transparent !important;
-}
-
-.realized-pnl-buy-row:hover,
-.realized-pnl-sell-row:hover {
-  background-color: #f8fafc !important;
-}
-
-.realized-pnl-trade-history-row:nth-child(even) {
-  background: #fafbfc !important;
-}
-
-.realized-pnl-trade-history-row:hover {
-  background: #f1f5f9 !important;
-}
-
-.realized-pnl-trade-pnl,
-.realized-pnl-trade-pnl-percentage,
-.realized-pnl-trade-net-pnl {
-  font-family: var(--rpnl-mono) !important;
-  font-variant-numeric: tabular-nums !important;
-  text-align: right !important;
-}
-
-.realized-pnl-holding-period {
-  border-radius: 999px !important;
-  background: #f1f5f9 !important;
-  color: var(--rpnl-text-muted) !important;
-  font-size: 0.75rem !important;
-}
-
-/* Performance table */
-.realized-pnl-performance-table {
-  font-size: 0.8125rem !important;
-  border-collapse: separate !important;
-  border-spacing: 0 !important;
-  border: 1px solid var(--rpnl-border) !important;
-  border-radius: var(--rpnl-radius-sm) !important;
-  overflow: hidden !important;
-}
-
-.realized-pnl-performance-header {
-  background: var(--rpnl-table-header-bg) !important;
-  color: var(--rpnl-table-header-text) !important;
-  padding: 0.6rem 0.85rem !important;
-  font-size: 0.6875rem !important;
-  font-weight: 600 !important;
-  letter-spacing: 0.04em !important;
-  text-transform: uppercase !important;
-  border-bottom: 1px solid var(--rpnl-table-header-border) !important;
-}
-
-.realized-pnl-performance-cell {
-  padding: 0.65rem 0.85rem !important;
-  border-bottom: 1px solid var(--rpnl-border-soft) !important;
-  font-family: var(--rpnl-mono) !important;
-  font-variant-numeric: tabular-nums !important;
-}
-
-.realized-pnl-performance-table tbody tr:nth-child(even) {
-  background: #fafbfc !important;
-}
-
-.realized-pnl-performance-table tbody tr:hover {
-  background: #f1f5f9 !important;
-}
-
-.no-trades-message {
-  padding: 1.25rem 1rem;
-  text-align: center;
-  color: var(--rpnl-text-muted);
-  font-size: 0.875rem;
-  line-height: 1.5;
-  background: #f8fafc;
-  border-top: 1px solid var(--rpnl-border-soft);
-}
-
-.no-trades-message p {
-  margin: 0.25rem 0;
-}
-
-/* Action buttons */
-.realized-pnl-actions-container {
-  margin-top: 1rem !important;
-  padding-top: 1rem !important;
-  border-top: 1px solid var(--rpnl-border) !important;
-  gap: 0.5rem !important;
-}
-
-.realized-pnl-action-button {
-  border-radius: var(--rpnl-radius-sm) !important;
-  font-size: 0.8125rem !important;
-  padding: 0.5rem 0.9rem !important;
-  font-weight: 600 !important;
-  transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.15s ease !important;
-}
-
-.realized-pnl-action-button--primary {
-  background: var(--rpnl-text) !important;
-  color: #ffffff !important;
-  box-shadow: none !important;
-}
-
-.realized-pnl-action-button--primary:hover {
-  transform: none !important;
-  background: #1e293b !important;
-  box-shadow: none !important;
-}
-
-.realized-pnl-action-button--secondary {
-  background: var(--rpnl-surface) !important;
-  color: var(--rpnl-text) !important;
-  border: 1px solid var(--rpnl-border) !important;
-}
-
-.realized-pnl-action-button--secondary:hover {
-  background: #f8fafc !important;
-  border-color: #cbd5e1 !important;
-}
-
-/* Loading */
-.realized-pnl-loading-container {
-  min-height: 50vh !important;
-  color: var(--rpnl-text-muted) !important;
-}
-
-.realized-pnl-loading-spinner {
-  border-top-color: var(--rpnl-blue) !important;
-}
-
-@media (max-width: 1200px) {
-  .realized-pnl-summary-grid {
-    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
-  }
-
-  .realized-pnl-kpi--featured {
-    grid-column: span 1 !important;
-  }
-}
-
-@media (max-width: 980px) {
-  .realized-pnl-page {
-    padding: 1rem !important;
-  }
-
-  .realized-pnl-page-controls {
-    flex-direction: column !important;
-    align-items: stretch !important;
-  }
-
-  .realized-pnl-summary-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
-  }
-
-  .realized-pnl-kpi--featured {
-    grid-column: 1 / -1 !important;
-  }
-
-  .realized-pnl-kpi__figure {
-    font-size: 1.125rem !important;
-  }
-
-  .realized-pnl-tab-navigation {
-    max-width: none !important;
-  }
-
-  .realized-pnl-actions-container {
-    flex-direction: column !important;
-  }
-
-  .realized-pnl-action-button {
-    width: 100% !important;
-    justify-content: center !important;
   }
 }

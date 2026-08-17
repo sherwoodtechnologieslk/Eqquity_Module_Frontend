@@ -1,6 +1,7 @@
 /**
- * Shared SOFP export rows — must match Statement of Financial Position screen
- * (FinancialPosition.js) so PDF/Excel from Download Center match screen exports.
+ * Shared SOFP export / display helpers.
+ * Asset current vs non-current and transaction-type grouping are owned by the backend.
+ * Frontend helpers mirror backend grouping only as a fallback when `data.groups` is absent.
  */
 
 export const SOFP_EXPORT_HEADERS = ['Section', 'Transaction type', 'Amount', 'DR/CR'];
@@ -46,36 +47,36 @@ const formatCurrency = (amount) =>
     maximumFractionDigits: 2
   }).format(amount || 0);
 
-/** Same logic as FinancialPosition — defensive re-bucket for non-current-like current assets. */
+/**
+ * Opening-balance SOFP: current vs non-current from chart_of_accounts.account_category only.
+ */
 export const isNonCurrentAssetLike = (account) => {
-  const text = `${account?.accountCategory || ''} ${account?.transactionTypeName || ''} ${account?.accountName || ''}`
+  const c = String(account?.accountCategory || account?.account_category || '')
     .toLowerCase()
     .trim();
+  if (!c) return false;
   return (
-    text.includes('non current') ||
-    text.includes('non-current') ||
-    text.includes('fixed asset') ||
-    text.includes('property, plant') ||
-    text.includes('ppe')
+    c.includes('non-current') ||
+    c.includes('non current') ||
+    c.includes('noncurrent') ||
+    c.includes('fixed asset') ||
+    c.includes('intangible')
   );
 };
 
-/** Mirrors displayedAssetBuckets useMemo in FinancialPosition.js */
+/** Trust backend buckets; no client-side reclassification. */
 export const computeDisplayedAssetBuckets = (financialPositionData) => {
-  const nonCurrentFromApi = financialPositionData?.assets?.nonCurrentAssets || [];
-  const currentFromApi = financialPositionData?.assets?.currentAssets || [];
-
-  const reclassifiedFromCurrent = currentFromApi.filter(isNonCurrentAssetLike);
-  const keptCurrent = currentFromApi.filter((acc) => !isNonCurrentAssetLike(acc));
-
-  const combinedNonCurrent = [...nonCurrentFromApi, ...reclassifiedFromCurrent];
+  const nonCurrentAssets = financialPositionData?.assets?.nonCurrentAssets || [];
+  const currentAssets = financialPositionData?.assets?.currentAssets || [];
   const sumBalance = (rows) => rows.reduce((sum, acc) => sum + (Number(acc.balance) || 0), 0);
 
   return {
-    nonCurrentAssets: combinedNonCurrent,
-    currentAssets: keptCurrent,
-    totalNonCurrentAssets: sumBalance(combinedNonCurrent),
-    totalCurrentAssets: sumBalance(keptCurrent)
+    nonCurrentAssets,
+    currentAssets,
+    totalNonCurrentAssets:
+      financialPositionData?.totals?.totalNonCurrentAssets ?? sumBalance(nonCurrentAssets),
+    totalCurrentAssets:
+      financialPositionData?.totals?.totalCurrentAssets ?? sumBalance(currentAssets)
   };
 };
 
@@ -95,6 +96,7 @@ export const computeEquityDisplayRows = (financialPositionData, netProfit) => {
       ...equityAccounts,
       {
         accountName: currentPlLabel,
+        transactionTypeName: currentPlLabel,
         balance: np,
         balanceType: derivedBalanceTypeFromBalance(np),
         accountCode: ''
@@ -106,10 +108,8 @@ export const computeEquityDisplayRows = (financialPositionData, netProfit) => {
 };
 
 /**
- * Collapses SOFP accounts into one entry per transaction type, preserving first-seen
- * order. Accounts with no transaction type stay individual (keyed by account code/name).
- * Balances are summed (signed, mirroring the backend); consumers derive DR/CR from sign.
- * Shared by the SOFP screen and the PDF/Excel exports so both stay in sync.
+ * Mirrors backend groupAccountsByTransactionType.
+ * Groups by transaction type only — never promote account name to a type row.
  * @returns {Array<{ key: string, label: string, transactionTypeName: string,
  *   accountCategory: string, balance: number, accounts: object[] }>}
  */
@@ -117,19 +117,15 @@ export const groupByTransactionType = (accounts) => {
   const groups = [];
   const indexByKey = new Map();
 
-  (accounts || []).forEach((account, i) => {
-    const ttName = String(account?.transactionTypeName || '').trim();
-    const fallbackLabel = String(account?.accountName || account?.accountCategory || '').trim();
-    const hasType = ttName.length > 0;
-    const key = hasType
-      ? `tt:${ttName.toLowerCase()}`
-      : `acc:${account?.accountCode || fallbackLabel || i}`;
+  (accounts || []).forEach((account) => {
+    const ttName = String(account?.transactionTypeName || '').trim() || 'Unassigned';
+    const key = `g:${ttName.toLowerCase()}`;
 
     let group = indexByKey.get(key);
     if (!group) {
       group = {
         key,
-        label: hasType ? ttName : fallbackLabel || 'Account',
+        label: ttName,
         transactionTypeName: ttName,
         accountCategory: account?.accountCategory || '',
         balance: 0,
@@ -143,6 +139,36 @@ export const groupByTransactionType = (accounts) => {
   });
 
   return groups;
+};
+
+/**
+ * Prefer backend `data.groups[sectionKey]`; fall back to local grouping of flat accounts.
+ * For equity, inject Current P&L into the flat list before grouping when groups are absent;
+ * when backend groups exist, append Current P&L as its own group.
+ */
+export const resolveSofpGroups = (financialPositionData, sectionKey, flatAccounts, netProfit) => {
+  const backendGroups = financialPositionData?.groups?.[sectionKey];
+
+  if (sectionKey === 'equity') {
+    const equityRows = computeEquityDisplayRows(financialPositionData, netProfit);
+    if (Array.isArray(backendGroups)) {
+      const np = parseNetProfit(netProfit);
+      if (np == null) return backendGroups;
+      const plGroup = groupByTransactionType([
+        {
+          accountName: 'Current P&L',
+          transactionTypeName: 'Current P&L',
+          balance: np,
+          accountCode: ''
+        }
+      ])[0];
+      return plGroup ? [...backendGroups, plGroup] : backendGroups;
+    }
+    return groupByTransactionType(equityRows);
+  }
+
+  if (Array.isArray(backendGroups)) return backendGroups;
+  return groupByTransactionType(flatAccounts);
 };
 
 /** Normal-balance-aware DR/CR for a signed (summed) balance. */
@@ -159,11 +185,14 @@ export const deriveBalanceTypeFromBalance = (balance, normalBalanceType) => {
  */
 export const buildSofpExportRows = ({ financialPositionData, netProfit }) => {
   const rows = [];
-  const sum = (list) => (list || []).reduce((acc, a) => acc + (Number(a?.balance) || 0), 0);
+  const sumAccounts = (list) => (list || []).reduce((acc, a) => acc + (Number(a?.balance) || 0), 0);
+  const sumGroups = (list) => (list || []).reduce((acc, g) => acc + (Number(g?.balance) || 0), 0);
 
-  const pushGroup = (section, list, normal, subtotalLabel) => {
-    groupByTransactionType(list).forEach((g) => {
-      const drcr = deriveBalanceTypeFromBalance(g.balance, normal);
+  const pushGroup = (section, groups, normal, subtotalLabel) => {
+    (groups || []).forEach((g) => {
+      const drcr =
+        g.balanceType ||
+        deriveBalanceTypeFromBalance(g.balance, normal);
       rows.push([
         section,
         g.label,
@@ -171,27 +200,79 @@ export const buildSofpExportRows = ({ financialPositionData, netProfit }) => {
         drcr === 'ZERO' ? normal : drcr
       ]);
     });
-    if (subtotalLabel && (list || []).length > 0) {
-      rows.push([section, subtotalLabel, formatCurrency(Math.abs(sum(list))), normal]);
+    if (subtotalLabel && (groups || []).length > 0) {
+      rows.push([
+        section,
+        subtotalLabel,
+        formatCurrency(Math.abs(sumGroups(groups))),
+        normal
+      ]);
     }
   };
 
   const { nonCurrentAssets, currentAssets } = computeDisplayedAssetBuckets(financialPositionData);
-  const nonCurrentLiabilities = financialPositionData?.liabilities?.nonCurrentLiabilities || [];
-  const currentLiabilities = financialPositionData?.liabilities?.currentLiabilities || [];
-  const equity = computeEquityDisplayRows(financialPositionData, netProfit);
+  const nonCurrentAssetGroups = resolveSofpGroups(
+    financialPositionData,
+    'nonCurrentAssets',
+    nonCurrentAssets,
+    netProfit
+  );
+  const currentAssetGroups = resolveSofpGroups(
+    financialPositionData,
+    'currentAssets',
+    currentAssets,
+    netProfit
+  );
+  const equityGroups = resolveSofpGroups(
+    financialPositionData,
+    'equity',
+    financialPositionData?.equity,
+    netProfit
+  );
+  const nonCurrentLiabilityGroups = resolveSofpGroups(
+    financialPositionData,
+    'nonCurrentLiabilities',
+    financialPositionData?.liabilities?.nonCurrentLiabilities,
+    netProfit
+  );
+  const currentLiabilityGroups = resolveSofpGroups(
+    financialPositionData,
+    'currentLiabilities',
+    financialPositionData?.liabilities?.currentLiabilities,
+    netProfit
+  );
 
-  pushGroup('Assets · Non-current', nonCurrentAssets, 'DR', 'Total Non-current assets');
-  pushGroup('Assets · Current', currentAssets, 'DR', 'Total Current assets');
-  rows.push(['', 'Total Assets', formatCurrency(Math.abs(sum(nonCurrentAssets) + sum(currentAssets))), 'DR']);
+  const totalAssets =
+    financialPositionData?.totals?.totalAssets ??
+    sumAccounts(nonCurrentAssets) + sumAccounts(currentAssets);
 
-  pushGroup('Equity', equity, 'CR', 'Total Equity');
-  pushGroup('Liabilities · Non-current', nonCurrentLiabilities, 'CR', 'Total Non-current liabilities');
-  pushGroup('Liabilities · Current', currentLiabilities, 'CR', 'Total Current liabilities');
+  pushGroup('Assets · Non-current', nonCurrentAssetGroups, 'DR', 'Total Non-current assets');
+  pushGroup('Assets · Current', currentAssetGroups, 'DR', 'Total Current assets');
+  rows.push(['', 'Total Assets', formatCurrency(Math.abs(totalAssets)), 'DR']);
+
+  pushGroup('Equity', equityGroups, 'CR', 'Total Equity');
+  pushGroup(
+    'Liabilities · Non-current',
+    nonCurrentLiabilityGroups,
+    'CR',
+    'Total Non-current liabilities'
+  );
+  pushGroup(
+    'Liabilities · Current',
+    currentLiabilityGroups,
+    'CR',
+    'Total Current liabilities'
+  );
   rows.push([
     '',
     'Total Equity & Liabilities',
-    formatCurrency(Math.abs(sum(equity) + sum(nonCurrentLiabilities) + sum(currentLiabilities))),
+    formatCurrency(
+      Math.abs(
+        sumGroups(equityGroups) +
+          sumGroups(nonCurrentLiabilityGroups) +
+          sumGroups(currentLiabilityGroups)
+      )
+    ),
     'CR'
   ]);
 

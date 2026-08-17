@@ -137,12 +137,13 @@ const StrategyMaster = () => {
   return (
     <div className="eqt-page-container">
       <div className="eqt-content-wrapper">
-        <div className="eqt-header-section">
+        <header className="eqt-header-section">
           <div className="eqt-header-text-group">
-            <h1 className="eqt-main-title">Strategy Master Entry</h1>
-            <p className="eqt-subtitle">Create and define new strategies linked to portfolio entities</p>
+            <p className="eqt-eyebrow">Masters · Strategy</p>
+            <h1 className="eqt-main-title">Strategy Master</h1>
+            <p className="eqt-subtitle">Assign strategies to portfolio entities</p>
           </div>
-        </div>
+        </header>
 
         <div className="eqt-form-card">
           <div className="eqt-card-header">

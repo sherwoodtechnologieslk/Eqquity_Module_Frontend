@@ -221,8 +221,9 @@ const RealizedPnL = () => {
   return (
     <div className="realized-pnl-page">
       <div className="realized-pnl-page-wrapper">
-      <div className="realized-pnl-page-header">
+      <header className="realized-pnl-page-header">
         <div className="realized-pnl-header-text">
+          <p className="realized-pnl-eyebrow">Accounting · Valuation</p>
           <h1 className="realized-pnl-page-title">Realized Gain/Loss Tracking</h1>
           <p className="realized-pnl-page-subtitle">
             Realized capital gains and losses from completed sell transactions
@@ -259,9 +260,7 @@ const RealizedPnL = () => {
           </div>
           </div>
         </div>
-      </div>
-
-      {/* Portfolio KPI summary */}
+      </header>
       <section className="realized-pnl-kpi-panel" aria-label="Realized gain and loss summary">
         <div className="realized-pnl-kpi-panel__head">
           <h2 className="realized-pnl-kpi-panel__title">Portfolio Summary</h2>
@@ -506,7 +505,7 @@ const RealizedPnL = () => {
         <button type="button" className="realized-pnl-action-button realized-pnl-action-button--primary" onClick={() => handleGenerateReport()}>
           Generate Realized Capital Gain Report
         </button>
-        <button type="button" className="realized-pnl-action-button realized-pnl-action-button--primary" onClick={() => handleExportToExcel()}>
+        <button type="button" className="realized-pnl-action-button realized-pnl-action-button--excel" onClick={() => handleExportToExcel()}>
           Export to Excel
         </button>
         <button type="button" className="realized-pnl-action-button realized-pnl-action-button--secondary" onClick={loadRealizedPnLData}>

@@ -134,16 +134,17 @@ const AssetEntry = ({ onTabChange }) => {
     return (
       <div className="fa-container">
         <div className="fa-wrapper">
-          <div className="fa-header">
+          <header className="fa-header">
             <div className="fa-header-left">
+              <p className="fa-eyebrow">Accounting · Fixed assets</p>
               <h1 className="fa-title">Add Asset</h1>
               <span className="fa-subtitle">No asset categories defined yet.</span>
             </div>
-          </div>
+          </header>
           <div className="fa-empty fa-table-wrap">
             Set up at least one category in <strong>Asset Categories</strong> before
             adding assets.
-            <div style={{ marginTop: 12 }}>
+            <div className="fa-empty-actions">
               <button
                 type="button"
                 className="fa-btn fa-btn-primary"
@@ -161,8 +162,9 @@ const AssetEntry = ({ onTabChange }) => {
   return (
     <div className="fa-container">
       <div className="fa-wrapper">
-        <div className="fa-header">
+        <header className="fa-header">
           <div className="fa-header-left">
+            <p className="fa-eyebrow">Accounting · Fixed assets</p>
             <h1 className="fa-title">Add Asset</h1>
             <span className="fa-subtitle">
               Record a new fixed asset. Depreciation schedule is generated live from the
@@ -174,7 +176,7 @@ const AssetEntry = ({ onTabChange }) => {
               Open Asset Register
             </button>
           </div>
-        </div>
+        </header>
 
         {savedAsset ? (
           <div className="fa-schedule-section">
@@ -182,7 +184,7 @@ const AssetEntry = ({ onTabChange }) => {
             <p className="fa-schedule-sub">
               <strong>{savedAsset.assetCode}</strong> &middot; {savedAsset.name}
             </p>
-            <div className="fa-form-actions" style={{ justifyContent: 'flex-start' }}>
+            <div className="fa-form-actions">
               <button type="button" className="fa-btn fa-btn-primary" onClick={handleNewEntry}>
                 Add another asset
               </button>
@@ -244,7 +246,7 @@ const AssetEntry = ({ onTabChange }) => {
                 />
               </div>
 
-              <div className="fa-form-group" style={{ gridColumn: '1 / -1' }}>
+              <div className="fa-form-group fa-form-group--wide">
                 <label className="fa-form-label">Description</label>
                 <input
                   className="fa-input"
@@ -379,14 +381,7 @@ const AssetEntry = ({ onTabChange }) => {
                 />
               </div>
 
-              {error ? (
-                <div
-                  className="fa-section-title"
-                  style={{ color: '#b91c1c', border: 'none', gridColumn: '1 / -1' }}
-                >
-                  {error}
-                </div>
-              ) : null}
+              {error ? <div className="fa-form-error-banner">{error}</div> : null}
             </div>
 
             {/* Calculations cards */}
@@ -396,15 +391,15 @@ const AssetEntry = ({ onTabChange }) => {
                   <div className="fa-card-label">Annual depreciation</div>
                   <div className="fa-card-value">{formatAmount(previewSnapshot.annual)}</div>
                 </div>
-                <div className="fa-card fa-card-green">
+                <div className="fa-card">
                   <div className="fa-card-label">Monthly depreciation</div>
                   <div className="fa-card-value">{formatAmount(previewSnapshot.monthly)}</div>
                 </div>
-                <div className="fa-card fa-card-amber">
+                <div className="fa-card">
                   <div className="fa-card-label">Total schedule months</div>
                   <div className="fa-card-value">{previewSnapshot.schedule.length}</div>
                 </div>
-                <div className="fa-card fa-card-slate">
+                <div className="fa-card">
                   <div className="fa-card-label">Final WDV (after life)</div>
                   <div className="fa-card-value">
                     {formatAmount(
@@ -425,7 +420,7 @@ const AssetEntry = ({ onTabChange }) => {
                   Straight-line, generated from category settings. Saved schedule is
                   read-only and will eventually drive the monthly Depreciation Run.
                 </p>
-                <div style={{ maxHeight: 360, overflowY: 'auto' }}>
+                <div className="fa-schedule-scroll">
                   <table className="fa-schedule-table">
                     <thead>
                       <tr>

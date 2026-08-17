@@ -24,14 +24,14 @@
   margin: 0 auto;
 }
 
-/* Header — matched to Vouchers / Equity Master rail */
+/* Header — compact desk rail (aligned with GSec / Portfolio Selection) */
 .other-trans-header-section {
   display: flex;
   align-items: flex-start;
-  gap: 0.85rem;
-  margin-bottom: 0.85rem;
+  gap: 0.65rem;
+  margin-bottom: 0.55rem;
   text-align: left;
-  padding: 0.15rem 0.1rem 0.85rem;
+  padding: 0 0.05rem 0.5rem;
   border-bottom: 1px solid var(--ot-border);
 }
 
@@ -39,22 +39,22 @@
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  gap: 0.15rem;
+  gap: 0.08rem;
   min-width: 0;
 }
 
 .other-trans-header-eyebrow {
-  margin: 0 0 0.05rem;
-  font-size: 0.6rem;
+  margin: 0;
+  font-size: 0.55rem;
   font-weight: 700;
-  letter-spacing: 0.16em;
+  letter-spacing: 0.14em;
   text-transform: uppercase;
   color: var(--ot-blue);
 }
 
 .other-trans-main-title {
-  font-size: clamp(1.25rem, 2vw, 1.55rem);
-  font-weight: 700;
+  font-size: clamp(1.05rem, 1.6vw, 1.25rem);
+  font-weight: 750;
   color: var(--ot-text);
   margin: 0;
   letter-spacing: -0.02em;
@@ -66,12 +66,12 @@
 
 .other-trans-subtitle {
   color: var(--ot-text-secondary);
-  font-size: 0.8rem;
+  font-size: 0.72rem;
   font-weight: 400;
   margin: 0;
   max-width: 40rem;
   letter-spacing: 0;
-  line-height: 1.45;
+  line-height: 1.35;
 }
 
 /* Main tab navigation — separate floating “fresh cake” buttons */

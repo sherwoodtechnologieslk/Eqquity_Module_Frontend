@@ -157,6 +157,11 @@ const PerformanceReport = () => {
 
   return (
     <div className="fr-page performance-report-page">
+      <header className="fr-page-rail fr-no-print">
+        <p className="fr-eyebrow">Accounting · Reporting</p>
+        <h1>Performance Report</h1>
+        <p className="fr-page-blurb">Period returns, holdings, and sector contribution.</p>
+      </header>
       <div className="fr-screen-toolbar fr-no-print">
         <div className="fr-screen-toolbar-inner">
           <div className="fr-report-controls fr-report-controls--toolbar">
@@ -280,7 +285,7 @@ const PerformanceReport = () => {
         </table>
 
         {/* ── Section 2 ── */}
-        <div className="fr-section-heading" style={{ marginTop: '2rem' }}>
+        <div className="fr-section-heading fr-section-heading--spaced">
           2. Holdings Performance
         </div>
         <div className="fr-rule" />
@@ -390,7 +395,7 @@ const PerformanceReport = () => {
         </div>
 
         {/* ── Section 3 ── */}
-        <div className="fr-section-heading" style={{ marginTop: '2rem' }}>
+        <div className="fr-section-heading fr-section-heading--spaced">
           3. Sector Allocation &amp; Performance
         </div>
         <div className="fr-rule" />
@@ -407,7 +412,7 @@ const PerformanceReport = () => {
           <tbody>
             {sectorRows.length === 0 ? (
               <tr>
-                <td colSpan="4" style={{ textAlign: 'center', color: '#64748b' }}>
+                <td colSpan="4" className="fr-holdings-empty">
                   No sector breakdown.
                 </td>
               </tr>
@@ -453,7 +458,7 @@ const PerformanceReport = () => {
         </table>
 
         {/* ── Section 4 ── */}
-        <div className="fr-section-heading" style={{ marginTop: '2rem' }}>
+        <div className="fr-section-heading fr-section-heading--spaced">
           4. Risk &amp; Return Metrics
         </div>
         <div className="fr-rule" />
@@ -517,7 +522,7 @@ const PerformanceReport = () => {
         </table>
 
         {/* ── Section 5 ── */}
-        <div className="fr-section-heading" style={{ marginTop: '2rem' }}>
+        <div className="fr-section-heading fr-section-heading--spaced">
           5. Benchmark Comparison — CSE All-Share Index
         </div>
         <div className="fr-rule" />
@@ -549,7 +554,7 @@ const PerformanceReport = () => {
           </tbody>
         </table>
 
-        <div className="fr-rule-thick" style={{ marginTop: '2.5rem' }} />
+        <div className="fr-rule-thick fr-rule-thick--foot" />
         <div className="fr-footer">
           <span>
             {entityDisplay ? (

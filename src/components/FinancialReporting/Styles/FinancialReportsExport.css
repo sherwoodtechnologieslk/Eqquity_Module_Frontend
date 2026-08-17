@@ -1,3 +1,5 @@
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700;9..40,800&display=swap');
+
 /* Financial Reports Export */
 :root {
   --fre-bg: #f8fafc;
@@ -386,3 +388,362 @@
   white-space: normal;
   max-width: 18rem;
 }
+
+/* Equity Portfolio Snapshot — desk layout (does not restyle Other Reports) */
+.fre-wrap--snapshot {
+  padding: 0.15rem 0 1.75rem;
+  background: transparent;
+  color: #0f172a;
+  font-family: 'DM Sans', 'Segoe UI', sans-serif;
+}
+
+.fre-wrap--snapshot *,
+.fre-wrap--snapshot *::before,
+.fre-wrap--snapshot *::after {
+  font-style: normal;
+}
+
+.fre-wrap--snapshot .fre-header {
+  align-items: flex-start;
+  gap: 0.65rem 1rem;
+  margin-bottom: 0.55rem;
+  padding: 0 0.05rem 0.5rem;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.fre-wrap--snapshot .fre-eyebrow {
+  margin: 0 0 0.08rem;
+  font-size: 0.55rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #2563eb;
+}
+
+.fre-wrap--snapshot .fre-header h2 {
+  margin: 0;
+  font-size: clamp(1.05rem, 1.6vw, 1.25rem);
+  font-weight: 750;
+  letter-spacing: -0.02em;
+  text-transform: none;
+  line-height: 1.15;
+  color: #0f172a;
+}
+
+.fre-wrap--snapshot .fre-header p {
+  margin: 0.2rem 0 0;
+  color: #64748b;
+  font-size: 0.72rem;
+  font-weight: 400;
+  line-height: 1.35;
+  max-width: 42rem;
+}
+
+.fre-wrap--snapshot .fre-header-actions {
+  gap: 0.4rem;
+}
+
+.fre-wrap--snapshot .fre-refresh,
+.fre-wrap--snapshot .fre-export-btn {
+  padding: 0.35rem 0.9rem;
+  border-radius: 0.4rem;
+  font-size: 0.76rem;
+  font-weight: 700;
+  font-family: inherit;
+  letter-spacing: 0;
+  text-transform: none;
+  box-shadow: none;
+  transform: none;
+}
+
+.fre-wrap--snapshot .fre-refresh {
+  background: #2563eb;
+  border: 1px solid #1d4ed8;
+  color: #ffffff;
+}
+
+.fre-wrap--snapshot .fre-refresh:hover:not(:disabled) {
+  background: #1d4ed8;
+  transform: none;
+}
+
+.fre-wrap--snapshot .fre-export-excel {
+  background: #15803d;
+  color: #ffffff;
+  border: 1px solid #166534;
+}
+
+.fre-wrap--snapshot .fre-export-excel:hover:not(:disabled) {
+  background: #166534;
+  transform: none;
+  box-shadow: none;
+}
+
+.fre-wrap--snapshot .fre-export-pdf {
+  background: #0f172a;
+  color: #ffffff;
+  border: 1px solid #020617;
+}
+
+.fre-wrap--snapshot .fre-export-pdf:hover:not(:disabled) {
+  background: #020617;
+  transform: none;
+  box-shadow: none;
+}
+
+.fre-wrap--snapshot .fre-panel {
+  box-shadow: none;
+  border-radius: 0.4rem;
+}
+
+.fre-wrap--snapshot .fre-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.65rem 0.85rem;
+  margin-bottom: 0.75rem;
+  padding: 0.65rem 0;
+  background: transparent;
+  border: none;
+  border-radius: 0;
+  box-shadow: none;
+}
+
+.fre-wrap--snapshot .fre-filters label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.28rem;
+  min-width: 10.5rem;
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0;
+  text-transform: none;
+  color: #475569;
+}
+
+.fre-wrap--snapshot .fre-filters select,
+.fre-wrap--snapshot .fre-filters input {
+  padding: 0.4rem 0.65rem;
+  border: 1px solid #e2e8f0;
+  border-radius: 0.4rem;
+  background: #ffffff;
+  font-size: 0.8rem;
+  font-weight: 400;
+  font-family: inherit;
+  color: #0f172a;
+  min-height: 2.15rem;
+  box-sizing: border-box;
+}
+
+.fre-wrap--snapshot .fre-filters select:focus,
+.fre-wrap--snapshot .fre-filters input:focus {
+  outline: none;
+  border-color: #93c5fd;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+}
+
+.fre-wrap--snapshot .fre-error {
+  font-size: 0.76rem;
+  border-radius: 0.4rem;
+  padding: 0.45rem 0.65rem;
+  margin-bottom: 0.75rem;
+}
+
+.fre-wrap--snapshot .fre-table-card {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+}
+
+.fre-wrap--snapshot .fre-meta {
+  padding: 0.55rem 0.75rem;
+  background: #fcfdff;
+  color: #475569;
+  font-size: 0.72rem;
+}
+
+.fre-wrap--snapshot .fre-table th,
+.fre-wrap--snapshot .fre-table td {
+  padding: 0.5rem 0.65rem;
+  font-size: 0.76rem;
+  border-color: #e2e8f0;
+}
+
+.fre-wrap--snapshot .fre-table th {
+  background: #fcfdff;
+  color: #64748b;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+}
+
+.fre-wrap--snapshot .fre-table tbody tr:hover {
+  background: #f8fafc;
+}
+
+.fre-wrap--snapshot .fre-table tfoot td {
+  background: #fcfdff;
+  font-weight: 750;
+}
+
+.fre-wrap--snapshot .fre-table .pos {
+  color: #15803d;
+  font-weight: 700;
+}
+
+.fre-wrap--snapshot .fre-table .neg {
+  color: #dc2626;
+  font-weight: 700;
+}
+
+@media (max-width: 980px) {
+  .fre-wrap--snapshot {
+    padding: 0.15rem 0 1.75rem;
+  }
+
+  .fre-wrap--snapshot .fre-filters {
+    display: flex;
+    flex-direction: column;
+  }
+}
+
+/* Other Reports landing — desk layout (report modals unchanged) */
+.fre-wrap--other-reports {
+  padding: 0.15rem 0 1.75rem;
+  background: transparent;
+}
+
+.fre-wrap--other-reports .fre-header,
+.fre-wrap--other-reports .other-reports-content {
+  font-family: 'DM Sans', 'Segoe UI', sans-serif;
+  color: #0f172a;
+}
+
+.fre-wrap--other-reports .fre-header {
+  align-items: flex-start;
+  margin-bottom: 0.55rem;
+  padding: 0 0.05rem 0.5rem;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.fre-wrap--other-reports .fre-eyebrow {
+  margin: 0 0 0.08rem;
+  font-size: 0.55rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #2563eb;
+}
+
+.fre-wrap--other-reports .fre-header h2 {
+  margin: 0;
+  font-size: clamp(1.05rem, 1.6vw, 1.25rem);
+  font-weight: 750;
+  letter-spacing: -0.02em;
+  text-transform: none;
+  line-height: 1.15;
+  color: #0f172a;
+}
+
+.fre-wrap--other-reports .fre-header p {
+  margin: 0.2rem 0 0;
+  color: #64748b;
+  font-size: 0.72rem;
+  font-weight: 400;
+  line-height: 1.35;
+  max-width: 42rem;
+}
+
+.fre-wrap--other-reports .other-reports-content {
+  margin-top: 0.35rem;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 0.55rem;
+  padding: 0;
+  background: transparent;
+  border: none;
+  box-shadow: none;
+}
+
+.fre-wrap--other-reports .other-reports-content-label {
+  margin: 0;
+  font-size: 0.66rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #64748b;
+}
+
+.fre-wrap--other-reports .other-reports-content-label:not(:first-child) {
+  margin-top: 0.55rem;
+  padding-top: 0.55rem;
+  border-top: 1px solid #e2e8f0;
+}
+
+.fre-wrap--other-reports .other-reports-btn-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.fre-wrap--other-reports .or-btn {
+  border: 1px solid #cbd5e1;
+  background: #ffffff;
+  color: #1e3a5f;
+  padding: 0.4rem 0.9rem;
+  min-height: 2.15rem;
+  cursor: pointer;
+  border-radius: 0.4rem;
+  font-size: 0.76rem;
+  font-weight: 700;
+  letter-spacing: 0;
+  text-transform: none;
+  font-family: inherit;
+  line-height: 1.3;
+  box-shadow: none;
+}
+
+.fre-wrap--other-reports .or-btn:hover {
+  border-color: #94a3b8;
+  background: #f8fafc;
+  color: #0f172a;
+  box-shadow: none;
+}
+
+.fre-wrap--other-reports .or-btn:focus-visible {
+  outline: 2px solid #2563eb;
+  outline-offset: 2px;
+}
+
+.fre-wrap--other-reports .or-btn:active {
+  background: #f1f5f9;
+}
+
+.fre-wrap--other-reports .or-btn--dashboard {
+  border-color: #cbd5e1;
+  background: #ffffff;
+  color: #1e3a5f;
+}
+
+.fre-wrap--other-reports .or-btn--dashboard:hover {
+  border-color: #94a3b8;
+  background: #f8fafc;
+  color: #0f172a;
+}
+
+.fre-wrap--other-reports .or-btn--customize {
+  align-self: flex-start;
+  margin-top: 0.35rem;
+  border: 1px solid #2563eb;
+  background: #2563eb;
+  color: #ffffff;
+  padding-left: 0.9rem;
+  padding-right: 0.9rem;
+}
+
+.fre-wrap--other-reports .or-btn--customize:hover {
+  border-color: #1d4ed8;
+  border-style: solid;
+  background: #1d4ed8;
+  color: #ffffff;
+}
+
+

@@ -122,6 +122,13 @@ const AccountMaster = () => {
     return (
       <div className="eqt-page-container acct-page">
         <div className="eqt-content-wrapper">
+          <header className="eqt-header-section">
+            <div className="eqt-header-text-group">
+              <p className="eqt-eyebrow">Masters · Accounts</p>
+              <h1 className="eqt-main-title">Account Master</h1>
+              <p className="eqt-subtitle">Existing settlement accounts</p>
+            </div>
+          </header>
           <div className="eqt-view-toggle">
             <button type="button" onClick={toggleView} className="eqt-back-btn">
               Back to Entry Form
@@ -151,24 +158,15 @@ const AccountMaster = () => {
   return (
     <div className="eqt-page-container acct-page">
       <div className="eqt-content-wrapper">
-        <div className="eqt-header-section">
-          <div className="eqt-header-icon">
-            <svg className="eqt-icon" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
-              <path d="M4 4a2 2 0 00-2 2v1h16V6a2 2 0 00-2-2H4z" />
-              <path
-                fillRule="evenodd"
-                d="M18 9H2v5a2 2 0 002 2h12a2 2 0 002-2V9zM4 13a1 1 0 011-1h1a1 1 0 110 2H5a1 1 0 01-1-1zm5-1a1 1 0 100 2h1a1 1 0 100-2H9z"
-                clipRule="evenodd"
-              />
-            </svg>
-          </div>
+        <header className="eqt-header-section">
           <div className="eqt-header-text-group">
+            <p className="eqt-eyebrow">Masters · Accounts</p>
             <h1 className="eqt-main-title">Account Master</h1>
             <p className="eqt-subtitle">
-              Configure payment methods and settlement accounts for treasury operations
+              Configure payment methods and settlement accounts
             </p>
           </div>
-        </div>
+        </header>
 
         <div className="eqt-form-card acct-form-shell">
           <div className={`eqt-card-header${isEditMode ? ' eqt-card-header-row' : ''}`}>

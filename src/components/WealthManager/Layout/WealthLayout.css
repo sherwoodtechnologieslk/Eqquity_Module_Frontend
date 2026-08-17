@@ -86,7 +86,7 @@
 .wm-content {
   flex: 1;
   min-width: 0;
-  padding: 1.6rem 1.8rem 2.25rem;
+  padding: 1rem 1.5rem 2rem;
   margin-top: 70px; /* navbar */
 }
 

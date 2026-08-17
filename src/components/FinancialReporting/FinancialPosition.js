@@ -1,45 +1,56 @@
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import './Styles/FinancialPosition.css';
-import { portfolioAPI, financialPositionAPI, profitLossAPI } from '../../services/api';
+import { financialPositionAPI, profitLossAPI } from '../../services/api';
 import {
   buildSofpExportRows,
   SOFP_EXPORT_HEADERS,
   computeDisplayedAssetBuckets,
-  computeEquityDisplayRows,
-  groupByTransactionType,
+  resolveSofpGroups,
   deriveBalanceTypeFromBalance,
   parseNetProfit
 } from '../../utils/sofpExport';
 import { enrichNotesContext } from '../../utils/financialNotesRegistry';
 
 const FinancialPosition = ({ onTabChange }) => {
+  const initialAsOfDate = new Date().toISOString().split('T')[0];
   const [financialPositionData, setFinancialPositionData] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [isRefreshing, setIsRefreshing] = useState(false);
   const [error, setError] = useState('');
   const [netProfit, setNetProfit] = useState(null); // from P&L -> used for retained earnings display
-  const [selectedGroup, setSelectedGroup] = useState(null);
+  const [expandedKeys, setExpandedKeys] = useState(() => new Set());
+  const [isStatementPoppedOut, setIsStatementPoppedOut] = useState(false);
+  const [exportMenuOpen, setExportMenuOpen] = useState(false);
   const [showMtmData, setShowMtmData] = useState(false);
   const [showNotes, setShowNotes] = useState(false);
+  // Draft filter inputs — changing these must NOT auto-reload the statement.
   const [filters, setFilters] = useState({
-    asOfDate: new Date().toISOString().split('T')[0],
-    portfolio: ''
+    asOfDate: initialAsOfDate
   });
-  const [availablePortfolios, setAvailablePortfolios] = useState([]);
+  // Applied query drives fetches (Refresh + MTM/Notes toggles + initial load).
+  const [appliedQuery, setAppliedQuery] = useState({
+    asOfDate: initialAsOfDate,
+    withMtmData: false,
+    withNotes: false
+  });
+  const hasLoadedDataRef = useRef(false);
+  const exportMenuRef = useRef(null);
 
   const periodLabel = useMemo(() => {
-    const dateStr = financialPositionData?.asOfDate || filters.asOfDate;
+    const dateStr = financialPositionData?.asOfDate || appliedQuery.asOfDate;
     const d = new Date(dateStr);
     if (Number.isNaN(d.getTime())) return 'Period';
     // Example output: "Mar, 26" -> "Mar-26"
     const formatted = d.toLocaleDateString('en-US', { month: 'short', year: '2-digit' });
     return formatted.replace(',', '').replace(/\s+/g, '-');
-  }, [financialPositionData, filters.asOfDate]);
+  }, [financialPositionData, appliedQuery.asOfDate]);
 
   const equityDisplayRows = useMemo(
-    () => computeEquityDisplayRows(financialPositionData, netProfit),
-    [financialPositionData, netProfit]
+    () => financialPositionData?.equity || [],
+    [financialPositionData]
   );
 
   const equityTotalsForDisplay = useMemo(() => {
@@ -71,12 +82,19 @@ const FinancialPosition = ({ onTabChange }) => {
     };
   }, [financialPositionData, netProfit]);
 
-  const fetchFinancialPosition = useCallback(async () => {
+  const fetchFinancialPosition = useCallback(async (query) => {
+    const active = query || appliedQuery;
+    const hasExistingData = hasLoadedDataRef.current;
+
     try {
-      setIsLoading(true);
+      if (hasExistingData) {
+        setIsRefreshing(true);
+      } else {
+        setIsLoading(true);
+      }
       setError('');
 
-      const asOfDate = filters.asOfDate;
+      const asOfDate = active.asOfDate;
       const asOfDateObj = new Date(asOfDate);
       const startOfYear = Number.isNaN(asOfDateObj.getTime())
         ? null
@@ -84,15 +102,14 @@ const FinancialPosition = ({ onTabChange }) => {
 
       const profitLossFilters = {
         startDate: startOfYear || undefined,
-        endDate: asOfDate,
-        portfolio: filters.portfolio || undefined
+        endDate: asOfDate
       };
 
       const [fpResp, plResp] = await Promise.all([
         financialPositionAPI.getFinancialPosition({
-          ...filters,
-          withMtmData: showMtmData,
-          withNotes: showNotes
+          asOfDate: active.asOfDate,
+          withMtmData: active.withMtmData,
+          withNotes: active.withNotes
         }),
         profitLossAPI
           .getProfitLoss(profitLossFilters)
@@ -104,6 +121,7 @@ const FinancialPosition = ({ onTabChange }) => {
 
       if (fpResp?.success) {
         setFinancialPositionData(fpResp.data);
+        hasLoadedDataRef.current = true;
       } else {
         throw new Error(fpResp?.error || 'Failed to fetch Financial Position data');
       }
@@ -119,54 +137,104 @@ const FinancialPosition = ({ onTabChange }) => {
       setError(err.message || 'Failed to load Financial Position statement');
       setFinancialPositionData(null);
       setNetProfit(null);
+      hasLoadedDataRef.current = false;
     } finally {
       setIsLoading(false);
+      setIsRefreshing(false);
     }
-  }, [filters, showMtmData, showNotes]);
+  }, [appliedQuery]);
 
   useEffect(() => {
-    fetchFinancialPosition();
-    fetchPortfolios();
-  }, [fetchFinancialPosition]);
+    fetchFinancialPosition(appliedQuery);
+    setExpandedKeys(new Set());
+    // Intentionally keyed to appliedQuery only — draft date edits do not refetch.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [appliedQuery]);
 
-  const fetchPortfolios = async () => {
-    try {
-      const data = await portfolioAPI.getActivePortfolios();
-      setAvailablePortfolios(data);
-    } catch (err) {
-      console.error('Error fetching portfolios:', err);
-    }
-  };
+  useEffect(() => {
+    if (!isStatementPoppedOut) return undefined;
+    const onKeyDown = (event) => {
+      if (event.key === 'Escape') setIsStatementPoppedOut(false);
+    };
+    document.addEventListener('keydown', onKeyDown);
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.removeEventListener('keydown', onKeyDown);
+      document.body.style.overflow = previousOverflow;
+    };
+  }, [isStatementPoppedOut]);
 
-  const handleGroupClick = (group, normalBalanceType) => {
-    setSelectedGroup({ ...group, normalBalanceType });
-  };
+  useEffect(() => {
+    if (!exportMenuOpen) return undefined;
+    const onDocMouseDown = (event) => {
+      if (!exportMenuRef.current?.contains(event.target)) {
+        setExportMenuOpen(false);
+      }
+    };
+    const onKeyDown = (event) => {
+      if (event.key === 'Escape') setExportMenuOpen(false);
+    };
+    document.addEventListener('mousedown', onDocMouseDown);
+    document.addEventListener('keydown', onKeyDown);
+    return () => {
+      document.removeEventListener('mousedown', onDocMouseDown);
+      document.removeEventListener('keydown', onKeyDown);
+    };
+  }, [exportMenuOpen]);
 
-  const goToNotes = (account) => {
+  const applyFiltersAndFetch = useCallback(() => {
+    setAppliedQuery({
+      asOfDate: filters.asOfDate,
+      withMtmData: showMtmData,
+      withNotes: showNotes
+    });
+  }, [filters, showMtmData, showNotes]);
+
+  const goToNotes = (account, group = null) => {
     if (!account) return;
     const ctx = enrichNotesContext({
       source: 'SOFP',
       accountCode: account.accountCode || '',
       accountName: account.accountName || '',
       transactionTypeName:
-        account.transactionTypeName || selectedGroup?.transactionTypeName || '',
-      accountCategory: account.accountCategory || selectedGroup?.accountCategory || '',
+        account.transactionTypeName || group?.transactionTypeName || '',
+      accountCategory: account.accountCategory || group?.accountCategory || '',
       balance: Number(account.balance) || 0,
       balanceType: account.balanceType || '',
-      asOfDate: financialPositionData?.asOfDate || filters.asOfDate,
-      portfolioId: filters.portfolio || '',
+      asOfDate: financialPositionData?.asOfDate || appliedQuery.asOfDate,
+      portfolioId: '',
       portfolioLabel: financialPositionData?.portfolio || 'All Portfolios',
-      displayLabel: getSofpRowLabel(account) || selectedGroup?.label || ''
+      displayLabel: getSofpRowLabel(account) || group?.label || ''
     });
-    setSelectedGroup(null);
     onTabChange?.('Financial Reporting Notes', ctx);
   };
 
   const handleFilterChange = (field, value) => {
-    setFilters(prev => ({
+    setFilters((prev) => ({
       ...prev,
       [field]: value
     }));
+  };
+
+  const handleToggleMtm = (checked) => {
+    const next = Boolean(checked);
+    setShowMtmData(next);
+    setAppliedQuery({
+      asOfDate: filters.asOfDate,
+      withMtmData: next,
+      withNotes: showNotes
+    });
+  };
+
+  const handleToggleNotes = (checked) => {
+    const next = Boolean(checked);
+    setShowNotes(next);
+    setAppliedQuery({
+      asOfDate: filters.asOfDate,
+      withMtmData: showMtmData,
+      withNotes: next
+    });
   };
 
   const formatCurrency = (amount) => {
@@ -271,61 +339,183 @@ const FinancialPosition = ({ onTabChange }) => {
     [financialPositionData]
   );
 
-  // One row per transaction type for each statement bucket.
+  // Prefer backend groups (section → transaction type → accounts); local fallback if absent.
   const nonCurrentAssetGroups = useMemo(
-    () => groupByTransactionType(displayedAssetBuckets.nonCurrentAssets),
-    [displayedAssetBuckets]
+    () =>
+      resolveSofpGroups(
+        financialPositionData,
+        'nonCurrentAssets',
+        displayedAssetBuckets.nonCurrentAssets,
+        netProfit
+      ),
+    [financialPositionData, displayedAssetBuckets, netProfit]
   );
   const currentAssetGroups = useMemo(
-    () => groupByTransactionType(displayedAssetBuckets.currentAssets),
-    [displayedAssetBuckets]
+    () =>
+      resolveSofpGroups(
+        financialPositionData,
+        'currentAssets',
+        displayedAssetBuckets.currentAssets,
+        netProfit
+      ),
+    [financialPositionData, displayedAssetBuckets, netProfit]
   );
   const equityGroups = useMemo(
-    () => groupByTransactionType(equityDisplayRows),
-    [equityDisplayRows]
+    () => resolveSofpGroups(financialPositionData, 'equity', equityDisplayRows, netProfit),
+    [financialPositionData, equityDisplayRows, netProfit]
   );
   const nonCurrentLiabilityGroups = useMemo(
-    () => groupByTransactionType(financialPositionData?.liabilities?.nonCurrentLiabilities),
-    [financialPositionData]
+    () =>
+      resolveSofpGroups(
+        financialPositionData,
+        'nonCurrentLiabilities',
+        financialPositionData?.liabilities?.nonCurrentLiabilities,
+        netProfit
+      ),
+    [financialPositionData, netProfit]
   );
   const currentLiabilityGroups = useMemo(
-    () => groupByTransactionType(financialPositionData?.liabilities?.currentLiabilities),
-    [financialPositionData]
+    () =>
+      resolveSofpGroups(
+        financialPositionData,
+        'currentLiabilities',
+        financialPositionData?.liabilities?.currentLiabilities,
+        netProfit
+      ),
+    [financialPositionData, netProfit]
   );
 
-  /** SOFP first column: chart_of_accounts.transaction_type when set, else GL account name */
+  /** Group label is chart_of_accounts.transaction_type (from backend). */
   const getSofpRowLabel = (account) => {
     const t = String(account?.transactionTypeName || '').trim();
-    return t || account?.accountName || '';
+    return t || 'Unassigned';
+  };
+
+  const toggleGroupExpanded = (key) => {
+    setExpandedKeys((prev) => {
+      const next = new Set(prev);
+      if (next.has(key)) next.delete(key);
+      else next.add(key);
+      return next;
+    });
+  };
+
+  const allStatementGroups = useMemo(
+    () => [
+      ...nonCurrentAssetGroups,
+      ...currentAssetGroups,
+      ...equityGroups,
+      ...nonCurrentLiabilityGroups,
+      ...currentLiabilityGroups
+    ],
+    [
+      nonCurrentAssetGroups,
+      currentAssetGroups,
+      equityGroups,
+      nonCurrentLiabilityGroups,
+      currentLiabilityGroups
+    ]
+  );
+
+  const expandAllGroups = () => {
+    setExpandedKeys(new Set(allStatementGroups.map((group) => group.key)));
+  };
+
+  const collapseAllGroups = () => {
+    setExpandedKeys(new Set());
+  };
+
+  const allGroupsExpanded =
+    allStatementGroups.length > 0 &&
+    allStatementGroups.every((group) => expandedKeys.has(group.key));
+
+  const toggleExpandCollapseAll = () => {
+    if (allGroupsExpanded) collapseAllGroups();
+    else expandAllGroups();
   };
 
   const renderGroupRow = (group, index, normalBalanceType) => {
     const balanceType = deriveBalanceTypeFromBalance(group.balance, normalBalanceType);
     const state = getLineState(balanceType, normalBalanceType);
     const count = group.accounts.length;
+    const groupKey = group.key || `group-${index}`;
+    const isExpanded = expandedKeys.has(groupKey);
+    const canExpand = count > 0;
+
     return (
-      <tr key={group.key || index} className="fp-account-row">
-        <td className="fp-account-name">
-          <button
-            type="button"
-            className="fp-account-link"
-            onClick={() => handleGroupClick(group, normalBalanceType)}
-          >
-            {group.label}
-            {count > 1 && <span className="fp-account-count">{count} accounts</span>}
-          </button>
-        </td>
-        <td className="fp-amount-cell">
-          <span className={`fp-account-balance ${state}`}>
-            {formatCurrency(Number(group.balance) || 0)}
-          </span>
-        </td>
-        <td className="fp-drcr-cell">
-          <span className={`fp-drcr-badge ${state}`}>
-            {balanceType === 'ZERO' ? '—' : balanceType}
-          </span>
-        </td>
-      </tr>
+      <React.Fragment key={groupKey}>
+        <tr className={`fp-account-row${isExpanded ? ' fp-account-row--expanded' : ''}`}>
+          <td className="fp-account-name">
+            <button
+              type="button"
+              className="fp-account-link"
+              onClick={() => canExpand && toggleGroupExpanded(groupKey)}
+              aria-expanded={canExpand ? isExpanded : undefined}
+              disabled={!canExpand}
+            >
+              <span className={`fp-expand-caret${isExpanded ? ' is-open' : ''}`} aria-hidden="true">
+                ▸
+              </span>
+              <span className="fp-account-link-text">{group.label}</span>
+              {count > 1 && <span className="fp-account-count">{count} accounts</span>}
+            </button>
+          </td>
+          <td className="fp-amount-cell">
+            <span className={`fp-account-balance ${state}`}>
+              {formatCurrency(Number(group.balance) || 0)}
+            </span>
+          </td>
+          <td className="fp-drcr-cell">
+            <span className={`fp-drcr-badge ${state}`}>
+              {balanceType === 'ZERO' ? '—' : balanceType}
+            </span>
+          </td>
+        </tr>
+        {isExpanded &&
+          group.accounts.map((acc, i) => {
+            const detailBalanceType =
+              acc.balanceType ||
+              deriveBalanceTypeFromBalance(Number(acc.balance) || 0, normalBalanceType);
+            const detailState = getLineState(detailBalanceType, normalBalanceType);
+            return (
+              <tr key={`${groupKey}-detail-${acc.accountCode || i}`} className="fp-detail-row">
+                <td className="fp-account-name">
+                  <div className="fp-detail-line">
+                    <span className="fp-detail-code">
+                      {acc.accountCode?.trim() ? acc.accountCode : '—'}
+                    </span>
+                    <span className="fp-detail-name">
+                      {acc.accountName?.trim() ? acc.accountName : '—'}
+                    </span>
+                    <button
+                      type="button"
+                      className="fp-detail-notes"
+                      onClick={() => goToNotes(acc, group)}
+                      disabled={!acc.accountCode?.trim()}
+                      title={
+                        acc.accountCode?.trim()
+                          ? 'View notes for this account'
+                          : 'No GL account behind this line'
+                      }
+                    >
+                      Notes
+                    </button>
+                  </div>
+                </td>
+                <td className="fp-amount-cell">
+                  <span className={`fp-account-balance ${detailState}`}>
+                    {formatCurrency(Number(acc.balance) || 0)}
+                  </span>
+                </td>
+                <td className="fp-drcr-cell">
+                  <span className={`fp-drcr-badge ${detailState}`}>
+                    {detailBalanceType === 'ZERO' ? '—' : detailBalanceType}
+                  </span>
+                </td>
+              </tr>
+            );
+          })}
+      </React.Fragment>
     );
   };
 
@@ -343,7 +533,173 @@ const FinancialPosition = ({ onTabChange }) => {
     </tr>
   );
 
-  if (isLoading) {
+  const renderStatementGrid = () => (
+    <div className="fp-statement-grid">
+      <div className="fp-side-card">
+        <div className="fp-side-card-header">
+          <div>
+            <h2 className="fp-side-title">Assets</h2>
+            <div className="fp-side-asof">As at {periodLabel}</div>
+          </div>
+        </div>
+
+        <div className="fp-side-card-body">
+          <div className="fp-subsection">
+            <h3 className="fp-subsection-title">Non-current assets</h3>
+            <div className="fp-table-container">
+              <table className="fp-data-table">
+                <thead>
+                  <tr className="fp-table-header">
+                    <th className="fp-th-name">Transaction type</th>
+                    <th className="fp-th-balance">Amount</th>
+                    <th className="fp-th-drcr">DR/CR</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {nonCurrentAssetGroups.map((group, index) =>
+                    renderGroupRow(group, index, 'DR')
+                  )}
+                  {nonCurrentAssetGroups.length > 0 &&
+                    renderSubtotalRow(
+                      'Total Non-current assets',
+                      displayedAssetBuckets.totalNonCurrentAssets || 0
+                    )}
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <div className="fp-subsection-divider" />
+
+          <div className="fp-subsection">
+            <h3 className="fp-subsection-title">Current assets</h3>
+            <div className="fp-table-container">
+              <table className="fp-data-table">
+                <thead>
+                  <tr className="fp-table-header">
+                    <th className="fp-th-name">Transaction type</th>
+                    <th className="fp-th-balance">Amount</th>
+                    <th className="fp-th-drcr">DR/CR</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {currentAssetGroups.map((group, index) =>
+                    renderGroupRow(group, index, 'DR')
+                  )}
+                  {currentAssetGroups.length > 0 &&
+                    renderSubtotalRow(
+                      'Total Current assets',
+                      displayedAssetBuckets.totalCurrentAssets || 0
+                    )}
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <div className="fp-total-strip">
+            <span className="fp-total-strip-label">Total Assets</span>
+            <span className="fp-total-strip-value">
+              {formatCurrency(Number(financialPositionData?.totals?.totalAssets) || 0)}
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <div className="fp-side-card">
+        <div className="fp-side-card-header">
+          <div>
+            <h2 className="fp-side-title">Equity & Liabilities</h2>
+            <div className="fp-side-asof">As at {periodLabel}</div>
+          </div>
+        </div>
+
+        <div className="fp-side-card-body">
+          <div className="fp-subsection">
+            <h3 className="fp-subsection-title">Equity</h3>
+            <div className="fp-table-container">
+              <table className="fp-data-table">
+                <thead>
+                  <tr className="fp-table-header">
+                    <th className="fp-th-name">Transaction type</th>
+                    <th className="fp-th-balance">Amount</th>
+                    <th className="fp-th-drcr">DR/CR</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {equityGroups.map((group, index) => renderGroupRow(group, index, 'CR'))}
+                  {equityGroups.length > 0 &&
+                    renderSubtotalRow('Total Equity', equityTotalsForDisplay?.totalEquity || 0)}
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <div className="fp-subsection-divider" />
+
+          <div className="fp-subsection">
+            <h3 className="fp-subsection-title">Non-current liabilities</h3>
+            <div className="fp-table-container">
+              <table className="fp-data-table">
+                <thead>
+                  <tr className="fp-table-header">
+                    <th className="fp-th-name">Transaction type</th>
+                    <th className="fp-th-balance">Amount</th>
+                    <th className="fp-th-drcr">DR/CR</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {nonCurrentLiabilityGroups.map((group, index) =>
+                    renderGroupRow(group, index, 'CR')
+                  )}
+                  {nonCurrentLiabilityGroups.length > 0 &&
+                    renderSubtotalRow(
+                      'Total Non-current liabilities',
+                      financialPositionData?.totals?.totalNonCurrentLiabilities || 0
+                    )}
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <div className="fp-subsection-divider" />
+
+          <div className="fp-subsection">
+            <h3 className="fp-subsection-title">Current liabilities</h3>
+            <div className="fp-table-container">
+              <table className="fp-data-table">
+                <thead>
+                  <tr className="fp-table-header">
+                    <th className="fp-th-name">Transaction type</th>
+                    <th className="fp-th-balance">Amount</th>
+                    <th className="fp-th-drcr">DR/CR</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {currentLiabilityGroups.map((group, index) =>
+                    renderGroupRow(group, index, 'CR')
+                  )}
+                  {currentLiabilityGroups.length > 0 &&
+                    renderSubtotalRow(
+                      'Total Current liabilities',
+                      financialPositionData?.totals?.totalCurrentLiabilities || 0
+                    )}
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <div className="fp-total-strip">
+            <span className="fp-total-strip-label">Total Equity & Liabilities</span>
+            <span className="fp-total-strip-value">
+              {formatCurrency(Number(equityTotalsForDisplay?.totalLiabilitiesAndEquity) || 0)}
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+
+  if (isLoading && !financialPositionData) {
     return (
       <div className="fp-loading-container">
         <div className="fp-loading-spinner"></div>
@@ -352,12 +708,12 @@ const FinancialPosition = ({ onTabChange }) => {
     );
   }
 
-  if (error) {
+  if (error && !financialPositionData) {
     return (
       <div className="fp-error-container">
         <h2 className="fp-error-title">Error</h2>
         <p className="fp-error-message">{error}</p>
-        <button className="fp-retry-button" onClick={fetchFinancialPosition}>
+        <button className="fp-retry-button" onClick={applyFiltersAndFetch}>
           Retry
         </button>
       </div>
@@ -365,7 +721,7 @@ const FinancialPosition = ({ onTabChange }) => {
   }
 
   return (
-    <div className="fp-main-container">
+    <div className={`fp-main-container${isRefreshing ? ' fp-is-refreshing' : ''}`}>
       {/* Header */}
       <div className="fp-header-section">
         <div className="fp-header-left">
@@ -373,7 +729,7 @@ const FinancialPosition = ({ onTabChange }) => {
           <div className="fp-period-info">
             <span className="fp-period-label">As at the period ended:</span>
             <span className="fp-period-date">
-              {formatDate(financialPositionData?.asOfDate || filters.asOfDate)}
+              {formatDate(financialPositionData?.asOfDate || appliedQuery.asOfDate)}
             </span>
             <span className="fp-portfolio-info">
               ({financialPositionData?.portfolio || 'All Portfolios'})
@@ -382,58 +738,102 @@ const FinancialPosition = ({ onTabChange }) => {
         </div>
         <div className="fp-header-right">
           <div className="fp-generated-info">
-            Generated: {new Date(financialPositionData?.generatedDate || Date.now()).toLocaleString()}
+            {isRefreshing
+              ? 'Refreshing…'
+              : `Generated: ${new Date(financialPositionData?.generatedDate || Date.now()).toLocaleString()}`}
           </div>
-          <button className="fp-export-button" onClick={exportSofpPdf}>
-            Export PDF
-          </button>
-          <button className="fp-export-button" onClick={exportSofpExcel}>
-            Export to Excel
-          </button>
           <button
-            className={`fp-export-button ${showMtmData ? 'active' : ''}`}
-            onClick={() => setShowMtmData((prev) => !prev)}
+            type="button"
+            className="fp-export-button"
+            onClick={() => setIsStatementPoppedOut(true)}
+            disabled={isStatementPoppedOut}
           >
-            With MTM data
-          </button>
-          <button
-            className={`fp-export-button ${showNotes ? 'active' : ''}`}
-            onClick={() => setShowNotes((prev) => !prev)}
-          >
-            With notes
+            Open fullscreen
           </button>
         </div>
       </div>
 
-      {/* Filters */}
+      {/* Filters + options */}
       <div className="fp-filters-section">
         <div className="fp-filters-row">
           <div className="fp-filter-group">
-            <label className="fp-filter-label">As of Date:</label>
+            <label className="fp-filter-label" htmlFor="fp-as-of-date">
+              As of Date:
+            </label>
             <input
+              id="fp-as-of-date"
               type="date"
               className="fp-filter-input"
               value={filters.asOfDate}
               onChange={(e) => handleFilterChange('asOfDate', e.target.value)}
             />
           </div>
-          <div className="fp-filter-group">
-            <label className="fp-filter-label">Portfolio:</label>
-            <select
-              className="fp-filter-select"
-              value={filters.portfolio}
-              onChange={(e) => handleFilterChange('portfolio', e.target.value)}
-            >
-              <option value="">All Portfolios</option>
-              {availablePortfolios.map(portfolio => (
-                <option key={portfolio.portfolioId} value={portfolio.portfolioId}>
-                  {portfolio.portfolioName}
-                </option>
-              ))}
-            </select>
+
+          <div className="fp-option-group" role="group" aria-label="Statement options">
+            <label className="fp-option-check" htmlFor="fp-with-mtm">
+              <input
+                id="fp-with-mtm"
+                type="checkbox"
+                checked={showMtmData}
+                onChange={(e) => handleToggleMtm(e.target.checked)}
+              />
+              <span>MTM data</span>
+            </label>
+            <label className="fp-option-check" htmlFor="fp-with-notes">
+              <input
+                id="fp-with-notes"
+                type="checkbox"
+                checked={showNotes}
+                onChange={(e) => handleToggleNotes(e.target.checked)}
+              />
+              <span>Notes</span>
+            </label>
           </div>
+
           <div className="fp-filter-actions">
-            <button onClick={fetchFinancialPosition} className="fp-refresh-button">
+            <div className="fp-export-menu" ref={exportMenuRef}>
+              <button
+                type="button"
+                className="fp-export-button"
+                aria-haspopup="menu"
+                aria-expanded={exportMenuOpen}
+                onClick={() => setExportMenuOpen((open) => !open)}
+              >
+                Export ▾
+              </button>
+              {exportMenuOpen && (
+                <div className="fp-export-menu-panel" role="menu">
+                  <button
+                    type="button"
+                    className="fp-export-menu-item"
+                    role="menuitem"
+                    onClick={() => {
+                      setExportMenuOpen(false);
+                      exportSofpPdf();
+                    }}
+                  >
+                    Export PDF
+                  </button>
+                  <button
+                    type="button"
+                    className="fp-export-menu-item"
+                    role="menuitem"
+                    onClick={() => {
+                      setExportMenuOpen(false);
+                      exportSofpExcel();
+                    }}
+                  >
+                    Export to Excel
+                  </button>
+                </div>
+              )}
+            </div>
+            <button
+              type="button"
+              onClick={applyFiltersAndFetch}
+              className="fp-refresh-button"
+              disabled={isRefreshing}
+            >
               Refresh
             </button>
           </div>
@@ -480,272 +880,68 @@ const FinancialPosition = ({ onTabChange }) => {
       </div>
 
       <div className="fp-notes-hint" role="note" aria-live="polite">
-        Click any transaction type below to view details and go to notes for accounts.
+        Click a transaction type to expand its GL accounts. Use Notes on an account to open reporting notes.
       </div>
 
-      {/* Main Content - Professional Statement Layout */}
-      <div className="fp-statement-content">
-        <div className="fp-statement-grid">
-          {/* Assets */}
-          <div className="fp-side-card">
-            <div className="fp-side-card-header">
-              <div>
-                <h2 className="fp-side-title">Assets</h2>
-                <div className="fp-side-asof">As at {periodLabel}</div>
-              </div>
-            </div>
-
-            <div className="fp-side-card-body">
-              {/* Non-current assets */}
-              <div className="fp-subsection">
-                <h3 className="fp-subsection-title">Non-current assets</h3>
-                <div className="fp-table-container">
-                  <table className="fp-data-table">
-                    <thead>
-                      <tr className="fp-table-header">
-                        <th className="fp-th-name">Transaction type</th>
-                        <th className="fp-th-balance">Amount</th>
-                        <th className="fp-th-drcr">DR/CR</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {nonCurrentAssetGroups.map((group, index) =>
-                        renderGroupRow(group, index, 'DR')
-                      )}
-                      {nonCurrentAssetGroups.length > 0 &&
-                        renderSubtotalRow(
-                          'Total Non-current assets',
-                          displayedAssetBuckets.totalNonCurrentAssets || 0
-                        )}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-
-              <div className="fp-subsection-divider" />
-
-              {/* Current assets */}
-              <div className="fp-subsection">
-                <h3 className="fp-subsection-title">Current assets</h3>
-                <div className="fp-table-container">
-                  <table className="fp-data-table">
-                    <thead>
-                      <tr className="fp-table-header">
-                        <th className="fp-th-name">Transaction type</th>
-                        <th className="fp-th-balance">Amount</th>
-                        <th className="fp-th-drcr">DR/CR</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {currentAssetGroups.map((group, index) =>
-                        renderGroupRow(group, index, 'DR')
-                      )}
-                      {currentAssetGroups.length > 0 &&
-                        renderSubtotalRow(
-                          'Total Current assets',
-                          displayedAssetBuckets.totalCurrentAssets || 0
-                        )}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-
-              <div className="fp-total-strip">
-                <span className="fp-total-strip-label">Total Assets</span>
-                <span className="fp-total-strip-value">
-                  {formatCurrency(Number(financialPositionData?.totals?.totalAssets) || 0)}
-                </span>
-              </div>
-            </div>
-          </div>
-
-          {/* Liabilities & Equity */}
-          <div className="fp-side-card">
-            <div className="fp-side-card-header">
-              <div>
-                <h2 className="fp-side-title">Equity & Liabilities</h2>
-                <div className="fp-side-asof">As at {periodLabel}</div>
-              </div>
-            </div>
-
-            <div className="fp-side-card-body">
-              {/* Equity */}
-              <div className="fp-subsection">
-                <h3 className="fp-subsection-title">Equity</h3>
-                <div className="fp-table-container">
-                  <table className="fp-data-table">
-                    <thead>
-                      <tr className="fp-table-header">
-                        <th className="fp-th-name">Transaction type</th>
-                        <th className="fp-th-balance">Amount</th>
-                        <th className="fp-th-drcr">DR/CR</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {equityGroups.map((group, index) => renderGroupRow(group, index, 'CR'))}
-                      {equityGroups.length > 0 &&
-                      renderSubtotalRow('Total Equity', equityTotalsForDisplay?.totalEquity || 0)
-                      }
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-
-              <div className="fp-subsection-divider" />
-
-              {/* Liabilities */}
-              <div className="fp-subsection">
-                <h3 className="fp-subsection-title">Non-current liabilities</h3>
-                <div className="fp-table-container">
-                  <table className="fp-data-table">
-                    <thead>
-                      <tr className="fp-table-header">
-                        <th className="fp-th-name">Transaction type</th>
-                        <th className="fp-th-balance">Amount</th>
-                        <th className="fp-th-drcr">DR/CR</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {nonCurrentLiabilityGroups.map((group, index) =>
-                        renderGroupRow(group, index, 'CR')
-                      )}
-                      {nonCurrentLiabilityGroups.length > 0 &&
-                        renderSubtotalRow(
-                          'Total Non-current liabilities',
-                          financialPositionData?.totals?.totalNonCurrentLiabilities || 0
-                        )}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-
-              <div className="fp-subsection-divider" />
-
-              <div className="fp-subsection">
-                <h3 className="fp-subsection-title">Current liabilities</h3>
-                <div className="fp-table-container">
-                  <table className="fp-data-table">
-                    <thead>
-                      <tr className="fp-table-header">
-                        <th className="fp-th-name">Transaction type</th>
-                        <th className="fp-th-balance">Amount</th>
-                        <th className="fp-th-drcr">DR/CR</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {currentLiabilityGroups.map((group, index) =>
-                        renderGroupRow(group, index, 'CR')
-                      )}
-                      {currentLiabilityGroups.length > 0 &&
-                        renderSubtotalRow(
-                          'Total Current liabilities',
-                          financialPositionData?.totals?.totalCurrentLiabilities || 0
-                        )}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-
-              <div className="fp-total-strip">
-                <span className="fp-total-strip-label">Total Equity & Liabilities</span>
-                <span className="fp-total-strip-value">
-                  {formatCurrency(Number(equityTotalsForDisplay?.totalLiabilitiesAndEquity) || 0)}
-                </span>
-              </div>
-            </div>
-          </div>
-        </div>
+      <div className="fp-statement-toolbar">
+        <button type="button" className="fp-toolbar-link" onClick={toggleExpandCollapseAll}>
+          {allGroupsExpanded ? 'Collapse all' : 'Expand all'}
+        </button>
       </div>
 
-      {/* Transaction type drill-down modal */}
-      {selectedGroup && (
-        <div
-          className="fp-modal-overlay"
-          role="dialog"
-          aria-modal="true"
-          onClick={() => setSelectedGroup(null)}
-        >
-          <div className="fp-modal" onClick={(e) => e.stopPropagation()}>
-            <div className="fp-modal-header">
-              <div className="fp-modal-title">{selectedGroup.label || 'Transaction type'}</div>
-              <button
-                type="button"
-                className="fp-modal-close"
-                onClick={() => setSelectedGroup(null)}
-              >
-                Close
-              </button>
-            </div>
-            <div className="fp-modal-body">
-              <p className="fp-modal-table-intro">
-                {selectedGroup.accounts.length > 1
-                  ? 'GL accounts under this transaction type. Choose an account to view its notes.'
-                  : 'GL account for this transaction type. Choose View notes to see its entries.'}
-              </p>
-              <div className="fp-modal-table-wrap">
-                <table className="fp-modal-table">
-                  <thead>
-                    <tr>
-                      <th scope="col">Account code</th>
-                      <th scope="col">Account name</th>
-                      <th scope="col" className="fp-modal-table-amount">
-                        Amount
-                      </th>
-                      <th scope="col" className="fp-modal-table-action" aria-label="Actions" />
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {selectedGroup.accounts.map((acc, i) => (
-                      <tr key={acc.accountCode || i}>
-                        <td>{acc.accountCode?.trim() ? acc.accountCode : '—'}</td>
-                        <td>{acc.accountName?.trim() ? acc.accountName : '—'}</td>
-                        <td className="fp-modal-table-amount">
-                          <span className="fp-modal-table-amount-num">
-                            {formatCurrency(Number(acc.balance) || 0)}
-                          </span>
-                          {acc.balanceType && acc.balanceType !== 'ZERO' ? (
-                            <span className="fp-modal-table-drcr">{acc.balanceType}</span>
-                          ) : null}
-                        </td>
-                        <td className="fp-modal-table-action">
-                          <button
-                            type="button"
-                            className="fp-modal-row-notes"
-                            onClick={() => goToNotes(acc)}
-                            disabled={!acc.accountCode?.trim()}
-                            title={
-                              acc.accountCode?.trim()
-                                ? 'View notes for this account'
-                                : 'No GL account behind this line'
-                            }
-                          >
-                            View notes
-                          </button>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                  {selectedGroup.accounts.length > 1 && (
-                    <tfoot>
-                      <tr>
-                        <td colSpan="2" className="fp-modal-total-label">
-                          Total
-                        </td>
-                        <td className="fp-modal-table-amount">
-                          <span className="fp-modal-table-amount-num">
-                            {formatCurrency(Number(selectedGroup.balance) || 0)}
-                          </span>
-                        </td>
-                        <td className="fp-modal-table-action" />
-                      </tr>
-                    </tfoot>
-                  )}
-                </table>
-              </div>
-            </div>
-          </div>
+      {isStatementPoppedOut && (
+        <div className="fp-statement-placeholder">
+          Statement is open in fullscreen. Press Esc or Close to return.
         </div>
       )}
+
+      {!isStatementPoppedOut && (
+        <div className="fp-statement-content">{renderStatementGrid()}</div>
+      )}
+
+      {isStatementPoppedOut &&
+        typeof document !== 'undefined' &&
+        createPortal(
+          <div
+            className="fp-statement-popout-overlay"
+            role="dialog"
+            aria-modal="true"
+            aria-label="Statement of Financial Position"
+            onClick={() => setIsStatementPoppedOut(false)}
+          >
+            <div
+              className="fp-statement-popout-modal"
+              onClick={(event) => event.stopPropagation()}
+            >
+              <div className="fp-statement-popout-bar">
+                <div className="fp-statement-popout-title-wrap">
+                  <div className="fp-statement-popout-title">
+                    Statement of Financial Position
+                  </div>
+                  <div className="fp-statement-popout-meta">
+                    As at {formatDate(financialPositionData?.asOfDate || appliedQuery.asOfDate)}
+                    {' · '}
+                    {financialPositionData?.portfolio || 'All Portfolios'}
+                  </div>
+                </div>
+                <div className="fp-statement-popout-actions">
+                  <button type="button" className="fp-export-button" onClick={toggleExpandCollapseAll}>
+                    {allGroupsExpanded ? 'Collapse all' : 'Expand all'}
+                  </button>
+                  <button
+                    type="button"
+                    className="fp-refresh-button"
+                    onClick={() => setIsStatementPoppedOut(false)}
+                  >
+                    Close
+                  </button>
+                </div>
+              </div>
+              <div className="fp-statement-popout-body">{renderStatementGrid()}</div>
+            </div>
+          </div>,
+          document.body
+        )}
     </div>
   );
 };

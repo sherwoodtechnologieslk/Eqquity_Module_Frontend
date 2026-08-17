@@ -136,9 +136,10 @@ const CashFlow = ({ onTabChange }) => {
   return (
     <div className="cash-flow-container">
       {/* Header */}
-      <div className="cf-header">
+      <header className="cf-header">
         <div className="cf-header-left">
           <div className="cf-header-text-group">
+            <p className="cf-eyebrow">Accounting · Reporting</p>
             <h1 className="cf-main-title">Statement of Cash Flows</h1>
             <p className="cf-subtitle">Operating, investing &amp; financing cash movements for the period</p>
           </div>
@@ -153,7 +154,7 @@ const CashFlow = ({ onTabChange }) => {
             })}
           </span>
         </div>
-      </div>
+      </header>
 
       {/* Tabs Navigation */}
       <div className="cf-tabs-container">
@@ -189,7 +190,7 @@ const CashFlow = ({ onTabChange }) => {
           <div className="cf-tab-content">
             <div className="cf-op-page-header">
               <div>
-                <h2 className="cf-section-title" style={{ marginBottom: '0.25rem' }}>Operating Activities</h2>
+                <h2 className="cf-section-title">Operating Activities</h2>
                 <p className="cf-op-subtitle">Cash flows generated from core business operations</p>
               </div>
             </div>

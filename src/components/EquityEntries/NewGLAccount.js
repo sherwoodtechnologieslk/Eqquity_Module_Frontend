@@ -1583,12 +1583,13 @@ const NewGLAccount = () => {
   return (
     <div className="new-gl-account-container">
       {/* Header Section */}
-      <div className="new-gl-header-section">
+      <header className="new-gl-header-section">
         <div className="new-gl-header-text-group">
+          <p className="new-gl-eyebrow">Accounting · GL</p>
           <h1 className="new-gl-main-title">GL Account Specification</h1>
           <p className="new-gl-subtitle">Define general ledger account mappings for your chart of accounts</p>
         </div>
-      </div>
+      </header>
 
       {/* Success Message */}
       {showSuccess && (

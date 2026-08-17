@@ -24,16 +24,16 @@
   display: flex;
   flex-direction: row;
   align-items: flex-start;
-  gap: 0.75rem;
-  padding: 0.95rem 1rem;
+  gap: 0.65rem;
+  padding: 0.7rem 0.8rem;
   min-height: auto;
   text-align: left;
   border: 1px solid #e2e8f0;
-  border-radius: 0.65rem;
-  background: #f8fafc;
+  border-radius: 0.5rem;
+  background: #ffffff;
   cursor: pointer;
   box-shadow: none;
-  transition: border-color 0.15s ease, background 0.15s ease, box-shadow 0.15s ease;
+  transition: border-color 0.12s ease, background 0.12s ease;
 }
 
 .pcm-method-card:hover:not(:disabled) {
@@ -43,8 +43,8 @@
 
 .pcm-method-card--selected {
   border-color: #2563eb;
-  background: #ffffff;
-  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.12);
+  background: #f8fafc;
+  box-shadow: none;
 }
 
 .pcm-method-card--premium:not(.pcm-method-card--selected) {
@@ -118,12 +118,12 @@
 .pcm-method-lock {
   position: static;
   flex-shrink: 0;
-  font-size: 0.6875rem;
-  font-weight: 400;
-  text-transform: none;
-  letter-spacing: normal;
-  padding: 0.15rem 0.5rem;
-  border-radius: 999px;
+  font-size: 0.62rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  padding: 0.12rem 0.4rem;
+  border-radius: 0.3rem;
   background: #fff7ed;
   color: #c2410c;
   border: 1px solid #fed7aa;
@@ -133,14 +133,14 @@
   display: flex;
   align-items: flex-start;
   gap: 0.55rem;
-  padding: 0.75rem 0.95rem;
-  margin-bottom: 1rem;
-  background: #eff6ff;
-  border: none;
-  border-radius: 0.5rem;
-  font-size: 0.78rem;
-  color: #475569;
-  line-height: 1.45;
+  padding: 0.55rem 0.7rem;
+  margin-bottom: 0.85rem;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 0.4rem;
+  font-size: 0.72rem;
+  color: #64748b;
+  line-height: 1.4;
 }
 
 .pcm-info-strip svg {
@@ -199,8 +199,8 @@
 }
 
 .pcm-assigned-body .eqt-data-table th {
-  background: #f1f5f9;
-  color: #374151;
+  background: #fcfdff;
+  color: #64748b;
 }
 
 .pcm-assigned-body .eqt-data-table tbody tr:hover {

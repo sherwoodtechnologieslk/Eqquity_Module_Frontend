@@ -4,6 +4,10 @@ import {
   buildHoldingsFromTransactions,
   buildHoldingsFromBackendPositions,
 } from '../../utils/portfolioHoldingsExport';
+import {
+  exportPortfolioSelectionToExcel,
+  exportPortfolioSelectionToPdf,
+} from '../../utils/portfolioSelectionExport';
 import { toLocalYmd, txTradeDateYmd } from '../../utils/tradeDateYmd';
 import './Styles/PortfolioDropdown.css';
 
@@ -300,259 +304,200 @@ const PortfolioDropdown = () => {
     setIsFocused(false);
   };
 
-  // const formatCurrency = (amount) => {
-  //   return new Intl.NumberFormat('en-US', {
-  //     style: 'currency',
-  //     currency: 'USD',
-  //     minimumFractionDigits: 2
-  //   }).format(amount);
-  // };
+  const exportMeta = () => {
+    const portfolioLabel = isAllPortfoliosSelected
+      ? 'All Portfolios'
+      : selectedPortfolio || 'Portfolio';
+    const costingLabel =
+      selectedPortfolio === ALL_PORTFOLIOS_VALUE
+        ? 'Varies by portfolio'
+        : costingMethodLabels[selectedPortfolioCostingMethod] ||
+          selectedPortfolioCostingMethod ||
+          '';
+    return {
+      holdings: holdingsFilteredDates,
+      portfolioName: portfolioLabel,
+      costingMethod: costingLabel,
+      dateFrom: holdingsLastUpdateFrom.trim() || '',
+      dateTo: holdingsLastUpdateTo.trim() || '',
+      filenameBase: `portfolio-holdings-${String(portfolioLabel)
+        .replace(/[^\w\-]+/g, '_')
+        .slice(0, 40)}`,
+    };
+  };
 
+  const canExport =
+    Boolean(selectedPortfolio) && !holdingsLoading && holdingsFilteredDates.length > 0;
+
+  const handleExportExcel = () => {
+    if (!canExport) return;
+    exportPortfolioSelectionToExcel(exportMeta());
+  };
+
+  const handleExportPdf = () => {
+    if (!canExport) return;
+    exportPortfolioSelectionToPdf(exportMeta());
+  };
 
   return (
-    <div className="pf-dropdown-container pf-page">
-      {/* Header Section */}
-      <div className="pf-header-section">
-        <div className="pf-header-text-group">
-          <h1 className="pf-main-title">Portfolio Selection</h1>
-          <p className="pf-header-subtitle">
-            View holdings, average cost, and charges for each portfolio
+    <div className="pf-page">
+      <header className="pf-rail">
+        <div>
+          <p className="pf-rail__eyebrow">Trading · Portfolio</p>
+          <h1 className="pf-rail__title">Portfolio Selection</h1>
+          <p className="pf-rail__blurb">
+            Select a portfolio to review holdings, average cost, charges, and net value.
           </p>
         </div>
-        <button
-          className={`pf-refresh-button ${isRefreshing ? 'pf-refreshing' : ''}`}
-          onClick={handleRefresh}
-          disabled={portfoliosLoading || isRefreshing}
-          title="Refresh portfolios"
-          aria-label="Refresh portfolio list"
-        >
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-            <path d="m17 1 4 4-4 4"></path>
-            <path d="M3 11V9a4 4 0 0 1 4-4h14"></path>
-            <path d="m7 23-4-4 4-4"></path>
-            <path d="M21 13v2a4 4 0 0 1-4 4H3"></path>
-          </svg>
-        </button>
-      </div>
-
-      {/* Dropdown Section */}
-      <div className="pf-select-card">
-        <label htmlFor="portfolio-select" className="pf-select-label">
-          Portfolio
-        </label>
-        <div className="pf-select-wrapper">
-        <div className={`pf-select-container ${isFocused ? 'pf-focused' : ''} ${portfoliosLoading ? 'pf-loading' : ''}`}> 
-          <select
-            id="portfolio-select"
-            className="pf-dropdown-select"
-            value={selectedPortfolio}
-            onChange={handleSelectChange}
-            onFocus={handleFocus}
-            onBlur={handleBlur}
-            disabled={portfoliosLoading}
+        <div className="pf-rail__actions">
+          <button
+            type="button"
+            className="pf-btn pf-btn--excel"
+            onClick={handleExportExcel}
+            disabled={!canExport}
+            title={canExport ? 'Export holdings to Excel' : 'Select a portfolio with holdings to export'}
           >
-            <option value="" disabled>
-              {portfoliosLoading
-                ? 'Loading portfolios...'
-                : portfolios.length === 0
-                  ? 'No active portfolios found'
-                  : 'Choose your portfolio'}
-            </option>
-            <option value={ALL_PORTFOLIOS_VALUE}>All Portfolios</option>
-            {portfolios.map((portfolio, index) => (
-              <option key={`portfolio-${portfolio.id}-${index}`} value={portfolio.portfolioName}>
-                {portfolio.portfolioName}
-              </option>
-            ))}
-          </select>
-          <div className="pf-select-icon-container">
-            {portfoliosLoading ? (
-              <div className="pf-loading-animation">
-                <div className="pf-loading-ring"></div>
-                <div className="pf-loading-ring pf-loading-ring-2"></div>
-                <div className="pf-loading-ring pf-loading-ring-3"></div>
-              </div>
+            Export Excel
+          </button>
+          <button
+            type="button"
+            className="pf-btn pf-btn--pdf"
+            onClick={handleExportPdf}
+            disabled={!canExport}
+            title={canExport ? 'Export holdings to PDF' : 'Select a portfolio with holdings to export'}
+          >
+            Export PDF
+          </button>
+          <button
+            type="button"
+            className={`pf-refresh${isRefreshing ? ' is-spinning' : ''}`}
+            onClick={handleRefresh}
+            disabled={portfoliosLoading || isRefreshing}
+            title="Refresh portfolios"
+            aria-label="Refresh portfolio list"
+          >
+            {isRefreshing ? 'Refreshing…' : 'Refresh'}
+          </button>
+        </div>
+      </header>
+
+      <section className="pf-controls" aria-label="Portfolio filters">
+        <div className="pf-controls__row pf-controls__row--select">
+          <label className="pf-field pf-field--grow" htmlFor="portfolio-select">
+            <span className="pf-label">Portfolio</span>
+            <div className={`pf-select${isFocused ? ' is-focused' : ''}${portfoliosLoading ? ' is-loading' : ''}`}>
+              <select
+                id="portfolio-select"
+                className="pf-select__control"
+                value={selectedPortfolio}
+                onChange={handleSelectChange}
+                onFocus={handleFocus}
+                onBlur={handleBlur}
+                disabled={portfoliosLoading}
+              >
+                <option value="" disabled>
+                  {portfoliosLoading
+                    ? 'Loading portfolios…'
+                    : portfolios.length === 0
+                      ? 'No active portfolios found'
+                      : 'Choose your portfolio'}
+                </option>
+                <option value={ALL_PORTFOLIOS_VALUE}>All Portfolios</option>
+                {portfolios.map((portfolio, index) => (
+                  <option key={`portfolio-${portfolio.id}-${index}`} value={portfolio.portfolioName}>
+                    {portfolio.portfolioName}
+                  </option>
+                ))}
+              </select>
+              <span className={`pf-select__chevron${isOpen ? ' is-open' : ''}`} aria-hidden>
+                ▾
+              </span>
+            </div>
+          </label>
+
+          {selectedPortfolio ? (
+            <div className="pf-costing-inline">
+              <span className="pf-label">Costing</span>
+              {selectedPortfolio === ALL_PORTFOLIOS_VALUE ? (
+                <span className="pf-muted">Varies by portfolio</span>
+              ) : selectedPortfolioCostingMethod ? (
+                <span className="pf-method">
+                  {costingMethodLabels[selectedPortfolioCostingMethod] || selectedPortfolioCostingMethod}
+                </span>
+              ) : (
+                <span className="pf-muted">Not assigned</span>
+              )}
+            </div>
+          ) : null}
+        </div>
+
+        {selectedPortfolio && (
+          <div
+            className={`pf-controls__row pf-controls__row--dates${holdingsDateRangeWasReversed ? ' is-warn' : ''}`}
+            aria-label="Filter holdings by transaction trade date"
+          >
+            <label className="pf-field">
+              <span className="pf-label">Trade date from</span>
+              <input
+                id="pfHoldingsLastFrom"
+                type="date"
+                className="pf-input"
+                value={holdingsLastUpdateFrom}
+                onChange={(e) => setHoldingsLastUpdateFrom(e.target.value)}
+                disabled={holdingsLoading}
+              />
+            </label>
+            <label className="pf-field">
+              <span className="pf-label">Trade date to</span>
+              <input
+                id="pfHoldingsLastTo"
+                type="date"
+                className="pf-input"
+                value={holdingsLastUpdateTo}
+                onChange={(e) => setHoldingsLastUpdateTo(e.target.value)}
+                disabled={holdingsLoading}
+              />
+            </label>
+            {hasHoldingsDateFilter ? (
+              <button
+                type="button"
+                className="pf-btn pf-btn--ghost pf-btn--clear"
+                onClick={() => {
+                  setHoldingsLastUpdateFrom('');
+                  setHoldingsLastUpdateTo('');
+                }}
+              >
+                Clear dates
+              </button>
             ) : (
-              <div className={`pf-dropdown-chevron ${isOpen ? 'pf-chevron-open' : ''}`}>
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                  <polyline points="6,9 12,15 18,9"></polyline>
-                </svg>
-              </div>
+              <span className="pf-hint-inline">Optional · blank = all trades</span>
             )}
+            {holdingsDateRangeWasReversed ? (
+              <span className="pf-warn-inline">From/To reversed for filtering.</span>
+            ) : null}
           </div>
-          {selectedPortfolio && !portfoliosLoading && (
-            <div className="pf-success-indicator">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                <polyline points="20,6 9,17 4,12"></polyline>
-              </svg>
-            </div>
-          )}
-        </div>
-        </div>
-      </div>
+        )}
+      </section>
 
       {selectedPortfolio && (
-        <div className="pf-secondary-container" aria-label="Trade date filter and costing method">
-          <div className="pf-secondary-grid pf-secondary-grid-v2">
-            <div
-              className={`pf-holdings-date-filter${holdingsDateRangeWasReversed ? ' pf-holdings-date-filter-reversed' : ''}`}
-              aria-label="Filter holdings by transaction trade date"
-            >
-              <div className="pf-panel-title-row">
-                <div className="pf-panel-title">
-                  <span>Trade date</span>
-                </div>
-                {hasHoldingsDateFilter ? (
-                  <button
-                    type="button"
-                    className="pf-link-btn"
-                    onClick={() => {
-                      setHoldingsLastUpdateFrom('');
-                      setHoldingsLastUpdateTo('');
-                    }}
-                  >
-                    Clear
-                  </button>
-                ) : (
-                  <span className="pf-panel-meta">Optional</span>
-                )}
-              </div>
-              {holdingsDateRangeWasReversed ? (
-                <div className="pf-inline-warning">From/To were reversed for filtering.</div>
-              ) : null}
-              <div className="pf-holdings-date-filter-controls">
-                <div className="pf-holdings-date-filter-field">
-                  <label htmlFor="pfHoldingsLastFrom">From</label>
-                  <input
-                    id="pfHoldingsLastFrom"
-                    type="date"
-                    className="pf-holdings-date-input"
-                    value={holdingsLastUpdateFrom}
-                    onChange={(e) => setHoldingsLastUpdateFrom(e.target.value)}
-                    disabled={holdingsLoading}
-                  />
-                </div>
-                <div className="pf-holdings-date-filter-field">
-                  <label htmlFor="pfHoldingsLastTo">To</label>
-                  <input
-                    id="pfHoldingsLastTo"
-                    type="date"
-                    className="pf-holdings-date-input"
-                    value={holdingsLastUpdateTo}
-                    onChange={(e) => setHoldingsLastUpdateTo(e.target.value)}
-                    disabled={holdingsLoading}
-                  />
-                </div>
-              </div>
-              <ul className="pf-rule-list" aria-label="Trade date filter rules">
-                <li><strong>From</strong> only: include trades from that date through today.</li>
-                <li><strong>To</strong> only: include trades on or before that date.</li>
-                <li><strong>Both</strong>: inclusive between the dates.</li>
-                <li>Leave both blank to use all trades.</li>
-              </ul>
+        <section className="pf-desk" aria-label="Portfolio holdings">
+          <div className="pf-desk__head">
+            <div>
+              <h2>Portfolio holdings</h2>
+              <p>
+                Current holdings for{' '}
+                <strong>{isAllPortfoliosSelected ? 'All Portfolios' : selectedPortfolio}</strong>
+                {selectedPortfolioId && !isAllPortfoliosSelected ? ` (${selectedPortfolioId})` : ''}
+                {hasHoldingsDateFilter && holdingsAllDates.length > 0
+                  ? ` · ${holdingsFilteredDates.length} of ${holdingsAllDates.length} rows`
+                  : ''}
+              </p>
             </div>
-
-            <div className="pf-costing-method-section">
-              <div className="pf-panel-title-row">
-                <div className="pf-panel-title">
-                  <span>Costing method</span>
-                </div>
-                {selectedPortfolioCostingMethod ? (
-                  <span className="pf-badge pf-badge-blue">Assigned</span>
-                ) : (
-                  <span className="pf-badge pf-badge-gray">Not assigned</span>
-                )}
-              </div>
-
-              <div className="pf-kv">
-                <div className="pf-kv-row">
-                  <div className="pf-kv-label">Portfolio</div>
-                  <div className="pf-kv-value">
-                    {selectedPortfolio === ALL_PORTFOLIOS_VALUE
-                      ? 'All Portfolios'
-                      : `${selectedPortfolio} (${selectedPortfolioId})`}
-                  </div>
-                </div>
-                <div className="pf-kv-row">
-                  <div className="pf-kv-label">Method</div>
-                  <div className="pf-kv-value">
-                    {selectedPortfolio === ALL_PORTFOLIOS_VALUE ? (
-                      <span className="pf-muted">
-                        Multiple portfolios selected - costing method varies by portfolio
-                      </span>
-                    ) : selectedPortfolioCostingMethod ? (
-                      <span className="pf-method-pill">
-                        {costingMethodLabels[selectedPortfolioCostingMethod] || selectedPortfolioCostingMethod}
-                      </span>
-                    ) : (
-                      <span className="pf-muted">No costing method assigned</span>
-                    )}
-                  </div>
-                </div>
-              </div>
-          </div>
-        </div>
-        </div>
-      )}
-
-      {/* Portfolio Holdings Table */}
-      {selectedPortfolio && (
-           <div className="ph-table-section">
-             <div className="ph-table-header">
-               <div className="ph-table-header-row">
-                 <h2>Portfolio Holdings</h2>
-                 {hasHoldingsDateFilter ? (
-                   <button
-                     type="button"
-                     className="pf-holdings-date-clear ph-header-clear"
-                     onClick={() => {
-                       setHoldingsLastUpdateFrom('');
-                       setHoldingsLastUpdateTo('');
-                     }}
-                   >
-                     Clear date filter
-                   </button>
-                 ) : null}
-               </div>
-               <p>
-                 Current holdings for{' '}
-                 <strong>{isAllPortfoliosSelected ? 'All Portfolios' : selectedPortfolio}</strong>
-                 {hasHoldingsDateFilter && holdingsAllDates.length > 0
-                   ? ` (${holdingsFilteredDates.length} of ${holdingsAllDates.length} rows by trade date filter).`
-                   : '.'}
-               </p>
-          </div>
-          
-             {holdingsLoading ? (
-               <div className="ph-loading">
-                 <div className="ph-loading-spinner"></div>
-                 <p>Loading portfolio holdings...</p>
-            </div>
-             ) : holdingsAllDates.length === 0 ? (
-               <div className="ph-no-data">
-                 <div className="ph-no-data-icon">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                     <path d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
-              </svg>
-            </div>
-                 <h3>No Holdings Data</h3>
-                 <p>No holdings found for this portfolio. Make sure you have transactions recorded for this portfolio.</p>
-              </div>
-            ) : hasHoldingsDateFilter && holdingsFilteredDates.length === 0 ? (
-              <div className="ph-no-data">
-                <div className="ph-no-data-icon">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <path d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
-                  </svg>
-                </div>
-                <h3>No Holdings in This Date Range</h3>
-                <p>
-                  None of the holdings remain after filtering trades by <strong>trade date</strong>. Adjust the filter
-                  or clear the dates.
-                </p>
+            <div className="pf-desk__actions">
+              {hasHoldingsDateFilter ? (
                 <button
                   type="button"
-                  className="pf-holdings-date-clear ph-no-data-clear"
+                  className="pf-btn pf-btn--ghost"
                   onClick={() => {
                     setHoldingsLastUpdateFrom('');
                     setHoldingsLastUpdateTo('');
@@ -560,77 +505,183 @@ const PortfolioDropdown = () => {
                 >
                   Clear date filter
                 </button>
-              </div>
-            ) : (
-               <div className="ph-table-container">
-                 <table className="ph-table">
-                   <thead>
-                     <tr>
-                       <th>Company</th>
-                       <th>Company ID</th>
-                       <th>Net Quantity</th>
-                       <th>Average Buy Price</th>
-                       <th>Cost per Share</th>
-                       <th>Cost Value</th>
-                       <th>Charges</th>
-                       <th>Net Value</th>
-                        <th>Last Trade Date</th>
-                      </tr>
-                    </thead>
-                   <tbody>
-                     {holdingsFilteredDates.map((holding) => (
-                       <tr key={`${holding.companyKey}-${holding.companyName}`} className="ph-table-row">
-                         <td className="ph-company-name">{holding.companyName}</td>
-                         <td className="ph-company-id">{holding.companyId || '—'}</td>
-                         <td className="ph-quantity">{(holding.netQuantity || 0).toLocaleString()}</td>
-                         <td className="ph-avg-price">{(holding.avgBuyPrice || 0).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
-                         <td className="ph-cost-per-share">{(holding.costPerShare || 0).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 4})}</td>
-                         <td className="ph-total-value">{(holding.costValue || 0).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
-                         <td className="ph-charges">{(holding.totalCharges || 0).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
-                         <td className="ph-net-value">{(holding.netValue || 0).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 4})}</td>
-                         <td className="ph-last-update">
-                           {holding.lastTradeDate ? holding.lastTradeDate : '—'}
-                         </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                   <tfoot>
-                     <tr className="ph-total-row">
-                       <td><strong>Portfolio Totals</strong></td>
-                       <td className="ph-total-company-id" aria-hidden="true" />
-                       <td className="ph-total-quantity">
-                         {holdingsFilteredDates.reduce((sum, holding) => sum + (holding.netQuantity || 0), 0).toLocaleString()}
-                       </td>
-                       <td className="ph-total-avg-price">
-                         {holdingsFilteredDates.length > 0 ? 
-                           (holdingsFilteredDates.reduce((sum, holding) => sum + (holding.costValue || 0), 0) / 
-                            holdingsFilteredDates.reduce((sum, holding) => sum + (holding.netQuantity || 0), 0)).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2}) : 
-                           '0.00'
-                         }
-                       </td>
-                       <td className="ph-total-cost-per-share">
-                         {holdingsFilteredDates.length > 0 ? 
-                           (holdingsFilteredDates.reduce((sum, holding) => sum + (holding.netValue || 0), 0) / 
-                            holdingsFilteredDates.reduce((sum, holding) => sum + (holding.netQuantity || 0), 0)).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 4}) : 
-                           '0.00'
-                         }
-                       </td>
-                       <td className="ph-total-value-sum">
-                         {holdingsFilteredDates.reduce((sum, holding) => sum + (holding.costValue || 0), 0).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}
-                       </td>
-                       <td className="ph-total-charges">
-                         {holdingsFilteredDates.reduce((sum, holding) => sum + (holding.totalCharges || 0), 0).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}
-                       </td>
-                       <td className="ph-total-net-value">
-                         {holdingsFilteredDates.reduce((sum, holding) => sum + (holding.netValue || 0), 0).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 4})}
-                       </td>
-                       <td className="ph-total-last-update" aria-hidden="true" />
-                     </tr>
-                   </tfoot>
-                  </table>
-                  </div>
-                )}
-              </div>
+              ) : null}
+              <button
+                type="button"
+                className="pf-btn pf-btn--excel"
+                onClick={handleExportExcel}
+                disabled={!canExport}
+              >
+                Export Excel
+              </button>
+              <button
+                type="button"
+                className="pf-btn pf-btn--pdf"
+                onClick={handleExportPdf}
+                disabled={!canExport}
+              >
+                Export PDF
+              </button>
+            </div>
+          </div>
+
+          {holdingsLoading ? (
+            <div className="pf-state">
+              <div className="pf-spinner" />
+              <p>Loading portfolio holdings…</p>
+            </div>
+          ) : holdingsAllDates.length === 0 ? (
+            <div className="pf-state">
+              <h3>No holdings data</h3>
+              <p>No holdings found for this portfolio. Record transactions first.</p>
+            </div>
+          ) : hasHoldingsDateFilter && holdingsFilteredDates.length === 0 ? (
+            <div className="pf-state">
+              <h3>No holdings in this date range</h3>
+              <p>Adjust the trade-date filter or clear the dates.</p>
+              <button
+                type="button"
+                className="pf-btn pf-btn--ghost"
+                onClick={() => {
+                  setHoldingsLastUpdateFrom('');
+                  setHoldingsLastUpdateTo('');
+                }}
+              >
+                Clear date filter
+              </button>
+            </div>
+          ) : (
+            <div className="pf-table-wrap">
+              <table className="pf-table">
+                <thead>
+                  <tr>
+                    <th>Company</th>
+                    <th>Company ID</th>
+                    <th className="num">Net qty</th>
+                    <th className="num">Avg buy</th>
+                    <th className="num">Cost / share</th>
+                    <th className="num">Cost value</th>
+                    <th className="num">Charges</th>
+                    <th className="num">Net value</th>
+                    <th>Last trade</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {holdingsFilteredDates.map((holding) => (
+                    <tr key={`${holding.companyKey}-${holding.companyName}`}>
+                      <td className="name">{holding.companyName}</td>
+                      <td className="symbol">{holding.companyId || '—'}</td>
+                      <td className="num">{(holding.netQuantity || 0).toLocaleString()}</td>
+                      <td className="num">
+                        {(holding.avgBuyPrice || 0).toLocaleString(undefined, {
+                          minimumFractionDigits: 2,
+                          maximumFractionDigits: 2,
+                        })}
+                      </td>
+                      <td className="num">
+                        {(holding.costPerShare || 0).toLocaleString(undefined, {
+                          minimumFractionDigits: 2,
+                          maximumFractionDigits: 4,
+                        })}
+                      </td>
+                      <td className="num">
+                        {(holding.costValue || 0).toLocaleString(undefined, {
+                          minimumFractionDigits: 2,
+                          maximumFractionDigits: 2,
+                        })}
+                      </td>
+                      <td className="num">
+                        {(holding.totalCharges || 0).toLocaleString(undefined, {
+                          minimumFractionDigits: 2,
+                          maximumFractionDigits: 2,
+                        })}
+                      </td>
+                      <td className="num">
+                        {(holding.netValue || 0).toLocaleString(undefined, {
+                          minimumFractionDigits: 2,
+                          maximumFractionDigits: 4,
+                        })}
+                      </td>
+                      <td className="date">{holding.lastTradeDate ? holding.lastTradeDate : '—'}</td>
+                    </tr>
+                  ))}
+                </tbody>
+                <tfoot>
+                  <tr>
+                    <td>
+                      <strong>Portfolio totals</strong>
+                    </td>
+                    <td aria-hidden="true" />
+                    <td className="num">
+                      {holdingsFilteredDates
+                        .reduce((sum, holding) => sum + (holding.netQuantity || 0), 0)
+                        .toLocaleString()}
+                    </td>
+                    <td className="num">
+                      {holdingsFilteredDates.length > 0
+                        ? (
+                            holdingsFilteredDates.reduce(
+                              (sum, holding) => sum + (holding.costValue || 0),
+                              0
+                            ) /
+                            holdingsFilteredDates.reduce(
+                              (sum, holding) => sum + (holding.netQuantity || 0),
+                              0
+                            )
+                          ).toLocaleString(undefined, {
+                            minimumFractionDigits: 2,
+                            maximumFractionDigits: 2,
+                          })
+                        : '0.00'}
+                    </td>
+                    <td className="num">
+                      {holdingsFilteredDates.length > 0
+                        ? (
+                            holdingsFilteredDates.reduce(
+                              (sum, holding) => sum + (holding.netValue || 0),
+                              0
+                            ) /
+                            holdingsFilteredDates.reduce(
+                              (sum, holding) => sum + (holding.netQuantity || 0),
+                              0
+                            )
+                          ).toLocaleString(undefined, {
+                            minimumFractionDigits: 2,
+                            maximumFractionDigits: 4,
+                          })
+                        : '0.00'}
+                    </td>
+                    <td className="num">
+                      {holdingsFilteredDates
+                        .reduce((sum, holding) => sum + (holding.costValue || 0), 0)
+                        .toLocaleString(undefined, {
+                          minimumFractionDigits: 2,
+                          maximumFractionDigits: 2,
+                        })}
+                    </td>
+                    <td className="num">
+                      {holdingsFilteredDates
+                        .reduce((sum, holding) => sum + (holding.totalCharges || 0), 0)
+                        .toLocaleString(undefined, {
+                          minimumFractionDigits: 2,
+                          maximumFractionDigits: 2,
+                        })}
+                    </td>
+                    <td className="num">
+                      {holdingsFilteredDates
+                        .reduce((sum, holding) => sum + (holding.netValue || 0), 0)
+                        .toLocaleString(undefined, {
+                          minimumFractionDigits: 2,
+                          maximumFractionDigits: 4,
+                        })}
+                    </td>
+                    <td aria-hidden="true" />
+                  </tr>
+                </tfoot>
+              </table>
+            </div>
+          )}
+        </section>
       )}
     </div>
   );
