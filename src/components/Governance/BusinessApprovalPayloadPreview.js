@@ -4,10 +4,27 @@ import { NON_TRADING_SOURCE_LABELS } from '../../utils/nonTradingMakerChecker';
 
 const PAGE_SIZE = 25;
 
+/** Full field set for Cards view (original layout). */
 const NON_TRADING_SUMMARY_FIELDS = [
   { key: 'voucherNumber', label: 'Voucher' },
   { key: 'accountType', label: 'Account type' },
   { key: 'transactionType', label: 'Transaction type' },
+  { key: 'amount', label: 'Amount', format: 'amount' },
+  { key: 'date', label: 'Date', format: 'date' },
+  { key: 'glAccountCode', label: 'GL account' },
+  { key: 'coaDescription', label: 'GL description' },
+  { key: 'debitGlAccountCode', label: 'Debit GL' },
+  { key: 'creditGlAccountCode', label: 'Credit GL' },
+  { key: 'currency', label: 'Currency' },
+  { key: 'reference', label: 'Reference' },
+  { key: 'description', label: 'Description' },
+  { key: 'counterparty', label: 'Counterparty' },
+  { key: 'notes', label: 'Notes' },
+];
+
+/** Slimmer field set for Table expand (cleaned layout). */
+const NON_TRADING_TABLE_SUMMARY_FIELDS = [
+  { key: 'voucherNumber', label: 'Voucher' },
   { key: 'amount', label: 'Amount', format: 'amount' },
   { key: 'date', label: 'Date', format: 'date' },
   { key: 'glAccountCode', label: 'GL account' },
@@ -47,6 +64,13 @@ function formatDateTime(value) {
   return d.toLocaleString('en-LK');
 }
 
+function formatDateOnly(value) {
+  if (value == null || value === '') return '—';
+  const d = new Date(value);
+  if (Number.isNaN(d.getTime())) return String(value);
+  return d.toLocaleDateString('en-LK');
+}
+
 function formatAmount(value) {
   if (value == null || value === '') return '—';
   const n = Number(value);
@@ -55,20 +79,21 @@ function formatAmount(value) {
   return n.toLocaleString('en-LK', { minimumFractionDigits: 2, maximumFractionDigits: 4 });
 }
 
-function formatCell(key, value) {
+function formatCell(key, value, dateOnly = false) {
   if (value == null || value === '') return '—';
-  if (key === 'entry_date') return formatDateTime(value);
+  if (key === 'entry_date') return dateOnly ? formatDateOnly(value) : formatDateTime(value);
   if (key === 'debit_amount' || key === 'credit_amount') return formatAmount(value);
   return String(value);
 }
 
-function GsecEntriesPreview({ request }) {
+function GsecEntriesPreview({ request, forceExpanded = false }) {
   const entries = useMemo(
     () => (Array.isArray(request.payload?.entries) ? request.payload.entries : []),
     [request.payload]
   );
-  const [expanded, setExpanded] = useState(request.status === 'pending');
+  const [expanded, setExpanded] = useState(forceExpanded || request.status === 'pending');
   const [page, setPage] = useState(1);
+  const showBody = forceExpanded || expanded;
 
   if (!entries.length) {
     return (
@@ -87,40 +112,42 @@ function GsecEntriesPreview({ request }) {
     null;
 
   return (
-    <div className="agp-payload-preview">
-      <div className="agp-payload-preview-head">
-        <button
-          type="button"
-          className={`agp-payload-toggle${expanded ? ' agp-payload-toggle--active' : ''}`}
-          onClick={() => setExpanded((v) => !v)}
-          aria-expanded={expanded}
-        >
-          <span className="agp-payload-toggle-icon" aria-hidden="true">
-            <svg viewBox="0 0 20 20" fill="currentColor" focusable="false">
-              {expanded ? (
-                <path fillRule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.94a.75.75 0 111.08 1.04l-4.24 4.5a.75.75 0 01-1.08 0l-4.24-4.5a.75.75 0 01.02-1.06z" clipRule="evenodd" />
-              ) : (
-                <path fillRule="evenodd" d="M7.21 14.77a.75.75 0 01.02-1.06L11.168 10 7.23 6.29a.75.75 0 111.04-1.08l4.5 4.24a.75.75 0 010 1.08l-4.5 4.24a.75.75 0 01-1.06-.02z" clipRule="evenodd" />
-              )}
-            </svg>
-          </span>
-          <span className="agp-payload-toggle-label">
-            {expanded ? 'Hide submitted data' : 'View submitted data'}
-          </span>
-          <span className="agp-payload-count-badge">{entries.length}</span>
-        </button>
-        {sourceLabel && (
-          <span className="agp-payload-source">
-            <span className="agp-payload-source-label">Source</span>
-            {sourceLabel}
-          </span>
-        )}
-        {request.payload?.passDuplicates && (
-          <span className="agp-payload-warn">Duplicate check bypassed</span>
-        )}
-      </div>
+    <div className={`agp-payload-preview${forceExpanded ? ' agp-payload-preview--embedded' : ''}`}>
+      {!forceExpanded && (
+        <div className="agp-payload-preview-head">
+          <button
+            type="button"
+            className={`agp-payload-toggle${expanded ? ' agp-payload-toggle--active' : ''}`}
+            onClick={() => setExpanded((v) => !v)}
+            aria-expanded={expanded}
+          >
+            <span className="agp-payload-toggle-icon" aria-hidden="true">
+              <svg viewBox="0 0 20 20" fill="currentColor" focusable="false">
+                {expanded ? (
+                  <path fillRule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.94a.75.75 0 111.08 1.04l-4.24 4.5a.75.75 0 01-1.08 0l-4.24-4.5a.75.75 0 01.02-1.06z" clipRule="evenodd" />
+                ) : (
+                  <path fillRule="evenodd" d="M7.21 14.77a.75.75 0 01.02-1.06L11.168 10 7.23 6.29a.75.75 0 111.04-1.08l4.5 4.24a.75.75 0 010 1.08l-4.5 4.24a.75.75 0 01-1.06-.02z" clipRule="evenodd" />
+                )}
+              </svg>
+            </span>
+            <span className="agp-payload-toggle-label">
+              {expanded ? 'Hide submitted data' : 'View submitted data'}
+            </span>
+            <span className="agp-payload-count-badge">{entries.length}</span>
+          </button>
+          {sourceLabel && (
+            <span className="agp-payload-source">
+              <span className="agp-payload-source-label">Source</span>
+              {sourceLabel}
+            </span>
+          )}
+          {request.payload?.passDuplicates && (
+            <span className="agp-payload-warn">Duplicate check bypassed</span>
+          )}
+        </div>
+      )}
 
-      {expanded && (
+      {showBody && (
         <div className="agp-payload-card">
           <div className="agp-payload-table-wrap">
             <table className="agp-payload-table">
@@ -144,7 +171,7 @@ function GsecEntriesPreview({ request }) {
                     <td className="agp-payload-rownum">{start + idx + 1}</td>
                     {GSEC_COLUMNS.map((col) => {
                       const raw = row[col.key];
-                      const display = formatCell(col.key, raw);
+                      const display = formatCell(col.key, raw, forceExpanded);
                       const isZeroAmount =
                         (col.key === 'debit_amount' || col.key === 'credit_amount') &&
                         (raw === 0 || raw === '0' || display === '0');
@@ -205,16 +232,52 @@ function GsecEntriesPreview({ request }) {
   );
 }
 
-function NonTradingPreview({ request }) {
+function GlLinesTable({ title, lines }) {
+  if (!lines.length) return null;
+  return (
+    <div className="agp-gl-block">
+      <p className="agp-gl-block__title">{title}</p>
+      <div className="agp-payload-table-wrap">
+        <table className="agp-payload-table agp-gl-table">
+          <thead>
+            <tr>
+              <th className="agp-payload-th">Account</th>
+              <th className="agp-payload-th">Name</th>
+              <th className="agp-payload-th agp-payload-num">Amount</th>
+            </tr>
+          </thead>
+          <tbody>
+            {lines.map((line, idx) => (
+              <tr key={`${title}-${idx}`}>
+                <td className="agp-payload-td agp-gl-account">
+                  {line.accountCode || line.account_code || '—'}
+                </td>
+                <td className="agp-payload-td">{line.accountName || line.account_name || '—'}</td>
+                <td className="agp-payload-td agp-payload-num">{formatAmount(line.amount)}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+}
+
+function NonTradingPreview({ request, forceExpanded = false }) {
   const isReverse =
     request.action_type === 'post' || request.payload?.operation === 'reverse';
   const transaction = useMemo(() => {
     if (isReverse) return request.payload || {};
     return request.payload?.transaction || request.payload || {};
   }, [request.payload, isReverse]);
-  const [expanded, setExpanded] = useState(request.status === 'pending');
+  const [expanded, setExpanded] = useState(forceExpanded || request.status === 'pending');
+  const showBody = forceExpanded || expanded;
 
-  const fields = isReverse ? REVERSE_SUMMARY_FIELDS : NON_TRADING_SUMMARY_FIELDS;
+  const fields = isReverse
+    ? REVERSE_SUMMARY_FIELDS
+    : forceExpanded
+      ? NON_TRADING_TABLE_SUMMARY_FIELDS
+      : NON_TRADING_SUMMARY_FIELDS;
   const visibleFields = fields.filter((f) => {
     const v = transaction[f.key];
     return v != null && v !== '';
@@ -228,128 +291,167 @@ function NonTradingPreview({ request }) {
     request.payload?.source ||
     null;
 
-  return (
-    <div className="agp-payload-preview">
-      <div className="agp-payload-preview-head">
-        <button
-          type="button"
-          className={`agp-payload-toggle${expanded ? ' agp-payload-toggle--active' : ''}`}
-          onClick={() => setExpanded((v) => !v)}
-          aria-expanded={expanded}
-        >
-          <span className="agp-payload-toggle-icon" aria-hidden="true">
-            <svg viewBox="0 0 20 20" fill="currentColor" focusable="false">
-              {expanded ? (
-                <path fillRule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.94a.75.75 0 111.08 1.04l-4.24 4.5a.75.75 0 01-1.08 0l-4.24-4.5a.75.75 0 01.02-1.06z" clipRule="evenodd" />
-              ) : (
-                <path fillRule="evenodd" d="M7.21 14.77a.75.75 0 01.02-1.06L11.168 10 7.23 6.29a.75.75 0 111.04-1.08l4.5 4.24a.75.75 0 010 1.08l-4.5 4.24a.75.75 0 01-1.06-.02z" clipRule="evenodd" />
-              )}
-            </svg>
-          </span>
-          <span className="agp-payload-toggle-label">
-            {expanded ? 'Hide submitted data' : 'View submitted data'}
-          </span>
-        </button>
-        {sourceLabel && (
-          <span className="agp-payload-source">
-            <span className="agp-payload-source-label">Source</span>
-            {sourceLabel}
-          </span>
-        )}
-      </div>
+  const formatFieldValue = (field, raw) => {
+    if (field.format === 'amount') return formatAmount(raw);
+    if (field.format === 'date') {
+      return forceExpanded ? formatDateOnly(raw) : formatDateTime(raw);
+    }
+    return String(raw);
+  };
 
-      {expanded && (
+  return (
+    <div className={`agp-payload-preview${forceExpanded ? ' agp-payload-preview--embedded' : ''}`}>
+      {!forceExpanded && (
+        <div className="agp-payload-preview-head">
+          <button
+            type="button"
+            className={`agp-payload-toggle${expanded ? ' agp-payload-toggle--active' : ''}`}
+            onClick={() => setExpanded((v) => !v)}
+            aria-expanded={expanded}
+          >
+            <span className="agp-payload-toggle-icon" aria-hidden="true">
+              <svg viewBox="0 0 20 20" fill="currentColor" focusable="false">
+                {expanded ? (
+                  <path fillRule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.94a.75.75 0 111.08 1.04l-4.24 4.5a.75.75 0 01-1.08 0l-4.24-4.5a.75.75 0 01.02-1.06z" clipRule="evenodd" />
+                ) : (
+                  <path fillRule="evenodd" d="M7.21 14.77a.75.75 0 01.02-1.06L11.168 10 7.23 6.29a.75.75 0 111.04-1.08l4.5 4.24a.75.75 0 010 1.08l-4.5 4.24a.75.75 0 01-1.06-.02z" clipRule="evenodd" />
+                )}
+              </svg>
+            </span>
+            <span className="agp-payload-toggle-label">
+              {expanded ? 'Hide submitted data' : 'View submitted data'}
+            </span>
+          </button>
+          {sourceLabel && (
+            <span className="agp-payload-source">
+              <span className="agp-payload-source-label">Source</span>
+              {sourceLabel}
+            </span>
+          )}
+        </div>
+      )}
+
+      {showBody && (
         <div className="agp-payload-card">
           {visibleFields.length === 0 ? (
             <p className="agp-payload-empty">No transaction details were included.</p>
+          ) : forceExpanded ? (
+            <div className="agp-payload-summary-grid">
+              {visibleFields.map((field) => (
+                <div key={field.key} className="agp-payload-summary-item">
+                  <span className="agp-payload-summary-label">{field.label}</span>
+                  <span className="agp-payload-summary-value">
+                    {formatFieldValue(field, transaction[field.key])}
+                  </span>
+                </div>
+              ))}
+            </div>
           ) : (
             <div className="agp-payload-table-wrap">
               <table className="agp-payload-table">
                 <tbody>
-                  {visibleFields.map((field) => {
-                    const raw = transaction[field.key];
-                    let display = String(raw);
-                    if (field.format === 'amount') display = formatAmount(raw);
-                    if (field.format === 'date') display = formatDateTime(raw);
-                    return (
-                      <tr key={field.key}>
-                        <th className="agp-payload-th" style={{ width: 180, textAlign: 'left' }}>
-                          {field.label}
-                        </th>
-                        <td className="agp-payload-td">{display}</td>
-                      </tr>
-                    );
-                  })}
+                  {visibleFields.map((field) => (
+                    <tr key={field.key}>
+                      <th className="agp-payload-th" style={{ width: 180, textAlign: 'left' }}>
+                        {field.label}
+                      </th>
+                      <td className="agp-payload-td">
+                        {formatFieldValue(field, transaction[field.key])}
+                      </td>
+                    </tr>
+                  ))}
                 </tbody>
               </table>
             </div>
           )}
 
-          {(debitLines.length > 0 || creditLines.length > 0) && (
-            <div className="agp-payload-table-wrap" style={{ marginTop: 12 }}>
-              {debitLines.length > 0 && (
-                <>
-                  <p className="agp-payload-source-label" style={{ margin: '8px 0 4px' }}>Debit lines</p>
-                  <table className="agp-payload-table">
-                    <thead>
-                      <tr>
-                        <th className="agp-payload-th">Account</th>
-                        <th className="agp-payload-th">Name</th>
-                        <th className="agp-payload-th agp-payload-num">Amount</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {debitLines.map((line, idx) => (
-                        <tr key={`dr-${idx}`}>
-                          <td className="agp-payload-td">{line.accountCode || line.account_code || '—'}</td>
-                          <td className="agp-payload-td">{line.accountName || line.account_name || '—'}</td>
-                          <td className="agp-payload-td agp-payload-num">{formatAmount(line.amount)}</td>
+          {(debitLines.length > 0 || creditLines.length > 0) &&
+            (forceExpanded ? (
+              <div className="agp-gl-lines">
+                <GlLinesTable title="Debit lines" lines={debitLines} />
+                <GlLinesTable title="Credit lines" lines={creditLines} />
+              </div>
+            ) : (
+              <div className="agp-payload-table-wrap" style={{ marginTop: 12 }}>
+                {debitLines.length > 0 && (
+                  <>
+                    <p className="agp-payload-source-label" style={{ margin: '8px 0 4px' }}>
+                      Debit lines
+                    </p>
+                    <table className="agp-payload-table">
+                      <thead>
+                        <tr>
+                          <th className="agp-payload-th">Account</th>
+                          <th className="agp-payload-th">Name</th>
+                          <th className="agp-payload-th agp-payload-num">Amount</th>
                         </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </>
-              )}
-              {creditLines.length > 0 && (
-                <>
-                  <p className="agp-payload-source-label" style={{ margin: '12px 0 4px' }}>Credit lines</p>
-                  <table className="agp-payload-table">
-                    <thead>
-                      <tr>
-                        <th className="agp-payload-th">Account</th>
-                        <th className="agp-payload-th">Name</th>
-                        <th className="agp-payload-th agp-payload-num">Amount</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {creditLines.map((line, idx) => (
-                        <tr key={`cr-${idx}`}>
-                          <td className="agp-payload-td">{line.accountCode || line.account_code || '—'}</td>
-                          <td className="agp-payload-td">{line.accountName || line.account_name || '—'}</td>
-                          <td className="agp-payload-td agp-payload-num">{formatAmount(line.amount)}</td>
+                      </thead>
+                      <tbody>
+                        {debitLines.map((line, idx) => (
+                          <tr key={`dr-${idx}`}>
+                            <td className="agp-payload-td">
+                              {line.accountCode || line.account_code || '—'}
+                            </td>
+                            <td className="agp-payload-td">
+                              {line.accountName || line.account_name || '—'}
+                            </td>
+                            <td className="agp-payload-td agp-payload-num">
+                              {formatAmount(line.amount)}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </>
+                )}
+                {creditLines.length > 0 && (
+                  <>
+                    <p className="agp-payload-source-label" style={{ margin: '12px 0 4px' }}>
+                      Credit lines
+                    </p>
+                    <table className="agp-payload-table">
+                      <thead>
+                        <tr>
+                          <th className="agp-payload-th">Account</th>
+                          <th className="agp-payload-th">Name</th>
+                          <th className="agp-payload-th agp-payload-num">Amount</th>
                         </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </>
-              )}
-            </div>
-          )}
+                      </thead>
+                      <tbody>
+                        {creditLines.map((line, idx) => (
+                          <tr key={`cr-${idx}`}>
+                            <td className="agp-payload-td">
+                              {line.accountCode || line.account_code || '—'}
+                            </td>
+                            <td className="agp-payload-td">
+                              {line.accountName || line.account_name || '—'}
+                            </td>
+                            <td className="agp-payload-td agp-payload-num">
+                              {formatAmount(line.amount)}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </>
+                )}
+              </div>
+            ))}
         </div>
       )}
     </div>
   );
 }
 
-export default function BusinessApprovalPayloadPreview({ request }) {
+export default function BusinessApprovalPayloadPreview({ request, forceExpanded = false }) {
   if (!request?.payload) return null;
 
   if (request.entity_type === 'gsec_ledger_entry') {
-    return <GsecEntriesPreview request={request} />;
+    return <GsecEntriesPreview request={request} forceExpanded={forceExpanded} />;
   }
 
   if (request.entity_type === 'non_trading_transaction') {
-    return <NonTradingPreview request={request} />;
+    return <NonTradingPreview request={request} forceExpanded={forceExpanded} />;
   }
 
   return (

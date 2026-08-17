@@ -210,7 +210,7 @@ const GsecBalanceSheet = () => {
           </p>
         </header>
 
-        <section className="gsec-bs-panel" aria-label="Filters">
+        <section className="gsec-bs-panel gsec-bs-panel--filters" aria-label="Filters">
           <div className="gsec-bs-panel__head">
             <div>
               <h2>Filters</h2>
@@ -296,7 +296,7 @@ const GsecBalanceSheet = () => {
             <div className="gsec-bs-table-actions">
               <button
                 type="button"
-                className="gsec-bs-export-btn"
+                className="gsec-bs-export-btn gsec-bs-export-btn--pdf"
                 onClick={handleExportPdf}
                 disabled={!data?.accounts?.length}
                 title="Download current balance sheet rows as PDF"
@@ -305,7 +305,7 @@ const GsecBalanceSheet = () => {
               </button>
               <button
                 type="button"
-                className="gsec-bs-export-btn"
+                className="gsec-bs-export-btn gsec-bs-export-btn--excel"
                 onClick={handleExportExcel}
                 disabled={!data?.accounts?.length}
                 title="Download current balance sheet rows as Excel"

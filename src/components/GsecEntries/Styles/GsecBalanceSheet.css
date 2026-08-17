@@ -1,6 +1,6 @@
 /**
  * Gsec Trial Balance — gsec-bs-*
- * Matches Equity accounting rail style (GSec Ledger Entries / Settlement family).
+ * Same green accent as GSec General Ledger.
  */
 
 @import url('https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700;9..40,800&display=swap');
@@ -13,10 +13,12 @@
   --paper: #ffffff;
   --wash: #f1f5f9;
   --wash-soft: #f8fafc;
-  --blue: #2563eb;
-  --blue-mid: #3b82f6;
-  --blue-soft: #eff6ff;
-  --blue-ring: rgba(59, 130, 246, 0.15);
+  --green: #16a34a;
+  --green-mid: #22c55e;
+  --green-dark: #15803d;
+  --green-soft: #ecfdf5;
+  --green-border: #bbf7d0;
+  --green-ring: rgba(34, 197, 94, 0.15);
   --up: #15803d;
   --down: #b91c1c;
   --radius: 0.75rem;
@@ -30,7 +32,7 @@
   color: var(--ink);
   font-family: var(--sans);
   background:
-    radial-gradient(ellipse 80% 50% at 100% 0%, rgba(37, 99, 235, 0.05), transparent 55%),
+    radial-gradient(ellipse 80% 50% at 100% 0%, rgba(22, 163, 74, 0.06), transparent 55%),
     transparent;
 }
 
@@ -51,23 +53,23 @@
 /* ── Rail ────────────────────────────────────────────────── */
 
 .gsec-bs-rail {
-  padding: 0.1rem 0.05rem 0.85rem;
-  margin-bottom: 0.15rem;
+  padding: 0 0.05rem 0.55rem;
+  margin-bottom: 0.1rem;
   border-bottom: 1px solid var(--line);
 }
 
 .gsec-bs-rail__eyebrow {
-  margin: 0 0 0.15rem;
-  font-size: 0.6rem;
+  margin: 0 0 0.1rem;
+  font-size: 0.55rem;
   font-weight: 700;
-  letter-spacing: 0.16em;
+  letter-spacing: 0.14em;
   text-transform: uppercase;
-  color: var(--blue);
+  color: var(--green);
 }
 
 .gsec-bs-rail__title {
-  margin: 0 0 0.15rem;
-  font-size: clamp(1.25rem, 2vw, 1.5rem);
+  margin: 0 0 0.1rem;
+  font-size: clamp(1.05rem, 1.6vw, 1.25rem);
   font-weight: 700;
   letter-spacing: -0.02em;
   line-height: 1.15;
@@ -80,8 +82,8 @@
 .gsec-bs-rail__blurb {
   margin: 0;
   max-width: 42rem;
-  font-size: 0.8rem;
-  line-height: 1.45;
+  font-size: 0.72rem;
+  line-height: 1.35;
   color: var(--mute);
 }
 
@@ -103,7 +105,7 @@
   gap: 0.55rem 1rem;
   padding: 0.85rem 1.1rem;
   border-bottom: 1px solid var(--line);
-  background: linear-gradient(180deg, #fbfdff 0%, var(--paper) 100%);
+  background: linear-gradient(180deg, #f7fdf9 0%, var(--paper) 100%);
 }
 
 .gsec-bs-panel__head h2 {
@@ -119,6 +121,19 @@
   font-size: 0.75rem;
   color: var(--mute);
   line-height: 1.4;
+}
+
+.gsec-bs-panel--filters .gsec-bs-panel__head {
+  background: linear-gradient(90deg, var(--green-mid) 0%, var(--green) 100%);
+  border-bottom-color: var(--green-dark);
+}
+
+.gsec-bs-panel--filters .gsec-bs-panel__head h2 {
+  color: #fff;
+}
+
+.gsec-bs-panel--filters .gsec-bs-panel__head p {
+  color: rgba(255, 255, 255, 0.88);
 }
 
 .gsec-bs-table-actions {
@@ -143,14 +158,38 @@
 }
 
 .gsec-bs-export-btn:hover:not(:disabled) {
-  background: var(--blue-soft);
-  border-color: #bfdbfe;
-  color: var(--blue);
+  background: var(--green-soft);
+  border-color: #86efac;
+  color: var(--green);
 }
 
 .gsec-bs-export-btn:disabled {
   opacity: 0.55;
   cursor: not-allowed;
+}
+
+.gsec-bs-export-btn--excel {
+  background: #15803d;
+  color: #ffffff;
+  border-color: #166534;
+}
+
+.gsec-bs-export-btn--excel:hover:not(:disabled) {
+  background: #166534;
+  color: #ffffff;
+  border-color: #14532d;
+}
+
+.gsec-bs-export-btn--pdf {
+  background: #0f172a;
+  color: #ffffff;
+  border-color: #020617;
+}
+
+.gsec-bs-export-btn--pdf:hover:not(:disabled) {
+  background: #020617;
+  color: #ffffff;
+  border-color: #020617;
 }
 
 .gsec-bs-filters-content {
@@ -194,8 +233,8 @@
 
 .gsec-bs-filter-input:focus {
   outline: none;
-  border-color: var(--blue-mid);
-  box-shadow: 0 0 0 3px var(--blue-ring);
+  border-color: var(--green-mid);
+  box-shadow: 0 0 0 3px var(--green-ring);
 }
 
 .gsec-bs-filter-actions {
@@ -220,14 +259,14 @@
 }
 
 .gsec-bs-apply-btn {
-  border: 1px solid var(--blue);
-  background: linear-gradient(135deg, var(--blue-mid) 0%, var(--blue) 100%);
+  border: 1px solid var(--green);
+  background: linear-gradient(135deg, var(--green-mid) 0%, var(--green) 100%);
   color: #fff;
-  box-shadow: 0 2px 8px rgba(37, 99, 235, 0.22);
+  box-shadow: 0 2px 8px rgba(22, 163, 74, 0.22);
 }
 
 .gsec-bs-apply-btn:hover {
-  background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+  background: linear-gradient(135deg, #16a34a 0%, #15803d 100%);
 }
 
 .gsec-bs-clear-btn {
@@ -237,9 +276,9 @@
 }
 
 .gsec-bs-clear-btn:hover {
-  background: var(--blue-soft);
-  border-color: #bfdbfe;
-  color: var(--blue);
+  background: var(--green-soft);
+  border-color: #86efac;
+  color: var(--green);
 }
 
 /* ── Summary ─────────────────────────────────────────────── */
@@ -321,7 +360,7 @@
   margin: 0;
   font-size: 0.9rem;
   font-weight: 700;
-  color: var(--blue);
+  color: var(--green);
 }
 
 .gsec-bs-category-subtotals {
@@ -369,7 +408,7 @@
 }
 
 .gsec-bs-table tbody tr:hover {
-  background: var(--blue-soft);
+  background: var(--green-soft);
 }
 
 .gsec-bs-account-code {
@@ -377,7 +416,7 @@
   font-family: ui-monospace, 'Cascadia Code', 'Segoe UI Mono', monospace;
   font-size: 0.75rem;
   font-weight: 600;
-  color: var(--blue);
+  color: var(--green);
 }
 
 .gsec-bs-account-name {
@@ -408,19 +447,19 @@
   min-height: 1.85rem;
   padding: 0.3rem 0.75rem;
   border-radius: var(--radius-sm);
-  border: 1px solid var(--blue);
-  background: linear-gradient(135deg, var(--blue-mid) 0%, var(--blue) 100%);
+  border: 1px solid var(--green);
+  background: linear-gradient(135deg, var(--green-mid) 0%, var(--green) 100%);
   color: #fff;
   font: inherit;
   font-size: 0.7rem;
   font-weight: 600;
   cursor: pointer;
-  box-shadow: 0 2px 6px rgba(37, 99, 235, 0.2);
+  box-shadow: 0 2px 6px rgba(22, 163, 74, 0.2);
   transition: background 0.15s ease;
 }
 
 .gsec-bs-view-details-btn:hover {
-  background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+  background: linear-gradient(135deg, #16a34a 0%, #15803d 100%);
 }
 
 /* ── Loading / error ─────────────────────────────────────── */
@@ -428,7 +467,7 @@
 .gsec-bs-loading {
   padding: 2.5rem 1rem;
   text-align: center;
-  color: var(--blue);
+  color: var(--green);
   font-weight: 600;
 }
 
@@ -593,7 +632,7 @@
 }
 
 .gsec-bs-modal-table tbody tr:hover {
-  background: var(--blue-soft);
+  background: var(--green-soft);
 }
 
 @media (max-width: 900px) {

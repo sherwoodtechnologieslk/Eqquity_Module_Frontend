@@ -544,11 +544,12 @@
   padding: 0.2rem 0.5rem;
 }
 
+.agp-status--pending,
 .agp-status--pending_second_admin_approval,
 .agp-status--pending_owner_approval {
-  color: #b45309;
-  background: #fffbeb;
-  border: 1px solid #fcd34d;
+  color: #a16207;
+  background: #fefce8;
+  border: 1px solid #fde047;
 }
 
 .agp-status--approved {
