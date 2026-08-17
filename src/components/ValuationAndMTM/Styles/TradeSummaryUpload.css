@@ -1,524 +1,594 @@
-/* Background and Layout */
-.upload-page-bg {
-  min-height: 100vh;
-}
+/**
+ * Upload Trade Summary — upload desk + latest session preview.
+ */
 
-.upload-container {
-  position: relative;
-  z-index: 1;
-  min-height: 60vh;
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700;9..40,800&display=swap');
+
+.tsu-page {
+  --ink: #0f172a;
+  --mute: #64748b;
+  --line: #e2e8f0;
+  --paper: #ffffff;
+  --wash: #f8fafc;
+  --blue: #2563eb;
+  --blue-soft: #eff6ff;
+  --up: #15803d;
+  --down: #b91c1c;
+  --radius: 0.75rem;
+  --radius-sm: 0.5rem;
+  --sans: 'DM Sans', 'Segoe UI', sans-serif;
+
+  width: 100%;
+  max-width: 1400px;
+  margin: 0;
+  padding: 0.15rem 0 1.5rem;
   display: flex;
   flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 2rem;
-  gap: 2rem;
+  gap: 0.85rem;
+  font-family: var(--sans);
+  color: var(--ink);
+  background: transparent;
+  box-sizing: border-box;
 }
 
-/* Header Section */
-.upload-header {
-  text-align: left;
-  color: white;
-  display: flex;
-  align-items: center;
-  justify-content: flex-start;
-  gap: 1.5rem;
-  flex-direction: row;
+.tsu-page *,
+.tsu-page *::before,
+.tsu-page *::after {
+  box-sizing: border-box;
 }
 
-
-.upload-icon {
-  width: 3.25rem;
-  height: 3.25rem;
-  background: linear-gradient(135deg, #60a5fa, #2563eb); /* MATCH EQUITY MASTER ICON */
-  border-radius: 0.18rem;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin: 0;
-  box-shadow: 0 8px 32px 0 rgba(59, 130, 246, 0.09), 0 2px 8px 0 rgba(59, 130, 246, 0.04);
-  flex-shrink: 0;
+.tsu-panel,
+.tsu-desk {
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  box-shadow: 0 4px 14px rgba(15, 23, 42, 0.05);
+  overflow: hidden;
 }
 
-
-.upload-icon svg {
-  width: 1.75rem;
-  height: 1.75rem;
-  color: white;
+/* Upload block — make the primary action unmistakable */
+.tsu-panel--upload {
+  border-color: #93c5fd;
+  box-shadow:
+    0 0 0 1px rgba(37, 99, 235, 0.08),
+    0 10px 28px rgba(37, 99, 235, 0.1);
+  background:
+    linear-gradient(180deg, #eff6ff 0%, #ffffff 42%);
 }
 
-.upload-form-title {
-  font-size: 1.75rem;
+.tsu-panel--upload .tsu-panel__head {
+  padding: 1rem 1.15rem 0.95rem;
+  border-bottom-color: #bfdbfe;
+  background: transparent;
+}
+
+.tsu-panel__eyebrow {
+  margin: 0 0 0.28rem;
+  font-size: 0.66rem;
   font-weight: 800;
-  color: #1f2937;
-  margin: 0 0 0.45rem 0;
-  letter-spacing: -0.01em;
-  line-height: 1.1;
-  text-align: left ;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--blue);
 }
 
-.upload-subtitle {
+.tsu-panel--upload .tsu-panel__head h2 {
+  font-size: 1.2rem;
+  font-weight: 800;
+  letter-spacing: -0.025em;
+  color: #0b1f44;
+}
+
+.tsu-panel--upload .tsu-panel__head p:not(.tsu-panel__eyebrow) {
+  max-width: 36rem;
+  font-size: 0.8rem;
   color: #475569;
-  font-size: 1.05rem;
-  font-weight: 400;
-  margin: 0;
-  margin-bottom: 0.1rem;
-  letter-spacing: 0.01em;
 }
 
-/* CSE Link Button */
-.cse-link-container {
-  margin-top: 2rem;
+.tsu-panel--upload .tsu-form {
+  padding: 1.1rem 1.15rem 1.2rem;
+  background: rgba(255, 255, 255, 0.72);
+  border-top: 1px dashed #bfdbfe;
+}
+
+.tsu-panel--upload .tsu-drop {
+  min-height: 3.4rem;
+  border-width: 1.5px;
+  border-color: #93c5fd;
+  background: #f8fbff;
+}
+
+.tsu-panel--upload .tsu-drop__hint {
+  font-size: 0.86rem;
+  color: #1e3a5f;
+}
+
+.tsu-panel--upload .tsu-submit {
+  min-height: 2.6rem;
+  min-width: 9rem;
+  font-size: 0.86rem;
+  box-shadow: 0 6px 16px rgba(37, 99, 235, 0.28);
+}
+
+.tsu-panel--upload .tsu-label {
+  color: #334155;
+}
+
+.tsu-panel__head,
+.tsu-desk__head {
   display: flex;
-  justify-content: center;
-  width: 100%;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.55rem 1rem;
+  padding: 0.8rem 1.05rem;
+  border-bottom: 1px solid var(--line);
+  background: linear-gradient(180deg, #fbfdff 0%, var(--paper) 100%);
 }
 
-.cse-link-btn {
+.tsu-desk__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.45rem;
+}
+
+.tsu-live-badge {
   display: inline-flex;
   align-items: center;
-  gap: 0.75rem;
-  padding: 1rem 2rem;
-  background: linear-gradient(135deg, #3b82f6, #66a0fe, #06b6d4);
-  color: white;
-  text-decoration: none;
-  border-radius: 0.75rem;
-  font-size: 1rem;
+  gap: 0.35rem;
+  min-height: 2.1rem;
+  padding: 0.3rem 0.7rem;
+  font-size: 0.72rem;
   font-weight: 700;
-  transition: all 0.3s ease;
-  box-shadow: 0 4px 8px rgba(59, 130, 246, 0.25);
-  min-width: 280px;
-  justify-content: center;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  background: var(--wash);
+  color: var(--mute);
+  white-space: nowrap;
 }
 
-.cse-link-btn:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 8px 20px rgba(59, 130, 246, 0.4);
-  background: linear-gradient(135deg, #2563eb, #3b82f6, #0891b2);
+.tsu-live-badge__dot {
+  width: 0.45rem;
+  height: 0.45rem;
+  border-radius: 50%;
+  background: #94a3b8;
 }
 
-.cse-link-btn svg {
-  width: 1.25rem;
-  height: 1.25rem;
-  flex-shrink: 0;
+.tsu-live-badge.is-open {
+  color: #166534;
+  background: #f0fdf4;
+  border-color: #bbf7d0;
 }
 
+.tsu-live-badge.is-open .tsu-live-badge__dot {
+  background: #22c55e;
+  box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.2);
+}
 
-/* Form Card */
-.upload-form-card {
-  background: white;
-  border-radius: 0.2rem;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-  border: 1px solid #e2e8f0;
-  padding: 3rem 2.5rem;
-  width: 100%;
-  max-width: 680px;
+.tsu-live-badge.is-closed {
+  color: #92400e;
+  background: #fffbeb;
+  border-color: #fde68a;
+}
+
+.tsu-live-badge.is-closed .tsu-live-badge__dot {
+  background: #f59e0b;
+}
+
+.tsu-stat__currency {
+  margin-right: 0.3rem;
+  font-size: 0.68rem;
+  font-weight: 700;
+  color: var(--mute);
+  letter-spacing: 0.04em;
+}
+
+.tsu-board-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 0.65rem 1rem;
+  padding: 0.75rem 1.05rem;
+  border-bottom: 1px solid var(--line);
+  background: var(--paper);
+}
+
+.tsu-board-search {
   display: flex;
   flex-direction: column;
-  gap: 2rem;
-  animation: fadeInUp 0.8s ease-out 0.2s both;
-  position: relative;
-  overflow: hidden;
+  gap: 0.32rem;
+  min-width: min(100%, 18rem);
+  flex: 1 1 16rem;
+  max-width: 22rem;
 }
 
-
-
-/* Form Field Row Layout */
-.upload-field-row {
-  display: flex;
-  gap: 1.5rem;
-  align-items: start;
-}
-
-.upload-field-half {
-  flex: 1;
-}
-
-/* Form Fields */
-.upload-field-group {
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
-}
-
-.upload-label {
-  font-size: 1rem;
+.tsu-board-meta {
+  margin: 0;
+  font-size: 0.72rem;
   font-weight: 600;
-  color: #374151;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
+  color: var(--mute);
+  padding-bottom: 0.35rem;
 }
 
-.upload-label svg {
-  width: 1.25rem;
-  height: 1.25rem;
-  color: #3b82f6;
+.tsu-table-wrap--board {
+  max-height: min(52vh, 34rem);
+  overflow: auto;
 }
 
-.required {
-  color: #ef4444;
-  font-weight: 700;
+.tsu-table-wrap--board .tsu-table th {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  box-shadow: 0 1px 0 var(--line);
 }
 
-.upload-input,
-.date-input {
-  font-size: 1rem;
-  border: 2px solid #e5e7eb;
-  border-radius: 0.75rem;
-  padding: 1rem 1.25rem;
-  background: #f9fafb;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  font-family: inherit;
+.tsu-panel__head h2,
+.tsu-desk__head h3 {
+  margin: 0 0 0.12rem;
+  font-size: 0.92rem;
+  font-weight: 750;
+  color: var(--ink);
+  text-align: left;
 }
 
-.upload-input:focus,
-.date-input:focus {
-  border-color: #3b82f6;
-  background: white;
-  outline: none;
-  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+.tsu-panel__head p,
+.tsu-desk__head p {
+  margin: 0;
+  font-size: 0.74rem;
+  color: var(--mute);
 }
 
-/* File Drop Zone */
-.file-drop-zone {
-  border: 2px dashed #d1d5db;
-  border-radius: 1rem;
-  padding: 1.5rem 1rem;
-  background: #f9fafb;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  position: relative;
-  overflow: hidden;
-  min-height: 120px;
-  display: flex;
+.tsu-link-btn,
+.tsu-refresh {
+  display: inline-flex;
   align-items: center;
   justify-content: center;
+  min-height: 2.1rem;
+  padding: 0.35rem 0.8rem;
+  font-size: 0.74rem;
+  font-weight: 700;
+  font-family: inherit;
+  color: var(--blue);
+  text-decoration: none;
+  background: var(--blue-soft);
+  border: 1px solid #bfdbfe;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  white-space: nowrap;
 }
 
-.file-drop-zone:hover,
-.file-drop-zone.drag-over {
-  border-color: #3b82f6;
-  background: #eff6ff;
+.tsu-link-btn:hover,
+.tsu-refresh:hover:not(:disabled) {
+  background: #dbeafe;
 }
 
-.file-drop-zone.has-file {
-  border-color: #10b981;
-  background: #ecfdf5;
+.tsu-refresh:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
 }
 
-.file-input-hidden {
+.tsu-form {
+  padding: 0.95rem 1.05rem 1.05rem;
+  background: var(--wash);
+}
+
+.tsu-form__row {
+  display: grid;
+  grid-template-columns: 200px minmax(0, 1fr) auto;
+  gap: 0.75rem 0.9rem;
+  align-items: end;
+}
+
+.tsu-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.32rem;
+  min-width: 0;
+}
+
+.tsu-label {
+  font-size: 0.66rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--mute);
+}
+
+.tsu-label--spacer {
+  visibility: hidden;
+}
+
+.tsu-input {
+  width: 100%;
+  min-height: 2.35rem;
+  padding: 0.45rem 0.7rem;
+  font: inherit;
+  font-size: 0.8125rem;
+  color: var(--ink);
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+}
+
+.tsu-input:focus {
+  outline: none;
+  border-color: var(--blue);
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+}
+
+.tsu-drop {
+  min-height: 2.35rem;
+  display: flex;
+  align-items: center;
+  padding: 0.4rem 0.7rem;
+  background: var(--paper);
+  border: 1px dashed #cbd5e1;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+}
+
+.tsu-drop:hover,
+.tsu-drop--active {
+  border-color: var(--blue);
+  background: var(--blue-soft);
+}
+
+.tsu-drop--ready {
+  border-style: solid;
+  border-color: #86efac;
+  background: #f0fdf4;
+}
+
+.tsu-file-input {
   display: none;
 }
 
-.file-drop-content {
-  text-align: center;
-  position: relative;
-  z-index: 1;
-}
-
-.file-drop-icon {
-  width: 2.5rem;
-  height: 2.5rem;
-  margin: 0 auto 0.75rem;
-  padding: 0.5rem;
-  background: linear-gradient(135deg, #3b82f6, #66a0fe, #06b6d4);
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.file-drop-icon svg {
-  width: 1.25rem;
-  height: 1.25rem;
-  color: white;
-}
-
-.primary-text {
-  font-size: 0.95rem;
+.tsu-drop__hint {
+  font-size: 0.8rem;
   font-weight: 600;
-  color: #374151;
-  margin-bottom: 0.25rem;
+  color: #475569;
 }
 
-.primary-text span {
-  color: #3b82f6;
+.tsu-drop__hint em {
+  font-style: normal;
+  color: var(--blue);
   text-decoration: underline;
 }
 
-.secondary-text {
-  font-size: 0.8rem;
-  color: #6b7280;
-  margin: 0;
-}
-
-/* File Preview */
-.file-preview {
+.tsu-file {
+  width: 100%;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0.75rem;
-  background: white;
-  border-radius: 0.75rem;
-  border: 1px solid #e5e7eb;
-  position: relative;
-  z-index: 1;
-  width: 100%;
+  gap: 0.65rem;
 }
 
-.file-info {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  flex: 1;
-  min-width: 0;
+.tsu-file strong {
+  display: block;
+  font-size: 0.8rem;
+  color: var(--ink);
+  word-break: break-all;
 }
 
-.file-icon {
-  width: 2rem;
-  height: 2rem;
-  background: linear-gradient(135deg, #10b981, #059669);
-  border-radius: 0.5rem;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+.tsu-file small {
+  display: block;
+  margin-top: 0.08rem;
+  font-size: 0.68rem;
+  color: var(--mute);
+}
+
+.tsu-remove {
   flex-shrink: 0;
-}
-
-.file-icon svg {
-  width: 1rem;
-  height: 1rem;
-  color: white;
-}
-
-.file-details {
-  flex: 1;
-  min-width: 0;
-}
-
-.file-name {
-  font-weight: 600;
-  color: #374151;
-  margin: 0 0 0.25rem 0;
-  font-size: 0.85rem;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.file-size {
-  font-size: 0.75rem;
-  color: #6b7280;
-  margin: 0;
-}
-
-.remove-file-btn {
-  width: 1.75rem;
-  height: 1.75rem;
-  border: none;
-  background: #fee2e2;
-  color: #dc2626;
-  border-radius: 0.5rem;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: all 0.2s ease;
-  flex-shrink: 0;
-}
-
-.remove-file-btn:hover {
-  background: #fecaca;
-  transform: scale(1.1);
-}
-
-.remove-file-btn svg {
-  width: 0.875rem;
-  height: 0.875rem;
-}
-
-/* Progress Bar */
-.progress-container {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-  animation: fadeInUp 0.5s ease-out;
-}
-
-.progress-bar {
-  height: 0.5rem;
-  background: #e5e7eb;
-  border-radius: 0.25rem;
-  overflow: hidden;
-  position: relative;
-}
-
-.progress-fill {
-  height: 100%;
-  background: linear-gradient(90deg,  #3b82f6, #66a0fe, #06b6d4);
-  border-radius: 0.25rem;
-  transition: width 0.3s ease;
-  position: relative;
-}
-
-.progress-fill::after {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
-  animation: progressShimmer 1.5s infinite;
-}
-
-@keyframes progressShimmer {
-  0% { transform: translateX(-100%); }
-  100% { transform: translateX(100%); }
-}
-
-.progress-text {
-  font-size: 0.875rem;
-  color: #6b7280;
-  text-align: center;
-  margin: 0;
-  font-weight: 500;
-}
-
-/* Upload Button */
-.upload-btn {
-  background: linear-gradient(135deg,  #3b82f6, #66a0fe, #06b6d4);
-  color: white;
-  border: none;
-  border-radius: 0.75rem;
-  padding: 1rem 2rem;
-  font-size: 1rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.5rem;
-  position: relative;
-  overflow: hidden;
-}
-
-.upload-btn:hover:not(:disabled) {
-  transform: translateY(-2px);
-  box-shadow: 0 10px 25px rgba(59, 130, 246, 0.3);
-}
-
-.upload-btn:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-  transform: none;
-}
-
-.upload-btn.uploading {
-  pointer-events: none;
-}
-
-.upload-btn svg {
-  width: 1.25rem;
-  height: 1.25rem;
-}
-
-.btn-spinner {
-  width: 1.25rem;
-  height: 1.25rem;
-  border: 2px solid rgba(255, 255, 255, 0.3);
-  border-radius: 50%;
-  border-top-color: white;
-  animation: spin 1s linear infinite;
-}
-
-@keyframes spin {
-  to { transform: rotate(360deg); }
-}
-
-/* Upload Message */
-.upload-message {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  padding: 1rem;
-  border-radius: 0.75rem;
-  font-weight: 500;
-  animation: fadeInUp 0.5s ease-out;
-}
-
-.upload-message.success {
-  background: #ecfdf5;
-  color: #065f46;
-  border: 1px solid #a7f3d0;
-}
-
-.upload-message.error {
-  background: #fef2f2;
-  color: #991b1b;
+  min-height: 1.7rem;
+  padding: 0.2rem 0.55rem;
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: #b91c1c;
+  background: #fff;
   border: 1px solid #fecaca;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
 }
 
-.upload-message.info {
-  background: #eff6ff;
-  color: #1e40af;
-  border: 1px solid #bfdbfe;
+.tsu-submit {
+  min-height: 2.35rem;
+  min-width: 7.5rem;
+  padding: 0.45rem 1.1rem;
+  font: inherit;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #fff;
+  background: var(--blue);
+  border: 1px solid #1d4ed8;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
 }
 
-.message-icon {
-  width: 1.25rem;
-  height: 1.25rem;
-  flex-shrink: 0;
+.tsu-submit:hover:not(:disabled) {
+  background: #1d4ed8;
 }
 
-.message-icon svg {
-  width: 100%;
+.tsu-submit:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.tsu-progress {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin-top: 0.75rem;
+}
+
+.tsu-progress__track {
+  flex: 1;
+  height: 0.35rem;
+  background: #e2e8f0;
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.tsu-progress__fill {
   height: 100%;
+  background: var(--blue);
+  border-radius: 999px;
+  transition: width 0.2s ease;
 }
 
-/* Responsive Design */
-@media (max-width: 768px) {
-  .upload-field-row {
-    flex-direction: column;
-    gap: 1.5rem;
-  }
-  
-  .upload-field-half {
-    flex: none;
-  }
-  
-  .upload-form-card {
-    max-width: 100%;
-    padding: 2rem 1.5rem;
-  }
-  
-  .upload-container {
-    padding: 1rem;
-  }
-  
-  .upload-form-title {
-    font-size: 1.5rem;
-  }
-  
-  .file-drop-zone {
-    padding: 1rem;
-    min-height: 100px;
-  }
-  
-  .file-drop-icon {
-    width: 2rem;
-    height: 2rem;
-  }
-  
-  .primary-text {
-    font-size: 0.9rem;
-  }
-  
-  .file-name {
-    font-size: 0.8rem;
+.tsu-progress span {
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: var(--mute);
+}
+
+.tsu-message {
+  margin-top: 0.75rem;
+  padding: 0.65rem 0.75rem;
+  border-radius: var(--radius-sm);
+  font-size: 0.78rem;
+  font-weight: 500;
+  line-height: 1.4;
+  border: 1px solid transparent;
+  background: var(--paper);
+}
+
+.tsu-message--success {
+  color: #166534;
+  border-color: #bbf7d0;
+  background: #f0fdf4;
+}
+
+.tsu-message--error {
+  color: #991b1b;
+  border-color: #fecaca;
+  background: #fef2f2;
+}
+
+.tsu-message--info {
+  color: #1e40af;
+  border-color: #bfdbfe;
+  background: var(--blue-soft);
+}
+
+/* Latest session desk */
+.tsu-stats {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.65rem;
+  padding: 0.85rem 1.05rem;
+  background: var(--wash);
+  border-bottom: 1px solid var(--line);
+}
+
+.tsu-stat {
+  padding: 0.7rem 0.8rem;
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+}
+
+.tsu-stat span {
+  display: block;
+  margin-bottom: 0.25rem;
+  font-size: 0.64rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--mute);
+}
+
+.tsu-stat strong {
+  display: block;
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: var(--ink);
+  letter-spacing: -0.02em;
+}
+
+.tsu-table-wrap {
+  overflow: auto;
+}
+
+.tsu-empty {
+  padding: 2rem 1.25rem;
+  text-align: center;
+  font-size: 0.84rem;
+  color: var(--mute);
+}
+
+.tsu-empty--error {
+  color: #b91c1c;
+}
+
+.tsu-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.8rem;
+}
+
+.tsu-table th,
+.tsu-table td {
+  padding: 0.7rem 0.9rem;
+  border-bottom: 1px solid #f1f5f9;
+  text-align: left;
+  white-space: nowrap;
+}
+
+.tsu-table th {
+  font-size: 0.66rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--mute);
+  background: #fcfdff;
+}
+
+.tsu-table td.num,
+.tsu-table th.num {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.tsu-table td.symbol {
+  font-weight: 700;
+  color: #1e3a5f;
+}
+
+.tsu-table td.up {
+  color: var(--up);
+  font-weight: 700;
+}
+
+.tsu-table td.down {
+  color: var(--down);
+  font-weight: 700;
+}
+
+.tsu-table tbody tr:hover {
+  background: #f8fafc;
+}
+
+@media (max-width: 960px) {
+  .tsu-form__row {
+    grid-template-columns: 1fr;
   }
 
+  .tsu-label--spacer {
+    display: none;
+  }
 
+  .tsu-submit {
+    width: 100%;
+  }
+
+  .tsu-stats {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 560px) {
+  .tsu-stats {
+    grid-template-columns: 1fr;
+  }
 }

@@ -2184,23 +2184,18 @@ const MarkToMarketValuation = () => {
   return (
     <div className="mtm-page">
       <div className="mtm-content-wrapper">
-        {/* Header Section */}
-        <div className="mtm-header-section">
-          <div className="mtm-header-icon">
-            <svg viewBox="0 0 24 24" fill="currentColor">
-              <path d="M3.5 18.49l6-6.01 4 4L22 6.92l-1.41-1.41-7.09 7.97-4-4L2 16.99z"/>
-            </svg>
-          </div>
+        <header className="mtm-header-section">
           <div className="mtm-header-text-group">
+            <p className="mtm-eyebrow">Valuation · MTM</p>
             <h1 className="mtm-main-title">Mark-to-Market Valuation</h1>
             <p className="mtm-subtitle">
-              {portfoliosLoading ? 'Loading portfolios...' : 
-               selectedPortfolio ? `Real-time portfolio valuation for ${getSelectedPortfolioName()}` : 
-               portfolios.length > 0 ? `Real-time portfolio valuation and performance tracking (${portfolios.length} portfolios available)` :
+              {portfoliosLoading ? 'Loading portfolios…' :
+               selectedPortfolio ? `Real-time valuation for ${getSelectedPortfolioName()}` :
+               portfolios.length > 0 ? `Select a portfolio to value holdings (${portfolios.length} available)` :
                'Real-time portfolio valuation and performance tracking'}
             </p>
           </div>
-        </div>
+        </header>
 
         {/* Portfolio controls + valuation summary in one panel */}
         <div className="mtm-toolbar-summary-panel">
@@ -2394,12 +2389,12 @@ const MarkToMarketValuation = () => {
         {/* Performance Analysis Section */}
         <div className="mtm-performance-section">
           <div className="mtm-performance-header">
+            <p className="mtm-eyebrow">Charts &amp; snapshot</p>
             <h2>Performance Analysis</h2>
-            <p>Track portfolio performance over time with interactive charts</p>
+            <p>Track holdings over time with charts, sector risk, and tax summary</p>
           </div>
 
-          {/* Tab Navigation */}
-          <div className="mtm-tab-navigation">
+          <div className="mtm-tab-navigation" role="tablist" aria-label="Performance views">
             <button 
               className={`mtm-tab ${activeTab === 'overview' ? 'active' : ''}`}
               onClick={() => setActiveTab('overview')}
