@@ -390,16 +390,8 @@ const HolidayCalendar = ({ mode = 'calendar' }) => {
         <div className="hc-list-page">
           <div className="hc-list-container">
             <div className="hc-list-header">
-              <div className="hc-list-header-icon" aria-hidden="true">
-                <svg fill="currentColor" viewBox="0 0 20 20">
-                  <path
-                    fillRule="evenodd"
-                    d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z"
-                    clipRule="evenodd"
-                  />
-                </svg>
-              </div>
               <div className="hc-list-title-section">
+                <p className="hc-eyebrow">Master Data · Holidays</p>
                 <h2>Holiday List</h2>
                 <p className="hc-list-subtitle">Manage and view all holidays</p>
               </div>
@@ -556,16 +548,8 @@ const HolidayCalendar = ({ mode = 'calendar' }) => {
         <div className="hc-form-page">
           <div className="hc-form-container">
             <div className="hc-form-header">
-              <div className="hc-form-header-icon" aria-hidden="true">
-                <svg fill="currentColor" viewBox="0 0 20 20">
-                  <path
-                    fillRule="evenodd"
-                    d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z"
-                    clipRule="evenodd"
-                  />
-                </svg>
-              </div>
               <div className="hc-form-header-text">
+                <p className="hc-eyebrow">Master Data · Holidays</p>
                 <h2>{editingId ? 'Edit Holiday' : 'Add New Holiday'}</h2>
                 <p className="hc-form-subtitle">
                   {editingId ? 'Update the holiday information' : 'Create a new holiday entry for the calendar'}
@@ -821,16 +805,8 @@ const HolidayCalendar = ({ mode = 'calendar' }) => {
         <div className="hc-settings-page">
           <div className="hc-settings-container">
             <div className="hc-settings-header">
-              <div className="hc-settings-header-icon" aria-hidden="true">
-                <svg fill="currentColor" viewBox="0 0 20 20">
-                  <path
-                    fillRule="evenodd"
-                    d="M11.49 3.17c-.38-1.56-2.6-1.56-2.98 0a1.532 1.532 0 01-2.286.948c-1.372-.836-2.942.734-2.106 2.106.54.886.061 2.042-.947 2.287-1.561.379-1.561 2.6 0 2.978a1.532 1.532 0 01.947 2.287c-.836 1.372.734 2.942 2.106 2.106a1.532 1.532 0 012.287.947c.379 1.561 2.6 1.561 2.978 0a1.533 1.533 0 012.287-.947c1.372.836 2.942-.734 2.106-2.106a1.533 1.533 0 01.947-2.287c1.561-.379 1.561-2.6 0-2.978a1.532 1.532 0 01-.947-2.287c.836-1.372-.734-2.942-2.106-2.106a1.532 1.532 0 01-2.287-.947zM10 13a3 3 0 100-6 3 3 0 000 6z"
-                    clipRule="evenodd"
-                  />
-                </svg>
-              </div>
               <div className="hc-settings-header-text">
+                <p className="hc-eyebrow">Master Data · Holidays</p>
                 <h2>Holiday Calendar Settings</h2>
                 <p className="hc-settings-subtitle">Customize your holiday calendar preferences</p>
               </div>
@@ -1040,16 +1016,8 @@ const HolidayCalendar = ({ mode = 'calendar' }) => {
         <div className="hc-calendar">
           <header className="hc-header">
             <div className="hc-header-leading">
-              <div className="hc-calendar-header-icon" aria-hidden="true">
-                <svg fill="currentColor" viewBox="0 0 20 20">
-                  <path
-                    fillRule="evenodd"
-                    d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z"
-                    clipRule="evenodd"
-                  />
-                </svg>
-              </div>
               <div className="hc-title">
+                <p className="hc-eyebrow">Master Data · Holidays</p>
                 <h2>{monthLabels[viewDate.getMonth()]} {viewDate.getFullYear()}</h2>
                 <span className="hc-subtitle">Holiday Calendar</span>
               </div>
