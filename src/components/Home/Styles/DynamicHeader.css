@@ -6,6 +6,8 @@
   right: 0;
   height: 38px;
 
+  font-family: 'DM Sans', 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif;
+
   background: transparent;
   border: none;
   z-index: 1999; /* Just below navbar (2000) */
