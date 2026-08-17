@@ -1,12 +1,12 @@
 /* Equity List View — blue theme (matches Equity Master Entry) */
 
 .eqt-list-container {
-  min-height: 100vh;
+  min-height: auto;
   padding: 1.25rem 1rem;
   box-sizing: border-box;
   max-width: 1400px;
   margin: 0 auto;
-  background-color: #f8fafc;
+  background-color: transparent;
 }
 
 .eqt-list-container--embedded {
@@ -116,9 +116,9 @@
 .eqt-search-wrapper {
   position: relative;
   background: #ffffff;
-  border: 1px solid #d1d5db;
-  border-radius: 999px;
-  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  border: 1px solid #e2e8f0;
+  border-radius: 0.4rem;
+  transition: border-color 0.12s ease, box-shadow 0.12s ease;
 }
 
 .eqt-search-wrapper.focused {
@@ -237,12 +237,12 @@
 }
 
 .eqt-table th {
-  padding: 0.6rem 0.9rem;
-  font-size: 0.625rem;
+  padding: 0.55rem 0.85rem;
+  font-size: 0.66rem;
   line-height: 1.25;
-  background: #f1f5f9;
+  background: #fcfdff;
   font-weight: 700;
-  color: #374151;
+  color: #64748b;
   text-transform: uppercase;
   letter-spacing: 0.05em;
   position: sticky;
@@ -298,14 +298,14 @@
 }
 
 .eqt-cell-symbol {
-  font-family: 'Courier New', Courier, monospace;
+  font-family: 'DM Sans', 'Segoe UI', sans-serif;
   font-weight: 700;
   color: #1e40af;
   font-size: 0.75rem;
 }
 
 .eqt-cell-isin {
-  font-family: 'Courier New', Courier, monospace;
+  font-family: 'DM Sans', 'Segoe UI', sans-serif;
   color: #64748b;
   font-size: 0.75rem;
 }
@@ -368,23 +368,24 @@
   display: inline-flex;
   align-items: center;
   gap: 0.3rem;
-  padding: 0.35rem 0.75rem;
-  border: none;
-  border-radius: 999px;
-  font-size: 0.6875rem;
-  font-weight: 600;
+  padding: 0.3rem 0.7rem;
+  border: 1px solid transparent;
+  border-radius: 0.35rem;
+  font-size: 0.7rem;
+  font-weight: 700;
   cursor: pointer;
-  transition: all 0.15s ease;
+  transition: background 0.12s ease, border-color 0.12s ease;
 }
 
 .eqt-edit-btn {
-  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+  background: #2563eb;
+  border-color: #1d4ed8;
   color: #ffffff;
-  box-shadow: 0 2px 6px rgba(37, 99, 235, 0.25);
+  box-shadow: none;
 }
 
 .eqt-edit-btn:hover {
-  background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+  background: #1d4ed8;
 }
 
 .eqt-delete-btn {

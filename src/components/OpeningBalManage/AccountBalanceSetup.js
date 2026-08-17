@@ -157,8 +157,9 @@ const AccountBalanceSetup = () => {
       <header className="account-balance-setup-header-section">
         <div className="account-balance-setup-header-left">
           <div className="account-balance-setup-header-text-group">
+            <p className="account-balance-setup-eyebrow">Accounting · GL</p>
             <h1 className="account-balance-setup-main-title">Account Balance Setup</h1>
-            <p className="account-balance-setup-subtitle">Configure debit/credit balance types for your GL accounts</p>
+            <p className="account-balance-setup-subtitle">Configure debit/credit types for GL accounts</p>
           </div>
         </div>
         <div className="account-balance-setup-header-actions">
