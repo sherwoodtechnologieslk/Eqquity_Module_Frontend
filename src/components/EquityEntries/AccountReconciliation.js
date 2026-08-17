@@ -1035,19 +1035,10 @@ const AccountReconciliation = () => {
     <div className="account-reconciliation">
       <div className="account-reconciliation-page">
       {/* Header Section */}
-      <div className="account-reconciliation-header">
+      <header className="account-reconciliation-header">
         <div className="account-reconciliation-header-left">
-          <div className="account-reconciliation-header-icon" aria-hidden="true">
-            <svg fill="currentColor" viewBox="0 0 20 20">
-              <path d="M4 4a2 2 0 00-2 2v1h16V6a2 2 0 00-2-2H4z" />
-              <path
-                fillRule="evenodd"
-                d="M18 9H2v5a2 2 0 002 2h12a2 2 0 002-2V9zM4 13a1 1 0 011-1h1a1 1 0 110 2H5a1 1 0 01-1-1zm5-1a1 1 0 100 2h1a1 1 0 100-2H9z"
-                clipRule="evenodd"
-              />
-            </svg>
-          </div>
           <div className="account-reconciliation-header-text">
+            <p className="account-reconciliation-eyebrow">Accounting · GL</p>
             <h1>Account Reconciliation</h1>
             {selectedAccount && (
               <div className="account-reconciliation-info">
@@ -1070,7 +1061,7 @@ const AccountReconciliation = () => {
             Status: {reconciliationStatus.toUpperCase()}
           </div>
         </div>
-      </div>
+      </header>
 
       {/* Filters Section */}
       <div className="account-reconciliation-filters">

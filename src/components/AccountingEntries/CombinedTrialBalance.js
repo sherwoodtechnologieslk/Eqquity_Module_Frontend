@@ -812,30 +812,6 @@ const CombinedTrialBalance = () => {
   return (
     <div className="ctb-page-container">
       <div className="ctb-content-wrapper">
-        <header className="ctb-masthead">
-          <div className="ctb-masthead__primary">
-            <p className="ctb-eyebrow">Financial Reporting</p>
-            <h1 className="ctb-main-title">Combined Trial Balance</h1>
-            <p className="ctb-subtitle">
-              Unified account balances across Equity and GSec ledgers with drill-down to underlying entries.
-            </p>
-          </div>
-          <div className="ctb-masthead__meta">
-            <div className="ctb-meta-chip">
-              <span className="ctb-meta-chip__label">Reporting Period</span>
-              <span className="ctb-meta-chip__value">{periodLabel}</span>
-            </div>
-            <div className="ctb-meta-chip">
-              <span className="ctb-meta-chip__label">Ledger Scope</span>
-              <span className="ctb-meta-chip__value">{SOURCE_FILTER_LABELS[sourceFilter] || 'All Ledgers'}</span>
-            </div>
-            <div className="ctb-meta-chip">
-              <span className="ctb-meta-chip__label">Accounts</span>
-              <span className="ctb-meta-chip__value">{filteredAccounts.length}</span>
-            </div>
-          </div>
-        </header>
-
         <section className="ctb-toolbar" aria-label="Report filters">
           <div className="ctb-toolbar__row">
             <div className="ctb-field">

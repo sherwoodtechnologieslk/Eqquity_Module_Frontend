@@ -71,10 +71,13 @@ const PortfolioMTM = () => {
 
   return (
     <div className="portfolio-mtm-container">
-      <div className="portfolio-mtm-header">
-        <h2>Portfolio Mark-to-Market</h2>
-        <p>Daily portfolio valuations and unrealized P&L tracking</p>
-      </div>
+      <header className="portfolio-mtm-header">
+        <div className="portfolio-mtm-header-text">
+          <p className="portfolio-mtm-eyebrow">Accounting · Valuation</p>
+          <h1>Portfolio Mark-to-Market</h1>
+          <p className="portfolio-mtm-blurb">Daily portfolio valuations and unrealized P&amp;L tracking</p>
+        </div>
+      </header>
 
       {/* Filters */}
       <div className="pmtm-filters-section">
