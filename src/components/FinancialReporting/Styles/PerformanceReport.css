@@ -1,56 +1,95 @@
-/* ── Performance Report — Formal Financial Document Style ── */
+/* Performance Report — desk layout (print rules preserved) */
+
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700;9..40,800&display=swap');
 
 .fr-page {
-  min-height: 100vh;
-  padding: 2rem;
-  font-family: 'Times New Roman', Times, serif;
+  min-height: auto;
+  padding: 0.15rem 0 1.75rem;
+  font-family: 'DM Sans', 'Segoe UI', sans-serif;
+  color: #0f172a;
   box-sizing: border-box;
+  background: transparent;
 }
 
-/* Controls above the document sheet (screen only — hidden when printing) */
+.fr-page *,
+.fr-page *::before,
+.fr-page *::after {
+  font-style: normal;
+}
+
+.fr-page-rail {
+  margin-bottom: 0.55rem;
+  padding: 0 0.05rem 0.5rem;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.fr-eyebrow {
+  margin: 0 0 0.08rem;
+  font-size: 0.55rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #2563eb;
+}
+
+.fr-page-rail h1 {
+  margin: 0;
+  font-size: clamp(1.05rem, 1.6vw, 1.25rem);
+  font-weight: 750;
+  letter-spacing: -0.02em;
+  line-height: 1.15;
+  color: #0f172a;
+}
+
+.fr-page-blurb {
+  margin: 0.2rem 0 0;
+  font-size: 0.72rem;
+  color: #64748b;
+  font-weight: 400;
+}
+
 .fr-screen-toolbar {
-  max-width: 1200px;
-  margin: 0 auto 1.25rem;
+  max-width: none;
+  margin: 0 0 0.75rem;
   box-sizing: border-box;
 }
 
 .fr-screen-toolbar-inner {
-  font-family: Arial, Helvetica, sans-serif;
-  background: #ffffff;
-  border: 1px solid #e2e8f0;
-  border-radius: 8px;
-  padding: 1rem 1.25rem;
-  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.06);
+  font-family: inherit;
+  background: transparent;
+  border: none;
+  border-radius: 0;
+  padding: 0.35rem 0;
+  box-shadow: none;
 }
 
-/* White document sheet */
 .fr-doc {
   background: #ffffff;
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 3rem 3.5rem;
-  box-shadow: 0 2px 12px rgba(0,0,0,0.15);
-  border-top: 6px solid #000000;
-  overflow-x: hidden; /* wide tables scroll inside .fr-table-scroll */
+  max-width: none;
+  margin: 0;
+  padding: 0.85rem 0.9rem 1.1rem;
+  box-shadow: none;
+  border: 1px solid #e2e8f0;
+  border-radius: 0.4rem;
+  border-top: 1px solid #e2e8f0;
+  overflow-x: hidden;
   box-sizing: border-box;
 }
 
-/* ── Letterhead ── */
 .fr-letterhead {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
-  margin-bottom: 1.25rem;
+  margin-bottom: 0.75rem;
   gap: 1rem;
 }
 
-/* Screen: editable line; print: hidden (static line below is shown instead) */
 .fr-letterhead-entity-print {
   display: none;
-  font-size: 1.05rem;
-  font-weight: 700;
-  color: #000000;
-  letter-spacing: 0.02em;
+  font-size: 0.9rem;
+  font-weight: 750;
+  color: #0f172a;
+  letter-spacing: -0.01em;
   line-height: 1.3;
   word-break: break-word;
 }
@@ -69,74 +108,63 @@
   width: 100%;
   max-width: 100%;
   box-sizing: border-box;
-  font-family: 'Times New Roman', Times, serif;
-  font-size: 1.05rem;
-  font-weight: 700;
-  color: #000000;
-  letter-spacing: 0.02em;
+  font-family: inherit;
+  font-size: 0.9rem;
+  font-weight: 750;
+  color: #0f172a;
+  letter-spacing: -0.01em;
   line-height: 1.3;
-  padding: 0.15rem 0.25rem;
+  padding: 0.2rem 0.35rem;
   margin: 0;
-  border: 1px dashed transparent;
-  border-bottom-color: #cbd5e1;
-  background: transparent;
+  border: 1px solid #e2e8f0;
+  border-radius: 0.4rem;
+  background: #ffffff;
   outline: none;
 }
 
 .fr-letterhead-entity-input:hover {
-  border-bottom-color: #94a3b8;
+  border-color: #cbd5e1;
 }
 
 .fr-letterhead-entity-input:focus {
-  border-bottom-color: #0f172a;
-  border-style: solid;
+  border-color: #93c5fd;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
 }
 
 .fr-letterhead-entity-input::placeholder {
   color: #94a3b8;
-  font-weight: 600;
-  font-style: italic;
+  font-weight: 400;
 }
 
 .fr-report-type {
-  font-size: 1rem;
+  font-size: 0.72rem;
   font-weight: 700;
-  color: #000000;
+  color: #64748b;
   text-align: right;
   text-transform: uppercase;
-  letter-spacing: 0.4px;
+  letter-spacing: 0.06em;
 }
 
 .fr-report-meta {
-  font-size: 0.775rem;
+  font-size: 0.72rem;
   color: #64748b;
   text-align: right;
-  margin-top: 0.2rem;
+  margin-top: 0.15rem;
 }
 
-/* ── Rules ── */
-.fr-rule-thick {
-  border: none;
-  border-top: 3px double #000000;
-  margin: 0;
+.fr-rule-thick--foot {
+  margin-top: 1.25rem;
 }
 
 .fr-rule {
   border: none;
-  border-top: 1px solid #94a3b8;
-  margin: 0.4rem 0 1rem 0;
+  border-top: 1px solid #e2e8f0;
+  margin: 0.2rem 0 0.65rem 0;
 }
 
-/* ── Portfolio + period on one row ── */
 .fr-report-controls {
-  margin-bottom: 0.35rem;
-  font-family: Arial, sans-serif;
-  border-bottom: 1px solid #e2e8f0;
-  padding-bottom: 0.5rem;
-}
-
-.fr-report-controls--toolbar {
   margin-bottom: 0;
+  font-family: inherit;
   border-bottom: none;
   padding-bottom: 0;
 }
@@ -145,14 +173,14 @@
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 0.35rem 0.6rem;
+  gap: 0.4rem 0.65rem;
   padding: 0;
 }
 
 .fr-report-controls-row label {
-  font-size: 0.825rem;
+  font-size: 0.72rem;
   font-weight: 600;
-  color: #334155;
+  color: #475569;
   flex-shrink: 0;
   white-space: nowrap;
 }
@@ -160,29 +188,28 @@
 .fr-report-portfolio-select {
   min-width: 160px;
   max-width: min(280px, 42vw);
-  padding: 0.35rem 0.6rem;
+  padding: 0.35rem 0.65rem;
   font-size: 0.8rem;
-  border: 1px solid #cbd5e1;
+  font-family: inherit;
+  border: 1px solid #e2e8f0;
+  border-radius: 0.4rem;
   background: #fff;
-  color: #1e293b;
+  color: #0f172a;
+  min-height: 2.15rem;
   flex-shrink: 0;
 }
 
 .fr-report-controls-sep {
   width: 1px;
-  height: 1.35rem;
-  background: #cbd5e1;
-  margin: 0 0.15rem;
+  height: 1.25rem;
+  background: #e2e8f0;
+  margin: 0 0.1rem;
   flex-shrink: 0;
   align-self: center;
 }
 
 .fr-report-controls-row .fr-period-label {
-  margin-right: 0.15rem;
-  flex-shrink: 0;
-}
-
-.fr-report-controls-row .fr-period-btn {
+  margin-right: 0.1rem;
   flex-shrink: 0;
 }
 
@@ -192,66 +219,75 @@
 
 .fr-report-error {
   background: #fef2f2;
-  color: #b91c1c;
-  padding: 0.5rem 0.75rem;
-  font-size: 0.8rem;
-  font-family: Arial, sans-serif;
+  color: #991b1b;
+  padding: 0.45rem 0.65rem;
+  font-size: 0.76rem;
+  font-family: inherit;
   margin: 0.5rem 0;
   border: 1px solid #fecaca;
+  border-radius: 0.4rem;
 }
 
 .fr-report-loading,
 .fr-report-empty {
-  font-size: 0.85rem;
+  font-size: 0.76rem;
   color: #64748b;
-  font-family: Arial, sans-serif;
-  padding: 0.5rem 0;
+  font-family: inherit;
+  padding: 0.45rem 0;
 }
 
 .fr-period-label {
-  font-size: 0.825rem;
+  font-size: 0.72rem;
   font-weight: 600;
-  color: #334155;
-  margin-right: 0.35rem;
-  font-family: Arial, sans-serif;
+  color: #475569;
+  margin-right: 0.25rem;
+  font-family: inherit;
   white-space: nowrap;
 }
 
 .fr-period-btn {
-  padding: 0.3rem 0.875rem;
-  font-size: 0.8rem;
-  font-weight: 600;
-  font-family: Arial, sans-serif;
-  color: #475569;
-  background: #f8fafc;
-  border: 1px solid #cbd5e1;
+  padding: 0.3rem 0.55rem;
+  font-size: 0.76rem;
+  font-weight: 700;
+  font-family: inherit;
+  color: #64748b;
+  background: transparent;
+  border: none;
+  border-bottom: 2px solid transparent;
+  border-radius: 0;
   cursor: pointer;
-  transition: background 0.15s, color 0.15s;
-  letter-spacing: 0.3px;
+  letter-spacing: 0;
 }
 
 .fr-period-btn:hover {
-  background: #e2e8f0;
+  background: transparent;
+  color: #0f172a;
 }
 
 .fr-period-btn--active {
-  background: #000000;
-  color: #ffffff;
-  border-color: #000000;
+  background: transparent;
+  color: #2563eb;
+  border-bottom-color: #2563eb;
 }
 
-/* ── Section heading ── */
 .fr-section-heading {
-  font-size: 0.9rem;
+  font-size: 0.66rem;
   font-weight: 700;
-  color: #000000;
+  color: #64748b;
   text-transform: uppercase;
-  letter-spacing: 0.5px;
-  margin-bottom: 0.3rem;
-  font-family: Arial, sans-serif;
+  letter-spacing: 0.06em;
+  margin-bottom: 0.15rem;
+  font-family: inherit;
 }
 
-/* ── Common table base ── */
+.fr-section-heading + .fr-rule + * {
+  margin-top: 0;
+}
+
+.fr-section-heading--spaced {
+  margin-top: 1.1rem;
+}
+
 .fr-summary-table,
 .fr-holdings-table,
 .fr-sector-table,
@@ -259,7 +295,7 @@
 .fr-bench-table {
   width: 100%;
   border-collapse: collapse;
-  font-size: 0.8375rem;
+  font-size: 0.8rem;
   margin-bottom: 0.5rem;
 }
 
@@ -268,8 +304,8 @@
 .fr-sector-table thead tr,
 .fr-risk-table thead tr,
 .fr-bench-table thead tr {
-  background: #000000;
-  color: #fff;
+  background: #fcfdff;
+  color: #64748b;
 }
 
 .fr-summary-table th,
@@ -277,28 +313,29 @@
 .fr-sector-table th,
 .fr-risk-table th,
 .fr-bench-table th {
-  padding: 0.5rem 0.75rem;
+  padding: 0.5rem 0.65rem;
   text-align: left;
-  font-size: 0.725rem;
-  font-weight: 600;
-  font-family: Arial, sans-serif;
-  letter-spacing: 0.3px;
+  font-size: 0.66rem;
+  font-weight: 700;
+  font-family: inherit;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
   line-height: 1.3;
   white-space: nowrap;
   vertical-align: bottom;
+  border-bottom: 1px solid #e2e8f0;
 }
 
 .fr-th-r {
   text-align: right !important;
 }
 
-/* tbody rows */
 .fr-summary-table tbody tr,
 .fr-holdings-table tbody tr,
 .fr-sector-table tbody tr,
 .fr-risk-table tbody tr,
 .fr-bench-table tbody tr {
-  border-bottom: 1px solid #e2e8f0;
+  border-bottom: 1px solid #f1f5f9;
 }
 
 .fr-summary-table tbody tr:nth-child(even),
@@ -306,7 +343,7 @@
 .fr-sector-table tbody tr:nth-child(even),
 .fr-risk-table tbody tr:nth-child(even),
 .fr-bench-table tbody tr:nth-child(even) {
-  background: #f8fafc;
+  background: #ffffff;
 }
 
 .fr-summary-table td,
@@ -314,38 +351,36 @@
 .fr-sector-table td,
 .fr-risk-table td,
 .fr-bench-table td {
-  padding: 0.5rem 0.75rem;
-  color: #1e293b;
+  padding: 0.5rem 0.65rem;
+  color: #334155;
   vertical-align: middle;
 }
 
-/* tfoot total row */
 .fr-total-row {
-  border-top: 2px solid #000000 !important;
-  border-bottom: 2px solid #000000 !important;
-  background: #f1f5f9 !important;
+  border-top: 1px solid #e2e8f0 !important;
+  border-bottom: none !important;
+  background: #fcfdff !important;
 }
 
 .fr-total-row td {
-  font-size: 0.85rem;
+  font-size: 0.8rem;
+  font-weight: 750;
 }
 
-/* ── Summary table specific ── */
 .fr-st-label {
   width: 25%;
-  color: #475569;
-  font-size: 0.8rem;
+  color: #64748b;
+  font-size: 0.76rem;
 }
 
 .fr-st-value {
   width: 25%;
-  font-weight: 700;
-  font-size: 0.925rem;
-  font-family: 'Courier New', monospace;
+  font-weight: 750;
+  font-size: 0.84rem;
+  font-variant-numeric: tabular-nums;
   padding-left: 1rem !important;
 }
 
-/* ── Scroll wrapper for wide tables (holdings) ── */
 .fr-table-scroll {
   width: 100%;
   max-width: 100%;
@@ -353,23 +388,8 @@
   overflow-y: hidden;
   margin-bottom: 0.75rem;
   border: 1px solid #e2e8f0;
+  border-radius: 0.4rem;
   background: #fff;
-  -webkit-overflow-scrolling: touch;
-  scrollbar-width: thin;
-  scrollbar-color: #94a3b8 #f1f5f9;
-}
-
-.fr-table-scroll::-webkit-scrollbar {
-  height: 10px;
-}
-
-.fr-table-scroll::-webkit-scrollbar-track {
-  background: #f1f5f9;
-}
-
-.fr-table-scroll::-webkit-scrollbar-thumb {
-  background: #94a3b8;
-  border-radius: 5px;
 }
 
 .fr-table-scroll .fr-holdings-table {
@@ -381,30 +401,32 @@
 
 .fr-table-scroll .fr-holdings-table th,
 .fr-table-scroll .fr-holdings-table td {
-  padding: 0.4rem 0.45rem;
-  font-size: 0.72rem;
+  padding: 0.4rem 0.5rem;
+  font-size: 0.76rem;
 }
 
 .fr-table-scroll .fr-holdings-table th {
-  font-size: 0.65rem;
+  font-size: 0.62rem;
   line-height: 1.25;
   vertical-align: bottom;
 }
 
+.fr-holdings-empty {
+  color: #64748b;
+}
+
 .fr-holdings-empty-row .fr-holdings-empty {
-  text-align: center !important;
+  text-align: left !important;
   color: #64748b !important;
-  font-style: italic;
-  padding: 1.5rem 1rem !important;
-  font-family: Arial, sans-serif !important;
+  padding: 0.85rem 0.65rem !important;
+  font-family: inherit !important;
   white-space: normal !important;
 }
 
-/* ── Holdings table ── */
 .fr-td-symbol {
   font-weight: 700;
-  color: #000000;
-  font-size: 0.8rem;
+  color: #0f172a;
+  font-size: 0.76rem;
   white-space: nowrap;
 }
 
@@ -414,99 +436,78 @@
   max-width: 11rem;
   white-space: normal;
   word-break: break-word;
-  hyphens: auto;
 }
 
 .fr-td-r {
   text-align: right;
-  font-family: 'Courier New', monospace;
+  font-variant-numeric: tabular-nums;
   white-space: nowrap;
 }
 
-.fr-holdings-table .fr-td-r {
-  font-variant-numeric: tabular-nums;
-}
-
-/* ── Risk table ── */
 .fr-td-interp {
-  font-size: 0.775rem;
-  color: #475569;
-  font-style: italic;
+  font-size: 0.72rem;
+  color: #64748b;
 }
 
-/* ── Highlighted current period row ── */
 .fr-row-active {
-  background: #eff6ff !important;
+  background: #f8fafc !important;
   font-weight: 600;
 }
 
-/* ── Colour helpers ── */
-.fr-pos { color: #166534; }
-.fr-neg { color: #991b1b; }
+.fr-pos { color: #15803d; }
+.fr-neg { color: #dc2626; }
 
-/* ── Footer ── */
 .fr-footer {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding-top: 0.75rem;
-  font-size: 0.7rem;
+  padding-top: 0.65rem;
+  font-size: 0.66rem;
   color: #94a3b8;
-  font-family: Arial, sans-serif;
+  font-family: inherit;
   flex-wrap: wrap;
   gap: 0.5rem;
 }
 
-/* ── Responsive ── */
+.fr-report-pdf-btn {
+  padding: 0.35rem 0.9rem;
+  font-size: 0.76rem;
+  font-weight: 700;
+  font-family: inherit;
+  color: #fff;
+  background: #0f172a;
+  border: 1px solid #020617;
+  border-radius: 0.4rem;
+  cursor: pointer;
+  white-space: nowrap;
+  box-shadow: none;
+}
+
+.fr-report-pdf-btn:hover:not(:disabled) {
+  background: #020617;
+}
+
+.fr-report-pdf-btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
 @media (max-width: 900px) {
-  .fr-doc {
-    padding: 1.5rem;
-  }
   .fr-letterhead {
     flex-direction: column;
     gap: 0.75rem;
   }
+
   .fr-letterhead-left {
     max-width: 100%;
   }
+
   .fr-report-type,
   .fr-report-meta {
     text-align: left;
   }
 }
 
-@media (max-width: 640px) {
-  .fr-page {
-    padding: 0.5rem;
-  }
-  .fr-doc {
-    padding: 1rem;
-  }
-}
-
-.fr-report-pdf-btn {
-  padding: 0.45rem 1rem;
-  font-size: 0.8rem;
-  font-weight: 600;
-  font-family: Arial, sans-serif;
-  color: #fff;
-  background: #0f172a;
-  border: 1px solid #0f172a;
-  cursor: pointer;
-  white-space: nowrap;
-}
-
-.fr-report-pdf-btn:hover {
-  background: #1e293b;
-  border-color: #1e293b;
-}
-
-.fr-report-pdf-btn:disabled {
-  opacity: 0.75;
-  cursor: not-allowed;
-}
-
-/* ── Print / Save as PDF ── */
 @media print {
   @page {
     margin: 12mm;
@@ -563,7 +564,8 @@
 
   .fr-doc {
     box-shadow: none !important;
-    border-top: 4px solid #000 !important;
+    border: none !important;
+    border-radius: 0 !important;
     max-width: none !important;
     margin: 0 !important;
     padding: 0 !important;
@@ -572,6 +574,7 @@
 
   .fr-table-scroll {
     overflow: visible !important;
+    border: none !important;
   }
 
   .fr-table-scroll .fr-holdings-table {
@@ -584,5 +587,4 @@
     print-color-adjust: exact;
     -webkit-print-color-adjust: exact;
   }
-
 }

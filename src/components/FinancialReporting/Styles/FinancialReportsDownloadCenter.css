@@ -1,162 +1,202 @@
-/* Aligns with Home/Sidebar: slate gradient + blue accents (not pure black) */
-.frdc-wrap {
-  --frdc-slate: #1e293b;
-  --frdc-slate-mid: #334155;
-  --frdc-slate-soft: #475569;
-  --frdc-blue: #2563eb;
-  --frdc-blue-bright: #3b82f6;
-  --frdc-blue-deep: #1d4ed8;
-  --frdc-ink: #1e293b;
+/* Financial Reports Export — desk layout */
 
-  padding: 24px;
-  background: #f8fafc;
-  color: var(--frdc-ink);
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700;9..40,800&display=swap');
+
+.frdc-wrap {
+  padding: 0.15rem 0 1.75rem;
+  background: transparent;
+  color: #0f172a;
+  font-family: 'DM Sans', 'Segoe UI', sans-serif;
+}
+
+.frdc-wrap *,
+.frdc-wrap *::before,
+.frdc-wrap *::after {
+  font-style: normal;
+}
+
+.frdc-header {
+  margin-bottom: 0.55rem;
+  padding: 0 0.05rem 0.5rem;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.frdc-eyebrow {
+  margin: 0 0 0.08rem;
+  font-size: 0.55rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #2563eb;
 }
 
 .frdc-header h2 {
   margin: 0;
-  font-size: 20px;
-  font-weight: 900;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-  color: var(--frdc-slate);
+  font-size: clamp(1.05rem, 1.6vw, 1.25rem);
+  font-weight: 750;
+  letter-spacing: -0.02em;
+  text-transform: none;
+  color: #0f172a;
+  line-height: 1.15;
 }
 
 .frdc-header p {
-  margin: 6px 0 0;
-  color: var(--frdc-slate-soft);
-  font-size: 13px;
-  font-weight: 600;
+  margin: 0.2rem 0 0;
+  color: #64748b;
+  font-size: 0.72rem;
+  font-weight: 400;
+  line-height: 1.35;
 }
 
 .frdc-filters {
-  margin-top: 14px;
-  display: grid;
-  grid-template-columns: 1.6fr 1fr;
-  gap: 12px;
-  background: #fff;
-  border: 1px solid #e2e8f0;
-  padding: 14px;
-  box-shadow: 0 10px 24px rgba(30, 41, 59, 0.06);
+  margin-top: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.65rem 0.85rem;
+  background: transparent;
+  border: none;
+  padding: 0.65rem 0;
+  box-shadow: none;
 }
 
 .frdc-filters label {
   display: flex;
   flex-direction: column;
-  gap: 6px;
-  font-size: 12px;
-  font-weight: 900;
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
-  color: var(--frdc-slate-soft);
+  gap: 0.28rem;
+  min-width: 10.5rem;
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0;
+  text-transform: none;
+  color: #475569;
 }
 
 .frdc-filters select,
 .frdc-filters input {
-  border: 1px solid #cbd5e1;
-  padding: 10px 10px;
-  font-size: 14px;
-  font-weight: 700;
-  color: var(--frdc-slate);
-  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 0.4rem;
+  padding: 0.4rem 0.65rem;
+  font-size: 0.8rem;
+  font-weight: 400;
+  font-family: inherit;
+  color: #0f172a;
+  background: #ffffff;
+  min-height: 2.15rem;
+  box-sizing: border-box;
 }
 
 .frdc-filters select:focus,
 .frdc-filters input:focus {
   outline: none;
-  border-color: var(--frdc-blue);
-  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.18);
+  border-color: #93c5fd;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
 }
 
 .frdc-error {
-  margin-top: 12px;
-  color: #b91c1c;
-  background: #fee2e2;
+  margin-top: 0;
+  margin-bottom: 0.75rem;
+  color: #991b1b;
+  background: #fef2f2;
   border: 1px solid #fecaca;
-  padding: 10px 12px;
+  border-radius: 0.4rem;
+  padding: 0.45rem 0.65rem;
+  font-size: 0.76rem;
 }
 
 .frdc-grid {
-  margin-top: 16px;
+  margin-top: 0.35rem;
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-  gap: 12px;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 0.65rem;
 }
 
 .frdc-card {
-  background: #fff;
+  background: #ffffff;
   border: 1px solid #e2e8f0;
-  box-shadow: 0 10px 24px rgba(30, 41, 59, 0.06);
-  padding: 16px;
+  border-radius: 0.4rem;
+  box-shadow: none;
+  padding: 0.75rem 0.85rem;
 }
 
 .frdc-card-title {
-  font-weight: 900;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-  font-size: 12px;
-  color: var(--frdc-slate-mid);
+  font-weight: 750;
+  text-transform: none;
+  letter-spacing: -0.01em;
+  font-size: 0.84rem;
+  color: #0f172a;
 }
 
 .frdc-card-sub {
-  margin-top: 6px;
+  margin-top: 0.25rem;
   color: #64748b;
-  font-size: 13px;
-  font-weight: 600;
+  font-size: 0.72rem;
+  font-weight: 400;
+  line-height: 1.4;
 }
 
 .frdc-actions {
-  margin-top: 12px;
+  margin-top: 0.65rem;
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 10px;
+  gap: 0.4rem;
 }
 
 .frdc-actions-single {
   grid-template-columns: 1fr;
 }
 
-.frdc-actions button {
-  border: 1px solid var(--frdc-slate-mid);
-  background: #fff;
-  color: var(--frdc-slate);
-  padding: 10px 12px;
-  font-size: 12px;
-  font-weight: 900;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
+.frdc-btn {
+  border-radius: 0.4rem;
+  padding: 0.35rem 0.75rem;
+  font-size: 0.76rem;
+  font-weight: 700;
+  font-family: inherit;
+  text-transform: none;
+  letter-spacing: 0;
   cursor: pointer;
-  transition: transform 0.15s ease, background 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease, color 0.15s ease;
-}
-
-.frdc-actions button:hover:not(:disabled) {
-  background: linear-gradient(145deg, rgba(59, 130, 246, 0.08) 0%, rgba(30, 41, 59, 0.06) 100%);
-  border-color: var(--frdc-blue);
-  color: var(--frdc-blue-deep);
-  transform: translateY(-1px);
-  box-shadow: 0 8px 20px rgba(37, 99, 235, 0.12);
-}
-
-.frdc-actions button:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
   box-shadow: none;
 }
 
+.frdc-btn-pdf {
+  background: #0f172a;
+  color: #ffffff;
+  border: 1px solid #020617;
+}
+
+.frdc-btn-pdf:hover:not(:disabled) {
+  background: #020617;
+}
+
+.frdc-btn-excel {
+  background: #15803d;
+  color: #ffffff;
+  border: 1px solid #166534;
+}
+
+.frdc-btn-excel:hover:not(:disabled) {
+  background: #166534;
+}
+
+.frdc-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
 .frdc-card-disabled {
-  opacity: 0.75;
+  opacity: 0.7;
 }
 
 .frdc-card-disabled .frdc-card-title {
-  color: #94a3b8;
+  color: #64748b;
 }
 
 @media (max-width: 980px) {
-  .frdc-wrap {
-    padding: 16px;
+  .frdc-filters {
+    flex-direction: column;
   }
 
-  .frdc-filters {
-    grid-template-columns: 1fr;
+  .frdc-filters label {
+    min-width: auto;
+    width: 100%;
   }
 }

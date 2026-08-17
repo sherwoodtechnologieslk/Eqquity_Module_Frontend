@@ -272,9 +272,10 @@ const FinancialReportsExport = () => {
   const exportDisabled = !tableData || loading;
 
   return (
-    <div className="fre-wrap">
-      <div className="fre-header">
+    <div className="fre-wrap fre-wrap--snapshot">
+      <header className="fre-header">
         <div>
+          <p className="fre-eyebrow">Accounting · Reporting</p>
           <h2>Equity Portfolio Snapshot</h2>
           <p>Portfolio analytics table with cost and market-based measures.</p>
         </div>
@@ -288,7 +289,7 @@ const FinancialReportsExport = () => {
             onExportPdf={() => tableData && downloadPdf(tableData)}
           />
         </div>
-      </div>
+      </header>
 
       <div className="fre-panel fre-filters">
         <label>

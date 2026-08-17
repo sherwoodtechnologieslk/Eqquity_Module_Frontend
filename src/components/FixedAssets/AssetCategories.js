@@ -150,14 +150,15 @@ const AssetCategories = () => {
   return (
     <div className="fa-container">
       <div className="fa-wrapper">
-        <div className="fa-header">
+        <header className="fa-header">
           <div className="fa-header-left">
+            <p className="fa-eyebrow">Accounting · Fixed assets</p>
             <h1 className="fa-title">Asset Categories</h1>
             <span className="fa-subtitle">
               Depreciation rate, useful life, and GL account mapping per category.
             </span>
           </div>
-        </div>
+        </header>
 
         <form className="fa-form-grid" onSubmit={handleSave}>
           <h3 className="fa-section-title">
@@ -283,13 +284,9 @@ const AssetCategories = () => {
             />
           </div>
 
-          {error ? (
-            <div className="fa-section-title" style={{ color: '#b91c1c', border: 'none' }}>
-              {error}
-            </div>
-          ) : null}
+          {error ? <div className="fa-form-error-banner">{error}</div> : null}
 
-          <div className="fa-form-actions" style={{ gridColumn: '1 / -1' }}>
+          <div className="fa-form-actions fa-form-actions--grid">
             {editingId && (
               <button type="button" className="fa-btn" onClick={resetForm}>
                 Cancel
@@ -350,8 +347,7 @@ const AssetCategories = () => {
                       </button>
                       <button
                         type="button"
-                        className="fa-btn-ghost"
-                        style={{ color: '#b91c1c' }}
+                        className="fa-btn-ghost fa-btn-ghost-danger"
                         onClick={() => handleDelete(c)}
                       >
                         Delete

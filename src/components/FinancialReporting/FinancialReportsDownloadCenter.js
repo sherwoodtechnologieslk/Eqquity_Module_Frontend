@@ -917,12 +917,13 @@ const FinancialReportsDownloadCenter = () => {
 
   return (
     <div className="frdc-wrap">
-      <div className="frdc-header">
+      <header className="frdc-header">
         <div>
+          <p className="frdc-eyebrow">Accounting · Reporting</p>
           <h2>Financial Reports Export</h2>
           <p>Download financial reports as PDF or Excel (CSV).</p>
         </div>
-      </div>
+      </header>
 
       <div className="frdc-filters">
         <label>
@@ -957,10 +958,10 @@ const FinancialReportsDownloadCenter = () => {
               <div className="frdc-card-title">{card.title}</div>
               <div className="frdc-card-sub">{card.subtitle}</div>
               <div className="frdc-actions">
-                <button type="button" disabled={disabled} onClick={card.onPdf}>
+                <button type="button" className="frdc-btn frdc-btn-pdf" disabled={disabled} onClick={card.onPdf}>
                   {busyKey === card.pdfKey ? 'Preparing…' : 'Download PDF'}
                 </button>
-                <button type="button" disabled={disabled} onClick={card.onExcel}>
+                <button type="button" className="frdc-btn frdc-btn-excel" disabled={disabled} onClick={card.onExcel}>
                   {busyKey === card.excelKey ? 'Preparing…' : 'Download Excel'}
                 </button>
               </div>
@@ -973,10 +974,10 @@ const FinancialReportsDownloadCenter = () => {
             <div className="frdc-card-title">{card.title}</div>
             <div className="frdc-card-sub">{card.subtitle}</div>
             <div className="frdc-actions">
-              <button type="button" disabled>
+              <button type="button" className="frdc-btn frdc-btn-pdf" disabled>
                 Download PDF
               </button>
-              <button type="button" disabled>
+              <button type="button" className="frdc-btn frdc-btn-excel" disabled>
                 Download Excel
               </button>
             </div>
