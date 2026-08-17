@@ -190,16 +190,8 @@ const AvgCostCalculator = () => {
     <div className="acc-calc-container">
       <div className="acc-calc-content acc-calc-content-wide">
         <div className="acc-calc-header">
-          <div className="acc-calc-header-icon" aria-hidden>
-            <svg fill="currentColor" viewBox="0 0 20 20">
-              <path
-                fillRule="evenodd"
-                d="M3 3a1 1 0 011-1h12a1 1 0 011 1v3a1 1 0 01-.293.707l-6 6a1 1 0 01-1.414 0l-6-6A1 1 0 013 6V3zm3 2a1 1 0 100 2 1 1 0 000-2zm3-1a1 1 0 011 1v1h-2V5a1 1 0 011-1zm-3 7a1 1 0 100 2h8a1 1 0 100-2H6z"
-                clipRule="evenodd"
-              />
-            </svg>
-          </div>
           <div>
+            <p className="acc-calc-eyebrow">Trade Capture · Analytics</p>
             <h1 className="acc-calc-title">Avg Cost Calculator</h1>
             <p className="acc-calc-subtitle">
               See your holdings and WAP, then work out how many shares to buy at a price to reach a

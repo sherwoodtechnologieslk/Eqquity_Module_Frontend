@@ -996,8 +996,8 @@ const BuyTransactionEntry = () => {
       <div className="buy-content-wrapper">
         <header className="buy-toolbar">
           <div className="buy-toolbar__left">
-            <span className="buy-toolbar__badge">BUY</span>
             <div className="buy-toolbar__heading">
+              <p className="buy-toolbar__eyebrow">Trade Capture · Buy</p>
               <h1 className="buy-toolbar__title">Buy Transaction Entry</h1>
               <p className="buy-toolbar__subtitle">
                 Record equity purchases with automatic fee and settlement calculations
@@ -1053,11 +1053,6 @@ const BuyTransactionEntry = () => {
           <form onSubmit={handleSubmit} className="buy-form">
             <section className="buy-section-card">
               <div className="buy-section-header">
-                <div className="buy-section-icon">
-                  <svg className="buy-section-icon-svg" fill="currentColor" viewBox="0 0 20 20">
-                    <path d="M4 4a2 2 0 00-2 2v8a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2H4zm2 6a2 2 0 114 0 2 2 0 01-4 0zm8 0a2 2 0 114 0 2 2 0 01-4 0z"/>
-                  </svg>
-                </div>
                 <h3 className="buy-section-title">Security & Trade Information</h3>
               </div>
               <div className="buy-form-grid">
@@ -1246,12 +1241,6 @@ const BuyTransactionEntry = () => {
 
             <section className="buy-section-card">
               <div className="buy-section-header">
-                <div className="buy-section-icon calculation">
-                  <svg className="buy-section-icon-svg" fill="currentColor" viewBox="0 0 20 20">
-                    <path d="M8.433 7.418c.155-.103.346-.196.567-.267v1.698a2.305 2.305 0 01-.567-.267C8.07 8.34 8 8.114 8 8c0-.114.07-.34.433-.582zM11 12.849v-1.698c.22.071.412.164.567.267.364.243.433.468.433.582 0 .114-.07.34-.433.582a2.305 2.305 0 01-.567.267z"/>
-                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm-7-8a7 7 0 1114 0 7 7 0 01-14 0z" clipRule="evenodd"/>
-                  </svg>
-                </div>
                 <h3 className="buy-section-title">Cost Breakdown & Calculations</h3>
               </div>
               <div className="buy-fee-structure-note">
@@ -1386,12 +1375,6 @@ const BuyTransactionEntry = () => {
 
             <section className="buy-section-card">
               <div className="buy-section-header">
-                <div className="buy-section-icon payment">
-                  <svg className="buy-section-icon-svg" fill="currentColor" viewBox="0 0 20 20">
-                    <path d="M4 4a2 2 0 00-2 2v1h16V6a2 2 0 00-2-2H4z"/>
-                    <path fillRule="evenodd" d="M18 9H2v5a2 2 0 002 2h12a2 2 0 002-2V9zM4 13a1 1 0 011-1h1a1 1 0 110 2H5a1 1 0 01-1-1zm5-1a1 1 0 100 2h1a1 1 0 100-2H9z" clipRule="evenodd"/>
-                  </svg>
-                </div>
                 <h3 className="buy-section-title">Payment & Settlement Details</h3>
               </div>
               <div className="buy-form-grid">
@@ -1614,10 +1597,6 @@ const BuyTransactionEntry = () => {
           />
         )}
 
-        {/* Footer */}
-        <div className="buy-footer-section">
-          <p>  SHERWOOD TECHNOLOGIES (PVT) LTD • Secure transaction recording • All calculations are automated and verified</p>
-        </div>
       </div>
     </div>
   );

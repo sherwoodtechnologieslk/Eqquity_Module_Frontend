@@ -282,6 +282,7 @@ const JournalEntries = ({ onTabChange }) => {
       <div className="je-content-wrapper">
         <div className="je-header">
           <div className="je-header__text">
+            <p className="je-eyebrow">Accounting · Ledger</p>
             <h1 className="je-main-title">Journal Entries</h1>
             <p className="je-subtitle">
               Browse and filter general ledger journal lines posted from trades, corporate actions,

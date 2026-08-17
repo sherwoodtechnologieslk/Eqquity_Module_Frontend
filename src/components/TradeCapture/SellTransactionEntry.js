@@ -1281,16 +1281,11 @@ const SellTransactionEntry = ({ setFifoParams, setActiveTab }) => {
 
   return (
     <div className="sell-page">
-      
-
-      
-
-
       <div className="sell-content-wrapper">
         <header className="sell-toolbar">
           <div className="sell-toolbar__left">
-            <span className="sell-toolbar__badge">SELL</span>
             <div className="sell-toolbar__heading">
+              <p className="sell-toolbar__eyebrow">Trade Capture · Sell</p>
               <h1 className="sell-toolbar__title">Sell Transaction Entry</h1>
               <p className="sell-toolbar__subtitle">
                 Record stock sales with automatic fee, gain and settlement calculations
@@ -1354,11 +1349,6 @@ const SellTransactionEntry = ({ setFifoParams, setActiveTab }) => {
               <section className="sell-section-card">
               {/* Section 1 */}
               <div className="sell-section-header">
-                <div className="sell-section-icon">
-                  <svg className="sell-section-icon-svg" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd"/>
-                  </svg>
-                </div>
                 <h3 className="sell-section-title">Basic Information</h3>
               </div>
               <div className="sell-form-grid">
@@ -1523,11 +1513,6 @@ const SellTransactionEntry = ({ setFifoParams, setActiveTab }) => {
             <section className="sell-section-card">
               {/* Section 2 */}
               <div className="sell-section-header">
-                <div className="sell-section-icon">
-                  <svg className="sell-section-icon-svg" fill="currentColor" viewBox="0 0 20 20">
-                    <path d="M3 4a1 1 0 011-1h12a1 1 0 011 1v2a1 1 0 01-1 1H4a1 1 0 01-1-1V4zM3 10a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H4a1 1 0 01-1-1v-6zM14 9a1 1 0 00-1 1v6a1 1 0 001 1h2a1 1 0 001-1v-6a1 1 0 00-1-1h-2z"/>
-                  </svg>
-                </div>
                 <h3 className="sell-section-title">Transaction Details</h3>
               </div>
               <div className="sell-form-grid">
@@ -1658,12 +1643,6 @@ const SellTransactionEntry = ({ setFifoParams, setActiveTab }) => {
             <section className="sell-section-card">
               {/* Cost Breakdown & Calculations Section */}
               <div className="sell-section-header">
-                <div className="sell-section-icon calculation">
-                  <svg className="sell-section-icon-svg" fill="currentColor" viewBox="0 0 20 20">
-                    <path d="M8.433 7.418c.155-.103.346-.196.567-.267v1.698a2.305 2.305 0 01-.567-.267C8.07 8.34 8 8.114 8 8c0-.114.07-.34.433-.582zM11 12.849v-1.698c.22.071.412.164.567.267.364.243.433.468.433.582 0 .114-.07.34-.433.582a2.305 2.305 0 01-.567.267z"/>
-                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm-7-8a7 7 0 1114 0 7 7 0 01-14 0z" clipRule="evenodd"/>
-                  </svg>
-                </div>
                 <h3 className="sell-section-title">Cost Breakdown & Calculations</h3>
               </div>
               <div className="sell-fee-structure-note">
@@ -1801,11 +1780,6 @@ const SellTransactionEntry = ({ setFifoParams, setActiveTab }) => {
             <section className="sell-section-card">
               {/* Section 3 */}
               <div className="sell-section-header">
-                <div className="sell-section-icon">
-                  <svg className="sell-section-icon-svg" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clipRule="evenodd"/>
-                  </svg>
-                </div>
                 <h3 className="sell-section-title">Dates & References</h3>
               </div>
               <div className="sell-form-grid">
@@ -1980,11 +1954,6 @@ const SellTransactionEntry = ({ setFifoParams, setActiveTab }) => {
             <section className="sell-section-card">
               {/* Section 4 */}
               <div className="sell-section-header">
-                <div className="sell-section-icon calculation">
-                  <svg className="sell-section-icon-svg" fill="currentColor" viewBox="0 0 20 20">
-                    <path d="M2 11a1 1 0 011-1h2a1 1 0 011 1v5a1 1 0 01-1 1H3a1 1 0 01-1-1v-5zM8 7a1 1 0 011-1h2a1 1 0 011 1v9a1 1 0 01-1 1H9a1 1 0 01-1-1V7zM14 4a1 1 0 011-1h2a1 1 0 011 1v12a1 1 0 01-1 1h-2a1 1 0 01-1-1V4z"/>
-                  </svg>
-                </div>
                 <h3 className="sell-section-title">Financial Calculations</h3>
               </div>
               <div className="sell-form-grid">
@@ -2074,9 +2043,6 @@ const SellTransactionEntry = ({ setFifoParams, setActiveTab }) => {
                 </button>
               </div>
             </form>
-        </div>
-        <div className="eqt-footer-section">
-          <p>  SHERWOOD TECHNOLOGIES (PVT) LTD • Secure transaction recording • All calculations are automated and verified</p>
         </div>
       </div>
 

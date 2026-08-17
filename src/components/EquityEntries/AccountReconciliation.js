@@ -56,7 +56,7 @@ const isCashAndShortTermDepositsAccount = (account) =>
 
 const ALL_TIME_RANGE_START = '1900-01-01';
 
-/** Narrow cash accounts by bank name (matches COA description text). */
+/** Bank filter options (does not restrict the Account to Reconcile list). */
 const RECONCILE_BANK_SELECT_OPTIONS = [
   { value: '', label: 'Select bank' },
   { value: 'seylan', label: 'Seylan Bank' },
@@ -64,32 +64,6 @@ const RECONCILE_BANK_SELECT_OPTIONS = [
   { value: 'commercial', label: 'COMMERCIAL BANK' },
   { value: 'sampath', label: 'Sampath bank' }
 ];
-
-const RECONCILE_BANK_KEYWORDS = {
-  seylan: ['seylan'],
-  hatton: ['hatton', 'hnb', 'hattion', 'nattion', 'hatton national'],
-  commercial: ['commercial'],
-  sampath: ['sampath']
-};
-
-const accountMatchesReconcileBank = (account, bankKey) => {
-  const key = String(bankKey || '').trim();
-  if (!key) return true;
-  const keywords = RECONCILE_BANK_KEYWORDS[key];
-  if (!keywords || !keywords.length) return true;
-  const text = [
-    account?.account_name,
-    account?.accountName,
-    account?.name,
-    account?.description,
-    account?.transaction_type,
-    account?.transactionType
-  ]
-    .filter(Boolean)
-    .join(' ')
-    .toLowerCase();
-  return keywords.some((k) => text.includes(String(k).toLowerCase()));
-};
 
 const AccountReconciliation = () => {
   // State for filters and configuration (default period: All time — matches handlePeriodChange('all'))
@@ -152,6 +126,8 @@ const AccountReconciliation = () => {
   const [statementPdfPages, setStatementPdfPages] = useState([]);
   const [statementPreviewRows, setStatementPreviewRows] = useState([]);
   const [statementPreviewError, setStatementPreviewError] = useState('');
+  const [statementExtractWarnings, setStatementExtractWarnings] = useState([]);
+  const [statementExtractMeta, setStatementExtractMeta] = useState(null);
   const [isPreparingPreview, setIsPreparingPreview] = useState(false);
   const [showPdfPasswordModal, setShowPdfPasswordModal] = useState(false);
   const [pdfPassword, setPdfPassword] = useState('');
@@ -167,41 +143,6 @@ const AccountReconciliation = () => {
 
   // PDF.js worker - assumes public/pdf.worker.min.js exists (same as PendingDividends)
   pdfjsLib.GlobalWorkerOptions.workerSrc = '/pdf.worker.min.js';
-
-  const parsePreviewNumber = (value) => {
-    if (value === null || value === undefined) return 0;
-    const raw = String(value).replace(/\(([^)]+)\)/g, '-$1');
-    const match = raw.match(/-?\d[\d,]*(?:\.\d+)?/);
-    if (!match) return 0;
-    let numericText = match[0];
-
-    // Some PDFs split/drop the decimal point in money values:
-    // "LKR 88,925.32" can be extracted as "LKR88,92532".
-    if (!numericText.includes('.') && numericText.includes(',')) {
-      const sign = numericText.startsWith('-') ? '-' : '';
-      const digits = numericText.replace(/[^0-9]/g, '');
-      const lastGroup = numericText.split(',').pop() || '';
-      if (digits.length > 2 && lastGroup.length > 3) {
-        numericText = `${sign}${digits.slice(0, -2)}.${digits.slice(-2)}`;
-      }
-    }
-
-    const n = Number(numericText.replace(/,/g, ''));
-    return Number.isFinite(n) ? n : 0;
-  };
-
-  const extractStatementAmounts = (value) => {
-    const compact = String(value || '').replace(/\s+/g, '');
-    const matches = [...compact.matchAll(/(CR|DR)(-?\d[\d,]*(?:\.\d+)?)LKR(\d[\d,]*(?:\.\d+)?)/gi)];
-    if (matches.length === 0) return null;
-
-    const last = matches[matches.length - 1];
-    return {
-      crDr: last[1].toUpperCase(),
-      transactionAmount: parsePreviewNumber(last[2]),
-      runningBalance: parsePreviewNumber(last[3])
-    };
-  };
 
   const formatPreviewAmount = (value) => {
     const n = Number(value);
@@ -253,143 +194,6 @@ const AccountReconciliation = () => {
       .trim();
 
     return withoutArtifacts;
-  };
-
-  const normalizePreviewDate = (value) => {
-    if (!value) return '';
-    const str = String(value).trim();
-    if (/^\d{4}-\d{2}-\d{2}/.test(str)) return str.slice(0, 10);
-
-    const monthMatch = str.match(/^(\d{1,2})(JAN|FEB|MAR|APR|MAY|JUN|JUL|AUG|SEP|OCT|NOV|DEC)$/i);
-    if (monthMatch) {
-      const months = {
-        JAN: '01',
-        FEB: '02',
-        MAR: '03',
-        APR: '04',
-        MAY: '05',
-        JUN: '06',
-        JUL: '07',
-        AUG: '08',
-        SEP: '09',
-        OCT: '10',
-        NOV: '11',
-        DEC: '12'
-      };
-      const year = new Date(filters.startDate || filters.endDate || new Date()).getFullYear();
-      return `${year}-${months[monthMatch[2].toUpperCase()]}-${String(Number(monthMatch[1])).padStart(2, '0')}`;
-    }
-
-    const m = str.match(/^(\d{1,2})[-/](\d{1,2})[-/](\d{2,4})$/);
-    if (!m) return '';
-
-    const first = Number(m[1]);
-    const second = Number(m[2]);
-    let year = Number(m[3]);
-    if (year < 100) year += 2000;
-    const month = first > 12 ? second : first;
-    const day = first > 12 ? first : second;
-
-    return `${String(year).padStart(4, '0')}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
-  };
-
-  const parsePdfPreviewRows = (pages) => {
-    const rows = [];
-    const isStatementDate = (value) => /^(\d{1,2})(JAN|FEB|MAR|APR|MAY|JUN|JUL|AUG|SEP|OCT|NOV|DEC)$/i.test(String(value || '').trim());
-    const isCrDr = (value) => /^(CR|DR)$/i.test(String(value || '').trim());
-    const validTransactionTypes = new Set(['CR', 'DR', 'POS', 'REF', 'TRF', 'INTEREST', 'TAX']);
-    const isIgnoredTableText = (value) =>
-      /seylan bank plc|galle road|hot line|infoseylan\.lk|www\.seylan\.lk|generated from seylan online banking|bears no signature|page\s*\d+\s*of\s*\d+/i.test(
-        String(value || '')
-      );
-
-    const columnForItem = (item, pageWidth) => {
-      const ratio = pageWidth ? item.left / pageWidth : 0;
-
-      if (ratio < 0.13) return 'transactionDate';
-      if (ratio < 0.25) return 'transactionValueDate';
-      if (ratio < 0.36) return 'transactionType';
-      if (ratio < 0.58) return 'transactionDescription';
-      if (ratio < 0.66) return 'crDr';
-      if (ratio < 0.84) return 'transactionAmount';
-      return 'runningBalance';
-    };
-
-    pages.forEach((page) => {
-      (page.lineItems || []).forEach((line) => {
-        const text = (line.items || []).map((item) => item.text).join(' ').replace(/\s+/g, ' ').trim();
-        if (!text) return;
-        if (/transaction\s+date|transaction\s+value\s+date|running\s+balance/i.test(text)) return;
-        if (isIgnoredTableText(text)) return;
-
-        const row = {
-          transactionDate: '',
-          transactionValueDate: '',
-          transactionType: '',
-          transactionDescription: '',
-          crDr: '',
-          transactionAmount: '',
-          runningBalance: ''
-        };
-
-        (line.items || [])
-          .sort((a, b) => a.left - b.left)
-          .forEach((item) => {
-            const column = columnForItem(item, page.width);
-            row[column] = `${row[column]} ${item.text}`.trim();
-          });
-
-        const rawTransactionDate = row.transactionDate;
-        const rawTransactionValueDate = row.transactionValueDate;
-        row.transactionDate = normalizePreviewDate(row.transactionDate) || row.transactionDate;
-        row.transactionValueDate = normalizePreviewDate(row.transactionValueDate) || row.transactionValueDate;
-        const extractedAmounts = extractStatementAmounts(text);
-        const amount = extractedAmounts?.transactionAmount ?? parsePreviewNumber(row.transactionAmount);
-        const balance = extractedAmounts?.runningBalance ?? parsePreviewNumber(row.runningBalance);
-
-        const isContinuationLine =
-          !rawTransactionDate &&
-          !rawTransactionValueDate &&
-          !row.transactionType &&
-          !row.crDr &&
-          !amount &&
-          !balance &&
-          row.transactionDescription &&
-          rows.length > 0;
-
-        if (isContinuationLine) {
-          rows[rows.length - 1].transactionDescription = `${rows[rows.length - 1].transactionDescription} ${row.transactionDescription}`
-            .replace(/\s+/g, ' ')
-            .trim();
-          return;
-        }
-
-        const normalizedType = String(row.transactionType || '').trim().toUpperCase();
-        const normalizedCrDr = String(extractedAmounts?.crDr || row.crDr || '').trim().toUpperCase();
-        const hasTransactionDates = isStatementDate(rawTransactionDate) && isStatementDate(rawTransactionValueDate);
-        const isActualTransaction =
-          hasTransactionDates &&
-          validTransactionTypes.has(normalizedType) &&
-          isCrDr(normalizedCrDr) &&
-          amount !== 0 &&
-          balance !== 0;
-
-        if (!isActualTransaction) return;
-
-        rows.push({
-          id: `${page.pageNumber}-${rows.length + 1}`,
-          transactionDate: row.transactionDate,
-          transactionValueDate: row.transactionValueDate,
-          transactionType: normalizedType,
-          transactionDescription: row.transactionDescription || text,
-          crDr: normalizedCrDr,
-          transactionAmount: amount,
-          runningBalance: balance
-        });
-      });
-    });
-
-    return rows;
   };
 
   const buildPdfTextLayoutPreview = async (file, password) => {
@@ -486,21 +290,16 @@ const AccountReconciliation = () => {
     [accounts]
   );
 
-  const reconcileAccountsFiltered = useMemo(
-    () => reconcileAccounts.filter((acc) => accountMatchesReconcileBank(acc, filters.bank)),
-    [reconcileAccounts, filters.bank]
-  );
-
   useEffect(() => {
     const selected = String(filters.accountCode || '').trim();
     if (!selected) return;
-    const codes = reconcileAccountsFiltered.map((acc) =>
+    const codes = reconcileAccounts.map((acc) =>
       String(acc.account_code || acc.accountCode || acc.code || '').trim()
     );
     if (!codes.includes(selected)) {
       setFilters((prev) => ({ ...prev, accountCode: '' }));
     }
-  }, [reconcileAccountsFiltered, filters.accountCode]);
+  }, [reconcileAccounts, filters.accountCode]);
 
   const loadGlTransactions = useCallback(async () => {
     const accountCode = String(filters.accountCode || '').trim();
@@ -529,7 +328,7 @@ const AccountReconciliation = () => {
     } finally {
       setLoading(false);
     }
-  }, [filters.startDate, filters.endDate]);
+  }, [filters.accountCode, filters.startDate, filters.endDate]);
 
   const mapStatementEntryRow = useCallback(
     (row) => {
@@ -670,6 +469,8 @@ const AccountReconciliation = () => {
     setStatementPdfPages([]);
     setStatementPreviewRows([]);
     setStatementPreviewError('');
+    setStatementExtractWarnings([]);
+    setStatementExtractMeta(null);
     setShowPdfPasswordModal(false);
     setPdfPassword('');
     setPdfImportPassword('');
@@ -686,9 +487,11 @@ const AccountReconciliation = () => {
         setStatementPreviewText('');
         setStatementPdfPages([]);
         setStatementPreviewRows([]);
+        setStatementExtractWarnings([]);
+        setStatementExtractMeta(null);
         setPdfPassword('');
         setPdfImportPassword('');
-        setPdfPasswordError('Enter the PDF password to preview it.');
+        setPdfPasswordError('Enter the PDF password to extract the statement.');
         setShowPdfPasswordModal(true);
       } else if (name.endsWith('.csv') || name.endsWith('.txt')) {
         const raw = await file.text();
@@ -718,6 +521,8 @@ const AccountReconciliation = () => {
     setStatementPdfPages([]);
     setStatementPreviewRows([]);
     setStatementPreviewError('');
+    setStatementExtractWarnings([]);
+    setStatementExtractMeta(null);
     setShowPdfPasswordModal(false);
     setPdfPassword('');
     setPdfImportPassword('');
@@ -831,16 +636,40 @@ const AccountReconciliation = () => {
     setStatementPreviewText('');
     setStatementPdfPages([]);
     setStatementPreviewRows([]);
+    setStatementExtractWarnings([]);
+    setStatementExtractMeta(null);
     setPdfPasswordError('');
 
     try {
-      const pages = await buildPdfTextLayoutPreview(selectedFile, pdfPassword);
-      setStatementPdfPages(pages);
-      setStatementPreviewRows(parsePdfPreviewRows(pages));
+      const extracted = await accountReconciliationAPI.extractStatement(
+        selectedFile,
+        pdfPassword,
+        filters.accountCode
+      );
+      const rows = Array.isArray(extracted?.entries) ? extracted.entries : [];
+      setStatementPreviewRows(rows);
+      setStatementExtractWarnings(Array.isArray(extracted?.warnings) ? extracted.warnings : []);
+      setStatementExtractMeta({
+        extractor: extracted?.extractor || 'pdfplumber',
+        openingBalance: extracted?.openingBalance,
+        closingBalance: extracted?.closingBalance,
+        periodStart: extracted?.periodStart,
+        periodEnd: extracted?.periodEnd,
+        count: extracted?.count
+      });
+      try {
+        const pages = await buildPdfTextLayoutPreview(selectedFile, pdfPassword);
+        setStatementPdfPages(pages);
+      } catch (previewErr) {
+        console.warn('PDF visual preview skipped:', previewErr);
+      }
       setPdfImportPassword(pdfPassword);
       setShowPdfPasswordModal(false);
       setPdfPassword('');
       setPdfPasswordError('');
+      if (rows.length === 0) {
+        setStatementPreviewError('No transactions were extracted from this PDF.');
+      }
     } catch (err) {
       console.error('Error unlocking PDF for preview:', err);
       const passwordLike =
@@ -850,7 +679,7 @@ const AccountReconciliation = () => {
       if (passwordLike) {
         setPdfPasswordError('Incorrect password. Please try again.');
       } else {
-        setPdfPasswordError(err?.message || 'Failed to unlock PDF.');
+        setPdfPasswordError(err?.message || 'Failed to extract PDF.');
       }
     } finally {
       setIsPreparingPreview(false);
@@ -1026,7 +855,7 @@ const AccountReconciliation = () => {
     return new Date(dateString).toLocaleDateString('en-LK');
   };
 
-  const selectedAccount = reconcileAccountsFiltered.find((acc) => {
+  const selectedAccount = reconcileAccounts.find((acc) => {
     const code = acc.account_code || acc.accountCode || acc.code;
     return code === filters.accountCode;
   });
@@ -1086,7 +915,7 @@ const AccountReconciliation = () => {
             onChange={(e) => handleFilterChange('accountCode', e.target.value)}
           >
             <option value="">Select Account</option>
-            {reconcileAccountsFiltered.map((account, idx) => {
+            {reconcileAccounts.map((account, idx) => {
               const code = account.account_code || account.accountCode || account.code || '';
               const name =
                 account.account_name ||
@@ -1697,20 +1526,44 @@ const AccountReconciliation = () => {
                 </div>
               </div>
 
-              {(isPreparingPreview || statementPreviewText || statementPdfPages.length > 0 || statementPreviewRows.length > 0 || statementPreviewError) && (
+              {(isPreparingPreview || statementPreviewText || statementPdfPages.length > 0 || statementPreviewRows.length > 0 || statementPreviewError || statementExtractWarnings.length > 0) && (
                 <div style={{ marginTop: 12 }}>
                   <div style={{ fontWeight: 600, marginBottom: 6 }}>Statement preview</div>
                   {isPreparingPreview ? (
-                    <div style={{ color: '#6b7280' }}>Preparing preview...</div>
+                    <div style={{ color: '#6b7280' }}>Extracting statement with the server parser...</div>
                   ) : statementPreviewError && !showPdfPasswordModal ? (
                     <div className="reconciliation-error-message" style={{ marginBottom: 8 }}>
                       {statementPreviewError}
                     </div>
                   ) : null}
+                  {statementExtractMeta && statementPreviewRows.length > 0 ? (
+                    <div style={{ fontSize: 12, color: '#475569', marginBottom: 8 }}>
+                      Extracted {statementExtractMeta.count || statementPreviewRows.length} transaction(s)
+                      {statementExtractMeta.extractor ? ` via ${statementExtractMeta.extractor}` : ''}.
+                      Review the table, then click Pass Entries to save.
+                    </div>
+                  ) : null}
+                  {statementExtractWarnings.length > 0 ? (
+                    <div
+                      className="reconciliation-error-message"
+                      style={{
+                        marginBottom: 10,
+                        background: '#fffbeb',
+                        borderColor: '#f59e0b',
+                        color: '#92400e'
+                      }}
+                    >
+                      {statementExtractWarnings.map((warning, idx) => (
+                        <div key={`${warning.code || 'warn'}-${idx}`}>
+                          {warning.message || warning}
+                        </div>
+                      ))}
+                    </div>
+                  ) : null}
                   {statementPreviewRows.length > 0 ? (
                     <div style={{ marginBottom: 14 }}>
                       <div style={{ fontWeight: 600, marginBottom: 8 }}>
-                        Extracted transactions table (preview only)
+                        Extracted transactions (confirm before saving)
                       </div>
                       <div style={{ maxHeight: 280, overflow: 'auto', border: '1px solid #e5e7eb' }}>
                         <table className="reconciliation-table reconciliation-preview-table" style={{ margin: 0 }}>
@@ -1866,7 +1719,7 @@ const AccountReconciliation = () => {
             </div>
             <div className="reconciliation-modal-body">
               <p style={{ marginTop: 0, color: '#374151' }}>
-                This PDF is password protected. Enter the password to preview it.
+                This PDF is password protected. Enter the password to extract the statement table.
               </p>
               {pdfPasswordError && (
                 <div className="reconciliation-error-message" style={{ marginBottom: 12 }}>
@@ -1911,7 +1764,7 @@ const AccountReconciliation = () => {
                   onClick={handlePdfPasswordSubmit}
                   disabled={isPreparingPreview || !pdfPassword.trim()}
                 >
-                  {isPreparingPreview ? 'Unlocking...' : 'Unlock & Preview'}
+                  {isPreparingPreview ? 'Extracting...' : 'Unlock & Extract'}
                 </button>
               </div>
               <div style={{ marginTop: 10, fontSize: 12, color: '#6b7280' }}>

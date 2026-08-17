@@ -164,13 +164,8 @@ const CostOfFundsDefinition = () => {
     <div className="cofdef-page-container">
       <div className="cofdef-content-wrapper">
         <div className="cofdef-header-section">
-          <div className="cofdef-header-icon">
-            <svg className="cofdef-icon" fill="currentColor" viewBox="0 0 20 20">
-              <path d="M8.433 7.418c.155-.103.346-.196.567-.267v1.698a2.305 2.305 0 01-.567-.267C8.07 8.34 8 8.114 8 8c0-.114.07-.34.433-.582zM11 12.849v-1.698c.22.071.412.164.567.267.364.243.433.468.433.582 0 .114-.07.34-.433.582a2.305 2.305 0 01-.567.267z"/>
-              <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9 5a1 1 0 012 0v.092a4.535 4.535 0 011.676.662C13.398 6.14 14 6.89 14 8c0 1.11-.602 1.86-1.324 2.246a4.535 4.535 0 01-1.676.662V12a1 1 0 11-2 0v-.092a4.535 4.535 0 01-1.676-.662C6.602 10.86 6 10.11 6 9c0-1.11.602-1.86 1.324-2.246A4.535 4.535 0 019 6.092V5z" clipRule="evenodd"/>
-            </svg>
-          </div>
           <div className="cofdef-header-text-group">
+            <p className="cofdef-eyebrow">Master Data · Rates</p>
             <h1 className="cofdef-main-title">Cost of Funds Definition</h1>
             <p className="cofdef-subtitle">Configure cost of funds and tax rates for precise financial calculations</p>
           </div>
@@ -310,9 +305,6 @@ const CostOfFundsDefinition = () => {
           </div>
         </div>
 
-        <div className="cofdef-footer-section">
-          <p>SHERWOOD TECHNOLOGIES (PVT) LTD • Secure financial parameter configuration • All data is encrypted and protected</p>
-        </div>
       </div>
 
       {/* Modal for viewing saved definitions */}
