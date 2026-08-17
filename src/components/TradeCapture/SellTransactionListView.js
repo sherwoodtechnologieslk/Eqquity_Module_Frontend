@@ -211,6 +211,7 @@ const SellTransactionListView = ({ onBack }) => {
             Back
           </button>
           <div className="stlv-toolbar__heading">
+            <p className="stlv-eyebrow">Trade Capture · Sell</p>
             <h2 className="stlv-title">Submitted Sell Transactions</h2>
             <span className="stlv-subtitle">
               {loading

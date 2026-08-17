@@ -176,6 +176,7 @@ const BuyTransactionListView = ({ onBack }) => {
             Back
           </button>
           <div className="btlv-toolbar__heading">
+            <p className="btlv-eyebrow">Trade Capture · Buy</p>
             <h2 className="btlv-title">Submitted Transactions</h2>
             <span className="btlv-subtitle">
               {loading

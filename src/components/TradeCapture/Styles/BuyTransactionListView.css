@@ -1,57 +1,62 @@
-/* Submitted Buy Transactions — modern, professional layout.
-   Toolbar + search, KPI summary strip, and a compact table with
-   expandable detail rows. Blue/slate theme to match Trade Capture. */
+/* Submitted Buy Transactions — desk layout. Green buy accents kept. */
+
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700;9..40,800&display=swap');
 
 .btlv-page {
-  min-height: 100vh;
-  padding: 1.75rem 2rem 3rem;
+  min-height: auto;
+  margin: 0;
+  padding: 0.15rem 0 1.75rem;
   box-sizing: border-box;
-  background: #f8fafc;
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-  color: #1e293b;
+  background: transparent;
+  font-family: 'DM Sans', 'Segoe UI', sans-serif;
+  color: #0f172a;
 }
 
-/* ---------- Toolbar ---------- */
+.btlv-page *,
+.btlv-page *::before,
+.btlv-page *::after {
+  box-sizing: border-box;
+  font-style: normal;
+}
+
 .btlv-toolbar {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: space-between;
-  gap: 1.5rem;
+  gap: 0.65rem 1rem;
   flex-wrap: wrap;
-  margin-bottom: 1.5rem;
+  margin-bottom: 0.55rem;
+  padding: 0 0.05rem 0.5rem;
+  border-bottom: 1px solid #e2e8f0;
 }
 
 .btlv-toolbar__left {
   display: flex;
-  align-items: center;
-  gap: 1rem;
+  align-items: flex-start;
+  gap: 0.75rem;
   min-width: 0;
 }
 
 .btlv-back {
   display: inline-flex;
   align-items: center;
-  gap: 0.4rem;
-  padding: 0.6rem 1rem;
+  gap: 0.3rem;
+  padding: 0.35rem 0.75rem;
   background: #ffffff;
-  color: #334155;
-  border: 1px solid #cbd5e1;
-  border-radius: 8px;
-  font-weight: 600;
-  font-size: 0.84rem;
+  color: #475569;
+  border: 1px solid #e2e8f0;
+  border-radius: 0.4rem;
+  font-weight: 700;
+  font-size: 0.76rem;
+  font-family: inherit;
   cursor: pointer;
-  transition: all 0.16s ease;
   white-space: nowrap;
+  box-shadow: none;
 }
 
 .btlv-back:hover {
-  background: #f1f5f9;
-  border-color: #94a3b8;
+  background: #f8fafc;
   color: #0f172a;
-}
-
-.btlv-back:active {
-  transform: translateY(1px);
 }
 
 .btlv-toolbar__heading {
@@ -60,28 +65,37 @@
   min-width: 0;
 }
 
+.btlv-eyebrow {
+  margin: 0 0 0.08rem;
+  font-size: 0.55rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #059669;
+}
+
 .btlv-title {
   margin: 0;
-  font-size: 1.4rem;
-  font-weight: 700;
+  font-size: clamp(1.05rem, 1.6vw, 1.25rem);
+  font-weight: 750;
   letter-spacing: -0.02em;
   color: #0f172a;
-  line-height: 1.2;
+  line-height: 1.15;
 }
 
 .btlv-subtitle {
-  font-size: 0.8rem;
+  font-size: 0.72rem;
   color: #64748b;
-  font-weight: 500;
+  font-weight: 400;
+  margin-top: 0.15rem;
 }
 
 .btlv-toolbar__actions {
   display: flex;
   align-items: center;
-  gap: 0.6rem;
+  gap: 0.45rem;
 }
 
-/* Search */
 .btlv-search {
   position: relative;
   display: flex;
@@ -90,21 +104,21 @@
 
 .btlv-search__icon {
   position: absolute;
-  left: 0.7rem;
+  left: 0.6rem;
   color: #94a3b8;
   pointer-events: none;
 }
 
 .btlv-search__input {
-  width: 280px;
+  width: 260px;
   max-width: 48vw;
-  padding: 0.6rem 2rem 0.6rem 2.1rem;
-  border: 1px solid #cbd5e1;
-  border-radius: 8px;
+  padding: 0.38rem 1.85rem 0.38rem 1.9rem;
+  border: 1px solid #e2e8f0;
+  border-radius: 0.4rem;
   background: #ffffff;
-  font-size: 0.85rem;
-  color: #1e293b;
-  transition: all 0.16s ease;
+  font-size: 0.76rem;
+  font-family: inherit;
+  color: #0f172a;
 }
 
 .btlv-search__input::placeholder {
@@ -113,58 +127,54 @@
 
 .btlv-search__input:focus {
   outline: none;
-  border-color: #10b981;
-  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.14);
+  border-color: #059669;
+  box-shadow: 0 0 0 3px rgba(5, 150, 105, 0.12);
 }
 
 .btlv-search__clear {
   position: absolute;
-  right: 0.5rem;
+  right: 0.4rem;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 18px;
-  height: 18px;
+  width: 16px;
+  height: 16px;
   border: none;
   background: #e2e8f0;
   color: #475569;
-  border-radius: 50%;
-  font-size: 0.9rem;
+  border-radius: 0.25rem;
+  font-size: 0.85rem;
   line-height: 1;
   cursor: pointer;
-  transition: background 0.15s ease;
 }
 
 .btlv-search__clear:hover {
   background: #cbd5e1;
 }
 
-/* Refresh */
 .btlv-refresh {
   display: inline-flex;
   align-items: center;
-  gap: 0.45rem;
-  padding: 0.6rem 1.1rem;
+  gap: 0.35rem;
+  padding: 0.35rem 0.9rem;
   background: #059669;
   color: #ffffff;
-  border: none;
-  border-radius: 8px;
-  font-weight: 600;
-  font-size: 0.84rem;
+  border: 1px solid #047857;
+  border-radius: 0.4rem;
+  font-weight: 700;
+  font-size: 0.76rem;
+  font-family: inherit;
   cursor: pointer;
-  transition: all 0.16s ease;
   white-space: nowrap;
-  box-shadow: 0 1px 2px rgba(5, 150, 105, 0.25);
+  box-shadow: none;
 }
 
 .btlv-refresh:hover:not(:disabled) {
   background: #047857;
-  transform: translateY(-1px);
-  box-shadow: 0 4px 10px rgba(5, 150, 105, 0.28);
 }
 
 .btlv-refresh:disabled {
-  opacity: 0.7;
+  opacity: 0.55;
   cursor: not-allowed;
 }
 
@@ -176,36 +186,35 @@
   to { transform: rotate(360deg); }
 }
 
-/* ---------- Summary KPIs ---------- */
 .btlv-summary {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 0.85rem;
-  margin-bottom: 1.5rem;
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
 }
 
 .btlv-kpi {
   background: #ffffff;
-  border: 1px solid #e5e7eb;
-  border-radius: 12px;
-  padding: 0.85rem 1.1rem;
+  border: 1px solid #e2e8f0;
+  border-radius: 0.4rem;
+  padding: 0.55rem 0.75rem;
   display: flex;
   flex-direction: column;
-  gap: 0.3rem;
-  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+  gap: 0.2rem;
+  box-shadow: none;
 }
 
 .btlv-kpi--accent {
-  background: linear-gradient(135deg, #047857 0%, #10b981 100%);
-  border-color: transparent;
+  background: #059669;
+  border-color: #047857;
 }
 
 .btlv-kpi__label {
-  font-size: 0.68rem;
-  font-weight: 600;
+  font-size: 0.55rem;
+  font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.06em;
-  color: #94a3b8;
+  letter-spacing: 0.14em;
+  color: #64748b;
 }
 
 .btlv-kpi--accent .btlv-kpi__label {
@@ -213,8 +222,8 @@
 }
 
 .btlv-kpi__value {
-  font-size: 1.3rem;
-  font-weight: 700;
+  font-size: 1.05rem;
+  font-weight: 750;
   color: #0f172a;
   font-variant-numeric: tabular-nums;
   letter-spacing: -0.02em;
@@ -225,7 +234,7 @@
 }
 
 .btlv-kpi__ccy {
-  font-size: 0.7rem;
+  font-size: 0.66rem;
   font-weight: 600;
   color: #94a3b8;
 }
@@ -234,48 +243,45 @@
   color: rgba(255, 255, 255, 0.8);
 }
 
-/* ---------- States ---------- */
 .btlv-state {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 0.6rem;
-  padding: 4rem 2rem;
+  gap: 0.45rem;
+  padding: 2.5rem 1.5rem;
   background: #ffffff;
-  border: 1px solid #e5e7eb;
-  border-radius: 12px;
+  border: 1px solid #e2e8f0;
+  border-radius: 0.4rem;
   color: #94a3b8;
   text-align: center;
 }
 
 .btlv-state__title {
-  font-size: 1rem;
-  font-weight: 600;
+  font-size: 0.9rem;
+  font-weight: 700;
   color: #475569;
 }
 
 .btlv-state__text {
-  font-size: 0.85rem;
+  font-size: 0.76rem;
   color: #94a3b8;
 }
 
 .btlv-spinner {
-  width: 30px;
-  height: 30px;
-  border: 3px solid #e2e8f0;
-  border-top-color: #10b981;
+  width: 22px;
+  height: 22px;
+  border: 2px solid #e2e8f0;
+  border-top-color: #059669;
   border-radius: 50%;
   animation: btlv-spin 0.8s linear infinite;
 }
 
-/* ---------- Table card ---------- */
 .btlv-card {
   background: #ffffff;
-  border: 1px solid #e5e7eb;
-  border-radius: 12px;
-  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.06),
-    0 8px 24px rgba(15, 23, 42, 0.05);
+  border: 1px solid #e2e8f0;
+  border-radius: 0.4rem;
+  box-shadow: none;
   overflow: hidden;
 }
 
@@ -287,7 +293,7 @@
   width: 100%;
   border-collapse: separate;
   border-spacing: 0;
-  font-size: 0.85rem;
+  font-size: 0.8rem;
   min-width: 920px;
 }
 
@@ -295,13 +301,13 @@
   position: sticky;
   top: 0;
   z-index: 5;
-  background: #f8fafc;
-  padding: 0.8rem 1rem;
+  background: #fcfdff;
+  padding: 0.5rem 0.75rem;
   text-align: left;
   font-weight: 700;
   font-size: 0.66rem;
   text-transform: uppercase;
-  letter-spacing: 0.06em;
+  letter-spacing: 0.05em;
   color: #64748b;
   border-bottom: 1px solid #e2e8f0;
   white-space: nowrap;
@@ -312,13 +318,11 @@
 }
 
 .btlv-th--toggle {
-  width: 40px;
+  width: 36px;
 }
 
-/* Rows */
 .btlv-row {
   cursor: pointer;
-  transition: background 0.14s ease;
 }
 
 .btlv-row:hover {
@@ -330,7 +334,7 @@
 }
 
 .btlv-td {
-  padding: 0.8rem 1rem;
+  padding: 0.55rem 0.75rem;
   border-bottom: 1px solid #eef2f6;
   color: #475569;
   white-space: nowrap;
@@ -352,7 +356,7 @@
 
 .btlv-td--date {
   color: #64748b;
-  font-size: 0.82rem;
+  font-size: 0.76rem;
 }
 
 .btlv-td--toggle {
@@ -369,28 +373,27 @@
 
 .btlv-chevron.is-open {
   transform: rotate(90deg);
-  color: #10b981;
+  color: #059669;
 }
 
-/* Company cell */
 .btlv-company {
   display: flex;
   align-items: center;
-  gap: 0.6rem;
+  gap: 0.5rem;
   min-width: 0;
 }
 
 .btlv-avatar {
   flex-shrink: 0;
-  width: 34px;
-  height: 34px;
-  border-radius: 8px;
-  background: linear-gradient(135deg, #047857 0%, #10b981 100%);
+  width: 28px;
+  height: 28px;
+  border-radius: 0.4rem;
+  background: #059669;
   color: #ffffff;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  font-size: 0.72rem;
+  font-size: 0.66rem;
   font-weight: 700;
   letter-spacing: 0.02em;
 }
@@ -404,7 +407,7 @@
 .btlv-company__name {
   font-weight: 700;
   color: #0f172a;
-  font-size: 0.86rem;
+  font-size: 0.8rem;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -414,28 +417,27 @@
 .btlv-company__meta {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
-  margin-top: 0.1rem;
+  gap: 0.4rem;
+  margin-top: 0.05rem;
 }
 
 .btlv-symbol {
-  font-size: 0.7rem;
+  font-size: 0.66rem;
   font-weight: 700;
   color: #047857;
   background: #ecfdf5;
-  padding: 0.05rem 0.4rem;
-  border-radius: 4px;
+  padding: 0.05rem 0.35rem;
+  border-radius: 0.25rem;
   letter-spacing: 0.02em;
 }
 
 .btlv-deal {
   font-family: 'SF Mono', 'Monaco', 'Courier New', monospace;
-  font-size: 0.7rem;
+  font-size: 0.66rem;
   color: #94a3b8;
   white-space: nowrap;
 }
 
-/* ---------- Expanded detail ---------- */
 .btlv-detail-row > .btlv-detail-cell {
   padding: 0;
   background: #f8fafc;
@@ -445,8 +447,8 @@
 .btlv-detail {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 1.25rem 1.75rem;
-  padding: 1.25rem 1.5rem 1.4rem 3rem;
+  gap: 0.85rem 1.25rem;
+  padding: 0.85rem 1rem 1rem 2.5rem;
 }
 
 .btlv-detail__group {
@@ -454,13 +456,13 @@
 }
 
 .btlv-detail__group-title {
-  font-size: 0.66rem;
+  font-size: 0.55rem;
   font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.06em;
+  letter-spacing: 0.14em;
   color: #047857;
-  margin-bottom: 0.6rem;
-  padding-bottom: 0.4rem;
+  margin-bottom: 0.45rem;
+  padding-bottom: 0.3rem;
   border-bottom: 1px solid #e2e8f0;
 }
 
@@ -468,18 +470,18 @@
   margin: 0;
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
+  gap: 0.35rem;
 }
 
 .btlv-detail__item {
   display: flex;
   align-items: baseline;
   justify-content: space-between;
-  gap: 0.75rem;
+  gap: 0.65rem;
 }
 
 .btlv-detail__item dt {
-  font-size: 0.74rem;
+  font-size: 0.7rem;
   color: #64748b;
   font-weight: 500;
   white-space: nowrap;
@@ -487,34 +489,31 @@
 
 .btlv-detail__item dd {
   margin: 0;
-  font-size: 0.78rem;
-  color: #1e293b;
+  font-size: 0.74rem;
+  color: #0f172a;
   font-weight: 600;
   text-align: right;
   font-variant-numeric: tabular-nums;
   word-break: break-word;
 }
 
-/* ---------- Scrollbar ---------- */
 .btlv-table-scroll::-webkit-scrollbar {
-  height: 10px;
+  height: 8px;
 }
 
 .btlv-table-scroll::-webkit-scrollbar-track {
-  background: #f1f5f9;
+  background: #f8fafc;
 }
 
 .btlv-table-scroll::-webkit-scrollbar-thumb {
   background: #cbd5e1;
-  border-radius: 6px;
-  border: 2px solid #f1f5f9;
+  border-radius: 0.4rem;
 }
 
 .btlv-table-scroll::-webkit-scrollbar-thumb:hover {
-  background: #10b981;
+  background: #059669;
 }
 
-/* ---------- Responsive ---------- */
 @media (max-width: 1100px) {
   .btlv-summary {
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -525,9 +524,6 @@
 }
 
 @media (max-width: 768px) {
-  .btlv-page {
-    padding: 1rem 1rem 2rem;
-  }
   .btlv-toolbar {
     align-items: stretch;
   }
@@ -549,6 +545,6 @@
   }
   .btlv-detail {
     grid-template-columns: 1fr;
-    padding-left: 1.5rem;
+    padding-left: 1rem;
   }
 }
