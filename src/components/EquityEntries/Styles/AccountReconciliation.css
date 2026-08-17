@@ -1,115 +1,111 @@
-/* Account Reconciliation — matches Equity master / portfolio styling */
+/* Account Reconciliation — desk layout */
+
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700;9..40,800&display=swap');
 
 .account-reconciliation {
-  padding: 1.25rem 1rem 1.75rem;
-  background-color: #f8fafc;
-  min-height: calc(100vh - 120px);
+  padding: 0.15rem 0 1.75rem;
+  background-color: transparent;
+  min-height: auto;
+  font-family: 'DM Sans', 'Segoe UI', sans-serif;
+  color: #0f172a;
+}
+
+.account-reconciliation *,
+.account-reconciliation *::before,
+.account-reconciliation *::after {
+  font-style: normal;
 }
 
 .account-reconciliation-page {
   max-width: 1400px;
-  margin: 0 auto;
+  margin: 0;
 }
 
 /* Header */
 .account-reconciliation-header {
   display: flex;
   justify-content: space-between;
-  align-items: center;
-  gap: 1rem;
-  margin-bottom: 1rem;
-  padding: 1rem 1.15rem;
-  background: #ffffff;
-  border-radius: 0.65rem;
-  box-shadow: 0 4px 18px rgba(15, 23, 42, 0.05);
-  border: 1px solid #e2e8f0;
+  align-items: flex-start;
+  gap: 0.65rem 1rem;
+  margin-bottom: 0.55rem;
+  padding: 0 0.05rem 0.5rem;
+  background: transparent;
+  border-radius: 0;
+  box-shadow: none;
+  border: none;
+  border-bottom: 1px solid #e2e8f0;
 }
 
 .account-reconciliation-header-left {
   display: flex;
-  align-items: center;
-  gap: 0.85rem;
+  align-items: flex-start;
+  gap: 0;
   min-width: 0;
 }
 
-.account-reconciliation-header-icon {
-  width: 2.5rem;
-  height: 2.5rem;
-  border-radius: 0.55rem;
-  background: #eff6ff;
-  border: 1px solid #dbeafe;
+.account-reconciliation-eyebrow {
+  margin: 0 0 0.08rem;
+  font-size: 0.55rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
   color: #2563eb;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-}
-
-.account-reconciliation-header-icon svg {
-  width: 1.25rem;
-  height: 1.25rem;
-}
-
-.account-reconciliation-header-text {
-  min-width: 0;
 }
 
 .account-reconciliation-header-left h1 {
-  font-size: 1.25rem;
-  font-weight: 700;
+  font-size: clamp(1.05rem, 1.6vw, 1.25rem);
+  font-weight: 750;
   color: #0f172a;
-  margin: 0 0 0.35rem 0;
+  margin: 0;
+  letter-spacing: -0.02em;
+  line-height: 1.15;
 }
 
 .account-reconciliation-info {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: 0.45rem;
   flex-wrap: wrap;
-  font-size: 0.8125rem;
+  font-size: 0.72rem;
   color: #64748b;
+  margin-top: 0.2rem;
 }
 
 .account-reconciliation-code {
-  font-weight: 600;
-  color: #1d4ed8;
-  background-color: #eff6ff;
-  padding: 0.2rem 0.55rem;
-  border-radius: 999px;
-  font-size: 0.6875rem;
-  border: 1px solid #bfdbfe;
+  font-weight: 700;
+  color: #1e3a5f;
+  background-color: #f8fafc;
+  padding: 0.12rem 0.4rem;
+  border-radius: 0.3rem;
+  font-size: 0.66rem;
+  border: 1px solid #e2e8f0;
 }
 
 .account-reconciliation-name {
-  color: #334155;
-  font-weight: 500;
-}
-
-.account-reconciliation-header-right {
-  text-align: right;
-  flex-shrink: 0;
+  color: #64748b;
+  font-weight: 400;
 }
 
 .reconciliation-status-info {
-  font-size: 0.6875rem;
-  font-weight: 600;
+  font-size: 0.62rem;
+  font-weight: 700;
   color: #475569;
   background-color: #f8fafc;
-  padding: 0.35rem 0.75rem;
-  border-radius: 999px;
+  padding: 0.28rem 0.55rem;
+  border-radius: 0.3rem;
   border: 1px solid #e2e8f0;
   text-transform: uppercase;
-  letter-spacing: 0.03em;
+  letter-spacing: 0.06em;
 }
 
 .reconciliation-status-info--reconciled {
-  color: #047857;
-  background: #ecfdf5;
-  border-color: #a7f3d0;
+  color: #166534;
+  background: #f0fdf4;
+  border-color: #bbf7d0;
 }
 
 .reconciliation-status-info--pending {
-  color: #b45309;
+  color: #92400e;
   background: #fffbeb;
   border-color: #fde68a;
 }
@@ -117,23 +113,33 @@
 /* Filters */
 .account-reconciliation-filters {
   display: flex;
-  gap: 0.85rem 1rem;
+  gap: 0.65rem 0.85rem;
   align-items: end;
-  margin-bottom: 1rem;
-  padding: 1rem 1.15rem;
-  background: #ffffff;
-  border-radius: 0.65rem;
-  box-shadow: 0 4px 18px rgba(15, 23, 42, 0.05);
-  border: 1px solid #e2e8f0;
+  margin-bottom: 0.75rem;
+  padding: 0.65rem 0;
+  background: transparent;
+  border-radius: 0;
+  box-shadow: none;
+  border: none;
   flex-wrap: wrap;
+}
+
+.account-reconciliation-header-right {
+  flex-shrink: 0;
 }
 
 .reconciliation-filter-group {
   display: flex;
   flex-direction: column;
-  gap: 0.35rem;
-  min-width: 150px;
-  flex: 1;
+  gap: 0.28rem;
+  min-width: 10.5rem;
+}
+
+.reconciliation-action-buttons {
+  display: flex;
+  gap: 0.4rem;
+  margin-left: auto;
+  align-items: flex-end;
 }
 
 .reconciliation-filter-group label {
@@ -144,66 +150,41 @@
 
 .reconciliation-filter-group input,
 .reconciliation-filter-group select {
-  padding: 0.55rem 0.75rem;
+  padding: 0.4rem 0.65rem;
   border: 1px solid #e2e8f0;
-  border-radius: 0.45rem;
-  font-size: 0.8125rem;
+  border-radius: 0.4rem;
+  font-size: 0.8rem;
+  font-family: inherit;
   background-color: #ffffff;
   color: #0f172a;
-  transition: border-color 0.15s ease, box-shadow 0.15s ease;
-  min-height: 38px;
+  min-height: 2.15rem;
   box-sizing: border-box;
 }
 
-.reconciliation-filter-group input:hover,
-.reconciliation-filter-group select:hover {
-  border-color: #bfdbfe;
-}
-
-.reconciliation-filter-group input:focus,
-.reconciliation-filter-group select:focus {
-  outline: none;
-  border-color: #3b82f6;
-  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.12);
-}
-
-.reconciliation-action-buttons {
-  display: flex;
-  gap: 0.5rem;
-  margin-left: auto;
-  align-items: end;
-  flex-wrap: wrap;
-}
-
 .reconciliation-btn {
-  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+  background: #2563eb;
   color: #ffffff;
-  border: none;
-  padding: 0.55rem 1rem;
-  border-radius: 999px;
-  font-size: 0.8125rem;
-  font-weight: 600;
+  border: 1px solid #1d4ed8;
+  padding: 0.35rem 0.9rem;
+  border-radius: 0.4rem;
+  font-size: 0.76rem;
+  font-weight: 700;
+  font-family: inherit;
   cursor: pointer;
-  transition: all 0.15s ease;
-  height: fit-content;
-  min-width: 120px;
+  min-width: auto;
   text-align: center;
-  box-shadow: 0 2px 6px rgba(37, 99, 235, 0.25);
+  box-shadow: none;
 }
 
 .reconciliation-btn:hover:not(:disabled) {
-  background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
-  box-shadow: 0 3px 10px rgba(37, 99, 235, 0.32);
-}
-
-.reconciliation-btn:active:not(:disabled) {
-  transform: none;
+  background: #1d4ed8;
+  box-shadow: none;
 }
 
 .reconciliation-btn-secondary {
   background: #ffffff;
-  color: #475569;
-  border: 1px solid #d1d5db;
+  color: #1e3a5f;
+  border: 1px solid #cbd5e1;
   box-shadow: none;
 }
 
@@ -214,27 +195,28 @@
 }
 
 .reconciliation-btn-success {
-  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-  box-shadow: 0 2px 6px rgba(5, 150, 105, 0.25);
+  background: #15803d;
+  border-color: #166534;
+  box-shadow: none;
 }
 
 .reconciliation-btn-success:hover:not(:disabled) {
-  background: linear-gradient(135deg, #059669 0%, #047857 100%);
+  background: #166534;
 }
 
 .reconciliation-btn-warning {
-  background: linear-gradient(135deg, #f97316 0%, #ea580c 100%);
-  box-shadow: 0 2px 6px rgba(234, 88, 12, 0.25);
+  background: #c2410c;
+  border-color: #9a3412;
+  box-shadow: none;
 }
 
 .reconciliation-btn-warning:hover:not(:disabled) {
-  background: linear-gradient(135deg, #ea580c 0%, #c2410c 100%);
+  background: #9a3412;
 }
 
 .reconciliation-btn:disabled {
-  opacity: 0.6;
+  opacity: 0.55;
   cursor: not-allowed;
-  transform: none;
 }
 
 /* Balance Summary */
@@ -247,19 +229,21 @@
 
 .reconciliation-balance-card {
   background: #ffffff;
-  padding: 0.95rem 1rem;
-  border-radius: 0.65rem;
-  box-shadow: 0 4px 18px rgba(15, 23, 42, 0.05);
+  padding: 0.75rem 0.85rem;
+  border-radius: 0.4rem;
+  box-shadow: none;
   border: 1px solid #e2e8f0;
 }
 
 .reconciliation-balance-card h3 {
-  font-size: 0.875rem;
-  font-weight: 600;
-  color: #0f172a;
-  margin: 0 0 0.65rem 0;
-  padding-bottom: 0.5rem;
-  border-bottom: 1px solid #f1f5f9;
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: #64748b;
+  margin: 0 0 0.5rem 0;
+  padding-bottom: 0.4rem;
+  border-bottom: 1px solid #e2e8f0;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
 }
 
 .reconciliation-balance-details {
@@ -322,15 +306,15 @@
 
 .reconciliation-panel {
   background: #ffffff;
-  border-radius: 0.65rem;
-  box-shadow: 0 4px 18px rgba(15, 23, 42, 0.05);
-  border: 1px solid #dbeafe;
+  border-radius: 0.4rem;
+  box-shadow: none;
+  border: 1px solid #e2e8f0;
   overflow: hidden;
 }
 
 .reconciliation-panel-header {
   background: #ffffff;
-  padding: 0.85rem 1.1rem;
+  padding: 0.55rem 0.75rem;
   border-bottom: 1px solid #e2e8f0;
   display: flex;
   justify-content: space-between;
@@ -338,20 +322,20 @@
 }
 
 .reconciliation-panel-header h3 {
-  font-size: 0.9375rem;
-  font-weight: 600;
+  font-size: 0.8rem;
+  font-weight: 750;
   color: #0f172a;
   margin: 0;
 }
 
 .reconciliation-panel-count {
-  background: #eff6ff;
-  color: #1d4ed8;
-  padding: 0.25rem 0.6rem;
-  border-radius: 999px;
-  font-size: 0.6875rem;
+  background: transparent;
+  color: #64748b;
+  padding: 0;
+  border-radius: 0;
+  font-size: 0.66rem;
   font-weight: 600;
-  border: 1px solid #bfdbfe;
+  border: none;
 }
 
 .reconciliation-panel-content {
@@ -367,15 +351,15 @@
 }
 
 .reconciliation-transactions-table th {
-  background: #f1f5f9;
-  padding: 0.65rem 0.75rem;
+  background: #fcfdff;
+  padding: 0.5rem 0.65rem;
   text-align: left;
   font-weight: 700;
-  color: #374151;
-  font-size: 0.625rem;
+  color: #64748b;
+  font-size: 0.66rem;
   text-transform: uppercase;
-  letter-spacing: 0.05em;
-  border-bottom: 1px solid #e5e7eb;
+  letter-spacing: 0.06em;
+  border-bottom: 1px solid #e2e8f0;
   position: sticky;
   top: 0;
   z-index: 10;
@@ -421,21 +405,11 @@
 /* Matched Transactions */
 .reconciliation-matched-section {
   background: #ffffff;
-  border-radius: 0.65rem;
-  box-shadow: 0 4px 18px rgba(15, 23, 42, 0.05);
+  border-radius: 0.4rem;
+  box-shadow: none;
   border: 1px solid #e2e8f0;
   margin-bottom: 1rem;
   overflow: hidden;
-}
-
-.reconciliation-matched-section .reconciliation-panel-header {
-  background: #ffffff;
-}
-
-.reconciliation-matched-section .reconciliation-panel-count {
-  background: #f8fafc;
-  color: #475569;
-  border-color: #e2e8f0;
 }
 
 .reconciliation-matched-row {
@@ -447,12 +421,12 @@
 }
 
 .reconciliation-match-type {
-  padding: 0.2rem 0.55rem;
-  border-radius: 999px;
-  font-size: 0.625rem;
-  font-weight: 600;
+  padding: 0.12rem 0.35rem;
+  border-radius: 0.25rem;
+  font-size: 0.62rem;
+  font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.03em;
+  letter-spacing: 0.04em;
 }
 
 .reconciliation-match-type-manual,
@@ -470,11 +444,11 @@
 
 /* Actions Section */
 .reconciliation-actions-section {
-  background: #ffffff;
-  padding: 1rem 1.15rem;
-  border-radius: 0.65rem;
-  box-shadow: 0 4px 18px rgba(15, 23, 42, 0.05);
-  border: 1px solid #e2e8f0;
+  background: transparent;
+  padding: 0.35rem 0 0;
+  border-radius: 0;
+  box-shadow: none;
+  border: none;
   margin-bottom: 1rem;
 }
 
@@ -504,8 +478,8 @@
 
 .reconciliation-modal-content {
   background: #ffffff;
-  border-radius: 0.65rem;
-  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+  border-radius: 0.4rem;
+  box-shadow: none;
   max-width: 500px;
   width: 90%;
   max-height: 90vh;
@@ -642,12 +616,14 @@
 }
 
 .reconciliation-btn-danger {
-  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
-  box-shadow: 0 2px 6px rgba(220, 38, 38, 0.25);
+  background: #dc2626;
+  color: #ffffff;
+  border: 1px solid #b91c1c;
+  box-shadow: none;
 }
 
 .reconciliation-btn-danger:hover:not(:disabled) {
-  background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+  background: #b91c1c;
 }
 
 /* Responsive Design */
@@ -753,7 +729,7 @@
 
 .reconciliation-panel-content::-webkit-scrollbar-thumb {
   background: #cbd5e1;
-  border-radius: 999px;
+  border-radius: 0.25rem;
 }
 
 .reconciliation-panel-content::-webkit-scrollbar-thumb:hover {

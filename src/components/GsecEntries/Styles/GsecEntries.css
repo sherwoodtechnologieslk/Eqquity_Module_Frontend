@@ -18,19 +18,17 @@
   --blue-soft: #eff6ff;
   --blue-ring: rgba(59, 130, 246, 0.15);
   --down: #b91c1c;
-  --radius: 0.75rem;
-  --radius-sm: 0.5rem;
-  --shadow-sm: 0 4px 14px rgba(15, 23, 42, 0.05);
+  --radius: 0.4rem;
+  --radius-sm: 0.4rem;
+  --shadow-sm: none;
   --sans: 'DM Sans', 'Segoe UI', sans-serif;
 
-  min-height: calc(100vh - 120px);
-  padding: 0.35rem 1rem 2rem;
+  min-height: auto;
+  padding: 0.15rem 0 1.75rem;
   box-sizing: border-box;
   color: var(--ink);
   font-family: var(--sans);
-  background:
-    radial-gradient(ellipse 80% 50% at 100% 0%, rgba(37, 99, 235, 0.05), transparent 55%),
-    transparent;
+  background: transparent;
 }
 
 .gsec-ext-page *,
@@ -40,33 +38,33 @@
 }
 
 .gsec-ext-wrapper {
-  max-width: 1400px;
-  margin: 0 auto;
+  max-width: none;
+  margin: 0;
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
+  gap: 0.55rem;
 }
 
 /* ── Rail header ─────────────────────────────────────────── */
 
 .gsec-ext-rail {
-  padding: 0.1rem 0.05rem 0.85rem;
-  margin-bottom: 0.15rem;
+  padding: 0 0.05rem 0.55rem;
+  margin-bottom: 0.1rem;
   border-bottom: 1px solid var(--line);
 }
 
 .gsec-ext-rail__eyebrow {
-  margin: 0 0 0.15rem;
-  font-size: 0.6rem;
+  margin: 0 0 0.1rem;
+  font-size: 0.55rem;
   font-weight: 700;
-  letter-spacing: 0.16em;
+  letter-spacing: 0.14em;
   text-transform: uppercase;
   color: var(--blue);
 }
 
 .gsec-ext-rail__title {
-  margin: 0 0 0.15rem;
-  font-size: clamp(1.25rem, 2vw, 1.5rem);
+  margin: 0 0 0.1rem;
+  font-size: clamp(1.05rem, 1.6vw, 1.25rem);
   font-weight: 700;
   letter-spacing: -0.02em;
   line-height: 1.15;
@@ -79,8 +77,8 @@
 .gsec-ext-rail__blurb {
   margin: 0;
   max-width: 42rem;
-  font-size: 0.8rem;
-  line-height: 1.45;
+  font-size: 0.72rem;
+  line-height: 1.35;
   color: var(--mute);
 }
 
@@ -89,8 +87,8 @@
 .gsec-ext-panel {
   background: var(--paper);
   border: 1px solid var(--line);
-  border-radius: var(--radius);
-  box-shadow: var(--shadow-sm);
+  border-radius: 0.75rem;
+  box-shadow: 0 4px 14px rgba(15, 23, 42, 0.05);
   overflow: hidden;
 }
 
@@ -120,27 +118,59 @@
   line-height: 1.4;
 }
 
+/* Filters strip only — flat desk chrome (table panel stays carded) */
+.gsec-ext-panel--filters {
+  background: transparent;
+  border: none;
+  border-radius: 0;
+  box-shadow: none;
+  overflow: visible;
+}
+
+.gsec-ext-panel--filters .gsec-ext-panel__head {
+  padding: 0 0.05rem 0.45rem;
+  margin-bottom: 0.15rem;
+  border-bottom: 1px solid var(--line);
+  background: transparent;
+}
+
+.gsec-ext-filters-eyebrow {
+  margin: 0 0 0.08rem;
+  font-size: 0.55rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--blue);
+}
+
+.gsec-ext-filters-blurb {
+  margin: 0;
+  font-size: 0.72rem;
+  color: var(--mute);
+  line-height: 1.35;
+}
+
 .gsec-ext-filters-body {
-  padding: 1rem 1.1rem 1.15rem;
-  background: var(--wash-soft);
+  padding: 0.35rem 0 0.15rem;
+  background: transparent;
 }
 
 .gsec-ext-filters-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
-  gap: 0.85rem 1rem;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 0.65rem 0.85rem;
   align-items: end;
 }
 
 .gsec-ext-field {
   display: flex;
   flex-direction: column;
-  gap: 0.35rem;
+  gap: 0.28rem;
   min-width: 0;
 }
 
 .gsec-ext-label {
-  font-size: 0.68rem;
+  font-size: 0.66rem;
   font-weight: 700;
   letter-spacing: 0.06em;
   text-transform: uppercase;
@@ -148,25 +178,20 @@
 }
 
 .gsec-ext-input {
-  min-height: 2.35rem;
-  padding: 0.5rem 0.75rem;
+  min-height: 2.15rem;
+  padding: 0.4rem 0.65rem;
   border: 1px solid var(--line);
   border-radius: var(--radius-sm);
   font: inherit;
-  font-size: 0.8125rem;
+  font-size: 0.8rem;
   background: var(--paper);
   color: var(--ink);
-  transition: border-color 0.15s ease, box-shadow 0.15s ease;
-}
-
-.gsec-ext-input:hover {
-  border-color: #bfdbfe;
 }
 
 .gsec-ext-input:focus {
   outline: none;
-  border-color: var(--blue-mid);
-  box-shadow: 0 0 0 3px var(--blue-ring);
+  border-color: #93c5fd;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
 }
 
 .gsec-ext-filter-actions {
@@ -181,23 +206,21 @@
   align-items: center;
   justify-content: center;
   gap: 0.35rem;
-  min-height: 2.35rem;
-  padding: 0.5rem 1.1rem;
-  border: 1px solid var(--blue);
-  border-radius: var(--radius-sm);
-  background: linear-gradient(135deg, var(--blue-mid) 0%, var(--blue) 100%);
+  min-height: 2.15rem;
+  padding: 0.35rem 0.9rem;
+  border: 1px solid #1d4ed8;
+  border-radius: 0.4rem;
+  background: #2563eb;
   color: #fff;
   font: inherit;
-  font-size: 0.8125rem;
-  font-weight: 600;
+  font-size: 0.76rem;
+  font-weight: 700;
   cursor: pointer;
-  box-shadow: 0 2px 8px rgba(37, 99, 235, 0.22);
-  transition: background 0.15s ease, box-shadow 0.15s ease, opacity 0.15s ease;
+  box-shadow: none;
 }
 
 .gsec-ext-btn-primary:hover:not(:disabled) {
-  background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
-  box-shadow: 0 3px 10px rgba(37, 99, 235, 0.32);
+  background: #1d4ed8;
 }
 
 .gsec-ext-btn-primary:disabled {
@@ -209,17 +232,16 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-height: 2.35rem;
-  padding: 0.45rem 0.9rem;
+  min-height: 2.15rem;
+  padding: 0.35rem 0.85rem;
   border: 1px solid var(--line);
-  border-radius: var(--radius-sm);
+  border-radius: 0.4rem;
   background: var(--paper);
   color: var(--ink-soft);
   font: inherit;
-  font-size: 0.8125rem;
-  font-weight: 600;
+  font-size: 0.76rem;
+  font-weight: 700;
   cursor: pointer;
-  transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
 }
 
 .gsec-ext-btn-ghost:hover:not(:disabled) {
@@ -239,32 +261,34 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  gap: 0.75rem;
+  gap: 0.65rem 1rem;
   flex-wrap: wrap;
-  padding: 0.7rem 0.95rem;
-  border: 1px solid var(--line);
-  border-radius: var(--radius);
-  background: var(--paper);
-  box-shadow: var(--shadow-sm);
-  font-size: 0.8125rem;
+  padding: 0.35rem 0.05rem 0.55rem;
+  border: none;
+  border-bottom: 1px solid var(--line);
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  font-size: 0.76rem;
   color: var(--mute);
 }
 
 .gsec-ext-toolbar-text {
   font-weight: 500;
-  color: var(--ink-soft);
+  font-size: 0.72rem;
+  color: var(--mute);
 }
 
 .gsec-ext-toolbar-actions {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: 0.4rem;
   flex-wrap: wrap;
 }
 
 .gsec-ext-pagination {
   display: flex;
-  gap: 0.4rem;
+  gap: 0.35rem;
 }
 
 /* ── Table ───────────────────────────────────────────────── */

@@ -124,10 +124,10 @@
 }
 
 .portfolio-table th {
-  background: #f1f5f9;
+  background: #fcfdff;
   font-weight: 700;
-  color: #374151;
-  font-size: 0.625rem;
+  color: #64748b;
+  font-size: 0.66rem;
   text-transform: uppercase;
   letter-spacing: 0.05em;
   position: sticky;

@@ -112,12 +112,11 @@ const EquityMasterEntry = () => {
     <div className="eqme">
       <header className="eqme-rail">
         <div className="eqme-rail__brand">
-          <span className="eqme-rail__mark">EM</span>
           <div>
-            <p className="eqme-rail__eyebrow">Master data</p>
+            <p className="eqme-rail__eyebrow">Masters · Equities</p>
             <h1 className="eqme-rail__title">Equity Master Entry</h1>
             <p className="eqme-rail__blurb">
-              Register listed securities for portfolios — ticker, ISIN, sector, and market defaults.
+              Register listed securities — ticker, ISIN, sector, and market defaults
             </p>
           </div>
         </div>

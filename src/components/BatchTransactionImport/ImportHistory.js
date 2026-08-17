@@ -236,6 +236,7 @@ const ImportHistory = () => {
         <header className="ih-toolbar">
           <div className="ih-toolbar__left">
             <div className="ih-toolbar__heading">
+              <p className="ih-toolbar__eyebrow">Accounting · Trades</p>
               <h1 className="ih-toolbar__title">Import History</h1>
               <p className="ih-toolbar__subtitle">Review and audit bulk transaction imports</p>
             </div>
@@ -252,7 +253,7 @@ const ImportHistory = () => {
 
         {/* KPI Summary */}
         <section className="ih-summary-stats" aria-label="Import summary">
-          <div className="ih-stat-card ih-stat-card--accent">
+          <div className="ih-stat-card">
             <div className="ih-stat-value">{importHistory.length}</div>
             <div className="ih-stat-label">Total Imports</div>
           </div>
@@ -447,19 +448,19 @@ const ImportHistory = () => {
               </div>
               
               {selectedImport.transactions && selectedImport.transactions.length > 0 && (
-                <div className="ih-transactions-section" style={{ marginTop: '2rem' }}>
+                <div className="ih-transactions-section">
                   <h4 className="ih-errors-title">Transaction Details:</h4>
-                  <div style={{ maxHeight: '400px', overflowY: 'auto', marginTop: '1rem' }}>
-                    <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.875rem' }}>
+                  <div className="ih-modal-table-scroll">
+                    <table className="ih-modal-table">
                       <thead>
-                        <tr style={{ backgroundColor: '#f8fafc', borderBottom: '2px solid #e2e8f0' }}>
-                          <th style={{ padding: '0.5rem', textAlign: 'left' }}>Trade Date</th>
-                          <th style={{ padding: '0.5rem', textAlign: 'left' }}>Type</th>
-                          <th style={{ padding: '0.5rem', textAlign: 'left' }}>Company ID</th>
-                          <th style={{ padding: '0.5rem', textAlign: 'right' }}>Quantity</th>
-                          <th style={{ padding: '0.5rem', textAlign: 'right' }}>Price</th>
-                          <th style={{ padding: '0.5rem', textAlign: 'right' }}>Value</th>
-                          <th style={{ padding: '0.5rem', textAlign: 'left' }}>Execution ID</th>
+                        <tr>
+                          <th>Trade Date</th>
+                          <th>Type</th>
+                          <th>Company ID</th>
+                          <th className="ih-th-r">Quantity</th>
+                          <th className="ih-th-r">Price</th>
+                          <th className="ih-th-r">Value</th>
+                          <th>Execution ID</th>
                         </tr>
                       </thead>
                       <tbody>
@@ -467,26 +468,20 @@ const ImportHistory = () => {
                           const qty = parseFloat(txn.quantity) || 0;
                           const price = parseFloat(txn.price) || 0;
                           const value = qty * price;
+                          const isBuy = txn.buy_sell === 'B' || txn.buy_sell === 'b';
                           return (
-                            <tr key={index} style={{ borderBottom: '1px solid #e5e7eb' }}>
-                              <td style={{ padding: '0.5rem' }}>{txn.trade_date || 'N/A'}</td>
-                              <td style={{ padding: '0.5rem' }}>
-                                <span style={{
-                                  padding: '0.25rem 0.5rem',
-                                  borderRadius: '0.25rem',
-                                  fontSize: '0.75rem',
-                                  fontWeight: '600',
-                                  backgroundColor: (txn.buy_sell === 'B' || txn.buy_sell === 'b') ? '#dbeafe' : '#fef3c7',
-                                  color: (txn.buy_sell === 'B' || txn.buy_sell === 'b') ? '#1e40af' : '#92400e'
-                                }}>
-                                  {txn.buy_sell === 'B' || txn.buy_sell === 'b' ? 'BUY' : 'SELL'}
+                            <tr key={index}>
+                              <td>{txn.trade_date || 'N/A'}</td>
+                              <td>
+                                <span className={`ih-chip ${isBuy ? 'ih-chip--buy' : 'ih-chip--sell'}`}>
+                                  {isBuy ? 'BUY' : 'SELL'}
                                 </span>
                               </td>
-                              <td style={{ padding: '0.5rem' }}>{txn.company_id || 'N/A'}</td>
-                              <td style={{ padding: '0.5rem', textAlign: 'right' }}>{qty.toLocaleString()}</td>
-                              <td style={{ padding: '0.5rem', textAlign: 'right' }}>{price.toFixed(4)}</td>
-                              <td style={{ padding: '0.5rem', textAlign: 'right' }}>{formatCurrency(value)}</td>
-                              <td style={{ padding: '0.5rem', fontFamily: 'monospace', fontSize: '0.75rem' }}>{txn.execution_id || 'N/A'}</td>
+                              <td>{txn.company_id || 'N/A'}</td>
+                              <td className="ih-td-r">{qty.toLocaleString()}</td>
+                              <td className="ih-td-r">{price.toFixed(4)}</td>
+                              <td className="ih-td-r">{formatCurrency(value)}</td>
+                              <td className="ih-td-mono">{txn.execution_id || 'N/A'}</td>
                             </tr>
                           );
                         })}

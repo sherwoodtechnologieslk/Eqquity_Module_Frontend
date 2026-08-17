@@ -1,46 +1,74 @@
-/* Profit & Loss Statement Styles */
+/* Profit & Loss Statement — desk layout */
 
-/* Page Layout */
-.profit-loss-main-container {
-  min-height: 100vh;
-  padding: 1rem;
-  background-color: #f8fafc;
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700;9..40,800&display=swap');
+
+.profit-loss-main-container,
+.profit-loss-loading-container,
+.profit-loss-error-container {
+  padding: 0.15rem 0 1.75rem;
+  background-color: transparent;
+  min-height: auto;
+  font-family: 'DM Sans', 'Segoe UI', sans-serif;
+  color: #0f172a;
+}
+
+.profit-loss-main-container *,
+.profit-loss-main-container *::before,
+.profit-loss-main-container *::after {
+  font-style: normal;
 }
 
 .profit-loss-content-wrapper {
   max-width: 1400px;
-  margin: 0 auto;
+  margin: 0;
 }
 
-/* Header Section */
+/* Header */
 .profit-loss-header-section {
   display: flex;
   justify-content: space-between;
-  align-items: center;
-  margin-bottom: 14px;
-  padding-bottom: 10px;
-  border-bottom: 2px solid #e2e8f0;
+  align-items: flex-start;
+  gap: 0.65rem 1rem;
+  margin-bottom: 0.55rem;
+  padding: 0 0.05rem 0.5rem;
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid #e2e8f0;
 }
 
 .profit-loss-header-left {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 0.12rem;
+  min-width: 0;
+}
+
+.profit-loss-eyebrow {
+  margin: 0 0 0.08rem;
+  font-size: 0.55rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #2563eb;
 }
 
 .profit-loss-main-title {
-  font-size: 28px;
-  font-weight: 700;
-  color: #1e293b;
+  font-size: clamp(1.05rem, 1.6vw, 1.25rem);
+  font-weight: 750;
+  color: #0f172a;
   margin: 0;
+  letter-spacing: -0.02em;
+  line-height: 1.15;
 }
 
 .profit-loss-period-info {
   display: flex;
   align-items: center;
-  gap: 8px;
-  font-size: 14px;
+  gap: 0.4rem;
+  flex-wrap: wrap;
+  font-size: 0.72rem;
   color: #64748b;
+  margin-top: 0.12rem;
 }
 
 .profit-loss-period-label {
@@ -48,61 +76,98 @@
   color: #475569;
 }
 
-.profit-loss-period-dates {
-  color: #64748b;
-}
-
+.profit-loss-period-dates,
 .profit-loss-portfolio-info {
   color: #64748b;
-  font-style: italic;
+  font-weight: 400;
 }
 
 .profit-loss-header-right {
   display: flex;
   flex-direction: column;
   align-items: flex-end;
-  gap: 8px;
+  gap: 0.4rem;
+  flex-shrink: 0;
 }
 
 .profit-loss-export-actions {
   display: flex;
-  gap: 0.5rem;
+  gap: 0.4rem;
   flex-wrap: wrap;
   justify-content: flex-end;
 }
 
 .profit-loss-generated-info {
-  font-size: 12px;
-  color: #64748b;
-  background: rgba(148, 163, 184, 0.1);
-  padding: 4px 8px;
-  border-radius: 0;
-  border: 1px solid rgba(148, 163, 184, 0.2);
+  font-size: 0.62rem;
+  font-weight: 700;
+  color: #475569;
+  background-color: #f8fafc;
+  padding: 0.28rem 0.55rem;
+  border-radius: 0.3rem;
+  border: 1px solid #e2e8f0;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
 }
 
-/* Filters Section */
+.profit-loss-export-actions .fre-export-btn {
+  padding: 0.35rem 0.9rem;
+  border-radius: 0.4rem;
+  font-size: 0.76rem;
+  font-weight: 700;
+  font-family: inherit;
+  letter-spacing: 0;
+  text-transform: none;
+  box-shadow: none;
+  transform: none;
+}
+
+.profit-loss-export-actions .fre-export-excel {
+  background: #15803d;
+  color: #ffffff;
+  border: 1px solid #166534;
+}
+
+.profit-loss-export-actions .fre-export-excel:hover:not(:disabled) {
+  background: #166534;
+  transform: none;
+  box-shadow: none;
+}
+
+.profit-loss-export-actions .fre-export-pdf {
+  background: #0f172a;
+  color: #ffffff;
+  border: 1px solid #020617;
+}
+
+.profit-loss-export-actions .fre-export-pdf:hover:not(:disabled) {
+  background: #020617;
+  transform: none;
+  box-shadow: none;
+}
+
+/* Filters */
 .profit-loss-filters-section {
-  background: white;
+  background: transparent;
   border-radius: 0;
-  padding: 14px 16px;
-  margin-bottom: 14px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-  border: 1px solid #e2e8f0;
+  padding: 0.65rem 0;
+  margin-bottom: 0.75rem;
+  box-shadow: none;
+  border: none;
 }
 
 .profit-loss-filters-row {
   display: flex;
   align-items: end;
-  gap: 14px;
+  gap: 0.65rem 0.85rem;
   flex-wrap: wrap;
 }
 
 .profit-loss-filter-group {
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  flex: 1;
-  min-width: 150px;
+  gap: 0.28rem;
+  flex: 0 1 auto;
+  min-width: 10.5rem;
 }
 
 .profit-loss-filter-actions {
@@ -112,70 +177,69 @@
 }
 
 .profit-loss-filter-label {
+  font-size: 0.72rem;
   font-weight: 600;
-  color: #374151;
-  font-size: 14px;
+  color: #475569;
 }
 
 .profit-loss-filter-input,
 .profit-loss-filter-select {
-  padding: 8px 12px;
-  border: 1px solid #d1d5db;
-  border-radius: 0;
-  font-size: 14px;
-  transition: all 0.2s ease;
-  background: white;
+  padding: 0.4rem 0.65rem;
+  border: 1px solid #e2e8f0;
+  border-radius: 0.4rem;
+  font-size: 0.8rem;
+  font-family: inherit;
+  background-color: #ffffff;
+  color: #0f172a;
+  min-height: 2.15rem;
+  box-sizing: border-box;
 }
 
 .profit-loss-filter-input:focus,
 .profit-loss-filter-select:focus {
   outline: none;
-  border-color: #3b82f6;
-  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+  border-color: #93c5fd;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
 }
 
 .profit-loss-refresh-button {
-  background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
-  color: white;
-  border: none;
-  padding: 8px 16px;
-  border-radius: 0;
-  font-size: 14px;
-  font-weight: 600;
+  background: #2563eb;
+  color: #ffffff;
+  border: 1px solid #1d4ed8;
+  padding: 0.35rem 0.9rem;
+  border-radius: 0.4rem;
+  font-size: 0.76rem;
+  font-weight: 700;
+  font-family: inherit;
   cursor: pointer;
-  transition: all 0.3s ease;
-  box-shadow: 0 4px 15px rgba(59, 130, 246, 0.4);
+  min-height: 2.15rem;
+  box-shadow: none;
 }
 
 .profit-loss-refresh-button:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(59, 130, 246, 0.6);
+  background: #1d4ed8;
+  box-shadow: none;
+  transform: none;
 }
 
 /* Summary Cards */
 .profit-loss-summary-cards {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
-  gap: 12px;
-  margin-bottom: 14px;
+  gap: 0.65rem;
+  margin-bottom: 0.75rem;
 }
 
 .profit-loss-summary-card {
-  background: white;
-  border-radius: 0;
-  padding: 12px 14px;
-  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.10), 0 2px 4px rgba(15, 23, 42, 0.08);
-  border: none;
-  border-left: none;
-  border-right: none;
-  transition: all 0.3s ease;
-  position: relative;
-  overflow: hidden;
+  background: #ffffff;
+  border-radius: 0.4rem;
+  padding: 0.75rem 0.85rem;
+  box-shadow: none;
+  border: 1px solid #e2e8f0;
   display: flex;
   flex-direction: column;
-  align-items: center;
-  text-align: center;
-  transform: translateY(0);
+  align-items: flex-start;
+  text-align: left;
 }
 
 .profit-loss-summary-card::before,
@@ -184,33 +248,32 @@
   display: none !important;
 }
 
-
 .profit-loss-summary-card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 16px rgba(15, 23, 42, 0.14), 0 3px 7px rgba(15, 23, 42, 0.10);
-  background: white;
+  transform: none;
+  box-shadow: none;
+  background: #ffffff;
 }
 
 .profit-loss-card-header {
-  font-size: 11px;
-  font-weight: 600;
-  color: #475569;
-  margin-bottom: 10px;
+  font-size: 0.66rem;
+  font-weight: 700;
+  color: #64748b;
+  margin-bottom: 0.4rem;
   text-transform: uppercase;
-  letter-spacing: 0.5px;
+  letter-spacing: 0.06em;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 8px;
+  gap: 0.5rem;
+  width: 100%;
 }
 
-/* Stack header content vertically for the MTM card */
 .profit-loss-card-header-stack {
   flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 10px;
-  text-align: center;
+  align-items: flex-start;
+  justify-content: flex-start;
+  gap: 0.4rem;
+  text-align: left;
 }
 
 .profit-loss-card-header-title {
@@ -220,104 +283,92 @@
 .profit-loss-mtm-cards {
   display: grid;
   grid-template-columns: repeat(2, minmax(220px, 1fr));
-  gap: 12px;
-  margin-bottom: 14px;
+  gap: 0.65rem;
+  margin-bottom: 0.85rem;
 }
-
-
 
 .profit-loss-get-data-button {
-  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
-  color: white;
-  border: none;
-  padding: 3px 6px;
-  border-radius: 0;
-  font-size: 9px;
-  font-weight: 600;
+  background: #2563eb;
+  color: #ffffff;
+  border: 1px solid #1d4ed8;
+  padding: 0.2rem 0.5rem;
+  border-radius: 0.3rem;
+  font-size: 0.66rem;
+  font-weight: 700;
+  font-family: inherit;
   cursor: pointer;
-  transition: all 0.2s ease;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  box-shadow: 0 2px 4px rgba(59, 130, 246, 0.3);
+  text-transform: none;
+  letter-spacing: 0;
+  box-shadow: none;
 }
 
-.profit-loss-get-data-button:hover {
-  background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
-  transform: translateY(-1px);
-  box-shadow: 0 4px 8px rgba(59, 130, 246, 0.4);
-}
-
-.profit-loss-get-data-button:active {
-  transform: translateY(0);
-  box-shadow: 0 2px 4px rgba(59, 130, 246, 0.3);
+.profit-loss-get-data-button:hover:not(:disabled) {
+  background: #1d4ed8;
+  transform: none;
+  box-shadow: none;
 }
 
 .profit-loss-get-data-button:disabled {
-  background: linear-gradient(135deg, #94a3b8 0%, #64748b 100%);
+  background: #94a3b8;
+  border-color: #64748b;
   cursor: not-allowed;
   transform: none;
-  box-shadow: 0 2px 4px rgba(148, 163, 184, 0.3);
+  box-shadow: none;
 }
-
-.profit-loss-get-data-button:disabled:hover {
-  background: linear-gradient(135deg, #94a3b8 0%, #64748b 100%);
-  transform: none;
-  box-shadow: 0 2px 4px rgba(148, 163, 184, 0.3);
-}
-
 
 .profit-loss-card-value {
-  font-size: 22px;
-  font-weight: 700;
-  margin-bottom: 8px;
+  font-size: 1.05rem;
+  font-weight: 750;
+  margin-bottom: 0.25rem;
   letter-spacing: -0.02em;
-  line-height: 1;
-  text-align: center;
+  line-height: 1.15;
+  text-align: left;
 }
 
 .profit-loss-card-value.positive {
-  color: #059669;
-  text-shadow: 0 1px 2px rgba(5, 150, 105, 0.18);
+  color: #15803d;
+  text-shadow: none;
 }
 
 .profit-loss-card-value.negative {
   color: #dc2626;
-  text-shadow: 0 1px 2px rgba(220, 38, 38, 0.18);
+  text-shadow: none;
 }
 
 .profit-loss-card-value.neutral {
   color: #475569;
-  text-shadow: 0 1px 2px rgba(71, 85, 105, 0.18);
+  text-shadow: none;
 }
 
 .profit-loss-card-subtitle {
-  font-size: 11px;
+  font-size: 0.66rem;
   color: #64748b;
   margin: 0;
-  font-weight: 500;
-  line-height: 1.4;
-  text-align: center;
-  position: relative;
-  padding-top: 4px;
+  font-weight: 400;
+  line-height: 1.35;
+  text-align: left;
+  padding-top: 0;
 }
-
 
 /* Main Content */
 .profit-loss-main-content {
-  background: white;
+  background: transparent;
   border-radius: 0;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-  border: 1px solid #e2e8f0;
-  overflow: hidden;
+  box-shadow: none;
+  border: none;
+  overflow: visible;
 }
 
-/* Detailed View */
 .profit-loss-detailed-view {
   padding: 0;
 }
 
 .profit-loss-section {
-  margin-bottom: 18px;
+  margin-bottom: 1rem;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 0.4rem;
+  overflow: hidden;
 }
 
 .profit-loss-section:last-child {
@@ -325,16 +376,16 @@
 }
 
 .profit-loss-section-title {
-  font-size: 15px;
+  font-size: 0.72rem;
   font-weight: 700;
-  color: white;
-  background: linear-gradient(135deg, #64748b 0%, #475569 100%);
-  margin: 0 0 10px 0;
-  padding: 8px 16px;
-  border-radius: 0;
+  color: #64748b;
+  background: #fcfdff;
+  margin: 0;
+  padding: 0.5rem 0.75rem;
+  border-bottom: 1px solid #e2e8f0;
   text-transform: uppercase;
-  letter-spacing: 0.5px;
-  box-shadow: 0 2px 6px rgba(100, 116, 139, 0.2);
+  letter-spacing: 0.06em;
+  box-shadow: none;
 }
 
 .profit-loss-table-container {
@@ -344,23 +395,23 @@
 .profit-loss-data-table {
   width: 100%;
   border-collapse: collapse;
-  font-size: 14px;
+  font-size: 0.8rem;
 }
 
 .profit-loss-table-header {
-  background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
-  border-bottom: 2px solid #cbd5e1;
+  background: #fcfdff;
+  border-bottom: 1px solid #e2e8f0;
 }
 
 .profit-loss-table-header th {
-  padding: 10px 12px;
+  padding: 0.5rem 0.65rem;
   text-align: left;
   font-weight: 700;
-  color: #374151;
+  color: #64748b;
   text-transform: uppercase;
-  letter-spacing: 0.5px;
-  font-size: 12px;
-  border-bottom: 2px solid #cbd5e1;
+  letter-spacing: 0.06em;
+  font-size: 0.66rem;
+  border-bottom: 1px solid #e2e8f0;
 }
 
 .profit-loss-th-account-code {
@@ -381,8 +432,7 @@
 }
 
 .profit-loss-account-row {
-  border-bottom: 1px solid #e5e7eb;
-  transition: background-color 0.2s ease;
+  border-bottom: 1px solid #f1f5f9;
 }
 
 .profit-loss-account-row:hover {
@@ -390,36 +440,36 @@
 }
 
 .profit-loss-account-row td {
-  padding: 9px 12px;
+  padding: 0.5rem 0.65rem;
   vertical-align: top;
+  color: #334155;
 }
 
 .profit-loss-account-code {
-  font-family: 'Courier New', monospace;
   font-weight: 600;
-  color: #374151;
+  color: #1e3a5f;
 }
 
 .profit-loss-account-name {
-  color: #1f2937;
+  color: #0f172a;
   font-weight: 500;
 }
 
 .profit-loss-account-type {
-  color: #6b7280;
-  font-size: 12px;
+  color: #64748b;
+  font-size: 0.66rem;
   text-transform: uppercase;
-  letter-spacing: 0.5px;
+  letter-spacing: 0.04em;
 }
 
 .profit-loss-account-balance {
   text-align: right;
-  font-family: 'Courier New', monospace;
+  font-variant-numeric: tabular-nums;
   font-weight: 600;
 }
 
 .profit-loss-account-balance.positive {
-  color: #059669;
+  color: #15803d;
 }
 
 .profit-loss-account-balance.negative {
@@ -427,133 +477,138 @@
 }
 
 .profit-loss-account-balance.neutral {
-  color: #374151;
+  color: #475569;
 }
 
-/* Subtotal Rows */
 .profit-loss-type-subtotal-row {
-  background: #f8fafc;
-  border-top: 2px solid #cbd5e1;
-  border-bottom: 1px solid #cbd5e1;
-  font-weight: 600;
+  background: #fcfdff;
+  border-top: 1px solid #e2e8f0;
+  border-bottom: none;
+  font-weight: 700;
 }
 
 .profit-loss-category-header-row {
-  background: #f1f5f9;
-  border-top: 1px solid #cbd5e1;
-  border-bottom: 1px solid #cbd5e1;
-  font-weight: 600;
+  background: #fcfdff;
+  border-top: 1px solid #e2e8f0;
+  border-bottom: 1px solid #e2e8f0;
+  font-weight: 700;
 }
 
 .profit-loss-category-header {
-  padding: 10px 16px !important;
-  color: #475569;
-  font-size: 14px;
-  font-weight: 600;
+  padding: 0.45rem 0.65rem !important;
+  color: #64748b;
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
 }
 
 .profit-loss-category-subtotal-row {
-  background: #f8fafc;
-  border-top: 1px solid #e2e8f0;
-  border-bottom: 1px solid #e2e8f0;
+  background: #ffffff;
+  border-top: none;
+  border-bottom: 1px solid #f1f5f9;
   font-weight: 500;
 }
 
 .profit-loss-category-subtotal-label {
-  padding: 8px 16px;
+  padding: 0.4rem 0.65rem 0.4rem 1.5rem;
   color: #64748b;
-  font-size: 12px;
-  padding-left: 32px;
+  font-size: 0.72rem;
   font-weight: 500;
 }
 
 .profit-loss-category-subtotal-type {
-  padding: 8px 16px;
+  padding: 0.4rem 0.65rem;
   color: #94a3b8;
-  font-size: 11px;
+  font-size: 0.66rem;
   font-weight: 500;
 }
 
 .profit-loss-category-subtotal-balance {
-  padding: 8px 16px;
+  padding: 0.4rem 0.65rem;
   text-align: right;
-  font-family: 'Courier New', monospace;
-  font-weight: 500;
-  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+  font-size: 0.72rem;
   color: #64748b;
 }
 
 .profit-loss-subtotal-label {
-  color: #374151;
-  font-size: 14px;
+  color: #0f172a;
+  font-size: 0.72rem;
   text-transform: uppercase;
-  letter-spacing: 0.5px;
+  letter-spacing: 0.05em;
+  padding: 0.5rem 0.65rem;
 }
 
 .profit-loss-subtotal-type {
-  color: #6b7280;
-  font-size: 12px;
+  color: #64748b;
+  font-size: 0.66rem;
   text-transform: uppercase;
-  letter-spacing: 0.5px;
+  letter-spacing: 0.04em;
 }
 
 .profit-loss-subtotal-balance {
   text-align: right;
-  font-family: 'Courier New', monospace;
-  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+  padding: 0.5rem 0.65rem;
 }
 
 .profit-loss-subtotal-balance.positive {
-  color: #059669;
+  color: #15803d;
 }
 
 .profit-loss-subtotal-balance.negative {
   color: #dc2626;
 }
 
-/* Net Summary (simple, no boxed rows) */
+/* Net Summary */
 .profit-loss-net-summary-simple {
-  margin-top: 18px;
-  max-width: 760px;
-  margin-left: auto;
-  margin-right: auto;
-  padding: 14px 16px;
+  margin-top: 0.35rem;
+  max-width: none;
+  margin-left: 0;
+  margin-right: 0;
+  padding: 0.75rem 0.85rem;
   box-sizing: border-box;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 0.4rem;
 }
 
 .profit-loss-net-summary-simple-header {
-  margin-bottom: 10px;
+  margin-bottom: 0.45rem;
 }
 
 .profit-loss-net-summary-simple-title {
   margin: 0;
-  font-size: 15px;
-  font-weight: 800;
-  color: #0f172a;
-  letter-spacing: 0.04em;
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: #64748b;
+  letter-spacing: 0.06em;
   text-transform: uppercase;
 }
 
 .profit-loss-net-summary-simple-subtitle {
-  margin: 6px 0 0;
-  font-size: 13px;
+  margin: 0.2rem 0 0;
+  font-size: 0.72rem;
   color: #64748b;
-  font-weight: 600;
+  font-weight: 400;
   line-height: 1.35;
 }
 
 .profit-loss-net-summary-simple-body {
   border-top: 1px solid #e2e8f0;
-  padding-top: 12px;
+  padding-top: 0.35rem;
 }
 
 .profit-loss-net-summary-simple-row {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
-  gap: 12px;
+  gap: 0.75rem;
   align-items: baseline;
-  padding: 10px 0;
-  border-bottom: 1px solid #eef2f7;
+  padding: 0.4rem 0;
+  border-bottom: 1px solid #f1f5f9;
 }
 
 .profit-loss-net-summary-simple-row:last-child {
@@ -561,21 +616,21 @@
 }
 
 .profit-loss-net-summary-simple-label {
-  font-size: 13px;
-  font-weight: 700;
+  font-size: 0.76rem;
+  font-weight: 600;
   color: #334155;
 }
 
 .profit-loss-net-summary-simple-value {
-  font-family: 'Courier New', monospace;
-  font-weight: 800;
   font-variant-numeric: tabular-nums;
+  font-weight: 700;
   white-space: nowrap;
   color: #0f172a;
+  font-size: 0.8rem;
 }
 
 .profit-loss-net-summary-simple-value.positive {
-  color: #059669;
+  color: #15803d;
 }
 
 .profit-loss-net-summary-simple-value.negative {
@@ -586,55 +641,51 @@
   color: #0f172a;
 }
 
-.profit-loss-net-summary-simple-total .profit-loss-net-summary-simple-label,
-.profit-loss-net-summary-simple-total .profit-loss-net-summary-simple-value {
-  font-size: 14px;
-  font-weight: 900;
+.profit-loss-net-summary-simple-total {
+  border-top: 1px solid #e2e8f0;
+  margin-top: 0.15rem;
+  padding-top: 0.5rem;
 }
 
-@media (max-width: 520px) {
-  .profit-loss-net-summary-simple {
-    padding: 14px 12px;
-  }
-
-  .profit-loss-net-summary-simple-row {
-    grid-template-columns: 1fr;
-    gap: 6px;
-  }
+.profit-loss-net-summary-simple-total .profit-loss-net-summary-simple-label,
+.profit-loss-net-summary-simple-total .profit-loss-net-summary-simple-value {
+  font-size: 0.84rem;
+  font-weight: 750;
+  color: #0f172a;
 }
 
 /* Summary View */
 .profit-loss-summary-view {
-  padding: 14px;
+  padding: 0;
 }
 
 .profit-loss-summary-cards-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-  gap: 14px;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 0.65rem;
 }
 
 .profit-loss-summary-card-title {
-  font-size: 17px;
+  font-size: 0.72rem;
   font-weight: 700;
-  color: #1e293b;
-  margin: 0 0 10px 0;
+  color: #64748b;
+  margin: 0 0 0.5rem 0;
   text-transform: uppercase;
-  letter-spacing: 0.5px;
+  letter-spacing: 0.06em;
 }
 
 .profit-loss-summary-details {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 0.15rem;
 }
 
 .profit-loss-summary-item {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 8px 0;
-  border-bottom: 1px solid #e5e7eb;
+  padding: 0.35rem 0;
+  border-bottom: 1px solid #f1f5f9;
 }
 
 .profit-loss-summary-item:last-child {
@@ -643,180 +694,128 @@
 
 .profit-loss-summary-label {
   font-weight: 600;
-  color: #6b7280;
-  font-size: 14px;
+  color: #64748b;
+  font-size: 0.76rem;
 }
 
 .profit-loss-summary-value {
-  font-family: 'Courier New', monospace;
+  font-variant-numeric: tabular-nums;
   font-weight: 600;
-  color: #374151;
+  color: #0f172a;
+  font-size: 0.8rem;
 }
 
 .profit-loss-summary-value.positive {
-  color: #059669;
+  color: #15803d;
 }
 
 .profit-loss-summary-value.negative {
   color: #dc2626;
 }
 
-/* Loading and Error States */
-.profit-loss-loading-container {
+/* Loading and Error */
+.profit-loss-loading-container,
+.profit-loss-error-container {
   display: flex;
   flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 2.5rem 2rem;
-  text-align: center;
+  align-items: flex-start;
+  justify-content: flex-start;
+  padding: 1rem 0;
+  text-align: left;
+  background: transparent;
+  box-shadow: none;
+  border: none;
 }
 
 .profit-loss-loading-spinner {
-  width: 3rem;
-  height: 3rem;
-  border: 4px solid #e5e7eb;
-  border-top: 4px solid #3b82f6;
+  width: 1.35rem;
+  height: 1.35rem;
+  border: 2px solid #e2e8f0;
+  border-top: 2px solid #2563eb;
   border-radius: 50%;
-  animation: spin 1s linear infinite;
-  margin-bottom: 1rem;
+  animation: profit-loss-spin 0.8s linear infinite;
+  margin-bottom: 0.65rem;
 }
 
-@keyframes spin {
+@keyframes profit-loss-spin {
   0% { transform: rotate(0deg); }
   100% { transform: rotate(360deg); }
 }
 
 .profit-loss-loading-text {
-  font-size: 18px;
-  color: #6b7280;
+  font-size: 0.8rem;
+  color: #64748b;
   margin: 0;
 }
 
-.profit-loss-error-container {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 2.5rem 2rem;
-  text-align: center;
-  background: white;
-  border-radius: 0;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-  border: 1px solid #e2e8f0;
-}
-
 .profit-loss-error-title {
-  font-size: 24px;
-  font-weight: 700;
+  font-size: 1rem;
+  font-weight: 750;
   color: #dc2626;
-  margin: 0 0 1rem 0;
+  margin: 0 0 0.4rem 0;
 }
 
 .profit-loss-error-message {
-  font-size: 16px;
-  color: #6b7280;
-  margin: 0 0 2rem 0;
+  font-size: 0.8rem;
+  color: #64748b;
+  margin: 0 0 0.75rem 0;
 }
 
 .profit-loss-retry-button {
-  background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
-  color: white;
-  border: none;
-  padding: 12px 24px;
-  border-radius: 0;
-  font-size: 14px;
-  font-weight: 600;
+  background: #dc2626;
+  color: #ffffff;
+  border: 1px solid #b91c1c;
+  padding: 0.35rem 0.9rem;
+  border-radius: 0.4rem;
+  font-size: 0.76rem;
+  font-weight: 700;
+  font-family: inherit;
   cursor: pointer;
-  transition: all 0.3s ease;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
+  text-transform: none;
+  letter-spacing: 0;
+  box-shadow: none;
 }
 
 .profit-loss-retry-button:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(220, 38, 38, 0.6);
+  background: #b91c1c;
+  transform: none;
+  box-shadow: none;
 }
 
-/* Responsive Design */
 @media (max-width: 768px) {
-  .profit-loss-main-container {
-    padding: 1rem 0.5rem;
-  }
-  
   .profit-loss-header-section {
     flex-direction: column;
     align-items: flex-start;
-    gap: 16px;
   }
-  
+
   .profit-loss-header-right {
     align-items: flex-start;
   }
-  
-  .profit-loss-filters-section {
-    padding: 16px;
-  }
-  
+
   .profit-loss-filters-row {
     flex-direction: column;
     align-items: stretch;
-    gap: 16px;
-  }
-  
-  .profit-loss-filter-group {
-    min-width: auto;
-  }
-  
-  .profit-loss-filter-actions {
-    margin-left: 0;
-    align-self: flex-start;
-  }
-  
-  .profit-loss-summary-cards {
-    grid-template-columns: 1fr;
   }
 
-  .profit-loss-mtm-cards {
-    grid-template-columns: 1fr;
+  .profit-loss-filter-group {
+    min-width: auto;
+    width: 100%;
   }
-  
+
+  .profit-loss-filter-actions {
+    margin-left: 0;
+  }
+
+  .profit-loss-summary-cards,
+  .profit-loss-mtm-cards,
   .profit-loss-summary-cards-grid {
     grid-template-columns: 1fr;
   }
-  
-  .profit-loss-data-table {
-    font-size: 12px;
-  }
-  
-  .profit-loss-table-header th,
-  .profit-loss-account-row td {
-    padding: 12px 8px;
-  }
-  
-  .profit-loss-net-breakdown {
-    gap: 12px;
-  }
-  
-  .profit-loss-net-item.profit-loss-net-total {
-    font-size: 16px;
-  }
 }
 
-@media (max-width: 480px) {
-  .profit-loss-main-title {
-    font-size: 24px;
-  }
-  
-  .profit-loss-data-table {
-    font-size: 11px;
-  }
-  
-  .profit-loss-table-header th,
-  .profit-loss-account-row td {
-    padding: 8px 4px;
-  }
-  
-  .profit-loss-card-value {
-    font-size: 24px;
+@media (max-width: 520px) {
+  .profit-loss-net-summary-simple-row {
+    grid-template-columns: 1fr;
+    gap: 0.2rem;
   }
 }

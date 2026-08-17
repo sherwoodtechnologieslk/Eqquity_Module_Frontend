@@ -196,8 +196,9 @@ const ProfitLoss = () => {
   return (
     <div className="profit-loss-main-container">
       {/* Header */}
-      <div className="profit-loss-header-section">
+      <header className="profit-loss-header-section">
         <div className="profit-loss-header-left">
+          <p className="profit-loss-eyebrow">Accounting · Reporting</p>
           <h1 className="profit-loss-main-title">Profit & Loss Statement</h1>
           <div className="profit-loss-period-info">
             <span className="profit-loss-period-label">Period:</span>
@@ -233,7 +234,7 @@ const ProfitLoss = () => {
             />
           </div>
         </div>
-      </div>
+      </header>
 
       {/* Filters */}
       <div className="profit-loss-filters-section">

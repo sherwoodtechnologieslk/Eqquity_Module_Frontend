@@ -9,6 +9,7 @@ const SOURCE_FILTER_LABELS = {
   all: 'All Ledgers',
   equity: 'Equity Only',
   gsec: 'GSec Only',
+  'non-trading': 'Non-Trading Only',
 };
 
 const getPeriodLabel = (filters, formatDate) => {
@@ -366,6 +367,8 @@ const CombinedGL = ({ onTabChange }) => {
       onTabChange('General Ledger');
     } else if (entry.source === 'GSec') {
       onTabChange('GSec General Ledger');
+    } else if (entry.source === 'Non-Trading') {
+      onTabChange('Other Transactions');
     }
   };
 
@@ -397,30 +400,6 @@ const CombinedGL = ({ onTabChange }) => {
   return (
     <div className="cgl-page-container">
       <div className="cgl-content-wrapper">
-        <header className="cgl-masthead">
-          <div className="cgl-masthead__primary">
-            <p className="cgl-eyebrow">Financial Reporting</p>
-            <h1 className="cgl-main-title">Combined General Ledger</h1>
-            <p className="cgl-subtitle">
-              Unified line-level view of Equity and GSec ledger entries with filtering, export, and source navigation.
-            </p>
-          </div>
-          <div className="cgl-masthead__meta">
-            <div className="cgl-meta-chip">
-              <span className="cgl-meta-chip__label">Reporting Period</span>
-              <span className="cgl-meta-chip__value">{periodLabel}</span>
-            </div>
-            <div className="cgl-meta-chip">
-              <span className="cgl-meta-chip__label">Ledger Scope</span>
-              <span className="cgl-meta-chip__value">{SOURCE_FILTER_LABELS[filters.source] || 'All Ledgers'}</span>
-            </div>
-            <div className="cgl-meta-chip">
-              <span className="cgl-meta-chip__label">Entries</span>
-              <span className="cgl-meta-chip__value">{filteredCount.toLocaleString()}</span>
-            </div>
-          </div>
-        </header>
-
         <section className="cgl-toolbar" aria-label="Ledger filters">
           <div className="cgl-toolbar__row cgl-toolbar__row--primary">
             <div className="cgl-field">
@@ -435,6 +414,7 @@ const CombinedGL = ({ onTabChange }) => {
                 <option value="all">All Ledgers</option>
                 <option value="equity">Equity Only</option>
                 <option value="gsec">GSec Only</option>
+                <option value="non-trading">Non-Trading Only</option>
               </select>
             </div>
 
@@ -645,7 +625,7 @@ const CombinedGL = ({ onTabChange }) => {
                       </td>
                       <td className="cgl-col-type">{entry.transaction_type}</td>
                       <td className="cgl-col-status">
-                        {entry.source === 'Equity' ? entry.status || '—' : 'GSec'}
+                        {entry.source === 'GSec' ? 'GSec' : entry.status || '—'}
                       </td>
                       <td className="cgl-col-sources">
                         <button

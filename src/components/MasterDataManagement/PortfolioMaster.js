@@ -223,6 +223,13 @@ const PortfolioMaster = () => {
     return (
       <div className="eqt-page-container prt-page">
         <div className="eqt-content-wrapper">
+          <header className="eqt-header-section">
+            <div className="eqt-header-text-group">
+              <p className="eqt-eyebrow">Masters · Portfolios</p>
+              <h1 className="eqt-main-title">Portfolio Master</h1>
+              <p className="eqt-subtitle">Existing portfolios</p>
+            </div>
+          </header>
           <div className="eqt-view-toggle">
             <button onClick={toggleView} className="eqt-back-btn">
               Back to Entry Form
@@ -248,22 +255,13 @@ const PortfolioMaster = () => {
   return (
     <div className="eqt-page-container prt-page">
       <div className="eqt-content-wrapper">
-        <div className="eqt-header-section">
-          <div className="eqt-header-icon">
-            <svg className="eqt-icon" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
-              <path d="M4 4a2 2 0 00-2 2v1h16V6a2 2 0 00-2-2H4z" />
-              <path
-                fillRule="evenodd"
-                d="M18 9H2v5a2 2 0 002 2h12a2 2 0 002-2V9zM4 13a1 1 0 011-1h1a1 1 0 110 2H5a1 1 0 01-1-1zm5-1a1 1 0 100 2h1a1 1 0 100-2H9z"
-                clipRule="evenodd"
-              />
-            </svg>
-          </div>
+        <header className="eqt-header-section">
           <div className="eqt-header-text-group">
-            <h1 className="eqt-main-title">Portfolio Master Entry</h1>
-            <p className="eqt-subtitle">Create and configure new investment portfolios for your treasury management system</p>
+            <p className="eqt-eyebrow">Masters · Portfolios</p>
+            <h1 className="eqt-main-title">Portfolio Master</h1>
+            <p className="eqt-subtitle">Create and configure investment portfolios</p>
           </div>
-        </div>
+        </header>
 
         <div className="eqt-form-card prt-form-shell">
           <div className="eqt-card-header">

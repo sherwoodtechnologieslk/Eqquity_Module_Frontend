@@ -95,20 +95,13 @@ const ManagerSelection = ({ onSelect, onLogout, preAuth = false }) => {
             </p>
             <div className="manager-selection__title-block">
               <h1 className="manager-selection__brand">Sherwood</h1>
-              <p className="manager-selection__platform">
-                <span className="manager-selection__platform-line" aria-hidden="true" />
-                Platform
-              </p>
+              <p className="manager-selection__platform">Platform</p>
             </div>
             <p className="manager-selection__lede">Select a manager to continue.</p>
           </div>
         </aside>
 
         <section className="manager-selection__panel">
-          <header className="manager-selection__panel-head">
-            <p className="manager-selection__panel-kicker">Workspace</p>
-          </header>
-
           <div className="manager-selection__lanes" role="list">
             {managerOptions.map((option, i) => (
               <button

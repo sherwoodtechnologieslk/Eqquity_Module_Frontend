@@ -20,16 +20,17 @@ const OtherReports = () => {
   const [customizeOpen, setCustomizeOpen] = useState(false);
 
   return (
-    <div className="fre-wrap">
-      <div className="fre-header">
+    <div className="fre-wrap fre-wrap--other-reports">
+      <header className="fre-header">
         <div>
+          <p className="fre-eyebrow">Accounting · Reporting</p>
           <h2>Other Reports</h2>
           <p>
             Open individual reports, view the group finance dashboard (AMC / AMH / CCH), or use Customize for
             tabbed layouts.
           </p>
         </div>
-      </div>
+      </header>
 
       <div className="other-reports-content">
         <p className="other-reports-content-label">Reports</p>

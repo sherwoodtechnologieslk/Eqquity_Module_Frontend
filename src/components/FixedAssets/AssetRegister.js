@@ -185,8 +185,9 @@ const AssetRegister = ({ onTabChange }) => {
   return (
     <div className="fa-container">
       <div className="fa-wrapper">
-        <div className="fa-header">
+        <header className="fa-header">
           <div className="fa-header-left">
+            <p className="fa-eyebrow">Accounting · Fixed assets</p>
             <h1 className="fa-title">Asset Register</h1>
             <span className="fa-subtitle">
               Cost, accumulated depreciation and written-down value (WDV) as of the
@@ -201,7 +202,7 @@ const AssetRegister = ({ onTabChange }) => {
             >
               + Add asset
             </button>
-            <button type="button" className="fa-btn" onClick={exportCsv}>
+            <button type="button" className="fa-btn fa-btn-excel" onClick={exportCsv}>
               Export CSV
             </button>
             <button
@@ -212,7 +213,7 @@ const AssetRegister = ({ onTabChange }) => {
               Categories
             </button>
           </div>
-        </div>
+        </header>
 
         <div className="fa-summary">
           <div className="fa-card">
@@ -277,7 +278,7 @@ const AssetRegister = ({ onTabChange }) => {
               <option value="DISPOSED">Disposed</option>
             </select>
           </div>
-          <div className="fa-filter-group" style={{ flex: 1, minWidth: 260 }}>
+          <div className="fa-filter-group fa-filter-group--search">
             <label className="fa-filter-label">Search</label>
             <input
               className="fa-input"
@@ -308,7 +309,7 @@ const AssetRegister = ({ onTabChange }) => {
                 <tr>
                   <td colSpan={9} className="fa-empty">
                     No assets match the current filter.
-                    <div style={{ marginTop: 10 }}>
+                    <div className="fa-empty-actions">
                       <button
                         type="button"
                         className="fa-btn fa-btn-primary"
@@ -353,8 +354,7 @@ const AssetRegister = ({ onTabChange }) => {
                       </button>
                       <button
                         type="button"
-                        className="fa-btn-ghost"
-                        style={{ color: '#b91c1c' }}
+                        className="fa-btn-ghost fa-btn-ghost-danger"
                         onClick={() => handleDelete(row)}
                       >
                         Delete
@@ -369,44 +369,16 @@ const AssetRegister = ({ onTabChange }) => {
 
         {selectedAsset && selectedSchedule && (
           <div
-            className="fp-modal-overlay"
+            className="fa-modal-overlay"
             role="dialog"
             aria-modal="true"
             onClick={() => setSelectedAssetId(null)}
-            style={{
-              position: 'fixed',
-              inset: 0,
-              background: 'rgba(15, 23, 42, 0.5)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              zIndex: 50,
-              padding: 16
-            }}
           >
-            <div
-              onClick={(e) => e.stopPropagation()}
-              style={{
-                background: '#ffffff',
-                width: 'min(900px, 100%)',
-                maxHeight: '90vh',
-                overflow: 'auto',
-                border: '1px solid #e2e8f0'
-              }}
-            >
-              <div
-                style={{
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                  alignItems: 'flex-start',
-                  padding: '16px 20px',
-                  borderBottom: '1px solid #e2e8f0',
-                  gap: 16
-                }}
-              >
+            <div className="fa-modal" onClick={(e) => e.stopPropagation()}>
+              <div className="fa-modal-head">
                 <div>
                   <div className="fa-card-label">Asset detail</div>
-                  <div className="fa-title" style={{ fontSize: 18 }}>
+                  <div className="fa-modal-title">
                     {selectedAsset.assetCode} &middot; {selectedAsset.name}
                   </div>
                   <div className="fa-card-sub">
@@ -423,33 +395,33 @@ const AssetRegister = ({ onTabChange }) => {
                 </button>
               </div>
 
-              <div className="fa-summary" style={{ margin: 16 }}>
+              <div className="fa-summary fa-modal-summary">
                 <div className="fa-card">
                   <div className="fa-card-label">Cost</div>
                   <div className="fa-card-value">{formatAmount(selectedSchedule.cost)}</div>
                 </div>
-                <div className="fa-card fa-card-amber">
+                <div className="fa-card">
                   <div className="fa-card-label">Accumulated depreciation</div>
                   <div className="fa-card-value">
                     {formatAmount(selectedSchedule.accumulated)}
                   </div>
                 </div>
-                <div className="fa-card fa-card-green">
+                <div className="fa-card">
                   <div className="fa-card-label">WDV</div>
                   <div className="fa-card-value">{formatAmount(selectedSchedule.wdv)}</div>
                 </div>
-                <div className="fa-card fa-card-slate">
+                <div className="fa-card">
                   <div className="fa-card-label">Monthly depreciation</div>
                   <div className="fa-card-value">{formatAmount(selectedSchedule.monthly)}</div>
                 </div>
               </div>
 
-              <div style={{ padding: '0 16px 16px' }}>
+              <div className="fa-modal-body">
                 <h3 className="fa-schedule-title">Schedule</h3>
                 <p className="fa-schedule-sub">
                   Straight-line, generated from category settings.
                 </p>
-                <div style={{ maxHeight: 380, overflowY: 'auto', border: '1px solid #e2e8f0' }}>
+                <div className="fa-schedule-scroll">
                   <table className="fa-schedule-table">
                     <thead>
                       <tr>

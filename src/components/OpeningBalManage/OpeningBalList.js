@@ -559,8 +559,8 @@ const OpeningBalList = () => {
     <div className="opening-bal-list-container">
       <header className="opening-bal-list-toolbar">
         <div className="opening-bal-list-toolbar__left">
-          <span className="opening-bal-list-toolbar__badge">LIST</span>
           <div className="opening-bal-list-toolbar__heading">
+            <p className="opening-bal-list-toolbar__eyebrow">Accounting · Opening balances</p>
             <h1 className="opening-bal-list-toolbar__title">Opening Balance List</h1>
             <p className="opening-bal-list-toolbar__subtitle">
               Review opening balances, trial balance, and opening statement of financial position

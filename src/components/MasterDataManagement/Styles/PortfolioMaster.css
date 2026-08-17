@@ -10,7 +10,7 @@
 
 /* Softer shell: white header with blue accent line */
 .prt-page .prt-form-shell {
-  box-shadow: 0 4px 18px rgba(15, 23, 42, 0.05);
+  box-shadow: none;
 }
 
 .prt-page .prt-form-shell > .eqt-card-header {
@@ -28,8 +28,8 @@
 }
 
 .prt-form-body {
-  padding: 1rem 1.15rem 1.25rem !important;
-  background: #f8fafc;
+  padding: 0.85rem 0.95rem 1rem !important;
+  background: #ffffff;
 }
 
 .prt-section-panel {

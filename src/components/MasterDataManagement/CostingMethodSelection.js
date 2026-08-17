@@ -143,25 +143,17 @@ const CostingMethodSelection = () => {
   };
 
   return (
-    <div className="eqt-page-container">
+    <div className="eqt-page-container pcm-page">
       <div className="eqt-content-wrapper">
-        <div className="eqt-header-section">
-          <div className="eqt-header-icon">
-            <svg className="eqt-icon" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
-              <path
-                fillRule="evenodd"
-                d="M6 2a2 2 0 00-2 2v12a2 2 0 002 2h8a2 2 0 002-2V4a2 2 0 00-2-2H6zm1 2a1 1 0 000 2h6a1 1 0 100-2H7zm6 7a1 1 0 011 1v3a1 1 0 11-2 0v-3a1 1 0 011-1zm-3 3a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zm-4-3a1 1 0 011 1v3a1 1 0 11-2 0v-3a1 1 0 011-1z"
-                clipRule="evenodd"
-              />
-            </svg>
-          </div>
+        <header className="eqt-header-section">
           <div className="eqt-header-text-group">
+            <p className="eqt-eyebrow">Masters · Valuation</p>
             <h1 className="eqt-main-title">Valuation Method</h1>
             <p className="eqt-subtitle">
-              Assign the default carrying-value method for position costing, unrealised P/L and limit checks.
+              Assign the default costing method for positions, unrealised P/L, and limits
             </p>
           </div>
-        </div>
+        </header>
 
         <div className="eqt-form-card">
           <div className="eqt-card-header">
