@@ -2629,6 +2629,41 @@ export const accountReconciliationAPI = {
     }
   },
 
+  extractStatement: async (file, password = '', accountCode = '') => {
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+      if (accountCode) {
+        formData.append('accountCode', accountCode);
+      }
+      if (password) {
+        formData.append('password', password);
+      }
+
+      const response = await fetch(`${API_BASE_URL}/account-reconciliation/extract-statement`, {
+        method: 'POST',
+        headers: getAuthHeaders(),
+        body: formData
+      });
+
+      if (!response.ok) {
+        let message = `HTTP error! status: ${response.status}`;
+        try {
+          const body = await response.json();
+          message = body?.error || message;
+        } catch {
+          // Keep the status message if the server didn't return JSON.
+        }
+        throw new Error(message);
+      }
+
+      return await response.json();
+    } catch (error) {
+      console.error('Error extracting statement:', error);
+      throw error;
+    }
+  },
+
   // Save previewed statement entries to database
   passStatementEntries: async ({ accountCode, sourceFileName, entries }) => {
     try {
