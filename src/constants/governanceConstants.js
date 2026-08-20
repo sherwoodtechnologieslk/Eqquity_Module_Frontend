@@ -191,6 +191,7 @@ const MENU_SECTION_PERMISSIONS = {
 };
 
 const TAB_PERMISSIONS = {
+  Home: null,
   Dashboard: OPERATIONAL_VIEW_KEYS,
   'Portfolio Overview': TRADE_KEYS,
   'Market Summary': null,
