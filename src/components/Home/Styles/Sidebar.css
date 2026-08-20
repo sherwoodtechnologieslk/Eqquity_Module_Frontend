@@ -86,6 +86,17 @@ html, body {
   flex-shrink: 0;
 }
 
+.sidebar .brand-icon--home {
+  padding: 0;
+  cursor: pointer;
+  font: inherit;
+  color: inherit;
+}
+
+.sidebar .brand-icon--home:hover {
+  border-color: rgba(255, 255, 255, 0.5);
+}
+
 .sidebar .brand-icon::before {
   content: '';
   position: absolute;
@@ -111,12 +122,19 @@ html, body {
 }
 
 .sidebar .brand-logo {
-  width: 1.45rem;
-  height: 1.45rem;
+  width: 1.05rem;
+  height: 1.05rem;
   color: #ffffff;
+  background: none;
+  border-radius: 0;
+  padding: 0;
+  box-sizing: border-box;
   position: relative;
   z-index: 1;
-  filter: drop-shadow(0 1px 1px rgba(15, 23, 42, 0.2));
+  display: block;
+  flex-shrink: 0;
+  filter: none;
+  box-shadow: none;
 }
 
 .sidebar .brand-text-container {
@@ -846,6 +864,56 @@ html, body {
   gap: 0.4rem;
 }
 
+.sidebar-menu--home {
+  margin-bottom: 0.55rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.sidebar-item.sidebar-item--home {
+  background: transparent;
+  border: none;
+  box-shadow: none;
+  padding: 0.5rem 0.65rem;
+  font-weight: 650;
+  color: rgba(248, 250, 252, 0.78);
+}
+
+.sidebar-item.sidebar-item--home:hover,
+.sidebar-item.sidebar-item--home:focus {
+  background: rgba(255, 255, 255, 0.06);
+  border: none;
+  color: #ffffff;
+}
+
+.sidebar-item.sidebar-item--home.active {
+  background: rgba(59, 130, 246, 0.18);
+  border: none;
+  color: #ffffff;
+}
+
+.sidebar-item.sidebar-item--home.active .item-indicator {
+  display: none;
+}
+
+.sidebar-home-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.1rem;
+  height: 1.1rem;
+}
+
+.sidebar-home-icon svg {
+  width: 1.05rem;
+  height: 1.05rem;
+  color: currentColor;
+  background: none;
+  border-radius: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
 .sidebar-item {
   display: flex;
   align-items: center;
@@ -1088,8 +1156,8 @@ html, body {
   }
   
   .sidebar .brand-logo {
-    width: 1.45rem;
-    height: 1.45rem;
+    width: 1.05rem;
+    height: 1.05rem;
   }
   
   .sidebar-item {
