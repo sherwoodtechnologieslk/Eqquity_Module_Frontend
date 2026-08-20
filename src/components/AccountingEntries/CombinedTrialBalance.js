@@ -949,7 +949,7 @@ const CombinedTrialBalance = () => {
             <div className="ctb-report__actions">
               <button
                 type="button"
-                className="ctb-btn ctb-btn--export"
+                className="ctb-btn ctb-btn--export ctb-btn--expand"
                 onClick={() => setReportExpanded(true)}
                 title="Expand trial balance"
               >
@@ -958,7 +958,7 @@ const CombinedTrialBalance = () => {
               </button>
               <button
                 type="button"
-                className="ctb-btn ctb-btn--export"
+                className="ctb-btn ctb-btn--export ctb-btn--pdf"
                 onClick={handleExportPdf}
                 disabled={exporting}
               >
@@ -967,7 +967,7 @@ const CombinedTrialBalance = () => {
               </button>
               <button
                 type="button"
-                className="ctb-btn ctb-btn--export"
+                className="ctb-btn ctb-btn--export ctb-btn--excel"
                 onClick={handleExportExcel}
                 disabled={exporting}
               >
@@ -1015,7 +1015,7 @@ const CombinedTrialBalance = () => {
                 <div className="ctb-expand-modal__actions">
                   <button
                     type="button"
-                    className="ctb-btn ctb-btn--export"
+                    className="ctb-btn ctb-btn--export ctb-btn--pdf"
                     onClick={handleExportPdf}
                     disabled={exporting}
                   >
@@ -1024,7 +1024,7 @@ const CombinedTrialBalance = () => {
                   </button>
                   <button
                     type="button"
-                    className="ctb-btn ctb-btn--export"
+                    className="ctb-btn ctb-btn--export ctb-btn--excel"
                     onClick={handleExportExcel}
                     disabled={exporting}
                   >
@@ -1033,7 +1033,7 @@ const CombinedTrialBalance = () => {
                   </button>
                   <button
                     type="button"
-                    className="ctb-btn ctb-btn--export"
+                    className="ctb-btn ctb-btn--export ctb-btn--expand"
                     onClick={() => setReportExpanded(false)}
                     title="Close expanded view"
                   >
