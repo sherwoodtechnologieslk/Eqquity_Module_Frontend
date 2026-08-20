@@ -112,21 +112,24 @@ const ManagerSelection = ({ onSelect, onLogout, preAuth = false }) => {
                 onClick={() => handleSelect(option)}
                 key={option.id}
               >
-                <span className="manager-lane__wash" aria-hidden="true" />
+                <span className="manager-lane__index" aria-hidden="true">
+                  {String(i + 1).padStart(2, '0')}
+                </span>
 
-                <span className="manager-lane__main">
-                  <span className="manager-lane__icon">{option.icon}</span>
-                  <span className="manager-lane__body">
+                <span className="manager-lane__icon">{option.icon}</span>
+
+                <span className="manager-lane__content">
+                  <span className="manager-lane__head">
                     <span className="manager-lane__eyebrow">{option.eyebrow}</span>
                     <span className="manager-lane__title">{option.title}</span>
-                    <span className="manager-lane__description">{option.description}</span>
-                    <span className="manager-lane__tags">
-                      {option.highlights.map((tag) => (
-                        <span className="manager-lane__tag" key={tag}>
-                          {tag}
-                        </span>
-                      ))}
-                    </span>
+                  </span>
+                  <span className="manager-lane__description">{option.description}</span>
+                  <span className="manager-lane__tags">
+                    {option.highlights.map((tag) => (
+                      <span className="manager-lane__tag" key={tag}>
+                        {tag}
+                      </span>
+                    ))}
                   </span>
                 </span>
 

@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import './Styles/Navbar.css';
 import ThemeToggle from '../Common/ThemeToggle';
 
-const Navbar = ({ activeTab, onTabChange, visibleTabs = [], user, onLogout, onOpenProfile }) => {
+const Navbar = ({ activeTab, onTabChange, visibleTabs = [], user, onLogout, onOpenProfile, navBackdrop = null, fullWidth = false }) => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [hoveredTab, setHoveredTab] = useState(null);
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
@@ -163,21 +163,12 @@ const Navbar = ({ activeTab, onTabChange, visibleTabs = [], user, onLogout, onOp
   return (
     <nav
       ref={navbarRef}
-      className={`main-navbar ${isScrolled ? 'scrolled' : ''}`}
+      className={['main-navbar', isScrolled && 'scrolled', navBackdrop && `main-navbar--${navBackdrop}`, fullWidth && 'main-navbar--home']
+        .filter(Boolean)
+        .join(' ')}
       style={getDynamicStyles()}
     >
       <div className="navbar-container">
-        <div className="navbar-brand">
-          <div className="brand-icon">
-            <svg className="brand-logo" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-              <rect x="5.5" y="4.2" width="9" height="2.5" rx="1.25" />
-              <rect x="3" y="8.75" width="14" height="2.5" rx="1.25" />
-              <rect x="5.5" y="13.3" width="9" height="2.5" rx="1.25" />
-            </svg>
-          </div>
-         
-        </div>
-
         <ul className="nav-list">
           {tabs.map(tab => (
             <li key={tab.name} className="nav-item">

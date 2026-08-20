@@ -23,7 +23,6 @@ const FinancialPosition = ({ onTabChange }) => {
   const [netProfit, setNetProfit] = useState(null); // from P&L -> used for retained earnings display
   const [expandedKeys, setExpandedKeys] = useState(() => new Set());
   const [isStatementPoppedOut, setIsStatementPoppedOut] = useState(false);
-  const [exportMenuOpen, setExportMenuOpen] = useState(false);
   const [showMtmData, setShowMtmData] = useState(false);
   const [showNotes, setShowNotes] = useState(false);
   // Draft filter inputs — changing these must NOT auto-reload the statement.
@@ -37,7 +36,6 @@ const FinancialPosition = ({ onTabChange }) => {
     withNotes: false
   });
   const hasLoadedDataRef = useRef(false);
-  const exportMenuRef = useRef(null);
 
   const periodLabel = useMemo(() => {
     const dateStr = financialPositionData?.asOfDate || appliedQuery.asOfDate;
@@ -164,24 +162,6 @@ const FinancialPosition = ({ onTabChange }) => {
       document.body.style.overflow = previousOverflow;
     };
   }, [isStatementPoppedOut]);
-
-  useEffect(() => {
-    if (!exportMenuOpen) return undefined;
-    const onDocMouseDown = (event) => {
-      if (!exportMenuRef.current?.contains(event.target)) {
-        setExportMenuOpen(false);
-      }
-    };
-    const onKeyDown = (event) => {
-      if (event.key === 'Escape') setExportMenuOpen(false);
-    };
-    document.addEventListener('mousedown', onDocMouseDown);
-    document.addEventListener('keydown', onKeyDown);
-    return () => {
-      document.removeEventListener('mousedown', onDocMouseDown);
-      document.removeEventListener('keydown', onKeyDown);
-    };
-  }, [exportMenuOpen]);
 
   const applyFiltersAndFetch = useCallback(() => {
     setAppliedQuery({
@@ -400,40 +380,6 @@ const FinancialPosition = ({ onTabChange }) => {
     });
   };
 
-  const allStatementGroups = useMemo(
-    () => [
-      ...nonCurrentAssetGroups,
-      ...currentAssetGroups,
-      ...equityGroups,
-      ...nonCurrentLiabilityGroups,
-      ...currentLiabilityGroups
-    ],
-    [
-      nonCurrentAssetGroups,
-      currentAssetGroups,
-      equityGroups,
-      nonCurrentLiabilityGroups,
-      currentLiabilityGroups
-    ]
-  );
-
-  const expandAllGroups = () => {
-    setExpandedKeys(new Set(allStatementGroups.map((group) => group.key)));
-  };
-
-  const collapseAllGroups = () => {
-    setExpandedKeys(new Set());
-  };
-
-  const allGroupsExpanded =
-    allStatementGroups.length > 0 &&
-    allStatementGroups.every((group) => expandedKeys.has(group.key));
-
-  const toggleExpandCollapseAll = () => {
-    if (allGroupsExpanded) collapseAllGroups();
-    else expandAllGroups();
-  };
-
   const renderGroupRow = (group, index, normalBalanceType) => {
     const balanceType = deriveBalanceTypeFromBalance(group.balance, normalBalanceType);
     const state = getLineState(balanceType, normalBalanceType);
@@ -478,7 +424,7 @@ const FinancialPosition = ({ onTabChange }) => {
               deriveBalanceTypeFromBalance(Number(acc.balance) || 0, normalBalanceType);
             const detailState = getLineState(detailBalanceType, normalBalanceType);
             return (
-              <tr key={`${groupKey}-detail-${acc.accountCode || i}`} className="fp-detail-row">
+              <tr key={`${groupKey}-detail-${acc.accountCode || i}`} className={`fp-detail-row${i % 2 === 1 ? ' fp-detail-row--alt' : ''}`}>
                 <td className="fp-account-name">
                   <div className="fp-detail-line">
                     <span className="fp-detail-code">
@@ -791,50 +737,27 @@ const FinancialPosition = ({ onTabChange }) => {
           </div>
 
           <div className="fp-filter-actions">
-            <div className="fp-export-menu" ref={exportMenuRef}>
-              <button
-                type="button"
-                className="fp-export-button"
-                aria-haspopup="menu"
-                aria-expanded={exportMenuOpen}
-                onClick={() => setExportMenuOpen((open) => !open)}
-              >
-                Export ▾
-              </button>
-              {exportMenuOpen && (
-                <div className="fp-export-menu-panel" role="menu">
-                  <button
-                    type="button"
-                    className="fp-export-menu-item"
-                    role="menuitem"
-                    onClick={() => {
-                      setExportMenuOpen(false);
-                      exportSofpPdf();
-                    }}
-                  >
-                    Export PDF
-                  </button>
-                  <button
-                    type="button"
-                    className="fp-export-menu-item"
-                    role="menuitem"
-                    onClick={() => {
-                      setExportMenuOpen(false);
-                      exportSofpExcel();
-                    }}
-                  >
-                    Export to Excel
-                  </button>
-                </div>
-              )}
-            </div>
+            <button
+              type="button"
+              className="fp-btn fp-btn--pdf"
+              onClick={exportSofpPdf}
+            >
+              Export PDF
+            </button>
+            <button
+              type="button"
+              className="fp-btn fp-btn--excel"
+              onClick={exportSofpExcel}
+            >
+              Export Excel
+            </button>
             <button
               type="button"
               onClick={applyFiltersAndFetch}
-              className="fp-refresh-button"
+              className="fp-btn fp-btn--refresh"
               disabled={isRefreshing}
             >
-              Refresh
+              {isRefreshing ? 'Refreshing…' : 'Refresh'}
             </button>
           </div>
         </div>
@@ -883,12 +806,6 @@ const FinancialPosition = ({ onTabChange }) => {
         Click a transaction type to expand its GL accounts. Use Notes on an account to open reporting notes.
       </div>
 
-      <div className="fp-statement-toolbar">
-        <button type="button" className="fp-toolbar-link" onClick={toggleExpandCollapseAll}>
-          {allGroupsExpanded ? 'Collapse all' : 'Expand all'}
-        </button>
-      </div>
-
       {isStatementPoppedOut && (
         <div className="fp-statement-placeholder">
           Statement is open in fullscreen. Press Esc or Close to return.
@@ -925,9 +842,6 @@ const FinancialPosition = ({ onTabChange }) => {
                   </div>
                 </div>
                 <div className="fp-statement-popout-actions">
-                  <button type="button" className="fp-export-button" onClick={toggleExpandCollapseAll}>
-                    {allGroupsExpanded ? 'Collapse all' : 'Expand all'}
-                  </button>
                   <button
                     type="button"
                     className="fp-refresh-button"

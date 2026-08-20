@@ -2,8 +2,9 @@ import React, { useState, useEffect, useCallback } from 'react';
 import './App.css';
 import Navbar from './components/Home/Navbar';
 import DynamicHeader from './components/Home/DynamicHeader';
-import Sidebar, { equityManagerMenuItems, wealthManagerMenuItems } from './components/Home/Sidebar';
+import Sidebar, { equityManagerMenuItems, wealthManagerMenuItems, getEquityNavbarBackdrop } from './components/Home/Sidebar';
 import ManagerSelection from './components/Home/ManagerSelection';
+import EquityLanding from './components/Home/EquityLanding';
 import AuthContainer from './components/Auth/AuthContainer';
 import UserProfileModal from './components/Auth/UserProfileModal';
 import PremiumModal from './components/PremiumModal/premiumModal';
@@ -11,7 +12,6 @@ import { authService } from './services/authService';
 import {
   canAccessTab,
   filterEquityMenuItems,
-  getInitialEquityNavigation,
 } from './constants/governanceConstants';
 import WealthSidebar from './components/WealthManager/Layout/WealthSidebar';
 import WealthNavbar from './components/WealthManager/Layout/WealthNavbar';
@@ -138,22 +138,10 @@ import GovernanceActivityLog from './components/Governance/GovernanceActivityLog
 // TODO: re-enable when Agent Blux is ready for production
 const BLUX_ENABLED = false;
 
-const DEFAULT_EQUITY_TABS = [
-  'Dashboard',
-  'Portfolio Overview',
-  'Market Summary',
-  'Recent Activity',
-  'Performance Metrics',
-];
-
-function applyEquityNavigation(user, menuItems = equityManagerMenuItems) {
-  return getInitialEquityNavigation(user, menuItems);
-}
-
 function App() {
-  const [activeTab, setActiveTab] = useState('Dashboard');
-  const [activeSidebarItem, setActiveSidebarItem] = useState(0);
-  const [visibleTabs, setVisibleTabs] = useState(['Dashboard', 'Portfolio Overview', 'Market Summary', 'Recent Activity', 'Performance Metrics']);
+  const [activeTab, setActiveTab] = useState('Home');
+  const [activeSidebarItem, setActiveSidebarItem] = useState(-1);
+  const [visibleTabs, setVisibleTabs] = useState(['Home']);
   const [selectedManager, setSelectedManager] = useState('equity'); // 'equity' or 'wealth'
   const [hasSelectedManager, setHasSelectedManager] = useState(false);
   const [pendingManager, setPendingManager] = useState(null);
@@ -209,6 +197,14 @@ function App() {
   
   // Handle tab selection from Navbar - use Sidebar's menuItems as single source of truth for indices
   const handleTabChange = useCallback((tabName, context = null) => {
+    if (tabName === 'Home') {
+      setActiveTab('Home');
+      setTabContext(null);
+      setVisibleTabs(['Home']);
+      setActiveSidebarItem(-1);
+      return;
+    }
+
     if (
       selectedManager === 'equity' &&
       user &&
@@ -255,8 +251,9 @@ function App() {
       return true;
     }
 
-    setVisibleTabs(['Dashboard', 'Portfolio Overview', 'Market Summary', 'Recent Activity', 'Performance Metrics']);
-    setActiveTab('Dashboard');
+    setVisibleTabs(['Home']);
+    setActiveTab('Home');
+    setActiveSidebarItem(-1);
     return true;
   };
 
@@ -283,6 +280,9 @@ function App() {
 
   // Tab component mappings
   const tabToComponent = {
+    'Home': (
+      <EquityLanding user={user} onOpenModule={handleTabChange} />
+    ),
     'Dashboard': selectedManager === 'wealth' 
       ? <WealthManagerDashboard /> 
       : <Dashboard onTabChange={handleTabChange} />,
@@ -468,10 +468,9 @@ function App() {
   // Optional: Set default visible tabs on first load (not for superuser)
   useEffect(() => {
     if (isAuthenticated && user?.company_role !== 'superuser' && selectedManager === 'equity') {
-      const nav = applyEquityNavigation(user);
-      setActiveSidebarItem(nav.sectionIndex);
-      setVisibleTabs(nav.visibleTabs);
-      setActiveTab(nav.tab || 'Dashboard');
+      setActiveSidebarItem(-1);
+      setVisibleTabs(['Home']);
+      setActiveTab('Home');
     }
   }, [isAuthenticated, user, selectedManager]);
 
@@ -503,8 +502,8 @@ function App() {
     setHasSelectedManager(false);
     setPendingManager(null);
     setShowAuthFromManagers(false);
-    setActiveTab('Dashboard');
-    setVisibleTabs(DEFAULT_EQUITY_TABS);
+    setActiveTab('Home');
+    setVisibleTabs(['Home']);
   };
 
   const handlePasswordChanged = (message) => {
@@ -580,7 +579,13 @@ function App() {
 
   return (
     <>
-    <div className={selectedManager === 'wealth' ? 'wm-root' : 'dashboard-root'}>
+    <div
+      className={
+        selectedManager === 'wealth'
+          ? 'wm-root'
+          : `dashboard-root${activeTab === 'Home' ? ' dashboard-root--home' : ''}`
+      }
+    >
       {selectedManager === 'wealth' ? (
         <WealthSidebar
           onSelect={handleSidebarSelect}
@@ -590,7 +595,7 @@ function App() {
           isClientView={isClientView}
           onClientViewToggle={handleClientViewToggle}
         />
-      ) : (
+      ) : activeTab === 'Home' ? null : (
         <Sidebar
           onSelect={handleSidebarSelect}
           onPremiumFeature={(menuItem) => {
@@ -604,6 +609,7 @@ function App() {
           isClientView={isClientView}
           onClientViewToggle={handleClientViewToggle}
           user={user}
+          onGoHome={() => handleTabChange('Home')}
         />
       )}
 
@@ -624,16 +630,28 @@ function App() {
             user={user}
             onLogout={handleLogout}
             onOpenProfile={() => setIsProfileModalOpen(true)}
+            navBackdrop={getEquityNavbarBackdrop(equityManagerMenuItems[activeSidebarItem]?.name)}
+            fullWidth={activeTab === 'Home'}
           />
         )}
 
-        {selectedManager === 'equity' && !['User Requests', 'Admin Approvals', 'Activity Log'].includes(activeTab) && <DynamicHeader />}
+        {selectedManager === 'equity' &&
+          activeTab !== 'Home' &&
+          !['User Requests', 'Admin Approvals', 'Activity Log'].includes(activeTab) && (
+            <DynamicHeader />
+          )}
 
         <div
           className={
             selectedManager === 'wealth'
               ? 'wm-content'
-              : `dashboard-content${['User Requests', 'Admin Approvals', 'Activity Log'].includes(activeTab) ? ' dashboard-content--governance' : ''}`
+              : `dashboard-content${
+                  activeTab === 'Home'
+                    ? ' dashboard-content--landing'
+                    : ['User Requests', 'Admin Approvals', 'Activity Log'].includes(activeTab)
+                      ? ' dashboard-content--governance'
+                      : ''
+                }`
           }
         >
           {activeTab === 'Financial Reporting Notes' ? (
@@ -685,7 +703,6 @@ function App() {
             reportingCompliance: 'Upgrade Request - Reporting and Compliance',
             portfolioMonitoring: 'Upgrade Request - Portfolio Monitoring',
             ipo: 'Upgrade Request - IPO',
-            predictiveValuationModel: 'Upgrade Request - Predictive Valuation Model (PVM)',
             tradeCore: 'Upgrade Request - TradeCore',
             corporateActions: 'Upgrade Request - Corporate Actions',
             securityIdentity: 'Upgrade Request - Security Identity',

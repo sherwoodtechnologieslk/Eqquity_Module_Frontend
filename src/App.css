@@ -111,6 +111,17 @@ body {
   box-sizing: border-box;
 }
 
+.dashboard-root--home .dashboard-main {
+  margin-left: 0;
+}
+
+.dashboard-content--landing {
+  margin-top: 70px;
+  padding: 0;
+  background: #020817;
+  overflow: hidden;
+}
+
 .dashboard-content--governance {
   margin-top: 94px;
   padding-top: 1.25rem;

@@ -1670,17 +1670,10 @@ const PredictionIndicators = () => {
 
   return (
     <div className="pi-container">
-      {/* Gradient hero command bar */}
       <header className="pi-hero">
-        <div className="pi-hero__bg" aria-hidden="true" />
         <div className="pi-hero__inner">
           <div className="pi-hero__brand">
-            <span className="pi-hero__eyebrow">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M3 3v18h18" /><path d="M7 14l3-4 3 3 4-6" />
-              </svg>
-              Predictive Analytics Engine
-            </span>
+            <p className="pi-hero__eyebrow">Predictive Analytics</p>
             <h1 className="pi-hero__title">Prediction Indicators</h1>
             <p className="pi-hero__subtitle">
               Multi-factor technical analysis blending momentum, sentiment, supply &amp; demand and sector strength into one signal.
@@ -1752,11 +1745,6 @@ const PredictionIndicators = () => {
           <section className="pi-pf">
             <div className="pi-pf__head">
               <div className="pi-pf__title">
-                <span className="pi-pf__title-icon">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M3 3v18h18" /><path d="M7 13l3 3 4-6 4 4" />
-                  </svg>
-                </span>
                 <div>
                   <h2>Your Portfolio Analysis</h2>
                   <p>Signal-based recommendations across the stocks you hold</p>

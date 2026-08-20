@@ -309,8 +309,6 @@ export const equityManagerMenuItems = [
       </svg>
     ),
     name: "Predictive Valuation Model (PVM)",
-    premium: true,
-    premiumVariant: 'predictiveValuationModel',
     subTopics: [
       "Risk Management Chart",
       "Share Price Prediction",
@@ -762,6 +760,21 @@ const WEALTH_CATEGORY_ORDER = [
   'Settings',
 ];
 
+export { EQUITY_CATEGORY_ORDER, EQUITY_MENU_CATEGORIES };
+
+export function isEquityAccountingMenu(menuName) {
+  return EQUITY_MENU_CATEGORIES[menuName] === 'Accounting';
+}
+
+export function getEquityNavbarBackdrop(menuName) {
+  if (EQUITY_MENU_CATEGORIES[menuName] === 'Accounting') return 'accounting';
+  if (menuName === 'Account Management' || menuName === 'Opening Balance Management') {
+    return 'ledger';
+  }
+  if (EQUITY_MENU_CATEGORIES[menuName] === 'Reports') return 'reports';
+  return null;
+}
+
 const WEALTH_MENU_CATEGORIES = {
   Dashboard: 'Overview',
   'Client Management': 'Clients',
@@ -805,7 +818,7 @@ function groupNavigationByCategory(navigationItems, categoryMap, categoryOrder) 
   return groups;
 }
 
-const Sidebar = ({ onSelect, onPremiumFeature, activeIndex = 0, onLogout, onManagerChange, selectedManager: selectedManagerProp = 'equity', isClientView = false, onClientViewToggle, user = null }) => {
+const Sidebar = ({ onSelect, onPremiumFeature, activeIndex = 0, onLogout, onManagerChange, selectedManager: selectedManagerProp = 'equity', isClientView = false, onClientViewToggle, user = null, onGoHome }) => {
   const [active, setActive] = useState(activeIndex);
   const [selectedManager, setSelectedManager] = useState(selectedManagerProp); // 'equity' or 'wealth'
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
@@ -973,16 +986,18 @@ const Sidebar = ({ onSelect, onPremiumFeature, activeIndex = 0, onLogout, onMana
       {/* Brand/logo section */}
       <div className="sidebar-brand">
         <div className="navbar-brand">
-          <div className="brand-icon" aria-hidden="true">
-            <svg className="brand-logo" fill="currentColor" viewBox="0 0 20 20">
-              <path d="M4 4a2 2 0 00-2 2v1h16V6a2 2 0 00-2-2H4z" />
-              <path
-                fillRule="evenodd"
-                d="M18 9H2v5a2 2 0 002 2h12a2 2 0 002-2V9zM4 13a1 1 0 011-1h1a1 1 0 110 2H5a1 1 0 01-1-1zm5-1a1 1 0 100 2h1a1 1 0 100-2H9z"
-                clipRule="evenodd"
-              />
+          <button
+            type="button"
+            className="brand-icon brand-icon--home"
+            aria-label="Home"
+            onClick={() => selectedManager === 'equity' && onGoHome?.()}
+          >
+            <svg className="brand-logo" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+              <rect x="5.5" y="4.2" width="9" height="2.5" rx="1.25" />
+              <rect x="3" y="8.75" width="14" height="2.5" rx="1.25" />
+              <rect x="5.5" y="13.3" width="9" height="2.5" rx="1.25" />
             </svg>
-          </div>
+          </button>
           <div className="brand-text-container">
             <div className="manager-dropdown-container">
               <button 
@@ -1113,6 +1128,31 @@ const Sidebar = ({ onSelect, onPremiumFeature, activeIndex = 0, onLogout, onMana
       {/* Navigation Menu */}
       <div className="sidebar-content">
         <div className="menu-section">
+          {selectedManager === 'equity' && onGoHome && (
+            <ul className="sidebar-menu sidebar-menu--home">
+              <li
+                className={`sidebar-item sidebar-item--home${active === -1 ? ' active' : ''}`}
+                onClick={() => onGoHome()}
+                tabIndex={0}
+                role="button"
+                aria-pressed={active === -1}
+                onKeyDown={(event) => {
+                  if (event.key === 'Enter' || event.key === ' ') {
+                    event.preventDefault();
+                    onGoHome();
+                  }
+                }}
+              >
+                <span className="item-icon sidebar-home-icon" aria-hidden="true">
+                  <svg viewBox="0 0 20 20" fill="currentColor">
+                    <path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z" />
+                  </svg>
+                </span>
+                <span className="item-text">Home</span>
+                <div className="item-indicator"></div>
+              </li>
+            </ul>
+          )}
           {navigationGroups.length > 0 ? (
             navigationGroups.map((group) => {
               const expanded = isCategoryExpanded(group.label);

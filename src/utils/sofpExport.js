@@ -148,10 +148,11 @@ export const groupByTransactionType = (accounts) => {
  */
 export const resolveSofpGroups = (financialPositionData, sectionKey, flatAccounts, netProfit) => {
   const backendGroups = financialPositionData?.groups?.[sectionKey];
+  const hasBackendGroups = Array.isArray(backendGroups) && backendGroups.length > 0;
 
   if (sectionKey === 'equity') {
     const equityRows = computeEquityDisplayRows(financialPositionData, netProfit);
-    if (Array.isArray(backendGroups)) {
+    if (hasBackendGroups) {
       const np = parseNetProfit(netProfit);
       if (np == null) return backendGroups;
       const plGroup = groupByTransactionType([
@@ -167,7 +168,7 @@ export const resolveSofpGroups = (financialPositionData, sectionKey, flatAccount
     return groupByTransactionType(equityRows);
   }
 
-  if (Array.isArray(backendGroups)) return backendGroups;
+  if (hasBackendGroups) return backendGroups;
   return groupByTransactionType(flatAccounts);
 };
 
