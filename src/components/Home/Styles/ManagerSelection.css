@@ -1,8 +1,8 @@
 /**
- * Manager selection — Forest Gate workspace.
+ * Manager selection — desk layout. Palette unchanged.
  */
 
-@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=Manrope:wght@500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700;9..40,800&family=Manrope:wght@500;600;700;800&display=swap');
 
 .manager-selection {
   --ms-ink: #13201b;
@@ -17,8 +17,9 @@
   --ms-treasury: #2a5f8f;
   --ms-mint: #9fd4a0;
   --ms-cream: #eef5f1;
-  --ms-sans: 'IBM Plex Sans', 'Segoe UI', sans-serif;
-  --ms-display: 'Manrope', 'IBM Plex Sans', sans-serif;
+  --ms-sans: 'DM Sans', 'Segoe UI', sans-serif;
+  --ms-display: 'Manrope', 'DM Sans', sans-serif;
+  --ms-card: 'DM Sans', 'Segoe UI', sans-serif;
 
   min-height: 100vh;
   min-height: 100dvh;
@@ -29,6 +30,13 @@
   overflow: hidden;
 }
 
+.manager-selection *,
+.manager-selection *::before,
+.manager-selection *::after {
+  box-sizing: border-box;
+  font-style: normal;
+}
+
 .manager-selection__shell {
   display: grid;
   grid-template-columns: minmax(300px, 0.9fr) minmax(0, 1.2fr);
@@ -36,7 +44,7 @@
   min-height: 100dvh;
 }
 
-/* ===== Brand panel ===== */
+/* ===== Brand panel — keep original hero treatment ===== */
 .manager-selection__brand-panel {
   position: relative;
   isolation: isolate;
@@ -119,8 +127,8 @@
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
-  gap: 1rem;
-  min-height: 2.5rem;
+  gap: 0.75rem;
+  min-height: 2rem;
 }
 
 .manager-selection__back {
@@ -151,7 +159,7 @@
 
 .manager-selection__back:hover {
   background: rgba(238, 245, 241, 0.1);
-  border-color: rgba(238, 245, 241, 0.35);
+  border-color: rgba(238, 245, 241, 0.38);
   color: #fff;
 }
 
@@ -245,56 +253,36 @@
   color: rgba(238, 245, 241, 0.7);
 }
 
-/* ===== Destinations panel ===== */
+/* ===== Destination cards ===== */
 .manager-selection__panel {
   position: relative;
   display: flex;
   flex-direction: column;
-  justify-content: stretch;
+  justify-content: center;
+  align-items: stretch;
   min-height: 100%;
   height: 100%;
-  padding: clamp(1.75rem, 4vw, 2.75rem) clamp(1.5rem, 4vw, 3.25rem) clamp(1.5rem, 3vw, 2.25rem);
+  padding: clamp(1.5rem, 3.5vw, 2.5rem) clamp(1.35rem, 3vw, 2.75rem);
+  font-family: var(--ms-card);
+  font-size: 1rem;
+  font-weight: 400;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
   background:
-    radial-gradient(ellipse 55% 40% at 100% 0%, rgba(143, 178, 162, 0.22), transparent 60%),
+    radial-gradient(ellipse 55% 40% at 100% 0%, rgba(143, 178, 162, 0.18), transparent 60%),
     radial-gradient(ellipse 40% 35% at 0% 100%, rgba(19, 32, 27, 0.04), transparent 55%),
     linear-gradient(165deg, #f6f4ef 0%, #ecefeb 100%);
-  animation: ms-panel-in 0.7s 0.04s cubic-bezier(0.22, 1, 0.36, 1) both;
-}
-
-.manager-selection__panel-head,
-.manager-selection__lanes {
-  position: relative;
-  z-index: 1;
-}
-
-.manager-selection__panel-head {
-  flex-shrink: 0;
-  margin-bottom: 1.25rem;
-  animation: ms-rise 0.65s 0.12s cubic-bezier(0.22, 1, 0.36, 1) both;
-}
-
-.manager-selection__panel-kicker {
-  margin: 0;
-  font-size: 0.95rem;
-  font-weight: 600;
-  letter-spacing: -0.01em;
-  text-transform: none;
-  color: var(--ms-ink-soft);
 }
 
 .manager-selection__lanes {
   display: flex;
   flex-direction: column;
-  flex: 1 1 auto;
+  flex: 0 0 auto;
   gap: 0.85rem;
   width: 100%;
-  min-height: 0;
   max-width: none;
-}
-
-.manager-selection__lanes:hover .manager-lane:not(:hover) {
-  opacity: 0.72;
-  filter: saturate(0.85);
+  margin: 0;
 }
 
 .manager-lane {
@@ -302,34 +290,27 @@
   --lane-accent-soft: #e7f3ee;
   --lane-accent-deep: #0b5549;
   position: relative;
-  display: flex;
+  display: grid;
+  grid-template-columns: 2rem 2.85rem minmax(0, 1fr) auto;
+  grid-template-areas: 'index icon content cta';
   align-items: center;
-  gap: 1.15rem;
-  flex: 1 1 0;
+  gap: 1rem 1.15rem;
   width: 100%;
-  min-height: 8rem;
-  padding: clamp(1.2rem, 2.4vh, 1.65rem) 1.35rem;
-  border: 1px solid rgba(19, 32, 27, 0.07);
-  border-radius: 1.15rem;
-  background: rgba(255, 255, 255, 0.78);
+  padding: 1.15rem 1.25rem;
+  border: 1px solid rgba(19, 32, 27, 0.08);
+  border-radius: 0.65rem;
+  background: #fff;
   color: inherit;
   text-align: left;
   cursor: pointer;
   overflow: hidden;
-  font: inherit;
-  backdrop-filter: blur(6px);
-  box-shadow:
-    0 1px 0 rgba(255, 255, 255, 0.75) inset,
-    0 8px 24px rgba(19, 32, 27, 0.03);
-  animation: ms-rise 0.6s cubic-bezier(0.22, 1, 0.36, 1) both;
+  font-family: var(--ms-card);
+  font-size: inherit;
+  font-weight: inherit;
+  line-height: inherit;
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.85) inset;
+  animation: ms-rise 0.55s cubic-bezier(0.22, 1, 0.36, 1) both;
   animation-delay: var(--lane-delay, 0.18s);
-  transition:
-    opacity 200ms ease,
-    filter 200ms ease,
-    transform 220ms cubic-bezier(0.22, 1, 0.36, 1),
-    border-color 180ms ease,
-    background 180ms ease,
-    box-shadow 220ms ease;
 }
 
 .manager-lane--equity {
@@ -350,61 +331,41 @@
   --lane-accent-deep: #1e4a72;
 }
 
-.manager-lane__wash {
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  background:
-    linear-gradient(105deg, var(--lane-accent-soft) 0%, transparent 42%),
-    radial-gradient(circle at 100% 50%, var(--lane-accent-soft), transparent 46%);
-  opacity: 0;
-  transition: opacity 220ms ease;
-}
-
 .manager-lane:hover,
 .manager-lane:focus-visible {
-  opacity: 1;
-  filter: none;
-  transform: translateY(-4px) scale(1.005);
   border-color: color-mix(in srgb, var(--lane-accent) 28%, transparent);
   background: #fff;
-  box-shadow:
-    0 1px 0 rgba(255, 255, 255, 0.9) inset,
-    0 18px 40px rgba(19, 32, 27, 0.08);
   outline: none;
 }
 
-.manager-lane:hover .manager-lane__wash,
-.manager-lane:focus-visible .manager-lane__wash {
-  opacity: 1;
-}
-
-.manager-lane__main {
-  position: relative;
-  z-index: 1;
-  display: flex;
-  align-items: flex-start;
-  gap: 1rem;
-  min-width: 0;
-  flex: 1 1 auto;
+.manager-lane__index {
+  grid-area: index;
+  align-self: center;
+  font-family: var(--ms-card);
+  font-size: 1.35rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1;
+  color: rgba(19, 32, 27, 0.24);
+  user-select: none;
 }
 
 .manager-lane__icon {
+  grid-area: icon;
   display: grid;
   place-items: center;
-  width: 3.35rem;
-  height: 3.35rem;
+  width: 2.85rem;
+  height: 2.85rem;
   flex-shrink: 0;
-  border: 1px solid color-mix(in srgb, var(--lane-accent) 16%, transparent);
-  border-radius: 0.9rem;
+  border: 1px solid color-mix(in srgb, var(--lane-accent) 20%, transparent);
+  border-radius: 0.45rem;
   color: var(--lane-accent);
   background: var(--lane-accent-soft);
-  transition: transform 220ms ease, background 180ms ease, color 180ms ease, border-color 180ms ease;
 }
 
 .manager-lane__icon svg {
-  width: 1.55rem;
-  height: 1.55rem;
+  width: 1.25rem;
+  height: 1.25rem;
   fill: none;
   stroke: currentColor;
   stroke-linecap: round;
@@ -412,90 +373,93 @@
   stroke-width: 2.1;
 }
 
-.manager-lane:hover .manager-lane__icon,
-.manager-lane:focus-visible .manager-lane__icon {
-  transform: translateY(-1px);
-  background: var(--lane-accent);
-  border-color: var(--lane-accent);
-  color: #fff;
-}
-
-.manager-lane__body {
+.manager-lane__content {
+  grid-area: content;
   display: flex;
   flex-direction: column;
+  gap: 0.28rem;
   min-width: 0;
+  font-family: var(--ms-card);
+}
+
+.manager-lane__head {
+  display: flex;
+  flex-direction: column;
   gap: 0.12rem;
-  padding-right: 1rem;
 }
 
 .manager-lane__eyebrow {
-  font-size: 0.64rem;
+  font-family: var(--ms-card);
+  font-size: 0.6875rem;
   font-weight: 700;
-  letter-spacing: 0.14em;
+  letter-spacing: 0.11em;
   text-transform: uppercase;
   color: var(--lane-accent);
 }
 
 .manager-lane__title {
-  font-family: var(--ms-display);
-  font-size: clamp(1.28rem, 2.1vw, 1.55rem);
+  font-family: var(--ms-card);
+  font-size: 1.375rem;
   font-weight: 700;
-  letter-spacing: -0.03em;
-  color: var(--ms-ink);
+  letter-spacing: -0.025em;
+  color: #1a1a1a;
   line-height: 1.15;
 }
 
 .manager-lane__description {
-  margin-top: 0.35rem;
-  max-width: 36rem;
-  font-size: 0.9rem;
-  line-height: 1.5;
-  color: #4a5851;
+  margin: 0;
+  max-width: 42rem;
+  font-family: var(--ms-card);
+  font-size: 0.875rem;
+  font-weight: 400;
+  line-height: 1.45;
+  color: #555555;
 }
 
 .manager-lane__tags {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.4rem;
-  margin-top: 0.75rem;
+  gap: 0.35rem;
+  margin-top: 0.45rem;
 }
 
 .manager-lane__tag {
   display: inline-flex;
   align-items: center;
-  padding: 0.3rem 0.7rem;
-  border: none;
+  padding: 0.22rem 0.7rem;
+  border: 1px solid color-mix(in srgb, var(--lane-accent) 28%, transparent);
   border-radius: 999px;
   background: var(--lane-accent-soft);
-  font-size: 0.72rem;
+  font-family: var(--ms-card);
+  font-size: 0.8125rem;
   font-weight: 600;
-  letter-spacing: 0.01em;
+  letter-spacing: 0;
   color: var(--lane-accent);
 }
 
 .manager-lane__cta {
-  position: relative;
-  z-index: 1;
+  grid-area: cta;
   display: inline-flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: 0.45rem;
   flex-shrink: 0;
-  margin-left: auto;
-  padding: 0.72rem 0.78rem 0.72rem 1.15rem;
+  align-self: center;
+  padding: 0.62rem 0.72rem 0.62rem 1rem;
   border: none;
   border-radius: 999px;
   background: var(--lane-accent-soft);
   color: var(--lane-accent);
-  font-size: 0.88rem;
+  font-family: var(--ms-card);
+  font-size: 0.875rem;
   font-weight: 700;
-  letter-spacing: 0.01em;
+  letter-spacing: 0;
   white-space: nowrap;
-  box-shadow: none;
-  transition:
-    background 180ms ease,
-    color 180ms ease,
-    border-color 180ms ease,
-    transform 200ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.manager-lane__cta-label {
+  font-family: inherit;
+  font-size: inherit;
+  font-weight: inherit;
 }
 
 .manager-lane__arrow {
@@ -507,7 +471,6 @@
   border-radius: 999px;
   background: #fff;
   color: var(--lane-accent);
-  transition: transform 200ms ease, background 180ms ease, color 180ms ease;
 }
 
 .manager-lane__arrow svg {
@@ -523,20 +486,18 @@
 .manager-lane:focus-visible .manager-lane__cta {
   background: var(--lane-accent);
   color: #fff;
-  transform: translateX(3px);
 }
 
 .manager-lane:hover .manager-lane__arrow,
 .manager-lane:focus-visible .manager-lane__arrow {
   background: rgba(255, 255, 255, 0.22);
   color: #fff;
-  transform: translateX(2px);
 }
 
-@keyframes ms-panel-in {
+@keyframes ms-rise {
   from {
     opacity: 0;
-    transform: translateY(8px);
+    transform: translateY(12px);
   }
   to {
     opacity: 1;
@@ -544,10 +505,10 @@
   }
 }
 
-@keyframes ms-rise {
+@keyframes ms-panel-in {
   from {
     opacity: 0;
-    transform: translateY(18px);
+    transform: translateY(8px);
   }
   to {
     opacity: 1;
@@ -590,33 +551,45 @@
     display: none;
   }
 
+  .manager-selection__brand-copy {
+    position: relative;
+    left: auto;
+    top: auto;
+    transform: none;
+    margin: 1.25rem 0 0.35rem;
+    animation: none;
+  }
+
   .manager-selection__brand {
     font-size: clamp(2.6rem, 11vw, 3.6rem);
   }
 
   .manager-selection__panel {
-    min-height: 62vh;
+    min-height: auto;
     height: auto;
-    padding-top: 1.6rem;
-    padding-bottom: 1.6rem;
-  }
-
-  .manager-selection__lanes {
-    max-width: none;
-    flex: none;
+    padding: 1.35rem 1.15rem 1.6rem;
   }
 
   .manager-lane {
-    flex: none;
-    min-height: 0;
-    flex-direction: column;
-    align-items: stretch;
-    gap: 1rem;
+    grid-template-columns: 1.75rem 2.65rem minmax(0, 1fr);
+    grid-template-areas:
+      'index icon content'
+      'cta cta cta';
+    gap: 0.85rem 0.95rem;
+    padding: 1rem 1rem 1.05rem;
+  }
+
+  .manager-lane__index {
+    font-size: 1.2rem;
+  }
+
+  .manager-lane__icon {
+    width: 2.65rem;
+    height: 2.65rem;
   }
 
   .manager-lane__cta {
-    margin-left: 0;
-    align-self: flex-start;
+    justify-self: start;
   }
 }
 
@@ -625,19 +598,13 @@
     min-height: auto;
     padding: 1.15rem 1.15rem 1.4rem;
   }
-
-  .manager-lane__description {
-    font-size: 0.86rem;
-  }
 }
 
 @media (prefers-reduced-motion: reduce) {
   .manager-selection__brand-panel,
-  .manager-selection__panel,
   .manager-selection__brand-copy,
-  .manager-selection__panel-head,
-  .manager-lane,
-  .manager-selection__brand-watermark {
+  .manager-selection__brand-watermark,
+  .manager-lane {
     animation: none;
   }
 
@@ -645,13 +612,9 @@
     transform: translateY(-50%);
   }
 
-  .manager-lane:hover,
-  .manager-lane:focus-visible {
-    transform: none;
-  }
-
-  .manager-selection__lanes:hover .manager-lane:not(:hover) {
-    opacity: 1;
-    filter: none;
+  @media (max-width: 980px) {
+    .manager-selection__brand-copy {
+      transform: none;
+    }
   }
 }

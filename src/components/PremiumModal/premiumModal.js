@@ -93,16 +93,6 @@ const VARIANT_COPY = {
       'Priority support & onboarding',
     ],
   },
-  predictiveValuationModel: {
-    featureName: 'Predictive Valuation Model (PVM)',
-    comingSoon: true,
-    benefits: [
-      'Share price prediction & ML models',
-      'Risk management charts & indicators',
-      'Block analysis dashboard',
-      'Priority support & onboarding',
-    ],
-  },
   tradeCore: {
     featureName: 'TradeCore',
     comingSoon: true,
