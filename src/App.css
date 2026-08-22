@@ -73,7 +73,7 @@ body {
   flex-direction: column;
   min-width: 0;
   background: var(--app-bg, #f5f7fa);
-  margin-left: 254px; /* Account for sidebar width */
+  margin-left: 228px; /* Account for sidebar width */
   transition: margin-left 0.3s ease, background-color 0.25s ease;
   position: relative;
   z-index: 1;
@@ -83,7 +83,7 @@ body {
 .navbar {
   position: fixed;
   top: 0;
-  left: 254px; /* Start where sidebar ends */
+  left: 228px; /* Start where sidebar ends */
   right: 0; /* Extend to the right edge */
   height: 80px; /* Match the margin-top in .dashboard-content */
   background: white;
@@ -232,11 +232,11 @@ textarea {
 /* Responsive tweaks */
 @media (max-width: 1200px) {
   .dashboard-main {
-    margin-left: 240px;
+    margin-left: 216px;
   }
   
   .navbar {
-    left: 240px; /* Match sidebar width at this breakpoint */
+    left: 216px; /* Match sidebar width at this breakpoint */
   }
   
   .dashboard-content {
@@ -246,11 +246,11 @@ textarea {
 
 @media (max-width: 900px) {
   .dashboard-main {
-    margin-left: 230px;
+    margin-left: 206px;
   }
   
   .navbar {
-    left: 230px; /* Match sidebar width at this breakpoint */
+    left: 206px; /* Match sidebar width at this breakpoint */
   }
 }
 

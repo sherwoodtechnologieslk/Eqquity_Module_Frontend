@@ -2,13 +2,31 @@ import React from 'react';
 
 const formatNoteAmount = (value) => {
   const n = Number(value);
-  if (!Number.isFinite(n) || n === 0) return '—';
+  if (!Number.isFinite(n) || n === 0) return '-';
   const abs = Math.abs(n);
   const formatted = new Intl.NumberFormat('en-US', {
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 0
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2
   }).format(abs);
   return n < 0 ? `(${formatted})` : formatted;
+};
+
+const dash = (value) => {
+  const n = Number(value);
+  if (!Number.isFinite(n) || Math.abs(n) < 0.005) return '-';
+  return formatNoteAmount(n);
+};
+
+const ppeRowLabel = (section) => {
+  if (section.accountCode) {
+    return (
+      <>
+        <span className="frn-excel-code">{section.accountCode}</span>
+        <span className="frn-excel-name">{section.categoryName}</span>
+      </>
+    );
+  }
+  return section.categoryName;
 };
 
 const ComparativeTable = ({ periods, rows, total, title }) => (
@@ -56,115 +74,191 @@ const ComparativeTable = ({ periods, rows, total, title }) => (
   </div>
 );
 
-const PpeNote = ({ periods, sections }) => (
-  <>
-    <div className="frn-mock-section">
-      <h4 className="frn-mock-h4">7.1 At cost</h4>
-      <div className="frn-mock-table-wrap">
-        <table className="frn-mock-table">
-          <thead>
-            <tr>
-              <th />
-              <th className="frn-mock-th-num">Balance as at 01 April {periods.prior.year}</th>
-              <th className="frn-mock-th-num">Additions</th>
-              <th className="frn-mock-th-num">Disposals</th>
-              <th className="frn-mock-th-num">Balance as at 31 March {periods.current.year}</th>
-            </tr>
-          </thead>
-          <tbody>
-            {sections.length === 0 ? (
-              <tr>
-                <td colSpan={5} className="frn-mock-row-sub">
-                  No fixed assets in the register. Add assets under Fixed Assets.
-                </td>
-              </tr>
-            ) : (
-              sections.map((s) => (
-                <tr key={`cost-${s.categoryName}`}>
-                  <td>{s.categoryName}</td>
-                  <td className="frn-mock-num">{formatNoteAmount(s.cost.opening)}</td>
-                  <td className="frn-mock-num">{formatNoteAmount(s.cost.additions)}</td>
-                  <td className="frn-mock-num">{formatNoteAmount(s.cost.disposals)}</td>
-                  <td className="frn-mock-num">{formatNoteAmount(s.cost.closing)}</td>
-                </tr>
-              ))
-            )}
-          </tbody>
-        </table>
-      </div>
-    </div>
+const PpeNote = ({ periods, sections, totals, footnote75 }) => {
+  const openingHeader = `Balance As At ${periods.fyStartLabel || periods.prior.longLabel || periods.prior.label} (LKR)`;
+  const closingHeader = `Balance As At ${periods.closingLabel || periods.current.longLabel || periods.current.label} (LKR)`;
+  const nbvCurrentHeader = `${periods.current.shortLabel || periods.current.label} (LKR)`;
+  const nbvPriorHeader = `${periods.prior.shortLabel || periods.prior.year} (LKR)`;
 
-    <div className="frn-mock-section">
-      <h4 className="frn-mock-h4">7.2 Depreciation</h4>
-      <div className="frn-mock-table-wrap">
-        <table className="frn-mock-table">
-          <thead>
+  const costTotals = totals?.cost || {
+    opening: sections.reduce((s, r) => s + (Number(r.cost?.opening) || 0), 0),
+    additions: sections.reduce((s, r) => s + (Number(r.cost?.additions) || 0), 0),
+    disposals: sections.reduce((s, r) => s + (Number(r.cost?.disposals) || 0), 0),
+    closing: sections.reduce((s, r) => s + (Number(r.cost?.closing) || 0), 0)
+  };
+  const depTotals = totals?.depreciation || {
+    opening: sections.reduce((s, r) => s + (Number(r.depreciation?.opening) || 0), 0),
+    charge: sections.reduce((s, r) => s + (Number(r.depreciation?.charge) || 0), 0),
+    disposals: sections.reduce((s, r) => s + (Number(r.depreciation?.disposals) || 0), 0),
+    closing: sections.reduce((s, r) => s + (Number(r.depreciation?.closing) || 0), 0)
+  };
+  const nbvTotals = totals?.nbv || {
+    current: sections.reduce((s, r) => s + (Number(r.nbv?.current) || 0), 0),
+    prior: sections.reduce((s, r) => s + (Number(r.nbv?.prior) || 0), 0)
+  };
+
+  return (
+    <div className="frn-excel-sheet">
+      <table className="frn-excel-table">
+        <colgroup>
+          <col className="frn-excel-col-label" />
+          <col className="frn-excel-col-num" />
+          <col className="frn-excel-col-num" />
+          <col className="frn-excel-col-num" />
+          <col className="frn-excel-col-num" />
+        </colgroup>
+        <tbody>
+          {/* 7.1 At Cost */}
+          <tr className="frn-excel-section">
+            <td colSpan={5}>7.1 At Cost</td>
+          </tr>
+          <tr className="frn-excel-head">
+            <td />
+            <td>{openingHeader}</td>
+            <td>Additions (LKR)</td>
+            <td>Disposals (LKR)</td>
+            <td>{closingHeader}</td>
+          </tr>
+          {sections.length === 0 ? (
             <tr>
-              <th />
-              <th className="frn-mock-th-num">Balance as at 01 April {periods.prior.year}</th>
-              <th className="frn-mock-th-num">Charge for the year</th>
-              <th className="frn-mock-th-num">Disposals</th>
-              <th className="frn-mock-th-num">Balance as at 31 March {periods.current.year}</th>
+              <td colSpan={5} className="frn-excel-empty">
+                No fixed assets in the register. Add assets under Fixed Assets.
+              </td>
             </tr>
-          </thead>
-          <tbody>
-            {sections.map((s) => (
-              <tr key={`dep-${s.categoryName}`}>
-                <td>{s.categoryName}</td>
-                <td className="frn-mock-num">{formatNoteAmount(s.depreciation.opening)}</td>
-                <td className="frn-mock-num">{formatNoteAmount(s.depreciation.charge)}</td>
-                <td className="frn-mock-num">{formatNoteAmount(s.depreciation.disposals)}</td>
-                <td className="frn-mock-num">{formatNoteAmount(s.depreciation.closing)}</td>
+          ) : (
+            sections.map((s) => (
+              <tr key={`cost-${s.accountCode || s.categoryName}`}>
+                <td className="frn-excel-label-cell">{ppeRowLabel(s)}</td>
+                <td className="frn-excel-num">{dash(s.cost.opening)}</td>
+                <td className="frn-excel-num">{dash(s.cost.additions)}</td>
+                <td className="frn-excel-num">{dash(s.cost.disposals)}</td>
+                <td className="frn-excel-num">{dash(s.cost.closing)}</td>
+              </tr>
+            ))
+          )}
+          {sections.length > 0 ? (
+            <tr className="frn-excel-total">
+              <td>Total assets</td>
+              <td className="frn-excel-num">{dash(costTotals.opening)}</td>
+              <td className="frn-excel-num">{dash(costTotals.additions)}</td>
+              <td className="frn-excel-num">{dash(costTotals.disposals)}</td>
+              <td className="frn-excel-num">{dash(costTotals.closing)}</td>
+            </tr>
+          ) : null}
+
+          <tr className="frn-excel-spacer">
+            <td colSpan={5} />
+          </tr>
+
+          {/* 7.2 Depreciation */}
+          <tr className="frn-excel-section">
+            <td colSpan={5}>7.2 Depreciation</td>
+          </tr>
+          <tr className="frn-excel-head">
+            <td />
+            <td>{openingHeader}</td>
+            <td>Charge for the year (LKR)</td>
+            <td>Disposals (LKR)</td>
+            <td>{closingHeader}</td>
+          </tr>
+          {sections.map((s) => (
+            <tr key={`dep-${s.accountCode || s.categoryName}`}>
+              <td className="frn-excel-label-cell">{ppeRowLabel(s)}</td>
+              <td className="frn-excel-num">{dash(s.depreciation.opening)}</td>
+              <td className="frn-excel-num">{dash(s.depreciation.charge)}</td>
+              <td className="frn-excel-num">{dash(s.depreciation.disposals)}</td>
+              <td className="frn-excel-num">{dash(s.depreciation.closing)}</td>
+            </tr>
+          ))}
+          {sections.length > 0 ? (
+            <tr className="frn-excel-total">
+              <td>Total depreciation</td>
+              <td className="frn-excel-num">{dash(depTotals.opening)}</td>
+              <td className="frn-excel-num">{dash(depTotals.charge)}</td>
+              <td className="frn-excel-num">{dash(depTotals.disposals)}</td>
+              <td className="frn-excel-num">{dash(depTotals.closing)}</td>
+            </tr>
+          ) : null}
+
+          <tr className="frn-excel-spacer">
+            <td colSpan={5} />
+          </tr>
+
+          {/* 7.3 Net Book Values */}
+          <tr className="frn-excel-section">
+            <td colSpan={5}>7.3 Net Book Values</td>
+          </tr>
+          <tr className="frn-excel-head">
+            <td />
+            <td>{nbvCurrentHeader}</td>
+            <td>{nbvPriorHeader}</td>
+            <td />
+            <td />
+          </tr>
+          {sections.map((s) => (
+            <tr key={`nbv-${s.accountCode || s.categoryName}`}>
+              <td className="frn-excel-label-cell">{ppeRowLabel(s)}</td>
+              <td className="frn-excel-num">{dash(s.nbv.current)}</td>
+              <td className="frn-excel-num">{dash(s.nbv.prior)}</td>
+              <td />
+              <td />
+            </tr>
+          ))}
+          {sections.length > 0 ? (
+            <tr className="frn-excel-total">
+              <td>Total Carrying Amount of Property, Plant &amp; Equipment</td>
+              <td className="frn-excel-num">{dash(nbvTotals.current)}</td>
+              <td className="frn-excel-num">{dash(nbvTotals.prior)}</td>
+              <td />
+              <td />
+            </tr>
+          ) : null}
+
+          <tr className="frn-excel-spacer">
+            <td colSpan={5} />
+          </tr>
+
+          {/* 7.4 Useful Lives */}
+          <tr className="frn-excel-section">
+            <td colSpan={5}>7.4 Useful Lives</td>
+          </tr>
+          <tr className="frn-excel-note-line">
+            <td colSpan={5}>The useful lives of the assets are estimated as follows;</td>
+          </tr>
+          <tr className="frn-excel-head">
+            <td />
+            <td>{periods.current.shortLabel || periods.current.label}</td>
+            <td>{periods.prior.shortLabel || periods.prior.year}</td>
+            <td />
+            <td />
+          </tr>
+          {sections
+            .filter((s) => s.usefulLifeYears)
+            .map((s) => (
+              <tr key={`life-${s.accountCode || s.categoryName}`}>
+                <td className="frn-excel-label-cell">{ppeRowLabel(s)}</td>
+                <td className="frn-excel-num">{s.usefulLifeYears} Years</td>
+                <td className="frn-excel-num">{s.usefulLifeYears} Years</td>
+                <td />
+                <td />
               </tr>
             ))}
-          </tbody>
-        </table>
-      </div>
-    </div>
 
-    <div className="frn-mock-section">
-      <h4 className="frn-mock-h4">7.3 Net book values</h4>
-      <div className="frn-mock-table-wrap">
-        <table className="frn-mock-table">
-          <thead>
-            <tr>
-              <th />
-              <th className="frn-mock-th-num">{periods.current.year} LKR</th>
-              <th className="frn-mock-th-num">{periods.prior.year} LKR</th>
-            </tr>
-          </thead>
-          <tbody>
-            {sections.map((s) => (
-              <tr key={`nbv-${s.categoryName}`}>
-                <td>{s.categoryName}</td>
-                <td className="frn-mock-num">{formatNoteAmount(s.nbv.current)}</td>
-                <td className="frn-mock-num">{formatNoteAmount(s.nbv.prior)}</td>
+          {footnote75 ? (
+            <>
+              <tr className="frn-excel-spacer">
+                <td colSpan={5} />
               </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+              <tr className="frn-excel-footnote">
+                <td colSpan={5}>{footnote75}</td>
+              </tr>
+            </>
+          ) : null}
+        </tbody>
+      </table>
     </div>
-
-    {sections.some((s) => s.usefulLifeYears) ? (
-      <div className="frn-mock-section">
-        <h4 className="frn-mock-h4">7.4 Useful lives</h4>
-        <div className="frn-mock-table-wrap">
-          <table className="frn-mock-table">
-            <tbody>
-              {sections.map((s) => (
-                <tr key={`life-${s.categoryName}`}>
-                  <td>{s.categoryName}</td>
-                  <td className="frn-mock-num">{s.usefulLifeYears} Years</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </div>
-    ) : null}
-  </>
-);
+  );
+};
 
 const CashNote = ({ periods, rows, total }) => {
   const favorable = rows.filter((r) => !normalizeCashNegative(r.label));
@@ -201,7 +295,7 @@ const CashNote = ({ periods, rows, total }) => {
           <tbody>
             {list.length === 0 ? (
               <tr>
-                <td colSpan={3} className="frn-mock-row-sub">—</td>
+                <td colSpan={3} className="frn-mock-row-sub">-</td>
               </tr>
             ) : (
               list.map((row) => (
@@ -278,16 +372,20 @@ const DisclosureNoteView = ({ data, loading, error }) => {
 
   if (!data?.note) return null;
 
-  const { note, periods, template, rows, total, sections } = data;
+  const { note, periods, template, rows, total, sections, totals, footnote75 } = data;
   const noteTitle = `${note.number}. ${note.title.toUpperCase()}`;
 
   return (
-    <div className="frn-mock-block">
-      <p className="frn-mock-sub">{periods.periodTitle}</p>
+    <div className={`frn-mock-block${template === 'ppe' ? ' frn-mock-block--excel' : ''}`}>
       <h2 className="frn-mock-block-title">{noteTitle}</h2>
 
       {template === 'ppe' ? (
-        <PpeNote periods={periods} sections={sections || []} />
+        <PpeNote
+          periods={periods}
+          sections={sections || []}
+          totals={totals}
+          footnote75={footnote75}
+        />
       ) : template === 'cash' ? (
         <CashNote periods={periods} rows={rows || []} total={total} />
       ) : template === 'statedCapital' ? (
@@ -305,12 +403,6 @@ const DisclosureNoteView = ({ data, loading, error }) => {
           title={note.title}
         />
       )}
-
-      <p className="frn-mock-disclaimer">
-        Amounts are derived from general ledger, opening balances, and fixed asset
-        register data. Comparative columns use your selected as-at date and the
-        same calendar date one year earlier.
-      </p>
     </div>
   );
 };

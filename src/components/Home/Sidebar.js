@@ -178,6 +178,15 @@ export const equityManagerMenuItems = [
   {
     icon: (
       <svg fill="currentColor" viewBox="0 0 20 20">
+        <path fillRule="evenodd" d="M4 3a1 1 0 00-1 1v12a1 1 0 001 1h12a1 1 0 001-1V7.414A1 1 0 0016.707 7L13 3.293A1 1 0 0012.293 3H4zm8 1.414L15.586 8H13a1 1 0 01-1-1V4.414zM6 10a1 1 0 000 2h8a1 1 0 100-2H6zm0 3a1 1 0 100 2h5a1 1 0 100-2H6z" clipRule="evenodd"/>
+      </svg>
+    ),
+    name: "Additional Statements",
+    subTopics: ["Statement of Changes in Equity", "Detailed Income Statement"]
+  },
+  {
+    icon: (
+      <svg fill="currentColor" viewBox="0 0 20 20">
         <path fillRule="evenodd" d="M3 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" clipRule="evenodd"/>
       </svg>
     ),
@@ -743,6 +752,7 @@ const EQUITY_MENU_CATEGORIES = {
   'Risk and Limit Management': 'Risk & Compliance',
   'Reporting and Compliance': 'Risk & Compliance',
   'Financial Reporting': 'Reports',
+  'Additional Statements': 'Reports',
   'Financial Reports Export': 'Reports',
   'Integration and Automation': 'Integrations',
   'Portfolio Transfers': 'Integrations',

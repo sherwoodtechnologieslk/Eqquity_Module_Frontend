@@ -35,6 +35,50 @@ import WealthPortfolioMaster from './components/WealthManager/Portfolio Master/W
 import ExpenseMaster from './components/WealthManager/Expense Master/ExpenseMaster';
 import DefineExpenses from './components/WealthManager/Expense Master/DefineExpenses';
 import PurchaseSubscription from './components/WealthManager/Unit Trust Operations/PurchaseSubscription';
+import Redemption from './components/WealthManager/Unit Trust Operations/Redemption';
+import SwitchTransfer from './components/WealthManager/Unit Trust Operations/SwitchTransfer';
+import DividendDistribution from './components/WealthManager/Unit Trust Operations/DividendDistribution';
+import SIP from './components/WealthManager/Unit Trust Operations/SIP';
+import SWP from './components/WealthManager/Unit Trust Operations/SWP';
+import FundPricing from './components/WealthManager/Fund Master/FundPricing';
+import NAVManagement from './components/WealthManager/Fund Master/NAVManagement';
+import ClientPortfolios from './components/WealthManager/Portfolio Master/ClientPortfolios';
+import PortfolioAllocation from './components/WealthManager/Portfolio Master/PortfolioAllocation';
+import PortfolioPerformance from './components/WealthManager/Portfolio Master/PortfolioPerformance';
+import PortfolioReports from './components/WealthManager/Portfolio Master/PortfolioReports';
+import TransactionHistory from './components/WealthManager/Transactions/TransactionHistory';
+import PendingTransactions from './components/WealthManager/Transactions/PendingTransactions';
+import TransactionApproval from './components/WealthManager/Transactions/TransactionApproval';
+import TransactionReports from './components/WealthManager/Transactions/TransactionReports';
+import BulkTransactions from './components/WealthManager/Transactions/BulkTransactions';
+import NAVCalculation from './components/WealthManager/ValuationNAV/NAVCalculation';
+import ValuationReports from './components/WealthManager/ValuationNAV/ValuationReports';
+import AssetValuation from './components/WealthManager/ValuationNAV/AssetValuation';
+import NAVHistory from './components/WealthManager/ValuationNAV/NAVHistory';
+import PriceFeedManagement from './components/WealthManager/ValuationNAV/PriceFeedManagement';
+import {
+  ClientReports,
+  FundReports,
+  PerformanceReports,
+  RegulatoryReports,
+  TaxReports,
+  StatementGeneration,
+} from './components/WealthManager/Reporting/WealthReports';
+import WealthJournalEntries from './components/WealthManager/Accounting/WealthJournalEntries';
+import WealthGeneralLedger from './components/WealthManager/Accounting/WealthGeneralLedger';
+import WealthTrialBalance from './components/WealthManager/Accounting/WealthTrialBalance';
+import WealthPnLStatement from './components/WealthManager/Accounting/WealthPnLStatement';
+import FundAccounting from './components/WealthManager/Accounting/FundAccounting';
+import RiskManagement from './components/WealthManager/RiskCompliance/RiskManagement';
+import ComplianceMonitoring from './components/WealthManager/RiskCompliance/ComplianceMonitoring';
+import AuditTrail from './components/WealthManager/RiskCompliance/AuditTrail';
+import RegulatoryCompliance from './components/WealthManager/RiskCompliance/RegulatoryCompliance';
+import RiskReports from './components/WealthManager/RiskCompliance/RiskReports';
+import SystemSettings from './components/WealthManager/Settings/SystemSettings';
+import FeeStructure from './components/WealthManager/Settings/FeeStructure';
+import CommissionSetup from './components/WealthManager/Settings/CommissionSetup';
+import WealthHolidayCalendar from './components/WealthManager/Settings/WealthHolidayCalendar';
+import UserManagement from './components/WealthManager/Settings/UserManagement';
 import PortfolioOverview from './components/Dashboard/DashboardTabs/PortfolioOverview';
 import EquityMasterEntry from './components/MasterDataManagement/EquityMasterEntry';
 import BuyTransactionEntry from './components/TradeCapture/BuyTransactionEntry';
@@ -91,6 +135,8 @@ import RegulatoryUpdates from './components/CSEAnnouncements/RegulatoryUpdates';
 import CovidDisclosures from './components/CSEAnnouncements/CovidDisclosures';
 import FinancialPosition from './components/FinancialReporting/FinancialPosition';
 import StatementOfComprehensiveIncome from './components/FinancialReporting/StatementOfComprehensiveIncome';
+import StatementOfChangesInEquity from './components/FinancialReporting/StatementOfChangesInEquity';
+import DetailedIncomeStatement from './components/FinancialReporting/DetailedIncomeStatement';
 import CashFlow from './components/FinancialReporting/CashFlow';
 import PerformanceReport from './components/FinancialReporting/PerformanceReport';
 import FinancialReportingNotes from './components/FinancialReporting/FinancialReportingNotes';
@@ -311,9 +357,49 @@ function App() {
     'Fund Master': <FundMaster/>,
     'Fund Categories': <FundCategories/>,
     'Fund Performance Metrics': <FundPerfMetrics/>,
+    'Fund Pricing': <FundPricing />,
+    'NAV Management': <NAVManagement />,
     'Purchase/Subscription': <PurchaseSubscription />,
+    'Redemption': <Redemption />,
+    'Switch/Transfer': <SwitchTransfer />,
+    'Dividend Distribution': <DividendDistribution />,
+    'Systematic Investment Plan (SIP)': <SIP />,
+    'Systematic Withdrawal Plan (SWP)': <SWP />,
+    'Client Portfolios': <ClientPortfolios />,
+    'Portfolio Allocation': <PortfolioAllocation />,
+    'Portfolio Performance': <PortfolioPerformance />,
+    'Portfolio Reports': <PortfolioReports />,
+    'Transaction History': <TransactionHistory />,
+    'Pending Transactions': <PendingTransactions />,
+    'Transaction Approval': <TransactionApproval />,
+    'Transaction Reports': <TransactionReports />,
+    'Bulk Transactions': <BulkTransactions />,
+    'NAV Calculation': <NAVCalculation />,
+    'Valuation Reports': <ValuationReports />,
+    'Asset Valuation': <AssetValuation />,
+    'NAV History': <NAVHistory />,
+    'Price Feed Management': <PriceFeedManagement />,
+    'Client Reports': <ClientReports />,
+    'Fund Reports': <FundReports />,
+    'Performance Reports': <PerformanceReports />,
+    'Regulatory Reports': <RegulatoryReports />,
+    'Tax Reports': <TaxReports />,
+    'Statement Generation': <StatementGeneration />,
+    'P&L Statement': <WealthPnLStatement />,
+    'Fund Accounting': <FundAccounting />,
+    'Risk Management': <RiskManagement />,
+    'Compliance Monitoring': <ComplianceMonitoring />,
+    'Audit Trail': <AuditTrail />,
+    'Regulatory Compliance': <RegulatoryCompliance />,
+    'Risk Reports': <RiskReports />,
+    'System Settings': <SystemSettings />,
+    'Fee Structure': <FeeStructure />,
+    'Commission Setup': <CommissionSetup />,
+    'User Management': <UserManagement />,
     'Valuation Method': <CostingMethodSelection/>,
-    'Holiday Calendar': <HolidayCalendar mode="calendar" />,
+    'Holiday Calendar': selectedManager === 'wealth'
+      ? <WealthHolidayCalendar />
+      : <HolidayCalendar mode="calendar" />,
     'Holiday List': <HolidayCalendar mode="list" />,
     'Add Holiday': <HolidayCalendar mode="create" />,
     'Holiday Settings': <HolidayCalendar mode="settings" />,
@@ -361,10 +447,16 @@ function App() {
     'Refund Processing': <div style={{ padding: '2rem' }}><h3>Refund Processing</h3><p>Coming Soon...</p></div>,
     'Allocation Summary': <div style={{ padding: '2rem' }}><h3>Allocation Summary</h3><p>Coming Soon...</p></div>,
     'Cost of Funds': <CostOfFundsDefinition />,
-    'Journal Entries': <JournalEntries onTabChange={handleTabChange} />,
+    'Journal Entries': selectedManager === 'wealth'
+      ? <WealthJournalEntries />
+      : <JournalEntries onTabChange={handleTabChange} />,
     'Chart Of Accounts': <ChartOfAccounts />,
-    'General Ledger': <GeneralLedger />,
-    'Trial Balance': <TrialBalance />,
+    'General Ledger': selectedManager === 'wealth'
+      ? <WealthGeneralLedger />
+      : <GeneralLedger />,
+    'Trial Balance': selectedManager === 'wealth'
+      ? <WealthTrialBalance />
+      : <TrialBalance />,
     'Account Reconciliation': <AccountReconciliation />,
     'Other Transactions': <OtherTransactions />,
     Vouchers: <VouchersModule />,
@@ -391,6 +483,8 @@ function App() {
     'Statement of Comprehensive Income': (
       <StatementOfComprehensiveIncome onTabChange={handleTabChange} />
     ),
+    'Statement of Changes in Equity': <StatementOfChangesInEquity />,
+    'Detailed Income Statement': <DetailedIncomeStatement />,
     'Cash Flow': <CashFlow onTabChange={handleTabChange} />,
     'Equity Portfolio Snapshot': <FinancialReportsExport />,
     'Financial Reports Export': <FinancialReportsDownloadCenter />,
