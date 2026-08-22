@@ -48,7 +48,8 @@ const formatCurrency = (amount) =>
   }).format(amount || 0);
 
 /**
- * Opening-balance SOFP: current vs non-current from chart_of_accounts.account_category only.
+ * Opening-balance SOFP / live SOFP asset split: current vs non-current from
+ * chart_of_accounts.account_category text only (aligned with Opening Balance List).
  */
 export const isNonCurrentAssetLike = (account) => {
   const c = String(account?.accountCategory || account?.account_category || '')
