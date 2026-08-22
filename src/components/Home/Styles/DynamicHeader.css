@@ -2,7 +2,7 @@
 .dynamic-header {
   position: fixed;
   top: 70px; /* Below navbar */
-  left: 254px; /* Start where sidebar ends */
+  left: 228px; /* Start where sidebar ends */
   right: 0;
   height: 38px;
 
@@ -179,7 +179,7 @@
 /* Responsive adjustments - Match navbar breakpoints */
 @media (max-width: 1200px) {
   .dynamic-header {
-    left: 240px; /* Match navbar left position */
+    left: 216px; /* Match navbar left position */
   }
   
   .ticker-item {
@@ -195,7 +195,7 @@
 
 @media (max-width: 900px) {
   .dynamic-header {
-    left: 230px; /* Match navbar left position */
+    left: 206px; /* Match navbar left position */
     height: 36px;
   }
   

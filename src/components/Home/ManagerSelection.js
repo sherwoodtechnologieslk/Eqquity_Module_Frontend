@@ -1,7 +1,46 @@
 import React from 'react';
 import './Styles/ManagerSelection.css';
-import sherwoodMarkWireframe from './assets/sherwood-mark-wire-clean.png';
+import heroDesk from './assets/manager-hero-desk.png';
 import { TREASURY_MANAGER_URL } from '../../constants/externalManagers';
+
+const IconEquity = () => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+    <path d="M4 17.5 9.2 11.8 13 15.2 20 6.5" />
+    <path d="M15.2 6.5H20V11" />
+    <path d="M4 19.5h16" />
+  </svg>
+);
+
+const IconWealth = () => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+    <path d="M5 18V10.5M10 18V7M15 18v-6.5M20 18V5.5" />
+    <path d="M3.5 19.5h17" />
+  </svg>
+);
+
+const IconTreasury = () => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+    <rect x="4" y="9" width="16" height="11" rx="1.6" />
+    <path d="M8 9V7a4 4 0 0 1 8 0v2" />
+    <path d="M4 13.5h16" />
+    <circle cx="12" cy="16.2" r="1.1" fill="currentColor" stroke="none" />
+  </svg>
+);
+
+const IconArrow = () => (
+  <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+    <path d="M4.5 10h11" />
+    <path d="M11 5.5 15.5 10 11 14.5" />
+  </svg>
+);
+
+const IconExternal = () => (
+  <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+    <path d="M8 5.5H5.5A1.5 1.5 0 0 0 4 7v7.5A1.5 1.5 0 0 0 5.5 16H13a1.5 1.5 0 0 0 1.5-1.5V12" />
+    <path d="M11 4h5v5" />
+    <path d="M10 10 16 4" />
+  </svg>
+);
 
 const managerOptions = [
   {
@@ -11,16 +50,7 @@ const managerOptions = [
     description: 'Manage portfolios, trades, valuations, corporate actions, and financial reporting.',
     highlights: ['Portfolios', 'Trades', 'Valuations', 'Reporting'],
     action: 'Enter',
-    icon: (
-      <svg viewBox="0 0 48 48" aria-hidden="true">
-        <circle cx="32" cy="13" r="7" />
-        <path d="M32 9v8m-3-4h6" />
-        <path d="M7 27h7l7 7h9c3 0 3-5 0-5h-7" />
-        <path d="m14 27 5-4a4 4 0 0 1 5 0l5 5" />
-        <path d="M7 26v13" />
-        <path d="M14 38h18a6 6 0 0 0 5-3l5-8a3 3 0 0 0-5-1l-5 6" />
-      </svg>
-    ),
+    icon: <IconEquity />,
   },
   {
     id: 'wealth',
@@ -29,12 +59,7 @@ const managerOptions = [
     description: 'Manage funds, client accounts, portfolios, performance, and assets under management.',
     highlights: ['Funds', 'Clients', 'Performance', 'AUM'],
     action: 'Enter',
-    icon: (
-      <svg viewBox="0 0 48 48" aria-hidden="true">
-        <path d="M8 38V23m10 15V15m10 23V27m10 11V8" />
-        <path d="m7 17 10-8 10 8L39 5" />
-      </svg>
-    ),
+    icon: <IconWealth />,
   },
   {
     id: 'treasury',
@@ -45,14 +70,7 @@ const managerOptions = [
     highlights: ['G-Sec', 'Money market', 'Repo', 'Settlements'],
     action: 'Enter',
     externalUrl: TREASURY_MANAGER_URL,
-    icon: (
-      <svg viewBox="0 0 48 48" aria-hidden="true">
-        <rect x="8" y="14" width="32" height="22" rx="3" />
-        <path d="M8 22h32" />
-        <circle cx="24" cy="30" r="3.5" />
-        <path d="M16 14V11a8 8 0 0 1 16 0v3" />
-      </svg>
-    ),
+    icon: <IconTreasury />,
   },
 ];
 
@@ -66,87 +84,60 @@ const ManagerSelection = ({ onSelect, onLogout, preAuth = false }) => {
   };
 
   return (
-    <main className="manager-selection">
-      <div className="manager-selection__shell">
-        <aside className="manager-selection__brand-panel" aria-label="Sherwood">
-          <div className="manager-selection__brand-glow" aria-hidden="true" />
-          <img
-            src={sherwoodMarkWireframe}
-            alt=""
-            className="manager-selection__brand-watermark"
-            aria-hidden="true"
-          />
+    <main className="ms-screen">
+      <div className="ms-bg" aria-hidden="true">
+        <img src={heroDesk} alt="" className="ms-bg__img" />
+        <div className="ms-bg__wash" />
+      </div>
 
-          {!preAuth && onLogout && (
-            <div className="manager-selection__brand-top">
-              <button type="button" className="manager-selection__back" onClick={onLogout}>
-                <svg viewBox="0 0 20 20" fill="none" aria-hidden="true">
-                  <path d="M13 10H4M8 6l-4 4 4 4" />
-                </svg>
-                Sign out
-              </button>
-            </div>
-          )}
+      {!preAuth && onLogout ? (
+        <button type="button" className="ms-logout" onClick={onLogout}>
+          Sign out
+        </button>
+      ) : null}
 
-          <div className="manager-selection__brand-copy">
-            <p className="manager-selection__kicker">
-              <span className="manager-selection__kicker-dot" aria-hidden="true" />
-              Sherwood Technologies
-            </p>
-            <div className="manager-selection__title-block">
-              <h1 className="manager-selection__brand">Sherwood</h1>
-              <p className="manager-selection__platform">Platform</p>
-            </div>
-            <p className="manager-selection__lede">Select a manager to continue.</p>
-          </div>
-        </aside>
+      <div className="ms-shell">
+        <section className="ms-content">
+          <header className="ms-intro">
+            <p className="ms-intro__eyebrow">Sherwood Platform</p>
+            <h2 className="ms-intro__heading">Select a module to continue</h2>
+          </header>
 
-        <section className="manager-selection__panel">
-          <div className="manager-selection__lanes" role="list">
+          <div className="ms-tiles" role="list">
             {managerOptions.map((option, i) => (
               <button
                 type="button"
                 role="listitem"
-                className={`manager-lane manager-lane--${option.id}`}
-                style={{ '--lane-delay': `${0.14 + i * 0.07}s` }}
+                className={`ms-tile ms-tile--${option.id}`}
+                style={{ '--ms-delay': `${0.08 + i * 0.07}s` }}
                 onClick={() => handleSelect(option)}
                 key={option.id}
               >
-                <span className="manager-lane__index" aria-hidden="true">
-                  {String(i + 1).padStart(2, '0')}
-                </span>
-
-                <span className="manager-lane__icon">{option.icon}</span>
-
-                <span className="manager-lane__content">
-                  <span className="manager-lane__head">
-                    <span className="manager-lane__eyebrow">{option.eyebrow}</span>
-                    <span className="manager-lane__title">{option.title}</span>
+                <span className="ms-tile__top">
+                  <span className="ms-tile__index" aria-hidden="true">
+                    {String(i + 1).padStart(2, '0')}
                   </span>
-                  <span className="manager-lane__description">{option.description}</span>
-                  <span className="manager-lane__tags">
-                    {option.highlights.map((tag) => (
-                      <span className="manager-lane__tag" key={tag}>
-                        {tag}
-                      </span>
-                    ))}
+                  <span className="ms-tile__icon" aria-hidden="true">
+                    {option.icon}
                   </span>
                 </span>
 
-                <span className="manager-lane__cta">
-                  <span className="manager-lane__cta-label">{option.action}</span>
-                  <span className="manager-lane__arrow" aria-hidden="true">
-                    <svg viewBox="0 0 20 20" fill="none">
-                      {option.externalUrl ? (
-                        <>
-                          <path d="M8 5H5a2 2 0 00-2 2v8a2 2 0 002 2h8a2 2 0 002-2v-3" />
-                          <path d="M11 3h6v6" />
-                          <path d="M10 10L17 3" />
-                        </>
-                      ) : (
-                        <path d="M4 10h11M11 6l4 4-4 4" />
-                      )}
-                    </svg>
+                <span className="ms-tile__eyebrow">{option.eyebrow}</span>
+                <span className="ms-tile__title">{option.title}</span>
+                <span className="ms-tile__desc">{option.description}</span>
+
+                <span className="ms-tile__tags">
+                  {option.highlights.map((tag) => (
+                    <span className="ms-tile__tag" key={tag}>
+                      {tag}
+                    </span>
+                  ))}
+                </span>
+
+                <span className="ms-tile__cta">
+                  <span>{option.action}</span>
+                  <span className="ms-tile__arrow" aria-hidden="true">
+                    {option.externalUrl ? <IconExternal /> : <IconArrow />}
                   </span>
                 </span>
               </button>
