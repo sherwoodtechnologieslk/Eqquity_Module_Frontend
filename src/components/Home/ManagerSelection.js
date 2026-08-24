@@ -100,7 +100,6 @@ const ManagerSelection = ({ onSelect, onLogout, preAuth = false }) => {
         <section className="ms-content">
           <header className="ms-intro">
             <p className="ms-intro__eyebrow">Sherwood Platform</p>
-            <h2 className="ms-intro__heading">Select a module to continue</h2>
           </header>
 
           <div className="ms-tiles" role="list">
