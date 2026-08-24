@@ -1,31 +1,7 @@
 import React from 'react';
 import './Styles/ClientNavbar.css';
 
-const ClientNavbar = ({ activeTab, onTabChange, user, onLogout, onBackToHome, variant = 'default', hideTabs = false }) => {
-  const [currentTime, setCurrentTime] = React.useState(new Date());
-
-  React.useEffect(() => {
-    const timer = setInterval(() => {
-      setCurrentTime(new Date());
-    }, 1000);
-    return () => clearInterval(timer);
-  }, []);
-
-  const formatTime = (date) =>
-    date.toLocaleTimeString('en-US', {
-      hour: '2-digit',
-      minute: '2-digit',
-      hour12: true
-    });
-
-  const formatDate = (date) =>
-    date.toLocaleDateString('en-US', {
-      weekday: 'short',
-      month: 'short',
-      day: 'numeric',
-      year: 'numeric'
-    });
-
+const ClientNavbar = ({ activeTab, onTabChange, onBackToHome, variant = 'default', hideTabs = false }) => {
   const navItems = [
     { label: 'Home', key: 'home', tab: 'Dashboard' },
     { label: 'About', key: 'about', tab: 'About' },
@@ -49,19 +25,17 @@ const ClientNavbar = ({ activeTab, onTabChange, user, onLogout, onBackToHome, va
   return (
     <header className={`cp-navbar ${variant === 'gateway' ? 'cp-navbar-gateway' : ''}`}>
       <div className="cp-navbar-inner">
-        <div className="cp-navbar-logo-mark">
-          <div className="cp-sw-wordmark" aria-label="Sherwood Wealth">
-            <div className="cp-sw-inner">
-              <span className="cp-sw-line1">SHERWOOD</span>
-              <span className="cp-sw-line2">WEALTH</span>
-            </div>
+        <div className="cp-navbar-brand">
+          <div className="cp-navbar-brand-icon" aria-hidden="true">
+            <svg className="cp-navbar-brand-logo" viewBox="0 0 20 20" fill="currentColor">
+              <path d="M4 4a2 2 0 00-2 2v1h16V6a2 2 0 00-2-2H4z" />
+              <path
+                fillRule="evenodd"
+                d="M18 9H2v5a2 2 0 002 2h12a2 2 0 002-2V9zM4 13a1 1 0 011-1h1a1 1 0 110 2H5a1 1 0 01-1-1zm5-1a1 1 0 100 2h1a1 1 0 100-2H9z"
+                clipRule="evenodd"
+              />
+            </svg>
           </div>
-          <div className="cp-logo-tagline-row">
-            <span className="cp-logo-rule cp-logo-rule-left" />
-            <span className="cp-logo-diamond" />
-            <span className="cp-logo-rule cp-logo-rule-right" />
-          </div>
-          <div className="cp-logo-tagline">Refined</div>
         </div>
 
         {!onBackToHome && !hideTabs && (
@@ -88,10 +62,6 @@ const ClientNavbar = ({ activeTab, onTabChange, user, onLogout, onBackToHome, va
               Back to Home
             </button>
           )}
-          <div className="cp-navbar-time">
-            <span className="cp-time-display">{formatTime(currentTime)}</span>
-            <span className="cp-date-display">{formatDate(currentTime)}</span>
-          </div>
         </div>
       </div>
     </header>

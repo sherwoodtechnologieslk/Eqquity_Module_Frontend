@@ -79,6 +79,13 @@ import FeeStructure from './components/WealthManager/Settings/FeeStructure';
 import CommissionSetup from './components/WealthManager/Settings/CommissionSetup';
 import WealthHolidayCalendar from './components/WealthManager/Settings/WealthHolidayCalendar';
 import UserManagement from './components/WealthManager/Settings/UserManagement';
+import GSecHoldings from './components/WealthManager/Government Securities/GSecHoldings';
+import TBillSubscription from './components/WealthManager/Government Securities/TBillSubscription';
+import TBondDeals from './components/WealthManager/Government Securities/TBondDeals';
+import RepoBuyback from './components/WealthManager/Government Securities/RepoBuyback';
+import MaturityCalendar from './components/WealthManager/Government Securities/MaturityCalendar';
+import GSecSettlements from './components/WealthManager/Government Securities/GSecSettlements';
+import GSecProductReport from './components/WealthManager/Government Securities/GSecProductReport';
 import PortfolioOverview from './components/Dashboard/DashboardTabs/PortfolioOverview';
 import EquityMasterEntry from './components/MasterDataManagement/EquityMasterEntry';
 import BuyTransactionEntry from './components/TradeCapture/BuyTransactionEntry';
@@ -192,7 +199,13 @@ function App() {
   const [hasSelectedManager, setHasSelectedManager] = useState(false);
   const [pendingManager, setPendingManager] = useState(null);
   const [showAuthFromManagers, setShowAuthFromManagers] = useState(false);
-  const [isClientView, setIsClientView] = useState(false); // Temporary toggle for client/admin view in wealth manager
+  const [isClientPortalTab] = useState(() => {
+    try {
+      return new URLSearchParams(window.location.search).get('clientPortal') === '1';
+    } catch {
+      return false;
+    }
+  });
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [user, setUser] = useState(null);
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
@@ -314,15 +327,26 @@ function App() {
     setShowAuthFromManagers(true);
   };
 
-  /** Client Portal preview is gated — show coming-soon modal instead of navigating. */
-  const handleClientViewToggle = useCallback((next) => {
-    if (next) {
-      setPremiumModalVariant('clientPortal');
-      setIsPremiumModalOpen(true);
-      return;
+  const handleLogout = () => {
+    authService.logout();
+    setIsAuthenticated(false);
+    setUser(null);
+    setSelectedManager('equity');
+    setHasSelectedManager(false);
+    setPendingManager(null);
+    setShowAuthFromManagers(false);
+    setActiveTab('Home');
+    setVisibleTabs(['Home']);
+    if (isClientPortalTab) {
+      try {
+        const url = new URL(window.location.href);
+        url.searchParams.delete('clientPortal');
+        window.history.replaceState({}, '', url.toString());
+      } catch {
+        /* ignore */
+      }
     }
-    setIsClientView(false);
-  }, []);
+  };
 
   // Tab component mappings
   const tabToComponent = {
@@ -365,6 +389,13 @@ function App() {
     'Dividend Distribution': <DividendDistribution />,
     'Systematic Investment Plan (SIP)': <SIP />,
     'Systematic Withdrawal Plan (SWP)': <SWP />,
+    'G-Sec Holdings': <GSecHoldings />,
+    'T-Bill Subscription': <TBillSubscription />,
+    'T-Bond Deals': <TBondDeals />,
+    'Repo & Buyback': <RepoBuyback />,
+    'Maturity Calendar': <MaturityCalendar />,
+    'G-Sec Settlements': <GSecSettlements />,
+    'GSec Product Report': <GSecProductReport />,
     'Client Portfolios': <ClientPortfolios />,
     'Portfolio Allocation': <PortfolioAllocation />,
     'Portfolio Performance': <PortfolioPerformance />,
@@ -587,19 +618,6 @@ function App() {
     setPendingManager(null);
   };
 
-  // Handle logout
-  const handleLogout = () => {
-    authService.logout();
-    setIsAuthenticated(false);
-    setUser(null);
-    setSelectedManager('equity');
-    setHasSelectedManager(false);
-    setPendingManager(null);
-    setShowAuthFromManagers(false);
-    setActiveTab('Home');
-    setVisibleTabs(['Home']);
-  };
-
   const handlePasswordChanged = (message) => {
     sessionStorage.setItem(
       'authNotice',
@@ -655,6 +673,11 @@ function App() {
     );
   }
 
+  // Client Portal (?clientPortal=1) — opens in its own browser tab
+  if (isClientPortalTab) {
+    return <ClientPortal user={user} onLogout={handleLogout} />;
+  }
+
   if (!hasSelectedManager) {
     return (
       <ManagerSelection
@@ -663,12 +686,6 @@ function App() {
         onLogout={handleLogout}
       />
     );
-  }
-
-  // Show Client Portal if in wealth manager mode and client view is enabled
-  // TODO: Replace isClientView with user.role === 'client' check when backend is ready
-  if (selectedManager === 'wealth' && isClientView) {
-    return <ClientPortal user={user} onLogout={handleLogout} />;
   }
 
   return (
@@ -686,8 +703,6 @@ function App() {
           activeIndex={activeSidebarItem}
           onLogout={handleLogout}
           onManagerChange={handleManagerChange}
-          isClientView={isClientView}
-          onClientViewToggle={handleClientViewToggle}
         />
       ) : activeTab === 'Home' ? null : (
         <Sidebar
@@ -700,8 +715,6 @@ function App() {
           onLogout={handleLogout}
           onManagerChange={handleManagerChange}
           selectedManager={selectedManager}
-          isClientView={isClientView}
-          onClientViewToggle={handleClientViewToggle}
           user={user}
           onGoHome={() => handleTabChange('Home')}
         />

@@ -169,6 +169,23 @@ const Navbar = ({ activeTab, onTabChange, visibleTabs = [], user, onLogout, onOp
       style={getDynamicStyles()}
     >
       <div className="navbar-container">
+        {fullWidth && onLogout ? (
+          <button
+            type="button"
+            className="nav-home-logout"
+            onClick={onLogout}
+            title="Logout"
+            aria-label="Logout"
+          >
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+              <path d="M15 3h4a2 2 0 012 2v14a2 2 0 01-2 2h-4" />
+              <path d="M10 17l-5-5 5-5" />
+              <path d="M15 12H3" />
+            </svg>
+            <span>Logout</span>
+          </button>
+        ) : null}
+
         <ul className="nav-list">
           {tabs.map(tab => (
             <li key={tab.name} className="nav-item">

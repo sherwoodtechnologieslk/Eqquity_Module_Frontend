@@ -58,7 +58,7 @@
   --wm-shadow-soft: 0 4px 14px rgba(15, 23, 42, 0.06);
   --wm-radius: 18px;
   --wm-radius-sm: 14px;
-  --wm-sidebar-width: 260px;
+  --wm-sidebar-width: 228px;
 }
 
 .wm-root {
@@ -107,11 +107,11 @@
 }
 
 @media (max-width: 1200px) {
-  :root { --wm-sidebar-width: 240px; }
+  :root { --wm-sidebar-width: 216px; }
 }
 
 @media (max-width: 900px) {
-  :root { --wm-sidebar-width: 230px; }
+  :root { --wm-sidebar-width: 206px; }
 }
 
 @media (max-width: 768px) {

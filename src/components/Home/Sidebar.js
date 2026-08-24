@@ -570,6 +570,23 @@ export const wealthManagerMenuItems = [
   {
     icon: (
       <svg fill="currentColor" viewBox="0 0 20 20">
+        <path d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm1 3h10v1.5H5V6zm0 3h10v1.5H5V9zm0 3h6V13.5H5V12z" />
+      </svg>
+    ),
+    name: "Government Securities",
+    subTopics: [
+      "G-Sec Holdings",
+      "T-Bill Subscription",
+      "T-Bond Deals",
+      "Repo & Buyback",
+      "Maturity Calendar",
+      "G-Sec Settlements",
+      "GSec Product Report"
+    ]
+  },
+  {
+    icon: (
+      <svg fill="currentColor" viewBox="0 0 20 20">
         <path fillRule="evenodd" d="M3 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" clipRule="evenodd"/>
       </svg>
     ),
@@ -792,6 +809,7 @@ const WEALTH_MENU_CATEGORIES = {
   'Portfolio Master': 'Masters',
   'Expense Master': 'Masters',
   'Unit Trust Operations': 'Operations',
+  'Government Securities': 'Operations',
   Transactions: 'Operations',
   'Valuation & NAV': 'Valuation',
   'Accounting Entries': 'Accounting',
