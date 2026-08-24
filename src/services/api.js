@@ -2911,6 +2911,20 @@ export const gsecEntriesAPI = {
     }
   },
 
+  getProductReport: async (filters = {}) => {
+    try {
+      const queryParams = new URLSearchParams();
+      if (filters.asAtDate) queryParams.append('asAtDate', filters.asAtDate);
+      const url = queryParams.toString()
+        ? `${API_BASE_URL}/gsec/reports/gsec?${queryParams.toString()}`
+        : `${API_BASE_URL}/gsec/reports/gsec`;
+      return await makeAuthenticatedRequest(url, { method: 'GET' });
+    } catch (error) {
+      console.error('Error fetching GSec product report:', error);
+      throw error;
+    }
+  },
+
   // Save current GSec entries into backend gsec_entries table
   saveEntriesToDatabase: async (entries) => {
     try {

@@ -1,5 +1,15 @@
 import React from 'react';
-import './Styles/PreOnboardingContact.css';
+import {
+  CpPage,
+  CpHero,
+  CpSection,
+  CpCard,
+  CpGrid,
+  CpButton,
+  CpCtaArrow,
+  CpCtaBanner,
+  CpPanel,
+} from '../shared/CpUi';
 
 const CONTACT_METHODS = [
   {
@@ -44,86 +54,61 @@ const FAQ_ITEMS = [
 
 export default function PreOnboardingContact({ onGetStarted }) {
   return (
-    <div className="poc-root">
-
-      {/* ── Hero ── */}
-      <section className="poc-hero">
-        <div className="poc-hero-inner">
-          <span className="poc-eyebrow">Contact</span>
-          <h1 className="poc-hero-heading">
-            We're here to help.
-          </h1>
-          <p className="poc-hero-lead">
-            Have questions about our funds, your account, or how to get started? Reach out by phone,
-            email, or visit our office. Our team is ready to assist you.
-          </p>
-          <button type="button" className="poc-btn-primary" onClick={onGetStarted}>
+    <CpPage>
+      <CpHero
+        eyebrow="Sherwood Wealth · Contact"
+        title="We're here to help."
+        lead="Have questions about our funds, your account, or how to get started? Reach out by phone, email, or visit our office. Our team is ready to assist you."
+        actions={
+          <CpButton onClick={onGetStarted}>
             Open an Account
-            <svg viewBox="0 0 20 20" fill="currentColor" width="14" height="14">
-              <path fillRule="evenodd" d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z" clipRule="evenodd"/>
-            </svg>
-          </button>
-        </div>
-      </section>
+            <CpCtaArrow />
+          </CpButton>
+        }
+      />
 
-      {/* ── Contact methods ── */}
-      <section className="poc-section">
-        <div className="poc-section-head">
-          <span className="poc-section-eyebrow">Get in Touch</span>
-          <h2 className="poc-section-title">Contact options</h2>
-        </div>
-        <div className="poc-contact-grid">
-          {CONTACT_METHODS.map((m, i) => (
-            <div key={i} className="poc-contact-card">
-              <div className="poc-contact-icon">{m.icon}</div>
-              <div className="poc-contact-body">
-                <div className="poc-contact-title">{m.title}</div>
-                <div className="poc-contact-primary">{m.primary}</div>
-                <div className="poc-contact-secondary">{m.secondary}</div>
-              </div>
-            </div>
+      <CpSection eyebrow="Get in Touch" title="Contact options">
+        <CpGrid cols={3}>
+          {CONTACT_METHODS.map((m) => (
+            <CpCard key={m.title} icon={m.icon} title={m.title}>
+              <p className="cp-card__text" style={{ color: 'var(--cp-ink)', fontWeight: 650 }}>
+                {m.primary}
+              </p>
+              <p className="cp-card__text">{m.secondary}</p>
+            </CpCard>
           ))}
-        </div>
-      </section>
+        </CpGrid>
+      </CpSection>
 
-      {/* ── Office hours ── */}
-      <section className="poc-hours-strip">
-        <div className="poc-hours-inner">
-          <div className="poc-hours-label">Office hours</div>
-          <div className="poc-hours-value">Monday – Friday: 8:30 AM – 5:00 PM · Saturday: 9:00 AM – 1:00 PM (by appointment)</div>
-        </div>
-      </section>
+      <CpSection mint>
+        <CpPanel variant="soft">
+          <div style={{ padding: '1rem 1.15rem' }}>
+            <span className="cp-eyebrow">Office hours</span>
+            <p className="cp-section__blurb" style={{ marginTop: '0.35rem' }}>
+              Monday – Friday: 8:30 AM – 5:00 PM · Saturday: 9:00 AM – 1:00 PM (by appointment)
+            </p>
+          </div>
+        </CpPanel>
+      </CpSection>
 
-      {/* ── FAQ ── */}
-      <section className="poc-section poc-faq-section">
-        <div className="poc-section-head">
-          <span className="poc-section-eyebrow">Common Questions</span>
-          <h2 className="poc-section-title">FAQ</h2>
-        </div>
-        <div className="poc-faq-list">
-          {FAQ_ITEMS.map((item, i) => (
-            <div key={i} className="poc-faq-item">
-              <div className="poc-faq-q">{item.q}</div>
-              <div className="poc-faq-a">{item.a}</div>
-            </div>
+      <CpSection eyebrow="Common Questions" title="FAQ">
+        <CpGrid cols={1}>
+          {FAQ_ITEMS.map((item) => (
+            <CpCard key={item.q} title={item.q} text={item.a} />
           ))}
-        </div>
-      </section>
+        </CpGrid>
+      </CpSection>
 
-      {/* ── CTA ── */}
-      <section className="poc-cta-banner">
-        <div>
-          <h3 className="poc-cta-heading">Ready to start investing?</h3>
-          <p className="poc-cta-sub">Open an account online in minutes — no branch visit required.</p>
-        </div>
-        <button type="button" className="poc-btn-primary" onClick={onGetStarted}>
-          Get Started
-          <svg viewBox="0 0 20 20" fill="currentColor" width="14" height="14">
-            <path fillRule="evenodd" d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z" clipRule="evenodd"/>
-          </svg>
-        </button>
-      </section>
-
-    </div>
+      <CpCtaBanner
+        title="Ready to start investing?"
+        subtitle="Open an account online in minutes — no branch visit required."
+        action={
+          <CpButton onClick={onGetStarted}>
+            Get Started
+            <CpCtaArrow />
+          </CpButton>
+        }
+      />
+    </CpPage>
   );
 }

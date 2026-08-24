@@ -1,5 +1,16 @@
 import React from 'react';
-import './Styles/PreOnboardingAbout.css';
+import {
+  CpPage,
+  CpHero,
+  CpSection,
+  CpCard,
+  CpGrid,
+  CpButton,
+  CpCtaArrow,
+  CpCtaBanner,
+  CpPanel,
+  CpStatRow,
+} from '../shared/CpUi';
 
 const MILESTONES = [
   { year: '2008', title: 'Founded', desc: 'Established as a licensed investment management firm focused on unit trust products.' },
@@ -71,142 +82,96 @@ const VALUES = [
 
 export default function PreOnboardingAbout({ onGetStarted }) {
   return (
-    <div className="poa-root">
-
-      {/* ── Hero ── */}
-      <section className="poa-hero">
-        <div className="poa-hero-inner">
-          <span className="poa-eyebrow">About Us</span>
-          <h1 className="poa-hero-heading">
-            Built for investors.<br />Driven by trust.
-          </h1>
-          <p className="poa-hero-lead">
-            We are a licensed investment management firm dedicated to helping individuals and institutions
-            grow their wealth through professionally managed unit trust funds — with transparency,
-            discipline, and a long-term perspective.
-          </p>
-          <button type="button" className="poa-btn-primary" onClick={onGetStarted}>
+    <CpPage>
+      <CpHero
+        split
+        eyebrow="Sherwood Wealth · About"
+        title={
+          <>
+            Built for investors.
+            <br />
+            Driven by trust.
+          </>
+        }
+        lead="We are a licensed investment management firm dedicated to helping individuals and institutions grow their wealth through professionally managed unit trust funds — with transparency, discipline, and a long-term perspective."
+        actions={
+          <CpButton onClick={onGetStarted}>
             Start Investing Today
-            <svg viewBox="0 0 20 20" fill="currentColor" width="14" height="14">
-              <path fillRule="evenodd" d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z" clipRule="evenodd"/>
-            </svg>
-          </button>
-        </div>
-        <div className="poa-hero-stat-panel">
-          <div className="poa-hero-stat">
-            <div className="poa-hero-stat-val">15+</div>
-            <div className="poa-hero-stat-lbl">Years of Operation</div>
-          </div>
-          <div className="poa-hero-stat-divider" />
-          <div className="poa-hero-stat">
-            <div className="poa-hero-stat-val">3</div>
-            <div className="poa-hero-stat-lbl">Active Funds</div>
-          </div>
-          <div className="poa-hero-stat-divider" />
-          <div className="poa-hero-stat">
-            <div className="poa-hero-stat-val">10,000+</div>
-            <div className="poa-hero-stat-lbl">Investors Served</div>
-          </div>
-          <div className="poa-hero-stat-divider" />
-          <div className="poa-hero-stat">
-            <div className="poa-hero-stat-val">SEC</div>
-            <div className="poa-hero-stat-lbl">Regulated & Licensed</div>
-          </div>
-        </div>
-      </section>
+            <CpCtaArrow />
+          </CpButton>
+        }
+        aside={
+          <CpPanel>
+            <CpStatRow
+              items={[
+                { value: '15+', label: 'Years of Operation' },
+                { value: '3', label: 'Active Funds' },
+                { value: '10,000+', label: 'Investors Served' },
+                { value: 'SEC', label: 'Regulated & Licensed' },
+              ]}
+            />
+          </CpPanel>
+        }
+      />
 
-      {/* ── Mission ── */}
-      <section className="poa-section poa-mission-section">
-        <div className="poa-mission-grid">
-          <div className="poa-mission-block poa-mission-block--dark">
-            <div className="poa-mission-label">Our Mission</div>
-            <div className="poa-mission-text">
-              To democratise wealth creation by providing every Sri Lankan investor — regardless of income level —
-              access to professionally managed investment products that grow their savings over time.
-            </div>
-          </div>
-          <div className="poa-mission-block">
-            <div className="poa-mission-label">Our Vision</div>
-            <div className="poa-mission-text">
-              To be the most trusted name in unit trust investment management in Sri Lanka, known for
-              consistent performance, investor education, and world-class digital access.
-            </div>
-          </div>
-        </div>
-      </section>
+      <CpSection>
+        <CpGrid cols={2}>
+          <CpCard variant="accent" title="Our Mission" text="To democratise wealth creation by providing every Sri Lankan investor — regardless of income level — access to professionally managed investment products that grow their savings over time." />
+          <CpCard variant="mint" title="Our Vision" text="To be the most trusted name in unit trust investment management in Sri Lanka, known for consistent performance, investor education, and world-class digital access." />
+        </CpGrid>
+      </CpSection>
 
-      {/* ── Values ── */}
-      <section className="poa-section">
-        <div className="poa-section-head">
-          <span className="poa-section-eyebrow">Our Values</span>
-          <h2 className="poa-section-title">What guides every decision we make</h2>
-        </div>
-        <div className="poa-values-grid">
-          {VALUES.map((v, i) => (
-            <div key={i} className="poa-value-card">
-              <div className="poa-value-icon">{v.icon}</div>
-              <div className="poa-value-title">{v.title}</div>
-              <div className="poa-value-desc">{v.desc}</div>
-            </div>
+      <CpSection mint eyebrow="Our Values" title="What guides every decision we make">
+        <CpGrid cols={4}>
+          {VALUES.map((v) => (
+            <CpCard key={v.title} icon={v.icon} title={v.title} text={v.desc} />
           ))}
-        </div>
-      </section>
+        </CpGrid>
+      </CpSection>
 
-      {/* ── Timeline ── */}
-      <section className="poa-section poa-timeline-section">
-        <div className="poa-section-head">
-          <span className="poa-section-eyebrow">Our Journey</span>
-          <h2 className="poa-section-title">Milestones that shaped who we are</h2>
-        </div>
-        <div className="poa-timeline">
+      <CpSection eyebrow="Our Journey" title="Milestones that shaped who we are">
+        <div className="cp-timeline">
           {MILESTONES.map((m, i) => (
-            <div key={i} className="poa-timeline-item">
-              <div className="poa-timeline-year">{m.year}</div>
-              <div className="poa-timeline-line">
-                <div className="poa-timeline-dot" />
-                {i < MILESTONES.length - 1 && <div className="poa-timeline-connector" />}
+            <div key={m.year} className="cp-timeline__item">
+              <div className="cp-timeline__year">{m.year}</div>
+              <div className="cp-timeline__rail">
+                <div className="cp-timeline__dot" />
+                {i < MILESTONES.length - 1 ? <div className="cp-timeline__connector" /> : null}
               </div>
-              <div className="poa-timeline-body">
-                <div className="poa-timeline-title">{m.title}</div>
-                <div className="poa-timeline-desc">{m.desc}</div>
+              <div className="cp-timeline__body">
+                <div className="cp-timeline__title">{m.title}</div>
+                <div className="cp-timeline__desc">{m.desc}</div>
               </div>
             </div>
           ))}
         </div>
-      </section>
+      </CpSection>
 
-      {/* ── Team ── */}
-      <section className="poa-section poa-team-section">
-        <div className="poa-section-head">
-          <span className="poa-section-eyebrow">Our Team</span>
-          <h2 className="poa-section-title">The people behind your portfolio</h2>
-        </div>
-        <div className="poa-team-cards">
-          {TEAM.map((t, i) => (
-            <div key={i} className="poa-team-card">
-              <div className="poa-team-avatar">{t.initial}</div>
-              <div className="poa-team-name">{t.name}</div>
-              <div className="poa-team-role">{t.role}</div>
-              <div className="poa-team-desc">{t.desc}</div>
-            </div>
+      <CpSection mint eyebrow="Our Team" title="The people behind your portfolio">
+        <CpGrid cols={3}>
+          {TEAM.map((t) => (
+            <CpCard
+              key={t.name}
+              icon={<span className="cp-team-avatar">{t.initial}</span>}
+              title={t.name}
+            >
+              <span className="cp-eyebrow">{t.role}</span>
+              <p className="cp-card__text">{t.desc}</p>
+            </CpCard>
           ))}
-        </div>
-      </section>
+        </CpGrid>
+      </CpSection>
 
-      {/* ── CTA ── */}
-      <section className="poa-cta-banner">
-        <div>
-          <h3 className="poa-cta-heading">Ready to invest with a team you can trust?</h3>
-          <p className="poa-cta-sub">Open an account in minutes. No paperwork, no branch visits.</p>
-        </div>
-        <button type="button" className="poa-btn-primary" onClick={onGetStarted}>
-          Open an Account
-          <svg viewBox="0 0 20 20" fill="currentColor" width="14" height="14">
-            <path fillRule="evenodd" d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z" clipRule="evenodd"/>
-          </svg>
-        </button>
-      </section>
-
-    </div>
+      <CpCtaBanner
+        title="Ready to invest with a team you can trust?"
+        subtitle="Open an account in minutes. No paperwork, no branch visits."
+        action={
+          <CpButton onClick={onGetStarted}>
+            Open an Account
+            <CpCtaArrow />
+          </CpButton>
+        }
+      />
+    </CpPage>
   );
 }

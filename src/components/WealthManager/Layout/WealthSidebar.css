@@ -14,7 +14,7 @@
   top: 0;
   left: 0;
   z-index: 3000;
-  width: var(--wm-sidebar-width, 260px);
+  width: var(--wm-sidebar-width, 228px);
   height: 100vh;
   display: flex;
   flex-direction: column;
@@ -410,6 +410,9 @@
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 0.55rem !important;
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  flex-shrink: 0;
+  position: relative;
+  z-index: 2;
 }
 
 .wm-sidebar .wm-portal-entry__meta {
@@ -468,6 +471,7 @@
   letter-spacing: 0.01em;
   cursor: pointer;
   text-align: left;
+  text-decoration: none;
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
   box-shadow:
@@ -478,6 +482,10 @@
     border-color 0.18s ease,
     box-shadow 0.18s ease,
     transform 0.15s ease;
+}
+
+.wm-sidebar a.wm-portal-entry__btn:visited {
+  color: #ffffff;
 }
 
 .wm-sidebar .wm-portal-entry__btn:hover {
@@ -557,7 +565,7 @@
 .wm-sidebar .sidebar-content {
   flex: 1 1 0;
   min-height: 0;
-  padding: 1rem 0;
+  padding: 0.75rem 0;
   overflow-y: auto;
   overflow-x: hidden;
   position: relative;
@@ -586,7 +594,7 @@
 }
 
 .wm-sidebar .menu-section {
-  padding: 0 0.5rem;
+  padding: 0 0.55rem;
 }
 
 /* Section title — mirrors .menu-title */
@@ -595,12 +603,12 @@
   font-family: 'Inter', sans-serif;
   font-size: 0.6875rem;
   font-weight: 600;
-  color: rgba(255, 255, 255, 0.60);
+  color: rgba(255, 255, 255, 0.45);
   text-transform: uppercase;
   letter-spacing: 0.1em;
-  margin: 0 0 0.75rem 0.75rem;
-  padding-bottom: 0.5rem;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+  margin: 0 0 0.65rem 0.55rem;
+  padding-bottom: 0.4rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
 }
 
 /* Menu list */
@@ -611,7 +619,7 @@
   padding: 0;
   display: flex;
   flex-direction: column;
-  gap: 0.25rem;
+  gap: 0.4rem;
 }
 
 .wm-sidebar .wm-sidebar__list > li,
@@ -620,36 +628,32 @@
   padding: 0;
 }
 
-/* Menu item — mirrors .sidebar-item (with rounded corners like equity).
-   box-sizing: border-box is critical: equity uses <li> (auto width = parent
-   width), but the wealth tab is a <button> with width: 100%. Without
-   border-box the padding + border would push the tab ~30px wider than the
-   equity tab. Keeping border-box matches the equity item dimensions 1:1. */
+/* Menu item — match Equity category / nested row height (not leaf .sidebar-item) */
 .wm-sidebar .wm-sidebar__item {
+  all: unset;
   box-sizing: border-box;
-  width: calc(100% - 0.5rem);
+  width: 100%;
   display: flex;
   align-items: center;
-  gap: 0.5rem;
-  padding: 0.65rem 0.7rem;
-  margin: 0 0.25rem;
-  font-family: 'Inter', sans-serif;
-  font-size: 0.75rem;
+  gap: 0.4rem;
+  padding: 0.45rem 0.55rem;
+  margin: 0;
+  font-family: 'DM Sans', 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif;
+  font-size: 0.8rem;
   font-weight: 500;
-  line-height: 1.35;
-  color: rgba(255, 255, 255, 0.92);
-  background: rgba(255, 255, 255, 0.08);
+  letter-spacing: 0.01em;
+  line-height: 1.3;
+  color: rgba(255, 255, 255, 0.88);
+  background: rgba(255, 255, 255, 0.07);
   border: 1px solid rgba(255, 255, 255, 0.12);
-  /* Override the global .wm-root border-radius: 0 just for sidebar tabs,
-     matching the equity .sidebar-item (10px) */
-  border-radius: 0.625rem !important;
+  border-radius: 0.45rem !important;
   cursor: pointer;
   text-align: left;
   position: relative;
   overflow: hidden;
   outline: none;
   z-index: 1;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1), z-index 0s;
+  transition: background 0.18s ease, color 0.18s ease, border-color 0.18s ease;
 }
 
 .wm-sidebar .wm-sidebar__item::before {
@@ -663,7 +667,7 @@
   opacity: 0;
   transition: opacity 0.3s ease;
   pointer-events: none;
-  border-radius: 0.625rem !important;
+  border-radius: 0.45rem !important;
 }
 
 .wm-sidebar .wm-sidebar__item:hover::before {
@@ -673,11 +677,11 @@
 .wm-sidebar .wm-sidebar__item:hover,
 .wm-sidebar .wm-sidebar__item:focus {
   color: #ffffff;
-  transform: translateX(2px);
-  border-color: rgba(94, 234, 212, 0.28);
-  background: rgba(255, 255, 255, 0.1);
+  transform: none;
+  border-color: rgba(94, 234, 212, 0.4);
+  background: rgba(15, 118, 110, 0.28);
   box-shadow: none;
-  z-index: 10;
+  z-index: 2;
 }
 
 .wm-sidebar .wm-sidebar__item:focus {
@@ -690,7 +694,7 @@
   color: #ffffff;
   background: rgba(15, 118, 110, 0.32);
   font-weight: 600;
-  transform: translateX(2px);
+  transform: none;
   border-color: rgba(94, 234, 212, 0.28);
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08);
 }
@@ -707,17 +711,17 @@
   display: none;
 }
 
-/* Icon */
+/* Icon — match Equity nested .item-icon */
 .wm-sidebar .wm-sidebar__icon-wrap {
-  width: 1.125rem;
-  height: 1.125rem;
+  width: 1.05rem;
+  height: 1.05rem;
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
   background: transparent;
   color: inherit;
-  transition: transform 0.2s ease;
+  opacity: 0.95;
 }
 
 .wm-sidebar .wm-sidebar__icon-wrap svg {
@@ -726,27 +730,29 @@
 }
 
 .wm-sidebar .wm-sidebar__item:hover .wm-sidebar__icon-wrap {
-  transform: scale(1.1);
+  transform: none;
 }
 
 .wm-sidebar .wm-sidebar__item.is-active .wm-sidebar__icon-wrap,
 .wm-sidebar .wm-sidebar__item.active .wm-sidebar__icon-wrap {
   background: transparent;
   color: inherit;
-  transform: scale(1.05);
+  transform: none;
+  opacity: 1;
 }
 
-/* Label */
+/* Label — match Equity category title / nested text */
 .wm-sidebar .wm-sidebar__label {
   flex: 1;
   min-width: 0;
-  font-size: 0.8125rem;
-  font-weight: 500;
-  line-height: 1.4;
+  font-family: inherit;
+  font-size: inherit;
+  font-weight: inherit;
+  line-height: 1.3;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  transition: color 0.2s, font-weight 0.2s;
+  transition: color 0.18s ease, font-weight 0.18s ease;
 }
 
 .wm-sidebar .wm-sidebar__item.is-active .wm-sidebar__label,
@@ -754,23 +760,9 @@
   font-weight: 600;
 }
 
-/* Right-side indicator dot — mirrors .item-indicator */
+/* Indicator — Equity hides .item-indicator; keep layout neutral */
 .wm-sidebar .wm-sidebar__active-dot {
-  width: 0.5rem;
-  height: 0.5rem;
-  background: rgba(255, 255, 255, 0.85);
-  border-radius: 50%;
-  opacity: 0;
-  transform: scale(0);
-  transition: all 0.3s ease;
-  flex-shrink: 0;
-  box-shadow: none;
-}
-
-.wm-sidebar .wm-sidebar__item.is-active .wm-sidebar__active-dot,
-.wm-sidebar .wm-sidebar__item.active .wm-sidebar__active-dot {
-  opacity: 1;
-  transform: scale(1);
+  display: none;
 }
 
 /* Empty state */
@@ -873,24 +865,25 @@
 /* =============================================================
    Responsive — mirrors equity sidebar breakpoints
    ============================================================= */
+/* Keep row height compact at all widths (Equity category rows do not grow) */
 @media (max-width: 900px) {
   .wm-sidebar .wm-sidebar__item {
-    padding: 0.875rem 1rem;
-    font-size: 0.8125rem;
+    padding: 0.45rem 0.55rem;
+    font-size: 0.8rem;
   }
   .wm-sidebar .wm-sidebar__icon-wrap {
-    width: 1.125rem;
-    height: 1.125rem;
+    width: 1.05rem;
+    height: 1.05rem;
   }
 }
 
 @media (max-width: 640px) {
   .wm-sidebar .wm-sidebar__item {
-    padding: 1rem;
-    margin: 0 0.25rem;
+    padding: 0.5rem 0.6rem;
+    margin: 0;
   }
   .wm-sidebar .wm-sidebar__label {
-    font-size: 0.875rem;
+    font-size: 0.8rem;
   }
 }
 

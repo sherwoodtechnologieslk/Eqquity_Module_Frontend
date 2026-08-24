@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import ClientSidebar from './ClientSidebar';
 import ClientNavbar from './ClientNavbar';
 import ClientDashboard from './ClientGateway/ClientDashboard';
@@ -27,6 +27,14 @@ import PreOnboardingContact from './PreOnboarding/PreOnboardingContact';
 import './Styles/ClientPortal.css';
 
 const ClientPortal = ({ user, onLogout }) => {
+  useEffect(() => {
+    const previousTitle = document.title;
+    document.title = 'Client Portal · Sherwood Wealth';
+    return () => {
+      document.title = previousTitle;
+    };
+  }, []);
+
   const [showSignup, setShowSignup] = useState(true);
   const [showPersonalForm, setShowPersonalForm] = useState(false);
   const [showContactForm, setShowContactForm] = useState(false);
@@ -1176,7 +1184,7 @@ const ClientPortal = ({ user, onLogout }) => {
           onTabChange={(tab) => setPreOnboardingTab(tab)}
           user={user}
         />
-        <div className="cp-funds-intro-root">
+        <div className="cp-funds-intro-root cp-funds-intro-root--site">
           {renderPreOnboardingContent()}
         </div>
       </>

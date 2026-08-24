@@ -1,0 +1,213 @@
+/**
+ * Shared Wealth Manager modal — use for detail, forms, and confirmations.
+ * Rendered via portal on document.body.
+ */
+
+.wm-modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1400;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 4.5rem 1.25rem 1.5rem;
+  overflow: auto;
+  background: rgba(15, 23, 42, 0.42);
+  backdrop-filter: blur(4px);
+}
+
+.wm-modal {
+  --ink: #14201c;
+  --text: #24312c;
+  --mute: #6b7872;
+  --line: #dde5e0;
+  --paper: #ffffff;
+  --wash: #f4f7f5;
+  --emerald: #16624d;
+  --emerald-dark: #104b3b;
+
+  width: min(100%, 720px);
+  margin: auto 0 1.5rem;
+  display: flex;
+  flex-direction: column;
+  max-height: calc(100vh - 6rem);
+  background: var(--paper);
+  border: 1px solid var(--line);
+  box-shadow: 0 24px 60px rgba(16, 32, 28, 0.22);
+  color: var(--ink);
+  font-family: 'DM Sans', 'Segoe UI', sans-serif;
+  border-radius: 0.9rem;
+}
+
+.wm-modal--sm {
+  width: min(100%, 440px);
+}
+
+.wm-modal--md {
+  width: min(100%, 560px);
+}
+
+.wm-modal--lg {
+  width: min(100%, 820px);
+}
+
+.wm-modal--xl {
+  width: min(100%, 1080px);
+}
+
+.wm-modal__head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1rem 1.15rem 0.9rem;
+  border-bottom: 1px solid var(--line);
+  background: var(--wash);
+  border-radius: 0.9rem 0.9rem 0 0;
+}
+
+.wm-modal__titles {
+  min-width: 0;
+}
+
+.wm-modal__eyebrow {
+  margin: 0 0 0.15rem;
+  font-size: 0.58rem;
+  font-weight: 700;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--emerald);
+}
+
+.wm-modal__title {
+  margin: 0;
+  font-size: 1.15rem;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  line-height: 1.2;
+  color: var(--ink);
+}
+
+.wm-modal__subtitle {
+  margin: 0.2rem 0 0;
+  font-size: 0.8rem;
+  color: var(--mute);
+}
+
+.wm-modal__head-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  flex: 0 0 auto;
+}
+
+.wm-modal__close {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  border: 1px solid #c9d5cf;
+  background: #fff;
+  color: var(--text);
+  cursor: pointer;
+  border-radius: 0.5rem;
+}
+
+.wm-modal__close:hover {
+  border-color: var(--emerald);
+  color: var(--emerald-dark);
+  background: #e9f4ef;
+}
+
+.wm-modal__body {
+  padding: 1rem 1.15rem 1.15rem;
+  overflow: auto;
+}
+
+.wm-modal__fields {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.75rem 0.85rem;
+}
+
+.wm-modal__field {
+  min-width: 0;
+}
+
+.wm-modal__field span {
+  display: block;
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--mute);
+}
+
+.wm-modal__field strong {
+  display: block;
+  margin-top: 0.2rem;
+  font-size: 0.9rem;
+  font-weight: 650;
+  color: var(--ink);
+  word-break: break-word;
+}
+
+.wm-modal__footer {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 0.45rem;
+  padding: 0.85rem 1.15rem;
+  border-top: 1px solid var(--line);
+  background: var(--wash);
+  border-radius: 0 0 0.9rem 0.9rem;
+}
+
+.wm-modal__btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 2rem;
+  padding: 0.4rem 0.85rem;
+  border: 1px solid #bfd3ca;
+  background: #e9f4ef;
+  color: var(--emerald-dark);
+  font: inherit;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  border-radius: 0.55rem;
+}
+
+.wm-modal__btn:hover {
+  border-color: var(--emerald);
+  background: #dfeee7;
+}
+
+.wm-modal__btn--solid {
+  border-color: var(--emerald);
+  background: var(--emerald);
+  color: #fff;
+}
+
+.wm-modal__btn--solid:hover {
+  border-color: var(--emerald-dark);
+  background: var(--emerald-dark);
+}
+
+@media (max-width: 800px) {
+  .wm-modal__fields {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 560px) {
+  .wm-modal-overlay {
+    padding: 1rem 0.7rem;
+  }
+
+  .wm-modal__fields {
+    grid-template-columns: 1fr;
+  }
+}

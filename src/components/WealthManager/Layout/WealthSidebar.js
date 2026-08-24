@@ -8,13 +8,44 @@ const WealthSidebar = ({
   activeIndex = 0,
   onLogout,
   onManagerChange,
-  isClientView = false,
-  onClientViewToggle,
 }) => {
   const [active, setActive] = useState(activeIndex);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [dropdownPosition, setDropdownPosition] = useState({ top: 0, left: 0, width: 0 });
   const dropdownButtonRef = useRef(null);
+
+  const openClientPortal = () => {
+    const url = new URL(window.location.href);
+    url.searchParams.set('clientPortal', '1');
+
+    // Chrome routes same-origin target=_blank into the installed
+    // "Create React App Sample" PWA window. localhost ↔ 127.0.0.1 are
+    // different origins, so this opens a real browser tab instead.
+    const host = url.hostname;
+    if (host === 'localhost' || host === '127.0.0.1') {
+      url.hostname = host === 'localhost' ? '127.0.0.1' : 'localhost';
+      const token = localStorage.getItem('token');
+      if (token) {
+        const handoff = {
+          token,
+          user: localStorage.getItem('user'),
+          authSession: localStorage.getItem('authSession'),
+        };
+        url.searchParams.set(
+          'cpHandoff',
+          btoa(unescape(encodeURIComponent(JSON.stringify(handoff))))
+        );
+      }
+    }
+
+    const link = document.createElement('a');
+    link.href = url.toString();
+    link.target = '_blank';
+    link.rel = 'noopener noreferrer';
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+  };
 
   useEffect(() => {
     setActive(activeIndex);
@@ -59,7 +90,6 @@ const WealthSidebar = ({
 
   return (
     <aside className="wm-sidebar" aria-label="Wealth navigation">
-      {/* Brand section — mirrors equity .sidebar-brand */}
       <div className="wm-sidebar__brand sidebar-brand">
         <div className="navbar-brand">
           <div className="brand-icon" aria-hidden="true">
@@ -150,58 +180,45 @@ const WealthSidebar = ({
                   </button>
                 </div>
               )}
-
             </div>
           </div>
         </div>
 
-        {onClientViewToggle && (
-          <div className="wm-portal-entry">
-            <div className="wm-portal-entry__meta">
-              <span className="wm-portal-entry__label">Client access</span>
-              <span className={`wm-portal-entry__status${isClientView ? ' is-on' : ''}`}>
-                {isClientView ? 'Active' : 'Admin'}
-              </span>
-            </div>
-            <button
-              type="button"
-              className={`wm-portal-entry__btn${isClientView ? ' is-on' : ''}`}
-              onClick={() => onClientViewToggle(!isClientView)}
-              title={isClientView ? 'Switch to Admin View' : 'Switch to Client View'}
-            >
-              <span className="wm-portal-entry__icon" aria-hidden>
-                {isClientView ? (
-                  <svg fill="currentColor" viewBox="0 0 20 20" width="15" height="15">
-                    <path
-                      fillRule="evenodd"
-                      d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z"
-                      clipRule="evenodd"
-                    />
-                  </svg>
-                ) : (
-                  <svg fill="currentColor" viewBox="0 0 20 20" width="15" height="15">
-                    <path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z" />
-                  </svg>
-                )}
-              </span>
-              <span className="wm-portal-entry__text">
-                {isClientView ? 'Admin View' : 'Client Portal'}
-              </span>
-              <span className="wm-portal-entry__chevron" aria-hidden>
-                <svg fill="currentColor" viewBox="0 0 20 20" width="12" height="12">
-                  <path
-                    fillRule="evenodd"
-                    d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z"
-                    clipRule="evenodd"
-                  />
-                </svg>
-              </span>
-            </button>
+        <div className="wm-portal-entry">
+          <div className="wm-portal-entry__meta">
+            <span className="wm-portal-entry__label">Client access</span>
           </div>
-        )}
+          <button
+            type="button"
+            className="wm-portal-entry__btn"
+            onClick={openClientPortal}
+            title="Open Client Portal in a new tab"
+          >
+            <span className="wm-portal-entry__icon" aria-hidden>
+              <svg fill="none" viewBox="0 0 20 20" width="15" height="15">
+                <path
+                  stroke="currentColor"
+                  strokeWidth="1.75"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M8 5H5a2 2 0 00-2 2v8a2 2 0 002 2h8a2 2 0 002-2v-3M11 3h6v6M10 10l7-7"
+                />
+              </svg>
+            </span>
+            <span className="wm-portal-entry__text">Client Portal</span>
+            <span className="wm-portal-entry__chevron" aria-hidden>
+              <svg fill="currentColor" viewBox="0 0 20 20" width="12" height="12">
+                <path
+                  fillRule="evenodd"
+                  d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z"
+                  clipRule="evenodd"
+                />
+              </svg>
+            </span>
+          </button>
+        </div>
       </div>
 
-      {/* Navigation Menu — mirrors equity .sidebar-content > .menu-section */}
       <div className="wm-sidebar__nav sidebar-content">
         <div className="menu-section">
           <h3 className="menu-title wm-sidebar__section-label">Navigation</h3>
@@ -232,7 +249,6 @@ const WealthSidebar = ({
         </div>
       </div>
 
-      {/* Footer — mirrors equity .sidebar-footer */}
       <div className="wm-sidebar__footer sidebar-footer">
         <div className="footer-content">
           {onLogout && (
