@@ -1,11 +1,20 @@
 import React, { useState, useEffect } from 'react';
 import './Styles/ScripDividendEntry.css';
 
-const ScripDividendEntry = () => {
+const ScripDividendEntry = ({ mode = 'split' }) => {
+  const isReverse = mode === 'reverse';
+  const title = isReverse ? 'Reverse Stock Split' : 'Stock Split';
+  const subtitle = isReverse
+    ? 'Record reverse stock splits and adjusted holdings'
+    : 'Record stock splits, bonus shares, and allotments';
+  const panelTitle = isReverse ? 'Reverse Split Information' : 'Stock Split Information';
+  const saveLabel = isReverse ? 'Save Reverse Split' : 'Save Stock Split';
+  const historyLabel = isReverse ? 'View Reverse Split History' : 'View Split History';
+
   const [form, setForm] = useState({
     securityCode: '',
     securityName: '',
-    dividendType: 'Stock (Scrip)',
+    dividendType: isReverse ? 'Reverse Stock Split' : 'Stock Split',
     declarationDate: '',
     exDividendDate: '',
     recordDate: '',
@@ -44,14 +53,14 @@ const ScripDividendEntry = () => {
     }
 
     console.log('Submitted:', form);
-    alert('Scrip dividend entry submitted successfully!');
+    alert(`${title} entry submitted successfully!`);
   };
 
   const handleReset = () => {
     setForm({
       securityCode: '',
       securityName: '',
-      dividendType: 'Stock (Scrip)',
+      dividendType: isReverse ? 'Reverse Stock Split' : 'Stock Split',
       declarationDate: '',
       exDividendDate: '',
       recordDate: '',
@@ -89,21 +98,16 @@ const ScripDividendEntry = () => {
     <div className="scrip-page-container">
       <div className="scrip-content-wrapper">
         <div className="scrip-header-section">
-          <div className="scrip-header-icon">
-            <svg className="scrip-icon" fill="currentColor" viewBox="0 0 20 20">
-              <path d="M4 4a2 2 0 00-2 2v1h16V6a2 2 0 00-2-2H4zM18 9H2v5a2 2 0 002 2h12a2 2 0 002-2V9zM4 13a1 1 0 011-1h1a1 1 0 110 2H5a1 1 0 01-1-1zm5-1a1 1 0 100 2h6a1 1 0 100-2H9z"/>
-            </svg>
-          </div>
           <div className="scrip-header-text-group">
-            <h1 className="scrip-main-title">Splits & Bonus</h1>
-            <p className="scrip-subtitle">Record stock dividends, splits, and bonus share allotments</p>
+            <p className="scrip-eyebrow">Corporate Actions</p>
+            <h1 className="scrip-main-title">{title}</h1>
+            <p className="scrip-subtitle">{subtitle}</p>
           </div>
         </div>
 
-        {/* Form Card */}
         <div className="scrip-form-card">
           <div className="scrip-card-header">
-            <h2 className="scrip-card-title">Stock Dividend Information</h2>
+            <h2 className="scrip-card-title">{panelTitle}</h2>
           </div>
 
           <div className="scrip-form-content">
@@ -136,15 +140,22 @@ const ScripDividendEntry = () => {
 
                 {/* Dividend Type */}
                 <div className="scrip-field-group">
-                  <label className="scrip-field-label">Dividend Type</label>
+                  <label className="scrip-field-label">Action Type</label>
                   <select
                     name="dividendType"
                     value={form.dividendType}
                     onChange={handleChange}
                     className="scrip-form-select"
                   >
-                    <option value="Stock (Scrip)">Stock (Scrip)</option>
-                    <option value="Cash">Cash</option>
+                    {isReverse ? (
+                      <option value="Reverse Stock Split">Reverse Stock Split</option>
+                    ) : (
+                      <>
+                        <option value="Stock Split">Stock Split</option>
+                        <option value="Bonus">Bonus</option>
+                        <option value="Stock (Scrip)">Stock (Scrip)</option>
+                      </>
+                    )}
                   </select>
                 </div>
 
@@ -198,7 +209,9 @@ const ScripDividendEntry = () => {
 
                 {/* Dividend Rate */}
                 <div className="scrip-field-group">
-                  <label className="scrip-field-label">Dividend Rate (%) *</label>
+                  <label className="scrip-field-label">
+                    {isReverse ? 'Split Ratio (%) *' : 'Split / Bonus Rate (%) *'}
+                  </label>
                   <input
                     name="dividendRate"
                     placeholder="e.g., 10"
@@ -222,7 +235,9 @@ const ScripDividendEntry = () => {
 
                 {/* Bonus Shares Received */}
                 <div className="scrip-field-group">
-                  <label className="scrip-field-label">Bonus Shares Received</label>
+                  <label className="scrip-field-label">
+                    {isReverse ? 'Adjusted Shares' : 'Bonus Shares Received'}
+                  </label>
                   <input
                     value={form.bonusSharesReceived}
                     readOnly
@@ -248,7 +263,11 @@ const ScripDividendEntry = () => {
                 <label className="scrip-field-label">Remarks & Notes</label>
                 <textarea
                   name="remarks"
-                  placeholder="Add any additional notes or remarks about this scrip dividend..."
+                  placeholder={
+                    isReverse
+                      ? 'Add notes about this reverse stock split...'
+                      : 'Add notes about this stock split...'
+                  }
                   value={form.remarks}
                   onChange={handleChange}
                   rows="4"
@@ -268,24 +287,19 @@ const ScripDividendEntry = () => {
                 <button
                   type="button"
                   className="scrip-btn scrip-btn-tertiary"
-                  onClick={() => alert('View Scrip History')}
+                  onClick={() => alert(historyLabel)}
                 >
-                  View Scrip History
+                  {historyLabel}
                 </button>
                 <button
                   type="submit"
                   className="scrip-btn scrip-btn-primary"
                 >
-                  Save Scrip Dividend
+                  {saveLabel}
                 </button>
               </div>
             </form>
           </div>
-        </div>
-
-        {/* Footer */}
-        <div className="scrip-footer-section">
-          <p>SHERWOOD TECHNOLOGIES (PVT) LTD • Secure scrip dividend management system • All data is encrypted and protected</p>
         </div>
       </div>
     </div>

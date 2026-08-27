@@ -72,13 +72,9 @@ const DividendEntry = () => {
     <div className="div-page-container">
       <div className="div-content-wrapper">
         <div className="div-header-section">
-          <div className="div-header-icon">
-            <svg className="div-icon" fill="currentColor" viewBox="0 0 20 20">
-<path d="M12 3L2 9h2v8h12V9h2L12 3zm0 2.84L17.16 9H6.84L12 5.84zM6 11h2v4H6v-4zm4 0h2v4h-2v-4zm4 0h2v4h-2v-4z"/>            </svg>
-            
-          </div>
           <div className="div-header-text-group">
-            <h1 className="div-main-title">Dividends</h1>
+            <p className="div-eyebrow">Corporate Actions</p>
+            <h1 className="div-main-title">Dividend</h1>
             <p className="div-subtitle">Record dividends declared for your holdings</p>
           </div>
         </div>
@@ -266,10 +262,7 @@ const DividendEntry = () => {
           </div>
         </div>
 
-        {/* Footer */}
-        <div className="div-footer-section">
-          <p>SHERWOOD TECHNOLOGIES (PVT) LTD • Secure dividend management system • All data is encrypted and protected</p>
-        </div>
+        {/* Footer removed — desk layout */}
       </div>
     </div>
   );
