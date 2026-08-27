@@ -161,28 +161,30 @@ function IncomeBasedPlanner() {
 }
 
 // ── Root ──────────────────────────────────────────────────────────────
-export default function SIPCalculator({ onGetStarted }) {
+export default function SIPCalculator({ onGetStarted, embedded = false }) {
   const [activeTab, setActiveTab] = useState('income');
 
   return (
-    <div className="sip-root">
-      <div className="sip-header">
-        <div className="sip-header-text">
-          <span className="sip-eyebrow">Investment Planner</span>
-          <h2 className="sip-heading">Plan smarter. Invest with purpose.</h2>
-          <p className="sip-lead">
-            Use our SIP calculator to see how disciplined monthly investing can build significant wealth over time.
-          </p>
+    <div className={`sip-root${embedded ? ' sip-root--embedded' : ''}`}>
+      {!embedded ? (
+        <div className="sip-header">
+          <div className="sip-header-text">
+            <span className="sip-eyebrow">Investment Planner</span>
+            <h2 className="sip-heading">Plan smarter. Invest with purpose.</h2>
+            <p className="sip-lead">
+              Use our SIP calculator to see how disciplined monthly investing can build significant wealth over time.
+            </p>
+          </div>
+          {onGetStarted && (
+            <button type="button" className="sip-header-cta" onClick={onGetStarted}>
+              Open an Account
+              <svg viewBox="0 0 20 20" fill="currentColor" width="15" height="15">
+                <path fillRule="evenodd" d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z" clipRule="evenodd"/>
+              </svg>
+            </button>
+          )}
         </div>
-        {onGetStarted && (
-          <button type="button" className="sip-header-cta" onClick={onGetStarted}>
-            Open an Account
-            <svg viewBox="0 0 20 20" fill="currentColor" width="15" height="15">
-              <path fillRule="evenodd" d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z" clipRule="evenodd"/>
-            </svg>
-          </button>
-        )}
-      </div>
+      ) : null}
 
       <div className="sip-tabs-wrap">
         <div className="sip-tabs">
@@ -236,7 +238,7 @@ export default function SIPCalculator({ onGetStarted }) {
             <div className="sip-how-step-body">
               <div className="sip-how-step-label">See your projection</div>
               <div className="sip-how-step-text">
-                Instantly see the required monthly SIP or your projected future wealth — then open an account to start investing.
+                Instantly see the required monthly SIP or your projected future wealth, then open an account to start investing.
               </div>
             </div>
           </div>
