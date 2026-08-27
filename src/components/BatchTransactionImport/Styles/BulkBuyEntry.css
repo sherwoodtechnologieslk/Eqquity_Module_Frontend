@@ -1,130 +1,135 @@
-/* Bulk Buy Transaction Entry — modern professional form layout.
-   Slate background, white section cards, green buy accents. */
+/* Bulk Buy Transaction Entry — desk layout (aligned with Buy Transaction Entry). */
 
-:root {
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700;9..40,800&display=swap');
+
+.bulk-buy-page-container {
   --bb-green: #059669;
   --bb-green-dark: #047857;
   --bb-green-light: #ecfdf5;
   --bb-green-border: #a7f3d0;
-  --bb-slate-bg: #f8fafc;
-  --bb-card-bg: #ffffff;
-  --bb-border: #e5e7eb;
-  --bb-text: #1e293b;
+  --bb-border: #e2e8f0;
+  --bb-text: #0f172a;
   --bb-muted: #64748b;
 }
 
-/* ---------- Page ---------- */
 .bulk-buy-page-container {
-  min-height: 100vh;
-  padding: 1.75rem 2rem 3rem;
+  min-height: auto;
+  margin: 0;
+  padding: 0.15rem 0 1.75rem;
   box-sizing: border-box;
-  background: var(--bb-slate-bg);
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  background: transparent;
+  font-family: 'DM Sans', 'Segoe UI', sans-serif;
   color: var(--bb-text);
 }
 
-.bulk-buy-content-wrapper {
-  max-width: 1280px;
-  margin: 0 auto;
+.bulk-buy-page-container *,
+.bulk-buy-page-container *::before,
+.bulk-buy-page-container *::after {
+  box-sizing: border-box;
+  font-style: normal;
 }
 
-/* ---------- Toolbar ---------- */
+.bulk-buy-content-wrapper {
+  max-width: none;
+  margin: 0;
+}
+
 .bulk-buy-toolbar {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: space-between;
-  gap: 1.5rem;
+  gap: 0.65rem 1rem;
   flex-wrap: wrap;
-  margin-bottom: 1.25rem;
+  margin-bottom: 0.55rem;
+  padding: 0 0.05rem 0.5rem;
+  border-bottom: 1px solid var(--bb-border);
 }
 
 .bulk-buy-toolbar__left {
   display: flex;
-  align-items: center;
-  gap: 1rem;
+  align-items: flex-start;
+  gap: 0.65rem;
   min-width: 0;
-}
-
-.bulk-buy-toolbar__badge {
-  flex-shrink: 0;
-  padding: 0.35rem 0.65rem;
-  background: linear-gradient(135deg, var(--bb-green-dark) 0%, var(--bb-green) 100%);
-  color: #ffffff;
-  font-size: 0.68rem;
-  font-weight: 800;
-  letter-spacing: 0.08em;
-  border-radius: 6px;
 }
 
 .bulk-buy-toolbar__heading {
   min-width: 0;
 }
 
+.bulk-buy-toolbar__eyebrow {
+  margin: 0 0 0.08rem;
+  font-size: 0.55rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--bb-green);
+}
+
 .bulk-buy-toolbar__title {
   margin: 0;
-  font-size: 1.45rem;
-  font-weight: 700;
+  font-size: clamp(1.05rem, 1.6vw, 1.25rem);
+  font-weight: 750;
   letter-spacing: -0.02em;
   color: #0f172a;
-  line-height: 1.2;
+  line-height: 1.15;
 }
 
 .bulk-buy-toolbar__subtitle {
   margin: 0.2rem 0 0;
-  font-size: 0.82rem;
+  font-size: 0.72rem;
   color: var(--bb-muted);
-  font-weight: 500;
+  font-weight: 400;
+  line-height: 1.35;
 }
 
 .bulk-buy-toolbar__actions {
   display: flex;
   align-items: center;
-  gap: 0.65rem;
+  gap: 0.5rem;
   flex-wrap: wrap;
 }
 
 .bulk-buy-deal-chip {
   font-family: 'SF Mono', 'Monaco', 'Courier New', monospace;
-  font-size: 0.72rem;
+  font-size: 0.7rem;
   font-weight: 600;
   color: var(--bb-green-dark);
   background: var(--bb-green-light);
   border: 1px solid var(--bb-green-border);
-  padding: 0.45rem 0.75rem;
-  border-radius: 8px;
+  padding: 0.32rem 0.55rem;
+  border-radius: 0.4rem;
   white-space: nowrap;
 }
 
-/* ---------- Live summary strip ---------- */
 .bulk-buy-live-summary {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 0.85rem;
-  margin-bottom: 1.25rem;
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
 }
 
 .bulk-buy-live-kpi {
-  background: var(--bb-card-bg);
+  background: #ffffff;
   border: 1px solid var(--bb-border);
-  border-radius: 12px;
-  padding: 0.85rem 1.1rem;
+  border-radius: 0.4rem;
+  padding: 0.55rem 0.75rem;
   display: flex;
   flex-direction: column;
-  gap: 0.3rem;
-  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+  gap: 0.2rem;
+  box-shadow: none;
 }
 
 .bulk-buy-live-kpi--accent {
-  background: linear-gradient(135deg, var(--bb-green-dark) 0%, var(--bb-green) 100%);
-  border-color: transparent;
+  background: var(--bb-green);
+  border-color: var(--bb-green-dark);
 }
 
 .bulk-buy-live-kpi__label {
-  font-size: 0.68rem;
-  font-weight: 600;
+  font-size: 0.55rem;
+  font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.06em;
-  color: #94a3b8;
+  letter-spacing: 0.14em;
+  color: #64748b;
 }
 
 .bulk-buy-live-kpi--accent .bulk-buy-live-kpi__label {
@@ -132,8 +137,8 @@
 }
 
 .bulk-buy-live-kpi__value {
-  font-size: 1.25rem;
-  font-weight: 700;
+  font-size: 1.05rem;
+  font-weight: 750;
   color: #0f172a;
   font-variant-numeric: tabular-nums;
   letter-spacing: -0.02em;
@@ -144,89 +149,84 @@
 }
 
 .bulk-buy-live-kpi__ccy {
-  font-size: 0.68rem;
+  font-size: 0.66rem;
   font-weight: 600;
   color: #94a3b8;
-  margin-right: 0.25rem;
+  margin-right: 0.2rem;
 }
 
 .bulk-buy-live-kpi--accent .bulk-buy-live-kpi__ccy {
   color: rgba(255, 255, 255, 0.8);
 }
 
-/* ---------- Form shell ---------- */
-.bulk-buy-form-shell {
-  display: flex;
-  flex-direction: column;
-}
-
+.bulk-buy-form-shell,
 .bulk-buy-form {
   display: flex;
   flex-direction: column;
-  gap: 1rem;
+  gap: 0.75rem;
 }
 
 .bulk-buy-section-card {
-  background: var(--bb-card-bg);
+  background: #ffffff;
   border: 1px solid var(--bb-border);
-  border-radius: 12px;
-  padding: 1.25rem 1.5rem 1.5rem;
-  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.06),
-    0 4px 16px rgba(15, 23, 42, 0.04);
+  border-radius: 0.4rem;
+  padding: 0.75rem 0.9rem 0.9rem;
+  box-shadow: none;
 }
 
-/* ---------- Section header ---------- */
 .bulk-buy-section-header {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
-  margin: 0 0 1.1rem;
-  padding-bottom: 0.75rem;
-  border-bottom: 1px solid #eef2f6;
-}
-
-.bulk-buy-section-header:first-of-type {
-  margin-top: 0;
+  gap: 0.5rem;
+  margin-bottom: 0.65rem;
+  padding-bottom: 0.4rem;
+  border-bottom: 1px solid var(--bb-border);
 }
 
 .bulk-buy-section-icon {
-  width: 2.25rem;
-  height: 2.25rem;
-  background: linear-gradient(135deg, var(--bb-green-dark) 0%, var(--bb-green) 100%);
-  border-radius: 8px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-  box-shadow: 0 2px 6px rgba(5, 150, 105, 0.2);
+  display: none;
 }
-
-.bulk-buy-section-icon.calculation {
-  background: linear-gradient(135deg, #065f46 0%, var(--bb-green-dark) 100%);
-}
-
-.bulk-buy-section-icon.payment {
-  background: linear-gradient(135deg, var(--bb-green) 0%, #34d399 100%);
-}
-
-.bulk-buy-section-icon-svg { width: 1.1rem; height: 1.1rem; color: #ffffff; }
 
 .bulk-buy-section-title {
-  font-size: 1rem;
+  font-size: 0.55rem;
   font-weight: 700;
-  color: #0f172a;
+  color: var(--bb-green);
   margin: 0;
-  letter-spacing: -0.01em;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
 }
 
-/* ---------- Section body grid ---------- */
+.bulk-buy-fee-structure-note {
+  margin-bottom: 0.75rem;
+  grid-column: 1 / -1;
+}
+
+.bulk-buy-fee-structure-info {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.45rem 0.65rem;
+  background: var(--bb-green-light);
+  border: 1px solid var(--bb-green-border);
+  border-radius: 0.4rem;
+  color: var(--bb-green-dark);
+  font-size: 0.74rem;
+  line-height: 1.4;
+}
+
+.bulk-buy-info-icon {
+  width: 1rem;
+  height: 1rem;
+  flex-shrink: 0;
+  color: var(--bb-green);
+}
+
 .bulk-buy-section {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 0.85rem 1rem;
+  gap: 0.65rem 0.75rem;
 }
 
-/* Field groups collapse so all fields flow into the 4-column grid */
 .bulk-buy-field-group {
   display: contents;
 }
@@ -234,53 +234,50 @@
 .bulk-buy-field-wrapper {
   display: flex;
   flex-direction: column;
-  gap: 0.35rem;
+  gap: 0.28rem;
   min-width: 0;
 }
 
-/* Full-width blocks inside a section */
-.bulk-buy-fee-structure-note,
 .bulk-buy-stepup-section,
 .bulk-buy-net-value-section {
   grid-column: 1 / -1;
 }
 
 .bulk-buy-field-label {
-  font-size: 0.74rem;
+  font-size: 0.7rem;
   font-weight: 600;
   color: #475569;
-  letter-spacing: 0.01em;
+  letter-spacing: 0;
 }
 
-/* ---------- Inputs ---------- */
 .bulk-buy-form-input,
 .bulk-buy-form-select {
   width: 100%;
-  padding: 0.55rem 0.7rem;
-  border: 1px solid #cbd5e1;
-  border-radius: 8px;
-  font-size: 0.85rem;
+  padding: 0.42rem 0.6rem;
+  border: 1px solid var(--bb-border);
+  border-radius: 0.4rem;
+  font-size: 0.8rem;
+  font-family: inherit;
   color: var(--bb-text);
   background: #ffffff;
-  transition: border-color 0.15s ease, box-shadow 0.15s ease;
   box-sizing: border-box;
 }
 
 .bulk-buy-form-input:hover,
 .bulk-buy-form-select:hover {
-  border-color: #94a3b8;
+  border-color: #cbd5e1;
 }
 
 .bulk-buy-form-input:focus,
 .bulk-buy-form-select:focus {
   outline: none;
   border-color: var(--bb-green);
-  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.14);
+  box-shadow: 0 0 0 3px rgba(5, 150, 105, 0.12);
 }
 
 .bulk-buy-form-input:disabled,
 .bulk-buy-form-select:disabled {
-  background: #f1f5f9;
+  background: #f8fafc;
   color: #94a3b8;
   cursor: not-allowed;
 }
@@ -291,12 +288,12 @@
   font-family: 'SF Mono', 'Monaco', 'Courier New', monospace;
   font-weight: 600;
   font-variant-numeric: tabular-nums;
-  border-color: #e2e8f0;
+  border-color: var(--bb-border);
 }
 
 .bulk-buy-form-input.calculated:focus {
   box-shadow: none;
-  border-color: #e2e8f0;
+  border-color: var(--bb-border);
 }
 
 .bulk-buy-form-input.error {
@@ -308,10 +305,9 @@
   box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.12) !important;
 }
 
-/* Equity selector */
 .bulk-buy-equity-selector {
   display: flex;
-  gap: 0.5rem;
+  gap: 0.4rem;
 }
 
 .bulk-buy-equity-selector .bulk-buy-form-input {
@@ -323,17 +319,18 @@
 .bulk-buy-equity-select-btn {
   display: inline-flex;
   align-items: center;
-  gap: 0.35rem;
-  padding: 0 0.85rem;
+  gap: 0.3rem;
+  padding: 0 0.75rem;
   background: var(--bb-green);
   color: #ffffff;
-  border: none;
-  border-radius: 8px;
-  font-size: 0.8rem;
-  font-weight: 600;
+  border: 1px solid var(--bb-green-dark);
+  border-radius: 0.4rem;
+  font-size: 0.76rem;
+  font-weight: 700;
+  font-family: inherit;
   cursor: pointer;
   white-space: nowrap;
-  transition: background 0.15s ease;
+  box-shadow: none;
 }
 
 .bulk-buy-equity-select-btn:hover:not(:disabled) {
@@ -341,151 +338,121 @@
 }
 
 .bulk-buy-equity-select-btn:disabled {
-  opacity: 0.6;
+  opacity: 0.55;
   cursor: not-allowed;
 }
 
 .bulk-buy-equity-select-icon {
-  width: 0.9rem;
-  height: 0.9rem;
+  width: 0.85rem;
+  height: 0.85rem;
 }
 
-/* Deal number */
 .bulk-buy-deal-number-container {
   display: flex;
-  gap: 0.5rem;
+  gap: 0.4rem;
 }
 
 .bulk-buy-deal-number-input {
   flex: 1;
   font-family: 'SF Mono', 'Monaco', 'Courier New', monospace;
-  font-size: 0.78rem;
+  font-size: 0.76rem;
 }
 
 .bulk-buy-regenerate-deal-number-btn {
-  padding: 0 0.85rem;
-  font-size: 0.75rem;
+  padding: 0 0.65rem;
+  font-size: 0.72rem;
   white-space: nowrap;
 }
 
-/* Fee structure note */
-.bulk-buy-fee-structure-note {
-  margin-bottom: 0.25rem;
-}
-
-.bulk-buy-fee-structure-info {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.65rem 0.85rem;
-  background: var(--bb-green-light);
-  border: 1px solid var(--bb-green-border);
-  border-radius: 8px;
-  color: var(--bb-green-dark);
-  font-size: 0.78rem;
-  line-height: 1.4;
-}
-
-.bulk-buy-info-icon {
-  width: 1.1rem;
-  height: 1.1rem;
-  flex-shrink: 0;
-  color: var(--bb-green);
-}
-
-/* ---------- Net value highlight ---------- */
-.bulk-buy-net-value-section {
-  display: flex;
-  justify-content: flex-start;
-  margin-top: 0.5rem;
-}
-
+.bulk-buy-net-value-section,
 .bulk-buy-net-value-section.left-align {
+  display: flex;
   justify-content: flex-start;
+  margin-top: 0.75rem;
 }
 
 .bulk-buy-net-value-card {
-  background: linear-gradient(135deg, var(--bb-green-dark) 0%, var(--bb-green) 100%);
-  border-radius: 12px;
-  padding: 0.85rem 1.25rem;
-  min-width: 240px;
-  box-shadow: 0 4px 14px rgba(5, 150, 105, 0.25);
+  background: var(--bb-green);
+  border: 1px solid var(--bb-green-dark);
+  border-radius: 0.4rem;
+  padding: 0.65rem 0.9rem;
+  min-width: 200px;
+  box-shadow: none;
 }
 
 .bulk-buy-net-value-label {
   display: block;
-  font-size: 0.68rem;
-  font-weight: 600;
+  font-size: 0.55rem;
+  font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.06em;
+  letter-spacing: 0.14em;
   color: rgba(255, 255, 255, 0.85);
-  margin-bottom: 0.35rem;
+  margin-bottom: 0.25rem;
 }
 
 .bulk-buy-net-value-amount {
-  font-size: 1.5rem;
-  font-weight: 800;
+  font-size: 1.2rem;
+  font-weight: 750;
   color: #ffffff;
   font-variant-numeric: tabular-nums;
   letter-spacing: -0.02em;
 }
 
 .bulk-buy-net-value-currency {
-  font-size: 0.75rem;
+  font-size: 0.7rem;
   font-weight: 600;
   opacity: 0.85;
-  margin-right: 0.35rem;
+  margin-right: 0.3rem;
 }
 
-/* ---------- Selected account info ---------- */
 .bulk-buy-selected-account-info {
-  margin-top: 0.6rem;
-  padding: 0.85rem 1rem;
+  margin-top: 0.65rem;
+  padding: 0.6rem 0.75rem;
   background: var(--bb-green-light);
   border: 1px solid var(--bb-green-border);
-  border-radius: 8px;
+  border-radius: 0.4rem;
 }
 
 .bulk-buy-account-info-header {
   display: flex;
   align-items: center;
-  gap: 0.45rem;
-  margin-bottom: 0.6rem;
+  gap: 0.4rem;
+  margin-bottom: 0.45rem;
   font-weight: 700;
-  font-size: 0.8rem;
+  font-size: 0.76rem;
   color: var(--bb-green-dark);
 }
 
 .bulk-buy-account-info-icon {
-  width: 1rem;
-  height: 1rem;
+  width: 0.95rem;
+  height: 0.95rem;
   color: var(--bb-green);
 }
 
 .bulk-buy-account-info-details {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 0.4rem 1rem;
-  margin-bottom: 0.75rem;
-  font-size: 0.78rem;
+  gap: 0.3rem 0.85rem;
+  margin-bottom: 0.6rem;
+  font-size: 0.74rem;
   color: #475569;
 }
 
 .bulk-buy-account-info-details strong {
   color: #334155;
-  margin-right: 0.35rem;
+  margin-right: 0.3rem;
 }
 
 .bulk-buy-change-account-btn {
   background: transparent;
   color: var(--bb-green-dark);
   border: 1px solid var(--bb-green-border);
-  padding: 0.4rem 0.75rem;
-  border-radius: 6px;
-  font-size: 0.75rem;
-  font-weight: 600;
+  padding: 0.28rem 0.65rem;
+  border-radius: 0.4rem;
+  font-size: 0.72rem;
+  font-weight: 700;
+  font-family: inherit;
   cursor: pointer;
-  transition: all 0.15s ease;
 }
 
 .bulk-buy-change-account-btn:hover {
@@ -493,18 +460,17 @@
   border-color: var(--bb-green);
 }
 
-/* ---------- Step-up table ---------- */
 .bulk-buy-stepup-section {
-  margin-top: 0.5rem;
-  padding: 1rem;
+  margin-top: 0.85rem;
+  padding: 0.75rem;
   background: #f8fafc;
-  border: 1px solid #e2e8f0;
-  border-radius: 10px;
+  border: 1px solid var(--bb-border);
+  border-radius: 0.4rem;
 }
 
 .bulk-buy-stepup-header h4 {
-  margin: 0 0 0.85rem;
-  font-size: 0.9rem;
+  margin: 0 0 0.65rem;
+  font-size: 0.76rem;
   font-weight: 700;
   color: var(--bb-green-dark);
 }
@@ -516,25 +482,25 @@
 .bulk-buy-stepup-table {
   width: 100%;
   border-collapse: collapse;
-  font-size: 0.82rem;
+  font-size: 0.76rem;
   background: #ffffff;
-  border-radius: 8px;
+  border-radius: 0.4rem;
   overflow: hidden;
-  border: 1px solid #e2e8f0;
+  border: 1px solid var(--bb-border);
 }
 
 .bulk-buy-stepup-table th,
 .bulk-buy-stepup-table td {
-  padding: 0.65rem 0.85rem;
+  padding: 0.45rem 0.65rem;
   text-align: right;
   border-bottom: 1px solid #eef2f6;
 }
 
 .bulk-buy-stepup-table th {
-  background: #f8fafc;
+  background: #fcfdff;
   color: #64748b;
   font-weight: 700;
-  font-size: 0.68rem;
+  font-size: 0.66rem;
   text-transform: uppercase;
   letter-spacing: 0.05em;
   text-align: center;
@@ -552,81 +518,76 @@
 }
 
 .bulk-buy-stepup-grandtotal-row td {
-  background: linear-gradient(135deg, var(--bb-green-dark) 0%, var(--bb-green) 100%);
+  background: var(--bb-green);
   font-weight: 700;
   color: #ffffff;
   border-bottom: none;
 }
 
 .bulk-buy-stepup-note {
-  margin-top: 0.65rem;
-  font-size: 0.72rem;
+  margin-top: 0.5rem;
+  font-size: 0.7rem;
   color: var(--bb-muted);
   line-height: 1.45;
-  font-style: italic;
 }
 
-/* ---------- Buttons ---------- */
 .bulk-buy-button-section {
   display: flex;
   align-items: center;
   justify-content: flex-end;
-  gap: 0.75rem;
-  padding: 1.25rem 1.5rem;
-  background: var(--bb-card-bg);
+  gap: 0.5rem;
+  padding: 0.7rem 0.9rem;
+  background: #ffffff;
   border: 1px solid var(--bb-border);
-  border-radius: 12px;
-  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.06);
+  border-radius: 0.4rem;
+  box-shadow: none;
 }
 
 .bulk-buy-btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 0.4rem;
-  padding: 0.65rem 1.25rem;
-  border-radius: 8px;
-  font-size: 0.85rem;
-  font-weight: 600;
+  gap: 0.35rem;
+  padding: 0.35rem 0.9rem;
+  border-radius: 0.4rem;
+  font-size: 0.76rem;
+  font-weight: 700;
+  font-family: inherit;
   cursor: pointer;
-  border: none;
-  transition: all 0.16s ease;
+  border: 1px solid transparent;
   white-space: nowrap;
+  box-shadow: none;
 }
 
 .bulk-buy-btn:focus {
   outline: none;
-  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.2);
 }
 
 .bulk-buy-btn-primary {
   background: var(--bb-green);
   color: #ffffff;
-  box-shadow: 0 1px 2px rgba(5, 150, 105, 0.25);
+  border-color: var(--bb-green-dark);
 }
 
 .bulk-buy-btn-primary:hover {
   background: var(--bb-green-dark);
-  transform: translateY(-1px);
-  box-shadow: 0 4px 10px rgba(5, 150, 105, 0.28);
 }
 
 .bulk-buy-btn-secondary {
   background: #ffffff;
   color: #475569;
-  border: 1px solid #cbd5e1;
+  border-color: var(--bb-border);
 }
 
 .bulk-buy-btn-secondary:hover {
   background: #f8fafc;
-  border-color: #94a3b8;
   color: #0f172a;
 }
 
 .bulk-buy-btn-tertiary {
-  background: #f1f5f9;
+  background: #f8fafc;
   color: #475569;
-  border: 1px solid #e2e8f0;
+  border-color: var(--bb-border);
 }
 
 .bulk-buy-btn-tertiary:hover {
@@ -634,79 +595,72 @@
   color: #0f172a;
 }
 
-/* ---------- Date errors ---------- */
 .bulk-buy-date-error-message {
   display: flex;
   align-items: flex-start;
-  gap: 0.35rem;
-  margin-top: 0.25rem;
-  padding: 0.45rem 0.55rem;
+  gap: 0.3rem;
+  margin-top: 0.2rem;
+  padding: 0.35rem 0.5rem;
   background: #fef2f2;
   border: 1px solid #fecaca;
-  border-radius: 6px;
+  border-radius: 0.4rem;
   color: #991b1b;
-  font-size: 0.72rem;
+  font-size: 0.7rem;
   font-weight: 500;
 }
 
 .bulk-buy-error-icon {
-  width: 1rem;
-  height: 1rem;
+  width: 0.95rem;
+  height: 0.95rem;
   flex-shrink: 0;
 }
 
-/* ---------- Responsive ---------- */
 @media (max-width: 1100px) {
-  .bulk-buy-section {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
+  .bulk-buy-section,
   .bulk-buy-live-summary {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 
 @media (max-width: 768px) {
-  .bulk-buy-page-container {
-    padding: 1rem 1rem 2rem;
-  }
   .bulk-buy-toolbar {
     align-items: stretch;
   }
-  .bulk-buy-section {
-    grid-template-columns: 1fr;
+
+  .bulk-buy-toolbar__actions {
+    width: 100%;
+    justify-content: flex-end;
   }
+
+  .bulk-buy-section,
   .bulk-buy-live-summary {
     grid-template-columns: 1fr;
   }
+
   .bulk-buy-section-card {
-    padding: 1rem;
+    padding: 0.7rem;
   }
+
   .bulk-buy-button-section {
     flex-direction: column;
     align-items: stretch;
   }
+
   .bulk-buy-btn {
     width: 100%;
   }
+
   .bulk-buy-equity-selector,
   .bulk-buy-deal-number-container {
     flex-direction: column;
   }
-  .bulk-buy-net-value-card {
-    width: 100%;
-    min-width: auto;
-  }
+
   .bulk-buy-account-info-details {
     grid-template-columns: 1fr;
   }
-}
 
-@media (max-width: 480px) {
-  .bulk-buy-toolbar__title {
-    font-size: 1.2rem;
-  }
-  .bulk-buy-deal-chip {
-    font-size: 0.65rem;
-    padding: 0.35rem 0.5rem;
+  .bulk-buy-net-value-card {
+    width: 100%;
+    min-width: auto;
   }
 }
