@@ -482,6 +482,71 @@
   box-shadow: none;
 }
 
+.pptm-modal-content-bulk {
+  max-width: 820px;
+}
+
+.pptm-note-inline {
+  margin-top: 0.65rem;
+}
+
+.pptm-bulk-table th:last-child,
+.pptm-bulk-table td:last-child {
+  min-width: 7.5rem;
+}
+
+.pptm-bulk-status {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.1rem 0.45rem;
+  border-radius: 999px;
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.pptm-bulk-status-pending {
+  background: #f8fafc;
+  color: #64748b;
+  border: 1px solid #e2e8f0;
+}
+
+.pptm-bulk-status-posting {
+  background: var(--pptm-accent-soft);
+  color: var(--pptm-accent-strong);
+  border: 1px solid var(--pptm-accent-border);
+}
+
+.pptm-bulk-status-posted {
+  background: #ecfdf5;
+  color: #047857;
+  border: 1px solid #a7f3d0;
+}
+
+.pptm-bulk-status-failed {
+  background: #fef2f2;
+  color: #b91c1c;
+  border: 1px solid #fecaca;
+}
+
+.pptm-bulk-status-msg {
+  margin-top: 0.2rem;
+  font-size: 0.62rem;
+  color: #b91c1c;
+  font-weight: 500;
+  text-transform: none;
+  letter-spacing: 0;
+  line-height: 1.3;
+}
+
+.pptm-progress-label {
+  margin-right: auto;
+  font-size: 0.72rem;
+  color: var(--pptm-muted);
+  font-weight: 600;
+}
+
 @media (max-width: 640px) {
   .pptm-form-grid,
   .pptm-summary-grid,

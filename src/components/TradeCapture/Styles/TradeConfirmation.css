@@ -1,6 +1,8 @@
-/* Trade Confirmation — modern professional layout.
-   Slate background, white rounded cards, blue base with green/rose buy-sell accents.
+/* Trade Confirmation — Equity desk layout.
+   Flat rails/cards, DM Sans, blue base with green/rose buy-sell accents.
    (Styles only — markup/class names unchanged.) */
+
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700;9..40,800&display=swap');
 
 .tc-container {
   --tc-accent: #2563eb;
@@ -11,18 +13,19 @@
   --tc-buy-dark: #047857;
   --tc-sell: #e11d48;
   --tc-sell-dark: #9f1239;
-  --tc-bg: #f8fafc;
+  --tc-bg: transparent;
   --tc-card: #ffffff;
-  --tc-border: #e5e7eb;
-  --tc-text: #1e293b;
+  --tc-border: #e2e8f0;
+  --tc-text: #0f172a;
   --tc-muted: #64748b;
+  --tc-radius: 0.4rem;
 
   /* Compact layout tokens */
-  --tc-page-pad-y: 1rem;
-  --tc-page-pad-x: 0.75rem;
-  --tc-section-gap: 0.85rem;
-  --tc-card-pad: 0.85rem 1rem;
-  --tc-fs-title: 1.15rem;
+  --tc-page-pad-y: 0.15rem;
+  --tc-page-pad-x: 0;
+  --tc-section-gap: 0.75rem;
+  --tc-card-pad: 0.75rem 0.9rem;
+  --tc-fs-title: clamp(1.05rem, 1.6vw, 1.25rem);
   --tc-fs-section: 0.88rem;
   --tc-fs-body: 0.78rem;
   --tc-fs-table: 0.72rem;
@@ -33,52 +36,51 @@
   /* Content width — full main area; compact tokens control text/cell size only */
   --tc-content-max-width: none;
 
-  min-height: 100vh;
-  padding: var(--tc-page-pad-y) var(--tc-page-pad-x) 1.5rem;
+  min-height: auto;
+  padding: 0.15rem 0 1.75rem;
   box-sizing: border-box;
   width: 100%;
   max-width: var(--tc-content-max-width);
   margin: 0 auto;
-  background-color: var(--tc-bg);
+  background: transparent;
   color: var(--tc-text);
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  font-family: 'DM Sans', 'Segoe UI', sans-serif;
   font-size: var(--tc-fs-body);
+}
+
+.tc-container *,
+.tc-container *::before,
+.tc-container *::after {
+  box-sizing: border-box;
 }
 
 /* ---------- Header / Toolbar ---------- */
 .tc-header-section {
   display: flex;
   justify-content: space-between;
-  align-items: center;
+  align-items: flex-start;
   flex-wrap: wrap;
   gap: 0.65rem 1rem;
-  margin-bottom: var(--tc-section-gap);
-  padding: var(--tc-card-pad);
+  margin-bottom: 0.55rem;
+  padding: 0 0.05rem 0.5rem;
   text-align: left;
-  background: var(--tc-card);
-  border: 1px solid var(--tc-border);
-  border-radius: 12px;
-  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.06), 0 4px 16px rgba(15, 23, 42, 0.04);
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid var(--tc-border);
+  border-radius: 0;
+  box-shadow: none;
 }
 
 .tc-header-left {
   display: flex;
-  align-items: center;
-  gap: 1rem;
+  align-items: flex-start;
+  gap: 0.65rem;
   flex: 1;
   min-width: min(100%, 16rem);
 }
 
 .tc-header-icon-wrap {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 2.35rem;
-  height: 2.35rem;
-  background: linear-gradient(135deg, var(--tc-accent-strong) 0%, var(--tc-accent) 100%);
-  border-radius: 8px;
-  flex-shrink: 0;
-  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.25);
+  display: none;
 }
 
 .tc-header-icon {
@@ -90,32 +92,43 @@
 .tc-header-text-group {
   display: flex;
   flex-direction: column;
-  gap: 0.2rem;
+  gap: 0.08rem;
   min-width: 0;
+}
+
+.tc-eyebrow {
+  margin: 0 0 0.08rem;
+  font-size: 0.55rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #2563eb;
+  line-height: 1.2;
 }
 
 .tc-main-title {
   font-size: var(--tc-fs-title);
-  font-weight: 700;
+  font-weight: 750;
   color: #0f172a;
   margin: 0;
-  line-height: 1.2;
+  line-height: 1.15;
   letter-spacing: -0.02em;
 }
 
 .tc-subtitle {
-  font-size: 0.75rem;
+  font-size: 0.72rem;
   color: var(--tc-muted);
-  margin: 0;
-  font-weight: 500;
-  line-height: 1.45;
+  margin: 0.2rem 0 0;
+  font-weight: 400;
+  line-height: 1.35;
 }
 
 .tc-header-right {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
+  gap: 0.5rem;
   flex-shrink: 0;
+  flex-wrap: wrap;
 }
 
 .tc-trade-report-export {
@@ -129,18 +142,19 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 0.45rem;
-  min-height: 2.35rem;
-  padding: 0.55rem 1rem;
-  border-radius: 8px;
+  gap: 0.4rem;
+  min-height: 2rem;
+  padding: 0.4rem 0.75rem;
+  border-radius: 0.4rem;
+  font-family: inherit;
   font-size: 0.75rem;
   font-weight: 600;
   letter-spacing: 0;
   text-transform: none;
   cursor: pointer;
-  transition: background 0.16s ease, border-color 0.16s ease, color 0.16s ease,
-    transform 0.16s ease, box-shadow 0.16s ease;
-  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.05);
+  transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+  box-shadow: none;
+  transform: none;
 }
 
 .tc-trade-report-export .fre-export-btn::before {
@@ -154,9 +168,9 @@
 }
 
 .tc-trade-report-export .fre-export-excel {
-  background: linear-gradient(180deg, #f0fdf4 0%, #ecfdf5 100%);
+  background: #ecfdf5;
   color: #047857;
-  border: 1px solid #86efac;
+  border: 1px solid #a7f3d0;
 }
 
 .tc-trade-report-export .fre-export-excel::before {
@@ -164,17 +178,17 @@
 }
 
 .tc-trade-report-export .fre-export-excel:hover:not(:disabled) {
-  background: linear-gradient(180deg, #dcfce7 0%, #d1fae5 100%);
-  border-color: #4ade80;
+  background: #d1fae5;
+  border-color: #6ee7b7;
   color: #065f46;
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(5, 150, 105, 0.18);
+  transform: none;
+  box-shadow: none;
 }
 
 .tc-trade-report-export .fre-export-pdf {
-  background: linear-gradient(180deg, #fff1f2 0%, #ffe4e6 100%);
+  background: #fff1f2;
   color: #be123c;
-  border: 1px solid #fda4af;
+  border: 1px solid #fecdd3;
 }
 
 .tc-trade-report-export .fre-export-pdf::before {
@@ -182,11 +196,11 @@
 }
 
 .tc-trade-report-export .fre-export-pdf:hover:not(:disabled) {
-  background: linear-gradient(180deg, #ffe4e6 0%, #fecdd3 100%);
-  border-color: #fb7185;
+  background: #ffe4e6;
+  border-color: #fda4af;
   color: #9f1239;
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(225, 29, 72, 0.16);
+  transform: none;
+  box-shadow: none;
 }
 
 .tc-trade-report-export .fre-export-btn:disabled {
@@ -221,19 +235,20 @@
   gap: 2px;
   font-size: 0.72rem;
   color: var(--tc-muted);
-  background: #f8fafc;
-  padding: 0.4rem 0.7rem;
-  border-radius: 8px;
+  background: #ffffff;
+  padding: 0.32rem 0.55rem;
+  border-radius: 0.4rem;
   border: 1px solid var(--tc-border);
   text-align: right;
+  box-shadow: none;
 }
 
 .tc-header-meta-label {
-  font-weight: 600;
+  font-weight: 700;
   color: #94a3b8;
-  font-size: 0.62rem;
+  font-size: 0.55rem;
   text-transform: uppercase;
-  letter-spacing: 0.06em;
+  letter-spacing: 0.14em;
 }
 
 .tc-header-meta-value {
@@ -258,15 +273,15 @@
 
   .tc-header-left {
     flex-direction: row;
-    align-items: center;
+    align-items: flex-start;
   }
 
   .tc-header-right {
     flex-wrap: wrap;
     justify-content: flex-start;
-    padding-top: 0.75rem;
+    padding-top: 0.55rem;
     border-top: 1px solid var(--tc-border);
-    margin-top: 0.25rem;
+    margin-top: 0.15rem;
   }
 
   .tc-header-meta-badge {
@@ -278,35 +293,36 @@
 /* ---------- Tabs ---------- */
 .tc-tabs-card {
   background: var(--tc-card);
-  border-radius: 12px;
-  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.05);
+  border-radius: 0.4rem;
+  box-shadow: none;
   border: 1px solid var(--tc-border);
-  margin-bottom: 1.25rem;
+  margin-bottom: var(--tc-section-gap);
   overflow: hidden;
 }
 
 .tc-tabs {
   display: flex;
-  gap: 0.25rem;
-  padding: 0.4rem;
+  gap: 0.15rem;
+  padding: 0.3rem;
   background: var(--tc-card);
   flex-wrap: wrap;
 }
 
 .tc-tab {
-  padding: 0.55rem 1.1rem;
+  padding: 0.4rem 0.8rem;
   background: transparent;
   border: none;
-  border-radius: 8px;
+  border-radius: 0.4rem;
   font-family: inherit;
-  font-size: 0.9rem;
-  font-weight: 400;
+  font-size: var(--tc-fs-body);
+  font-weight: 500;
   font-style: normal;
   letter-spacing: normal;
   text-transform: none;
   color: var(--tc-muted);
   cursor: pointer;
-  transition: all 0.15s ease;
+  transition: background 0.15s ease, color 0.15s ease;
+  box-shadow: none;
 }
 
 .tc-tab:hover {
@@ -316,24 +332,24 @@
 
 .tc-tab-active {
   color: #ffffff;
-  background: linear-gradient(135deg, var(--tc-accent-strong) 0%, var(--tc-accent) 100%);
-  font-weight: 500;
+  background: #2563eb;
+  font-weight: 600;
   font-style: normal;
   letter-spacing: normal;
   text-transform: none;
-  box-shadow: 0 2px 6px rgba(37, 99, 235, 0.28);
+  box-shadow: none;
 }
 
 .tc-tab-active:hover {
   color: #ffffff;
-  background: linear-gradient(135deg, var(--tc-accent-strong) 0%, var(--tc-accent) 100%);
+  background: #2563eb;
 }
 
 .tc-tab-content {
   background: transparent;
   border-radius: 0;
   padding: 0;
-  min-height: 400px;
+  min-height: 280px;
   box-shadow: none;
   border: none;
 }
@@ -342,49 +358,50 @@
 .tc-by-date-report {
   display: flex;
   flex-direction: column;
-  gap: 1.25rem;
+  gap: var(--tc-section-gap);
 }
 
 .tc-by-date-controls {
   display: flex;
   flex-wrap: wrap;
   align-items: flex-end;
-  gap: 1rem 1.5rem;
-  padding: 1rem 1.25rem;
+  gap: 0.75rem 1.25rem;
+  padding: var(--tc-card-pad);
   background: var(--tc-card);
   border: 1px solid var(--tc-border);
-  border-radius: 12px;
-  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.05);
+  border-radius: 0.4rem;
+  box-shadow: none;
 }
 
 .tc-by-date-field {
   display: flex;
   flex-direction: column;
-  gap: 0.35rem;
+  gap: 0.3rem;
 }
 
 .tc-by-date-field label {
-  font-size: 0.78rem;
-  font-weight: 600;
+  font-size: 0.55rem;
+  font-weight: 700;
   color: var(--tc-muted);
   text-transform: uppercase;
-  letter-spacing: 0.04em;
+  letter-spacing: 0.14em;
 }
 
 .tc-by-date-input {
   min-width: 11rem;
-  padding: 0.55rem 0.75rem;
+  padding: 0.45rem 0.65rem;
   border: 1px solid var(--tc-border);
-  border-radius: 8px;
-  font-size: 0.9rem;
+  border-radius: 0.4rem;
+  font-size: 0.85rem;
   color: var(--tc-text);
   background: #fff;
   font-family: inherit;
+  box-shadow: none;
 }
 
 .tc-by-date-input:focus {
   outline: none;
-  border-color: var(--tc-accent-border);
+  border-color: var(--tc-accent);
   box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
 }
 
@@ -392,7 +409,7 @@
   margin: 0;
   flex: 1;
   min-width: min(100%, 14rem);
-  font-size: 0.75rem;
+  font-size: var(--tc-fs-body);
   color: var(--tc-muted);
   line-height: 1.5;
   padding-bottom: 0.15rem;
@@ -417,47 +434,47 @@
 .tc-update-summary {
   display: flex;
   flex-direction: column;
-  gap: 1.25rem;
+  gap: var(--tc-section-gap);
 }
 
 .tc-update-summary-header {
   background: var(--tc-card);
   border: 1px solid var(--tc-border);
-  border-radius: 12px;
-  padding: 1.1rem 1.4rem;
-  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.05);
+  border-radius: 0.4rem;
+  padding: var(--tc-card-pad);
+  box-shadow: none;
 }
 
 .tc-update-summary-header h2 {
-  font-size: 1.2rem;
+  font-size: var(--tc-fs-section);
   font-weight: 700;
   color: #0f172a;
-  margin: 0 0 0.3rem 0;
+  margin: 0 0 0.25rem 0;
   letter-spacing: -0.01em;
 }
 
 .tc-update-summary-header p {
   margin: 0;
   color: var(--tc-muted);
-  font-size: 0.85rem;
+  font-size: var(--tc-fs-body);
   line-height: 1.55;
 }
 
 .tc-update-summary-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-  gap: 1.25rem;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: var(--tc-section-gap);
 }
 
 .tc-update-card {
-  border-radius: 12px;
-  padding: 1.25rem;
+  border-radius: 0.4rem;
+  padding: var(--tc-card-pad);
   border: 1px solid var(--tc-border);
   background: var(--tc-card);
-  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.06), 0 4px 16px rgba(15, 23, 42, 0.04);
+  box-shadow: none;
   display: flex;
   flex-direction: column;
-  gap: 1rem;
+  gap: 0.65rem;
   position: relative;
   overflow: hidden;
 }
@@ -468,15 +485,15 @@
   top: 0;
   left: 0;
   right: 0;
-  height: 4px;
+  height: 3px;
 }
 
 .tc-update-card-buy::before {
-  background: linear-gradient(90deg, var(--tc-buy-dark), var(--tc-buy));
+  background: var(--tc-buy);
 }
 
 .tc-update-card-sell::before {
-  background: linear-gradient(90deg, var(--tc-sell-dark), var(--tc-sell));
+  background: var(--tc-sell);
 }
 
 .tc-update-card-header {
@@ -487,7 +504,7 @@
 }
 
 .tc-update-card-header h3 {
-  font-size: 0.95rem;
+  font-size: var(--tc-fs-section);
   font-weight: 700;
   color: #0f172a;
   margin: 0;
@@ -495,13 +512,13 @@
 }
 
 .tc-update-count {
-  font-size: 0.7rem;
+  font-size: 0.62rem;
   color: var(--tc-muted);
   font-weight: 600;
   letter-spacing: 0.03em;
-  background: #f1f5f9;
-  padding: 0.3rem 0.7rem;
-  border-radius: 999px;
+  background: #f8fafc;
+  padding: 0.2rem 0.55rem;
+  border-radius: 0.4rem;
   border: 1px solid var(--tc-border);
   white-space: nowrap;
 }
@@ -509,27 +526,27 @@
 .tc-update-metrics {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 0.6rem;
+  gap: 0.5rem;
 }
 
 .tc-update-metric {
   display: flex;
   flex-direction: column;
   gap: 0.2rem;
-  font-size: 0.68rem;
+  font-size: 0.55rem;
   color: #94a3b8;
-  font-weight: 600;
+  font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.04em;
+  letter-spacing: 0.1em;
   background: #f8fafc;
-  border: 1px solid #eef2f6;
-  border-radius: 9px;
-  padding: 0.6rem 0.7rem;
+  border: 1px solid var(--tc-border);
+  border-radius: 0.4rem;
+  padding: 0.45rem 0.55rem;
 }
 
 .tc-update-metric strong {
   color: #0f172a;
-  font-size: 0.95rem;
+  font-size: var(--tc-fs-section);
   font-variant-numeric: tabular-nums;
   font-weight: 700;
   letter-spacing: -0.01em;
@@ -540,11 +557,11 @@
   display: flex;
   flex-direction: column;
   gap: 0.25rem;
-  font-size: 0.7rem;
+  font-size: 0.55rem;
   color: #94a3b8;
-  font-weight: 600;
+  font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.04em;
+  letter-spacing: 0.1em;
 }
 
 .tc-update-companies strong {
@@ -564,20 +581,20 @@
 .tc-trade-report {
   display: flex;
   flex-direction: column;
-  gap: 1.25rem;
+  gap: var(--tc-section-gap);
   color: #0f172a;
 }
 
 .tc-trade-report-header {
   background: var(--tc-card);
   border: 1px solid var(--tc-border);
-  border-radius: 12px;
-  padding: 1.1rem 1.4rem;
+  border-radius: 0.4rem;
+  padding: var(--tc-card-pad);
   color: #334155;
   line-height: 1.55;
-  font-size: 0.85rem;
+  font-size: var(--tc-fs-body);
   font-weight: 500;
-  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.05);
+  box-shadow: none;
 }
 
 .tc-trade-report-header p {
@@ -591,15 +608,15 @@
 .tc-report-section {
   background: var(--tc-card);
   border: 1px solid var(--tc-border);
-  border-radius: 12px;
-  padding: 1.25rem;
-  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.06), 0 4px 16px rgba(15, 23, 42, 0.04);
+  border-radius: 0.4rem;
+  padding: var(--tc-card-pad);
+  box-shadow: none;
 }
 
 .tc-report-section-header h3 {
-  margin: 0 0 0.85rem 0;
+  margin: 0 0 0.65rem 0;
   color: #0f172a;
-  font-size: 0.95rem;
+  font-size: var(--tc-fs-section);
   font-weight: 700;
   letter-spacing: -0.01em;
 }
@@ -611,20 +628,20 @@
 .tc-report-table {
   width: 100%;
   border-collapse: collapse;
-  font-size: 0.78rem;
-  min-width: 900px;
+  font-size: var(--tc-fs-table);
+  min-width: 820px;
   font-variant-numeric: tabular-nums;
 }
 
 .tc-report-table th {
   text-align: right;
-  padding: 0.65rem 0.7rem;
+  padding: var(--tc-cell-py) var(--tc-cell-px);
   background: #f8fafc;
   color: #64748b;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  font-size: 0.62rem;
+  font-size: var(--tc-fs-table-head);
   border-bottom: 1px solid #e2e8f0;
   white-space: nowrap;
 }
@@ -640,7 +657,7 @@
 }
 
 .tc-report-table td {
-  padding: 0.6rem 0.7rem;
+  padding: var(--tc-cell-py) var(--tc-cell-px);
   text-align: right;
   border-bottom: 1px solid #f1f5f9;
   color: #334155;
@@ -663,12 +680,12 @@
 .tc-trade-report-summary {
   display: flex;
   flex-direction: column;
-  gap: 0.6rem;
+  gap: 0.5rem;
   background: var(--tc-card);
   border: 1px solid var(--tc-border);
-  border-radius: 12px;
-  padding: 1.25rem;
-  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.06), 0 4px 16px rgba(15, 23, 42, 0.04);
+  border-radius: 0.4rem;
+  padding: var(--tc-card-pad);
+  box-shadow: none;
 }
 
 .tc-trade-report-summary-row {
@@ -676,7 +693,7 @@
   justify-content: space-between;
   align-items: center;
   color: #475569;
-  font-size: 0.8rem;
+  font-size: 0.72rem;
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.04em;
@@ -684,36 +701,36 @@
 
 .tc-trade-report-summary-row strong {
   color: #0f172a;
-  font-size: 0.95rem;
+  font-size: var(--tc-fs-section);
   font-weight: 700;
   font-variant-numeric: tabular-nums;
 }
 
 .tc-trade-report-summary-row.tc-trade-report-net {
   border-top: 1px solid var(--tc-border);
-  padding-top: 0.75rem;
-  margin-top: 0.25rem;
+  padding-top: 0.65rem;
+  margin-top: 0.2rem;
   color: var(--tc-accent-strong);
 }
 
 .tc-trade-report-summary-row.tc-trade-report-net strong {
   color: var(--tc-accent-strong);
-  font-size: 1.1rem;
+  font-size: var(--tc-fs-section);
 }
 
 /* ---------- To Be Updated ---------- */
 .tc-unupdated-list {
   display: flex;
   flex-direction: column;
-  gap: 1.25rem;
+  gap: var(--tc-section-gap);
 }
 
 .tc-unupdated-group {
   background: var(--tc-card);
   border: 1px solid var(--tc-border);
-  border-radius: 12px;
-  padding: 1.25rem;
-  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.06), 0 4px 16px rgba(15, 23, 42, 0.04);
+  border-radius: 0.4rem;
+  padding: var(--tc-card-pad);
+  box-shadow: none;
   position: relative;
   overflow: hidden;
 }
@@ -722,25 +739,25 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 1rem;
-  margin-bottom: 0.85rem;
+  gap: 0.65rem;
+  margin-bottom: 0.55rem;
 }
 
 .tc-unupdated-header h3 {
   margin: 0;
   color: #0f172a;
-  font-size: 0.9rem;
+  font-size: var(--tc-fs-section);
   font-weight: 700;
   letter-spacing: -0.01em;
 }
 
 .tc-unupdated-header span {
-  background: #f1f5f9;
+  background: #f8fafc;
   color: var(--tc-muted);
   font-weight: 600;
-  border-radius: 999px;
-  padding: 0.3rem 0.7rem;
-  font-size: 0.7rem;
+  border-radius: 0.4rem;
+  padding: 0.2rem 0.55rem;
+  font-size: 0.62rem;
   letter-spacing: 0.03em;
   border: 1px solid var(--tc-border);
 }
@@ -748,31 +765,31 @@
 .tc-unupdated-table {
   width: 100%;
   border-collapse: collapse;
-  font-size: 0.8rem;
+  font-size: var(--tc-fs-table);
   min-width: 760px;
   background: var(--tc-card);
-  border-radius: 10px;
+  border-radius: 0.4rem;
   overflow: hidden;
   border: 1px solid var(--tc-border);
 }
 
 .tc-unupdated-table th {
   text-align: left;
-  padding: 0.65rem 0.8rem;
+  padding: var(--tc-cell-py) var(--tc-cell-px);
   background: #f8fafc;
   color: #64748b;
   font-weight: 700;
   border-bottom: 1px solid #e2e8f0;
-  font-size: 0.62rem;
+  font-size: var(--tc-fs-table-head);
   letter-spacing: 0.05em;
   text-transform: uppercase;
 }
 
 .tc-unupdated-table td {
-  padding: 0.65rem 0.8rem;
+  padding: var(--tc-cell-py) var(--tc-cell-px);
   border-bottom: 1px solid #f1f5f9;
   color: #334155;
-  font-size: 0.8rem;
+  font-size: var(--tc-fs-table);
   font-weight: 500;
 }
 
@@ -791,21 +808,23 @@
 }
 
 .tc-post-entry-btn {
-  padding: 0.4rem 1rem;
+  padding: 0.38rem 0.75rem;
   border: none;
-  border-radius: 8px;
+  border-radius: 0.4rem;
   background: var(--tc-accent);
   color: #ffffff;
-  font-size: 0.78rem;
+  font-family: inherit;
+  font-size: 0.72rem;
   font-weight: 600;
   cursor: pointer;
   white-space: nowrap;
-  box-shadow: 0 1px 2px rgba(37, 99, 235, 0.25);
+  box-shadow: none;
+  transition: background 0.15s ease;
 }
 
 .tc-post-entry-btn:hover:not(:disabled) {
   background: var(--tc-accent-strong);
-  box-shadow: 0 4px 10px rgba(37, 99, 235, 0.28);
+  box-shadow: none;
 }
 
 .tc-post-entry-btn:disabled {
@@ -825,7 +844,7 @@
 .tc-post-entries-table {
   table-layout: fixed;
   width: 100%;
-  min-width: 980px;
+  min-width: 820px;
 }
 
 .tc-post-entries-table th,
@@ -891,7 +910,7 @@
 .tc-to-be-updated-table {
   table-layout: fixed;
   width: 100%;
-  min-width: 900px;
+  min-width: 820px;
 }
 
 .tc-to-be-updated-table th,
@@ -944,14 +963,17 @@
 }
 
 .tc-settle-all-btn {
-  padding: 0.4rem 0.9rem;
+  padding: 0.38rem 0.75rem;
   border: 1px solid var(--tc-accent);
-  border-radius: 8px;
+  border-radius: 0.4rem;
   background: #ffffff;
   color: var(--tc-accent-strong);
-  font-size: 0.78rem;
+  font-family: inherit;
+  font-size: 0.72rem;
   font-weight: 600;
   cursor: pointer;
+  box-shadow: none;
+  transition: background 0.15s ease;
 }
 
 .tc-settle-all-btn:hover:not(:disabled) {
@@ -966,7 +988,7 @@
 .tc-pending-settlement-table {
   table-layout: fixed;
   width: 100%;
-  min-width: 980px;
+  min-width: 820px;
 }
 
 .tc-pending-settlement-table th,
@@ -1017,7 +1039,7 @@
 .tc-settlement-badge {
   display: inline-block;
   padding: 0.2rem 0.55rem;
-  border-radius: 999px;
+  border-radius: 0.4rem;
   font-size: 0.68rem;
   font-weight: 700;
   letter-spacing: 0.03em;
@@ -1054,40 +1076,43 @@
 
 /* ---------- Action buttons ---------- */
 .tc-update-btn {
-  padding: 0.65rem 1.1rem;
+  padding: 0.38rem 0.75rem;
   border: none;
-  border-radius: 8px;
+  border-radius: 0.4rem;
+  font-family: inherit;
   font-weight: 600;
   cursor: pointer;
-  transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
-  font-size: 0.75rem;
+  transition: background 0.15s ease;
+  font-size: 0.72rem;
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 0.5rem;
   color: #ffffff;
+  box-shadow: none;
+  transform: none;
 }
 
 .tc-update-buy-btn {
   background: var(--tc-buy);
-  box-shadow: 0 1px 2px rgba(5, 150, 105, 0.25);
+  box-shadow: none;
 }
 
 .tc-update-buy-btn:hover {
   background: var(--tc-buy-dark);
-  box-shadow: 0 4px 10px rgba(5, 150, 105, 0.28);
-  transform: translateY(-1px);
+  box-shadow: none;
+  transform: none;
 }
 
 .tc-update-sell-btn {
   background: var(--tc-sell);
-  box-shadow: 0 1px 2px rgba(225, 29, 72, 0.25);
+  box-shadow: none;
 }
 
 .tc-update-sell-btn:hover {
   background: var(--tc-sell-dark);
-  box-shadow: 0 4px 10px rgba(225, 29, 72, 0.28);
-  transform: translateY(-1px);
+  box-shadow: none;
+  transform: none;
 }
 
 @media (max-width: 640px) {
@@ -1102,7 +1127,7 @@
 
 .tc-col-company {
   width: 15%;
-  min-width: 120px;
+  min-width: 100px;
   text-align: left;
 }
 
@@ -1143,22 +1168,23 @@
 }
 
 .tc-company-transactions {
-  padding: 1.25rem;
+  padding: 0.85rem;
 }
 
 .tc-transactions-title {
-  font-size: 1rem;
+  font-size: var(--tc-fs-section);
   font-weight: 700;
   color: #0f172a;
-  margin: 0 0 0.85rem 0;
+  margin: 0 0 0.65rem 0;
 }
 
 .tc-transactions-table-container {
   overflow-x: auto;
   background: var(--tc-card);
-  border-radius: 10px;
-  padding: 1rem;
-  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.06);
+  border-radius: 0.4rem;
+  padding: 0.65rem;
+  border: 1px solid var(--tc-border);
+  box-shadow: none;
 }
 
 .tc-col-trade-time {
@@ -1172,7 +1198,7 @@
   padding: 0.2rem 0.55rem;
   background-color: var(--tc-buy);
   color: white;
-  border-radius: 999px;
+  border-radius: 0.4rem;
   font-size: 0.7rem;
   font-weight: 700;
   text-transform: uppercase;
@@ -1184,7 +1210,7 @@
   padding: 0.2rem 0.55rem;
   background-color: var(--tc-sell);
   color: white;
-  border-radius: 999px;
+  border-radius: 0.4rem;
   font-size: 0.7rem;
   font-weight: 700;
   text-transform: uppercase;
@@ -1198,9 +1224,9 @@
 }
 
 .tc-date-input {
-  padding: 0.55rem 0.7rem;
+  padding: 0.45rem 0.65rem;
   border: 1px solid #cbd5e1;
-  border-radius: 8px;
+  border-radius: 0.4rem;
   font-size: 0.85rem;
   font-family: inherit;
   transition: border-color 0.15s ease, box-shadow 0.15s ease;
@@ -1217,44 +1243,48 @@
   display: inline-flex;
   align-items: center;
   gap: 0.4rem;
-  padding: 0.6rem 1.2rem;
+  padding: 0.4rem 0.85rem;
   background: var(--tc-accent);
   color: #ffffff;
   border: none;
-  border-radius: 8px;
+  border-radius: 0.4rem;
+  font-family: inherit;
   font-size: 0.75rem;
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.16s ease;
-  box-shadow: 0 1px 2px rgba(37, 99, 235, 0.25);
+  transition: background 0.15s ease;
+  box-shadow: none;
+  transform: none;
 }
 
 .tc-refresh-btn:hover {
   background: var(--tc-accent-strong);
-  transform: translateY(-1px);
-  box-shadow: 0 4px 10px rgba(37, 99, 235, 0.28);
+  transform: none;
+  box-shadow: none;
 }
 
 /* ---------- Loading / Error / Empty ---------- */
-.tc-loading, .tc-error, .tc-no-data {
+.tc-loading,
+.tc-error,
+.tc-no-data {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 4rem 2rem;
+  padding: 2rem 1.25rem;
   background: var(--tc-card);
   border: 1px solid var(--tc-border);
-  border-radius: 12px;
-  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.06);
+  border-radius: 0.4rem;
+  box-shadow: none;
   text-align: center;
   color: var(--tc-muted);
-  font-size: 0.9rem;
+  font-size: var(--tc-fs-body);
 }
 
 .tc-error h3 {
   color: var(--tc-sell);
   margin: 0 0 0.5rem 0;
-  font-size: 1.15rem;
+  font-size: var(--tc-fs-section);
   font-weight: 700;
 }
 
@@ -1264,46 +1294,50 @@
 }
 
 .tc-spinner {
-  width: 2.75rem;
-  height: 2.75rem;
+  width: 2rem;
+  height: 2rem;
   border: 3px solid #e2e8f0;
   border-top-color: var(--tc-accent);
   border-radius: 50%;
   animation: spin 0.8s linear infinite;
-  margin-bottom: 1rem;
+  margin-bottom: 0.65rem;
 }
 
 @keyframes spin {
-  to { transform: rotate(360deg); }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 .tc-retry-btn {
   margin-top: 1rem;
-  padding: 0.6rem 1.4rem;
+  padding: 0.5rem 1.2rem;
   background: var(--tc-accent);
   color: white;
   border: none;
-  border-radius: 8px;
+  border-radius: 0.4rem;
+  font-family: inherit;
   font-weight: 600;
   font-size: 0.85rem;
   cursor: pointer;
-  transition: all 0.16s ease;
-  box-shadow: 0 1px 2px rgba(37, 99, 235, 0.25);
+  transition: background 0.15s ease;
+  box-shadow: none;
+  transform: none;
 }
 
 .tc-retry-btn:hover {
   background: var(--tc-accent-strong);
-  transform: translateY(-1px);
-  box-shadow: 0 4px 10px rgba(37, 99, 235, 0.28);
+  transform: none;
+  box-shadow: none;
 }
 
 /* ---------- Company + transaction tables (Purchases / Sales) ---------- */
 .tc-company-group {
-  margin-bottom: 1.25rem;
+  margin-bottom: var(--tc-section-gap);
   background: var(--tc-card);
   border: 1px solid var(--tc-border);
-  border-radius: 12px;
-  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.06), 0 4px 16px rgba(15, 23, 42, 0.04);
+  border-radius: 0.4rem;
+  box-shadow: none;
   overflow: hidden;
 }
 
@@ -1311,21 +1345,21 @@
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 0.65rem 1rem;
-  padding: 0.85rem 1.25rem;
+  gap: 0.45rem 0.75rem;
+  padding: 0.55rem 0.85rem;
   background: #f8fafc;
   border-bottom: 1px solid var(--tc-border);
 }
 
 .tc-company-badge {
   display: inline-block;
-  padding: 0.25rem 0.6rem;
-  font-size: 0.65rem;
+  padding: 0.2rem 0.5rem;
+  font-size: 0.62rem;
   font-weight: 700;
   letter-spacing: 0.06em;
   text-transform: uppercase;
   border: 1px solid transparent;
-  border-radius: 999px;
+  border-radius: 0.4rem;
 }
 
 .tc-company-badge--purchase {
@@ -1341,7 +1375,7 @@
 }
 
 .tc-company-title {
-  font-size: 0.92rem;
+  font-size: var(--tc-fs-body);
   font-weight: 700;
   color: #0f172a;
   margin: 0;
@@ -1351,7 +1385,7 @@
 .tc-company-symbol {
   font-weight: 500;
   color: var(--tc-muted);
-  font-size: 0.75rem;
+  font-size: 0.72rem;
 }
 
 .tc-table-container {
@@ -1376,7 +1410,7 @@
 .tc-transaction-table {
   width: 100%;
   border-collapse: collapse;
-  font-size: 0.8rem;
+  font-size: var(--tc-fs-table);
   font-variant-numeric: tabular-nums;
   font-feature-settings: 'tnum' 1;
 }
@@ -1386,11 +1420,11 @@
 }
 
 .tc-table-header-row th {
-  padding: 0.7rem 0.65rem;
+  padding: var(--tc-cell-py) var(--tc-cell-px);
   text-align: right;
   font-weight: 700;
   color: #64748b;
-  font-size: 0.62rem;
+  font-size: var(--tc-fs-table-head);
   letter-spacing: 0.05em;
   text-transform: uppercase;
   border-bottom: 1px solid #e2e8f0;
@@ -1399,7 +1433,7 @@
 
 .tc-table-header-row th:first-child {
   text-align: left;
-  padding-left: 1.25rem;
+  padding-left: 0.85rem;
 }
 
 .tc-table-header-row .tc-col-exec-id,
@@ -1408,7 +1442,7 @@
 }
 
 .tc-table-header-row th:last-child {
-  padding-right: 1.25rem;
+  padding-right: 0.85rem;
 }
 
 .tc-transaction-row {
@@ -1421,7 +1455,7 @@
 }
 
 .tc-transaction-row td {
-  padding: 0.6rem 0.65rem;
+  padding: var(--tc-cell-py) var(--tc-cell-px);
   text-align: right;
   color: #334155;
   border-bottom: 1px solid #f1f5f9;
@@ -1431,12 +1465,12 @@
 
 .tc-transaction-row td:first-child {
   text-align: left;
-  padding-left: 1.25rem;
+  padding-left: 0.85rem;
   color: #475569;
 }
 
 .tc-transaction-row td:last-child {
-  padding-right: 1.25rem;
+  padding-right: 0.85rem;
 }
 
 .tc-total-row {
@@ -1445,10 +1479,10 @@
 }
 
 .tc-total-row td {
-  padding: 0.7rem 0.65rem;
+  padding: var(--tc-cell-py) var(--tc-cell-px);
   text-align: right;
   color: #0f172a;
-  font-size: 0.8rem;
+  font-size: var(--tc-fs-table);
   border-bottom: none;
   border-top: 2px solid #e2e8f0;
   font-weight: 700;
@@ -1456,7 +1490,7 @@
 
 .tc-total-row td:first-child {
   text-align: left;
-  padding-left: 1.25rem;
+  padding-left: 0.85rem;
 }
 
 .tc-total-row .tc-col-net {
@@ -1465,65 +1499,65 @@
 }
 
 .tc-total-row td:last-child {
-  padding-right: 1.25rem;
+  padding-right: 0.85rem;
 }
 
 /* Column widths */
 .tc-col-trade-date {
   width: 10%;
-  min-width: 100px;
+  min-width: 88px;
 }
 
 .tc-col-amount {
   width: 12%;
-  min-width: 110px;
+  min-width: 92px;
 }
 
 .tc-col-qty {
   width: 8%;
-  min-width: 72px;
+  min-width: 64px;
 }
 
 .tc-col-brokerage {
   width: 10%;
-  min-width: 92px;
+  min-width: 78px;
 }
 
 .tc-col-price {
   width: 8%;
-  min-width: 72px;
+  min-width: 64px;
 }
 
 .tc-col-clearing {
   width: 10%;
-  min-width: 92px;
+  min-width: 78px;
 }
 
 .tc-col-cse {
   width: 10%;
-  min-width: 92px;
+  min-width: 78px;
 }
 
 .tc-col-gov-cess {
   width: 10%;
-  min-width: 92px;
+  min-width: 78px;
 }
 
 .tc-col-net {
   width: 12%;
-  min-width: 110px;
+  min-width: 92px;
   font-weight: 600;
 }
 
 .tc-col-exec-id {
   width: 12%;
-  min-width: 100px;
+  min-width: 88px;
   text-align: center;
 }
 
 .tc-col-settlement {
   width: 10%;
-  min-width: 96px;
+  min-width: 84px;
   text-align: center;
 }
 
@@ -1536,21 +1570,21 @@
 
 /* ---------- Summary section ---------- */
 .tc-summary-section {
-  margin-top: 1.5rem;
-  padding: 1.5rem;
+  margin-top: var(--tc-section-gap);
+  padding: var(--tc-card-pad);
   background: var(--tc-card);
-  border-radius: 12px;
-  border: 1px solid var(--tc-accent-border);
-  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.06), 0 4px 16px rgba(15, 23, 42, 0.04);
+  border-radius: 0.4rem;
+  border: 1px solid var(--tc-border);
+  box-shadow: none;
 }
 
 .tc-summary-row {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 0.85rem 0;
+  padding: 0.55rem 0;
   border-bottom: 1px solid var(--tc-border);
-  font-size: 0.95rem;
+  font-size: var(--tc-fs-body);
 }
 
 .tc-summary-row:last-child {
@@ -1560,8 +1594,8 @@
 .tc-summary-row.tc-net-row {
   border-top: 2px solid var(--tc-accent);
   margin-top: 0.5rem;
-  padding-top: 1.25rem;
-  font-size: 1.1rem;
+  padding-top: 0.85rem;
+  font-size: var(--tc-fs-section);
   font-weight: 700;
 }
 
@@ -1582,15 +1616,15 @@
 
 /* ---------- Footer ---------- */
 .tc-footer {
-  margin-top: 1.5rem;
-  padding: 1.25rem;
+  margin-top: var(--tc-section-gap);
+  padding: var(--tc-card-pad);
   background: var(--tc-card);
   border: 1px solid var(--tc-border);
-  border-radius: 12px;
-  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.05);
+  border-radius: 0.4rem;
+  box-shadow: none;
   text-align: center;
   color: var(--tc-muted);
-  font-size: 0.8rem;
+  font-size: 0.72rem;
 }
 
 .tc-footer p {
@@ -1600,264 +1634,17 @@
 /* ---------- Responsive ---------- */
 @media (max-width: 1200px) {
   .tc-transaction-table {
-    font-size: 0.74rem;
+    font-size: 0.7rem;
   }
 
   .tc-col-amount,
   .tc-col-net {
-    min-width: 100px;
+    min-width: 88px;
   }
 }
 
 @media (max-width: 768px) {
   .tc-container {
-    padding: 0.75rem 0.85rem 1.25rem;
+    padding: 0.15rem 0 1.5rem;
   }
-}
-
-/* ---------- Compact density (tables, cards, tabs) ---------- */
-.tc-tabs-card {
-  margin-bottom: var(--tc-section-gap);
-  border-radius: 10px;
-}
-
-.tc-tabs {
-  gap: 0.15rem;
-  padding: 0.3rem;
-}
-
-.tc-tab {
-  padding: 0.4rem 0.8rem;
-  font-size: var(--tc-fs-body);
-  border-radius: 6px;
-}
-
-.tc-tab-content {
-  min-height: 280px;
-}
-
-.tc-by-date-report,
-.tc-trade-report,
-.tc-unupdated-list,
-.tc-update-summary {
-  gap: var(--tc-section-gap);
-}
-
-.tc-by-date-controls,
-.tc-update-summary-header,
-.tc-trade-report-header,
-.tc-unupdated-group,
-.tc-report-section,
-.tc-trade-report-summary,
-.tc-update-card,
-.tc-company-group,
-.tc-summary-section,
-.tc-footer,
-.tc-loading,
-.tc-error,
-.tc-no-data {
-  padding: var(--tc-card-pad);
-  border-radius: 10px;
-}
-
-.tc-update-summary-grid {
-  gap: var(--tc-section-gap);
-  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-}
-
-.tc-update-summary-header h2 {
-  font-size: var(--tc-fs-section);
-}
-
-.tc-update-summary-header p,
-.tc-trade-report-header,
-.tc-by-date-hint {
-  font-size: var(--tc-fs-body);
-}
-
-.tc-update-card {
-  gap: 0.65rem;
-}
-
-.tc-update-card-header h3,
-.tc-report-section-header h3,
-.tc-unupdated-header h3,
-.tc-transactions-title {
-  font-size: var(--tc-fs-section);
-}
-
-.tc-update-metric {
-  padding: 0.45rem 0.55rem;
-}
-
-.tc-update-metric strong {
-  font-size: var(--tc-fs-section);
-}
-
-.tc-transaction-table,
-.tc-unupdated-table,
-.tc-report-table {
-  font-size: var(--tc-fs-table);
-}
-
-.tc-table-header-row th,
-.tc-unupdated-table th,
-.tc-report-table th {
-  padding: var(--tc-cell-py) var(--tc-cell-px);
-  font-size: var(--tc-fs-table-head);
-}
-
-.tc-transaction-row td,
-.tc-total-row td,
-.tc-unupdated-table td,
-.tc-report-table td {
-  padding: var(--tc-cell-py) var(--tc-cell-px);
-}
-
-.tc-table-header-row th:first-child,
-.tc-transaction-row td:first-child,
-.tc-total-row td:first-child {
-  padding-left: 0.85rem;
-}
-
-.tc-table-header-row th:last-child,
-.tc-transaction-row td:last-child,
-.tc-total-row td:last-child {
-  padding-right: 0.85rem;
-}
-
-.tc-company-header {
-  padding: 0.55rem 0.85rem;
-  gap: 0.45rem 0.75rem;
-}
-
-.tc-company-title {
-  font-size: var(--tc-fs-body);
-}
-
-.tc-company-symbol {
-  font-size: 0.72rem;
-}
-
-.tc-company-group {
-  margin-bottom: var(--tc-section-gap);
-}
-
-.tc-company-transactions {
-  padding: 0.85rem;
-}
-
-.tc-transactions-table-container {
-  padding: 0.65rem;
-  border-radius: 8px;
-}
-
-.tc-unupdated-header {
-  margin-bottom: 0.55rem;
-  gap: 0.65rem;
-}
-
-.tc-unupdated-header span,
-.tc-update-count {
-  padding: 0.2rem 0.55rem;
-  font-size: 0.62rem;
-}
-
-.tc-post-entry-btn,
-.tc-settle-all-btn,
-.tc-update-btn {
-  padding: 0.38rem 0.75rem;
-  font-size: 0.72rem;
-  border-radius: 6px;
-}
-
-.tc-trade-report-export .fre-export-btn {
-  min-height: 2rem;
-  padding: 0.4rem 0.75rem;
-  font-size: 0.75rem;
-}
-
-.tc-post-entries-table,
-.tc-to-be-updated-table,
-.tc-pending-settlement-table,
-.tc-report-table {
-  min-width: 820px;
-}
-
-.tc-col-company {
-  min-width: 100px;
-}
-
-.tc-col-trade-date {
-  min-width: 88px;
-}
-
-.tc-col-amount,
-.tc-col-net {
-  min-width: 92px;
-}
-
-.tc-col-qty,
-.tc-col-price {
-  min-width: 64px;
-}
-
-.tc-col-brokerage,
-.tc-col-clearing,
-.tc-col-cse,
-.tc-col-gov-cess {
-  min-width: 78px;
-}
-
-.tc-col-exec-id {
-  min-width: 88px;
-}
-
-.tc-col-settlement {
-  min-width: 84px;
-}
-
-.tc-summary-section {
-  margin-top: var(--tc-section-gap);
-  padding: var(--tc-card-pad);
-}
-
-.tc-summary-row {
-  padding: 0.55rem 0;
-  font-size: var(--tc-fs-body);
-}
-
-.tc-summary-row.tc-net-row {
-  padding-top: 0.85rem;
-  font-size: var(--tc-fs-section);
-}
-
-.tc-loading,
-.tc-error,
-.tc-no-data {
-  padding: 2rem 1.25rem;
-  font-size: var(--tc-fs-body);
-}
-
-.tc-error h3 {
-  font-size: var(--tc-fs-section);
-}
-
-.tc-spinner {
-  width: 2rem;
-  height: 2rem;
-  margin-bottom: 0.65rem;
-}
-
-.tc-footer {
-  margin-top: var(--tc-section-gap);
-  font-size: 0.72rem;
-}
-
-.tc-trade-report-summary-row strong {
-  font-size: var(--tc-fs-section);
-}
-
-.tc-trade-report-summary-row.tc-trade-report-net strong {
-  font-size: var(--tc-fs-section);
 }
