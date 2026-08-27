@@ -72,18 +72,17 @@ const IPOAllocation = () => {
     <div className="ipo-page-container">
       <div className="ipo-content-wrapper">
         <div className="ipo-header-section">
-          <div className="ipo-header-icon">
-            <svg className="ipo-icon" fill="currentColor" viewBox="0 0 20 20">
-              <path d="M4 4a2 2 0 00-2 2v8a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2H4zm2 6a2 2 0 114 0 2 2 0 01-4 0zm8 0a2 2 0 114 0 2 2 0 01-4 0z" />
-            </svg>
-          </div>
           <div className="ipo-header-text-group">
-            <h1 className="ipo-main-title">IPO Allocation Entry</h1>
+            <p className="ipo-eyebrow">IPO</p>
+            <h1 className="ipo-main-title">IPO Allocation</h1>
             <p className="ipo-subtitle">Record allocated shares and refund details</p>
           </div>
         </div>
 
         <form onSubmit={handleSubmit} className="ipo-form-card">
+          <div className="ipo-card-header">
+            <h2 className="ipo-card-title">Allocation Details</h2>
+          </div>
           <div className="ipo-form-content">
             <div className="ipo-form-grid">
               <div className="ipo-field-group">
@@ -177,9 +176,6 @@ const IPOAllocation = () => {
             </div>
           </div>
         </form>
-      </div>
-      <div className="ipo-footer-section">
-        <p>SHERWOOD TECHNOLOGIES (PVT) LTD • Secure IPO allocation management • All data is encrypted and protected</p>
       </div>
     </div>
   );

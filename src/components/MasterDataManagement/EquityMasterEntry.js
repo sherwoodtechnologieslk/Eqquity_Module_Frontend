@@ -116,7 +116,7 @@ const EquityMasterEntry = () => {
             <p className="eqme-rail__eyebrow">Masters · Equities</p>
             <h1 className="eqme-rail__title">Equity Master Entry</h1>
             <p className="eqme-rail__blurb">
-              Register listed securities — ticker, ISIN, sector, and market defaults
+              Register listed securities: ticker, ISIN, sector, and market defaults
             </p>
           </div>
         </div>

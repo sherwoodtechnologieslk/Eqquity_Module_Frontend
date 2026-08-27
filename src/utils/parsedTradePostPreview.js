@@ -38,29 +38,59 @@ export const extractSequenceFromDealNumber = (dealNumber, prefix) => {
   return match ? parseInt(match[1], 10) : 0;
 };
 
-export const generateDealNumber = async (side, transactionEntryAPI) => {
+const dealDatePrefix = (side) => {
   const today = new Date();
   const year = today.getFullYear();
   const month = String(today.getMonth() + 1).padStart(2, '0');
   const day = String(today.getDate()).padStart(2, '0');
-  const prefix = side === 'buy' ? `BUY-${year}${month}${day}-` : `SELL-${year}${month}${day}-`;
+  return side === 'buy' ? `BUY-${year}${month}${day}-` : `SELL-${year}${month}${day}-`;
+};
 
+export const formatDealNumber = (prefix, seq) => `${prefix}${String(seq).padStart(6, '0')}`;
+
+const nextSequenceForPrefix = (rows, prefix) => {
+  const todayRows = (rows || []).filter((row) => row.deal_number && row.deal_number.startsWith(prefix));
+  if (todayRows.length === 0) return 1;
+  return Math.max(...todayRows.map((row) => extractSequenceFromDealNumber(row.deal_number, prefix))) + 1;
+};
+
+export const getNextDealSequences = async (transactionEntryAPI) => {
+  const buyPrefix = dealDatePrefix('buy');
+  const sellPrefix = dealDatePrefix('sell');
+  let buySeq = 1;
+  let sellSeq = 1;
+
+  try {
+    const existingBuys = await transactionEntryAPI.getAllBuyTransactions();
+    buySeq = nextSequenceForPrefix(existingBuys, buyPrefix);
+  } catch (err) {
+    console.warn('Could not fetch existing buy deal numbers:', err);
+  }
+
+  try {
+    const existingSells = await transactionEntryAPI.getAllSellTransactions();
+    sellSeq = nextSequenceForPrefix(existingSells, sellPrefix);
+  } catch (err) {
+    console.warn('Could not fetch existing sell deal numbers:', err);
+  }
+
+  return { buyPrefix, sellPrefix, buySeq, sellSeq };
+};
+
+export const generateDealNumber = async (side, transactionEntryAPI) => {
+  const prefix = dealDatePrefix(side);
   let startSequence = 1;
 
   try {
     const existing = side === 'buy'
       ? await transactionEntryAPI.getAllBuyTransactions()
       : await transactionEntryAPI.getAllSellTransactions();
-
-    const todayRows = (existing || []).filter((row) => row.deal_number && row.deal_number.startsWith(prefix));
-    if (todayRows.length > 0) {
-      startSequence = Math.max(...todayRows.map((row) => extractSequenceFromDealNumber(row.deal_number, prefix))) + 1;
-    }
+    startSequence = nextSequenceForPrefix(existing, prefix);
   } catch (err) {
     console.warn('Could not fetch existing deal numbers:', err);
   }
 
-  return `${prefix}${String(startSequence).padStart(6, '0')}`;
+  return formatDealNumber(prefix, startSequence);
 };
 
 export const buildParsedTradeSummary = async (transaction, equities, side) => {

@@ -302,8 +302,6 @@ export const equityManagerMenuItems = [
       </svg>
     ),
     name: "Charts and Insights",
-    premium: true,
-    premiumVariant: 'chartsAndInsights',
     subTopics: [
       "CSE ASPI",
       "CSE Sector Indices"
@@ -351,8 +349,6 @@ export const equityManagerMenuItems = [
       </svg>
     ),
     name: "TradeCore",
-    premium: true,
-    premiumVariant: 'tradeCore',
     subTopics: [
       "TradeCore"
     ]
@@ -365,8 +361,6 @@ export const equityManagerMenuItems = [
       </svg>
     ),
     name: "Corporate Actions",
-    premium: true,
-    premiumVariant: 'corporateActions',
     subTopics: [
       "Dividend",
 
@@ -383,8 +377,6 @@ export const equityManagerMenuItems = [
       </svg>
     ),
     name: "Security Identity",
-    premium: true,
-    premiumVariant: 'securityIdentity',
     subTopics: [
       
       "Merger or Acquisition",
@@ -400,8 +392,6 @@ export const equityManagerMenuItems = [
       </svg>
     ),
     name: "Voluntary Corporate Actions",
-    premium: true,
-    premiumVariant: 'voluntaryCorporateActions',
     subTopics: [
       "Rights Issue",
       "Buyback / Share Repurchase",
@@ -435,8 +425,6 @@ export const equityManagerMenuItems = [
 />      </svg>
     ),
     name: "IPO",
-    premium: true,
-    premiumVariant: 'ipo',
     subTopics: [
       "IPO Entry",
       "IPO Allocation",
@@ -451,8 +439,6 @@ export const equityManagerMenuItems = [
       </svg>
     ),
     name: "Portfolio Monitoring",
-    premium: true,
-    premiumVariant: 'portfolioMonitoring',
     subTopics: [
       "Holdings Dashboard",
       "Performance Metrics",
@@ -466,8 +452,6 @@ export const equityManagerMenuItems = [
       </svg>
     ),
     name: "Risk and Limit Management",
-    premium: true,
-    premiumVariant: 'riskLimitManagement',
     subTopics: [
       "Counterparty Limits",
       "Position Limits",
@@ -481,8 +465,6 @@ export const equityManagerMenuItems = [
       </svg>
     ),
     name: "Reporting and Compliance",
-    premium: true,
-    premiumVariant: 'reportingCompliance',
     subTopics: [
       "Daily Holdings Report",
       "P&L Statement",
@@ -497,8 +479,6 @@ export const equityManagerMenuItems = [
       </svg>
     ),
     name: "Integration and Automation",
-    premium: true,
-    premiumVariant: 'integrationAutomation',
     subTopics: [
       "Broker Feed / FIX Integration",
       "Custodian Integration",
@@ -512,8 +492,6 @@ export const equityManagerMenuItems = [
       </svg>
     ),
     name: "Portfolio Transfers",
-    premium: true,
-    premiumVariant: 'portfolioTransfers',
   }
   
 ];
@@ -577,11 +555,13 @@ export const wealthManagerMenuItems = [
     subTopics: [
       "G-Sec Holdings",
       "T-Bill Subscription",
+      "T-Bills",
       "T-Bond Deals",
       "Repo & Buyback",
       "Maturity Calendar",
       "G-Sec Settlements",
-      "GSec Product Report"
+      "GSec Product Report",
+      "Mark to Market"
     ]
   },
   {
@@ -846,7 +826,7 @@ function groupNavigationByCategory(navigationItems, categoryMap, categoryOrder) 
   return groups;
 }
 
-const Sidebar = ({ onSelect, onPremiumFeature, activeIndex = 0, onLogout, onManagerChange, selectedManager: selectedManagerProp = 'equity', isClientView = false, onClientViewToggle, user = null, onGoHome }) => {
+const Sidebar = ({ onSelect, activeIndex = 0, onLogout, onManagerChange, selectedManager: selectedManagerProp = 'equity', isClientView = false, onClientViewToggle, user = null, onGoHome }) => {
   const [active, setActive] = useState(activeIndex);
   const [selectedManager, setSelectedManager] = useState(selectedManagerProp); // 'equity' or 'wealth'
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
@@ -935,13 +915,6 @@ const Sidebar = ({ onSelect, onPremiumFeature, activeIndex = 0, onLogout, onMana
 
   // When a sidebar item is clicked, provide both its index and its subTopics to parent
   const handleClick = (menuItem, originalIndex) => {
-    if (menuItem?.premium) {
-      if (onPremiumFeature) {
-        onPremiumFeature(menuItem);
-      }
-      return;
-    }
-
     setActive(originalIndex);
     if (onSelect && menuItem) {
       onSelect(originalIndex, menuItem.subTopics || [], selectedManager);

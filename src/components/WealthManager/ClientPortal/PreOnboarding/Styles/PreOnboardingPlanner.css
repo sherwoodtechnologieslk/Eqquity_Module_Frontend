@@ -1,0 +1,20 @@
+/**
+ * Investment Planner embed.
+ */
+
+.cp-planner-embed {
+  padding: 16px;
+  background: #ffffff;
+  border: 1px solid var(--cp-line, #e3e1dc);
+  border-radius: 2px;
+  box-shadow: none;
+}
+
+.cp-planner-embed .sip-root {
+  padding: 0;
+  max-width: none;
+}
+
+.cp-planner-embed .sip-header {
+  display: none;
+}

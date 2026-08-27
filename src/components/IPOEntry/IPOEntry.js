@@ -45,13 +45,8 @@ const IPOEntry = () => {
     <div className="ipo-page-container">
       <div className="ipo-content-wrapper">
         <div className="ipo-header-section">
-          <div className="ipo-header-icon">
-            <svg className="ipo-icon" fill="currentColor" viewBox="0 0 20 20">
-              <path d="M4 3a1 1 0 011-1h10a1 1 0 011 1v14a1 1 0 11-2 0V4H5v13a1 1 0 11-2 0V3z" />
-              <path d="M8 6a1 1 0 000 2h4a1 1 0 100-2H8z" />
-            </svg>
-          </div>
           <div className="ipo-header-text-group">
+            <p className="ipo-eyebrow">IPO</p>
             <h1 className="ipo-main-title">IPO Entry</h1>
             <p className="ipo-subtitle">Record your initial public offering investments</p>
           </div>
@@ -150,9 +145,6 @@ const IPOEntry = () => {
             </form>
           </div>
         </div>
-      </div>
-      <div className="ipo-footer-section">
-        <p>SHERWOOD TECHNOLOGIES (PVT) LTD • Secure IPO entry management • All data is encrypted and protected</p>
       </div>
     </div>
   );

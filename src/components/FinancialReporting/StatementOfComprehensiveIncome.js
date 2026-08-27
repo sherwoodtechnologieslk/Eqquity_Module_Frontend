@@ -426,6 +426,7 @@ const StatementOfComprehensiveIncome = ({ onTabChange }) => {
       <div className="ci-page-header">
         <div className="ci-title-row">
           <div>
+            <p className="ci-eyebrow">Financial Reporting</p>
             <h1>Statement of Comprehensive Income</h1>
             <p className="ci-subtitle">
               Profit and loss summary with month-to-date, year-to-date, and prior-period

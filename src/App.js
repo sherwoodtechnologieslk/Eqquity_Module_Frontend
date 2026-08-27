@@ -7,7 +7,6 @@ import ManagerSelection from './components/Home/ManagerSelection';
 import EquityLanding from './components/Home/EquityLanding';
 import AuthContainer from './components/Auth/AuthContainer';
 import UserProfileModal from './components/Auth/UserProfileModal';
-import PremiumModal from './components/PremiumModal/premiumModal';
 import { authService } from './services/authService';
 import {
   canAccessTab,
@@ -81,11 +80,13 @@ import WealthHolidayCalendar from './components/WealthManager/Settings/WealthHol
 import UserManagement from './components/WealthManager/Settings/UserManagement';
 import GSecHoldings from './components/WealthManager/Government Securities/GSecHoldings';
 import TBillSubscription from './components/WealthManager/Government Securities/TBillSubscription';
+import TBills from './components/WealthManager/Government Securities/TBills';
 import TBondDeals from './components/WealthManager/Government Securities/TBondDeals';
 import RepoBuyback from './components/WealthManager/Government Securities/RepoBuyback';
 import MaturityCalendar from './components/WealthManager/Government Securities/MaturityCalendar';
 import GSecSettlements from './components/WealthManager/Government Securities/GSecSettlements';
 import GSecProductReport from './components/WealthManager/Government Securities/GSecProductReport';
+import MarkToMarket from './components/WealthManager/Government Securities/MarkToMarket';
 import PortfolioOverview from './components/Dashboard/DashboardTabs/PortfolioOverview';
 import EquityMasterEntry from './components/MasterDataManagement/EquityMasterEntry';
 import BuyTransactionEntry from './components/TradeCapture/BuyTransactionEntry';
@@ -106,6 +107,7 @@ import StrategyMaster from './components/MasterDataManagement/StrategyMaster';
 import AccountMaster from './components/MasterDataManagement/AccountMaster';
 import IPOEntry from './components/IPOEntry/IPOEntry';
 import IPOAllocation from './components/IPOEntry/IPOAllocation';
+import IPOPlaceholder from './components/IPOEntry/IPOPlaceholder';
 import CostingMethodSelection from './components/MasterDataManagement/CostingMethodSelection';
 import PortfolioDropdown from './components/TradeCapture/PortfolioDropdown';
 import CostOfFundsDefinition from './components/TradeCapture/CostOfFundsDefinition';
@@ -212,8 +214,6 @@ function App() {
   const [isLoading, setIsLoading] = useState(true);
   const [aiAssistantOpen, setAiAssistantOpen] = useState(false);
   const [ownerReadOnlyPopup, setOwnerReadOnlyPopup] = useState(null);
-  const [isPremiumModalOpen, setIsPremiumModalOpen] = useState(false);
-  const [premiumModalVariant, setPremiumModalVariant] = useState('default');
   // Optional context payload passed across tabs (e.g. SOFP "View notes" → Financial Reporting Notes).
   // Cleared when the tab is changed without a payload.
   const [tabContext, setTabContext] = useState(null);
@@ -391,11 +391,13 @@ function App() {
     'Systematic Withdrawal Plan (SWP)': <SWP />,
     'G-Sec Holdings': <GSecHoldings />,
     'T-Bill Subscription': <TBillSubscription />,
+    'T-Bills': <TBills />,
     'T-Bond Deals': <TBondDeals />,
     'Repo & Buyback': <RepoBuyback />,
     'Maturity Calendar': <MaturityCalendar />,
     'G-Sec Settlements': <GSecSettlements />,
     'GSec Product Report': <GSecProductReport />,
+    'Mark to Market': <MarkToMarket />,
     'Client Portfolios': <ClientPortfolios />,
     'Portfolio Allocation': <PortfolioAllocation />,
     'Portfolio Performance': <PortfolioPerformance />,
@@ -461,9 +463,9 @@ function App() {
     'Pending Dividends': <PendingDividends/>,
     'Rights Issue':<RightsIssueEntry/>,
     'Rights Issues': <RightsIssueEntry/>, // Alias for Mandatory Corporate Actions
-    'Stock Split': <ScripDividendEntry/>,
-    'Splits & Bonus': <ScripDividendEntry/>, // Alias for Mandatory Corporate Actions
-    
+    'Stock Split': <ScripDividendEntry mode="split" />,
+    'Splits & Bonus': <ScripDividendEntry mode="split" />,
+    'Reverse Stock Split': <ScripDividendEntry mode="reverse" />,
     'Deal Slip': <DealSlipScreen />,
     'Portfolio': <PortfolioDropdown />,
     'View Portfolio': <ViewPortfolio />,
@@ -474,9 +476,21 @@ function App() {
     'Mark To Market': <MarkToMarketValuation />,
     
     'IPO Entry': <IPOEntry />,
-    'IPO Allocation': <IPOAllocation/>,
-    'Refund Processing': <div style={{ padding: '2rem' }}><h3>Refund Processing</h3><p>Coming Soon...</p></div>,
-    'Allocation Summary': <div style={{ padding: '2rem' }}><h3>Allocation Summary</h3><p>Coming Soon...</p></div>,
+    'IPO Allocation': <IPOAllocation />,
+    'Refund Processing': (
+      <IPOPlaceholder
+        title="Refund Processing"
+        subtitle="Track and process IPO refunds"
+        message="Refund Processing is coming soon."
+      />
+    ),
+    'Allocation Summary': (
+      <IPOPlaceholder
+        title="Allocation Summary"
+        subtitle="Review IPO allocation outcomes"
+        message="Allocation Summary is coming soon."
+      />
+    ),
     'Cost of Funds': <CostOfFundsDefinition />,
     'Journal Entries': selectedManager === 'wealth'
       ? <WealthJournalEntries />
@@ -632,6 +646,11 @@ function App() {
     return <div className="loading-screen">Loading...</div>;
   }
 
+  // Public Client Portal site (?clientPortal=1) — no staff login required
+  if (isClientPortalTab) {
+    return <ClientPortal user={user} onLogout={handleLogout} />;
+  }
+
   if (!isAuthenticated) {
     if (!showAuthFromManagers) {
       return (
@@ -707,10 +726,6 @@ function App() {
       ) : activeTab === 'Home' ? null : (
         <Sidebar
           onSelect={handleSidebarSelect}
-          onPremiumFeature={(menuItem) => {
-            setPremiumModalVariant(menuItem.premiumVariant || 'default');
-            setIsPremiumModalOpen(true);
-          }}
           activeIndex={activeSidebarItem}
           onLogout={handleLogout}
           onManagerChange={handleManagerChange}
@@ -796,35 +811,6 @@ function App() {
         onClose={() => setIsProfileModalOpen(false)}
         onPasswordChanged={handlePasswordChanged}
         variant={selectedManager === 'wealth' ? 'wealth' : 'equity'}
-      />
-
-      <PremiumModal
-        isOpen={isPremiumModalOpen}
-        onClose={() => setIsPremiumModalOpen(false)}
-        variant={premiumModalVariant}
-        onContactSales={() => {
-          const subjectMap = {
-            portfolioTransfers: 'Upgrade Request - Portfolio Transfers',
-            integrationAutomation: 'Upgrade Request - Integration and Automation',
-            riskLimitManagement: 'Upgrade Request - Risk and Limit Management',
-            reportingCompliance: 'Upgrade Request - Reporting and Compliance',
-            portfolioMonitoring: 'Upgrade Request - Portfolio Monitoring',
-            ipo: 'Upgrade Request - IPO',
-            tradeCore: 'Upgrade Request - TradeCore',
-            corporateActions: 'Upgrade Request - Corporate Actions',
-            securityIdentity: 'Upgrade Request - Security Identity',
-            voluntaryCorporateActions: 'Upgrade Request - Voluntary Corporate Actions',
-            mandatoryCorporateActions: 'Upgrade Request - Mandatory Corporate Actions',
-            chartsAndInsights: 'Upgrade Request - Charts and Insights',
-            clientPortal: 'Client Portal Access Request',
-          };
-          const subject =
-            subjectMap[premiumModalVariant] || 'Upgrade Request - Premium Feature';
-          window.open(
-            `mailto:support@sherwoodtech.com?subject=${encodeURIComponent(subject)}`,
-            '_blank'
-          );
-        }}
       />
 
       {ownerReadOnlyPopup && (

@@ -2925,6 +2925,50 @@ export const gsecEntriesAPI = {
     }
   },
 
+  getMarkToMarket: async (filters = {}) => {
+    try {
+      const queryParams = new URLSearchParams();
+      if (filters.asAtDate) queryParams.append('asAtDate', filters.asAtDate);
+      if (filters.page) queryParams.append('page', String(filters.page));
+      if (filters.pageSize) queryParams.append('pageSize', String(filters.pageSize));
+      const url = queryParams.toString()
+        ? `${API_BASE_URL}/gsec/reports/mark-to-market?${queryParams.toString()}`
+        : `${API_BASE_URL}/gsec/reports/mark-to-market`;
+      return await makeAuthenticatedRequest(url, { method: 'GET' });
+    } catch (error) {
+      console.error('Error fetching GSec mark-to-market report:', error);
+      throw error;
+    }
+  },
+
+  getTBills: async (filters = {}) => {
+    const queryParams = new URLSearchParams();
+    if (filters.asAtDate) queryParams.append('asAtDate', filters.asAtDate);
+    const qs = queryParams.toString();
+    const liveUrl = qs
+      ? `http://10.40.80.89/live1-api/reports/tbill?${qs}`
+      : 'http://10.40.80.89/live1-api/reports/tbill';
+    const proxyUrl = qs
+      ? `${API_BASE_URL}/gsec/reports/tbill?${qs}`
+      : `${API_BASE_URL}/gsec/reports/tbill`;
+
+    try {
+      const liveResponse = await fetch(liveUrl);
+      if (liveResponse.ok) {
+        return await liveResponse.json();
+      }
+    } catch (liveError) {
+      // Fall through to the local proxy if the live host is blocked.
+    }
+
+    try {
+      return await makeAuthenticatedRequest(proxyUrl, { method: 'GET' });
+    } catch (error) {
+      console.error('Error fetching GSec T-bill report:', error);
+      throw error;
+    }
+  },
+
   // Save current GSec entries into backend gsec_entries table
   saveEntriesToDatabase: async (entries) => {
     try {

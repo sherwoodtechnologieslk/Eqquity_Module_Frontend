@@ -71,13 +71,14 @@ const DOC_CATEGORIES = [
   },
 ];
 
-export default function PreOnboardingFundDocuments({ onGetStarted }) {
+export default function PreOnboardingFundDocuments({ onGetStarted, onNavigate }) {
   return (
-    <CpPage>
+    <CpPage onNavigate={onNavigate} onGetStarted={onGetStarted}>
       <CpHero
-        eyebrow="Sherwood Wealth · Fund Documents"
+        tone="land"
+        eyebrow="Fund Documents"
         title="All your fund documents in one place."
-        lead="Once you open an account, you get instant access to prospectuses, fact sheets, reports, and statements for every fund you hold — plus application forms and regulatory documents."
+        lead="Once you open an account, you get instant access to prospectuses, fact sheets, reports, and statements for every fund you hold, plus application forms and regulatory documents."
         actions={
           <CpButton onClick={onGetStarted}>
             Open an Account to Access Documents
@@ -93,15 +94,15 @@ export default function PreOnboardingFundDocuments({ onGetStarted }) {
         <CpGrid cols={3}>
           {DOC_CATEGORIES.map((doc) => (
             <CpCard key={doc.title} icon={doc.icon} title={doc.title} text={doc.desc}>
-              <span className="cp-eyebrow">Available after signup</span>
+              <span className="cp-site-kicker">Available after signup</span>
             </CpCard>
           ))}
         </CpGrid>
       </CpSection>
 
       <CpSection mint>
-        <CpPanel variant="soft">
-          <div style={{ padding: '1rem 1.15rem', display: 'flex', gap: '0.85rem', alignItems: 'flex-start' }}>
+        <CpPanel>
+          <div style={{ padding: 16, display: 'flex', gap: 16, alignItems: 'flex-start' }}>
             <div className="cp-card__icon" aria-hidden>
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" width="18" height="18">
                 <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
