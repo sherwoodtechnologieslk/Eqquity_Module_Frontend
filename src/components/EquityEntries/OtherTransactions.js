@@ -3745,7 +3745,7 @@ const isVoucherSettled = (voucher) => {
             <p className="other-trans-header-eyebrow">Accounting · Non-trading</p>
             <h1 className="other-trans-main-title">Non-Trading Transactions</h1>
             <p className="other-trans-subtitle">
-              Other income, expenses, and assets — multi-currency supported.
+              Other income, expenses, and assets. Multi-currency supported.
             </p>
           </div>
         </header>
