@@ -708,8 +708,8 @@ const BulkBuyEntry = () => {
       <div className="bulk-buy-content-wrapper">
         <header className="bulk-buy-toolbar">
           <div className="bulk-buy-toolbar__left">
-            <span className="bulk-buy-toolbar__badge">BULK BUY</span>
             <div className="bulk-buy-toolbar__heading">
+              <p className="bulk-buy-toolbar__eyebrow">Trade Capture · Bulk Buy</p>
               <h1 className="bulk-buy-toolbar__title">Bulk Buy Transaction Entry</h1>
               <p className="bulk-buy-toolbar__subtitle">
                 Record bulk equity purchases with automatic fee and settlement calculations

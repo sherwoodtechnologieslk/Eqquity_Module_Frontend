@@ -1,6 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import ClientSidebar from './ClientSidebar';
-import ClientNavbar from './ClientNavbar';
+import ClientNavbar, {
+  hashToTab,
+  setPublicHash,
+  PUBLIC_PAGE_TITLES,
+} from './ClientNavbar';
 import ClientDashboard from './ClientGateway/ClientDashboard';
 import MyPortfolio from './ClientGateway/MyPortfolio';
 import Create from './ClientGateway/Create';
@@ -19,9 +23,10 @@ import ClientOtherProductsForm from './ClientOnboarding/ClientOtherProductsForm'
 import ClientDocumentUploadForm from './ClientOnboarding/ClientDocumentUploadForm';
 import ClientVideoVerificationForm from './ClientOnboarding/ClientVideoVerificationForm';
 import ClientSubmitForm from './ClientOnboarding/ClientSubmitForm';
-import SIPCalculator from './SIPCalculator';
 import PreOnboardingHome from './PreOnboarding/PreOnboardingHome';
 import PreOnboardingAbout from './PreOnboarding/PreOnboardingAbout';
+import PreOnboardingFunds from './PreOnboarding/PreOnboardingFunds';
+import PreOnboardingPlanner from './PreOnboarding/PreOnboardingPlanner';
 import PreOnboardingFundDocuments from './PreOnboarding/PreOnboardingFundDocuments';
 import PreOnboardingContact from './PreOnboarding/PreOnboardingContact';
 import './Styles/ClientPortal.css';
@@ -29,7 +34,7 @@ import './Styles/ClientPortal.css';
 const ClientPortal = ({ user, onLogout }) => {
   useEffect(() => {
     const previousTitle = document.title;
-    document.title = 'Client Portal · Sherwood Wealth';
+    document.title = PUBLIC_PAGE_TITLES.Dashboard;
     return () => {
       document.title = previousTitle;
     };
@@ -169,9 +174,39 @@ const ClientPortal = ({ user, onLogout }) => {
   ];
   const [selectedIntroFundId, setSelectedIntroFundId] = useState(introFunds[0].id);
   const [fundDetailTab, setFundDetailTab] = useState('Overview');
-  const [preOnboardingTab, setPreOnboardingTab] = useState('Dashboard');
+  const [preOnboardingTab, setPreOnboardingTab] = useState(() => {
+    try {
+      return hashToTab(window.location.hash);
+    } catch {
+      return 'Dashboard';
+    }
+  });
   const [activeTab, setActiveTab] = useState('Dashboard');
   const [activeSidebarItem, setActiveSidebarItem] = useState(0);
+
+  useEffect(() => {
+    const applyHash = () => setPreOnboardingTab(hashToTab(window.location.hash));
+    applyHash();
+    window.addEventListener('hashchange', applyHash);
+    window.addEventListener('popstate', applyHash);
+    return () => {
+      window.removeEventListener('hashchange', applyHash);
+      window.removeEventListener('popstate', applyHash);
+    };
+  }, []);
+
+  useEffect(() => {
+    document.title = PUBLIC_PAGE_TITLES[preOnboardingTab] || PUBLIC_PAGE_TITLES.Dashboard;
+  }, [preOnboardingTab]);
+
+  useEffect(() => {
+    if (showSignup) {
+      document.body.classList.add('cp-public-active');
+    } else {
+      document.body.classList.remove('cp-public-active');
+    }
+    return () => document.body.classList.remove('cp-public-active');
+  }, [showSignup]);
 
   // Client portal menu items
   const clientMenuItems = [
@@ -492,6 +527,8 @@ const ClientPortal = ({ user, onLogout }) => {
     setShowSubmitForm(false);
     setShowSignup(true);
     setPreOnboardingTab('Dashboard');
+    setPublicHash('Dashboard');
+    window.scrollTo(0, 0);
   };
 
   const handlePersonalFormNext = (data) => {
@@ -1012,182 +1049,64 @@ const ClientPortal = ({ user, onLogout }) => {
     );
   };
 
-  const preOnboardingSidebarItems = [
-    { key: 'Dashboard', label: 'Home' },
-    { key: 'About', label: 'About' },
-    { key: 'Fund Information', label: 'Our Funds' },
-    { key: 'My Portfolio', label: 'Investment Planner' },
-    { key: 'Statements', label: 'Fund Documents' },
-    { key: 'Contact', label: 'Contact' }
-  ];
+  const goToPublicTab = (tab) => {
+    setPreOnboardingTab(tab);
+    setPublicHash(tab);
+    window.scrollTo(0, 0);
+  };
 
   const renderPreOnboardingContent = () => {
     if (preOnboardingTab === 'Fund Information') {
-      return renderFundsView({ signupMode: true, onPrimaryAction: handleGetStarted });
+      return <PreOnboardingFunds onGetStarted={handleGetStarted} onNavigate={goToPublicTab} />;
     }
 
     if (preOnboardingTab === 'Dashboard') {
       return (
         <PreOnboardingHome
           onGetStarted={handleGetStarted}
-          onViewFunds={() => setPreOnboardingTab('Fund Information')}
+          onViewFunds={() => goToPublicTab('Fund Information')}
+          onNavigate={goToPublicTab}
         />
       );
     }
 
     if (preOnboardingTab === 'About') {
-      return (
-        <PreOnboardingAbout onGetStarted={handleGetStarted} />
-      );
+      return <PreOnboardingAbout onGetStarted={handleGetStarted} onNavigate={goToPublicTab} />;
+    }
+
+    if (preOnboardingTab === 'My Portfolio') {
+      return <PreOnboardingPlanner onGetStarted={handleGetStarted} onNavigate={goToPublicTab} />;
     }
 
     if (preOnboardingTab === 'Statements') {
-      return (
-        <PreOnboardingFundDocuments onGetStarted={handleGetStarted} />
-      );
+      return <PreOnboardingFundDocuments onGetStarted={handleGetStarted} onNavigate={goToPublicTab} />;
     }
 
     if (preOnboardingTab === 'Contact') {
-      return (
-        <PreOnboardingContact onGetStarted={handleGetStarted} />
-      );
+      return <PreOnboardingContact onGetStarted={handleGetStarted} onNavigate={goToPublicTab} />;
     }
 
-    const contentByTab = {
-      'Dashboard': {
-        title: 'Home',
-        text:
-          'Explore our available funds and learn how Sherwood Wealth helps you track performance, review statements, and manage investments securely.'
-      },
-      'About': {
-        title: 'About',
-        text:
-          'Sherwood Wealth gives clients a secure way to explore funds, view performance, and manage unit trust investments with clear insights and convenient access.'
-      },
-      'My Portfolio': {
-        title: 'Investment Planner',
-        text:
-          'Use the Investment Planner after signup to review your portfolio, track allocations, and plan future investments based on your goals and risk preference.'
-      },
-      'Statements': {
-        title: 'Fund Documents',
-        text:
-          'After signup, you can access statements and fund documents in one place, including reports and downloadable resources for your investments.'
-      },
-      'Contact': {
-        title: 'Contact',
-        text:
-          'Need help? Contact your relationship manager or reach out via official support channels for assistance with onboarding and investments.'
-      }
-    };
-
-    const content = contentByTab[preOnboardingTab] || contentByTab.Dashboard;
-
     return (
-      <div className="cp-pre-shell">
-        <aside className="cp-pre-sidebar">
-          {preOnboardingTab === 'My Portfolio' ? (
-            <div className="cp-planner-sidebar">
-              <div className="cp-planner-sidebar-brand">
-                <div className="cp-planner-sidebar-icon">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" width="22" height="22">
-                    <polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/>
-                  </svg>
-                </div>
-                <div className="cp-planner-sidebar-brand-name">Investment Planner</div>
-              </div>
-
-              <p className="cp-planner-sidebar-desc">
-                Start small, invest regularly, and let compound interest do the work. Our SIP calculator shows you exactly how.
-              </p>
-
-              <div className="cp-planner-sidebar-stats">
-                <div className="cp-planner-sidebar-stat">
-                  <div className="cp-planner-sidebar-stat-val">LKR 1,000</div>
-                  <div className="cp-planner-sidebar-stat-lbl">Minimum monthly SIP</div>
-                </div>
-                <div className="cp-planner-sidebar-stat">
-                  <div className="cp-planner-sidebar-stat-val">12%</div>
-                  <div className="cp-planner-sidebar-stat-lbl">Avg. annual return (equity)</div>
-                </div>
-                <div className="cp-planner-sidebar-stat">
-                  <div className="cp-planner-sidebar-stat-val">Monthly</div>
-                  <div className="cp-planner-sidebar-stat-lbl">Investment frequency</div>
-                </div>
-              </div>
-
-              <div className="cp-planner-sidebar-divider" />
-
-              <div className="cp-planner-sidebar-section-title">Why invest via SIP?</div>
-              <ul className="cp-planner-sidebar-benefits">
-                <li>Removes the need to time the market</li>
-                <li>Builds discipline with regular saving</li>
-                <li>Benefits from rupee cost averaging</li>
-                <li>Compounds wealth over time</li>
-              </ul>
-
-            </div>
-          ) : (
-            <>
-              <div className="cp-pre-sidebar-title">Menu</div>
-              <div className="cp-pre-sidebar-list">
-                {preOnboardingSidebarItems.map((item) => {
-                  const isActive = item.key === preOnboardingTab;
-                  return (
-                    <button
-                      key={item.key}
-                      type="button"
-                      className={isActive ? 'cp-pre-sidebar-item active' : 'cp-pre-sidebar-item'}
-                      onClick={() => setPreOnboardingTab(item.key)}
-                    >
-                      {item.label}
-                    </button>
-                  );
-                })}
-              </div>
-            </>
-          )}
-        </aside>
-
-        <main className="cp-pre-main">
-          {preOnboardingTab === 'My Portfolio' ? (
-            <SIPCalculator onGetStarted={handleGetStarted} />
-          ) : (
-            <div className="cp-simple-page">
-              <h2 className="cp-simple-page-title">{content.title}</h2>
-              <p className="cp-simple-page-text">{content.text}</p>
-              <div className="cp-pre-cta-row">
-                <button type="button" className="cp-fund-action-btn cp-fund-action-primary" onClick={handleGetStarted}>
-                  Get Started
-                </button>
-                <button
-                  type="button"
-                  className="cp-fund-action-btn cp-fund-action-secondary"
-                  onClick={() => setPreOnboardingTab('Fund Information')}
-                >
-                  Browse Our Funds
-                </button>
-              </div>
-            </div>
-          )}
-        </main>
-      </div>
+      <PreOnboardingHome
+        onGetStarted={handleGetStarted}
+        onViewFunds={() => goToPublicTab('Fund Information')}
+        onNavigate={goToPublicTab}
+      />
     );
   };
 
   // Show signup intro screen (funds + signup CTA)
   if (showSignup) {
     return (
-      <>
+      <div className="cp-public">
         <ClientNavbar
           activeTab={preOnboardingTab}
-          onTabChange={(tab) => setPreOnboardingTab(tab)}
+          onTabChange={goToPublicTab}
+          onGetStarted={handleGetStarted}
           user={user}
         />
-        <div className="cp-funds-intro-root cp-funds-intro-root--site">
-          {renderPreOnboardingContent()}
-        </div>
-      </>
+        <main className="cp-public-main">{renderPreOnboardingContent()}</main>
+      </div>
     );
   }
 

@@ -1,9 +1,74 @@
 import React from 'react';
 import './CpUi.css';
+import { PUBLIC_NAV_ITEMS } from '../ClientNavbar';
 
-/** Page shell for Client Portal public tabs (Home, About, Funds, Planner, Docs, Contact). */
-export const CpPage = ({ children, className = '' }) => (
-  <div className={`cp-ui${className ? ` ${className}` : ''}`}>{children}</div>
+/** Shared site footer for all public Client Portal pages. */
+export const CpSiteFooter = ({ onNavigate, onGetStarted }) => (
+  <footer className="cp-site-footer">
+    <div className="cp-site-shell">
+      <div className="cp-site-footer__grid">
+        <div className="cp-site-footer__brand">
+          <strong>Sherwood Wealth</strong>
+          <p>Licensed unit trust investing for Sri Lankan investors, from LKR 1,000.</p>
+          {onGetStarted ? (
+            <button type="button" className="cp-site-footer__cta" onClick={onGetStarted}>
+              Open an account
+            </button>
+          ) : null}
+        </div>
+        <div>
+          <h4>Explore</h4>
+          <ul>
+            {PUBLIC_NAV_ITEMS.map((item) => (
+              <li key={item.key}>
+                <button type="button" onClick={() => onNavigate?.(item.tab)}>
+                  {item.label}
+                </button>
+              </li>
+            ))}
+          </ul>
+        </div>
+        <div>
+          <h4>Invest</h4>
+          <ul>
+            <li>
+              <button type="button" onClick={() => onNavigate?.('Fund Information')}>
+                Our funds
+              </button>
+            </li>
+            <li>
+              <button type="button" onClick={() => onNavigate?.('My Portfolio')}>
+                SIP planner
+              </button>
+            </li>
+            <li>
+              <button type="button" onClick={() => onNavigate?.('Statements')}>
+                Documents
+              </button>
+            </li>
+          </ul>
+        </div>
+        <div>
+          <h4>Contact</h4>
+          <p>+94 11 2 345 678</p>
+          <p>investors@wealthplus.lk</p>
+          <p>Colombo, Sri Lanka</p>
+        </div>
+      </div>
+      <div className="cp-site-footer__legal">
+        <span>© {new Date().getFullYear()} Sherwood Wealth. All rights reserved.</span>
+        <span>Regulated unit trust investing</span>
+      </div>
+    </div>
+  </footer>
+);
+
+/** Full-bleed public page: heroes and sections own their inner shells. */
+export const CpPage = ({ children, className = '', footer = true, onNavigate, onGetStarted }) => (
+  <div className={`cp-site cp-ui${className ? ` ${className}` : ''}`}>
+    {children}
+    {footer ? <CpSiteFooter onNavigate={onNavigate} onGetStarted={onGetStarted} /> : null}
+  </div>
 );
 
 export const CpButton = ({ children, variant = 'solid', type = 'button', className = '', ...rest }) => (
@@ -23,29 +88,39 @@ export const CpHero = ({
   actions = null,
   aside = null,
   split = false,
+  tone = 'paper',
+  visual = null,
+  className = '',
   children,
 }) => (
-  <section className={`cp-hero${split ? ' cp-hero--split' : ''}`}>
-    {split ? (
-      <div className="cp-hero__layout">
+  <section
+    className={`cp-hero${split ? ' cp-hero--split' : ''}${tone === 'land' ? ' cp-hero--land' : ''}${
+      visual ? ' cp-hero--has-visual' : ''
+    }${className ? ` ${className}` : ''}`}
+  >
+    {visual ? <div className="cp-hero__visual">{visual}</div> : null}
+    <div className="cp-site-shell">
+      {split ? (
+        <div className="cp-hero__layout">
+          <div className="cp-hero__inner">
+            {eyebrow ? <p className="cp-site-kicker">{eyebrow}</p> : null}
+            {title ? <h1 className="cp-hero__title">{title}</h1> : null}
+            {lead ? <p className="cp-hero__lead">{lead}</p> : null}
+            {actions ? <div className="cp-hero__actions">{actions}</div> : null}
+            {children}
+          </div>
+          {aside}
+        </div>
+      ) : (
         <div className="cp-hero__inner">
-          {eyebrow ? <span className="cp-eyebrow">{eyebrow}</span> : null}
+          {eyebrow ? <p className="cp-site-kicker">{eyebrow}</p> : null}
           {title ? <h1 className="cp-hero__title">{title}</h1> : null}
           {lead ? <p className="cp-hero__lead">{lead}</p> : null}
           {actions ? <div className="cp-hero__actions">{actions}</div> : null}
           {children}
         </div>
-        {aside}
-      </div>
-    ) : (
-      <div className="cp-hero__inner">
-        {eyebrow ? <span className="cp-eyebrow">{eyebrow}</span> : null}
-        {title ? <h1 className="cp-hero__title">{title}</h1> : null}
-        {lead ? <p className="cp-hero__lead">{lead}</p> : null}
-        {actions ? <div className="cp-hero__actions">{actions}</div> : null}
-        {children}
-      </div>
-    )}
+      )}
+    </div>
   </section>
 );
 
@@ -58,14 +133,16 @@ export const CpSection = ({
   className = '',
 }) => (
   <section className={`cp-section${mint ? ' cp-section--mint' : ''}${className ? ` ${className}` : ''}`}>
-    {(eyebrow || title || blurb) && (
-      <header className="cp-section__head">
-        {eyebrow ? <span className="cp-eyebrow">{eyebrow}</span> : null}
-        {title ? <h2 className="cp-section__title">{title}</h2> : null}
-        {blurb ? <p className="cp-section__blurb">{blurb}</p> : null}
-      </header>
-    )}
-    {children}
+    <div className="cp-site-shell">
+      {(eyebrow || title || blurb) && (
+        <header className="cp-section__head">
+          {eyebrow ? <p className="cp-site-kicker">{eyebrow}</p> : null}
+          {title ? <h2 className="cp-section__title">{title}</h2> : null}
+          {blurb ? <p className="cp-section__blurb">{blurb}</p> : null}
+        </header>
+      )}
+      {children}
+    </div>
   </section>
 );
 
@@ -74,14 +151,9 @@ export const CpCard = ({
   title,
   text,
   children,
-  variant = 'paper',
   className = '',
 }) => (
-  <article
-    className={`cp-card${variant === 'mint' ? ' cp-card--mint' : ''}${
-      variant === 'accent' ? ' cp-card--accent' : ''
-    }${className ? ` ${className}` : ''}`}
-  >
+  <article className={`cp-card${className ? ` ${className}` : ''}`}>
     {icon ? <div className="cp-card__icon">{icon}</div> : null}
     {title ? <h3 className="cp-card__title">{title}</h3> : null}
     {text ? <p className="cp-card__text">{text}</p> : null}
@@ -93,26 +165,17 @@ export const CpGrid = ({ cols = 3, children, className = '' }) => (
   <div className={`cp-grid cp-grid--${cols}${className ? ` ${className}` : ''}`}>{children}</div>
 );
 
-export const CpPanel = ({ variant = 'accent', children, className = '' }) => (
-  <div
-    className={`cp-panel${variant === 'soft' ? ' cp-panel--soft' : ''}${
-      variant === 'paper' ? ' cp-panel--paper' : ''
-    }${className ? ` ${className}` : ''}`}
-  >
-    {children}
-  </div>
+export const CpPanel = ({ children, className = '' }) => (
+  <div className={`cp-panel${className ? ` ${className}` : ''}`}>{children}</div>
 );
 
 export const CpStatRow = ({ items = [] }) => (
   <div className="cp-stat-row">
-    {items.map((item, i) => (
-      <React.Fragment key={item.label || i}>
-        {i > 0 ? <div className="cp-stat-divider" aria-hidden /> : null}
-        <div className="cp-stat">
-          <div className="cp-stat__value">{item.value}</div>
-          <div className="cp-stat__label">{item.label}</div>
-        </div>
-      </React.Fragment>
+    {items.map((item) => (
+      <div key={item.label} className="cp-stat">
+        <div className="cp-stat__value">{item.value}</div>
+        <div className="cp-stat__label">{item.label}</div>
+      </div>
     ))}
   </div>
 );
@@ -129,13 +192,16 @@ const ArrowIcon = () => (
 
 export const CpCtaArrow = ArrowIcon;
 
-/** Bottom CTA strip used across public portal tabs. */
+/** Full-bleed bottom CTA used across public site pages. */
 export const CpCtaBanner = ({ title, subtitle, action }) => (
-  <section className="cp-section cp-section--mint cp-cta-banner">
-    <div>
-      {title ? <h3 className="cp-section__title">{title}</h3> : null}
-      {subtitle ? <p className="cp-section__blurb">{subtitle}</p> : null}
+  <section className="cp-cta-banner">
+    <div className="cp-site-shell cp-cta-banner__inner">
+      <div>
+        <p className="cp-site-kicker">Get started</p>
+        {title ? <h2 className="cp-section__title">{title}</h2> : null}
+        {subtitle ? <p className="cp-section__blurb">{subtitle}</p> : null}
+      </div>
+      {action}
     </div>
-    {action}
   </section>
 );

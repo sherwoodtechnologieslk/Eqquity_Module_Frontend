@@ -943,8 +943,8 @@ const BulkSellEntry = () => {
       <div className="bulk-sell-content-wrapper">
         <header className="bulk-sell-toolbar">
           <div className="bulk-sell-toolbar__left">
-            <span className="bulk-sell-toolbar__badge">BULK SELL</span>
             <div className="bulk-sell-toolbar__heading">
+              <p className="bulk-sell-toolbar__eyebrow">Trade Capture · Bulk Sell</p>
               <h1 className="bulk-sell-toolbar__title">Bulk Sell Transaction Entry</h1>
               <p className="bulk-sell-toolbar__subtitle">
                 Record multiple stock sales with automatic fee, gain and settlement calculations

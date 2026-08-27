@@ -8,7 +8,6 @@ import {
   CpButton,
   CpCtaArrow,
   CpCtaBanner,
-  CpPanel,
   CpStatRow,
 } from '../shared/CpUi';
 
@@ -80,12 +79,13 @@ const VALUES = [
   },
 ];
 
-export default function PreOnboardingAbout({ onGetStarted }) {
+export default function PreOnboardingAbout({ onGetStarted, onNavigate }) {
   return (
-    <CpPage>
+    <CpPage onNavigate={onNavigate} onGetStarted={onGetStarted}>
       <CpHero
+        tone="land"
         split
-        eyebrow="Sherwood Wealth · About"
+        eyebrow="About"
         title={
           <>
             Built for investors.
@@ -93,7 +93,7 @@ export default function PreOnboardingAbout({ onGetStarted }) {
             Driven by trust.
           </>
         }
-        lead="We are a licensed investment management firm dedicated to helping individuals and institutions grow their wealth through professionally managed unit trust funds — with transparency, discipline, and a long-term perspective."
+        lead="We are a licensed investment management firm dedicated to helping individuals and institutions grow their wealth through professionally managed unit trust funds, with transparency, discipline, and a long-term perspective."
         actions={
           <CpButton onClick={onGetStarted}>
             Start Investing Today
@@ -101,23 +101,21 @@ export default function PreOnboardingAbout({ onGetStarted }) {
           </CpButton>
         }
         aside={
-          <CpPanel>
-            <CpStatRow
-              items={[
-                { value: '15+', label: 'Years of Operation' },
-                { value: '3', label: 'Active Funds' },
-                { value: '10,000+', label: 'Investors Served' },
-                { value: 'SEC', label: 'Regulated & Licensed' },
-              ]}
-            />
-          </CpPanel>
+          <CpStatRow
+            items={[
+              { value: '15+', label: 'Years of Operation' },
+              { value: '3', label: 'Active Funds' },
+              { value: '10,000+', label: 'Investors Served' },
+              { value: 'SEC', label: 'Regulated & Licensed' },
+            ]}
+          />
         }
       />
 
       <CpSection>
         <CpGrid cols={2}>
-          <CpCard variant="accent" title="Our Mission" text="To democratise wealth creation by providing every Sri Lankan investor — regardless of income level — access to professionally managed investment products that grow their savings over time." />
-          <CpCard variant="mint" title="Our Vision" text="To be the most trusted name in unit trust investment management in Sri Lanka, known for consistent performance, investor education, and world-class digital access." />
+          <CpCard title="Our Mission" text="To democratise wealth creation by providing every Sri Lankan investor, regardless of income level, access to professionally managed investment products that grow their savings over time." />
+          <CpCard title="Our Vision" text="To be the most trusted name in unit trust investment management in Sri Lanka, known for consistent performance, investor education, and world-class digital access." />
         </CpGrid>
       </CpSection>
 
@@ -131,13 +129,9 @@ export default function PreOnboardingAbout({ onGetStarted }) {
 
       <CpSection eyebrow="Our Journey" title="Milestones that shaped who we are">
         <div className="cp-timeline">
-          {MILESTONES.map((m, i) => (
+          {MILESTONES.map((m) => (
             <div key={m.year} className="cp-timeline__item">
               <div className="cp-timeline__year">{m.year}</div>
-              <div className="cp-timeline__rail">
-                <div className="cp-timeline__dot" />
-                {i < MILESTONES.length - 1 ? <div className="cp-timeline__connector" /> : null}
-              </div>
               <div className="cp-timeline__body">
                 <div className="cp-timeline__title">{m.title}</div>
                 <div className="cp-timeline__desc">{m.desc}</div>
@@ -155,7 +149,7 @@ export default function PreOnboardingAbout({ onGetStarted }) {
               icon={<span className="cp-team-avatar">{t.initial}</span>}
               title={t.name}
             >
-              <span className="cp-eyebrow">{t.role}</span>
+              <p className="cp-site-kicker">{t.role}</p>
               <p className="cp-card__text">{t.desc}</p>
             </CpCard>
           ))}

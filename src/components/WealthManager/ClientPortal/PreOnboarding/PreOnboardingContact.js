@@ -10,6 +10,7 @@ import {
   CpCtaBanner,
   CpPanel,
 } from '../shared/CpUi';
+import ContactGlobe from './ContactGlobe';
 
 const CONTACT_METHODS = [
   {
@@ -52,11 +53,13 @@ const FAQ_ITEMS = [
   { q: 'Who can I speak to about my existing portfolio?', a: 'Once you have an account, your relationship manager’s contact details appear in the portal. You can also call or email us using the details above.' },
 ];
 
-export default function PreOnboardingContact({ onGetStarted }) {
+export default function PreOnboardingContact({ onGetStarted, onNavigate }) {
   return (
-    <CpPage>
+    <CpPage onNavigate={onNavigate} onGetStarted={onGetStarted}>
       <CpHero
-        eyebrow="Sherwood Wealth · Contact"
+        tone="land"
+        visual={<ContactGlobe />}
+        eyebrow="Contact"
         title="We're here to help."
         lead="Have questions about our funds, your account, or how to get started? Reach out by phone, email, or visit our office. Our team is ready to assist you."
         actions={
@@ -81,13 +84,13 @@ export default function PreOnboardingContact({ onGetStarted }) {
       </CpSection>
 
       <CpSection mint>
-        <CpPanel variant="soft">
-          <div style={{ padding: '1rem 1.15rem' }}>
-            <span className="cp-eyebrow">Office hours</span>
-            <p className="cp-section__blurb" style={{ marginTop: '0.35rem' }}>
-              Monday – Friday: 8:30 AM – 5:00 PM · Saturday: 9:00 AM – 1:00 PM (by appointment)
-            </p>
-          </div>
+        <CpPanel>
+            <div style={{ padding: 16 }}>
+              <p className="cp-site-kicker">Office hours</p>
+              <p className="cp-section__blurb" style={{ marginTop: 8 }}>
+                Monday – Friday: 8:30 AM – 5:00 PM · Saturday: 9:00 AM – 1:00 PM (by appointment)
+              </p>
+            </div>
         </CpPanel>
       </CpSection>
 
@@ -101,7 +104,7 @@ export default function PreOnboardingContact({ onGetStarted }) {
 
       <CpCtaBanner
         title="Ready to start investing?"
-        subtitle="Open an account online in minutes — no branch visit required."
+        subtitle="Open an account online in minutes, no branch visit required."
         action={
           <CpButton onClick={onGetStarted}>
             Get Started

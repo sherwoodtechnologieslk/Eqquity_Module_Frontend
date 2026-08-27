@@ -1,4 +1,6 @@
-import React from 'react';
+import React, { useCallback, useState } from 'react';
+import { CpSiteFooter } from '../shared/CpUi';
+import SiteAtmosphere from './SiteAtmosphere';
 import './Styles/PreOnboardingHome.css';
 
 const FUNDS = [
@@ -11,6 +13,7 @@ const FUNDS = [
     nav: '20.5463',
     change: '+0.35%',
     min: 'LKR 1,000',
+    spark: 'M2 28 C 18 24, 28 18, 42 16 S 68 22, 86 10 S 118 14, 142 8',
   },
   {
     code: 'CMT',
@@ -21,6 +24,7 @@ const FUNDS = [
     nav: '44.6913',
     change: '+0.02%',
     min: 'LKR 1,000',
+    spark: 'M2 22 C 22 21, 38 20, 54 19 S 86 18, 110 16 S 128 15, 142 14',
   },
   {
     code: 'SBF',
@@ -31,6 +35,7 @@ const FUNDS = [
     nav: '12.1840',
     change: '+0.08%',
     min: 'LKR 1,000',
+    spark: 'M2 26 C 20 24, 34 20, 50 18 S 78 21, 98 12 S 122 16, 142 9',
   },
 ];
 
@@ -38,7 +43,7 @@ const STEPS = [
   {
     n: '01',
     title: 'Open your account',
-    text: 'Complete digital KYC online — identity, bank details, and preferences in one flow.',
+    text: 'Complete digital KYC online, identity, bank details, and preferences in one flow.',
   },
   {
     n: '02',
@@ -64,59 +69,97 @@ const STATS = [
   { value: 'T+2', label: 'Settlement cycle' },
 ];
 
-export default function PreOnboardingHome({ onGetStarted, onViewFunds }) {
+const TRUST = ['SEC licensed', 'From LKR 1,000', 'Digital KYC', 'T+2 settlement'];
+
+const Sparkline = ({ d }) => (
+  <svg className="cp-site-spark" viewBox="0 0 144 36" fill="none" aria-hidden="true">
+    <path d={d} stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" />
+  </svg>
+);
+
+const Arrow = () => (
+  <svg viewBox="0 0 20 20" fill="currentColor" width="15" height="15" aria-hidden="true">
+    <path
+      fillRule="evenodd"
+      d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z"
+      clipRule="evenodd"
+    />
+  </svg>
+);
+
+export default function PreOnboardingHome({ onGetStarted, onViewFunds, onNavigate }) {
+  const [heroDark, setHeroDark] = useState(() => {
+    const hour = new Date().getHours();
+    return hour < 6 || hour >= 18;
+  });
+  const onDarkChange = useCallback((dark) => setHeroDark(Boolean(dark)), []);
+
   return (
     <div className="cp-site">
-      <section className="cp-site-hero">
-        <div className="cp-site-shell cp-site-hero__row">
-          <div className="cp-site-hero__copy">
-            <p className="cp-site-kicker">Sherwood Wealth · Client Portal</p>
-            <h1>Invest online with confidence</h1>
+      <section className={`cp-land${heroDark ? ' cp-land--dark' : ''}`}>
+        <SiteAtmosphere embedded onDarkChange={onDarkChange} />
+        <div className="cp-site-shell cp-land__content">
+          <div className="cp-land__copy">
+            <p className="cp-site-kicker">Unit trusts · Sri Lanka</p>
+            <h1>Start investing from LKR 1,000.</h1>
             <p className="cp-site-lead">
-              Open an account, compare unit trusts from LKR 1,000, and manage subscriptions,
-              SIPs, and redemptions in one secure portal.
+              Open an account in minutes. Compare our funds, set up a SIP, and redeem when you need
+              to, all in one portal.
             </p>
             <div className="cp-site-hero__actions">
               <button type="button" className="cp-site-btn cp-site-btn--primary" onClick={onGetStarted}>
                 Open an account
+                <Arrow />
               </button>
               <button type="button" className="cp-site-btn cp-site-btn--secondary" onClick={onViewFunds}>
                 Browse funds
               </button>
             </div>
-          </div>
-          <aside className="cp-site-hero__panel" aria-label="At a glance">
-            <p className="cp-site-kicker">At a glance</p>
-            <ul>
-              <li>
-                <span>Funds available</span>
-                <strong>3</strong>
-              </li>
-              <li>
-                <span>Minimum ticket</span>
-                <strong>LKR 1,000</strong>
-              </li>
-              <li>
-                <span>Dealing cut-off</span>
-                <strong>1:00 PM</strong>
-              </li>
-              <li>
-                <span>Settlement</span>
-                <strong>T+2</strong>
-              </li>
+            <ul className="cp-site-trust">
+              {TRUST.map((item) => (
+                <li key={item}>{item}</li>
+              ))}
             </ul>
+          </div>
+
+          <aside className="cp-site-board" aria-label="Indicative fund NAVs">
+            <div className="cp-site-board__head">
+              <div>
+                <p className="cp-site-kicker">Today&apos;s NAVs</p>
+                <strong>Indicative prices</strong>
+              </div>
+              <span className="cp-site-board__live">Delayed</span>
+            </div>
+            <ul className="cp-site-board__list">
+              {FUNDS.map((f) => (
+                <li key={f.code}>
+                  <div className="cp-site-board__meta">
+                    <span className="cp-site-fund__code">{f.code}</span>
+                    <em>{f.name}</em>
+                  </div>
+                  <Sparkline d={f.spark} />
+                  <div className="cp-site-board__px">
+                    <strong>{f.nav}</strong>
+                    <span className="is-up">{f.change}</span>
+                  </div>
+                </li>
+              ))}
+            </ul>
+            <p className="cp-site-board__note">Orders before 1:00 PM are processed at today&apos;s NAV.</p>
           </aside>
         </div>
-      </section>
 
-      <section className="cp-site-stats" aria-label="Key figures">
-        <div className="cp-site-shell cp-site-stats__grid">
-          {STATS.map((s) => (
-            <div key={s.label} className="cp-site-stat">
-              <strong>{s.value}</strong>
-              <span>{s.label}</span>
+        <div className="cp-land__stats" aria-label="Key figures">
+          <div className="cp-site-shell">
+            <div className="cp-site-stats__grid">
+              {STATS.map((s) => (
+                <div key={s.label} className="cp-site-stat">
+                  <strong>{s.value}</strong>
+                  <span>{s.label}</span>
+                </div>
+              ))}
             </div>
-          ))}
+          </div>
         </div>
       </section>
 
@@ -125,9 +168,9 @@ export default function PreOnboardingHome({ onGetStarted, onViewFunds }) {
           <header className="cp-site-section__head">
             <div>
               <p className="cp-site-kicker">Our funds</p>
-              <h2>Unit trusts for every goal</h2>
+              <h2 className="cp-site-heading-sm">Unit trusts for every goal</h2>
               <p>
-                Equity, money market, and fixed income — professionally managed from LKR 1,000.
+                Equity, money market, and fixed income, professionally managed from LKR 1,000.
               </p>
             </div>
             <button type="button" className="cp-site-btn cp-site-btn--secondary" onClick={onViewFunds}>
@@ -162,8 +205,9 @@ export default function PreOnboardingHome({ onGetStarted, onViewFunds }) {
                 </div>
                 <div className="cp-site-fund__foot">
                   <span>{f.category}</span>
-                  <button type="button" className="cp-site-btn cp-site-btn--primary" onClick={onGetStarted}>
+                  <button type="button" className="cp-site-btn cp-site-btn--secondary" onClick={onGetStarted}>
                     Invest
+                    <Arrow />
                   </button>
                 </div>
               </article>
@@ -174,10 +218,12 @@ export default function PreOnboardingHome({ onGetStarted, onViewFunds }) {
 
       <section className="cp-site-section cp-site-section--panel">
         <div className="cp-site-shell">
-          <header className="cp-site-section__head cp-site-section__head--center">
-            <p className="cp-site-kicker">How it works</p>
-            <h2>From signup to portfolio in four steps</h2>
-            <p>A simple digital path — no paperwork queues, no branch visit required.</p>
+          <header className="cp-site-section__head">
+            <div>
+              <p className="cp-site-kicker">How it works</p>
+              <h2>From signup to portfolio in four steps</h2>
+              <p>A simple digital path, no paperwork queues, no branch visit required.</p>
+            </div>
           </header>
           <div className="cp-site-steps">
             {STEPS.map((s) => (
@@ -225,29 +271,27 @@ export default function PreOnboardingHome({ onGetStarted, onViewFunds }) {
       </section>
 
       <section className="cp-site-cta">
-        <div className="cp-site-shell cp-site-cta__card">
-          <div>
-            <p className="cp-site-kicker">Get started</p>
-            <h2>Ready to open your account?</h2>
-            <p>Complete onboarding in minutes — secure, regulated, and fully digital.</p>
-          </div>
-          <div className="cp-site-cta__actions">
-            <button type="button" className="cp-site-btn cp-site-btn--primary" onClick={onGetStarted}>
-              Start onboarding
-            </button>
-            <button type="button" className="cp-site-btn cp-site-btn--secondary" onClick={onViewFunds}>
-              Compare funds first
-            </button>
+        <div className="cp-site-shell">
+          <div className="cp-site-cta__card">
+            <div>
+              <p className="cp-site-kicker">Get started</p>
+              <h2>Ready to open your account?</h2>
+              <p>Complete onboarding in minutes, secure, regulated, and fully digital.</p>
+            </div>
+            <div className="cp-site-cta__actions">
+              <button type="button" className="cp-site-btn cp-site-btn--primary" onClick={onGetStarted}>
+                Start onboarding
+                <Arrow />
+              </button>
+              <button type="button" className="cp-site-btn cp-site-btn--secondary" onClick={onViewFunds}>
+                Compare funds first
+              </button>
+            </div>
           </div>
         </div>
       </section>
 
-      <footer className="cp-site-footer">
-        <div className="cp-site-shell">
-          <span>Sherwood Wealth</span>
-          <span>Client Portal · Regulated unit trust investing</span>
-        </div>
-      </footer>
+      <CpSiteFooter onNavigate={onNavigate} onGetStarted={onGetStarted} />
     </div>
   );
 }

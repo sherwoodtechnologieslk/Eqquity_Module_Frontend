@@ -79,7 +79,7 @@ const WealthModal = ({
               {fields.map((field) => (
                 <div key={field.k || field.label} className="wm-modal__field">
                   <span>{field.k || field.label}</span>
-                  <strong>{field.v ?? field.value ?? '—'}</strong>
+                  <strong className={field.className || undefined}>{field.v ?? field.value ?? '—'}</strong>
                 </div>
               ))}
             </div>

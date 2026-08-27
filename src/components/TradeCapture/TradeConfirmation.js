@@ -20,6 +20,7 @@ import {
 import UpdateBuyTransactionsModal from './UpdateBuyTransactionsModal';
 import UpdateSellTransactionsModal from './UpdateSellTransactionsModal';
 import PostParsedTradeModal from './PostParsedTradeModal';
+import PostAllParsedTradesModal from './PostAllParsedTradesModal';
 import './Styles/TradeConfirmation.css';
 import ExportPdfExcelButtons from '../FinancialReporting/ExportPdfExcelButtons';
 
@@ -66,6 +67,7 @@ const TradeConfirmation = () => {
   const [sellModalTransactions, setSellModalTransactions] = useState([]);
   const [showPostParsedModal, setShowPostParsedModal] = useState(false);
   const [postParsedTransaction, setPostParsedTransaction] = useState(null);
+  const [showPostAllModal, setShowPostAllModal] = useState(false);
 
   const fetchTransactions = useCallback(async () => {
     try {
@@ -135,7 +137,7 @@ const TradeConfirmation = () => {
     if (activeTab === 'post-entries') {
       fetchPostEntries();
     }
-  }, [activeTab, fetchPostEntries, showUpdateBuyModal, showUpdateSellModal, showPostParsedModal]);
+  }, [activeTab, fetchPostEntries, showUpdateBuyModal, showUpdateSellModal, showPostParsedModal, showPostAllModal]);
 
   const fetchPendingSettlements = useCallback(async () => {
     try {
@@ -279,12 +281,21 @@ const TradeConfirmation = () => {
     openPostParsedModal(transaction);
   };
 
+  const handleClosePostAllModal = (didPost) => {
+    setShowPostAllModal(false);
+    if (didPost) {
+      fetchPostEntries();
+      fetchUnupdatedTransactions();
+    }
+  };
+
   const handlePostAllParsedEntries = () => {
     if ((postEntryTransactions || []).length === 0) {
       window.alert('No parsed trades are pending post.');
       return;
     }
-    window.alert('Please post transactions one at a time so portfolio and broker can be confirmed for each trade.');
+    setShowPostAllModal(true);
+    fetchEquitiesAndPortfolios();
   };
 
   const handleSettle = async (side, transactionId) => {
@@ -730,7 +741,7 @@ const TradeConfirmation = () => {
                 type="button"
                 className="tc-settle-all-btn"
                 onClick={handlePostAllParsedEntries}
-                disabled={entries.length === 0}
+                disabled={entries.length === 0 || showPostParsedModal || showPostAllModal}
               >
                 {`Post All (${entries.length})`}
               </button>
@@ -769,7 +780,7 @@ const TradeConfirmation = () => {
                           type="button"
                           className="tc-post-entry-btn"
                           onClick={() => handlePostParsedEntry(row)}
-                          disabled={showPostParsedModal}
+                          disabled={showPostParsedModal || showPostAllModal}
                         >
                           Post
                         </button>
@@ -1277,16 +1288,8 @@ const TradeConfirmation = () => {
     <div className="tc-container">
       <div className="tc-header-section">
         <div className="tc-header-left">
-          <div className="tc-header-icon-wrap" aria-hidden="true">
-            <svg className="tc-header-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
-              <path d="M14 2v6h6" />
-              <path d="M16 13H8" />
-              <path d="M16 17H8" />
-              <path d="M10 9H8" />
-            </svg>
-          </div>
           <div className="tc-header-text-group">
+            <p className="tc-eyebrow">Trade Capture · Confirmation</p>
             <h1 className="tc-main-title">Trade Confirmation</h1>
             <p className="tc-subtitle">
               {latestTradeDate
@@ -1434,6 +1437,15 @@ const TradeConfirmation = () => {
           isOpen={showPostParsedModal}
           onClose={handleClosePostParsedModal}
           transaction={postParsedTransaction}
+          equities={equities}
+          portfolios={portfolios}
+        />
+      )}
+      {showPostAllModal && (
+        <PostAllParsedTradesModal
+          isOpen={showPostAllModal}
+          onClose={handleClosePostAllModal}
+          transactions={postEntryTransactions}
           equities={equities}
           portfolios={portfolios}
         />
