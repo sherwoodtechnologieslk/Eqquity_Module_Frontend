@@ -692,6 +692,11 @@ function App() {
     );
   }
 
+  // Client Portal (?clientPortal=1) — opens in its own browser tab
+  if (isClientPortalTab) {
+    return <ClientPortal user={user} onLogout={handleLogout} />;
+  }
+
   if (!hasSelectedManager) {
     return (
       <ManagerSelection
