@@ -3,12 +3,12 @@ import './Styles/ClientEmploymentForm.css';
 
 const ClientEmploymentForm = ({ onNext, onPrevious, initialData = {} }) => {
   const [formData, setFormData] = useState({
-    employmentStatus: initialData.employmentStatus || 'Employed',
-    natureOfEmployment: initialData.natureOfEmployment || 'Salaried (Private Company)',
-    occupation: initialData.occupation || 'Associate Software Engineer',
-    organizationName: initialData.organizationName || 'Sherwood Technologies (PVT) LTD',
-    organizationAddress: initialData.organizationAddress || '8th Floor, 100/1 Elvitigala Mawatha, Colombo 00800',
-    businessEmail: initialData.businessEmail || 'arani@sherwood.lk',
+    employmentStatus: initialData.employmentStatus || '',
+    natureOfEmployment: initialData.natureOfEmployment || '',
+    occupation: initialData.occupation || '',
+    organizationName: initialData.organizationName || '',
+    organizationAddress: initialData.organizationAddress || '',
+    businessEmail: initialData.businessEmail || '',
     workingRemotely: initialData.workingRemotely || false
   });
 
@@ -92,6 +92,7 @@ const ClientEmploymentForm = ({ onNext, onPrevious, initialData = {} }) => {
                   className="cp-form-input"
                   required
                 >
+                  <option value="">Select status</option>
                   <option value="Self Employed">Self Employed</option>
                   <option value="Employed">Employed</option>
                   <option value="Student">Student</option>
@@ -110,6 +111,7 @@ const ClientEmploymentForm = ({ onNext, onPrevious, initialData = {} }) => {
                   className="cp-form-input"
                   required
                 >
+                  <option value="">Select nature</option>
                   <option value="Salaried (Private Company)">Salaried (Private Company)</option>
                   <option value="Salaried (Government)">Salaried (Government)</option>
                   <option value="Salaried (Semi-Government)">Salaried (Semi-Government)</option>

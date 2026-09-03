@@ -1,17 +1,38 @@
+/* Onboarding forms — lean desk layout (shared base) */
+
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700;9..40,800&display=swap');
+
 .cp-signup-form-container {
+  --ob-ink: #0f172a;
+  --ob-muted: #64748b;
+  --ob-line: #e2e8f0;
+  --ob-teal: #0c7b74;
+  --ob-teal-deep: #064a46;
+  --ob-wash: #f5f5f3;
+  --ob-radius: 0.4rem;
+
   width: 100%;
   min-height: 100%;
   display: flex;
   align-items: flex-start;
   justify-content: stretch;
-  background: #f1f5f9;
+  background: var(--ob-wash);
+  font-family: 'DM Sans', 'Segoe UI', sans-serif;
+  color: var(--ob-ink);
+}
+
+.cp-signup-form-container *,
+.cp-signup-form-container *::before,
+.cp-signup-form-container *::after {
+  box-sizing: border-box;
+  font-style: normal;
 }
 
 .cp-signup-form-wrapper {
-  background: white;
+  background: #ffffff;
   width: 100%;
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08), 0 8px 32px rgba(0, 0, 0, 0.06);
-  border: 1px solid #e2e8f0;
+  box-shadow: none;
+  border: none;
   border-radius: 0;
   display: flex;
   flex-direction: column;
@@ -19,245 +40,394 @@
 }
 
 .cp-signup-form-header {
-  padding: 1.3rem 2rem 1.1rem;
-  border-bottom: 1px solid rgba(22, 163, 74, 0.20);
-  background: linear-gradient(135deg, #ffffff 0%, #ecfdf5 100%);
+  padding: 1rem 1.5rem 0.85rem;
+  border-bottom: 1px solid var(--ob-line);
+  background: #ffffff;
   position: relative;
-  overflow: hidden;
+  overflow: visible;
 }
 
 .cp-signup-form-header::before {
-  content: '';
-  position: absolute;
-  top: -40px;
-  right: -40px;
-  width: 180px;
-  height: 180px;
-  background: radial-gradient(circle, rgba(22, 163, 74, 0.10) 0%, transparent 70%);
-  pointer-events: none;
+  display: none;
 }
 
 .cp-signup-form-header h1 {
-  font-size: 1.5rem;
-  font-weight: 700;
-  color: #0b1220;
-  margin-bottom: 0.4rem;
+  margin: 0 0 0.25rem;
+  font-size: clamp(1.15rem, 1.8vw, 1.35rem);
+  font-weight: 750;
+  letter-spacing: -0.02em;
+  color: var(--ob-ink);
   position: relative;
 }
 
 .cp-signup-form-header p {
-  color: #475569;
-  font-size: 0.9rem;
+  margin: 0;
+  color: var(--ob-muted);
+  font-size: 0.8rem;
+  line-height: 1.4;
   position: relative;
+}
+
+.cp-header-top {
+  display: flex;
+  justify-content: flex-start;
+  margin-bottom: 0.5rem;
+}
+
+.cp-header-pill {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.2rem 0.55rem;
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ob-teal-deep);
+  border-radius: var(--ob-radius);
+  border: 1px solid #99d5d0;
+  background: #e8f5f4;
 }
 
 .cp-signup-form-content {
   display: grid;
-  grid-template-columns: 320px 1fr;
+  grid-template-columns: 280px 1fr;
   gap: 0;
   flex: 1;
 }
 
+/* Pro tips */
 .cp-pro-tips-section {
-  background: linear-gradient(180deg, #ffffff 0%, #f6faf7 60%, #ecfdf5 100%);
-  padding: 2.25rem 1.75rem;
-  color: #0f172a;
+  background: #fcfdfc;
+  padding: 1.25rem 1.15rem;
+  color: var(--ob-ink);
   display: flex;
   flex-direction: column;
-  border-right: 1px solid rgba(15, 23, 42, 0.08);
+  border-right: 1px solid var(--ob-line);
 }
 
 .cp-tips-header {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
-  margin-bottom: 2rem;
-  padding-bottom: 1.5rem;
-  border-bottom: 1px solid rgba(22, 163, 74, 0.25);
+  gap: 0.55rem;
+  margin-bottom: 1.15rem;
+  padding-bottom: 0.85rem;
+  border-bottom: 1px solid var(--ob-line);
 }
 
 .cp-tips-icon {
-  width: 40px;
-  height: 40px;
-  background: #dcfce7;
-  border-radius: 0;
+  width: 2rem;
+  height: 2rem;
+  background: #e8f5f4;
+  border: 1px solid #b7e0dc;
+  border-radius: var(--ob-radius);
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #15803d;
+  color: var(--ob-teal);
+}
+
+.cp-tips-icon svg {
+  width: 1rem;
+  height: 1rem;
 }
 
 .cp-tips-header h2 {
-  font-size: 1.5rem;
-  font-weight: 700;
-  color: #0b1220;
   margin: 0;
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--ob-ink);
 }
 
 .cp-tips-content {
   flex: 1;
   display: flex;
   flex-direction: column;
-  gap: 1.5rem;
+  gap: 0.85rem;
 }
 
 .cp-tip-item {
   display: flex;
-  gap: 1rem;
+  gap: 0.65rem;
   align-items: flex-start;
 }
 
 .cp-tip-number {
   flex-shrink: 0;
-  width: 36px;
-  height: 36px;
-  background: #dcfce7;
-  border: 2px solid rgba(22, 163, 74, 0.35);
-  border-radius: 0;
+  width: 1.75rem;
+  height: 1.75rem;
+  background: #ffffff;
+  border: 1px solid var(--ob-line);
+  border-radius: var(--ob-radius);
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 0.875rem;
-  font-weight: 700;
-  color: #15803d;
+  font-size: 0.65rem;
+  font-weight: 750;
+  color: var(--ob-teal);
 }
 
 .cp-tip-text {
   flex: 1;
+  min-width: 0;
 }
 
 .cp-tip-text h3 {
-  font-size: 1rem;
-  font-weight: 600;
-  color: #0b1220;
-  margin: 0 0 0.5rem 0;
+  margin: 0 0 0.2rem;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--ob-ink);
 }
 
 .cp-tip-text p {
-  font-size: 0.875rem;
-  color: #475569;
-  line-height: 1.6;
   margin: 0;
+  font-size: 0.74rem;
+  color: var(--ob-muted);
+  line-height: 1.45;
 }
 
 .cp-tips-footer {
-  margin-top: 2rem;
-  padding-top: 1.5rem;
-  border-top: 1px solid rgba(22, 163, 74, 0.25);
+  margin-top: 1.15rem;
+  padding-top: 0.85rem;
+  border-top: 1px solid var(--ob-line);
 }
 
 .cp-tips-badge {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
-  padding: 0.75rem 1rem;
-  background: #dcfce7;
-  border: 1px solid rgba(22, 163, 74, 0.30);
-  border-radius: 0;
-  font-size: 0.875rem;
-  font-weight: 600;
-  color: #15803d;
+  gap: 0.4rem;
+  padding: 0.45rem 0.65rem;
+  background: #e8f5f4;
+  border: 1px solid #b7e0dc;
+  border-radius: var(--ob-radius);
+  font-size: 0.74rem;
+  font-weight: 650;
+  color: var(--ob-teal-deep);
 }
 
 .cp-tips-badge svg {
-  width: 16px;
-  height: 16px;
+  width: 0.9rem;
+  height: 0.9rem;
+  color: var(--ob-teal);
 }
 
+/* Form body */
 .cp-signup-form {
-  padding: 2rem;
-  background: white;
+  padding: 1.25rem 1.5rem 1.5rem;
+  background: #ffffff;
   overflow-y: auto;
 }
 
 .cp-form-section {
   display: flex;
   flex-direction: column;
-  gap: 1.5rem;
+  gap: 1rem;
+  margin-bottom: 0;
+}
+
+.cp-section-title {
+  margin: 0 0 0.15rem;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ob-muted);
+  padding-bottom: 0.45rem;
+  border-bottom: 1px solid var(--ob-line);
+}
+
+.cp-section-helper {
+  margin: 0 0 0.35rem;
+  font-size: 0.74rem;
+  color: var(--ob-muted);
+  line-height: 1.4;
 }
 
 .cp-form-row {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 1.5rem;
+  gap: 0.85rem 1rem;
 }
 
 .cp-form-group {
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
+  gap: 0.3rem;
+  min-width: 0;
 }
 
 .cp-form-group label {
-  font-size: 0.875rem;
-  font-weight: 600;
-  color: #374151;
+  font-size: 0.68rem;
+  font-weight: 650;
+  color: #475569;
   text-transform: uppercase;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.06em;
 }
 
-.cp-form-input {
-  padding: 0.75rem 1rem;
-  border: 1px solid #d1d5db;
-  border-radius: 0;
-  font-size: 0.875rem;
-  background: white;
-  color: #1f2937;
-  transition: all 0.2s ease;
+.cp-optional {
+  font-weight: 500;
+  text-transform: none;
+  letter-spacing: 0;
+  color: var(--ob-muted);
+}
+
+.cp-form-input,
+.cp-signup-form select.cp-form-input,
+.cp-signup-form textarea.cp-form-input {
+  width: 100%;
+  padding: 0.48rem 0.7rem;
+  border: 1px solid var(--ob-line);
+  border-radius: var(--ob-radius);
+  font-size: 0.84rem;
+  font-family: inherit;
+  line-height: 1.35;
+  background: #ffffff;
+  color: var(--ob-ink);
+  box-shadow: none;
+  transition: border-color 0.12s ease, box-shadow 0.12s ease;
+}
+
+.cp-form-input:hover {
+  border-color: #cbd5e1;
 }
 
 .cp-form-input:focus {
   outline: none;
-  border-color: #0f766e;
-  box-shadow: 0 0 0 3px rgba(15, 118, 110, 0.1);
+  border-color: var(--ob-teal);
+  box-shadow: 0 0 0 3px rgba(12, 123, 116, 0.12);
 }
 
 .cp-form-input::placeholder {
-  color: #9ca3af;
+  color: #94a3b8;
 }
 
 .cp-form-hint {
-  font-size: 0.75rem;
-  color: #6b7280;
-  margin-top: 0.25rem;
+  font-size: 0.68rem;
+  color: var(--ob-muted);
+  margin-top: 0.05rem;
 }
 
+.cp-textarea {
+  resize: vertical;
+  min-height: 5rem;
+}
+
+.cp-checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  cursor: pointer;
+  text-transform: none;
+  letter-spacing: 0;
+  font-weight: 500;
+  font-size: 0.84rem;
+  color: var(--ob-ink);
+}
+
+.cp-checkbox-input {
+  width: 1rem;
+  height: 1rem;
+  cursor: pointer;
+  accent-color: var(--ob-teal);
+}
+
+.cp-radio-label {
+  display: block;
+  margin-bottom: 0.5rem;
+}
+
+.cp-radio-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem 1.5rem;
+}
+
+.cp-radio-option {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  cursor: pointer;
+  font-weight: 500;
+  font-size: 0.84rem;
+  text-transform: none;
+  letter-spacing: 0;
+  color: var(--ob-ink);
+}
+
+.cp-radio-input,
+.cp-radio-option input {
+  width: 1rem;
+  height: 1rem;
+  cursor: pointer;
+  accent-color: var(--ob-teal);
+}
+
+/* Actions */
 .cp-form-actions {
   display: flex;
   justify-content: flex-end;
-  margin-top: 2rem;
-  padding-top: 2rem;
-  border-top: 1px solid #e5e7eb;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 1.35rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--ob-line);
+}
+
+.cp-form-actions:has(.cp-previous-btn) {
+  justify-content: space-between;
+}
+
+.cp-previous-btn,
+.cp-next-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  min-height: 2.4rem;
+  padding: 0.45rem 1.1rem;
+  border-radius: var(--ob-radius);
+  font-size: 0.84rem;
+  font-weight: 700;
+  font-family: inherit;
+  cursor: pointer;
+  box-shadow: none;
+  transition: background 0.12s ease, border-color 0.12s ease, color 0.12s ease;
+}
+
+.cp-previous-btn {
+  background: #ffffff;
+  border: 1px solid var(--ob-line);
+  color: #475569;
+}
+
+.cp-previous-btn:hover {
+  background: var(--ob-wash);
+  border-color: #cbd5e1;
+  color: var(--ob-ink);
+}
+
+.cp-previous-btn svg,
+.cp-next-btn svg {
+  width: 0.95rem;
+  height: 0.95rem;
+  flex-shrink: 0;
 }
 
 .cp-next-btn {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.875rem 2rem;
-  background: linear-gradient(135deg, #0f766e 0%, #14b8a6 100%);
-  color: white;
-  border: none;
-  border-radius: 0;
-  font-size: 1rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.2s ease;
+  background: var(--ob-teal);
+  border: 1px solid var(--ob-teal-deep);
+  color: #ffffff;
 }
 
 .cp-next-btn:hover {
-  opacity: 0.9;
-  transform: translateY(-1px);
-  box-shadow: 0 4px 6px rgba(15, 118, 110, 0.3);
+  background: var(--ob-teal-deep);
+  border-color: var(--ob-teal-deep);
+  opacity: 1;
+  transform: none;
+  box-shadow: none;
 }
 
 .cp-next-btn:active {
-  transform: translateY(0);
-}
-
-.cp-next-btn svg {
-  width: 20px;
-  height: 20px;
+  transform: none;
 }
 
 @media (max-width: 1024px) {
@@ -267,32 +437,40 @@
 
   .cp-pro-tips-section {
     border-right: none;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    border-bottom: 1px solid var(--ob-line);
   }
 }
 
 @media (max-width: 768px) {
-  .cp-signup-form-wrapper {
-    min-height: auto;
-  }
-
   .cp-signup-form-header {
-    padding: 1.5rem 1.5rem 1rem;
+    padding: 0.9rem 1rem 0.75rem;
   }
 
   .cp-signup-form-header h1 {
-    font-size: 1.4rem;
+    font-size: 1.15rem;
   }
 
-  .cp-pro-tips-section {
-    padding: 1.5rem;
-  }
-
+  .cp-pro-tips-section,
   .cp-signup-form {
-    padding: 1.5rem;
+    padding: 1rem;
   }
 
   .cp-form-row {
     grid-template-columns: 1fr;
+  }
+
+  .cp-radio-group {
+    flex-direction: column;
+    gap: 0.65rem;
+  }
+
+  .cp-form-actions {
+    flex-direction: column-reverse;
+    align-items: stretch;
+  }
+
+  .cp-previous-btn,
+  .cp-next-btn {
+    width: 100%;
   }
 }

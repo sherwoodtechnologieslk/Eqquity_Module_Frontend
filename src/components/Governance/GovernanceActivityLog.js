@@ -93,25 +93,21 @@ const GovernanceActivityLog = ({ company }) => {
   }, [load]);
 
   return (
-    <div className="agp-root">
-      <header className="agp-page-header">
-        <div className="agp-header-main">
-          <div className="agp-header-icon" aria-hidden>
-            <svg fill="currentColor" viewBox="0 0 20 20">
-              <path fillRule="evenodd" d="M3 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" clipRule="evenodd" />
-            </svg>
-          </div>
-          <div className="agp-header-text">
-            <h1>Activity Log</h1>
-            <p>
-              Governance audit trail for <strong>{company?.company_name || 'your company'}</strong>
-            </p>
-          </div>
+    <div className="agp-root agp-root--plain">
+      <header className="agp-rail">
+        <div className="agp-rail__brand">
+          <p className="agp-rail__eyebrow">Governance</p>
+          <h1 className="agp-rail__title">Activity Log</h1>
+          <p className="agp-rail__blurb">
+            Governance audit trail for <strong>{company?.company_name || 'your company'}</strong>
+          </p>
         </div>
-        <div className="agp-header-stats">
-          <div className="agp-stat agp-stat--plain">
-            <span className="agp-stat-value">{events.length}</span>
-            <span className="agp-stat-label">Total events</span>
+        <div className="agp-rail__actions">
+          <div className="agp-rail__stats">
+            <div className="agp-rail__stat">
+              <span className="agp-rail__stat-value">{events.length}</span>
+              <span className="agp-rail__stat-label">Total events</span>
+            </div>
           </div>
         </div>
       </header>

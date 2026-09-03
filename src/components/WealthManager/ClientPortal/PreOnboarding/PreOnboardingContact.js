@@ -8,7 +8,6 @@ import {
   CpButton,
   CpCtaArrow,
   CpCtaBanner,
-  CpPanel,
 } from '../shared/CpUi';
 import ContactGlobe from './ContactGlobe';
 
@@ -70,7 +69,7 @@ export default function PreOnboardingContact({ onGetStarted, onNavigate }) {
         }
       />
 
-      <CpSection eyebrow="Get in Touch" title="Contact options">
+      <CpSection className="cp-contact-methods" eyebrow="Get in Touch" title="Contact options">
         <CpGrid cols={3}>
           {CONTACT_METHODS.map((m) => (
             <CpCard key={m.title} icon={m.icon} title={m.title}>
@@ -83,18 +82,7 @@ export default function PreOnboardingContact({ onGetStarted, onNavigate }) {
         </CpGrid>
       </CpSection>
 
-      <CpSection mint>
-        <CpPanel>
-            <div style={{ padding: 16 }}>
-              <p className="cp-site-kicker">Office hours</p>
-              <p className="cp-section__blurb" style={{ marginTop: 8 }}>
-                Monday – Friday: 8:30 AM – 5:00 PM · Saturday: 9:00 AM – 1:00 PM (by appointment)
-              </p>
-            </div>
-        </CpPanel>
-      </CpSection>
-
-      <CpSection eyebrow="Common Questions" title="FAQ">
+      <CpSection mint eyebrow="Common Questions" title="FAQ">
         <CpGrid cols={1}>
           {FAQ_ITEMS.map((item) => (
             <CpCard key={item.q} title={item.q} text={item.a} />

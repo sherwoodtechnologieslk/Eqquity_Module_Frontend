@@ -12,17 +12,17 @@ const residencyOptions = [
 
 const ClientAdditionalDetailsForm = ({ onNext, onPrevious, initialData = {} }) => {
   const [formData, setFormData] = useState({
-    statusOfResidency: initialData.statusOfResidency || 'With Parents',
-    dualCitizenship: initialData.dualCitizenship || 'No',
+    statusOfResidency: initialData.statusOfResidency || '',
+    dualCitizenship: initialData.dualCitizenship || '',
     connectedBusinesses: initialData.connectedBusinesses || '',
-    otherRemarks: initialData.otherRemarks || 'N/A',
-    pepDomestic: initialData.pepDomestic || 'No',
+    otherRemarks: initialData.otherRemarks || '',
+    pepDomestic: initialData.pepDomestic || '',
     pepDomesticExplanation: initialData.pepDomesticExplanation || '',
-    pepForeign: initialData.pepForeign || 'No',
+    pepForeign: initialData.pepForeign || '',
     pepForeignExplanation: initialData.pepForeignExplanation || '',
-    pepRelated: initialData.pepRelated || 'No',
+    pepRelated: initialData.pepRelated || '',
     pepRelatedExplanation: initialData.pepRelatedExplanation || '',
-    pepCloselyAssociated: initialData.pepCloselyAssociated || 'No',
+    pepCloselyAssociated: initialData.pepCloselyAssociated || '',
     pepCloselyAssociatedExplanation:
       initialData.pepCloselyAssociatedExplanation || ''
   });
@@ -125,6 +125,7 @@ const ClientAdditionalDetailsForm = ({ onNext, onPrevious, initialData = {} }) =
                   className="cp-form-input"
                   required
                 >
+                  <option value="">Select residency status</option>
                   {residencyOptions.map((opt) => (
                     <option key={opt} value={opt}>
                       {opt}

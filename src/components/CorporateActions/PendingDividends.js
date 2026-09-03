@@ -436,12 +436,8 @@ const PendingDividends = () => {
     <div className="pending-div-page-container">
       <div className="pending-div-content-wrapper">
         <div className="pending-div-header-section">
-          <div className="pending-div-header-icon">
-            <svg className="pending-div-icon" fill="currentColor" viewBox="0 0 20 20">
-              <path d="M4 4a2 2 0 00-2 2v1h16V6a2 2 0 00-2-2H4zM18 9H2v5a2 2 0 002 2h12a2 2 0 002-2V9zM4 13a1 1 0 011-1h1a1 1 0 110 2H5a1 1 0 01-1-1zm5-1a1 1 0 100 2h6a1 1 0 100-2H9z"/>
-            </svg>
-          </div>
           <div className="pending-div-header-text-group">
+            <p className="pending-div-eyebrow">Corporate Actions</p>
             <h1 className="pending-div-main-title">Pending Dividends</h1>
             <p className="pending-div-subtitle">Reconcile dividend payments with bank statements</p>
           </div>
@@ -504,7 +500,9 @@ const PendingDividends = () => {
         {/* Parsed Data Display */}
         {parsedData && parsedData.length > 0 && (
           <div className="pending-div-parsed-info">
-            <p>✓ Found {parsedData.length} dividend {parsedData.length === 1 ? 'entry' : 'entries'} in PDF</p>
+            <p>
+              Found {parsedData.length} dividend {parsedData.length === 1 ? 'entry' : 'entries'} in PDF
+            </p>
           </div>
         )}
 
@@ -512,9 +510,6 @@ const PendingDividends = () => {
         <div className="pending-div-upload-section">
           <div className="pending-div-upload-card">
             <div className="pending-div-upload-header">
-              <svg className="pending-div-upload-icon" fill="currentColor" viewBox="0 0 20 20">
-                <path fillRule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clipRule="evenodd"/>
-              </svg>
               <h2 className="pending-div-upload-title">Bank Statement Upload</h2>
             </div>
             <div className="pending-div-upload-content">
@@ -655,11 +650,6 @@ const PendingDividends = () => {
               </tbody>
             </table>
           </div>
-        </div>
-
-        {/* Footer */}
-        <div className="pending-div-footer-section">
-          <p>SHERWOOD TECHNOLOGIES (PVT) LTD • Secure dividend reconciliation • All data is encrypted and protected</p>
         </div>
       </div>
 

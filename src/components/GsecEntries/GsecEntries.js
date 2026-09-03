@@ -8,11 +8,24 @@ import {
 } from '../../utils/gsecMakerChecker';
 import './Styles/GsecEntries.css';
 
+const LEDGER_API_OPTIONS = [
+  {
+    value: 'live1',
+    label: 'Live1 (10.40.80.89)',
+  },
+  {
+    value: 'aws',
+    label: 'Cloud API (AWS)',
+  },
+];
+
 /** GSec external ledger entries (remote API). */
 const GsecEntries = () => {
   // Empty by default so initial load does NOT filter by date
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
+  // Prefer live1 while AWS upstream is intermittently unavailable
+  const [apiSource, setApiSource] = useState('live1');
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(50);
   const [loading, setLoading] = useState(false);
@@ -27,10 +40,15 @@ const GsecEntries = () => {
   const dateInputRef = useRef(null);
   // When set, the table is showing remote rows missing locally for one date
   const [missingInfo, setMissingInfo] = useState(null);
+  const apiSourceRef = useRef(apiSource);
+
+  useEffect(() => {
+    apiSourceRef.current = apiSource;
+  }, [apiSource]);
 
   // overrideDates lets callers force a date range (e.g. single-day load) without
   // waiting for startDate/endDate state to settle.
-  const loadData = async (overridePage, overrideDates) => {
+  const loadData = async (overridePage, overrideDates, overrideSource) => {
     setLoading(true);
     setError('');
     setMissingInfo(null);
@@ -39,11 +57,13 @@ const GsecEntries = () => {
       const targetPage = overridePage || page;
       const effectiveStart = overrideDates ? overrideDates.startDate : startDate;
       const effectiveEnd = overrideDates ? overrideDates.endDate : endDate;
+      const source = overrideSource || apiSourceRef.current || apiSource;
       const data = await gsecEntriesAPI.getSellTransactionReport({
         startDate: effectiveStart,
         endDate: effectiveEnd,
         page: targetPage,
-        pageSize
+        pageSize,
+        source,
       });
 
       setRawResponse(data);
@@ -88,6 +108,13 @@ const GsecEntries = () => {
     loadData(1);
   };
 
+  const handleApiSourceChange = (nextSource) => {
+    setApiSource(nextSource);
+    apiSourceRef.current = nextSource;
+    setPage(1);
+    loadData(1, undefined, nextSource);
+  };
+
   const handlePrevPage = () => {
     if (page > 1) {
       loadData(page - 1);
@@ -127,7 +154,9 @@ const GsecEntries = () => {
     setPage(1);
 
     try {
-      const data = await gsecEntriesAPI.getMissingByDate(specificDate);
+      const data = await gsecEntriesAPI.getMissingByDate(specificDate, {
+        source: apiSourceRef.current || apiSource,
+      });
       const missing = Array.isArray(data?.missing) ? data.missing : [];
 
       setRows(missing);
@@ -213,11 +242,29 @@ const GsecEntries = () => {
         <div className="gsec-ext-panel__head">
           <div>
             <p className="gsec-ext-filters-eyebrow">Filters</p>
-            <p className="gsec-ext-filters-blurb">Date range and page size for the remote ledger pull.</p>
+            <p className="gsec-ext-filters-blurb">
+              Choose API source, date range, and page size for the remote ledger pull.
+            </p>
           </div>
         </div>
         <form className="gsec-ext-filters-body" onSubmit={handleSubmit}>
           <div className="gsec-ext-filters-grid">
+            <div className="gsec-ext-field">
+              <label className="gsec-ext-label" htmlFor="gsec-ext-api-source">API Source</label>
+              <select
+                id="gsec-ext-api-source"
+                value={apiSource}
+                onChange={(e) => handleApiSourceChange(e.target.value)}
+                className="gsec-ext-input"
+                disabled={loading}
+              >
+                {LEDGER_API_OPTIONS.map((opt) => (
+                  <option key={opt.value} value={opt.value}>
+                    {opt.label}
+                  </option>
+                ))}
+              </select>
+            </div>
             <div className="gsec-ext-field">
               <label className="gsec-ext-label">Start Date</label>
               <input
@@ -290,7 +337,7 @@ const GsecEntries = () => {
         <span className="gsec-ext-toolbar-text">
           {missingInfo
             ? `Missing entries for ${missingInfo.date} • ${rows.length} row(s)`
-            : `Page ${page} • ${rows.length} row(s) on this page • Total ${total}`}
+            : `Source: ${apiSource === 'live1' ? 'Live1' : 'Cloud'} • Page ${page} • ${rows.length} row(s) on this page • Total ${total}`}
         </span>
         <div className="gsec-ext-toolbar-actions">
           <button

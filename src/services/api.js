@@ -2888,6 +2888,7 @@ export const gsecEntriesAPI = {
       // Map UI filters to GSEC general-ledger API contract
       if (filters.startDate) queryParams.append('startDate', filters.startDate);
       if (filters.endDate) queryParams.append('endDate', filters.endDate);
+      if (filters.source) queryParams.append('source', filters.source);
 
       // Pagination: API uses limit/offset; UI uses page/pageSize
       if (filters.pageSize) {
@@ -3053,10 +3054,14 @@ export const gsecEntriesAPI = {
   },
 
   // Remote rows not in local gsec_entries (deal_number + entry date, time ignored)
-  getMissingFromRemote: async ({ force = false } = {}) => {
+  getMissingFromRemote: async ({ force = false, source } = {}) => {
     try {
-      const url = force
-        ? `${API_BASE_URL}/gsec-entries/missing-from-remote?force=1`
+      const queryParams = new URLSearchParams();
+      if (force) queryParams.append('force', '1');
+      if (source) queryParams.append('source', source);
+      const qs = queryParams.toString();
+      const url = qs
+        ? `${API_BASE_URL}/gsec-entries/missing-from-remote?${qs}`
         : `${API_BASE_URL}/gsec-entries/missing-from-remote`;
       return await makeAuthenticatedRequest(url, { method: 'GET' });
     } catch (error) {
@@ -3068,9 +3073,11 @@ export const gsecEntriesAPI = {
 
   // Get remote rows for a single date that are missing from the local table.
   // Only the selected entry date is fetched/compared (fast).
-  getMissingByDate: async (date) => {
+  getMissingByDate: async (date, { source } = {}) => {
     try {
-      const url = `${API_BASE_URL}/gsec-entries/missing-by-date?date=${encodeURIComponent(date)}`;
+      const queryParams = new URLSearchParams({ date: String(date) });
+      if (source) queryParams.append('source', source);
+      const url = `${API_BASE_URL}/gsec-entries/missing-by-date?${queryParams.toString()}`;
       return await makeAuthenticatedRequest(url, { method: 'GET' });
     } catch (error) {
       console.error('Error fetching missing GSec entries by date:', error);

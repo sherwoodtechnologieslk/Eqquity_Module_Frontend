@@ -36,6 +36,7 @@ export default function PreOnboardingPlanner({ onGetStarted, onNavigate }) {
     <CpPage onNavigate={onNavigate} onGetStarted={onGetStarted}>
       <CpHero
         tone="land"
+        className="cp-hero--grad"
         eyebrow="Investment Planner"
         title="Plan your investments"
         lead="Use the SIP calculator to project monthly investing, then open an account when you are ready to start."

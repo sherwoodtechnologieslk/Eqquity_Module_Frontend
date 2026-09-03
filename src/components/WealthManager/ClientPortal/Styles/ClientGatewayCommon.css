@@ -1,0 +1,167 @@
+/**
+ * Shared authenticated Client Portal (gateway) chrome.
+ * One surface level only — no box-in-box wrappers.
+ */
+
+.cp-content {
+  padding: 1rem 1.25rem 1.5rem;
+  background: #f5f5f3;
+}
+
+.cp-content:has(.cp-funds-in-portal) {
+  padding: 0;
+}
+
+/* Gateway pages fill the workspace */
+.cp-content > .cp-dashboard,
+.cp-content > .cp-portfolio,
+.cp-content > .cp-statements,
+.cp-content > .cp-transactions,
+.cp-content > .cp-settings {
+  width: 100%;
+  max-width: none;
+  margin: 0;
+  padding: 0;
+  background: transparent;
+  border: none;
+  border-radius: 0;
+  min-height: 0;
+}
+
+.cp-simple-page {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 0.4rem;
+  padding: 1.15rem 1.35rem;
+  max-width: 900px;
+}
+
+.cp-simple-page-title {
+  margin: 0 0 0.5rem;
+  font-size: clamp(1.15rem, 1.8vw, 1.35rem);
+  font-weight: 750;
+  letter-spacing: -0.02em;
+  color: #0f172a;
+}
+
+.cp-simple-page-text {
+  margin: 0;
+  color: #64748b;
+  font-size: 0.85rem;
+  line-height: 1.55;
+}
+
+/* Page headers — match fund detail rail */
+.cp-portfolio-header,
+.cp-dashboard-header,
+.cp-statements-header,
+.cp-transactions-header,
+.cp-settings-header {
+  margin-bottom: 1rem;
+  padding: 0 0 0.75rem;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.cp-portfolio-header h1,
+.cp-dashboard-header h1,
+.cp-statements-header h1,
+.cp-transactions-header h1,
+.cp-settings-header h1 {
+  margin: 0 0 0.25rem;
+  font-size: clamp(1.2rem, 1.9vw, 1.45rem);
+  font-weight: 750;
+  letter-spacing: -0.02em;
+  color: #0f172a;
+}
+
+.cp-portfolio-header p,
+.cp-dashboard-header p,
+.cp-statements-header p,
+.cp-transactions-header p,
+.cp-settings-header p {
+  margin: 0;
+  color: #64748b;
+  font-size: 0.82rem;
+  line-height: 1.45;
+  max-width: 42rem;
+}
+
+/* Dashboard KPIs — no icon clutter */
+.cp-dashboard .cp-summary-card {
+  display: block;
+  padding: 0.9rem 1rem;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 0.4rem;
+}
+
+.cp-dashboard .cp-card-icon {
+  display: none;
+}
+
+.cp-dashboard .cp-card-value {
+  font-size: 1.5rem;
+}
+
+/* Form + action pages — single card layer on wash */
+.cp-create-grid {
+  gap: 1rem;
+}
+
+.cp-create-form-card,
+.cp-create-side-card {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 0.4rem;
+  padding: 1rem 1.15rem;
+}
+
+.cp-section-header h3 {
+  margin: 0;
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #64748b;
+}
+
+/* Tables */
+.cp-holdings-table thead,
+.cp-statements-table thead,
+.cp-transactions-table thead,
+.cp-create-table thead {
+  background: #f8fafc;
+}
+
+.cp-holdings-table th,
+.cp-statements-table th,
+.cp-transactions-table th,
+.cp-create-table th {
+  font-size: 0.62rem;
+  letter-spacing: 0.07em;
+  color: #64748b;
+}
+
+.cp-dashboard .cp-holdings-section,
+.cp-dashboard .cp-performance-section,
+.cp-dashboard .cp-transactions-section {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 0.4rem;
+}
+
+/* Primary actions */
+.cp-create-submit,
+.cp-redeem-submit,
+.cp-transfer-submit,
+.cp-settings-save-btn {
+  background: #0c7b74;
+  border-color: #064a46;
+}
+
+.cp-create-submit:hover:not(:disabled),
+.cp-redeem-submit:hover:not(:disabled),
+.cp-transfer-submit:hover:not(:disabled),
+.cp-settings-save-btn:hover {
+  background: #064a46;
+}

@@ -8,15 +8,14 @@ import {
   CpButton,
   CpCtaArrow,
   CpCtaBanner,
-  CpStatRow,
 } from '../shared/CpUi';
 
 const MILESTONES = [
-  { year: '2008', title: 'Founded', desc: 'Established as a licensed investment management firm focused on unit trust products.' },
-  { year: '2012', title: 'First Fund Launch', desc: 'Launched the Cash Management Trust, providing retail investors access to money market instruments.' },
-  { year: '2016', title: 'Equity Fund', desc: 'Introduced the Equity Income Fund, opening the share market to small and medium investors.' },
-  { year: '2019', title: 'Bond Fund', desc: 'Launched the Sri Lanka Bond Fund, offering access to government securities through a single fund.' },
-  { year: '2023', title: 'Digital Portal', desc: 'Launched the fully digital client portal for online onboarding, portfolio tracking, and transactions.' },
+  { title: 'Founded', desc: 'Established as a licensed investment management firm focused on unit trust products.' },
+  { title: 'First Fund Launch', desc: 'Launched the Cash Management Trust, providing retail investors access to money market instruments.' },
+  { title: 'Equity Fund', desc: 'Introduced the Equity Income Fund, opening the share market to small and medium investors.' },
+  { title: 'Bond Fund', desc: 'Launched the Sri Lanka Bond Fund, offering access to government securities through a single fund.' },
+  { title: 'Digital Portal', desc: 'Launched the fully digital client portal for online onboarding, portfolio tracking, and transactions.' },
 ];
 
 const TEAM = [
@@ -84,31 +83,15 @@ export default function PreOnboardingAbout({ onGetStarted, onNavigate }) {
     <CpPage onNavigate={onNavigate} onGetStarted={onGetStarted}>
       <CpHero
         tone="land"
-        split
+        className="cp-hero--grad"
         eyebrow="About"
-        title={
-          <>
-            Built for investors.
-            <br />
-            Driven by trust.
-          </>
-        }
+        title="Built for investors."
         lead="We are a licensed investment management firm dedicated to helping individuals and institutions grow their wealth through professionally managed unit trust funds, with transparency, discipline, and a long-term perspective."
         actions={
           <CpButton onClick={onGetStarted}>
             Start Investing Today
             <CpCtaArrow />
           </CpButton>
-        }
-        aside={
-          <CpStatRow
-            items={[
-              { value: '15+', label: 'Years of Operation' },
-              { value: '3', label: 'Active Funds' },
-              { value: '10,000+', label: 'Investors Served' },
-              { value: 'SEC', label: 'Regulated & Licensed' },
-            ]}
-          />
         }
       />
 
@@ -130,12 +113,9 @@ export default function PreOnboardingAbout({ onGetStarted, onNavigate }) {
       <CpSection eyebrow="Our Journey" title="Milestones that shaped who we are">
         <div className="cp-timeline">
           {MILESTONES.map((m) => (
-            <div key={m.year} className="cp-timeline__item">
-              <div className="cp-timeline__year">{m.year}</div>
-              <div className="cp-timeline__body">
-                <div className="cp-timeline__title">{m.title}</div>
-                <div className="cp-timeline__desc">{m.desc}</div>
-              </div>
+            <div key={m.title} className="cp-timeline__item">
+              <div className="cp-timeline__title">{m.title}</div>
+              <div className="cp-timeline__desc">{m.desc}</div>
             </div>
           ))}
         </div>

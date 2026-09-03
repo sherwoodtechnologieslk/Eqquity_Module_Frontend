@@ -34,13 +34,13 @@ const ClientOtherProductsForm = ({ onNext, onPrevious, initialData = {} }) => {
   const [equityState, setEquityState] = useState({
     enableEquity:
       initialData.enableEquity !== undefined ? initialData.enableEquity : false,
-    hasCDSCode: initialData.hasCDSCode || 'No',
+    hasCDSCode: initialData.hasCDSCode || '',
     agreeTerms: initialData.agreeTerms || false,
     understandCDS: initialData.understandCDS || false,
     understandProcessing: initialData.understandProcessing || false,
     signupEquity: initialData.signupEquity || false,
     agreeMainTerms: initialData.agreeMainTerms || false,
-    accountType: initialData.accountType || 'internet' // 'internet' | 'standard'
+    accountType: initialData.accountType || ''
   });
 
   const toggleFund = (fund) => {

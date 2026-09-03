@@ -462,11 +462,11 @@ const AdminGovernancePortal = ({ user, company }) => {
     <div className="agp-root agp-root--plain agp-root--gov">
       <header className="agp-rail">
         <div className="agp-rail__brand">
-          <p className="agp-rail__eyebrow">Governance · Maker-checker</p>
+          <p className="agp-rail__eyebrow">Governance</p>
           <h1 className="agp-rail__title">User Requests</h1>
           <p className="agp-rail__blurb">
-            Maker–checker workflow for <strong>{company?.company_name || 'your company'}</strong>
-            {isOwner ? ' — view only' : ''}
+            Maker-checker workflow for <strong>{company?.company_name || 'your company'}</strong>
+            {isOwner ? ' (view only)' : ''}
           </p>
         </div>
         <div className="agp-rail__actions">

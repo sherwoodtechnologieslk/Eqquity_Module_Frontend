@@ -18,16 +18,13 @@ const sourceOfFundsOptions = [
 
 const ClientBankForm = ({ onNext, onPrevious, initialData = {} }) => {
   const [formState, setFormState] = useState({
-    bankName: initialData.bankName || 'Seylan Bank PLC',
-    branchName: initialData.branchName || 'Attidiya',
-    accountType: initialData.accountType || 'Savings',
+    bankName: initialData.bankName || '',
+    branchName: initialData.branchName || '',
+    accountType: initialData.accountType || '',
     accountNumber: initialData.accountNumber || '',
-    expectedValueOfInvestment:
-      initialData.expectedValueOfInvestment || 'Less than Rs. 100,000',
-    allowTransfer:
-      initialData.allowTransfer !== undefined ? initialData.allowTransfer : 'Yes',
-    isUSPersonFATCA:
-      initialData.isUSPersonFATCA !== undefined ? initialData.isUSPersonFATCA : 'No'
+    expectedValueOfInvestment: initialData.expectedValueOfInvestment || '',
+    allowTransfer: initialData.allowTransfer || '',
+    isUSPersonFATCA: initialData.isUSPersonFATCA || ''
   });
 
   const [selectedSources, setSelectedSources] = useState(
@@ -179,6 +176,7 @@ const ClientBankForm = ({ onNext, onPrevious, initialData = {} }) => {
                     className="cp-form-input"
                     required
                   >
+                    <option value="">Select type</option>
                     <option value="Savings">Savings</option>
                     <option value="Current">Current</option>
                     <option value="Other">Other</option>
@@ -247,8 +245,9 @@ const ClientBankForm = ({ onNext, onPrevious, initialData = {} }) => {
                   value={formState.expectedValueOfInvestment}
                   onChange={handleInputChange}
                   className="cp-form-input"
-                  required
-                >
+                    required
+                  >
+                  <option value="">Select expected value</option>
                   <option value="Less than Rs. 100,000">
                     Less than Rs. 100,000
                   </option>

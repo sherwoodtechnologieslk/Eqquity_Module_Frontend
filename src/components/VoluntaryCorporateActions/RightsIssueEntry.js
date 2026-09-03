@@ -731,33 +731,35 @@ const RightsIssueEntry = () => {
   return (
     <div className="rights-page-container">
       <div className="rights-content-wrapper">
-        <div className="rights-form-card">
-          {/* Card header with title + status */}
-          <div className="rights-card-header">
-            <div className="rights-card-header-text">
-              <h2 className="rights-card-title">Rights Issues</h2>
-              <p className="rights-card-subtitle">
-                Record and track CSE rights issues, entitlements, subscriptions and allotments
-              </p>
-            </div>
-            <div className="rights-status-wrapper">
-              <label className="rights-status-label">Status</label>
-              <select
-                name="issueStatus"
-                value={form.issueStatus}
-                onChange={handleChange}
-                className={statusClass}
-              >
-                {STATUS_OPTIONS.map((s) => (
-                  <option key={s} value={s}>
-                    {s}
-                  </option>
-                ))}
-              </select>
-            </div>
+        <div className="rights-header-section">
+          <div className="rights-header-text-group">
+            <p className="rights-eyebrow">Corporate Actions</p>
+            <h1 className="rights-main-title">Rights Issues</h1>
+            <p className="rights-subtitle">
+              Record and track CSE rights issues, entitlements, subscriptions and allotments
+            </p>
           </div>
+          <div className="rights-status-wrapper">
+            <label className="rights-status-label" htmlFor="rights-issue-status">
+              Status
+            </label>
+            <select
+              id="rights-issue-status"
+              name="issueStatus"
+              value={form.issueStatus}
+              onChange={handleChange}
+              className={statusClass}
+            >
+              {STATUS_OPTIONS.map((s) => (
+                <option key={s} value={s}>
+                  {s}
+                </option>
+              ))}
+            </select>
+          </div>
+        </div>
 
-          {/* Tab bar */}
+        <div className="rights-form-card">
           <div className="rights-tab-bar" role="tablist">
             {TABS.map((tab, idx) => (
               <button
@@ -778,7 +780,6 @@ const RightsIssueEntry = () => {
             <form onSubmit={handleSubmit}>
               {renderActiveTab()}
 
-              {/* Remarks shown on every tab */}
               <div className="rights-notes-section">
                 <label className="rights-field-label">Remarks & Notes</label>
                 <textarea
@@ -791,7 +792,6 @@ const RightsIssueEntry = () => {
                 />
               </div>
 
-              {/* Tab nav + action buttons */}
               <div className="rights-button-section">
                 <div className="rights-button-group-left">
                   <button
@@ -800,7 +800,7 @@ const RightsIssueEntry = () => {
                     disabled={isFirstTab}
                     className="rights-btn rights-btn-secondary"
                   >
-                    ← Previous
+                    Previous
                   </button>
                   <button
                     type="button"
@@ -808,7 +808,7 @@ const RightsIssueEntry = () => {
                     disabled={isLastTab}
                     className="rights-btn rights-btn-secondary"
                   >
-                    Next →
+                    Next
                   </button>
                 </div>
 
@@ -841,13 +841,6 @@ const RightsIssueEntry = () => {
               </div>
             </form>
           </div>
-        </div>
-
-        <div className="rights-footer-section">
-          <p>
-            SHERWOOD TECHNOLOGIES (PVT) LTD • Secure rights issue management • All data is
-            encrypted and protected
-          </p>
         </div>
       </div>
     </div>

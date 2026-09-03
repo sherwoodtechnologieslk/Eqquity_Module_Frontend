@@ -10,37 +10,38 @@ const ClientSubmitForm = ({ onPrevious, onSubmit }) => {
   return (
     <div className="cp-signup-form-container">
       <div className="cp-signup-form-wrapper">
+        <div className="cp-signup-form-header cp-submit-header">
+          <div className="cp-header-top">
+            <span className="cp-header-pill">Complete</span>
+          </div>
+          <h1>Almost done, just click submit.</h1>
+          <p>
+            You&apos;ve completed the application to sign up for Unit Trust Funds! Now,
+            submit your application by clicking the button below and start investing
+            soon.
+          </p>
+        </div>
+
         <form className="cp-submit-form" onSubmit={handleSubmit}>
           <div className="cp-submit-body">
-            <h1 className="cp-submit-title">Almost done, just click submit.</h1>
-            <p className="cp-submit-subtitle">
-              You&apos;ve completed the application to sign up for Unit Trust Funds! Now,
-              submit your application by clicking the button below and start investing
-              soon.
-            </p>
-
-            <div className="cp-submit-illustration">ClientSubmitForm
-              <div className="cp-submit-documents">
-                <div className="cp-submit-doc cp-submit-doc-back" />
-                <div className="cp-submit-doc cp-submit-doc-front" />
-              </div>
-              <div className="cp-submit-check">
-                <svg viewBox="0 0 20 20" width="36" height="36">
-                  <circle cx="10" cy="10" r="10" fill="#ef4444" />
+            <div className="cp-submit-ready-card">
+              <div className="cp-submit-check" aria-hidden="true">
+                <svg viewBox="0 0 20 20" fill="none">
                   <path
                     d="M6.5 10.5l2.2 2.2 4.8-5"
-                    fill="none"
-                    stroke="#ffffff"
-                    strokeWidth="1.7"
+                    stroke="currentColor"
+                    strokeWidth="1.8"
                     strokeLinecap="round"
                     strokeLinejoin="round"
                   />
                 </svg>
               </div>
+              <div className="cp-submit-ready-copy">
+                <span className="cp-submit-ready-label">Application status</span>
+                <span className="cp-submit-ready-value">Ready to submit</span>
+              </div>
             </div>
           </div>
-
-          <div className="cp-submit-divider" />
 
           <div className="cp-form-actions cp-submit-actions">
             <button
@@ -57,7 +58,7 @@ const ClientSubmitForm = ({ onPrevious, onSubmit }) => {
               </svg>
               Previous
             </button>
-            <button type="submit" className="cp-submit-btn">
+            <button type="submit" className="cp-next-btn cp-submit-btn">
               Submit Form
             </button>
           </div>
@@ -68,4 +69,3 @@ const ClientSubmitForm = ({ onPrevious, onSubmit }) => {
 };
 
 export default ClientSubmitForm;
-
