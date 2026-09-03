@@ -1,16 +1,16 @@
 import React, { useState } from 'react';
 import './Styles/ClientSignupForm.css';
 
-const ClientSignupForm = ({ onNext }) => {
+const ClientSignupForm = ({ onNext, initialData = {} }) => {
   const [formData, setFormData] = useState({
-    gender: 'Female',
-    title: 'MISS.',
-    lastName: 'Weerathunga',
-    initialsWithoutSurname: 'WAS',
-    fullNameExceptLastName: 'Weerathungage Arani Sehansa',
-    dateOfBirth: '2003-03-27',
-    nationality: 'Sri Lanka',
-    nicDateOfIssue: '2019-03-19'
+    gender: initialData.gender || '',
+    title: initialData.title || '',
+    lastName: initialData.lastName || '',
+    initialsWithoutSurname: initialData.initialsWithoutSurname || '',
+    fullNameExceptLastName: initialData.fullNameExceptLastName || '',
+    dateOfBirth: initialData.dateOfBirth || '',
+    nationality: initialData.nationality || '',
+    nicDateOfIssue: initialData.nicDateOfIssue || ''
   });
 
   const handleInputChange = (e) => {
@@ -94,6 +94,7 @@ const ClientSignupForm = ({ onNext }) => {
                   className="cp-form-input"
                   required
                 >
+                  <option value="">Select gender</option>
                   <option value="Female">Female</option>
                   <option value="Male">Male</option>
                   <option value="Other">Other</option>
@@ -110,6 +111,7 @@ const ClientSignupForm = ({ onNext }) => {
                   className="cp-form-input"
                   required
                 >
+                  <option value="">Select title</option>
                   <option value="MISS.">MISS.</option>
                   <option value="MR.">MR.</option>
                   <option value="MRS.">MRS.</option>

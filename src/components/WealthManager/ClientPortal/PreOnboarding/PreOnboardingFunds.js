@@ -81,7 +81,7 @@ export default function PreOnboardingFunds({ onGetStarted, onNavigate }) {
     <CpPage onNavigate={onNavigate} onGetStarted={onGetStarted}>
       <CpHero
         tone="land"
-        className="cp-hero--title-sm"
+        className="cp-hero--title-sm cp-hero--grad"
         eyebrow="Our Funds"
         title="Unit trusts for every goal"
         lead="Compare equity, money market, and fixed income funds, professionally managed from LKR 1,000."

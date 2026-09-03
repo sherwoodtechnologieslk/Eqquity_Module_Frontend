@@ -101,7 +101,7 @@ export default function PreOnboardingHome({ onGetStarted, onViewFunds, onNavigat
         <div className="cp-site-shell cp-land__content">
           <div className="cp-land__copy">
             <p className="cp-site-kicker">Unit trusts · Sri Lanka</p>
-            <h1>Start investing from LKR 1,000.</h1>
+            <h1>Subscribe, redeem, and track in one portal.</h1>
             <p className="cp-site-lead">
               Open an account in minutes. Compare our funds, set up a SIP, and redeem when you need
               to, all in one portal.

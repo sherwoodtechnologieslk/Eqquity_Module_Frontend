@@ -6,22 +6,22 @@
   --ink: #1a1f1c;
   --text: #1a1f1c;
   --mute: #6b746e;
-  --line: #ddd8cf;
+  --line: #e2e8f0;
   --paper: #ffffff;
-  --wash: #faf9f6;
+  --wash: #f8fafc;
   --emerald: #0c7b74;
   --emerald-dark: #0c7b74;
-  --emerald-soft: #e8eeed;
+  --emerald-soft: #e8f5f4;
   --cyan: #0c7b74;
   --grad: #0c7b74;
-  --radius: 2px;
+  --radius: 0.4rem;
 
   width: 100%;
   max-width: none;
   margin: 0;
   padding: 0.25rem 0 1.5rem;
   color: var(--ink);
-  font-family: 'Inter', 'Segoe UI', sans-serif;
+  font-family: 'DM Sans', 'Segoe UI', sans-serif;
   background: transparent;
 }
 
@@ -86,7 +86,7 @@
   font-size: 0.8rem;
   font-weight: 600;
   cursor: pointer;
-  border-radius: 2px;
+  border-radius: var(--radius);
   box-shadow: none;
 }
 
@@ -246,7 +246,7 @@
   min-height: 2rem;
   padding: 0.35rem 0.55rem;
   border: 1px solid var(--line);
-  border-radius: 2px;
+  border-radius: var(--radius);
   font: inherit;
   font-size: 0.82rem;
   font-weight: 650;
@@ -265,7 +265,7 @@
   padding: 0.45rem 0.65rem;
   background: var(--paper);
   border: 1px solid var(--line);
-  border-radius: 2px;
+  border-radius: var(--radius);
   font-size: 0.78rem;
   font-weight: 750;
   color: #064a46;
@@ -278,7 +278,6 @@
   background: var(--wash);
   border: 1px solid var(--line);
   border-radius: var(--radius);
-  border-left: 2px solid var(--emerald);
 }
 
 .sip-result-section {
@@ -290,7 +289,6 @@
   background: var(--wash);
   border: 1px solid var(--line);
   border-radius: var(--radius);
-  border-left: 2px solid var(--emerald);
 }
 
 .sip-result-label {

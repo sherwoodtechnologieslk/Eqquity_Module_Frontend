@@ -1,224 +1,229 @@
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import './Styles/MyPortfolio.css';
 
-const MyPortfolio = () => {
-  const [selectedFund, setSelectedFund] = useState(null);
+const portfolioData = {
+  totalValue: 2450000,
+  totalCost: 2200000,
+  unrealizedGain: 250000,
+  realizedGain: 0,
+  ytdReturn: 12.5,
+};
 
-  const portfolioData = {
-    totalValue: 2450000,
-    totalCost: 2200000,
-    unrealizedGain: 250000,
-    realizedGain: 0,
-    ytdReturn: 12.5
-  };
-
-  const holdings = [
-    { 
-      fund: 'Equity Growth Fund', 
-      units: 50000, 
-      nav: 25.45, 
+const holdings = [
+    {
+      fund: 'Equity Growth Fund',
+      units: 50000,
+      nav: 25.45,
       currentValue: 1272500,
       costBasis: 1150000,
       gain: 122500,
       gainPercent: 10.65,
       allocation: 51.9,
       return: 12.5,
-      category: 'Equity'
+      category: 'Equity',
     },
-    { 
-      fund: 'Balanced Income Fund', 
-      units: 30000, 
-      nav: 18.92, 
+    {
+      fund: 'Balanced Income Fund',
+      units: 30000,
+      nav: 18.92,
       currentValue: 567600,
       costBasis: 540000,
       gain: 27600,
       gainPercent: 5.11,
       allocation: 23.2,
       return: 10.8,
-      category: 'Balanced'
+      category: 'Balanced',
     },
-    { 
-      fund: 'Fixed Income Fund', 
-      units: 25000, 
-      nav: 10.25, 
+    {
+      fund: 'Fixed Income Fund',
+      units: 25000,
+      nav: 10.25,
       currentValue: 256250,
       costBasis: 250000,
       gain: 6250,
       gainPercent: 2.5,
       allocation: 10.5,
       return: 6.5,
-      category: 'Fixed Income'
+      category: 'Fixed Income',
     },
-    { 
-      fund: 'Index Fund', 
-      units: 15000, 
-      nav: 32.15, 
+    {
+      fund: 'Index Fund',
+      units: 15000,
+      nav: 32.15,
       currentValue: 482250,
       costBasis: 450000,
       gain: 32250,
       gainPercent: 7.17,
       allocation: 19.7,
       return: 14.2,
-      category: 'Equity'
+      category: 'Equity',
     },
-    { 
-      fund: 'Money Market Fund', 
-      units: 100000, 
-      nav: 1.00, 
+    {
+      fund: 'Money Market Fund',
+      units: 100000,
+      nav: 1.0,
       currentValue: 100000,
       costBasis: 100000,
       gain: 0,
       gainPercent: 0,
       allocation: 4.1,
       return: 4.2,
-      category: 'Money Market'
-    }
-  ];
+      category: 'Money Market',
+  },
+];
 
-  const allocationData = holdings.map(h => ({
-    name: h.fund,
-    value: h.allocation
-  }));
+const MyPortfolio = () => {
+  const [selectedFund, setSelectedFund] = useState(null);
 
-  const renderAllocationChart = () => {
-    const total = allocationData.reduce((sum, item) => sum + item.value, 0);
-    let currentAngle = 0;
+  const categoryMix = useMemo(() => {
+    const totals = {};
+    holdings.forEach((h) => {
+      totals[h.category] = (totals[h.category] || 0) + h.allocation;
+    });
+    return Object.entries(totals)
+      .map(([name, value]) => ({ name, value: Math.round(value * 10) / 10 }))
+      .sort((a, b) => b.value - a.value);
+  }, []);
 
-    return (
-      <div className="cp-allocation-chart">
-        <svg viewBox="0 0 200 200" className="cp-pie-chart">
-          {allocationData.map((item, index) => {
-            const angle = (item.value / total) * 360;
-            const largeArc = angle > 180 ? 1 : 0;
-            const x1 = 100 + 80 * Math.cos((currentAngle * Math.PI) / 180);
-            const y1 = 100 + 80 * Math.sin((currentAngle * Math.PI) / 180);
-            const x2 = 100 + 80 * Math.cos(((currentAngle + angle) * Math.PI) / 180);
-            const y2 = 100 + 80 * Math.sin(((currentAngle + angle) * Math.PI) / 180);
-
-            const colors = ['#0f766e', '#14b8a6', '#0891b2', '#06b6d4', '#0e7490'];
-            const color = colors[index % colors.length];
-
-            const pathData = [
-              `M 100 100`,
-              `L ${x1} ${y1}`,
-              `A 80 80 0 ${largeArc} 1 ${x2} ${y2}`,
-              `Z`
-            ].join(' ');
-
-            currentAngle += angle;
-
-            return (
-              <path
-                key={index}
-                d={pathData}
-                fill={color}
-                stroke="white"
-                strokeWidth="2"
-              />
-            );
-          })}
-        </svg>
-        <div className="cp-chart-legend">
-          {allocationData.map((item, index) => {
-            const colors = ['#0f766e', '#14b8a6', '#0891b2', '#06b6d4', '#0e7490'];
-            return (
-              <div key={index} className="cp-legend-item">
-                <div 
-                  className="cp-legend-color" 
-                  style={{ backgroundColor: colors[index % colors.length] }}
-                ></div>
-                <span className="cp-legend-name">{item.name}</span>
-                <span className="cp-legend-value">{item.value}%</span>
-              </div>
-            );
-          })}
-        </div>
-      </div>
-    );
-  };
+  const formatMoney = (n) => n.toLocaleString(undefined, { maximumFractionDigits: 0 });
 
   return (
-    <div className="cp-portfolio">
-      <div className="cp-portfolio-header">
-        <h1>My Portfolio</h1>
-        <p>Detailed view of your investment portfolio</p>
-      </div>
+    <div className="cp-portfolio cp-portfolio-page">
+      <header className="cp-portfolio-header cp-pf-header">
+        <div className="cp-pf-header-main">
+          <h1>My Portfolio</h1>
+          <p>Detailed view of your investment portfolio</p>
+        </div>
+        <div className="cp-pf-header-aside">
+          <span className="cp-pf-asof-label">As of</span>
+          <span className="cp-pf-asof-value">Today</span>
+        </div>
+      </header>
 
-      {/* Portfolio Summary */}
-      <div className="cp-portfolio-summary">
-        <div className="cp-summary-card">
-          <div className="cp-summary-label">Total Portfolio Value</div>
-          <div className="cp-summary-value">{portfolioData.totalValue.toLocaleString()}</div>
+      <section className="cp-pf-metrics" aria-label="Portfolio summary">
+        <div className="cp-pf-metric">
+          <span className="cp-pf-metric-label">Total portfolio value</span>
+          <span className="cp-pf-metric-value">{formatMoney(portfolioData.totalValue)}</span>
+          <span className="cp-pf-metric-unit">LKR</span>
         </div>
-        <div className="cp-summary-card">
-          <div className="cp-summary-label">Total Cost Basis</div>
-          <div className="cp-summary-value">{portfolioData.totalCost.toLocaleString()}</div>
+        <div className="cp-pf-metric">
+          <span className="cp-pf-metric-label">Total cost basis</span>
+          <span className="cp-pf-metric-value">{formatMoney(portfolioData.totalCost)}</span>
+          <span className="cp-pf-metric-unit">LKR</span>
         </div>
-        <div className="cp-summary-card">
-          <div className="cp-summary-label">Unrealized Gain/Loss</div>
-          <div className={`cp-summary-value ${portfolioData.unrealizedGain >= 0 ? 'positive' : 'negative'}`}>
-            {portfolioData.unrealizedGain >= 0 ? '+' : ''}{portfolioData.unrealizedGain.toLocaleString()}
-          </div>
+        <div className="cp-pf-metric">
+          <span className="cp-pf-metric-label">Unrealized gain / loss</span>
+          <span
+            className={`cp-pf-metric-value ${
+              portfolioData.unrealizedGain >= 0 ? 'cp-pf-positive' : 'cp-pf-negative'
+            }`}
+          >
+            {portfolioData.unrealizedGain >= 0 ? '+' : ''}
+            {formatMoney(portfolioData.unrealizedGain)}
+          </span>
+          <span className="cp-pf-metric-unit">LKR</span>
         </div>
-        <div className="cp-summary-card">
-          <div className="cp-summary-label">YTD Return</div>
-          <div className="cp-summary-value positive">{portfolioData.ytdReturn}%</div>
+        <div className="cp-pf-metric">
+          <span className="cp-pf-metric-label">YTD return</span>
+          <span className="cp-pf-metric-value cp-pf-positive">{portfolioData.ytdReturn}%</span>
         </div>
-      </div>
+      </section>
 
-      <div className="cp-portfolio-grid">
-        {/* Holdings Table */}
-        <div className="cp-holdings-detail">
-          <div className="cp-section-header">
-            <h3>Holdings Details</h3>
+      <div className="cp-pf-layout">
+        <section className="cp-pf-panel cp-pf-holdings">
+          <div className="cp-pf-panel-head">
+            <h2>Holdings details</h2>
+            <span className="cp-pf-panel-meta">{holdings.length} funds</span>
           </div>
-          <div className="cp-holdings-table">
-            <table>
+          <div className="cp-pf-table-wrap">
+            <table className="cp-pf-table">
               <thead>
                 <tr>
-                  <th>Fund Name</th>
+                  <th>Fund</th>
                   <th>Category</th>
-                  <th>Units</th>
-                  <th>NAV</th>
-                  <th>Current Value</th>
-                  <th>Cost Basis</th>
-                  <th>Gain/Loss</th>
-                  <th>Return</th>
+                  <th className="cp-pf-num">Units</th>
+                  <th className="cp-pf-num">NAV</th>
+                  <th className="cp-pf-num">Current value</th>
+                  <th className="cp-pf-num">Cost basis</th>
+                  <th className="cp-pf-num">Gain / loss</th>
+                  <th className="cp-pf-num">Return</th>
                 </tr>
               </thead>
               <tbody>
                 {holdings.map((holding, index) => (
-                  <tr 
-                    key={index}
-                    className={selectedFund === index ? 'selected' : ''}
+                  <tr
+                    key={holding.fund}
+                    className={selectedFund === index ? 'cp-pf-row-selected' : ''}
                     onClick={() => setSelectedFund(selectedFund === index ? null : index)}
                   >
-                    <td className="cp-fund-name">{holding.fund}</td>
-                    <td><span className="cp-category-badge">{holding.category}</span></td>
-                    <td>{holding.units.toLocaleString()}</td>
-                    <td>{holding.nav.toFixed(2)}</td>
-                    <td>{holding.currentValue.toLocaleString()}</td>
-                    <td>{holding.costBasis.toLocaleString()}</td>
-                    <td className={holding.gain >= 0 ? 'positive' : 'negative'}>
-                      {holding.gain >= 0 ? '+' : ''}{holding.gain.toLocaleString()} ({holding.gainPercent >= 0 ? '+' : ''}{holding.gainPercent}%)
+                    <td className="cp-pf-fund">{holding.fund}</td>
+                    <td className="cp-pf-category">{holding.category}</td>
+                    <td className="cp-pf-num">{holding.units.toLocaleString()}</td>
+                    <td className="cp-pf-num">{holding.nav.toFixed(2)}</td>
+                    <td className="cp-pf-num">{formatMoney(holding.currentValue)}</td>
+                    <td className="cp-pf-num">{formatMoney(holding.costBasis)}</td>
+                    <td
+                      className={`cp-pf-num ${
+                        holding.gain >= 0 ? 'cp-pf-positive' : 'cp-pf-negative'
+                      }`}
+                    >
+                      {holding.gain >= 0 ? '+' : ''}
+                      {formatMoney(holding.gain)} ({holding.gainPercent >= 0 ? '+' : ''}
+                      {holding.gainPercent}%)
                     </td>
-                    <td className={`cp-return ${holding.return >= 0 ? 'positive' : 'negative'}`}>
-                      {holding.return >= 0 ? '+' : ''}{holding.return}%
+                    <td
+                      className={`cp-pf-num ${
+                        holding.return >= 0 ? 'cp-pf-positive' : 'cp-pf-negative'
+                      }`}
+                    >
+                      {holding.return >= 0 ? '+' : ''}
+                      {holding.return}%
                     </td>
                   </tr>
                 ))}
               </tbody>
             </table>
           </div>
-        </div>
+        </section>
 
-        {/* Asset Allocation */}
-        <div className="cp-allocation-section">
-          <div className="cp-section-header">
-            <h3>Asset Allocation</h3>
-          </div>
-          {renderAllocationChart()}
-        </div>
+        <aside className="cp-pf-side">
+          <section className="cp-pf-panel cp-pf-allocation">
+            <div className="cp-pf-panel-head">
+              <h2>Asset allocation</h2>
+            </div>
+            <p className="cp-pf-panel-intro">Current portfolio mix by fund.</p>
+            <div className="cp-pf-bars">
+              {holdings.map((holding) => (
+                <div key={holding.fund} className="cp-pf-bar-row">
+                  <div className="cp-pf-bar-head">
+                    <span className="cp-pf-bar-label">{holding.fund}</span>
+                    <span className="cp-pf-bar-pct">{holding.allocation}%</span>
+                  </div>
+                  <div className="cp-pf-bar-track">
+                    <div
+                      className="cp-pf-bar-fill"
+                      style={{ width: `${Math.min(holding.allocation, 100)}%` }}
+                    />
+                  </div>
+                </div>
+              ))}
+            </div>
+          </section>
+
+          <section className="cp-pf-panel cp-pf-category-mix">
+            <div className="cp-pf-panel-head">
+              <h2>By category</h2>
+            </div>
+            <div className="cp-pf-category-list">
+              {categoryMix.map((item) => (
+                <div key={item.name} className="cp-pf-category-row">
+                  <span className="cp-pf-category-name">{item.name}</span>
+                  <span className="cp-pf-category-pct">{item.value}%</span>
+                </div>
+              ))}
+            </div>
+          </section>
+        </aside>
       </div>
     </div>
   );

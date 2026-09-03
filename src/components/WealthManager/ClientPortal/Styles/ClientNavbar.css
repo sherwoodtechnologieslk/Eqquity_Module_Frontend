@@ -2,7 +2,7 @@
  * Client Portal navbar — institutional header.
  */
 
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700;9..40,800&display=swap');
 
 .cp-navbar {
   --cp-ink: #1a1d1c;
@@ -10,26 +10,76 @@
   --cp-forest: #0c7b74;
   --cp-forest-deep: #064a46;
   --cp-teal-bright: #18b19a;
-  --cp-line: #e3e1dc;
+  --cp-line: #e2e8f0;
 
   position: sticky;
   top: 0;
   z-index: 40;
-  height: 64px;
+  height: 56px;
   padding: 0;
   color: #ffffff;
   border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-  background: #042824;
+  background: #064a46;
   box-shadow: none;
-  font-family: 'Inter', 'Segoe UI', sans-serif;
+  font-family: 'DM Sans', 'Segoe UI', sans-serif;
   overflow: visible;
 }
 
 .cp-navbar.cp-navbar-gateway {
-  color: #ffffff;
-  background: #042824;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  color: #0f172a;
+  background: #ffffff;
+  border-bottom: 1px solid #e2e8f0;
   box-shadow: none;
+}
+
+.cp-navbar-gateway .cp-navbar-brand-icon {
+  background: #0c7b74;
+  border: 1px solid #99d5d0;
+}
+
+.cp-navbar-gateway .sherwood-mark__line1 {
+  color: #064a46;
+}
+
+.cp-navbar-gateway .sherwood-mark__line2 {
+  color: #0c7b74;
+}
+
+.cp-navbar-gateway .cp-navbar-link {
+  color: #64748b;
+  height: 56px;
+}
+
+.cp-navbar-gateway .cp-navbar-link:hover,
+.cp-navbar-gateway .cp-navbar-link-active {
+  color: #064a46;
+}
+
+.cp-navbar-gateway .cp-navbar-link::after {
+  background: #0c7b74;
+}
+
+.cp-navbar-gateway .cp-navbar-back-btn {
+  background: #ffffff;
+  border-color: #e2e8f0;
+  color: #475569;
+}
+
+.cp-navbar-gateway .cp-navbar-back-btn:hover {
+  background: #f8fafc;
+  border-color: #cbd5e1;
+  color: #0f172a;
+}
+
+.cp-navbar-gateway .cp-navbar-cta {
+  background: #0c7b74;
+  border-color: #064a46;
+  color: #ffffff;
+}
+
+.cp-navbar-gateway .cp-navbar-cta:hover {
+  background: #064a46;
+  color: #ffffff;
 }
 
 .cp-navbar-inner {
@@ -64,35 +114,25 @@
 }
 
 .cp-navbar-brand-icon {
-  width: 32px;
-  height: 32px;
+  width: 2rem;
+  height: 2rem;
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-  background: linear-gradient(
-    145deg,
-    rgba(15, 118, 110, 0.92) 0%,
-    rgba(20, 184, 166, 0.88) 55%,
-    rgba(45, 212, 191, 0.82) 100%
-  );
-  border: 1px solid rgba(255, 255, 255, 0.28);
-  border-radius: 7px;
+  background: #0c7b74;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 0.35rem;
 }
 
 .cp-navbar-gateway .cp-navbar-brand-icon {
-  background: linear-gradient(
-    145deg,
-    rgba(15, 118, 110, 0.92) 0%,
-    rgba(20, 184, 166, 0.88) 55%,
-    rgba(45, 212, 191, 0.82) 100%
-  );
-  border: 1px solid rgba(255, 255, 255, 0.28);
+  background: #0c7b74;
+  border: 1px solid #99d5d0;
 }
 
 .cp-navbar-brand-logo {
-  width: 16px;
-  height: 16px;
+  width: 22px;
+  height: 22px;
   color: #ffffff;
   background: transparent;
   padding: 0;
@@ -121,9 +161,12 @@
   font-weight: 800;
   font-size: 13px;
   letter-spacing: 0.16em;
-  color: #ffffff;
   text-transform: uppercase;
   line-height: 1.05;
+}
+
+.cp-navbar:not(.cp-navbar-gateway) .sherwood-mark__line1 {
+  color: #ffffff;
 }
 
 .cp-navbar .sherwood-mark__line2 {
@@ -132,6 +175,9 @@
   letter-spacing: 0.26em;
   text-transform: uppercase;
   line-height: 1.1;
+}
+
+.cp-navbar:not(.cp-navbar-gateway) .sherwood-mark__line2 {
   color: #5eead4;
 }
 
@@ -215,19 +261,6 @@
   transform: scaleX(1);
 }
 
-.cp-navbar-gateway .cp-navbar-link {
-  color: rgba(255, 255, 255, 0.72);
-}
-
-.cp-navbar-gateway .cp-navbar-link:hover,
-.cp-navbar-gateway .cp-navbar-link-active {
-  color: #ffffff;
-}
-
-.cp-navbar-gateway .cp-navbar-link::after {
-  background: #18b19a;
-}
-
 .cp-navbar-meta {
   display: flex;
   align-items: center;
@@ -253,7 +286,7 @@
   font-weight: 600;
   cursor: pointer;
   white-space: nowrap;
-  border-radius: 2px;
+  border-radius: 8px;
 }
 
 .cp-navbar-cta:hover {
@@ -274,21 +307,10 @@
   font-weight: 600;
   cursor: pointer;
   white-space: nowrap;
-  border-radius: 2px;
+  border-radius: 8px;
 }
 
 .cp-navbar-back-btn:hover {
-  background: rgba(255, 255, 255, 0.08);
-  border-color: #ffffff;
-}
-
-.cp-navbar-gateway .cp-navbar-back-btn {
-  background: transparent;
-  border-color: rgba(255, 255, 255, 0.35);
-  color: #ffffff;
-}
-
-.cp-navbar-gateway .cp-navbar-back-btn:hover {
   background: rgba(255, 255, 255, 0.08);
   border-color: #ffffff;
 }

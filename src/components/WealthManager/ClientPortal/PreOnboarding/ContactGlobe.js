@@ -63,7 +63,7 @@ export default function ContactGlobe() {
 
     const scene = new THREE.Scene();
     const camera = new THREE.PerspectiveCamera(34, 1, 0.1, 40);
-    camera.position.set(0.15, 0.08, 6.2);
+    camera.position.set(0.15, 0.08, 6.05);
 
     const group = new THREE.Group();
     group.rotation.set(0.18, 0.55, 0);

@@ -3,18 +3,18 @@ import './Styles/ClientContactForm.css';
 
 const ClientContactForm = ({ onNext, onPrevious, initialData = {} }) => {
   const [formData, setFormData] = useState({
-    mobileNo: initialData.mobileNo || '712644443',
-    email: initialData.email || 'araniweerathunga@gmail.com',
-    emailVerified: initialData.emailVerified || true,
-    telephoneNo: initialData.telephoneNo || '0112809100',
-    mailingInstructions: initialData.mailingInstructions || 'Email to above e-mail address',
-    addressLine1: initialData.addressLine1 || '211/32, Viwekarama Road',
-    addressLine2: initialData.addressLine2 || 'Mirihana',
-    city: initialData.city || 'Nugegoda',
-    postalCode: initialData.postalCode || '20220',
-    district: initialData.district || 'Colombo',
-    country: initialData.country || 'Sri Lanka',
-    usePermanentAsCorrespondence: initialData.usePermanentAsCorrespondence || 'Yes'
+    mobileNo: initialData.mobileNo || '',
+    email: initialData.email || '',
+    emailVerified: initialData.emailVerified || false,
+    telephoneNo: initialData.telephoneNo || '',
+    mailingInstructions: initialData.mailingInstructions || '',
+    addressLine1: initialData.addressLine1 || '',
+    addressLine2: initialData.addressLine2 || '',
+    city: initialData.city || '',
+    postalCode: initialData.postalCode || '',
+    district: initialData.district || '',
+    country: initialData.country || '',
+    usePermanentAsCorrespondence: initialData.usePermanentAsCorrespondence || ''
   });
 
   const handleInputChange = (e) => {
@@ -152,6 +152,7 @@ const ClientContactForm = ({ onNext, onPrevious, initialData = {} }) => {
                   className="cp-form-input"
                   required
                 >
+                  <option value="">Select mailing instruction</option>
                   <option value="Email to above e-mail address">Email to above e-mail address</option>
                   <option value="Post to address below">Post to address below</option>
                   <option value="Both email and post">Both email and post</option>

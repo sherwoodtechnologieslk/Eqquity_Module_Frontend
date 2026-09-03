@@ -1,148 +1,104 @@
-.cp-submit-form {
-  padding: 2rem;
-  background: white;
-  position: relative;
-  overflow: hidden;
+@import './ClientSignupForm.css';
+
+/* Submit / complete step — lean desk layout */
+
+.cp-submit-header h1 {
+  margin-bottom: 0.25rem;
 }
 
-.cp-submit-form::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 4px;
-  background: linear-gradient(90deg, #0f766e 0%, #14b8a6 50%, #06b6d4 100%);
+.cp-submit-header p {
+  max-width: 42rem;
+}
+
+.cp-submit-form {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  padding: 1.25rem 1.5rem 1.5rem;
+  background: #ffffff;
 }
 
 .cp-submit-body {
-  text-align: center;
-  padding: 1.5rem 0 2rem;
+  flex: 1;
+  padding: 0.15rem 0 0.5rem;
 }
 
-.cp-submit-title {
-  font-size: 1.7rem;
-  font-weight: 800;
-  background: linear-gradient(135deg, #0f766e 0%, #14b8a6 50%, #06b6d4 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-  margin-bottom: 0.75rem;
-}
-
-.cp-submit-subtitle {
-  max-width: 720px;
-  margin: 0 auto;
-  font-size: 1rem;
-  color: #1e293b;
-  line-height: 1.6;
-}
-
-.cp-submit-illustration {
-  margin-top: 2.5rem;
+.cp-submit-ready-card {
   display: flex;
   align-items: center;
-  justify-content: center;
-}
-
-.cp-submit-documents {
-  position: relative;
-  width: 210px;
-  height: 150px;
-}
-
-.cp-submit-doc {
-  position: absolute;
-  width: 150px;
-  height: 110px;
-  border-radius: 0;
-  border: 2px solid;
-  box-shadow: 0 18px 35px rgba(15, 23, 42, 0.18);
-}
-
-.cp-submit-doc-back {
-  top: 16px;
-  left: 34px;
-  opacity: 0.75;
-  background: linear-gradient(135deg, #ccfbf1 0%, #99f6e4 100%);
-  border-color: #5eead4;
-}
-
-.cp-submit-doc-front {
-  top: 0;
-  left: 60px;
-  background: linear-gradient(135deg, #0f766e 0%, #14b8a6 50%, #06b6d4 100%);
-  border-color: #14b8a6;
+  gap: 0.85rem;
+  max-width: 28rem;
+  padding: 0.85rem 1rem;
+  border: 1px solid #e2e8f0;
+  border-radius: 0.4rem;
+  background: #f8fafc;
 }
 
 .cp-submit-check {
-  margin-left: -36px;
-  filter: drop-shadow(0 4px 8px rgba(239, 68, 68, 0.3));
-  animation: subtle-pulse 2s ease-in-out infinite;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 2.75rem;
+  height: 2.75rem;
+  border-radius: 50%;
+  background: #e8f5f4;
+  color: #0c7b74;
+  border: 1px solid #99d5d0;
 }
 
-@keyframes subtle-pulse {
-  0%, 100% {
-    transform: scale(1);
-  }
-  50% {
-    transform: scale(1.05);
-  }
+.cp-submit-check svg {
+  width: 1.25rem;
+  height: 1.25rem;
+  display: block;
 }
 
-.cp-submit-divider {
-  margin-top: 2.25rem;
-  height: 2px;
-  background: linear-gradient(90deg, transparent 0%, #0f766e 20%, #14b8a6 50%, #06b6d4 80%, transparent 100%);
+.cp-submit-ready-copy {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  min-width: 0;
+}
+
+.cp-submit-ready-label {
+  font-size: 0.68rem;
+  font-weight: 650;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: #64748b;
+}
+
+.cp-submit-ready-value {
+  font-size: 0.92rem;
+  font-weight: 700;
+  color: #0f172a;
 }
 
 .cp-submit-actions {
-  justify-content: flex-end;
-  gap: 1rem;
+  margin-top: auto;
 }
 
 .cp-submit-btn {
-  padding: 0.875rem 2rem;
-  border-radius: 0;
-  border: none;
-  background: linear-gradient(135deg, #0f766e 0%, #14b8a6 50%, #06b6d4 100%);
-  color: #ffffff;
-  font-size: 1rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  box-shadow: 0 4px 12px rgba(15, 118, 110, 0.3);
-  position: relative;
-  overflow: hidden;
+  min-width: 9.5rem;
 }
 
-.cp-submit-btn::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: -100%;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
-  transition: left 0.5s;
-}
-
-.cp-submit-btn:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 6px 16px rgba(15, 118, 110, 0.4);
-}
-
-.cp-submit-btn:hover::before {
-  left: 100%;
-}
-
-.cp-submit-btn:active {
-  transform: translateY(0);
-}
-
-@media (max-width: 900px) {
+@media (max-width: 768px) {
   .cp-submit-form {
-    padding: 2rem 1.5rem 1.75rem;
+    padding: 1rem;
+  }
+
+  .cp-submit-ready-card {
+    max-width: none;
+  }
+
+  .cp-submit-actions {
+    flex-direction: column-reverse;
+    align-items: stretch;
+  }
+
+  .cp-submit-actions .cp-previous-btn,
+  .cp-submit-btn {
+    width: 100%;
+    min-width: 0;
   }
 }
-

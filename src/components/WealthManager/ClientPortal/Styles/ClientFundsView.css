@@ -1,0 +1,1318 @@
+/* Funds view + intro/signup — institutional flat desk */
+
+.cp-funds-in-portal {
+  margin: -1rem -1.25rem -1.5rem;
+}
+
+.cp-funds-intro-root {
+  min-height: calc(100vh - 70px);
+  width: 100%;
+  display: flex;
+  background: #f5f5f3;
+  font-family: inherit;
+  color: #0f172a;
+}
+
+body.cp-public-active {
+  background: #ffffff;
+  overflow-x: hidden;
+  overflow-y: auto;
+}
+
+.cp-public {
+  min-height: 100vh;
+  background: #ffffff;
+}
+
+.cp-public-main {
+  width: 100%;
+}
+
+.cp-funds-intro-shell {
+  width: 100%;
+  min-height: 100vh;
+  display: grid;
+  grid-template-columns: 320px minmax(0, 1fr) 360px;
+}
+
+.cp-funds-sidebar {
+  background: #ffffff;
+  color: #0f172a;
+  padding: 1.5rem 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  border-right: 1px solid #e2e8f0;
+}
+
+.cp-funds-sidebar-title {
+  font-size: 1rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: #64748b;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.cp-funds-sidebar-subtitle {
+  margin-top: -1.1rem;
+  font-size: 0.8rem;
+  color: #64748b;
+  line-height: 1.6;
+}
+
+.cp-funds-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.cp-funds-list-item {
+  width: 100%;
+  padding: 0.9rem 1rem;
+  text-align: left;
+  border: 1px solid #e2e8f0;
+  background: #ffffff;
+  color: #64748b;
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  border-radius: 0.4rem;
+  transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+}
+
+.cp-funds-list-item:hover {
+  background: rgba(12, 123, 116, 0.06);
+  border-color: rgba(12, 123, 116, 0.25);
+  color: #0f172a;
+}
+
+.cp-funds-list-item-active {
+  background: rgba(12, 123, 116, 0.08);
+  color: #064a46;
+  border-left: 3px solid #0c7b74;
+  border-color: rgba(12, 123, 116, 0.3);
+  font-weight: 600;
+}
+
+.cp-funds-list-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-bottom: 0.35rem;
+}
+
+.cp-funds-list-code {
+  font-size: 0.7rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  color: #064a46;
+}
+
+.cp-funds-list-risk {
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 0.15rem 0.5rem;
+  background: rgba(12, 123, 116, 0.08);
+  color: #064a46;
+  border-radius: 0.4rem;
+}
+
+.cp-funds-list-name {
+  display: block;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: inherit;
+  font-weight: 600;
+}
+
+.cp-funds-list-meta {
+  margin-top: 0.35rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.75rem;
+  color: #64748b;
+}
+
+.cp-funds-list-meta-dot {
+  opacity: 0.6;
+}
+
+.cp-funds-list-meta-item {
+  white-space: nowrap;
+}
+
+.cp-funds-main {
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  background: #f5f5f3;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.cp-funds-main-inner {
+  max-width: none;
+  width: 100%;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+  padding: 1.5rem 1.75rem 2rem;
+}
+
+.cp-fund-detail-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.5rem;
+  flex-wrap: wrap;
+  margin-bottom: 1.25rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.cp-fund-detail-title-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  min-width: min(520px, 100%);
+}
+
+.cp-fund-detail-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin: 0;
+  color: #0f172a;
+  line-height: 1.3;
+  text-align: left;
+}
+
+.cp-fund-detail-subrow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.cp-fund-detail-pill {
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 0.18rem 0.55rem;
+  border: 1px solid rgba(12, 123, 116, 0.25);
+  background: rgba(12, 123, 116, 0.06);
+  color: #0c7b74;
+  border-radius: 0.4rem;
+}
+
+.cp-fund-detail-pill-muted {
+  border-color: rgba(100, 116, 139, 0.25);
+  background: rgba(100, 116, 139, 0.06);
+  color: #64748b;
+}
+
+.cp-fund-detail-subtext {
+  font-size: 0.82rem;
+  color: #64748b;
+}
+
+.cp-fund-detail-nav-badge {
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
+  padding: 0.45rem 0.85rem;
+  background: #ffffff;
+  color: #0f172a;
+  border: 1px solid #e2e8f0;
+  border-radius: 0.4rem;
+}
+
+.cp-fund-detail-nav-label {
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #64748b;
+}
+
+.cp-fund-detail-nav-value {
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: #0c7b74;
+}
+
+.cp-fund-detail-daily {
+  font-size: 0.8rem;
+  font-weight: 600;
+  margin-left: 0.25rem;
+}
+
+.cp-fund-detail-daily.positive {
+  color: #059669;
+}
+
+.cp-fund-detail-daily.negative {
+  color: #dc2626;
+}
+
+.cp-fund-detail-tabs {
+  display: flex;
+  gap: 0;
+  margin-bottom: 1rem;
+  border-bottom: 1px solid #e2e8f0;
+  flex-shrink: 0;
+}
+
+.cp-fund-detail-tab {
+  padding: 0.65rem 1.25rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #64748b;
+  background: transparent;
+  border: none;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;
+  cursor: pointer;
+  transition: color 0.15s ease, border-color 0.15s ease;
+}
+
+.cp-fund-detail-tab:hover {
+  color: #0c7b74;
+}
+
+.cp-fund-detail-tab.active {
+  color: #0c7b74;
+  border-bottom-color: #0c7b74;
+}
+
+.cp-fund-detail-panel {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding-right: 0.25rem;
+}
+
+.cp-fund-detail-panel::-webkit-scrollbar {
+  width: 6px;
+}
+
+.cp-fund-detail-panel::-webkit-scrollbar-track {
+  background: #f8fafc;
+}
+
+.cp-fund-detail-panel::-webkit-scrollbar-thumb {
+  background: #94a3b8;
+  border-radius: 3px;
+}
+
+.cp-fund-detail-panel .cp-fund-section {
+  margin-bottom: 1.5rem;
+}
+
+.cp-fund-detail-panel .cp-fund-overview-grid {
+  margin-bottom: 0;
+}
+
+.cp-fund-overview-layout {
+  display: flex;
+  flex-direction: column;
+  gap: 1.75rem;
+  text-align: left;
+  max-width: 100%;
+}
+
+.cp-fund-overview-block {
+  padding: 1.25rem 1.5rem;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 0.4rem;
+}
+
+.cp-fund-overview-block-title {
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: #0c7b74;
+  margin: 0 0 1rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.cp-fund-title {
+  font-size: 1.85rem;
+  font-weight: 700;
+  text-align: center;
+  margin: 0 0 2.5rem;
+  color: #0f172a;
+  line-height: 1.3;
+}
+
+.cp-fund-section {
+  margin-bottom: 2.25rem;
+  text-align: center;
+}
+
+.cp-fund-section-title {
+  font-size: 0.8rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: #0c7b74;
+  margin-bottom: 0.85rem;
+  position: relative;
+  display: inline-block;
+}
+
+.cp-fund-section-title::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  bottom: -4px;
+  transform: translateX(-50%);
+  width: 40px;
+  height: 2px;
+  background: #0c7b74;
+}
+
+.cp-fund-objective {
+  font-size: 1rem;
+  color: #64748b;
+  line-height: 1.75;
+  max-width: 540px;
+  margin: 0 auto;
+}
+
+.cp-fund-benefits {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.cp-fund-benefit-row {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.cp-fund-benefit-text {
+  font-size: 0.95rem;
+  color: #0f172a;
+  font-weight: 500;
+}
+
+.cp-fund-benefit-divider {
+  width: 180px;
+  height: 1px;
+  background: #e2e8f0;
+}
+
+.cp-fund-more-button-row {
+  display: flex;
+  justify-content: center;
+  margin-top: 0.5rem;
+}
+
+.cp-fund-more-button {
+  padding: 0.85rem 2.5rem;
+  background: #0c7b74;
+  color: #ffffff;
+  border: none;
+  border-radius: 0.4rem;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.cp-fund-more-button:hover {
+  background: #064a46;
+}
+
+.cp-funds-right {
+  padding: 2.5rem 2rem;
+  border-left: 1px solid #e2e8f0;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  gap: 1.5rem;
+  background: #ffffff;
+}
+
+.cp-fund-snapshot-card {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 0.4rem;
+  padding: 1.5rem 1.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.cp-fund-snapshot-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.cp-fund-badge {
+  width: 48px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 0.4rem;
+  background: #0c7b74;
+  color: #ffffff;
+  font-weight: 700;
+  font-size: 0.95rem;
+}
+
+.cp-fund-date-block {
+  text-align: right;
+}
+
+.cp-fund-date-label {
+  font-size: 0.65rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: #64748b;
+}
+
+.cp-fund-date-value {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #0f172a;
+}
+
+.cp-fund-price-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid #e2e8f0;
+}
+
+.cp-fund-price-item {
+  flex: 1;
+  padding: 0.5rem 0.75rem;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 0.4rem;
+}
+
+.cp-fund-price-label {
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #64748b;
+  margin-bottom: 0.2rem;
+}
+
+.cp-fund-price-value {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: #0c7b74;
+}
+
+.cp-fund-tagline {
+  margin-top: 0.25rem;
+  font-size: 0.8rem;
+  color: #64748b;
+  font-style: italic;
+}
+
+.cp-funds-right-cta {
+  margin-top: 1.25rem;
+  padding-top: 1.25rem;
+  border-top: 1px solid #e2e8f0;
+  background: transparent;
+}
+
+.cp-fund-snapshot-card .cp-intro-badge {
+  background: rgba(12, 123, 116, 0.08);
+  border-color: rgba(12, 123, 116, 0.25);
+  color: #0c7b74;
+}
+
+.cp-fund-snapshot-card .cp-intro-title {
+  margin: 0.75rem 0 0.4rem;
+  font-size: 1.15rem;
+  font-weight: 800;
+  color: #0f172a;
+}
+
+.cp-fund-snapshot-card .cp-intro-subtitle {
+  margin: 0 0 1rem;
+  font-size: 0.85rem;
+  color: #64748b;
+  line-height: 1.6;
+}
+
+.cp-fund-snapshot-card .cp-intro-button {
+  width: 100%;
+  background: #0c7b74;
+  color: #ffffff;
+}
+
+.cp-fund-snapshot-card .cp-intro-button:hover {
+  background: #064a46;
+}
+
+.cp-fund-overview-card {
+  margin-bottom: 2rem;
+  padding-bottom: 2rem;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.cp-fund-overview-card .cp-fund-title {
+  margin-bottom: 1.25rem;
+}
+
+.cp-fund-overview-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1rem 2rem;
+  text-align: left;
+}
+
+@media (min-width: 640px) {
+  .cp-fund-overview-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+.cp-fund-overview-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  padding: 0.5rem 0;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.cp-fund-overview-item:last-child {
+  border-bottom: none;
+}
+
+.cp-fund-overview-label {
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #64748b;
+}
+
+.cp-fund-overview-value {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #0f172a;
+}
+
+.cp-fund-overview-block .cp-fund-objective {
+  margin: 0;
+  max-width: none;
+  font-size: 0.95rem;
+  line-height: 1.65;
+  color: #334155;
+}
+
+.cp-fund-benefits-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.cp-fund-benefit-item {
+  font-size: 0.9rem;
+  color: #334155;
+  line-height: 1.5;
+  padding-left: 1.25rem;
+  position: relative;
+}
+
+.cp-fund-benefit-item::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0.5em;
+  width: 5px;
+  height: 5px;
+  background: #0c7b74;
+  border-radius: 50%;
+}
+
+.cp-fund-pricing-block .cp-fund-pricing-table {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  max-width: 100%;
+  margin: 0;
+  text-align: left;
+  border: 1px solid #e2e8f0;
+  border-radius: 0.4rem;
+  overflow: hidden;
+  background: #fff;
+}
+
+.cp-fund-pricing-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.85rem 1.25rem;
+  border-bottom: 1px solid #f1f5f9;
+  background: #ffffff;
+}
+
+.cp-fund-pricing-row:last-child {
+  border-bottom: none;
+}
+
+.cp-fund-pricing-row-highlight {
+  background: rgba(12, 123, 116, 0.06);
+  border-bottom: none;
+}
+
+.cp-fund-pricing-label {
+  font-size: 0.85rem;
+  color: #64748b;
+  font-weight: 500;
+}
+
+.cp-fund-pricing-value {
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: #0c7b74;
+}
+
+.cp-fund-daily-change.positive {
+  color: #059669;
+  font-weight: 700;
+}
+
+.cp-fund-daily-change.negative {
+  color: #dc2626;
+  font-weight: 700;
+}
+
+.cp-fund-performance-block .cp-fund-overview-block-title {
+  margin-bottom: 0.5rem;
+}
+
+.cp-fund-performance-intro {
+  font-size: 0.8rem;
+  color: #64748b;
+  margin: 0 0 1.25rem;
+  line-height: 1.4;
+}
+
+.cp-fund-performance-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1rem;
+}
+
+@media (min-width: 520px) {
+  .cp-fund-performance-grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+.cp-fund-performance-card {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.35rem;
+  padding: 1.1rem 1.25rem;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 0.4rem;
+  text-align: left;
+  transition: border-color 0.15s ease;
+}
+
+.cp-fund-performance-card:hover {
+  border-color: rgba(12, 123, 116, 0.4);
+}
+
+.cp-fund-performance-card-featured {
+  background: rgba(12, 123, 116, 0.04);
+  border-color: rgba(12, 123, 116, 0.25);
+}
+
+@media (min-width: 520px) {
+  .cp-fund-performance-card-featured {
+    grid-column: span 1;
+  }
+}
+
+.cp-fund-performance-card-label {
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #64748b;
+}
+
+.cp-fund-performance-card-value {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #0c7b74;
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+}
+
+.cp-fund-performance-card-featured .cp-fund-performance-card-value {
+  font-size: 1.65rem;
+  color: #0c7b74;
+}
+
+.cp-fund-performance-card-sublabel {
+  font-size: 0.7rem;
+  color: #94a3b8;
+  margin-top: 0.15rem;
+}
+
+.cp-fund-performance-label {
+  font-size: 0.85rem;
+  color: #64748b;
+}
+
+.cp-fund-performance-value {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #0c7b74;
+}
+
+.cp-fund-allocation-block .cp-fund-overview-block-title {
+  margin-bottom: 0.5rem;
+}
+
+.cp-fund-allocation-intro {
+  font-size: 0.8rem;
+  color: #64748b;
+  margin: 0 0 1.25rem;
+  line-height: 1.4;
+}
+
+.cp-fund-allocation-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1.1rem;
+  max-width: 100%;
+  text-align: left;
+}
+
+.cp-fund-allocation-row {
+  margin-bottom: 0;
+}
+
+.cp-fund-allocation-row-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 0.4rem;
+  gap: 0.5rem;
+}
+
+.cp-fund-allocation-label {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #334155;
+}
+
+.cp-fund-allocation-percent {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #0c7b74;
+}
+
+.cp-fund-allocation-bar-wrap {
+  height: 12px;
+  background: #e2e8f0;
+  border-radius: 0.4rem;
+  overflow: hidden;
+  margin-bottom: 0;
+}
+
+.cp-fund-allocation-bar {
+  height: 100%;
+  background: #0c7b74;
+  border-radius: 0.4rem;
+  min-width: 4px;
+  transition: width 0.35s ease;
+}
+
+.cp-fund-risk-block .cp-fund-overview-block-title {
+  margin-bottom: 1rem;
+}
+
+.cp-fund-risk-meter-wrap {
+  max-width: 100%;
+}
+
+.cp-fund-risk-meter {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.cp-fund-risk-label {
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #64748b;
+  min-width: 28px;
+}
+
+.cp-fund-risk-track {
+  flex: 1;
+  height: 10px;
+  background: #e2e8f0;
+  border-radius: 0.4rem;
+  position: relative;
+}
+
+.cp-fund-risk-dot {
+  position: absolute;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: 16px;
+  height: 16px;
+  background: #0c7b74;
+  border: 2px solid #ffffff;
+  border-radius: 50%;
+  transition: left 0.25s ease;
+}
+
+.cp-fund-risk-horizon-box {
+  padding: 0.85rem 1rem;
+  background: rgba(12, 123, 116, 0.06);
+  border: 1px solid rgba(12, 123, 116, 0.15);
+  border-radius: 0.4rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.cp-fund-risk-horizon-label {
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #64748b;
+}
+
+.cp-fund-risk-horizon {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #0c7b74;
+  margin: 0;
+}
+
+.cp-fund-strategy {
+  margin-bottom: 1rem;
+}
+
+.cp-fund-details-strategy-block .cp-fund-overview-block-title {
+  margin-bottom: 0.75rem;
+}
+
+.cp-fund-details-strategy-text {
+  font-size: 0.95rem;
+  line-height: 1.7;
+  color: #334155;
+  margin: 0;
+}
+
+.cp-fund-details-block .cp-fund-overview-block-title {
+  margin-bottom: 1rem;
+}
+
+.cp-fund-details-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0.85rem;
+}
+
+@media (min-width: 480px) {
+  .cp-fund-details-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (min-width: 640px) {
+  .cp-fund-details-grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+.cp-fund-details-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  padding: 1rem 1.15rem;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 0.4rem;
+  text-align: left;
+  transition: border-color 0.15s ease;
+}
+
+.cp-fund-details-card:hover {
+  border-color: rgba(12, 123, 116, 0.35);
+}
+
+.cp-fund-details-card-label {
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #64748b;
+}
+
+.cp-fund-details-card-value {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #0f172a;
+  line-height: 1.35;
+}
+
+.cp-fund-details-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.5rem 0.75rem;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 0.4rem;
+}
+
+.cp-fund-details-label {
+  font-size: 0.85rem;
+  color: #64748b;
+}
+
+.cp-fund-details-value {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #0f172a;
+}
+
+.cp-fund-documents-block .cp-fund-overview-block-title {
+  margin-bottom: 0.5rem;
+}
+
+.cp-fund-documents-intro {
+  font-size: 0.8rem;
+  color: #64748b;
+  margin: 0 0 1.25rem;
+  line-height: 1.4;
+}
+
+.cp-fund-documents-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0.85rem;
+}
+
+@media (min-width: 480px) {
+  .cp-fund-documents-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+.cp-fund-doc-card {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.5rem;
+  padding: 1.25rem 1.25rem;
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 0.4rem;
+  cursor: pointer;
+  text-align: left;
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+
+.cp-fund-doc-card:hover {
+  border-color: rgba(12, 123, 116, 0.4);
+  background: rgba(12, 123, 116, 0.04);
+}
+
+.cp-fund-doc-card-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 0.4rem;
+  background: rgba(12, 123, 116, 0.08);
+  color: #0c7b74;
+}
+
+.cp-fund-doc-card-title {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #0f172a;
+  line-height: 1.3;
+}
+
+.cp-fund-doc-card-desc {
+  font-size: 0.78rem;
+  color: #64748b;
+  line-height: 1.35;
+}
+
+.cp-fund-documents {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  justify-content: center;
+}
+
+.cp-fund-doc-link {
+  padding: 0.6rem 1.25rem;
+  background: transparent;
+  border: 1px solid #0c7b74;
+  color: #0c7b74;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  border-radius: 0.4rem;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.cp-fund-doc-link:hover {
+  background: #0c7b74;
+  color: #fff;
+}
+
+.cp-fund-actions-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  justify-content: flex-start;
+  margin: 0.25rem 0;
+}
+
+.cp-fund-action-btn {
+  padding: 0.75rem 1.5rem;
+  font-size: 0.9rem;
+  font-weight: 600;
+  border: none;
+  border-radius: 0.4rem;
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.cp-fund-action-primary {
+  background: #0c7b74;
+  color: #fff;
+}
+
+.cp-fund-action-primary:hover {
+  background: #064a46;
+}
+
+.cp-fund-action-secondary {
+  background: #fff;
+  color: #0c7b74;
+  border: 1px solid #0c7b74;
+}
+
+.cp-fund-action-secondary:hover {
+  background: rgba(12, 123, 116, 0.06);
+}
+
+.cp-fund-similar-section {
+  margin-top: 0;
+}
+
+.cp-fund-similar-section .cp-fund-overview-block-title {
+  margin-bottom: 1rem;
+}
+
+.cp-fund-similar-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0.75rem;
+}
+
+@media (min-width: 480px) {
+  .cp-fund-similar-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+.cp-fund-similar-card {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.35rem;
+  padding: 1rem 1.25rem;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 0.4rem;
+  cursor: pointer;
+  text-align: left;
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+
+.cp-fund-similar-card:hover {
+  border-color: rgba(12, 123, 116, 0.4);
+  background: rgba(12, 123, 116, 0.04);
+}
+
+.cp-fund-similar-name {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #0f172a;
+  line-height: 1.3;
+}
+
+.cp-fund-similar-tag {
+  font-size: 0.75rem;
+  color: #64748b;
+  line-height: 1.35;
+}
+
+.cp-fund-price-nav {
+  border-top: none;
+  padding-top: 0;
+  align-items: center;
+}
+
+.cp-fund-nav-value {
+  font-size: 1.25rem;
+}
+
+.cp-fund-daily-badge {
+  padding: 0.25rem 0.6rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  border-radius: 0.4rem;
+  border: 1px solid transparent;
+}
+
+.cp-fund-daily-badge.positive {
+  background: rgba(5, 150, 105, 0.1);
+  color: #059669;
+  border-color: rgba(5, 150, 105, 0.2);
+}
+
+.cp-fund-daily-badge.negative {
+  background: rgba(220, 38, 38, 0.08);
+  color: #dc2626;
+  border-color: rgba(220, 38, 38, 0.15);
+}
+
+.cp-funds-signup-card {
+  background: #ffffff;
+  color: #0f172a;
+  padding: 2rem 1.75rem;
+  border-radius: 0.4rem;
+  border: 1px solid #e2e8f0;
+  position: relative;
+  overflow: hidden;
+}
+
+.cp-funds-signup-card::before {
+  content: none;
+}
+
+.cp-funds-signup-card .cp-intro-badge {
+  background: rgba(12, 123, 116, 0.08);
+  border-color: rgba(12, 123, 116, 0.25);
+  color: #064a46;
+}
+
+.cp-funds-signup-card .cp-intro-title {
+  font-size: 1.35rem;
+  color: #0f172a;
+}
+
+.cp-funds-signup-card .cp-intro-subtitle {
+  font-size: 0.9rem;
+  color: #64748b;
+  line-height: 1.55;
+  margin-bottom: 1.5rem;
+}
+
+.cp-funds-signup-card .cp-intro-button {
+  width: 100%;
+  background: #0c7b74;
+  color: #ffffff;
+}
+
+.cp-funds-signup-card .cp-intro-button:hover {
+  background: #064a46;
+}
+
+.cp-intro-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.35rem 0.75rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #064a46;
+  border-radius: 0.4rem;
+  border: 1px solid rgba(12, 123, 116, 0.25);
+  background: rgba(12, 123, 116, 0.08);
+  margin-bottom: 1.25rem;
+}
+
+.cp-intro-title {
+  font-size: 2rem;
+  font-weight: 700;
+  margin: 0 0 0.75rem;
+  color: #0f172a;
+}
+
+.cp-intro-subtitle {
+  font-size: 0.95rem;
+  color: #64748b;
+  line-height: 1.6;
+  margin: 0 0 1.75rem;
+}
+
+.cp-intro-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.9rem 2.5rem;
+  font-size: 0.95rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #ffffff;
+  background: #0c7b74;
+  border: none;
+  border-radius: 0.4rem;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.cp-intro-button:hover {
+  background: #064a46;
+}
+
+.cp-intro-button:active {
+  background: #064a46;
+}

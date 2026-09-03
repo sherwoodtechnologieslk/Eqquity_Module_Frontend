@@ -134,7 +134,7 @@ const Signup = ({ onSignup, switchToLogin }) => {
                         Create an account to capture trades, track performance, and stay audit-ready.
                     </p>
                 </div>
-                <p className="auth-brand-bottom auth-brand-meta">Sherwood Technologies (Pvt) Ltd</p>
+                <p className="auth-brand-bottom auth-brand-meta">Sherwood</p>
             </aside>
 
             <div className="auth-card auth-card--compact">

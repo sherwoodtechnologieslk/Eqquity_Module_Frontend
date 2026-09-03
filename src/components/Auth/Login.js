@@ -100,7 +100,7 @@ const Login = ({ onLogin, switchToSignup, switchToForgotPassword, onBackToManage
                         Secure access to your portfolio
                     </p>
                 </div>
-                <p className="auth-brand-bottom auth-brand-meta">Sherwood Technologies (Pvt) Ltd</p>
+                <p className="auth-brand-bottom auth-brand-meta">Sherwood</p>
             </aside>
 
             <div className="auth-card">

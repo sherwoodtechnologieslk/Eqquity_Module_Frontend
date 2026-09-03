@@ -76,6 +76,7 @@ export default function PreOnboardingFundDocuments({ onGetStarted, onNavigate })
     <CpPage onNavigate={onNavigate} onGetStarted={onGetStarted}>
       <CpHero
         tone="land"
+        className="cp-hero--grad"
         eyebrow="Fund Documents"
         title="All your fund documents in one place."
         lead="Once you open an account, you get instant access to prospectuses, fact sheets, reports, and statements for every fund you hold, plus application forms and regulatory documents."
