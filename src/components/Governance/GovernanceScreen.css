@@ -224,6 +224,251 @@
   }
 }
 
+/* Status sub-tabs: Pending / Approved / Rejected */
+.agp-root--gov .agp-status-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.35rem;
+  margin: -0.15rem 0 0.85rem;
+  padding: 0.2rem;
+  border: 1px solid var(--ba-line);
+  border-radius: var(--ba-radius);
+  background: var(--ba-soft);
+}
+
+.agp-root--gov .agp-status-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin: 0;
+  padding: 0.4rem 0.75rem;
+  border: 1px solid transparent;
+  border-radius: calc(var(--ba-radius) - 0.05rem);
+  background: transparent;
+  color: var(--ba-muted);
+  font: inherit;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  cursor: pointer;
+  transition: background 0.12s ease, color 0.12s ease, border-color 0.12s ease;
+}
+
+.agp-root--gov .agp-status-tab:hover {
+  color: var(--ba-ink);
+  background: #fff;
+}
+
+.agp-root--gov .agp-status-tab__count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 1.25rem;
+  padding: 0.05rem 0.35rem;
+  border-radius: 999px;
+  background: #e2e8f0;
+  color: #475569;
+  font-size: 0.68rem;
+  font-weight: 750;
+  font-variant-numeric: tabular-nums;
+}
+
+.agp-root--gov .agp-status-tab--active {
+  background: #fff;
+  color: var(--ba-ink);
+  border-color: var(--ba-line);
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+}
+
+.agp-root--gov .agp-status-tab--active.agp-status-tab--pending {
+  color: #92400e;
+  border-color: #fcd34d;
+}
+
+.agp-root--gov .agp-status-tab--active.agp-status-tab--pending .agp-status-tab__count {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.agp-root--gov .agp-status-tab--active.agp-status-tab--approved {
+  color: #065f46;
+  border-color: #6ee7b7;
+}
+
+.agp-root--gov .agp-status-tab--active.agp-status-tab--approved .agp-status-tab__count {
+  background: #d1fae5;
+  color: #065f46;
+}
+
+.agp-root--gov .agp-status-tab--active.agp-status-tab--rejected {
+  color: #991b1b;
+  border-color: #fca5a5;
+}
+
+.agp-root--gov .agp-status-tab--active.agp-status-tab--rejected .agp-status-tab__count {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+/* Shared date + status filter block (dates apply to all status tabs) */
+.agp-root--gov .agp-shared-filters {
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+  margin: 0 0 0.85rem;
+  padding: 0.75rem 0.85rem 0.7rem;
+  border: 1px solid var(--ba-line);
+  border-radius: var(--ba-radius);
+  background: #fff;
+}
+
+.agp-root--gov .agp-shared-filters .agp-date-filters {
+  margin: 0;
+  padding: 0;
+  border: none;
+  border-radius: 0;
+  background: transparent;
+}
+
+.agp-root--gov .agp-date-filters__shared-note {
+  margin: 0 0 0.55rem;
+  font-size: 0.72rem;
+  color: var(--ba-muted);
+  line-height: 1.4;
+}
+
+.agp-root--gov .agp-date-filters__row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 0.75rem 1rem;
+}
+
+.agp-root--gov .agp-shared-filters .agp-status-tabs {
+  margin: 0.15rem 0 0;
+  padding: 0.2rem;
+  border: 1px solid var(--ba-line);
+  border-radius: var(--ba-radius);
+  background: var(--ba-soft);
+}
+
+/* Date range filters — transaction date + entered (created) date */
+.agp-root--gov .agp-date-filters {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 0.75rem 1rem;
+  margin: -0.25rem 0 0.85rem;
+  padding: 0.7rem 0.85rem;
+  border: 1px solid var(--ba-line);
+  border-radius: var(--ba-radius);
+  background: #fff;
+}
+
+.agp-root--gov .agp-date-filters__group {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 0.45rem 0.55rem;
+}
+
+.agp-root--gov .agp-date-filters__legend {
+  flex: 0 0 100%;
+  font-size: 0.62rem;
+  font-weight: 750;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ba-muted);
+}
+
+.agp-root--gov .agp-date-filters__field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  margin: 0;
+  font-size: 0.68rem;
+  font-weight: 650;
+  color: var(--ba-muted);
+}
+
+.agp-root--gov .agp-date-filters__field input {
+  min-width: 9.5rem;
+  padding: 0.35rem 0.5rem;
+  border: 1px solid var(--ba-line);
+  border-radius: var(--ba-radius);
+  background: var(--ba-soft);
+  color: var(--ba-ink);
+  font: inherit;
+  font-size: 0.78rem;
+  font-weight: 600;
+}
+
+.agp-root--gov .agp-date-filters__field input:focus {
+  outline: none;
+  border-color: #93c5fd;
+  background: #fff;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+}
+
+.agp-root--gov .agp-date-filters__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.4rem;
+  margin-left: auto;
+}
+
+.agp-root--gov .agp-date-filters__apply,
+.agp-root--gov .agp-date-filters__clear {
+  margin: 0;
+  padding: 0.4rem 0.75rem;
+  border-radius: var(--ba-radius);
+  font: inherit;
+  font-size: 0.75rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.agp-root--gov .agp-date-filters__apply {
+  border: 1px solid #1d4ed8;
+  background: #2563eb;
+  color: #fff;
+}
+
+.agp-root--gov .agp-date-filters__apply:hover {
+  background: #1d4ed8;
+}
+
+.agp-root--gov .agp-date-filters__clear {
+  border: 1px solid var(--ba-line);
+  background: #fff;
+  color: #475569;
+}
+
+.agp-root--gov .agp-date-filters__clear:hover:not(:disabled) {
+  background: var(--ba-soft);
+  color: var(--ba-ink);
+}
+
+.agp-root--gov .agp-date-filters__clear:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.agp-root--gov .agp-date-filters__active {
+  font-size: 0.68rem;
+  font-weight: 700;
+  color: #1d4ed8;
+}
+
+@media (max-width: 900px) {
+  .agp-root--gov .agp-date-filters__actions {
+    margin-left: 0;
+    width: 100%;
+  }
+}
+
 .agp-root--gov .agp-tab--active .agp-tab-badge {
   color: #1d4ed8;
   background: #dbeafe;
