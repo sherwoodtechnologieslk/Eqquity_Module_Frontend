@@ -64,6 +64,9 @@ const BusinessApprovalsExportModal = ({
         <div className="gov-modal-body">
           <p className="gov-modal-message">
             Choose a category and optional date ranges. Leave dates blank to include all dates.
+            <br />
+            <strong>Transaction date</strong> is the entry/trade date on the data.{' '}
+            <strong>Entered date</strong> is when the approval request was entered in the system.
           </p>
 
           <fieldset className="agp-export-fieldset">
@@ -90,7 +93,7 @@ const BusinessApprovalsExportModal = ({
           </fieldset>
 
           <fieldset className="agp-export-fieldset">
-            <legend>Entry date</legend>
+            <legend>Transaction date</legend>
             <div className="agp-export-date-row">
               <label className="agp-export-date-field">
                 <span>From</span>
@@ -114,7 +117,7 @@ const BusinessApprovalsExportModal = ({
           </fieldset>
 
           <fieldset className="agp-export-fieldset">
-            <legend>Created date</legend>
+            <legend>Entered date</legend>
             <div className="agp-export-date-row">
               <label className="agp-export-date-field">
                 <span>From</span>

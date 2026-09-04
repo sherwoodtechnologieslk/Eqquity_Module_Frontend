@@ -28,7 +28,7 @@ const MOCK_OPS_ALERTS = [
   },
 ];
 
-const ALLOC_COLORS = ['#0f4c3a', '#1a7a5c', '#c4a574', '#d6c7a8'];
+const ALLOC_COLORS = ['#064a46', '#0c7b74', '#18b19a', '#a8d5cf'];
 
 const WealthManagerDashboard = () => {
   const [currentTime, setCurrentTime] = useState(new Date());
@@ -252,8 +252,8 @@ const WealthManagerDashboard = () => {
             <svg viewBox={`0 0 ${navChart.w} ${navChart.h}`} preserveAspectRatio="xMidYMid meet">
               <defs>
                 <linearGradient id="wdbNavFill" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="rgba(15, 118, 110, 0.18)" />
-                  <stop offset="100%" stopColor="rgba(15, 118, 110, 0)" />
+                  <stop offset="0%" stopColor="rgba(12, 123, 116, 0.22)" />
+                  <stop offset="100%" stopColor="rgba(12, 123, 116, 0)" />
                 </linearGradient>
               </defs>
               {[0, 1, 2, 3].map((i) => {

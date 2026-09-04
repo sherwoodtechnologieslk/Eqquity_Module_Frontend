@@ -26,6 +26,13 @@ const EMPTY_EXPORT_FILTERS = {
   createdTo: '',
 };
 
+const EMPTY_DATE_FILTERS = {
+  entryFrom: '',
+  entryTo: '',
+  createdFrom: '',
+  createdTo: '',
+};
+
 const LIST_PAGE_SIZE = 15;
 
 const BUSINESS_APPROVAL_MODULES = [
@@ -61,9 +68,15 @@ const BUSINESS_APPROVAL_MODULES = [
 ];
 
 const EMPTY_MODULE_SUMMARY = BUSINESS_APPROVAL_MODULES.reduce((acc, mod) => {
-  acc[mod.id] = { total: 0, pending_count: 0 };
+  acc[mod.id] = { total: 0, pending_count: 0, approved_count: 0, rejected_count: 0 };
   return acc;
 }, {});
+
+const STATUS_TABS = [
+  { id: 'pending', label: 'Pending Approval', emptyHint: 'No requests waiting for checker approval.' },
+  { id: 'approved', label: 'Approved', emptyHint: 'No approved requests in this category yet.' },
+  { id: 'rejected', label: 'Rejected', emptyHint: 'No rejected requests in this category yet.' },
+];
 
 function getVisibleBusinessApprovalModules(user) {
   if (!user) return [];
@@ -110,6 +123,9 @@ function getRequestScreenName(req) {
 
 function getRequestStatusLabel(status) {
   if (status === 'pending') return 'Pending approval';
+  if (status === 'approved') return 'Approved';
+  if (status === 'rejected') return 'Rejected';
+  if (status === 'expired') return 'Expired';
   return status || '—';
 }
 
@@ -118,6 +134,7 @@ const LIST_VIEW_KEY = 'businessApprovalsListView';
 const BusinessApprovalsPortal = ({ user, company }) => {
   const visibleModules = useMemo(() => getVisibleBusinessApprovalModules(user), [user]);
   const [activeModule, setActiveModule] = useState('trade');
+  const [activeStatus, setActiveStatus] = useState('pending');
   const [businessRequests, setBusinessRequests] = useState([]);
   const [moduleSummary, setModuleSummary] = useState(EMPTY_MODULE_SUMMARY);
   const [listPage, setListPage] = useState(1);
@@ -132,6 +149,8 @@ const BusinessApprovalsPortal = ({ user, company }) => {
   const [exporting, setExporting] = useState(false);
   const [exportModalOpen, setExportModalOpen] = useState(false);
   const [exportFilters, setExportFilters] = useState(EMPTY_EXPORT_FILTERS);
+  const [dateFilters, setDateFilters] = useState(EMPTY_DATE_FILTERS);
+  const [appliedDateFilters, setAppliedDateFilters] = useState(EMPTY_DATE_FILTERS);
   const [listView, setListView] = useState(() => {
     try {
       const saved = localStorage.getItem(LIST_VIEW_KEY);
@@ -145,6 +164,30 @@ const BusinessApprovalsPortal = ({ user, company }) => {
   const isOwner = user?.company_role === 'company_owner';
   const canView = canAccessBusinessApprovals(user);
   const activeModuleMeta = visibleModules.find((mod) => mod.id === activeModule) || visibleModules[0];
+  const activeStatusMeta = STATUS_TABS.find((tab) => tab.id === activeStatus) || STATUS_TABS[0];
+  const activeModuleCounts =
+    moduleSummary[activeModuleMeta?.id] || {
+      total: 0,
+      pending_count: 0,
+      approved_count: 0,
+      rejected_count: 0,
+    };
+
+  const hasDateFilters = Boolean(
+    appliedDateFilters.entryFrom ||
+      appliedDateFilters.entryTo ||
+      appliedDateFilters.createdFrom ||
+      appliedDateFilters.createdTo
+  );
+
+  const dateFilterParams = useMemo(() => {
+    const params = {};
+    if (appliedDateFilters.createdFrom) params.createdFrom = appliedDateFilters.createdFrom;
+    if (appliedDateFilters.createdTo) params.createdTo = appliedDateFilters.createdTo;
+    if (appliedDateFilters.entryFrom) params.entryFrom = appliedDateFilters.entryFrom;
+    if (appliedDateFilters.entryTo) params.entryTo = appliedDateFilters.entryTo;
+    return params;
+  }, [appliedDateFilters]);
 
   useEffect(() => {
     if (!visibleModules.length) return;
@@ -155,8 +198,8 @@ const BusinessApprovalsPortal = ({ user, company }) => {
   }, [visibleModules, activeModule]);
 
   const fetchPage = useCallback(
-    async (page, module) => {
-      if (!canView || !module) {
+    async (page, module, status, dates = {}) => {
+      if (!canView || !module || !status) {
         setBusinessRequests([]);
         setTotalCount(0);
         setPendingCount(0);
@@ -173,12 +216,15 @@ const BusinessApprovalsPortal = ({ user, company }) => {
           page,
           limit: LIST_PAGE_SIZE,
           module,
+          status,
+          ...dates,
         });
         const data = businessReqRes.data;
         const requests = data.requests || [];
         const nextTotal = data.total ?? 0;
         const nextTotalPages = data.total_pages ?? 0;
         const nextPage = data.page ?? page;
+        const nextSummary = { ...EMPTY_MODULE_SUMMARY, ...(data.module_summary || {}) };
 
         if (requests.length === 0 && nextTotal > 0 && nextPage > 1) {
           setListPage(nextPage - 1);
@@ -187,9 +233,9 @@ const BusinessApprovalsPortal = ({ user, company }) => {
 
         setBusinessRequests(requests);
         setTotalCount(nextTotal);
-        setPendingCount(data.pending_count ?? 0);
+        setPendingCount(nextSummary[module]?.pending_count ?? data.pending_count ?? 0);
         setTotalPages(nextTotalPages);
-        setModuleSummary({ ...EMPTY_MODULE_SUMMARY, ...(data.module_summary || {}) });
+        setModuleSummary(nextSummary);
         if (nextPage !== page) {
           setListPage(nextPage);
         }
@@ -203,10 +249,10 @@ const BusinessApprovalsPortal = ({ user, company }) => {
   );
 
   useEffect(() => {
-    if (activeModuleMeta?.id) {
-      fetchPage(listPage, activeModuleMeta.id);
+    if (activeModuleMeta?.id && activeStatusMeta?.id) {
+      fetchPage(listPage, activeModuleMeta.id, activeStatusMeta.id, dateFilterParams);
     }
-  }, [listPage, activeModuleMeta?.id, fetchPage]);
+  }, [listPage, activeModuleMeta?.id, activeStatusMeta?.id, dateFilterParams, fetchPage]);
 
   const listStart = totalCount === 0 ? 0 : (listPage - 1) * LIST_PAGE_SIZE + 1;
   const listEnd = Math.min(listPage * LIST_PAGE_SIZE, totalCount);
@@ -216,6 +262,48 @@ const BusinessApprovalsPortal = ({ user, company }) => {
     setActiveModule(moduleId);
     setListPage(1);
     setExpandedTableIds(new Set());
+  };
+
+  const handleStatusChange = (statusId) => {
+    if (statusId === activeStatus) return;
+    setActiveStatus(statusId);
+    setListPage(1);
+    setExpandedTableIds(new Set());
+  };
+
+  const updateDateFilter = (key, value) => {
+    setDateFilters((prev) => ({ ...prev, [key]: value }));
+  };
+
+  const applyDateFilters = () => {
+    setError('');
+    if (
+      dateFilters.entryFrom &&
+      dateFilters.entryTo &&
+      dateFilters.entryFrom > dateFilters.entryTo
+    ) {
+      setError('Transaction date from cannot be after to.');
+      return;
+    }
+    if (
+      dateFilters.createdFrom &&
+      dateFilters.createdTo &&
+      dateFilters.createdFrom > dateFilters.createdTo
+    ) {
+      setError('Entered date from cannot be after to.');
+      return;
+    }
+    setAppliedDateFilters({ ...dateFilters });
+    setListPage(1);
+    setExpandedTableIds(new Set());
+  };
+
+  const clearDateFilters = () => {
+    setDateFilters(EMPTY_DATE_FILTERS);
+    setAppliedDateFilters(EMPTY_DATE_FILTERS);
+    setListPage(1);
+    setExpandedTableIds(new Set());
+    setError('');
   };
 
   const handleListViewChange = (nextView) => {
@@ -244,7 +332,7 @@ const BusinessApprovalsPortal = ({ user, company }) => {
     try {
       await governanceService.approveBusinessApprovalRequest(request.id);
       setSuccess(`${request.label || request.entity_type} request was approved and posted to live data.`);
-      await fetchPage(listPage, activeModuleMeta.id);
+      await fetchPage(listPage, activeModuleMeta.id, activeStatusMeta.id, dateFilterParams);
     } catch (err) {
       setError(err.response?.data?.message || 'Failed to approve business request');
     } finally {
@@ -259,7 +347,7 @@ const BusinessApprovalsPortal = ({ user, company }) => {
     try {
       await governanceService.rejectBusinessApprovalRequest(request.id, reason || undefined);
       setSuccess(`${request.label || request.entity_type} request was rejected.`);
-      await fetchPage(listPage, activeModuleMeta.id);
+      await fetchPage(listPage, activeModuleMeta.id, activeStatusMeta.id, dateFilterParams);
     } catch (err) {
       setError(err.response?.data?.message || 'Failed to reject business request');
     } finally {
@@ -287,6 +375,10 @@ const BusinessApprovalsPortal = ({ user, company }) => {
     setExportFilters({
       ...EMPTY_EXPORT_FILTERS,
       moduleId: activeModuleMeta?.id || visibleModules[0]?.id || '',
+      entryFrom: appliedDateFilters.entryFrom || '',
+      entryTo: appliedDateFilters.entryTo || '',
+      createdFrom: appliedDateFilters.createdFrom || '',
+      createdTo: appliedDateFilters.createdTo || '',
     });
     setExportModalOpen(true);
   };
@@ -317,7 +409,7 @@ const BusinessApprovalsPortal = ({ user, company }) => {
       exportFilters.entryTo &&
       exportFilters.entryFrom > exportFilters.entryTo
     ) {
-      setError('Entry date from cannot be after to.');
+      setError('Transaction date from cannot be after to.');
       return;
     }
     if (
@@ -325,7 +417,7 @@ const BusinessApprovalsPortal = ({ user, company }) => {
       exportFilters.createdTo &&
       exportFilters.createdFrom > exportFilters.createdTo
     ) {
-      setError('Created date from cannot be after to.');
+      setError('Entered date from cannot be after to.');
       return;
     }
 
@@ -414,7 +506,7 @@ const BusinessApprovalsPortal = ({ user, company }) => {
               <span className="agp-rail__stat-label">Pending</span>
             </div>
             <div className="agp-rail__stat">
-              <span className="agp-rail__stat-value">{totalCount}</span>
+              <span className="agp-rail__stat-value">{activeModuleCounts.total || 0}</span>
               <span className="agp-rail__stat-label">Total</span>
             </div>
           </div>
@@ -428,6 +520,7 @@ const BusinessApprovalsPortal = ({ user, company }) => {
           )}
           <span className="agp-context-tag agp-context-tag--text">Business maker-checker</span>
           <span className="agp-context-tag">{activeModuleMeta?.label}</span>
+          <span className="agp-context-tag">{activeStatusMeta?.label}</span>
           {isOwner && <span className="agp-context-tag">Company owner</span>}
         </div>
         <p className="agp-workflow-hint">
@@ -490,6 +583,100 @@ const BusinessApprovalsPortal = ({ user, company }) => {
         </div>
       </div>
 
+      <div className="agp-shared-filters" aria-label="Filters for all statuses">
+        <div className="agp-date-filters">
+          <p className="agp-date-filters__shared-note">
+            Date ranges apply to all status tabs below (Pending, Approved, Rejected).
+          </p>
+          <div className="agp-date-filters__row">
+            <div className="agp-date-filters__group">
+              <span className="agp-date-filters__legend">Transaction date</span>
+              <label className="agp-date-filters__field">
+                <span>From</span>
+                <input
+                  type="date"
+                  value={dateFilters.entryFrom}
+                  onChange={(e) => updateDateFilter('entryFrom', e.target.value)}
+                />
+              </label>
+              <label className="agp-date-filters__field">
+                <span>To</span>
+                <input
+                  type="date"
+                  value={dateFilters.entryTo}
+                  onChange={(e) => updateDateFilter('entryTo', e.target.value)}
+                />
+              </label>
+            </div>
+            <div className="agp-date-filters__group">
+              <span className="agp-date-filters__legend">Entered date</span>
+              <label className="agp-date-filters__field">
+                <span>From</span>
+                <input
+                  type="date"
+                  value={dateFilters.createdFrom}
+                  onChange={(e) => updateDateFilter('createdFrom', e.target.value)}
+                />
+              </label>
+              <label className="agp-date-filters__field">
+                <span>To</span>
+                <input
+                  type="date"
+                  value={dateFilters.createdTo}
+                  onChange={(e) => updateDateFilter('createdTo', e.target.value)}
+                />
+              </label>
+            </div>
+            <div className="agp-date-filters__actions">
+              <button type="button" className="agp-date-filters__apply" onClick={applyDateFilters}>
+                Apply dates
+              </button>
+              <button
+                type="button"
+                className="agp-date-filters__clear"
+                onClick={clearDateFilters}
+                disabled={!hasDateFilters && !Object.values(dateFilters).some(Boolean)}
+              >
+                Clear
+              </button>
+              {hasDateFilters && (
+                <span className="agp-date-filters__active" role="status">
+                  Date filter active
+                </span>
+              )}
+            </div>
+          </div>
+        </div>
+
+        <nav className="agp-status-tabs" aria-label="Request status">
+          {STATUS_TABS.map((tab) => {
+            const countKey =
+              tab.id === 'pending'
+                ? 'pending_count'
+                : tab.id === 'approved'
+                  ? 'approved_count'
+                  : 'rejected_count';
+            const count = activeModuleCounts[countKey] || 0;
+            return (
+              <button
+                key={tab.id}
+                type="button"
+                className={`agp-status-tab${activeStatus === tab.id ? ' agp-status-tab--active' : ''}${
+                  tab.id === 'pending' ? ' agp-status-tab--pending' : ''
+                }${tab.id === 'approved' ? ' agp-status-tab--approved' : ''}${
+                  tab.id === 'rejected' ? ' agp-status-tab--rejected' : ''
+                }`}
+                onClick={() => handleStatusChange(tab.id)}
+                aria-selected={activeStatus === tab.id}
+              >
+                {tab.label}
+                <span className="agp-status-tab__count">{count}</span>
+              </button>
+            );
+          })}
+        </nav>
+      </div>
+
       {error && <div className="agp-alert agp-alert--error" role="alert">{error}</div>}
       {success && <div className="agp-alert agp-alert--success" role="status">{success}</div>}
 
@@ -503,12 +690,18 @@ const BusinessApprovalsPortal = ({ user, company }) => {
         {loading ? (
           <div className="agp-loading">
             <div className="agp-spinner" />
-            <span>Loading {activeModuleMeta?.label?.toLowerCase() || 'module'} approvals…</span>
+            <span>
+              Loading {activeStatusMeta?.label?.toLowerCase() || 'status'}{' '}
+              {activeModuleMeta?.label?.toLowerCase() || 'module'} approvals…
+            </span>
           </div>
         ) : totalCount === 0 ? (
           <div className="agp-empty">
-            <h3>No {activeModuleMeta?.label?.toLowerCase() || 'module'} approval requests yet</h3>
-            <p>{activeModuleMeta?.emptyHint}</p>
+            <h3>
+              No {activeStatusMeta?.label?.toLowerCase() || 'matching'}{' '}
+              {activeModuleMeta?.label?.toLowerCase() || 'module'} requests
+            </h3>
+            <p>{activeStatusMeta?.emptyHint || activeModuleMeta?.emptyHint}</p>
           </div>
         ) : (
           <>

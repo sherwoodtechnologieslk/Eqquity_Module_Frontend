@@ -1,0 +1,74 @@
+name: Sync Vouchers to Portfolio Manager
+
+# Mirrors changes to the Vouchers UI into prashanAndradi/Portfolio__manager as a
+# pull request whenever they land on main here. Nothing is ever pushed straight
+# to the target repo's main branch — a human always reviews and merges the PR.
+#
+# accountingVoucherUtils.js and AccountingVouchers.js are dropped as *.upstream.js
+# reference files (not wired into the app) because the live component in
+# Portfolio Manager is hand-adapted to a different backend contract
+# (routes/vouchers.js) and auth/data layer — see the PR body checklist.
+# Only the CSS is genuinely framework-agnostic and safe to copy into the live path.
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'src/components/Vouchers/**'
+  workflow_dispatch: {}
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Equity-Module-Frontend (source)
+        uses: actions/checkout@v4
+        with:
+          path: source
+
+      - name: Checkout Portfolio__manager (target)
+        uses: actions/checkout@v4
+        with:
+          repository: prashanAndradi/Portfolio__manager
+          token: ${{ secrets.PORTFOLIO_MANAGER_SYNC_PAT }}
+          path: target
+
+      - name: Copy portable + reference voucher files into target
+        run: |
+          set -e
+          mkdir -p target/src/components/Vouchers/Styles
+
+          # Safe to mirror verbatim: framework-agnostic CSS.
+          cp source/src/components/Vouchers/Styles/AccountingVouchers.css \
+             target/src/components/Vouchers/Styles/AccountingVouchers.css
+
+          # Reference-only copies for manual reconciliation against the
+          # hand-adapted live component/utils in Portfolio Manager.
+          cp source/src/components/Vouchers/AccountingVouchers.js \
+             target/src/components/Vouchers/AccountingVouchers.upstream.js
+          cp source/src/components/Vouchers/accountingVoucherUtils.js \
+             target/src/components/Vouchers/accountingVoucherUtils.upstream.js
+
+      - name: Open pull request against Portfolio__manager
+        uses: peter-evans/create-pull-request@v6
+        with:
+          token: ${{ secrets.PORTFOLIO_MANAGER_SYNC_PAT }}
+          path: target
+          branch: sync/equity-vouchers-${{ github.run_number }}
+          commit-message: "sync: pull Vouchers UI updates from Equity-Module-Frontend@${{ github.sha }}"
+          title: "Sync: Vouchers UI updates from Equity main"
+          body: |
+            Automated sync from [aranisweerathunga/Equity-Module-Frontend@${{ github.sha }}](https://github.com/aranisweerathunga/Equity-Module-Frontend/commit/${{ github.sha }}).
+
+            - `src/components/Vouchers/Styles/AccountingVouchers.css` was copied in verbatim.
+            - `AccountingVouchers.upstream.js` / `accountingVoucherUtils.upstream.js` are reference
+              copies of the latest source — **not** wired into the app.
+
+            **Reconciliation checklist before merging:**
+            - [ ] Diff `AccountingVouchers.upstream.js` against the live `AccountingVouchers.js` and
+                  port over any real behavior changes (API calls stay pointed at `voucherApi.js`,
+                  not Equity's `services/api.js`/`authService`).
+            - [ ] Diff `accountingVoucherUtils.upstream.js` against the live `accountingVoucherUtils.js`
+                  — keep `buildVoucherPayload`'s field shape matching `routes/vouchers.js`.
+            - [ ] Delete both `*.upstream.js` files once reconciled.
+            - [ ] Sanity-check the CSS change didn't rename/remove any `av-*` class still used live.
