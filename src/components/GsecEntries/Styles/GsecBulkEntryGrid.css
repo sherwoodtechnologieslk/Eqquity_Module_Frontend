@@ -1,49 +1,73 @@
 /* GSec Bulk Entry Grid — unique gsec-bulk-* namespace (does not affect other screens) */
 
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700;9..40,800&display=swap');
+
 .gsec-bulk-page {
+  --ink: #0f172a;
+  --ink-soft: #334155;
+  --mute: #64748b;
+  --line: #e2e8f0;
+  --paper: #ffffff;
+  --blue: #2563eb;
+  --sans: 'DM Sans', 'Segoe UI', sans-serif;
+
   min-height: calc(100vh - 120px);
-  padding: 1.25rem 1rem 1.75rem;
+  padding: 0.15rem 0 1.75rem;
   box-sizing: border-box;
-  background-color: #f8fafc;
+  background: transparent;
+  color: var(--ink);
+  font-family: var(--sans);
+}
+
+.gsec-bulk-page *,
+.gsec-bulk-page *::before,
+.gsec-bulk-page *::after {
+  box-sizing: border-box;
 }
 
 .gsec-bulk-wrapper {
-  max-width: 100%;
-  margin: 0 auto;
-}
-
-.gsec-bulk-header {
-  display: flex;
-  align-items: center;
-  gap: 0.85rem;
-  margin-bottom: 0.4rem;
-  padding: 0.15rem 0 0.1rem;
-  background: transparent;
-  border: none;
-  border-radius: 0;
-  box-shadow: none;
-}
-
-.gsec-bulk-header-text {
+  max-width: none;
+  margin: 0;
   display: flex;
   flex-direction: column;
-  gap: 0.2rem;
-  min-width: 0;
+  gap: 0.55rem;
 }
 
-.gsec-bulk-title {
-  font-size: 1.25rem;
+/* ── Rail header (matches GSec Ledger Entries) ───────────── */
+
+.gsec-bulk-rail {
+  padding: 0 0.05rem 0.55rem;
+  margin-bottom: 0.1rem;
+  border-bottom: 1px solid var(--line);
+}
+
+.gsec-bulk-rail__eyebrow {
+  margin: 0 0 0.1rem;
+  font-size: 0.55rem;
   font-weight: 700;
-  color: #0f172a;
-  margin: 0;
-  line-height: 1.2;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--blue);
 }
 
-.gsec-bulk-subtitle {
-  color: #64748b;
-  font-size: 0.8125rem;
+.gsec-bulk-rail__title {
+  margin: 0 0 0.1rem;
+  font-size: clamp(1.05rem, 1.6vw, 1.25rem);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1.15;
+  color: var(--ink);
+  text-align: left !important;
+  background: none;
+  -webkit-text-fill-color: currentColor;
+}
+
+.gsec-bulk-rail__blurb {
   margin: 0;
-  line-height: 1.45;
+  max-width: 46rem;
+  font-size: 0.72rem;
+  line-height: 1.4;
+  color: var(--mute);
 }
 
 .gsec-bulk-toolbar {
@@ -52,9 +76,9 @@
   align-items: center;
   gap: 0.75rem;
   font-size: 0.8125rem;
-  color: #64748b;
-  margin-bottom: 0.85rem;
-  padding: 0.15rem 0 0.35rem;
+  color: var(--mute);
+  margin-bottom: 0.15rem;
+  padding: 0.15rem 0.05rem 0.35rem;
   background: transparent;
   border: none;
   border-radius: 0;

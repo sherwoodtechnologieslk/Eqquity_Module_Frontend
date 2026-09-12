@@ -233,7 +233,6 @@ const TAB_PERMISSIONS = {
   'Portfolio MTM': ACCOUNTING_KEYS,
 
   'GSEC ENTRIES': GSEC_KEYS,
-  'Missing GSec Entries': GSEC_KEYS,
   'Gsec Trial Balance': GSEC_KEYS,
   'GSec General Ledger': GSEC_KEYS,
   'GSec Manual Entry Posting': GSEC_KEYS,

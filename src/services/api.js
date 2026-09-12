@@ -3053,24 +3053,6 @@ export const gsecEntriesAPI = {
     }
   },
 
-  // Remote rows not in local gsec_entries (deal_number + entry date, time ignored)
-  getMissingFromRemote: async ({ force = false, source } = {}) => {
-    try {
-      const queryParams = new URLSearchParams();
-      if (force) queryParams.append('force', '1');
-      if (source) queryParams.append('source', source);
-      const qs = queryParams.toString();
-      const url = qs
-        ? `${API_BASE_URL}/gsec-entries/missing-from-remote?${qs}`
-        : `${API_BASE_URL}/gsec-entries/missing-from-remote`;
-      return await makeAuthenticatedRequest(url, { method: 'GET' });
-    } catch (error) {
-      console.error('Error fetching missing GSec entries:', error);
-      const message = error.message || 'Failed to fetch missing GSec entries';
-      throw new Error(message);
-    }
-  },
-
   // Get remote rows for a single date that are missing from the local table.
   // Only the selected entry date is fetched/compared (fast).
   getMissingByDate: async (date, { source } = {}) => {

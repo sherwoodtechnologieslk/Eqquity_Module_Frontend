@@ -26,13 +26,6 @@ const IconSearch = () => (
   </svg>
 );
 
-const IconInfo = () => (
-  <svg className="cgl-icon" viewBox="0 0 20 20" fill="none" stroke="currentColor" aria-hidden="true">
-    <circle cx="10" cy="10" r="7.5" strokeWidth="1.5" />
-    <path strokeLinecap="round" strokeWidth="1.5" d="M10 9v4M10 7h.01" />
-  </svg>
-);
-
 const IconCheck = () => (
   <svg className="cgl-status-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true">
     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
@@ -277,9 +270,6 @@ const CombinedGL = ({ onTabChange }) => {
         e.reference || '',
         formatNumber(e.debit),
         formatNumber(e.credit),
-        formatNumber(e.balance),
-        e.transaction_type || '',
-        e.status || '',
         e.source || '',
       ]));
 
@@ -293,9 +283,6 @@ const CombinedGL = ({ onTabChange }) => {
           'Reference',
           'Debit',
           'Credit',
-          'Balance',
-          'Type',
-          'Status',
           'Sources',
         ]],
         body: rows,
@@ -329,9 +316,6 @@ const CombinedGL = ({ onTabChange }) => {
         Reference: e.reference || '',
         Debit: Number(e.debit) || 0,
         Credit: Number(e.credit) || 0,
-        Balance: Number(e.balance) || 0,
-        Type: e.transaction_type || '',
-        Status: e.status || '',
         Sources: e.source || '',
       }));
 
@@ -344,9 +328,6 @@ const CombinedGL = ({ onTabChange }) => {
         { wch: 18 },
         { wch: 14 },
         { wch: 14 },
-        { wch: 14 },
-        { wch: 16 },
-        { wch: 12 },
         { wch: 10 },
       ];
 
@@ -401,7 +382,33 @@ const CombinedGL = ({ onTabChange }) => {
     <div className="cgl-page-container">
       <div className="cgl-content-wrapper">
         <section className="cgl-toolbar" aria-label="Ledger filters">
-          <div className="cgl-toolbar__row cgl-toolbar__row--primary">
+          <div className="cgl-toolbar__row">
+            <div className="cgl-field">
+              <label className="cgl-field__label" htmlFor="cgl-date-from">Start Date</label>
+              <input
+                id="cgl-date-from"
+                type="date"
+                lang="en-US"
+                name="dateFrom"
+                value={filters.dateFrom}
+                onChange={handleFilterChange}
+                className="cgl-field__input"
+              />
+            </div>
+
+            <div className="cgl-field">
+              <label className="cgl-field__label" htmlFor="cgl-date-to">End Date</label>
+              <input
+                id="cgl-date-to"
+                type="date"
+                lang="en-US"
+                name="dateTo"
+                value={filters.dateTo}
+                onChange={handleFilterChange}
+                className="cgl-field__input"
+              />
+            </div>
+
             <div className="cgl-field">
               <label className="cgl-field__label" htmlFor="cgl-source">Ledger Source</label>
               <select
@@ -432,32 +439,6 @@ const CombinedGL = ({ onTabChange }) => {
             </div>
 
             <div className="cgl-field">
-              <label className="cgl-field__label" htmlFor="cgl-date-from">Date From</label>
-              <input
-                id="cgl-date-from"
-                type="date"
-                name="dateFrom"
-                value={filters.dateFrom}
-                onChange={handleFilterChange}
-                className="cgl-field__input"
-              />
-            </div>
-
-            <div className="cgl-field">
-              <label className="cgl-field__label" htmlFor="cgl-date-to">Date To</label>
-              <input
-                id="cgl-date-to"
-                type="date"
-                name="dateTo"
-                value={filters.dateTo}
-                onChange={handleFilterChange}
-                className="cgl-field__input"
-              />
-            </div>
-          </div>
-
-          <div className="cgl-toolbar__row cgl-toolbar__row--secondary">
-            <div className="cgl-field cgl-field--search">
               <label className="cgl-field__label" htmlFor="cgl-search">Search</label>
               <div className="cgl-search-wrap">
                 <span className="cgl-search-icon" aria-hidden="true"><IconSearch /></span>
@@ -465,7 +446,7 @@ const CombinedGL = ({ onTabChange }) => {
                   id="cgl-search"
                   type="search"
                   className="cgl-field__input"
-                  placeholder="Account code, name, description, reference, or source…"
+                  placeholder="Account, description, reference…"
                   value={searchTerm}
                   onChange={(e) => {
                     setSearchTerm(e.target.value);
@@ -535,7 +516,6 @@ const CombinedGL = ({ onTabChange }) => {
         <section className="cgl-report" aria-label="Combined General Ledger report">
           <div className="cgl-report__header">
             <div className="cgl-report__heading">
-              <h2 className="cgl-report__title">Ledger Entries</h2>
               <p className="cgl-report__meta">
                 {periodLabel} · {SOURCE_FILTER_LABELS[filters.source] || 'All Ledgers'} ·{' '}
                 {filteredCount.toLocaleString()} records
@@ -545,7 +525,7 @@ const CombinedGL = ({ onTabChange }) => {
             <div className="cgl-report__actions">
               <button
                 type="button"
-                className="cgl-btn cgl-btn--export"
+                className="cgl-btn cgl-btn--export cgl-btn--pdf"
                 onClick={handleExportPdf}
                 disabled={exporting || filteredCount === 0}
                 title="Export current filtered ledger to PDF"
@@ -555,7 +535,7 @@ const CombinedGL = ({ onTabChange }) => {
               </button>
               <button
                 type="button"
-                className="cgl-btn cgl-btn--export"
+                className="cgl-btn cgl-btn--export cgl-btn--excel"
                 onClick={handleExportExcel}
                 disabled={exporting || filteredCount === 0}
                 title="Export current filtered ledger to Excel"
@@ -572,13 +552,6 @@ const CombinedGL = ({ onTabChange }) => {
             </div>
           )}
 
-          <div className="cgl-info-banner" role="note">
-            <span className="cgl-info-banner__icon" aria-hidden="true"><IconInfo /></span>
-            <p className="cgl-info-banner__text">
-              <strong>Source navigation:</strong> click an Equity or GSec badge in the Sources column to open the dedicated ledger screen.
-            </p>
-          </div>
-
           <div className="cgl-table-wrap">
             {filteredCount === 0 ? (
               <div className="cgl-empty-state">
@@ -594,11 +567,8 @@ const CombinedGL = ({ onTabChange }) => {
                     <th className="cgl-col-name">Account Name</th>
                     <th className="cgl-col-desc">Description</th>
                     <th className="cgl-col-ref">Reference</th>
-                    <th className="cgl-col-amount">Debit (LKR)</th>
-                    <th className="cgl-col-amount">Credit (LKR)</th>
-                    <th className="cgl-col-num">Balance (LKR)</th>
-                    <th className="cgl-col-type">Type</th>
-                    <th className="cgl-col-status">Status</th>
+                    <th className="cgl-col-num">Debit</th>
+                    <th className="cgl-col-num">Credit</th>
                     <th className="cgl-col-sources">Source</th>
                   </tr>
                 </thead>
@@ -612,20 +582,15 @@ const CombinedGL = ({ onTabChange }) => {
                       <td className="cgl-col-name">{entry.account_name}</td>
                       <td className="cgl-col-desc">{entry.description}</td>
                       <td className="cgl-col-ref">{entry.reference}</td>
-                      <td className="cgl-col-amount">
-                        {entry.debit > 0 ? formatLedgerAmount(entry.debit) : '-'}
-                      </td>
-                      <td className="cgl-col-amount">
-                        {entry.credit > 0 ? formatLedgerAmount(entry.credit) : '-'}
-                      </td>
                       <td className="cgl-col-num">
-                        <span className={`cgl-amount ${entry.balance >= 0 ? 'cgl-amount--debit' : 'cgl-amount--credit'}`}>
-                          {formatLedgerAmount(Math.abs(entry.balance))}
+                        <span className={`cgl-amount${entry.debit > 0 ? ' cgl-amount--debit' : ''}`}>
+                          {entry.debit > 0 ? formatLedgerAmount(entry.debit) : '—'}
                         </span>
                       </td>
-                      <td className="cgl-col-type">{entry.transaction_type}</td>
-                      <td className="cgl-col-status">
-                        {entry.source === 'GSec' ? 'GSec' : entry.status || '—'}
+                      <td className="cgl-col-num">
+                        <span className={`cgl-amount${entry.credit > 0 ? ' cgl-amount--credit' : ''}`}>
+                          {entry.credit > 0 ? formatLedgerAmount(entry.credit) : '—'}
+                        </span>
                       </td>
                       <td className="cgl-col-sources">
                         <button

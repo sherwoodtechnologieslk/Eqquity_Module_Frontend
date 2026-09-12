@@ -202,34 +202,35 @@ const SharePricePrediction = () => {
 
   return (
     <div className="share-price-prediction-container">
-      <div className="spp-header">
-        <h2>Share Price Prediction Model</h2>
-        <p className="spp-subtitle">
-          Predict next-day share prices using multi-factor analysis (Company, Sector, Economic, Market factors)
-        </p>
-      </div>
-
-      <div className="spp-content">
-        {/* Main Factor Category */}
-        <div className="spp-section factor-category-header">
-          <h3>Market & Psychological Factors + Industry & Sector Factors</h3>
-          <p className="factor-category-description">
-            This model analyzes Market & Psychological Factors (Momentum, Volume, RSI) and Industry & Sector Factors (Sector Trend) to predict share price movements.
-          </p>
-        </div>
-
-        {/* Stock Selection */}
-        <div className="spp-section">
-          <h3>Stock Selection</h3>
-          <div className="spp-controls">
-            <div className="control-group">
-              <label>Select Stock</label>
+      <header className="spp-hero">
+        <div className="spp-hero__inner">
+          <div className="spp-hero__brand">
+            <p className="spp-hero__eyebrow">Predictive Analytics</p>
+            <h1 className="spp-hero__title">Share Price Prediction Model</h1>
+            <p className="spp-hero__subtitle">
+              Predict next-day share prices using multi-factor analysis blending company, sector, economic and market signals.
+            </p>
+          </div>
+          <div className="spp-hero__control">
+            <label className="spp-hero__control-lbl" htmlFor="spp-stock">
+              Analyze a listed equity
+            </label>
+            <div className="spp-select-wrap">
+              <svg className="spp-select-icon" viewBox="0 0 20 20" fill="currentColor" aria-hidden>
+                <path
+                  fillRule="evenodd"
+                  d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z"
+                  clipRule="evenodd"
+                />
+              </svg>
               <select
+                id="spp-stock"
+                className="spp-select"
                 value={selectedSymbol}
                 onChange={(e) => setSelectedSymbol(e.target.value)}
                 disabled={loading}
               >
-                <option value="">-- Select a stock --</option>
+                <option value="">Select a stock…</option>
                 {equities.map((eq) => (
                   <option key={eq.id} value={eq.symbol}>
                     {eq.symbol} - {eq.name}
@@ -237,67 +238,79 @@ const SharePricePrediction = () => {
                 ))}
               </select>
             </div>
-            
-            {selectedSymbol && historicalData.length > 0 && (
-              <div className="control-group">
-                <label>Current Price</label>
-                <div className="current-price">
-                  LKR {parseFloat(historicalData[historicalData.length - 1].last_trade).toFixed(2)}
-                </div>
-              </div>
+            {selectedSymbol && (
+              <span className="spp-hero__chip">
+                <span className="spp-hero__chip-dot" />
+                {selectedSymbol}
+                {historicalData.length > 0
+                  ? ` · LKR ${parseFloat(historicalData[historicalData.length - 1].last_trade).toFixed(2)}`
+                  : ''}
+              </span>
             )}
           </div>
         </div>
+      </header>
 
-        {/* Model Weights */}
+      <div className="spp-content">
+        <div className="spp-section spp-intro">
+          <h3>Market &amp; psychological + industry &amp; sector factors</h3>
+          <p className="factor-category-description">
+            This model analyzes Market &amp; Psychological Factors (Momentum, Volume, RSI) and Industry &amp; Sector Factors (Sector Trend) to predict share price movements.
+          </p>
+        </div>
+
         <div className="spp-section">
-          <h3>Model Weights (Adjustable)</h3>
+          <h3>Model weights</h3>
           <div className="spp-weights">
             <div className="weight-control">
-              <label>Momentum Weight</label>
+              <label htmlFor="spp-w-momentum">Momentum</label>
               <input
+                id="spp-w-momentum"
                 type="number"
                 min="0"
                 max="1"
                 step="0.1"
                 value={weights.momentum}
-                onChange={(e) => setWeights({...weights, momentum: parseFloat(e.target.value) || 0})}
+                onChange={(e) => setWeights({ ...weights, momentum: parseFloat(e.target.value) || 0 })}
               />
               <span className="weight-value">{weights.momentum}</span>
             </div>
             <div className="weight-control">
-              <label>Volume Weight</label>
+              <label htmlFor="spp-w-volume">Volume</label>
               <input
+                id="spp-w-volume"
                 type="number"
                 min="0"
                 max="1"
                 step="0.1"
                 value={weights.volume}
-                onChange={(e) => setWeights({...weights, volume: parseFloat(e.target.value) || 0})}
+                onChange={(e) => setWeights({ ...weights, volume: parseFloat(e.target.value) || 0 })}
               />
               <span className="weight-value">{weights.volume}</span>
             </div>
             <div className="weight-control">
-              <label>RSI Weight</label>
+              <label htmlFor="spp-w-rsi">RSI</label>
               <input
+                id="spp-w-rsi"
                 type="number"
                 min="0"
                 max="1"
                 step="0.1"
                 value={weights.rsi}
-                onChange={(e) => setWeights({...weights, rsi: parseFloat(e.target.value) || 0})}
+                onChange={(e) => setWeights({ ...weights, rsi: parseFloat(e.target.value) || 0 })}
               />
               <span className="weight-value">{weights.rsi}</span>
             </div>
             <div className="weight-control">
-              <label>Sector Weight</label>
+              <label htmlFor="spp-w-sector">Sector</label>
               <input
+                id="spp-w-sector"
                 type="number"
                 min="0"
                 max="1"
                 step="0.1"
                 value={weights.sector}
-                onChange={(e) => setWeights({...weights, sector: parseFloat(e.target.value) || 0})}
+                onChange={(e) => setWeights({ ...weights, sector: parseFloat(e.target.value) || 0 })}
               />
               <span className="weight-value">{weights.sector}</span>
             </div>
@@ -307,37 +320,45 @@ const SharePricePrediction = () => {
           </div>
         </div>
 
-        {/* Prediction Button */}
-        <div className="spp-section">
+        <div className="spp-section spp-section--action">
           <button
+            type="button"
             className="predict-button"
             onClick={predictPrice}
             disabled={!selectedSymbol || historicalData.length < 14 || loading}
           >
-            {loading ? 'Calculating...' : 'Predict Next Day Price'}
+            {loading ? 'Calculating…' : 'Predict next day price'}
           </button>
         </div>
 
-        {/* Prediction Results */}
         {prediction && (
           <div className="spp-section">
-            <h3>Prediction Results</h3>
+            <h3>Prediction results</h3>
             <div className="prediction-results">
               <div className="prediction-card">
                 <div className="prediction-item">
-                  <span className="prediction-label">Current Price</span>
+                  <span className="prediction-label">Current price</span>
                   <span className="prediction-value">LKR {prediction.currentPrice.toFixed(2)}</span>
                 </div>
                 <div className="prediction-item">
-                  <span className="prediction-label">Predicted Price</span>
-                  <span className={`prediction-value ${prediction.changePercent >= 0 ? 'positive' : 'negative'}`}>
+                  <span className="prediction-label">Predicted price</span>
+                  <span
+                    className={`prediction-value ${
+                      prediction.changePercent >= 0 ? 'positive' : 'negative'
+                    }`}
+                  >
                     LKR {prediction.predictedPrice.toFixed(2)}
                   </span>
                 </div>
                 <div className="prediction-item">
-                  <span className="prediction-label">Expected Change</span>
-                  <span className={`prediction-value ${prediction.changePercent >= 0 ? 'positive' : 'negative'}`}>
-                    {prediction.changePercent >= 0 ? '+' : ''}{prediction.changePercent.toFixed(2)}%
+                  <span className="prediction-label">Expected change</span>
+                  <span
+                    className={`prediction-value ${
+                      prediction.changePercent >= 0 ? 'positive' : 'negative'
+                    }`}
+                  >
+                    {prediction.changePercent >= 0 ? '+' : ''}
+                    {prediction.changePercent.toFixed(2)}%
                   </span>
                 </div>
                 <div className="prediction-item">
@@ -349,10 +370,9 @@ const SharePricePrediction = () => {
           </div>
         )}
 
-        {/* Factor Breakdown */}
         {factors && (
           <div className="spp-section">
-            <h3>Factor Contribution Breakdown</h3>
+            <h3>Factor contribution</h3>
             <div className="factors-breakdown">
               <div className="factor-item">
                 <div className="factor-header">
@@ -364,8 +384,8 @@ const SharePricePrediction = () => {
                   <span>Adjustment: {(factors.momentum.adjustment * 100).toFixed(2)}%</span>
                 </div>
                 <div className="factor-bar">
-                  <div 
-                    className="factor-bar-fill" 
+                  <div
+                    className="factor-bar-fill"
                     style={{ width: `${Math.abs(factors.momentum.impact)}%` }}
                   />
                 </div>
@@ -373,7 +393,7 @@ const SharePricePrediction = () => {
 
               <div className="factor-item">
                 <div className="factor-header">
-                  <span className="factor-name">Volume Ratio</span>
+                  <span className="factor-name">Volume ratio</span>
                   <span className="factor-impact">{factors.volume.impact.toFixed(1)}%</span>
                 </div>
                 <div className="factor-details">
@@ -381,8 +401,8 @@ const SharePricePrediction = () => {
                   <span>Adjustment: {(factors.volume.adjustment * 100).toFixed(2)}%</span>
                 </div>
                 <div className="factor-bar">
-                  <div 
-                    className="factor-bar-fill" 
+                  <div
+                    className="factor-bar-fill"
                     style={{ width: `${Math.abs(factors.volume.impact)}%` }}
                   />
                 </div>
@@ -398,8 +418,8 @@ const SharePricePrediction = () => {
                   <span>Adjustment: {(factors.rsi.adjustment * 100).toFixed(2)}%</span>
                 </div>
                 <div className="factor-bar">
-                  <div 
-                    className="factor-bar-fill" 
+                  <div
+                    className="factor-bar-fill"
                     style={{ width: `${Math.abs(factors.rsi.impact)}%` }}
                   />
                 </div>
@@ -407,7 +427,7 @@ const SharePricePrediction = () => {
 
               <div className="factor-item">
                 <div className="factor-header">
-                  <span className="factor-name">Sector Trend</span>
+                  <span className="factor-name">Sector trend</span>
                   <span className="factor-impact">{factors.sector.impact.toFixed(1)}%</span>
                 </div>
                 <div className="factor-details">
@@ -415,8 +435,8 @@ const SharePricePrediction = () => {
                   <span>Adjustment: {(factors.sector.adjustment * 100).toFixed(2)}%</span>
                 </div>
                 <div className="factor-bar">
-                  <div 
-                    className="factor-bar-fill" 
+                  <div
+                    className="factor-bar-fill"
                     style={{ width: `${Math.abs(factors.sector.impact)}%` }}
                   />
                 </div>
@@ -425,13 +445,14 @@ const SharePricePrediction = () => {
           </div>
         )}
 
-        {/* Data Status */}
         {selectedSymbol && (
-          <div className="spp-section">
+          <div className="spp-section spp-section--status">
             <div className="data-status">
-              <span>Historical Data Points: {historicalData.length}</span>
+              <span>Historical data points: {historicalData.length}</span>
               {historicalData.length < 14 && (
-                <span className="warning">Insufficient data for prediction (minimum 14 days required)</span>
+                <span className="warning">
+                  Insufficient data for prediction (minimum 14 days required)
+                </span>
               )}
             </div>
           </div>

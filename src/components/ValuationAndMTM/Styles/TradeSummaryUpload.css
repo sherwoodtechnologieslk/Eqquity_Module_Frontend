@@ -53,13 +53,13 @@
 }
 
 .tsu-panel--upload .tsu-panel__head {
-  padding: 0.55rem 0.85rem;
-  border-bottom: 1px solid var(--line);
-  background: var(--wash);
+  align-items: center;
+  padding: 0.5rem 0.75rem;
+  background: var(--paper);
 }
 
 .tsu-panel__eyebrow {
-  margin: 0 0 0.15rem;
+  margin: 0 0 0.05rem;
   font-size: 0.58rem;
   font-weight: 700;
   letter-spacing: 0.1em;
@@ -68,29 +68,24 @@
 }
 
 .tsu-panel--upload .tsu-panel__head h2 {
-  font-size: 0.875rem;
-  font-weight: 700;
-  letter-spacing: -0.01em;
+  margin: 0;
+  font-size: 0.82rem;
+  font-weight: 750;
+  letter-spacing: -0.02em;
   color: var(--ink);
 }
 
-.tsu-panel--upload .tsu-panel__head p:not(.tsu-panel__eyebrow) {
-  max-width: 40rem;
-  font-size: 0.72rem;
-  color: var(--mute);
-}
-
 .tsu-panel--upload .tsu-form {
-  padding: 0.7rem 0.85rem 0.8rem;
+  padding: 0.55rem 0.75rem 0.65rem;
   background: var(--paper);
-  border-top: none;
+  border-top: 1px solid var(--line);
 }
 
 .tsu-panel--upload .tsu-drop {
-  min-height: 1.75rem;
+  min-height: 30px;
   border-width: 1px;
-  border-color: var(--line);
-  background: var(--wash);
+  border-color: #cbd5e1;
+  background: var(--paper);
 }
 
 .tsu-panel--upload .tsu-drop__hint {
@@ -99,14 +94,14 @@
 }
 
 .tsu-panel--upload .tsu-submit {
-  min-height: 26px;
+  min-height: 30px;
   min-width: auto;
-  height: 26px;
-  padding: 0 10px;
-  font-size: 0.6875rem;
-  font-weight: 500;
+  height: 30px;
+  padding: 0 0.75rem;
+  font-size: 0.72rem;
+  font-weight: 650;
   box-shadow: none;
-  border-radius: var(--radius-sm);
+  border-radius: var(--radius);
 }
 
 .tsu-panel--upload .tsu-label {
@@ -119,10 +114,10 @@
   flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
-  gap: 0.45rem 0.85rem;
-  padding: 0.55rem 0.85rem;
+  gap: 0.4rem 0.75rem;
+  padding: 0.5rem 0.75rem;
   border-bottom: 1px solid var(--line);
-  background: var(--wash);
+  background: var(--paper);
 }
 
 .tsu-desk__actions {
@@ -136,12 +131,12 @@
   display: inline-flex;
   align-items: center;
   gap: 0.3rem;
-  height: 26px;
-  min-height: 26px;
-  padding: 0 0.55rem;
-  font-size: 0.6875rem;
-  font-weight: 500;
-  border-radius: var(--radius-sm);
+  height: 30px;
+  min-height: 30px;
+  padding: 0 0.6rem;
+  font-size: 0.72rem;
+  font-weight: 650;
+  border-radius: var(--radius);
   border: 1px solid var(--line);
   background: var(--paper);
   color: var(--mute);
@@ -226,17 +221,18 @@
 
 .tsu-panel__head h2,
 .tsu-desk__head h3 {
-  margin: 0 0 0.08rem;
-  font-size: 0.875rem;
-  font-weight: 700;
+  margin: 0;
+  font-size: 0.82rem;
+  font-weight: 750;
+  letter-spacing: -0.02em;
   color: var(--ink);
   text-align: left;
 }
 
 .tsu-panel__head p,
 .tsu-desk__head p {
-  margin: 0;
-  font-size: 0.72rem;
+  margin: 0.08rem 0 0;
+  font-size: 0.68rem;
   color: var(--mute);
 }
 
@@ -245,17 +241,17 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  height: 26px;
-  min-height: 26px;
-  padding: 0 8px;
-  font-size: 0.6875rem;
-  font-weight: 500;
+  height: 30px;
+  min-height: 30px;
+  padding: 0 0.7rem;
+  font-size: 0.72rem;
+  font-weight: 650;
   font-family: inherit;
-  color: #334155;
+  color: #475569;
   text-decoration: none;
-  background: #f1f5f9;
-  border: 1px solid #cbd5e1;
-  border-radius: var(--radius-sm);
+  background: var(--wash);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
   cursor: pointer;
   white-space: nowrap;
 }
@@ -279,8 +275,8 @@
 
 .tsu-form__row {
   display: grid;
-  grid-template-columns: 170px minmax(0, 1fr) auto;
-  gap: 0.55rem 0.7rem;
+  grid-template-columns: 150px minmax(0, 1fr) auto;
+  gap: 0.5rem 0.6rem;
   align-items: end;
 }
 
@@ -305,32 +301,32 @@
 
 .tsu-input {
   width: 100%;
-  height: 26px;
-  min-height: 26px;
-  padding: 0 0.5rem;
+  height: 30px;
+  min-height: 30px;
+  padding: 0 0.55rem;
   font: inherit;
   font-size: 0.75rem;
   color: var(--ink);
   background: var(--paper);
-  border: 1px solid var(--line);
-  border-radius: var(--radius-sm);
+  border: 1px solid #cbd5e1;
+  border-radius: var(--radius);
 }
 
 .tsu-input:focus {
   outline: none;
-  border-color: #94a3b8;
-  box-shadow: none;
+  border-color: #2563eb;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
 }
 
 .tsu-drop {
-  min-height: 26px;
+  min-height: 30px;
   height: auto;
   display: flex;
   align-items: center;
-  padding: 0.25rem 0.55rem;
-  background: var(--wash);
+  padding: 0.3rem 0.55rem;
+  background: var(--paper);
   border: 1px dashed #cbd5e1;
-  border-radius: var(--radius-sm);
+  border-radius: var(--radius);
   cursor: pointer;
 }
 
@@ -399,17 +395,17 @@
 }
 
 .tsu-submit {
-  height: 26px;
-  min-height: 26px;
+  height: 30px;
+  min-height: 30px;
   min-width: auto;
-  padding: 0 10px;
+  padding: 0 0.75rem;
   font: inherit;
-  font-size: 0.6875rem;
-  font-weight: 500;
+  font-size: 0.72rem;
+  font-weight: 650;
   color: #fff;
   background: #0f172a;
   border: 1px solid #0f172a;
-  border-radius: var(--radius-sm);
+  border-radius: var(--radius);
   cursor: pointer;
 }
 
@@ -452,12 +448,12 @@
 }
 
 .tsu-message {
-  margin-top: 0.55rem;
-  padding: 0.45rem 0.6rem;
-  border-radius: var(--radius-sm);
+  margin-top: 0.5rem;
+  padding: 0.35rem 0.55rem;
+  border-radius: var(--radius);
   font-size: 0.72rem;
-  font-weight: 500;
-  line-height: 1.4;
+  font-weight: 550;
+  line-height: 1.35;
   border: 1px solid transparent;
   background: var(--paper);
 }

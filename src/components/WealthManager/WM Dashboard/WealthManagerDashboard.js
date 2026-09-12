@@ -7,28 +7,41 @@ const MOCK_OPS_HEALTH = {
   status: 'Healthy',
   reconciliation: 'On track',
   pendingAllocations: '12 (low)',
-  serviceLevel: '99.4% uptime',
+  serviceLevel: '99.4%',
 };
 
 const MOCK_OPS_ALERTS = [
   {
     severity: 'high',
     title: 'Subscription cut-off in 30 min',
-    message: 'Equity Growth Fund accepting orders until 1:00 PM',
+    message: 'Equity Growth Fund · until 1:00 PM',
   },
   {
     severity: 'medium',
-    title: 'Bank statement awaiting reconciliation',
-    message: 'HSBC operating account · LKR 12.4M unmatched',
+    title: 'Bank statement unmatched',
+    message: 'HSBC op. account · LKR 12.4M',
   },
   {
     severity: 'low',
     title: 'New KYC submissions',
-    message: '8 client KYC packs ready for compliance review',
+    message: '8 packs ready for review',
   },
 ];
 
-const ALLOC_COLORS = ['#064a46', '#0c7b74', '#18b19a', '#a8d5cf'];
+const ALLOC_COLORS = ['#0f4c3a', '#2563eb', '#c4a574', '#64748b'];
+const FLOW_COLORS = ['#15803d', '#dc2626', '#d97706'];
+const SEGMENT_COLORS = ['#0f4c3a', '#1d4ed8', '#b45309', '#6b7280'];
+
+const toConic = (items, colors) => {
+  let cursor = 0;
+  return items
+    .map((item, index) => {
+      const start = cursor;
+      cursor += item.percentage;
+      return `${colors[index % colors.length]} ${start}% ${cursor}%`;
+    })
+    .join(', ');
+};
 
 const WealthManagerDashboard = () => {
   const [currentTime, setCurrentTime] = useState(new Date());
@@ -43,19 +56,27 @@ const WealthManagerDashboard = () => {
     clients: { total: 12450, active: 11890, new: 156 },
     funds: { total: 48, active: 45, topPerformer: 'Equity Growth Fund' },
     transactions: { today: 342, pending: 23, value: 12500000 },
+    inflows: 8200000,
+    outflows: 4300000,
+    settlement: [
+      { label: 'Settled today', value: 186, tone: 'ok' },
+      { label: 'T+1 queue', value: 41, tone: 'info' },
+      { label: 'Exceptions', value: 7, tone: 'warn' },
+    ],
     recentTransactions: [
       { id: 1, client: 'Client 1', fund: 'Equity Growth Fund', type: 'Purchase', units: 5000, amount: 125000, time: '10:30 AM', status: 'Completed' },
       { id: 2, client: 'Client 2', fund: 'Balanced Income Fund', type: 'Redemption', units: 2500, amount: 62500, time: '10:15 AM', status: 'Completed' },
       { id: 3, client: 'Client 3', fund: 'Fixed Income Fund', type: 'Purchase', units: 10000, amount: 100000, time: '09:45 AM', status: 'Pending' },
       { id: 4, client: 'Client 4', fund: 'Equity Growth Fund', type: 'Switch', units: 3000, amount: 75000, time: '09:30 AM', status: 'Completed' },
       { id: 5, client: 'Client 5', fund: 'Money Market Fund', type: 'Purchase', units: 20000, amount: 200000, time: '09:15 AM', status: 'Completed' },
+      { id: 6, client: 'Client 6', fund: 'Index Fund', type: 'Redemption', units: 1200, amount: 38580, time: '09:05 AM', status: 'Completed' },
     ],
     topFunds: [
       { name: 'Equity Growth Fund', nav: 25.45, change: 2.3, aum: 450000000, category: 'Equity' },
       { name: 'Balanced Income Fund', nav: 18.92, change: 1.8, aum: 320000000, category: 'Balanced' },
       { name: 'Fixed Income Fund', nav: 10.25, change: 0.5, aum: 280000000, category: 'Fixed Income' },
-      { name: 'Money Market Fund', nav: 1.0, change: 0.1, aum: 150000000, category: 'Money Market' },
       { name: 'Index Fund', nav: 32.15, change: 3.5, aum: 180000000, category: 'Equity' },
+      { name: 'Money Market Fund', nav: 1.0, change: 0.1, aum: 150000000, category: 'Money Market' },
     ],
     navTrend: [
       { date: 'Mon', value: 24.2 },
@@ -69,6 +90,17 @@ const WealthManagerDashboard = () => {
       { category: 'Fixed Income', percentage: 30, value: 735000000 },
       { category: 'Balanced', percentage: 15, value: 367500000 },
       { category: 'Money Market', percentage: 10, value: 245000000 },
+    ],
+    flowMix: [
+      { category: 'Purchase', percentage: 58, value: 198 },
+      { category: 'Redemption', percentage: 28, value: 96 },
+      { category: 'Switch', percentage: 14, value: 48 },
+    ],
+    clientSegments: [
+      { category: 'Retail', percentage: 52, value: 6474 },
+      { category: 'HNW', percentage: 28, value: 3486 },
+      { category: 'Corporate', percentage: 14, value: 1743 },
+      { category: 'Trust', percentage: 6, value: 747 },
     ],
   };
 
@@ -116,25 +148,21 @@ const WealthManagerDashboard = () => {
   const spark = useMemo(() => {
     const pts = dashboardData.navTrend.map((point, index) => {
       const x = (index / (dashboardData.navTrend.length - 1)) * 100;
-      const y = 30 - ((point.value - navMin) / (navMax - navMin || 1)) * 22;
+      const y = 28 - ((point.value - navMin) / (navMax - navMin || 1)) * 20;
       return { x, y };
     });
-    const line = pts.map((p) => `${p.x},${p.y}`).join(' ');
-    return { line };
+    return { line: pts.map((p) => `${p.x},${p.y}`).join(' ') };
   }, [dashboardData.navTrend, navMax, navMin]);
 
   const navChart = useMemo(() => {
-    const w = 420;
-    const h = 180;
-    const padX = 28;
-    const padY = 22;
+    const w = 340;
+    const h = 128;
+    const padX = 20;
+    const padY = 20;
     const pts = dashboardData.navTrend.map((point, index) => {
-      const x =
-        padX + (index / (dashboardData.navTrend.length - 1)) * (w - padX * 2);
+      const x = padX + (index / (dashboardData.navTrend.length - 1)) * (w - padX * 2);
       const y =
-        h -
-        padY -
-        ((point.value - navMin) / (navMax - navMin || 1)) * (h - padY * 2 - 10);
+        h - padY - ((point.value - navMin) / (navMax - navMin || 1)) * (h - padY * 2 - 6);
       return { ...point, x, y };
     });
     const line = pts.map((p) => `${p.x},${p.y}`).join(' ');
@@ -142,18 +170,18 @@ const WealthManagerDashboard = () => {
     return { w, h, padY, pts, line, area };
   }, [dashboardData.navTrend, navMax, navMin]);
 
-  const donutGradient = dashboardData.portfolioAllocation
-    .reduce(
-      (acc, item, index) => {
-        const start = acc.at;
-        const end = start + item.percentage;
-        acc.stops.push(`${ALLOC_COLORS[index]} ${start}% ${end}%`);
-        acc.at = end;
-        return acc;
-      },
-      { at: 0, stops: [] }
-    )
-    .stops.join(', ');
+  const allocPie = useMemo(
+    () => toConic(dashboardData.portfolioAllocation, ALLOC_COLORS),
+    [dashboardData.portfolioAllocation]
+  );
+  const flowPie = useMemo(
+    () => toConic(dashboardData.flowMix, FLOW_COLORS),
+    [dashboardData.flowMix]
+  );
+  const segmentPie = useMemo(
+    () => toConic(dashboardData.clientSegments, SEGMENT_COLORS),
+    [dashboardData.clientSegments]
+  );
 
   return (
     <div className="wdb">
@@ -168,22 +196,18 @@ const WealthManagerDashboard = () => {
         }
       />
 
-      <section className="wdb-spotlight" aria-label="Key metrics">
-        <article className="wdb-stat wdb-stat--aum">
+      <section className="wdb-kpi" aria-label="Key metrics">
+        <article className="wdb-stat wdb-stat--hero">
           <span className="wdb-label">Assets under management</span>
           <div className="wdb-aum__figure">
             <span className="wdb-aum__ccy">LKR</span>
-            <strong className="wdb-aum__num">
-              {formatLkrCompact(dashboardData.aum.total)}
-            </strong>
+            <strong className="wdb-aum__num">{formatLkrCompact(dashboardData.aum.total)}</strong>
           </div>
           <div className="wdb-aum__meta">
-            <span className="wdb-aum__delta">
-              ▲ {dashboardData.aum.change}% MoM
-            </span>
-            <span className="wdb-stat__meta">NAV · 5 sessions</span>
+            <span className="wdb-aum__delta">▲ {dashboardData.aum.change}% MoM</span>
+            <span className="wdb-kpi__note">NAV · 5 sessions</span>
           </div>
-          <div className="wdb-aum__spark" aria-hidden>
+          <div className="wdb-kpi__spark" aria-hidden>
             <svg viewBox="0 0 100 36" preserveAspectRatio="none">
               <polyline
                 fill="none"
@@ -196,73 +220,73 @@ const WealthManagerDashboard = () => {
             </svg>
           </div>
         </article>
-
         <article className="wdb-stat">
           <span className="wdb-label">Clients</span>
           <strong>{formatNumber(dashboardData.clients.total)}</strong>
-          <span className="wdb-stat__meta">
-            {formatNumber(dashboardData.clients.active)} active · +
-            {dashboardData.clients.new} new
+          <span className="wdb-kpi__note">
+            {formatNumber(dashboardData.clients.active)} active · +{dashboardData.clients.new}
           </span>
         </article>
-
         <article className="wdb-stat">
           <span className="wdb-label">Active funds</span>
           <strong>{formatNumber(dashboardData.funds.active)}</strong>
-          <span className="wdb-stat__meta">
-            {formatNumber(dashboardData.funds.total)} total ·{' '}
-            {dashboardData.funds.topPerformer}
-          </span>
+          <span className="wdb-kpi__note">{dashboardData.funds.topPerformer}</span>
         </article>
-
         <article className="wdb-stat">
-          <span className="wdb-label">Today&apos;s transactions</span>
+          <span className="wdb-label">Today&apos;s deals</span>
           <strong>{formatNumber(dashboardData.transactions.today)}</strong>
-          <span className="wdb-stat__meta">
-            LKR {formatLkrCompact(dashboardData.transactions.value)} ·{' '}
-            {dashboardData.transactions.pending} pending
+          <span className="wdb-kpi__note">
+            LKR {formatLkrCompact(dashboardData.transactions.value)} · {dashboardData.transactions.pending} pend.
           </span>
         </article>
-
         <article className="wdb-stat">
-          <span className="wdb-label">Operations health</span>
+          <span className="wdb-label">Net flow</span>
+          <strong className="is-up">
+            +{formatLkrCompact(dashboardData.inflows - dashboardData.outflows)}
+          </strong>
+          <span className="wdb-kpi__note">
+            In {formatLkrCompact(dashboardData.inflows)} · Out {formatLkrCompact(dashboardData.outflows)}
+          </span>
+        </article>
+        <article className="wdb-stat">
+          <span className="wdb-label">Ops health</span>
           <strong>
             {MOCK_OPS_HEALTH.score}
             <span className="wdb-stat__den">/100</span>
           </strong>
-          <span className="wdb-stat__meta">{MOCK_OPS_HEALTH.status}</span>
+          <span className="wdb-kpi__note">{MOCK_OPS_HEALTH.status}</span>
         </article>
       </section>
 
-      <section className="wdb-board">
-        <article className="wdb-panel wdb-panel--nav">
+      <section className="wdb-grid wdb-grid--4" aria-label="Charts and desk">
+        <article className="wdb-panel">
           <header className="wdb-panel__head">
             <div>
               <h2>NAV trend</h2>
-              <p>Equity Growth Fund · last 5 sessions</p>
+              <p>Equity Growth · 5d</p>
             </div>
             <select className="wdb-select" defaultValue="5d" aria-label="NAV period">
-              <option value="5d">Last 5 days</option>
-              <option value="1m">Last month</option>
-              <option value="3m">Last 3 months</option>
-              <option value="1y">Last year</option>
+              <option value="5d">5d</option>
+              <option value="1m">1m</option>
+              <option value="3m">3m</option>
+              <option value="1y">1y</option>
             </select>
           </header>
           <div className="wdb-linechart" role="img" aria-label="NAV line chart">
             <svg viewBox={`0 0 ${navChart.w} ${navChart.h}`} preserveAspectRatio="xMidYMid meet">
               <defs>
                 <linearGradient id="wdbNavFill" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="rgba(12, 123, 116, 0.22)" />
-                  <stop offset="100%" stopColor="rgba(12, 123, 116, 0)" />
+                  <stop offset="0%" stopColor="#14624a" stopOpacity="0.22" />
+                  <stop offset="100%" stopColor="#14624a" stopOpacity="0" />
                 </linearGradient>
               </defs>
-              {[0, 1, 2, 3].map((i) => {
-                const y = 22 + i * ((navChart.h - 44) / 3);
+              {[0, 1, 2].map((i) => {
+                const y = 14 + i * ((navChart.h - 36) / 2);
                 return (
                   <line
                     key={i}
-                    x1="20"
-                    x2={navChart.w - 20}
+                    x1="12"
+                    x2={navChart.w - 12}
                     y1={y}
                     y2={y}
                     className="wdb-linechart__grid"
@@ -270,23 +294,14 @@ const WealthManagerDashboard = () => {
                 );
               })}
               <polygon fill="url(#wdbNavFill)" points={navChart.area} />
-              <polyline
-                className="wdb-linechart__line"
-                fill="none"
-                points={navChart.line}
-              />
+              <polyline className="wdb-linechart__line" fill="none" points={navChart.line} />
               {navChart.pts.map((p) => (
                 <g key={p.date}>
-                  <circle className="wdb-linechart__dot" cx={p.x} cy={p.y} r="4.5" />
-                  <text className="wdb-linechart__val" x={p.x} y={p.y - 12} textAnchor="middle">
-                    {p.value.toFixed(2)}
+                  <circle className="wdb-linechart__dot" cx={p.x} cy={p.y} r="2.8" />
+                  <text className="wdb-linechart__val" x={p.x} y={p.y - 8} textAnchor="middle">
+                    {p.value.toFixed(1)}
                   </text>
-                  <text
-                    className="wdb-linechart__day"
-                    x={p.x}
-                    y={navChart.h - 6}
-                    textAnchor="middle"
-                  >
+                  <text className="wdb-linechart__day" x={p.x} y={navChart.h - 4} textAnchor="middle">
                     {p.date}
                   </text>
                 </g>
@@ -295,26 +310,25 @@ const WealthManagerDashboard = () => {
           </div>
         </article>
 
-        <article className="wdb-panel wdb-panel--alloc">
+        <article className="wdb-panel">
           <header className="wdb-panel__head">
             <div>
               <h2>Asset allocation</h2>
-              <p>Across all portfolios</p>
+              <p>Book mix</p>
             </div>
           </header>
-          <div className="wdb-donutwrap">
+          <div className="wdb-piewrap">
             <div
-              className="wdb-donut"
-              style={{ background: `conic-gradient(${donutGradient})` }}
-              role="img"
-              aria-label="Asset allocation donut"
+              className="wdb-pie"
+              style={{ background: `conic-gradient(${allocPie})` }}
+              aria-hidden
             >
-              <div className="wdb-donut__hole">
+              <div className="wdb-pie__hole">
                 <strong>100%</strong>
                 <span>Book</span>
               </div>
             </div>
-            <ul className="wdb-legend">
+            <ul className="wdb-pieleg">
               {dashboardData.portfolioAllocation.map((item, index) => (
                 <li key={item.category}>
                   <i style={{ background: ALLOC_COLORS[index] }} />
@@ -330,34 +344,68 @@ const WealthManagerDashboard = () => {
           </div>
         </article>
 
-        <article className="wdb-panel wdb-panel--ops">
+        <article className="wdb-panel">
           <header className="wdb-panel__head">
             <div>
-              <h2>Desk readiness</h2>
-              <p>Reconciliation &amp; service</p>
+              <h2>Deal mix</h2>
+              <p>Today by type</p>
             </div>
           </header>
-          <dl className="wdb-ops">
-            <div>
-              <dt>Reconciliation</dt>
-              <dd className="wdb-pill wdb-pill--ok">{MOCK_OPS_HEALTH.reconciliation}</dd>
+          <div className="wdb-piewrap">
+            <div
+              className="wdb-pie"
+              style={{ background: `conic-gradient(${flowPie})` }}
+              aria-hidden
+            >
+              <div className="wdb-pie__hole">
+                <strong>{dashboardData.transactions.today}</strong>
+                <span>Deals</span>
+              </div>
             </div>
+            <ul className="wdb-pieleg">
+              {dashboardData.flowMix.map((item, index) => (
+                <li key={item.category}>
+                  <i style={{ background: FLOW_COLORS[index] }} />
+                  <div>
+                    <strong>{item.category}</strong>
+                    <span>
+                      {item.percentage}% · {item.value} txns
+                    </span>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          </div>
+        </article>
+
+        <article className="wdb-panel">
+          <header className="wdb-panel__head">
             <div>
-              <dt>Pending allocations</dt>
-              <dd className="wdb-pill wdb-pill--warn">{MOCK_OPS_HEALTH.pendingAllocations}</dd>
+              <h2>Client segments</h2>
+              <p>Book by type</p>
             </div>
-            <div>
-              <dt>Service level</dt>
-              <dd className="wdb-pill wdb-pill--info">{MOCK_OPS_HEALTH.serviceLevel}</dd>
+          </header>
+          <div className="wdb-piewrap">
+            <div
+              className="wdb-pie"
+              style={{ background: `conic-gradient(${segmentPie})` }}
+              aria-hidden
+            >
+              <div className="wdb-pie__hole">
+                <strong>{formatLkrCompact(dashboardData.clients.total)}</strong>
+                <span>Clients</span>
+              </div>
             </div>
-          </dl>
-          <div className="wdb-alerts">
-            <h3>Alerts &amp; tasks</h3>
-            <ul>
-              {MOCK_OPS_ALERTS.map((alert) => (
-                <li key={alert.title} className={`sev-${alert.severity}`}>
-                  <strong>{alert.title}</strong>
-                  <span>{alert.message}</span>
+            <ul className="wdb-pieleg">
+              {dashboardData.clientSegments.map((item, index) => (
+                <li key={item.category}>
+                  <i style={{ background: SEGMENT_COLORS[index] }} />
+                  <div>
+                    <strong>{item.category}</strong>
+                    <span>
+                      {item.percentage}% · {formatNumber(item.value)}
+                    </span>
+                  </div>
                 </li>
               ))}
             </ul>
@@ -365,12 +413,61 @@ const WealthManagerDashboard = () => {
         </article>
       </section>
 
-      <section className="wdb-lower">
+      <section className="wdb-grid wdb-grid--lower" aria-label="Operations detail">
+        <article className="wdb-panel">
+          <header className="wdb-panel__head">
+            <div>
+              <h2>Desk readiness</h2>
+              <p>Recon &amp; service</p>
+            </div>
+            <span className="wdb-score">{MOCK_OPS_HEALTH.score}</span>
+          </header>
+          <dl className="wdb-ops">
+            <div>
+              <dt>Reconciliation</dt>
+              <dd className="wdb-pill wdb-pill--ok">{MOCK_OPS_HEALTH.reconciliation}</dd>
+            </div>
+            <div>
+              <dt>Pending alloc.</dt>
+              <dd className="wdb-pill wdb-pill--warn">{MOCK_OPS_HEALTH.pendingAllocations}</dd>
+            </div>
+            <div>
+              <dt>Service level</dt>
+              <dd className="wdb-pill wdb-pill--info">{MOCK_OPS_HEALTH.serviceLevel}</dd>
+            </div>
+          </dl>
+          <div className="wdb-settle">
+            {dashboardData.settlement.map((row) => (
+              <div key={row.label} className={`wdb-settle__item tone-${row.tone}`}>
+                <strong>{row.value}</strong>
+                <span>{row.label}</span>
+              </div>
+            ))}
+          </div>
+        </article>
+
+        <article className="wdb-panel">
+          <header className="wdb-panel__head">
+            <div>
+              <h2>Alerts</h2>
+              <p>Open desk tasks</p>
+            </div>
+          </header>
+          <ul className="wdb-alerts">
+            {MOCK_OPS_ALERTS.map((alert) => (
+              <li key={alert.title} className={`sev-${alert.severity}`}>
+                <strong>{alert.title}</strong>
+                <span>{alert.message}</span>
+              </li>
+            ))}
+          </ul>
+        </article>
+
         <article className="wdb-panel wdb-panel--funds">
           <header className="wdb-panel__head">
             <div>
               <h2>Top funds</h2>
-              <p>Ranked by weekly return</p>
+              <p>By weekly return</p>
             </div>
           </header>
           <table className="wdb-table">
@@ -379,7 +476,7 @@ const WealthManagerDashboard = () => {
                 <th>#</th>
                 <th>Fund</th>
                 <th>NAV</th>
-                <th>Change</th>
+                <th>Chg</th>
                 <th>AUM</th>
               </tr>
             </thead>
@@ -393,9 +490,10 @@ const WealthManagerDashboard = () => {
                   </td>
                   <td>{fund.nav.toFixed(2)}</td>
                   <td className={fund.change >= 0 ? 'is-up' : 'is-down'}>
-                    {fund.change >= 0 ? '▲' : '▼'} {fund.change}%
+                    {fund.change >= 0 ? '+' : ''}
+                    {fund.change}%
                   </td>
-                  <td>LKR {formatLkrCompact(fund.aum)}</td>
+                  <td>{formatLkrCompact(fund.aum)}</td>
                 </tr>
               ))}
             </tbody>
@@ -406,11 +504,11 @@ const WealthManagerDashboard = () => {
           <header className="wdb-panel__head">
             <div>
               <h2>Latest activity</h2>
-              <p>Recent client transactions</p>
+              <p>Client transactions</p>
             </div>
             <div className="wdb-flow">
-              <span className="is-buy">{buyCount} purchases</span>
-              <span className="is-sell">{sellCount} redemptions</span>
+              <span className="is-buy">{buyCount} buys</span>
+              <span className="is-sell">{sellCount} sells</span>
             </div>
           </header>
           <ul className="wdb-txlist">
@@ -419,15 +517,13 @@ const WealthManagerDashboard = () => {
                 <div className="wdb-txlist__main">
                   <strong>{t.client}</strong>
                   <span>
-                    {t.type} · {t.fund} · {formatNumber(t.units)} units
+                    {t.type} · {t.fund}
                   </span>
                 </div>
                 <div className="wdb-txlist__side">
-                  <strong>LKR {formatCurrency(t.amount)}</strong>
+                  <strong>{formatLkrCompact(t.amount)}</strong>
                   <span>
-                    <em className={t.status === 'Completed' ? 'ok' : 'warn'}>
-                      {t.status}
-                    </em>
+                    <em className={t.status === 'Completed' ? 'ok' : 'warn'}>{t.status}</em>
                     {t.time}
                   </span>
                 </div>

@@ -211,12 +211,6 @@ const GsecBalanceSheet = () => {
         </header>
 
         <section className="gsec-bs-panel gsec-bs-panel--filters" aria-label="Filters">
-          <div className="gsec-bs-panel__head">
-            <div>
-              <h2>Filters</h2>
-              <p>Narrow the trial balance by period and account code.</p>
-            </div>
-          </div>
           <div className="gsec-bs-filters-content">
             <div className="gsec-bs-filters-grid">
               <div className="gsec-bs-filter-group">

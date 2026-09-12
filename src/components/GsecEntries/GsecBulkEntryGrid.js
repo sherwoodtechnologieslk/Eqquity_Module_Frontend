@@ -328,17 +328,16 @@ const GsecBulkEntryGrid = () => {
   return (
     <div className="gsec-bulk-page">
       <div className="gsec-bulk-wrapper">
-        <div className="gsec-bulk-header">
-          <div className="gsec-bulk-header-text">
-            <h1 className="gsec-bulk-title">GSec Bulk Entry Grid</h1>
-            <p className="gsec-bulk-subtitle">
-              Add or remove rows in an editable grid and save many GSec entries at once. Columns mirror
-              the GSec ledger table. <strong>created_at</strong> and <strong>updated_at</strong> are set
-              by the database. Duplicate rows (same deal number, account code and entry date) are skipped
-              automatically on save.
-            </p>
-          </div>
-        </div>
+        <header className="gsec-bulk-rail">
+          <p className="gsec-bulk-rail__eyebrow">Accounting · GSec</p>
+          <h1 className="gsec-bulk-rail__title">GSec Bulk Entry Grid</h1>
+          <p className="gsec-bulk-rail__blurb">
+            Add or remove rows in an editable grid and save many GSec entries at once.
+            Columns mirror the GSec ledger table. created_at and updated_at are set by the
+            database. Duplicate rows (same deal number, account code and entry date) are
+            skipped automatically on save.
+          </p>
+        </header>
 
         <div className="gsec-bulk-toolbar">
           <span className="gsec-bulk-toolbar-text">

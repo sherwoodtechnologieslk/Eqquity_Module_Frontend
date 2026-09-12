@@ -352,7 +352,13 @@ const TransactionView = ({ onTabChange }) => {
   return (
     <div className="transaction-view-container">
       <div className="transaction-view-header">
-        <h2 className="transaction-view-title">All Transactions</h2>
+        <div className="transaction-view-heading">
+          <p className="transaction-view-eyebrow">Trade Capture</p>
+          <h2 className="transaction-view-title">All Transactions</h2>
+          <p className="transaction-view-blurb">
+            Buy and sell trades across companies and portfolios.
+          </p>
+        </div>
         <div className="transaction-header-controls">
           <button
             type="button"
