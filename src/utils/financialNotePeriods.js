@@ -21,11 +21,12 @@ export const toLocalYmd = (d) => {
 const formatAsAtLabel = (d) =>
   d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
 
-/** Same calendar day one year earlier (handles 29-Feb). */
-const sameDayPriorYear = (date) => {
-  const d = new Date(date);
-  d.setFullYear(d.getFullYear() - 1);
-  return d;
+/** Most recent 31 March strictly before the as-at date. */
+export const lastMarch31Before = (date) => {
+  const y = date.getFullYear();
+  const mar31ThisYear = new Date(y, 2, 31);
+  if (date.getTime() > mar31ThisYear.getTime()) return mar31ThisYear;
+  return new Date(y - 1, 2, 31);
 };
 
 /** Sri Lanka-style FY: 1 April – 31 March containing the as-at date. */
@@ -46,34 +47,35 @@ const formatShortMonthYear = (d) => {
 
 /**
  * Build comparative columns from the selected as-at date:
- * - SOFP / balance-sheet notes: balances as at that date vs prior-year same day
- * - P&L notes: YTD from 1 Jan through as-at date (both years)
+ * - Current: as-at date (P&L from 1 January of that year through as-at)
+ * - Comparative: 31 March of the same year (P&L from 1 January through 31 March)
  * - PPE note: FY opening 01 April → as-at (see buildPpeNotePeriods)
  */
 export const buildNotePeriods = (asOfDateYmd) => {
   const anchor = parseYmd(asOfDateYmd) || new Date();
-  const priorAnchor = sameDayPriorYear(anchor);
-
-  const currentYearStart = new Date(anchor.getFullYear(), 0, 1);
-  const priorYearStart = new Date(priorAnchor.getFullYear(), 0, 1);
+  const yearEnd = lastMarch31Before(anchor);
+  const currentStart = new Date(anchor.getFullYear(), 0, 1);
+  const priorStart = new Date(yearEnd.getFullYear(), 0, 1);
 
   const currentLabel = formatAsAtLabel(anchor);
-  const priorLabel = formatAsAtLabel(priorAnchor);
+  const priorLabel = formatAsAtLabel(yearEnd);
 
   return {
     current: {
       year: anchor.getFullYear(),
-      startDate: toLocalYmd(currentYearStart),
+      startDate: toLocalYmd(currentStart),
       endDate: toLocalYmd(anchor),
       asOfDate: toLocalYmd(anchor),
-      label: currentLabel
+      label: currentLabel,
+      shortLabel: formatShortMonthYear(anchor)
     },
     prior: {
-      year: priorAnchor.getFullYear(),
-      startDate: toLocalYmd(priorYearStart),
-      endDate: toLocalYmd(priorAnchor),
-      asOfDate: toLocalYmd(priorAnchor),
-      label: priorLabel
+      year: yearEnd.getFullYear(),
+      startDate: toLocalYmd(priorStart),
+      endDate: toLocalYmd(yearEnd),
+      asOfDate: toLocalYmd(yearEnd),
+      label: priorLabel,
+      shortLabel: formatShortMonthYear(yearEnd)
     },
     periodTitle: `As at ${currentLabel} (comparative: ${priorLabel})`
   };

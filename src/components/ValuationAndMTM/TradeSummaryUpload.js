@@ -224,9 +224,8 @@ If you need to update existing data, please contact your administrator or use a 
       <section className="tsu-panel tsu-panel--upload" aria-label="Upload trade summary">
         <div className="tsu-panel__head">
           <div>
-            <p className="tsu-panel__eyebrow">Primary action · Daily import</p>
+            <p className="tsu-panel__eyebrow">Daily import</p>
             <h2>Upload Trade Summary</h2>
-            <p>Import today’s CSE trade summary file here. Choose the trade date, attach .xlsx / .csv, then upload.</p>
           </div>
           <a
             href="https://www.cse.lk/equity/trade-summary"

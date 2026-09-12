@@ -1,15 +1,24 @@
 import React from 'react';
 
-const formatNoteAmount = (value) => {
+const formatNoteAmount = (value, fractionDigits = 2) => {
   const n = Number(value);
   if (!Number.isFinite(n) || n === 0) return '-';
   const abs = Math.abs(n);
   const formatted = new Intl.NumberFormat('en-US', {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2
+    minimumFractionDigits: fractionDigits,
+    maximumFractionDigits: fractionDigits
   }).format(abs);
   return n < 0 ? `(${formatted})` : formatted;
 };
+
+const formatSheetAmount = (value) => formatNoteAmount(value, 0);
+
+const PeriodHead = ({ period }) => (
+  <th className="frn-sheet-th-num">
+    <span className="frn-sheet-period">{period.shortLabel || period.label}</span>
+    <span className="frn-sheet-unit">LKR</span>
+  </th>
+);
 
 const dash = (value) => {
   const n = Number(value);
@@ -29,48 +38,64 @@ const ppeRowLabel = (section) => {
   return section.categoryName;
 };
 
-const ComparativeTable = ({ periods, rows, total, title }) => (
-  <div className="frn-mock-section">
-    <h3 className="frn-mock-h4">{title}</h3>
-    <div className="frn-mock-table-wrap">
-      <table className="frn-mock-table">
-        <thead>
+const ComparativeTable = ({
+  periods,
+  rows,
+  total,
+  heading,
+  sectionLabel,
+  totalsOnly = false,
+  emptyLabel = 'No GL balances found for this note at the selected as-at date.'
+}) => (
+  <div className="frn-sheet-wrap">
+    <table className="frn-sheet">
+      {heading ? <caption className="frn-sheet-caption">{heading}</caption> : null}
+      <colgroup>
+        <col className="frn-sheet-col-label" />
+        <col className="frn-sheet-col-num" />
+        <col className="frn-sheet-col-num" />
+      </colgroup>
+      <thead>
+        <tr>
+          <th className="frn-sheet-th-label">Description</th>
+          <PeriodHead period={periods.current} />
+          <PeriodHead period={periods.prior} />
+        </tr>
+      </thead>
+      <tbody>
+        {sectionLabel ? (
           <tr>
-            <th />
-            <th className="frn-mock-th-num">{periods.current.label} LKR</th>
-            <th className="frn-mock-th-num">{periods.prior.label} LKR</th>
+            <td className="frn-sheet-section">{sectionLabel}</td>
+            <td className="frn-sheet-num" />
+            <td className="frn-sheet-num" />
           </tr>
-        </thead>
-        <tbody>
-          {rows.length === 0 ? (
-            <tr>
-              <td colSpan={3} className="frn-mock-row-sub">
-                No GL balances found for this note at the selected as-at date.
-              </td>
+        ) : null}
+        {totalsOnly ? null : rows.length === 0 ? (
+          <tr>
+            <td colSpan={3} className="frn-sheet-empty">
+              {emptyLabel}
+            </td>
+          </tr>
+        ) : (
+          rows.map((row) => (
+            <tr key={row.label} className="frn-sheet-line">
+              <td className="frn-sheet-label">{row.label}</td>
+              <td className="frn-sheet-num">{formatSheetAmount(row.current)}</td>
+              <td className="frn-sheet-num">{formatSheetAmount(row.prior)}</td>
             </tr>
-          ) : (
-            rows.map((row) => (
-              <tr key={row.label}>
-                <td>{row.label}</td>
-                <td className="frn-mock-num">{formatNoteAmount(row.current)}</td>
-                <td className="frn-mock-num">{formatNoteAmount(row.prior)}</td>
-              </tr>
-            ))
-          )}
-          <tr className="frn-mock-row-total">
-            <td>
-              <strong>Total</strong>
-            </td>
-            <td className="frn-mock-num">
-              <strong>{formatNoteAmount(total?.current)}</strong>
-            </td>
-            <td className="frn-mock-num">
-              <strong>{formatNoteAmount(total?.prior)}</strong>
-            </td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
+          ))
+        )}
+        <tr className="frn-sheet-total">
+          <td className="frn-sheet-label">Total</td>
+          <td className="frn-sheet-num">
+            <span>{formatSheetAmount(total?.current)}</span>
+          </td>
+          <td className="frn-sheet-num">
+            <span>{formatSheetAmount(total?.prior)}</span>
+          </td>
+        </tr>
+      </tbody>
+    </table>
   </div>
 );
 
@@ -281,72 +306,26 @@ const CashNote = ({ periods, rows, total }) => {
   };
 
   const renderBlock = (title, list, blockTotal) => (
-    <div className="frn-mock-section">
-      <h4 className="frn-mock-h4">{title}</h4>
-      <div className="frn-mock-table-wrap">
-        <table className="frn-mock-table">
-          <thead>
-            <tr>
-              <th />
-              <th className="frn-mock-th-num">{periods.current.label} LKR</th>
-              <th className="frn-mock-th-num">{periods.prior.label} LKR</th>
-            </tr>
-          </thead>
-          <tbody>
-            {list.length === 0 ? (
-              <tr>
-                <td colSpan={3} className="frn-mock-row-sub">-</td>
-              </tr>
-            ) : (
-              list.map((row) => (
-                <tr key={row.label}>
-                  <td>{row.label}</td>
-                  <td className="frn-mock-num">{formatNoteAmount(row.current)}</td>
-                  <td className="frn-mock-num">{formatNoteAmount(row.prior)}</td>
-                </tr>
-              ))
-            )}
-            <tr className="frn-mock-row-total">
-              <td>
-                <strong>Total</strong>
-              </td>
-              <td className="frn-mock-num">
-                <strong>{formatNoteAmount(blockTotal.current)}</strong>
-              </td>
-              <td className="frn-mock-num">
-                <strong>{formatNoteAmount(blockTotal.prior)}</strong>
-              </td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-    </div>
+    <ComparativeTable
+      periods={periods}
+      rows={list}
+      total={blockTotal}
+      heading={title}
+      emptyLabel="-"
+    />
   );
 
   return (
     <>
       {renderBlock('12.1 Favourable balance', favorable, favTotal)}
       {unfavorable.length > 0 ? renderBlock('12.2 Unfavourable balance', unfavorable, unfavTotal) : null}
-      <div className="frn-mock-section">
-        <h4 className="frn-mock-h4">Total cash and cash equivalents for cash flow statement</h4>
-        <div className="frn-mock-table-wrap">
-          <table className="frn-mock-table">
-            <tbody>
-              <tr className="frn-mock-row-total">
-                <td>
-                  <strong>Total</strong>
-                </td>
-                <td className="frn-mock-num">
-                  <strong>{formatNoteAmount(netTotal.current)}</strong>
-                </td>
-                <td className="frn-mock-num">
-                  <strong>{formatNoteAmount(netTotal.prior)}</strong>
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
+      <ComparativeTable
+        periods={periods}
+        rows={[]}
+        total={netTotal}
+        heading="Total cash and cash equivalents for cash flow statement"
+        totalsOnly
+      />
     </>
   );
 };
@@ -355,6 +334,90 @@ const normalizeCashNegative = (label) =>
   String(label || '')
     .toLowerCase()
     .includes('overdraft');
+
+const FvtplEquityNote = ({ periods, equityRows, equityTotals }) => {
+  const currentPeriod = periods.current.shortLabel || periods.current.label;
+  const priorPeriod = periods.prior.shortLabel || periods.prior.label;
+  const rows = equityRows || [];
+  const totals = equityTotals || {
+    currentCost: 0,
+    currentMv: 0,
+    priorCost: 0,
+    priorMv: 0
+  };
+
+  return (
+    <div className="frn-note-subsection">
+      <h3 className="frn-note-subsection-title">
+        Investments in Equity Securities - Quoted
+      </h3>
+      <div className="frn-sheet-wrap">
+        <table className="frn-sheet frn-sheet--fvtpl">
+          <colgroup>
+            <col className="frn-sheet-col-label" />
+            <col className="frn-sheet-col-num" />
+            <col className="frn-sheet-col-num" />
+            <col className="frn-sheet-col-num" />
+            <col className="frn-sheet-col-num" />
+          </colgroup>
+          <thead>
+            <tr>
+              <th className="frn-sheet-th-label" rowSpan={2} />
+              <th className="frn-sheet-th-num frn-sheet-th-group" colSpan={2}>
+                {currentPeriod}
+                <span className="frn-sheet-unit">LKR</span>
+              </th>
+              <th className="frn-sheet-th-num frn-sheet-th-group" colSpan={2}>
+                {priorPeriod}
+                <span className="frn-sheet-unit">LKR</span>
+              </th>
+            </tr>
+            <tr>
+              <th className="frn-sheet-th-num">Cost</th>
+              <th className="frn-sheet-th-num">Market Value</th>
+              <th className="frn-sheet-th-num">Cost</th>
+              <th className="frn-sheet-th-num">Market Value</th>
+            </tr>
+          </thead>
+          <tbody>
+            {rows.length === 0 ? (
+              <tr>
+                <td colSpan={5} className="frn-sheet-empty">
+                  No quoted equity holdings found for the selected as-at dates.
+                </td>
+              </tr>
+            ) : (
+              rows.map((row) => (
+                <tr key={row.label} className="frn-sheet-line">
+                  <td className="frn-sheet-label">{row.label}</td>
+                  <td className="frn-sheet-num">{formatSheetAmount(row.currentCost)}</td>
+                  <td className="frn-sheet-num">{formatSheetAmount(row.currentMv)}</td>
+                  <td className="frn-sheet-num">{formatSheetAmount(row.priorCost)}</td>
+                  <td className="frn-sheet-num">{formatSheetAmount(row.priorMv)}</td>
+                </tr>
+              ))
+            )}
+            <tr className="frn-sheet-total">
+              <td className="frn-sheet-label">Total</td>
+              <td className="frn-sheet-num">
+                <span>{formatSheetAmount(totals.currentCost)}</span>
+              </td>
+              <td className="frn-sheet-num">
+                <span>{formatSheetAmount(totals.currentMv)}</span>
+              </td>
+              <td className="frn-sheet-num">
+                <span>{formatSheetAmount(totals.priorCost)}</span>
+              </td>
+              <td className="frn-sheet-num">
+                <span>{formatSheetAmount(totals.priorMv)}</span>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+};
 
 const DisclosureNoteView = ({ data, loading, error }) => {
   if (loading) {
@@ -372,38 +435,63 @@ const DisclosureNoteView = ({ data, loading, error }) => {
 
   if (!data?.note) return null;
 
-  const { note, periods, template, rows, total, sections, totals, footnote75 } = data;
+  const {
+    note,
+    periods,
+    template,
+    rows,
+    total,
+    sections,
+    totals,
+    footnote75,
+    equityRows,
+    equityTotals
+  } = data;
   const noteTitle = `${note.number}. ${note.title.toUpperCase()}`;
 
   return (
-    <div className={`frn-mock-block${template === 'ppe' ? ' frn-mock-block--excel' : ''}`}>
-      <h2 className="frn-mock-block-title">{noteTitle}</h2>
-
-      {template === 'ppe' ? (
-        <PpeNote
-          periods={periods}
-          sections={sections || []}
-          totals={totals}
-          footnote75={footnote75}
-        />
-      ) : template === 'cash' ? (
-        <CashNote periods={periods} rows={rows || []} total={total} />
-      ) : template === 'statedCapital' ? (
-        <ComparativeTable
-          periods={periods}
-          rows={rows || []}
-          total={total}
-          title="Ordinary shares"
-        />
-      ) : (
-        <ComparativeTable
-          periods={periods}
-          rows={rows || []}
-          total={total}
-          title={note.title}
-        />
-      )}
-    </div>
+    <section
+      className={`frn-note-section${
+        template === 'ppe' || template === 'fvtplEquity' ? ' frn-note-section--schedule' : ''
+      }`}
+    >
+      <header className="frn-note-section-head">
+        <h2 className="frn-note-section-title">{noteTitle}</h2>
+      </header>
+      <div className="frn-note-section-body">
+        {template === 'ppe' ? (
+          <PpeNote
+            periods={periods}
+            sections={sections || []}
+            totals={totals}
+            footnote75={footnote75}
+          />
+        ) : template === 'fvtplEquity' ? (
+          <FvtplEquityNote
+            periods={periods}
+            equityRows={equityRows}
+            equityTotals={equityTotals}
+          />
+        ) : template === 'cash' ? (
+          <CashNote periods={periods} rows={rows || []} total={total} />
+        ) : template === 'statedCapital' ? (
+          <ComparativeTable
+            periods={periods}
+            rows={rows || []}
+            total={total}
+            heading=""
+            sectionLabel="Ordinary shares"
+          />
+        ) : (
+          <ComparativeTable
+            periods={periods}
+            rows={rows || []}
+            total={total}
+            heading=""
+          />
+        )}
+      </div>
+    </section>
   );
 };
 

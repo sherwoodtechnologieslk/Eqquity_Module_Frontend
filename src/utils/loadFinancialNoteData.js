@@ -1,4 +1,4 @@
-import { financialPositionAPI, profitLossAPI } from '../services/api';
+import { financialPositionAPI, profitLossAPI, portfolioAPI } from '../services/api';
 import { listCategories } from '../components/FixedAssets/fixedAssetStore';
 import { buildNotePeriods, buildPpeNotePeriods } from './financialNotePeriods';
 import { getNoteById } from './financialNotesRegistry';
@@ -14,21 +14,58 @@ const matchesPatterns = (text, patterns = []) =>
 
 const absAmount = (n) => Math.abs(Number(n) || 0);
 
-/** Flatten P&L category map into rows with label + balance. */
-const flattenPlAccounts = (byCategory) => {
-  if (!byCategory || typeof byCategory !== 'object') return [];
+const NOTE3_INCOME_RE = /capital gain|treasury|interest|bond|bill|gsec|coupon|accrued|share trading/;
+
+const flattenAccountList = (accounts) => {
   const rows = [];
-  Object.values(byCategory).forEach((accounts) => {
-    (accounts || []).forEach((acc) => {
-      const balance = Number(acc.balance) || 0;
-      if (balance === 0) return;
-      rows.push({
-        label: (acc.account_name || acc.accountName || acc.account_code || '-').trim(),
-        amount: absAmount(balance)
-      });
+  (accounts || []).forEach((acc) => {
+    const balance = Number(acc.balance) || 0;
+    if (Math.abs(balance) < 0.005) return;
+    rows.push({
+      label: (acc.account_name || acc.accountName || acc.account_code || '-').trim(),
+      amount: balance
     });
   });
   return rows;
+};
+
+/** Flatten P&L category map (or account array) into rows with label + signed balance. */
+const flattenPlAccounts = (byCategory) => {
+  if (!byCategory) return [];
+  if (Array.isArray(byCategory)) return flattenAccountList(byCategory);
+  if (typeof byCategory !== 'object') return [];
+  return flattenAccountList(Object.values(byCategory).flat());
+};
+
+const rowsFromPlBucket = (byCategory, accounts) => {
+  const fromCategory = flattenPlAccounts(byCategory);
+  return fromCategory.length ? fromCategory : flattenAccountList(accounts);
+};
+
+const flattenUnrealized = (plData) =>
+  (plData?.unrealizedCapitalGains || [])
+    .map((row) => ({
+      label: (row.description || row.account_name || 'Unrealized Capital Gain/Loss').trim(),
+      amount: Number(row.amount) || 0
+    }))
+    .filter((row) => Math.abs(row.amount) >= 0.005);
+
+const isNote3IncomeLabel = (label) => NOTE3_INCOME_RE.test(normalizeText(label));
+
+const rowsForRevenueNote = (plData) => {
+  const revenue = rowsFromPlBucket(plData?.revenueByCategory, plData?.revenueAccounts);
+  const otherIncome = rowsFromPlBucket(plData?.otherIncomeByCategory, plData?.otherIncomeAccounts);
+  const matchedOther = otherIncome.filter((row) => isNote3IncomeLabel(row.label));
+  const unrealized = flattenUnrealized(plData);
+  const combined = [...revenue, ...matchedOther, ...unrealized];
+  if (combined.length) return combined;
+  return [...otherIncome, ...unrealized];
+};
+
+const rowsForOtherIncomeNote = (plData) => {
+  const otherIncome = rowsFromPlBucket(plData?.otherIncomeByCategory, plData?.otherIncomeAccounts);
+  const remainder = otherIncome.filter((row) => !isNote3IncomeLabel(row.label));
+  return remainder.length ? remainder : otherIncome;
 };
 
 const filterExpenseRows = (plData, predicate) => {
@@ -431,12 +468,12 @@ const loadPlComparative = async (noteConfig, periods, portfolioId) => {
 
   switch (noteConfig.plSource) {
     case 'revenue':
-      currentRows = flattenPlAccounts(cur.revenueByCategory);
-      priorRows = flattenPlAccounts(pri.revenueByCategory);
+      currentRows = rowsForRevenueNote(cur);
+      priorRows = rowsForRevenueNote(pri);
       break;
     case 'otherIncome':
-      currentRows = flattenPlAccounts(cur.otherIncomeByCategory);
-      priorRows = flattenPlAccounts(pri.otherIncomeByCategory);
+      currentRows = rowsForOtherIncomeNote(cur);
+      priorRows = rowsForOtherIncomeNote(pri);
       break;
     case 'financeCost':
       currentRows = filterExpenseRows(cur, (c) => normalizeText(c).includes('finance'));
@@ -529,6 +566,130 @@ const loadStatedCapital = async (periods, portfolioId) => {
   return { ...data, template: 'statedCapital' };
 };
 
+const holdingKey = (row) => {
+  const name = String(row.companyName || row.counter || '')
+    .trim()
+    .toLowerCase();
+  const symbol = String(row.counter || '')
+    .trim()
+    .toLowerCase();
+  return name || symbol || '';
+};
+
+const fetchPortfolioHoldingsAtDate = async (portfolioId, asOfDate) => {
+  const resp = await financialPositionAPI.getPortfolioExportTable({
+    portfolioId: String(portfolioId),
+    asOfDate
+  });
+  if (!resp?.success) {
+    throw new Error(resp?.error || 'Failed to load portfolio holdings');
+  }
+  return Array.isArray(resp?.data?.rows) ? resp.data.rows : [];
+};
+
+const resolvePortfolioIds = async (portfolioId) => {
+  if (portfolioId) return [String(portfolioId)];
+  const list = await portfolioAPI.getActivePortfolios();
+  const safe = Array.isArray(list) ? list : [];
+  return safe
+    .map((p) => String(p.portfolioId || p.id || '').trim())
+    .filter(Boolean);
+};
+
+/**
+ * Note 11 — Investments in Equity Securities (Quoted)
+ * Cost and market value by counter for as-at and comparative dates.
+ */
+const loadFvtplEquityNote = async (periods, portfolioId) => {
+  const currentAsOf = periods.current.asOfDate || periods.current.endDate;
+  const priorAsOf = periods.prior.asOfDate || periods.prior.endDate;
+
+  const portfolioIds = await resolvePortfolioIds(portfolioId);
+  if (!portfolioIds.length) {
+    return {
+      template: 'fvtplEquity',
+      equityRows: [],
+      equityTotals: {
+        currentCost: 0,
+        currentMv: 0,
+        priorCost: 0,
+        priorMv: 0
+      }
+    };
+  }
+
+  const mapAtDate = async (asOf) => {
+    const byKey = new Map();
+    await Promise.all(
+      portfolioIds.map(async (id) => {
+        const rows = await fetchPortfolioHoldingsAtDate(id, asOf);
+        rows.forEach((row) => {
+          const key = holdingKey(row);
+          if (!key) return;
+          const cost = Number(row.totalCost) || 0;
+          const mv = Number(row.totalMarketValue) || 0;
+          const shares = Number(row.numberOfShares) || 0;
+          if (Math.abs(cost) < 0.005 && Math.abs(mv) < 0.005 && shares <= 0) return;
+          const prev = byKey.get(key) || {
+            label: row.companyName || row.counter || key,
+            cost: 0,
+            marketValue: 0
+          };
+          byKey.set(key, {
+            label: prev.label,
+            cost: prev.cost + cost,
+            marketValue: prev.marketValue + mv
+          });
+        });
+      })
+    );
+    return byKey;
+  };
+
+  const [currentMap, priorMap] = await Promise.all([
+    mapAtDate(currentAsOf),
+    mapAtDate(priorAsOf)
+  ]);
+
+  const keys = new Set([...currentMap.keys(), ...priorMap.keys()]);
+  const equityRows = [...keys]
+    .map((key) => {
+      const cur = currentMap.get(key);
+      const pri = priorMap.get(key);
+      return {
+        label: cur?.label || pri?.label || key,
+        currentCost: Number(cur?.cost) || 0,
+        currentMv: Number(cur?.marketValue) || 0,
+        priorCost: Number(pri?.cost) || 0,
+        priorMv: Number(pri?.marketValue) || 0
+      };
+    })
+    .filter(
+      (r) =>
+        Math.abs(r.currentCost) >= 0.005 ||
+        Math.abs(r.currentMv) >= 0.005 ||
+        Math.abs(r.priorCost) >= 0.005 ||
+        Math.abs(r.priorMv) >= 0.005
+    )
+    .sort((a, b) => a.label.localeCompare(b.label));
+
+  const equityTotals = equityRows.reduce(
+    (s, r) => ({
+      currentCost: s.currentCost + r.currentCost,
+      currentMv: s.currentMv + r.currentMv,
+      priorCost: s.priorCost + r.priorCost,
+      priorMv: s.priorMv + r.priorMv
+    }),
+    { currentCost: 0, currentMv: 0, priorCost: 0, priorMv: 0 }
+  );
+
+  return {
+    template: 'fvtplEquity',
+    equityRows,
+    equityTotals
+  };
+};
+
 const NOTE_LOADERS = {
   'note-3': (p, id) => loadPlComparative({ plSource: 'revenue' }, p, id),
   'note-4': (p, id) => loadPlComparative({ plSource: 'otherIncome' }, p, id),
@@ -556,23 +717,7 @@ const NOTE_LOADERS = {
       p,
       id
     ),
-  'note-11': (p, id) =>
-    loadSofpComparative(
-      {
-        sofpPatterns: [
-          'fair value through profit',
-          'fvtpl',
-          'government securit',
-          'treasury',
-          'equity securit',
-          'investment in shares',
-          'quoted'
-        ],
-        template: 'comparative'
-      },
-      p,
-      id
-    ),
+  'note-11': (p, id) => loadFvtplEquityNote(p, id),
   'note-12': (p, id) =>
     loadSofpComparative(
       {
