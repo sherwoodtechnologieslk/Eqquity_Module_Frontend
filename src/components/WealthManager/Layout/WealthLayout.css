@@ -2,16 +2,6 @@
 
 @import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700;9..40,800&display=swap');
 
-/* Global sharp-corner override for the Wealth Manager.
-   .wm-root wraps only the non-portal WM (Client Portal renders outside this wrapper
-   via an early return in App.js, so its rounded corners are untouched). */
-.wm-root,
-.wm-root *,
-.wm-root *::before,
-.wm-root *::after {
-  border-radius: 0 !important;
-}
-
 :root {
   /* Light surface palette — cream canvas matches Operations Dashboard */
   --wm-bg: #f7f4ee;

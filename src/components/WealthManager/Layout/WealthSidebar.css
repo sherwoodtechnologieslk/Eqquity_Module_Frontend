@@ -85,8 +85,8 @@
     rgba(20, 184, 166, 0.88) 55%,
     rgba(45, 212, 191, 0.82) 100%
   );
-  /* Override .wm-root { border-radius: 0 !important } — match Equity sidebar icon */
-  border-radius: 0.45rem !important;
+  /* Match Equity sidebar icon */
+  border-radius: 0.45rem;
   display: flex;
   align-items: center;
   justify-content: center;

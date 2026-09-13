@@ -45,59 +45,102 @@ const ComparativeTable = ({
   heading,
   sectionLabel,
   totalsOnly = false,
-  emptyLabel = 'No GL balances found for this note at the selected as-at date.'
-}) => (
-  <div className="frn-sheet-wrap">
-    <table className="frn-sheet">
-      {heading ? <caption className="frn-sheet-caption">{heading}</caption> : null}
-      <colgroup>
-        <col className="frn-sheet-col-label" />
-        <col className="frn-sheet-col-num" />
-        <col className="frn-sheet-col-num" />
-      </colgroup>
-      <thead>
-        <tr>
-          <th className="frn-sheet-th-label">Description</th>
-          <PeriodHead period={periods.current} />
-          <PeriodHead period={periods.prior} />
-        </tr>
-      </thead>
-      <tbody>
-        {sectionLabel ? (
+  emptyLabel = 'No GL balances found for this note at the selected as-at date.',
+  customRows = [],
+  onRemoveCustomRow
+}) => {
+  const autoRows = rows || [];
+  const userRows = customRows || [];
+  const hasAnyRows = autoRows.length > 0 || userRows.length > 0;
+  const combinedTotal = {
+    current: (Number(total?.current) || 0) + userRows.reduce((s, r) => s + (Number(r.current) || 0), 0),
+    prior: (Number(total?.prior) || 0) + userRows.reduce((s, r) => s + (Number(r.prior) || 0), 0)
+  };
+
+  return (
+    <div className="frn-sheet-wrap">
+      <table className="frn-sheet">
+        {heading ? <caption className="frn-sheet-caption">{heading}</caption> : null}
+        <colgroup>
+          <col className="frn-sheet-col-label" />
+          <col className="frn-sheet-col-num" />
+          <col className="frn-sheet-col-num" />
+        </colgroup>
+        <thead>
           <tr>
-            <td className="frn-sheet-section">{sectionLabel}</td>
-            <td className="frn-sheet-num" />
-            <td className="frn-sheet-num" />
+            <th className="frn-sheet-th-label">Description</th>
+            <PeriodHead period={periods.current} />
+            <PeriodHead period={periods.prior} />
           </tr>
-        ) : null}
-        {totalsOnly ? null : rows.length === 0 ? (
-          <tr>
-            <td colSpan={3} className="frn-sheet-empty">
-              {emptyLabel}
+        </thead>
+        <tbody>
+          {sectionLabel ? (
+            <tr>
+              <td className="frn-sheet-section">{sectionLabel}</td>
+              <td className="frn-sheet-num" />
+              <td className="frn-sheet-num" />
+            </tr>
+          ) : null}
+          {totalsOnly ? null : !hasAnyRows ? (
+            <tr>
+              <td colSpan={3} className="frn-sheet-empty">
+                {emptyLabel}
+              </td>
+            </tr>
+          ) : (
+            <>
+              {autoRows.map((row) => (
+                <tr key={`auto-${row.label}`} className="frn-sheet-line">
+                  <td className="frn-sheet-label">{row.label}</td>
+                  <td className="frn-sheet-num">{formatSheetAmount(row.current)}</td>
+                  <td className="frn-sheet-num">{formatSheetAmount(row.prior)}</td>
+                </tr>
+              ))}
+              {userRows.map((row) => (
+                <tr key={`custom-${row.id}`} className="frn-sheet-line frn-sheet-line--custom">
+                  <td className="frn-sheet-label">
+                    <span className="frn-sheet-custom-label">{row.label}</span>
+                    {row.accountCodes?.length ? (
+                      <span className="frn-sheet-custom-meta">
+                        {row.accountCodes.length} account
+                        {row.accountCodes.length === 1 ? '' : 's'}
+                        {Math.abs(Number(row.current) || 0) < 0.005 &&
+                        Math.abs(Number(row.prior) || 0) < 0.005
+                          ? ' · no Combined TB amount for period'
+                          : ''}
+                      </span>
+                    ) : null}
+                    {typeof onRemoveCustomRow === 'function' ? (
+                      <button
+                        type="button"
+                        className="frn-sheet-custom-remove"
+                        onClick={() => onRemoveCustomRow(row.id)}
+                        title="Remove this description"
+                      >
+                        Remove
+                      </button>
+                    ) : null}
+                  </td>
+                  <td className="frn-sheet-num">{formatSheetAmount(row.current)}</td>
+                  <td className="frn-sheet-num">{formatSheetAmount(row.prior)}</td>
+                </tr>
+              ))}
+            </>
+          )}
+          <tr className="frn-sheet-total">
+            <td className="frn-sheet-label">Total</td>
+            <td className="frn-sheet-num">
+              <span>{formatSheetAmount(combinedTotal.current)}</span>
+            </td>
+            <td className="frn-sheet-num">
+              <span>{formatSheetAmount(combinedTotal.prior)}</span>
             </td>
           </tr>
-        ) : (
-          rows.map((row) => (
-            <tr key={row.label} className="frn-sheet-line">
-              <td className="frn-sheet-label">{row.label}</td>
-              <td className="frn-sheet-num">{formatSheetAmount(row.current)}</td>
-              <td className="frn-sheet-num">{formatSheetAmount(row.prior)}</td>
-            </tr>
-          ))
-        )}
-        <tr className="frn-sheet-total">
-          <td className="frn-sheet-label">Total</td>
-          <td className="frn-sheet-num">
-            <span>{formatSheetAmount(total?.current)}</span>
-          </td>
-          <td className="frn-sheet-num">
-            <span>{formatSheetAmount(total?.prior)}</span>
-          </td>
-        </tr>
-      </tbody>
-    </table>
-  </div>
-);
+        </tbody>
+      </table>
+    </div>
+  );
+};
 
 const PpeNote = ({ periods, sections, totals, footnote75 }) => {
   const openingHeader = `Balance As At ${periods.fyStartLabel || periods.prior.longLabel || periods.prior.label} (LKR)`;
@@ -285,7 +328,7 @@ const PpeNote = ({ periods, sections, totals, footnote75 }) => {
   );
 };
 
-const CashNote = ({ periods, rows, total }) => {
+const CashNote = ({ periods, rows, total, customRows = [], onRemoveCustomRow }) => {
   const favorable = rows.filter((r) => !normalizeCashNegative(r.label));
   const unfavorable = rows.filter((r) => normalizeCashNegative(r.label));
 
@@ -300,9 +343,13 @@ const CashNote = ({ periods, rows, total }) => {
     current: sumRows(unfavorable, 'current'),
     prior: sumRows(unfavorable, 'prior')
   };
+  const customTotal = {
+    current: sumRows(customRows, 'current'),
+    prior: sumRows(customRows, 'prior')
+  };
   const netTotal = {
-    current: favTotal.current - unfavTotal.current,
-    prior: favTotal.prior - unfavTotal.prior
+    current: favTotal.current - unfavTotal.current + customTotal.current,
+    prior: favTotal.prior - unfavTotal.prior + customTotal.prior
   };
 
   const renderBlock = (title, list, blockTotal) => (
@@ -319,6 +366,16 @@ const CashNote = ({ periods, rows, total }) => {
     <>
       {renderBlock('12.1 Favourable balance', favorable, favTotal)}
       {unfavorable.length > 0 ? renderBlock('12.2 Unfavourable balance', unfavorable, unfavTotal) : null}
+      {customRows.length > 0 ? (
+        <ComparativeTable
+          periods={periods}
+          rows={[]}
+          total={customTotal}
+          heading="User descriptions"
+          customRows={customRows}
+          onRemoveCustomRow={onRemoveCustomRow}
+        />
+      ) : null}
       <ComparativeTable
         periods={periods}
         rows={[]}
@@ -419,7 +476,14 @@ const FvtplEquityNote = ({ periods, equityRows, equityTotals }) => {
   );
 };
 
-const DisclosureNoteView = ({ data, loading, error }) => {
+const DisclosureNoteView = ({
+  data,
+  loading,
+  error,
+  customRows = [],
+  onRemoveCustomRow,
+  onRetry
+}) => {
   if (loading) {
     return (
       <div className="frn-loading">
@@ -430,7 +494,17 @@ const DisclosureNoteView = ({ data, loading, error }) => {
   }
 
   if (error) {
-    return <div className="frn-error">{error}</div>;
+    return (
+      <div className="frn-error frn-error--guided" role="alert">
+        <p className="frn-error-title">Couldn’t open this note</p>
+        <p className="frn-error-body">{error}</p>
+        {typeof onRetry === 'function' ? (
+          <button type="button" className="frn-error-retry" onClick={onRetry}>
+            Try again
+          </button>
+        ) : null}
+      </div>
+    );
   }
 
   if (!data?.note) return null;
@@ -448,6 +522,8 @@ const DisclosureNoteView = ({ data, loading, error }) => {
     equityTotals
   } = data;
   const noteTitle = `${note.number}. ${note.title.toUpperCase()}`;
+  const showCustomUnderSchedule =
+    (template === 'ppe' || template === 'fvtplEquity') && customRows.length > 0;
 
   return (
     <section
@@ -473,7 +549,13 @@ const DisclosureNoteView = ({ data, loading, error }) => {
             equityTotals={equityTotals}
           />
         ) : template === 'cash' ? (
-          <CashNote periods={periods} rows={rows || []} total={total} />
+          <CashNote
+            periods={periods}
+            rows={rows || []}
+            total={total}
+            customRows={customRows}
+            onRemoveCustomRow={onRemoveCustomRow}
+          />
         ) : template === 'statedCapital' ? (
           <ComparativeTable
             periods={periods}
@@ -481,6 +563,8 @@ const DisclosureNoteView = ({ data, loading, error }) => {
             total={total}
             heading=""
             sectionLabel="Ordinary shares"
+            customRows={customRows}
+            onRemoveCustomRow={onRemoveCustomRow}
           />
         ) : (
           <ComparativeTable
@@ -488,8 +572,21 @@ const DisclosureNoteView = ({ data, loading, error }) => {
             rows={rows || []}
             total={total}
             heading=""
+            customRows={customRows}
+            onRemoveCustomRow={onRemoveCustomRow}
           />
         )}
+        {showCustomUnderSchedule ? (
+          <ComparativeTable
+            periods={periods}
+            rows={[]}
+            total={{ current: 0, prior: 0 }}
+            heading="User descriptions"
+            customRows={customRows}
+            onRemoveCustomRow={onRemoveCustomRow}
+            emptyLabel=""
+          />
+        ) : null}
       </div>
     </section>
   );
