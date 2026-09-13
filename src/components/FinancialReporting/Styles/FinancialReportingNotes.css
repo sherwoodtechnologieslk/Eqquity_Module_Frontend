@@ -130,11 +130,21 @@
 }
 
 .nts-excel-ribbon-item {
+  appearance: none;
+  border: 1px solid transparent;
+  background: transparent;
   padding: 0.3rem 0.75rem;
   font-size: 0.75rem;
   font-weight: 500;
   color: #475569;
   border-radius: 4px 4px 0 0;
+  cursor: pointer;
+  font-family: inherit;
+}
+
+.nts-excel-ribbon-item:hover {
+  color: #0f766e;
+  background: #fff;
 }
 
 .nts-excel-ribbon-item.is-active {
@@ -143,6 +153,225 @@
   border-bottom-color: #fff;
   font-weight: 600;
   color: #0f766e;
+}
+
+.nts-insert-panel,
+.nts-layout-panel {
+  padding: 0.75rem 0.85rem;
+  background: #f1f5f9;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.nts-insert-panel-head {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem 0.75rem;
+  align-items: baseline;
+  margin-bottom: 0.65rem;
+}
+
+.nts-insert-panel-head strong {
+  font-size: 0.8125rem;
+  color: #0f172a;
+}
+
+.nts-insert-panel-head span {
+  font-size: 0.72rem;
+  color: #64748b;
+}
+
+.nts-insert-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.65rem;
+  margin-bottom: 0.55rem;
+}
+
+@media (max-width: 720px) {
+  .nts-insert-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.nts-insert-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: #475569;
+}
+
+.nts-insert-field input {
+  border: 1px solid #cbd5e1;
+  border-radius: 4px;
+  padding: 0.4rem 0.55rem;
+  font-size: 0.8125rem;
+  font-weight: 400;
+  color: #0f172a;
+  background: #fff;
+  font-family: inherit;
+}
+
+.nts-insert-coa-list {
+  max-height: 16rem;
+  overflow: auto;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  background: #fff;
+  margin-bottom: 0.65rem;
+  text-align: left;
+}
+
+.nts-insert-coa-item {
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+  justify-content: flex-start;
+  gap: 0.7rem;
+  width: 100%;
+  margin: 0;
+  padding: 0.7rem 0.85rem;
+  font-size: 0.8125rem;
+  font-weight: 400;
+  color: #334155;
+  border-bottom: 1px solid #eef2f7;
+  cursor: pointer;
+  text-align: left;
+}
+
+.nts-insert-coa-item:last-child {
+  border-bottom: none;
+}
+
+.nts-insert-coa-item:hover {
+  background: #f8fafc;
+}
+
+.nts-insert-coa-item.is-checked {
+  background: #f0fdfa;
+}
+
+.nts-insert-coa-item input[type='checkbox'] {
+  flex: 0 0 auto;
+  width: 1rem;
+  height: 1rem;
+  margin: 0.2rem 0 0;
+  padding: 0;
+  accent-color: #0f766e;
+  cursor: pointer;
+}
+
+.nts-insert-coa-item-text {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  text-align: left;
+}
+
+.nts-insert-coa-code {
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: #0f766e;
+  font-variant-numeric: tabular-nums;
+}
+
+.nts-insert-coa-name {
+  font-size: 0.8125rem;
+  font-weight: 500;
+  line-height: 1.4;
+  color: #0f172a;
+  word-break: break-word;
+}
+
+.nts-insert-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.nts-insert-add {
+  appearance: none;
+  border: none;
+  border-radius: 4px;
+  background: #0f766e;
+  color: #fff;
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 0.4rem 0.85rem;
+  cursor: pointer;
+  font-family: inherit;
+}
+
+.nts-insert-add:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.nts-insert-hint {
+  margin: 0;
+  font-size: 0.72rem;
+  color: #64748b;
+}
+
+.nts-insert-error {
+  margin: 0 0 0.45rem;
+  font-size: 0.75rem;
+  color: #b91c1c;
+}
+
+.nts-insert-error--bar {
+  margin: 0;
+  padding: 0.35rem 0.85rem;
+  border-bottom: 1px solid #fecaca;
+  background: #fef2f2;
+}
+
+.nts-layout-panel {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+}
+
+.nts-layout-label {
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: #64748b;
+  margin-right: 0.25rem;
+}
+
+.nts-layout-option {
+  appearance: none;
+  border: 1px solid #cbd5e1;
+  background: #fff;
+  border-radius: 4px;
+  padding: 0.3rem 0.65rem;
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: #475569;
+  cursor: pointer;
+  font-family: inherit;
+}
+
+.nts-layout-option.is-active {
+  border-color: #0f766e;
+  color: #0f766e;
+  font-weight: 600;
+  background: #ecfdf5;
+}
+
+.nts-excel-workbook.is-compact .nts-excel-grid-area {
+  font-size: 0.9em;
+}
+
+.nts-excel-workbook.is-compact .frn-sheet th,
+.nts-excel-workbook.is-compact .frn-sheet td {
+  padding-top: 0.28rem;
+  padding-bottom: 0.28rem;
 }
 
 .nts-excel-formula-bar {
@@ -176,10 +405,62 @@
   text-overflow: ellipsis;
 }
 
+.nts-resolve-banner {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.7rem 0.9rem;
+  background: #ecfdf5;
+  border-bottom: 1px solid #99f6e4;
+  color: #0f766e;
+}
+
+.nts-resolve-spinner {
+  flex: 0 0 auto;
+  width: 1.15rem;
+  height: 1.15rem;
+  border: 2.5px solid #99f6e4;
+  border-top-color: #0f766e;
+  border-radius: 50%;
+  animation: nts-resolve-spin 0.75s linear infinite;
+}
+
+@keyframes nts-resolve-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.nts-resolve-banner-copy {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  min-width: 0;
+}
+
+.nts-resolve-banner-copy strong {
+  font-size: 0.8125rem;
+  font-weight: 700;
+  color: #0f766e;
+}
+
+.nts-resolve-banner-copy span {
+  font-size: 0.75rem;
+  font-weight: 500;
+  line-height: 1.35;
+  color: #0f5f5a;
+}
+
 .nts-excel-grid-area {
   background: #f1f5f9;
   padding: 0.65rem;
   min-height: 12rem;
+  position: relative;
+}
+
+.nts-excel-grid-area.is-resolving {
+  opacity: 0.72;
+  pointer-events: none;
 }
 
 .nts-excel-sheet-tabs {
@@ -401,6 +682,77 @@
   border: 1px solid #fecaca;
   color: #b91c1c;
   font-size: 0.8125rem;
+}
+
+.nts-page .frn-error--guided {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.45rem;
+  padding: 1rem 1.1rem;
+  border-radius: 6px;
+}
+
+.nts-page .frn-error-title {
+  margin: 0;
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: #991b1b;
+}
+
+.nts-page .frn-error-body {
+  margin: 0;
+  font-size: 0.8125rem;
+  line-height: 1.45;
+  color: #b91c1c;
+  max-width: 40rem;
+}
+
+.nts-page .frn-error-retry {
+  appearance: none;
+  margin-top: 0.25rem;
+  border: none;
+  border-radius: 4px;
+  background: #0f766e;
+  color: #fff;
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 0.4rem 0.85rem;
+  cursor: pointer;
+  font-family: inherit;
+}
+
+.nts-page .frn-error-retry:hover {
+  background: #0d9488;
+}
+
+.nts-resolve-error-banner {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.65rem;
+  padding: 0.7rem 0.9rem;
+  background: #fef2f2;
+  border-bottom: 1px solid #fecaca;
+}
+
+.nts-resolve-error-copy {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  min-width: 0;
+}
+
+.nts-resolve-error-copy strong {
+  font-size: 0.8125rem;
+  font-weight: 700;
+  color: #991b1b;
+}
+
+.nts-resolve-error-copy span {
+  font-size: 0.75rem;
+  font-weight: 500;
+  line-height: 1.4;
+  color: #b91c1c;
 }
 
 .nts-page .frn-empty {
@@ -630,6 +982,39 @@
 .nts-page .frn-sheet-label {
   text-align: left;
   color: #0f172a;
+}
+
+.nts-page .frn-sheet-line--custom .frn-sheet-label {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.35rem 0.55rem;
+}
+
+.nts-page .frn-sheet-custom-label {
+  font-weight: 500;
+}
+
+.nts-page .frn-sheet-custom-meta {
+  font-size: 0.68rem;
+  color: #64748b;
+  font-weight: 400;
+}
+
+.nts-page .frn-sheet-custom-remove {
+  appearance: none;
+  border: none;
+  background: transparent;
+  color: #b91c1c;
+  font-size: 0.68rem;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 0;
+  font-family: inherit;
+}
+
+.nts-page .frn-sheet-custom-remove:hover {
+  text-decoration: underline;
 }
 
 .nts-page .frn-sheet-num {
