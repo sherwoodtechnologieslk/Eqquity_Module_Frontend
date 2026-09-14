@@ -14,6 +14,29 @@ const matchesPatterns = (text, patterns = []) =>
 
 const absAmount = (n) => Math.abs(Number(n) || 0);
 
+const normalizeSide = (value) => {
+  const s = String(value || '')
+    .trim()
+    .toUpperCase();
+  if (s === 'DR' || s === 'DEBIT') return 'DR';
+  if (s === 'CR' || s === 'CREDIT') return 'CR';
+  return '';
+};
+
+/** Build a linked-account ref with absolute amount + DR/CR side. */
+const makeAccountRef = (code, name, signedAmount, balanceType) => {
+  const signed = Number(signedAmount) || 0;
+  const side =
+    normalizeSide(balanceType) ||
+    (Math.abs(signed) < 0.005 ? '' : signed >= 0 ? 'DR' : 'CR');
+  return {
+    code: String(code || '').trim(),
+    name: String(name || code || '-').trim(),
+    amount: absAmount(signed),
+    side
+  };
+};
+
 const NOTE3_INCOME_RE = /capital gain|treasury|interest|bond|bill|gsec|coupon|accrued|share trading/;
 
 const flattenAccountList = (accounts) => {
@@ -21,9 +44,16 @@ const flattenAccountList = (accounts) => {
   (accounts || []).forEach((acc) => {
     const balance = Number(acc.balance) || 0;
     if (Math.abs(balance) < 0.005) return;
+    const code = String(acc.account_code || acc.accountCode || '').trim();
+    const name = String(
+      acc.account_name || acc.accountName || acc.description || code || '-'
+    ).trim();
     rows.push({
-      label: (acc.account_name || acc.accountName || acc.account_code || '-').trim(),
-      amount: balance
+      label: name || code || '-',
+      amount: balance,
+      accounts: [
+        makeAccountRef(code, name || code || '-', balance, acc.balance_type || acc.balanceType)
+      ]
     });
   });
   return rows;
@@ -44,10 +74,18 @@ const rowsFromPlBucket = (byCategory, accounts) => {
 
 const flattenUnrealized = (plData) =>
   (plData?.unrealizedCapitalGains || [])
-    .map((row) => ({
-      label: (row.description || row.account_name || 'Unrealized Capital Gain/Loss').trim(),
-      amount: Number(row.amount) || 0
-    }))
+    .map((row) => {
+      const code = String(row.account_code || row.accountCode || '').trim();
+      const name = String(
+        row.description || row.account_name || row.accountName || 'Unrealized Capital Gain/Loss'
+      ).trim();
+      const amount = Number(row.amount) || 0;
+      return {
+        label: name,
+        amount,
+        accounts: [makeAccountRef(code, name, amount, row.balance_type || row.balanceType)]
+      };
+    })
     .filter((row) => Math.abs(row.amount) >= 0.005);
 
 const isNote3IncomeLabel = (label) => NOTE3_INCOME_RE.test(normalizeText(label));
@@ -76,22 +114,96 @@ const filterExpenseRows = (plData, predicate) => {
     (accounts || []).forEach((acc) => {
       const balance = Number(acc.balance) || 0;
       if (balance === 0) return;
+      const code = String(acc.account_code || acc.accountCode || '').trim();
+      const name = String(acc.account_name || acc.accountName || category).trim();
       rows.push({
-        label: (acc.account_name || acc.accountName || category).trim(),
-        amount: absAmount(balance)
+        label: name,
+        amount: absAmount(balance),
+        accounts: [
+          makeAccountRef(code, name, balance, acc.balance_type || acc.balanceType || 'DR')
+        ]
       });
     });
   });
   return rows;
 };
 
+const mergeAccountRefs = (existing = [], incoming = []) => {
+  const map = new Map();
+  [...existing, ...incoming].forEach((a) => {
+    const code = String(a?.code || '').trim();
+    const name = String(a?.name || '').trim();
+    const key = code || name;
+    if (!key) return;
+    const prev = map.get(key) || {
+      code,
+      name: name || code,
+      currentAmount: undefined,
+      currentSide: '',
+      priorAmount: undefined,
+      priorSide: ''
+    };
+    const next = {
+      ...prev,
+      code: prev.code || code,
+      name: prev.name || name || code
+    };
+    if (a.currentAmount != null) {
+      next.currentAmount = (Number(prev.currentAmount) || 0) + (Number(a.currentAmount) || 0);
+      next.currentSide = a.currentSide || prev.currentSide || '';
+    }
+    if (a.priorAmount != null) {
+      next.priorAmount = (Number(prev.priorAmount) || 0) + (Number(a.priorAmount) || 0);
+      next.priorSide = a.priorSide || prev.priorSide || '';
+    }
+    // Legacy single-period refs (amount/side) — treat as current if no period fields.
+    if (
+      a.currentAmount == null &&
+      a.priorAmount == null &&
+      a.amount != null
+    ) {
+      next.currentAmount = (Number(prev.currentAmount) || 0) + (Number(a.amount) || 0);
+      next.currentSide = a.side || prev.currentSide || '';
+    }
+    map.set(key, next);
+  });
+  return [...map.values()];
+};
+
+const toPeriodAccountRefs = (accounts, periodKey) =>
+  (accounts || []).map((a) => {
+    const amount = Number(a.amount) || 0;
+    const side = a.side || '';
+    if (periodKey === 'prior') {
+      return {
+        code: a.code,
+        name: a.name,
+        priorAmount: amount,
+        priorSide: side
+      };
+    }
+    return {
+      code: a.code,
+      name: a.name,
+      currentAmount: amount,
+      currentSide: side
+    };
+  });
+
 const mergeComparativeRows = (currentRows, priorRows) => {
   const map = new Map();
-  const add = (rows, key) => {
+  const add = (rows, periodKey) => {
     rows.forEach((r) => {
       const k = r.label;
-      if (!map.has(k)) map.set(k, { label: k, current: 0, prior: 0 });
-      map.get(k)[key] += r.amount;
+      if (!map.has(k)) {
+        map.set(k, { label: k, current: 0, prior: 0, accounts: [] });
+      }
+      const entry = map.get(k);
+      entry[periodKey] += r.amount;
+      entry.accounts = mergeAccountRefs(
+        entry.accounts,
+        toPeriodAccountRefs(r.accounts || [], periodKey)
+      );
     });
   };
   add(currentRows, 'current');
@@ -125,7 +237,9 @@ const collectSofpAccounts = (fpData) => {
     accountName: acc.accountName || acc.account_name || '',
     transactionTypeName: acc.transactionTypeName || acc.transaction_type || '',
     accountCategory: acc.accountCategory || acc.account_category || '',
-    balance: absAmount(acc.balance ?? acc.net_balance)
+    balance: absAmount(acc.balance ?? acc.net_balance),
+    balanceType: normalizeSide(acc.balanceType || acc.balance_type) ||
+      ((Number(acc.balance ?? acc.net_balance) || 0) >= 0 ? 'DR' : 'CR')
   }));
 };
 
@@ -362,6 +476,16 @@ const loadPpeNoteFromSofp = async (periods, portfolioId) => {
         categoryName: accountName,
         accountCode,
         usefulLifeYears: findUsefulLifeYears(accountName),
+        accounts: [
+          {
+            code: String(accountCode || '').trim(),
+            name: accountName,
+            currentAmount: absAmount(costClosing - depClosing),
+            currentSide: 'DR',
+            priorAmount: absAmount(costOpening - depOpening),
+            priorSide: 'DR'
+          }
+        ],
         cost: {
           opening: costOpening,
           additions,
@@ -545,10 +669,28 @@ const loadSofpComparative = async (noteConfig, periods, portfolioId) => {
 
   const currentRows = curAccounts
     .filter((a) => a.balance > 0)
-    .map((a) => ({ label: labelFor(a), amount: a.balance }));
+    .map((a) => {
+      const label = labelFor(a);
+      const name = String(a.accountName || a.transactionTypeName || label).trim();
+      const code = String(a.accountCode || '').trim();
+      return {
+        label,
+        amount: a.balance,
+        accounts: [makeAccountRef(code, name, a.balance, a.balanceType || 'DR')]
+      };
+    });
   const priorRows = priAccounts
     .filter((a) => a.balance > 0)
-    .map((a) => ({ label: labelFor(a), amount: a.balance }));
+    .map((a) => {
+      const label = labelFor(a);
+      const name = String(a.accountName || a.transactionTypeName || label).trim();
+      const code = String(a.accountCode || '').trim();
+      return {
+        label,
+        amount: a.balance,
+        accounts: [makeAccountRef(code, name, a.balance, a.balanceType || 'DR')]
+      };
+    });
   const rows = mergeComparativeRows(currentRows, priorRows);
 
   return {
@@ -656,12 +798,25 @@ const loadFvtplEquityNote = async (periods, portfolioId) => {
     .map((key) => {
       const cur = currentMap.get(key);
       const pri = priorMap.get(key);
+      const label = cur?.label || pri?.label || key;
       return {
-        label: cur?.label || pri?.label || key,
+        label,
         currentCost: Number(cur?.cost) || 0,
         currentMv: Number(cur?.marketValue) || 0,
         priorCost: Number(pri?.cost) || 0,
-        priorMv: Number(pri?.marketValue) || 0
+        priorMv: Number(pri?.marketValue) || 0,
+        accounts: [
+          {
+            code: '',
+            name: label,
+            currentAmount: Number(cur?.marketValue) || 0,
+            currentSide: 'DR',
+            priorAmount: Number(pri?.marketValue) || 0,
+            priorSide: 'DR',
+            currentCost: Number(cur?.cost) || 0,
+            priorCost: Number(pri?.cost) || 0
+          }
+        ]
       };
     })
     .filter(
