@@ -28,6 +28,12 @@ const extractGsecAccounts = (gsecPayload) => {
   return [];
 };
 
+const sideFromNet = (net) => {
+  const n = Number(net) || 0;
+  if (Math.abs(n) < 0.005) return '';
+  return n > 0 ? 'DR' : 'CR';
+};
+
 /**
  * Same merge as Combined Trial Balance:
  * equity TB + GSec by account code, sum debits/credits, net = debit - credit.
@@ -90,29 +96,63 @@ const buildCombinedTrialBalanceMaps = (equityAccounts, gsecAccounts) => {
   const byName = new Map();
 
   byRawCode.forEach((row) => {
-    const net = absAmount(row.total_debit - row.total_credit);
+    const signed = (Number(row.total_debit) || 0) - (Number(row.total_credit) || 0);
+    const entry = {
+      amount: absAmount(signed),
+      side: sideFromNet(signed),
+      signed
+    };
     const codeKey = normalizeAccountCode(row.account_code);
     const nameKey = normalizeName(row.account_name);
-    if (codeKey) byCode.set(codeKey, (byCode.get(codeKey) || 0) + net);
-    if (nameKey) byName.set(nameKey, (byName.get(nameKey) || 0) + net);
+    if (codeKey) {
+      const prev = byCode.get(codeKey);
+      if (prev) {
+        const nextSigned = prev.signed + signed;
+        byCode.set(codeKey, {
+          amount: absAmount(nextSigned),
+          side: sideFromNet(nextSigned),
+          signed: nextSigned
+        });
+      } else {
+        byCode.set(codeKey, entry);
+      }
+    }
+    if (nameKey) {
+      const prev = byName.get(nameKey);
+      if (prev) {
+        const nextSigned = prev.signed + signed;
+        byName.set(nameKey, {
+          amount: absAmount(nextSigned),
+          side: sideFromNet(nextSigned),
+          signed: nextSigned
+        });
+      } else {
+        byName.set(nameKey, { ...entry });
+      }
+    }
   });
 
   return { byCode, byName };
 };
 
-const fuzzyNameAmount = (byName, rawName) => {
-  const key = normalizeName(rawName);
-  if (!key) return 0;
-  if (byName.has(key)) return byName.get(key) || 0;
-
-  let best = 0;
-  byName.forEach((amount, name) => {
-    if (amount < 0.005) return;
-    if (name.includes(key) || key.includes(name)) {
-      best = Math.max(best, amount);
-    }
-  });
-  return best;
+const lookupAmount = (maps, code, name) => {
+  if (code) {
+    const byCode = maps.byCode.get(normalizeAccountCode(code));
+    if (byCode && byCode.amount > 0.005) return byCode;
+  }
+  if (name) {
+    const key = normalizeName(name);
+    if (key && maps.byName.has(key)) return maps.byName.get(key);
+    let best = null;
+    maps.byName.forEach((entry, mapName) => {
+      if (!entry || entry.amount < 0.005) return;
+      if (mapName.includes(key) || key.includes(mapName)) {
+        if (!best || entry.amount > best.amount) best = entry;
+      }
+    });
+    if (best) return best;
+  }
+  return { amount: 0, side: '', signed: 0 };
 };
 
 /** Sum full Combined-TB amounts for every selected account on the row. */
@@ -121,18 +161,51 @@ const sumForRow = (maps, row) => {
   let matchedByCode = false;
 
   (row.accountCodes || []).forEach((code) => {
-    const amount = maps.byCode.get(normalizeAccountCode(code)) || 0;
-    if (amount > 0.005) matchedByCode = true;
-    sum += amount;
+    const entry = lookupAmount(maps, code, '');
+    if (entry.amount > 0.005) matchedByCode = true;
+    sum += entry.amount;
   });
   if (matchedByCode || sum > 0.005) return sum;
 
   (row.accountNames || []).forEach((name) => {
-    sum += fuzzyNameAmount(maps.byName, name);
+    sum += lookupAmount(maps, '', name).amount;
   });
   if (sum > 0.005) return sum;
 
-  return fuzzyNameAmount(maps.byName, row.label);
+  return lookupAmount(maps, '', row.label).amount;
+};
+
+const detailsForRow = (currentMaps, priorMaps, row) => {
+  const codes = row.accountCodes || [];
+  const names = row.accountNames || [];
+  if (!codes.length) {
+    return (names.length ? names : [row.label]).map((name) => {
+      const cur = lookupAmount(currentMaps, '', name);
+      const pri = lookupAmount(priorMaps, '', name);
+      return {
+        code: '',
+        name,
+        currentAmount: cur.amount,
+        currentSide: cur.side,
+        priorAmount: pri.amount,
+        priorSide: pri.side
+      };
+    });
+  }
+
+  return codes.map((code, i) => {
+    const name = names[i] || code;
+    const cur = lookupAmount(currentMaps, code, name);
+    const pri = lookupAmount(priorMaps, code, name);
+    return {
+      code,
+      name,
+      currentAmount: cur.amount,
+      currentSide: cur.side,
+      priorAmount: pri.amount,
+      priorSide: pri.side
+    };
+  });
 };
 
 const fetchWithRetry = async (fn, attempts = 2) => {
@@ -190,7 +263,8 @@ export const resolveCustomNoteRows = async (rows, periods) => {
     return list.map((r) => ({
       ...r,
       current: 0,
-      prior: 0
+      prior: 0,
+      accountDetails: []
     }));
   }
 
@@ -201,7 +275,8 @@ export const resolveCustomNoteRows = async (rows, periods) => {
   return list.map((row) => ({
     ...row,
     current: sumForRow(currentMaps, row),
-    prior: sumForRow(priorMaps, row)
+    prior: sumForRow(priorMaps, row),
+    accountDetails: detailsForRow(currentMaps, priorMaps, row)
   }));
 };
 

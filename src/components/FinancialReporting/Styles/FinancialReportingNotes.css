@@ -984,7 +984,7 @@
   color: #0f172a;
 }
 
-.nts-page .frn-sheet-line--custom .frn-sheet-label {
+.nts-page .frn-sheet-line .frn-sheet-label {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
@@ -1001,6 +1001,108 @@
   font-weight: 400;
 }
 
+.nts-page .frn-sheet-row-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  margin-left: 0.15rem;
+}
+
+.nts-page .frn-sheet-view-accounts {
+  appearance: none;
+  border: none;
+  background: transparent;
+  color: #1d4ed8;
+  font-size: 0.68rem;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 0;
+  font-family: inherit;
+}
+
+.nts-page .frn-sheet-view-accounts:hover {
+  text-decoration: underline;
+}
+
+.nts-page .frn-sheet-add-accounts {
+  appearance: none;
+  border: none;
+  background: transparent;
+  color: #047857;
+  font-size: 0.68rem;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 0;
+  font-family: inherit;
+}
+
+.nts-page .frn-sheet-add-accounts:hover {
+  text-decoration: underline;
+}
+
+.nts-page .frn-sheet-sign-toggle {
+  appearance: none;
+  border: none;
+  background: transparent;
+  font-size: 0.78rem;
+  font-weight: 700;
+  line-height: 1;
+  min-width: 0.9rem;
+  height: auto;
+  border-radius: 0;
+  cursor: pointer;
+  padding: 0;
+  font-family: inherit;
+}
+
+.nts-page .frn-sheet-sign-toggle.is-positive {
+  color: #047857;
+  border-color: transparent;
+  background: transparent;
+}
+
+.nts-page .frn-sheet-sign-toggle.is-negative {
+  color: #b91c1c;
+  border-color: transparent;
+  background: transparent;
+}
+
+.nts-page .frn-sheet-sign-toggle:hover {
+  text-decoration: underline;
+  filter: none;
+}
+
+.nts-page .frn-sheet-line.is-negative-contrib .frn-sheet-num {
+  color: #b91c1c;
+}
+
+.nts-page .frn-add-accounts-modal {
+  width: min(36rem, 100%);
+  max-height: min(34rem, 90vh);
+}
+
+.nts-page .frn-add-accounts-modal .nts-insert-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  margin: 0.65rem 0 0.5rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #334155;
+}
+
+.nts-page .frn-add-accounts-modal .nts-insert-field input {
+  font-weight: 400;
+}
+
+.nts-page .frn-add-accounts-modal .nts-insert-coa-list {
+  max-height: 14rem;
+}
+
+.nts-page .nts-insert-coa-item.is-linked {
+  opacity: 0.7;
+}
+
 .nts-page .frn-sheet-custom-remove {
   appearance: none;
   border: none;
@@ -1015,6 +1117,171 @@
 
 .nts-page .frn-sheet-custom-remove:hover {
   text-decoration: underline;
+}
+
+.nts-page .frn-excel-label-inner {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.35rem 0.55rem;
+}
+
+.nts-page .frn-accounts-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1200;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.25rem;
+  background: rgba(15, 23, 42, 0.45);
+}
+
+.nts-page .frn-accounts-modal {
+  width: min(42rem, 100%);
+  max-height: min(28rem, 85vh);
+  display: flex;
+  flex-direction: column;
+  background: #fff;
+  border: 1px solid #cbd5e1;
+  border-radius: 0.35rem;
+  box-shadow: 0 18px 40px rgba(15, 23, 42, 0.18);
+}
+
+.nts-page .frn-accounts-modal-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.9rem 1rem;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.nts-page .frn-accounts-modal-eyebrow {
+  margin: 0 0 0.2rem;
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #64748b;
+}
+
+.nts-page .frn-accounts-modal-title {
+  margin: 0;
+  font-size: 0.95rem;
+  font-weight: 650;
+  color: #0f172a;
+}
+
+.nts-page .frn-accounts-modal-close {
+  appearance: none;
+  border: 1px solid #cbd5e1;
+  background: #f8fafc;
+  color: #334155;
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 0.3rem 0.65rem;
+  border-radius: 0.25rem;
+  cursor: pointer;
+  font-family: inherit;
+}
+
+.nts-page .frn-accounts-modal-close:hover {
+  background: #f1f5f9;
+}
+
+.nts-page .frn-accounts-modal-body {
+  overflow: auto;
+  padding: 0.75rem 1rem 1rem;
+}
+
+.nts-page .frn-accounts-empty {
+  margin: 0;
+  font-size: 0.8125rem;
+  color: #64748b;
+}
+
+.nts-page .frn-accounts-table-wrap {
+  overflow: auto;
+}
+
+.nts-page .frn-accounts-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.8125rem;
+}
+
+.nts-page .frn-accounts-table th,
+.nts-page .frn-accounts-table td {
+  border-bottom: 1px solid #e2e8f0;
+  padding: 0.55rem 0.45rem;
+  vertical-align: top;
+}
+
+.nts-page .frn-accounts-th-account {
+  text-align: left;
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #64748b;
+}
+
+.nts-page .frn-accounts-th-amount {
+  text-align: right;
+  font-size: 0.68rem;
+  font-weight: 700;
+  color: #334155;
+  white-space: nowrap;
+  min-width: 7.5rem;
+}
+
+.nts-page .frn-accounts-td-account {
+  text-align: left;
+}
+
+.nts-page .frn-accounts-td-account .frn-accounts-code {
+  display: block;
+}
+
+.nts-page .frn-accounts-td-account .frn-accounts-name {
+  display: block;
+  margin-top: 0.1rem;
+}
+
+.nts-page .frn-accounts-td-amount {
+  text-align: right;
+  font-weight: 650;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  color: #0f172a;
+}
+
+.nts-page .frn-accounts-td-amount.is-debit {
+  color: #1d4ed8;
+}
+
+.nts-page .frn-accounts-td-amount.is-credit {
+  color: #b45309;
+}
+
+.nts-page .frn-accounts-code {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: #1e3a8a;
+  font-variant-numeric: tabular-nums;
+}
+
+.nts-page .frn-accounts-name {
+  font-size: 0.8125rem;
+  color: #0f172a;
+}
+
+.nts-page .frn-accounts-balance-meta {
+  display: block;
+  margin-top: 0.2rem;
+  font-size: 0.68rem;
+  color: #64748b;
 }
 
 .nts-page .frn-sheet-num {

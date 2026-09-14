@@ -52,6 +52,12 @@ const FinancialReportingNotes = ({ context = null }) => {
   const [ribbonTab, setRibbonTab] = useState('home');
   const [layoutDensity, setLayoutDensity] = useState('comfortable');
   const [customRowsByNote, setCustomRowsByNote] = useState({});
+  const [removedAutoKeysByNote, setRemovedAutoKeysByNote] = useState({});
+  const [extraAccountsByNote, setExtraAccountsByNote] = useState({});
+  const [rowSignsByNote, setRowSignsByNote] = useState({});
+  const [addAccountsTarget, setAddAccountsTarget] = useState(null);
+  const [addAccountCodes, setAddAccountCodes] = useState([]);
+  const [addCoaSearch, setAddCoaSearch] = useState('');
   const [coaList, setCoaList] = useState([]);
   const [coaLoading, setCoaLoading] = useState(false);
   const [coaError, setCoaError] = useState('');
@@ -64,6 +70,7 @@ const FinancialReportingNotes = ({ context = null }) => {
   const activeTabRef = useRef(null);
   const loadSeqRef = useRef(0);
   const customSeqRef = useRef(0);
+  const extrasSeqRef = useRef(0);
 
   useEffect(() => {
     if (context?.asOfDate) setAsOfDate(context.asOfDate);
@@ -177,6 +184,9 @@ const FinancialReportingNotes = ({ context = null }) => {
   const periods = noteData?.periods || buildNotePeriods(asOfDate);
   const selectedNote = FINANCIAL_NOTES.find((n) => n.id === selectedNoteId) || null;
   const sessionCustomRows = customRowsByNote[selectedNoteId] || [];
+  const sessionRemovedAutoKeys = removedAutoKeysByNote[selectedNoteId] || [];
+  const sessionExtraAccountsByKey = extraAccountsByNote[selectedNoteId] || {};
+  const sessionRowSignsByKey = rowSignsByNote[selectedNoteId] || {};
 
   useEffect(() => {
     const defs = customRowsByNote[selectedNoteId] || [];
@@ -232,7 +242,8 @@ const FinancialReportingNotes = ({ context = null }) => {
                 ...row,
                 current: next.current,
                 prior: next.prior,
-                accountNames: row.accountNames?.length ? row.accountNames : next.accountNames
+                accountNames: row.accountNames?.length ? row.accountNames : next.accountNames,
+                accountDetails: next.accountDetails || row.accountDetails || []
               };
             })
           };
@@ -274,6 +285,102 @@ const FinancialReportingNotes = ({ context = null }) => {
     )
   ]);
 
+  useEffect(() => {
+    const noteExtras = extraAccountsByNote[selectedNoteId] || {};
+    const defs = Object.entries(noteExtras).map(([rowKey, entry]) => ({
+      id: rowKey,
+      label: rowKey,
+      accountCodes: entry.accountCodes || [],
+      accountNames: entry.accountNames || []
+    }));
+
+    if (!selectedNoteId || !defs.length) return undefined;
+
+    const seq = ++extrasSeqRef.current;
+    let cancelled = false;
+    setCustomResolving(true);
+    setCustomResolveError('');
+
+    (async () => {
+      const maxAttempts = 3;
+      let lastErr = null;
+      let resolved = null;
+
+      for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
+        if (cancelled || seq !== extrasSeqRef.current) return;
+        try {
+          resolved = await resolveCustomNoteRows(defs, periods);
+          lastErr = null;
+          break;
+        } catch (err) {
+          lastErr = err;
+          if (
+            attempt < maxAttempts &&
+            isTransientLoadError(err) &&
+            !cancelled &&
+            seq === extrasSeqRef.current
+          ) {
+            await wait(350 * attempt);
+            continue;
+          }
+          break;
+        }
+      }
+
+      if (cancelled || seq !== extrasSeqRef.current) return;
+
+      if (resolved) {
+        setExtraAccountsByNote((prev) => {
+          const existing = prev[selectedNoteId] || {};
+          const next = { ...existing };
+          resolved.forEach((row) => {
+            const cur = existing[row.id];
+            if (!cur) return;
+            next[row.id] = {
+              ...cur,
+              current: row.current,
+              prior: row.prior,
+              accountDetails: row.accountDetails || []
+            };
+          });
+          return { ...prev, [selectedNoteId]: next };
+        });
+        setCustomResolveError('');
+      } else {
+        setCustomResolveError(
+          lastErr
+            ? isTransientLoadError(lastErr)
+              ? TRANSIENT_AMOUNT_LOAD_MESSAGE
+              : lastErr.message || 'Failed to resolve account balances'
+            : ''
+        );
+      }
+
+      if (!cancelled && seq === extrasSeqRef.current) {
+        setCustomResolving(false);
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [
+    asOfDate,
+    selectedNoteId,
+    periods.current?.startDate,
+    periods.current?.endDate,
+    periods.prior?.startDate,
+    periods.prior?.endDate,
+    JSON.stringify(
+      Object.entries(extraAccountsByNote[selectedNoteId] || {}).map(([rowKey, entry]) => ({
+        rowKey,
+        accountCodes: entry.accountCodes,
+        accountNames: entry.accountNames
+      }))
+    )
+  ]);
+
   const filteredCoa = useMemo(() => {
     const q = coaSearch.trim().toLowerCase();
     const incomeFirst = (acc) => {
@@ -291,12 +398,119 @@ const FinancialReportingNotes = ({ context = null }) => {
     return matched.sort((a, b) => incomeFirst(a) - incomeFirst(b)).slice(0, 100);
   }, [coaList, coaSearch]);
 
+  const filteredAddCoa = useMemo(() => {
+    const q = addCoaSearch.trim().toLowerCase();
+    const incomeFirst = (acc) => {
+      const code = String(acc.account_code || '');
+      return /^[3456]/.test(code) ? 0 : 1;
+    };
+    const matched = !q
+      ? [...coaList]
+      : coaList.filter((acc) => {
+          const code = String(acc.account_code || '').toLowerCase();
+          const name = String(acc.description || '').toLowerCase();
+          const type = String(acc.account_type || '').toLowerCase();
+          return code.includes(q) || name.includes(q) || type.includes(q);
+        });
+    return matched.sort((a, b) => incomeFirst(a) - incomeFirst(b)).slice(0, 100);
+  }, [coaList, addCoaSearch]);
+
   const toggleDraftAccount = (code) => {
     const key = String(code || '').trim();
     if (!key) return;
     setDraftAccountCodes((prev) =>
       prev.includes(key) ? prev.filter((c) => c !== key) : [...prev, key]
     );
+  };
+
+  const toggleAddAccount = (code) => {
+    const key = String(code || '').trim();
+    if (!key) return;
+    const existing = new Set(addAccountsTarget?.existingCodes || []);
+    if (existing.has(key)) return;
+    setAddAccountCodes((prev) =>
+      prev.includes(key) ? prev.filter((c) => c !== key) : [...prev, key]
+    );
+  };
+
+  const closeAddAccountsModal = () => {
+    setAddAccountsTarget(null);
+    setAddAccountCodes([]);
+    setAddCoaSearch('');
+  };
+
+  const handleOpenAddAccounts = (target) => {
+    if (!target) return;
+    setAddAccountsTarget(target);
+    setAddAccountCodes([]);
+    setAddCoaSearch('');
+    setRibbonTab('home');
+  };
+
+  const handleConfirmAddAccounts = () => {
+    if (!selectedNoteId || !addAccountsTarget || !addAccountCodes.length) return;
+
+    const selectedAccounts = coaList.filter((acc) =>
+      addAccountCodes.includes(String(acc.account_code || '').trim())
+    );
+    const newCodes = [...addAccountCodes];
+    const newNames = selectedAccounts.map((acc) =>
+      String(acc.description || acc.account_name || '').trim()
+    );
+
+    if (addAccountsTarget.kind === 'custom') {
+      const rowId = addAccountsTarget.rowKey;
+      setCustomRowsByNote((prev) => ({
+        ...prev,
+        [selectedNoteId]: (prev[selectedNoteId] || []).map((row) => {
+          if (row.id !== rowId) return row;
+          const mergedCodes = [...(row.accountCodes || [])];
+          const mergedNames = [...(row.accountNames || [])];
+          newCodes.forEach((code, i) => {
+            if (mergedCodes.includes(code)) return;
+            mergedCodes.push(code);
+            mergedNames.push(newNames[i] || code);
+          });
+          return {
+            ...row,
+            accountCodes: mergedCodes,
+            accountNames: mergedNames
+          };
+        })
+      }));
+    } else {
+      const rowKey = addAccountsTarget.rowKey;
+      setExtraAccountsByNote((prev) => {
+        const noteMap = prev[selectedNoteId] || {};
+        const existing = noteMap[rowKey] || {
+          accountCodes: [],
+          accountNames: [],
+          current: 0,
+          prior: 0,
+          accountDetails: []
+        };
+        const mergedCodes = [...(existing.accountCodes || [])];
+        const mergedNames = [...(existing.accountNames || [])];
+        newCodes.forEach((code, i) => {
+          if (mergedCodes.includes(code)) return;
+          mergedCodes.push(code);
+          mergedNames.push(newNames[i] || code);
+        });
+        return {
+          ...prev,
+          [selectedNoteId]: {
+            ...noteMap,
+            [rowKey]: {
+              ...existing,
+              accountCodes: mergedCodes,
+              accountNames: mergedNames
+            }
+          }
+        };
+      });
+    }
+
+    closeAddAccountsModal();
   };
 
   const handleAddCustomRow = async () => {
@@ -383,6 +597,57 @@ const FinancialReportingNotes = ({ context = null }) => {
       ...prev,
       [selectedNoteId]: (prev[selectedNoteId] || []).filter((r) => r.id !== rowId)
     }));
+    const signKey = `c:${rowId}`;
+    setRowSignsByNote((prev) => {
+      const noteMap = prev[selectedNoteId];
+      if (!noteMap || noteMap[signKey] == null) return prev;
+      const next = { ...noteMap };
+      delete next[signKey];
+      return { ...prev, [selectedNoteId]: next };
+    });
+  };
+
+  const handleRemoveAutoRow = (rowKey) => {
+    const key = String(rowKey || '').trim();
+    if (!selectedNoteId || !key) return;
+    setRemovedAutoKeysByNote((prev) => {
+      const existing = prev[selectedNoteId] || [];
+      if (existing.includes(key)) return prev;
+      return {
+        ...prev,
+        [selectedNoteId]: [...existing, key]
+      };
+    });
+    setExtraAccountsByNote((prev) => {
+      const noteMap = prev[selectedNoteId];
+      if (!noteMap || !noteMap[key]) return prev;
+      const next = { ...noteMap };
+      delete next[key];
+      return { ...prev, [selectedNoteId]: next };
+    });
+    setRowSignsByNote((prev) => {
+      const noteMap = prev[selectedNoteId];
+      if (!noteMap || noteMap[key] == null) return prev;
+      const next = { ...noteMap };
+      delete next[key];
+      return { ...prev, [selectedNoteId]: next };
+    });
+  };
+
+  const handleToggleRowSign = (rowKey) => {
+    const key = String(rowKey || '').trim();
+    if (!selectedNoteId || !key) return;
+    setRowSignsByNote((prev) => {
+      const noteMap = prev[selectedNoteId] || {};
+      const current = noteMap[key] === -1 ? -1 : 1;
+      return {
+        ...prev,
+        [selectedNoteId]: {
+          ...noteMap,
+          [key]: current === -1 ? 1 : -1
+        }
+      };
+    });
   };
 
   return (
@@ -610,7 +875,13 @@ const FinancialReportingNotes = ({ context = null }) => {
                 loading={loading}
                 error={loadError}
                 customRows={sessionCustomRows}
+                removedAutoKeys={sessionRemovedAutoKeys}
+                extraAccountsByKey={sessionExtraAccountsByKey}
+                rowSignsByKey={sessionRowSignsByKey}
                 onRemoveCustomRow={handleRemoveCustomRow}
+                onRemoveAutoRow={handleRemoveAutoRow}
+                onAddAccounts={handleOpenAddAccounts}
+                onToggleRowSign={handleToggleRowSign}
                 onRetry={() => {
                   setLoadError('');
                   setReloadToken((n) => n + 1);
@@ -627,6 +898,104 @@ const FinancialReportingNotes = ({ context = null }) => {
         ) : (
           <p className="nts-hint">Select a note tab to open its disclosure.</p>
         )}
+
+        {addAccountsTarget ? (
+          <div className="frn-accounts-overlay" role="presentation" onClick={closeAddAccountsModal}>
+            <div
+              className="frn-accounts-modal frn-add-accounts-modal"
+              role="dialog"
+              aria-modal="true"
+              aria-label="Add accounts"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="frn-accounts-modal-head">
+                <div>
+                  <p className="frn-accounts-modal-eyebrow">Add accounts</p>
+                  <h3 className="frn-accounts-modal-title">{addAccountsTarget.title}</h3>
+                </div>
+                <button
+                  type="button"
+                  className="frn-accounts-modal-close"
+                  onClick={closeAddAccountsModal}
+                >
+                  Close
+                </button>
+              </div>
+              <div className="frn-accounts-modal-body">
+                <p className="nts-insert-hint">
+                  Session only — new Combined TB amounts are added to this description.
+                </p>
+                <label className="nts-insert-field">
+                  Search accounts
+                  <input
+                    type="search"
+                    value={addCoaSearch}
+                    onChange={(e) => setAddCoaSearch(e.target.value)}
+                    placeholder="Code or name"
+                  />
+                </label>
+                {coaError ? <p className="nts-insert-error">{coaError}</p> : null}
+                {coaLoading ? (
+                  <p className="nts-insert-hint">Loading chart of accounts…</p>
+                ) : (
+                  <div className="nts-insert-coa-list" role="listbox" aria-label="Add chart of accounts">
+                    {filteredAddCoa.length === 0 ? (
+                      <p className="nts-insert-hint">No accounts match your search.</p>
+                    ) : (
+                      filteredAddCoa.map((acc) => {
+                        const code = String(acc.account_code || '').trim();
+                        const name = String(
+                          acc.description || acc.account_name || 'Account'
+                        ).trim();
+                        const alreadyLinked = (addAccountsTarget.existingCodes || []).includes(
+                          code
+                        );
+                        const checked = alreadyLinked || addAccountCodes.includes(code);
+                        return (
+                          <label
+                            key={code || acc.id}
+                            className={`nts-insert-coa-item${checked ? ' is-checked' : ''}${
+                              alreadyLinked ? ' is-linked' : ''
+                            }`}
+                          >
+                            <input
+                              type="checkbox"
+                              checked={checked}
+                              disabled={alreadyLinked}
+                              onChange={() => toggleAddAccount(code)}
+                            />
+                            <span className="nts-insert-coa-item-text">
+                              <span className="nts-insert-coa-code">{code || '—'}</span>
+                              <span className="nts-insert-coa-name">
+                                {name}
+                                {alreadyLinked ? ' · already linked' : ''}
+                              </span>
+                            </span>
+                          </label>
+                        );
+                      })
+                    )}
+                  </div>
+                )}
+                <div className="nts-insert-actions">
+                  <span className="nts-insert-hint">
+                    {addAccountCodes.length
+                      ? `${addAccountCodes.length} new account(s) selected`
+                      : 'Select one or more new accounts'}
+                  </span>
+                  <button
+                    type="button"
+                    className="nts-insert-add"
+                    disabled={!addAccountCodes.length}
+                    onClick={handleConfirmAddAccounts}
+                  >
+                    Add to description
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        ) : null}
       </div>
     </div>
   );
