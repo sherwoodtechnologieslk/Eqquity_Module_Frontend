@@ -2295,6 +2295,19 @@ export const otherTransactionTypeAPI = {
   }
 };
 
+// API service for Financial Notes default account mappings
+export const financialNotesAPI = {
+  getMappings: async (noteId) => {
+    const queryParams = new URLSearchParams({
+      noteId: String(noteId || '').trim(),
+      _ts: Date.now().toString()
+    });
+    return makeAuthenticatedRequest(
+      `${API_BASE_URL}/financial-notes/mappings?${queryParams.toString()}`
+    );
+  }
+};
+
 // API service for Trial Balance operations
 export const trialBalanceAPI = {
   // Get Trial Balance data

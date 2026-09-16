@@ -1,7 +1,8 @@
-import { financialPositionAPI, profitLossAPI, portfolioAPI } from '../services/api';
+import { financialPositionAPI, profitLossAPI, portfolioAPI, financialNotesAPI } from '../services/api';
 import { listCategories } from '../components/FixedAssets/fixedAssetStore';
 import { buildNotePeriods, buildPpeNotePeriods } from './financialNotePeriods';
 import { getNoteById } from './financialNotesRegistry';
+import { resolveCustomNoteRows } from './resolveCustomNoteRows';
 
 const normalizeText = (value) =>
   String(value || '')
@@ -37,74 +38,115 @@ const makeAccountRef = (code, name, signedAmount, balanceType) => {
   };
 };
 
-const NOTE3_INCOME_RE = /capital gain|treasury|interest|bond|bill|gsec|coupon|accrued|share trading/;
+/** Fixed Note 3 Revenue descriptions (fallback if backend mappings unavailable). */
+const NOTE3_REVENUE_DESCRIPTIONS = [
+  'Capital Gain on Treasury Bonds',
+  'Capital Gain on Treasury Bills',
+  'Accrued Interest income on Treasury Bonds & Bills'
+];
 
-const flattenAccountList = (accounts) => {
-  const rows = [];
-  (accounts || []).forEach((acc) => {
-    const balance = Number(acc.balance) || 0;
-    if (Math.abs(balance) < 0.005) return;
-    const code = String(acc.account_code || acc.accountCode || '').trim();
-    const name = String(
-      acc.account_name || acc.accountName || acc.description || code || '-'
-    ).trim();
-    rows.push({
-      label: name || code || '-',
-      amount: balance,
-      accounts: [
-        makeAccountRef(code, name || code || '-', balance, acc.balance_type || acc.balanceType)
-      ]
-    });
+/** Fixed Note 4 Other Income descriptions (fallback if backend mappings unavailable). */
+const NOTE4_OTHER_INCOME_DESCRIPTIONS = [
+  'Interest income on repo investment',
+  'Sundry Income',
+  'Interest Income-Other',
+  'Dividend Income',
+  'Other Income Profit on share trading'
+];
+
+/**
+ * Fixed-description comparative notes (e.g. Note 3 / 4).
+ * Descriptions + optional account codes from backend; amounts from Combined TB.
+ */
+const loadMappedComparativeNote = async (noteId, fallbackDescriptions, periods) => {
+  let mappedLines = (fallbackDescriptions || []).map((description) => ({
+    description,
+    accountCodes: [],
+    accounts: []
+  }));
+
+  try {
+    const resp = await financialNotesAPI.getMappings(noteId);
+    if (resp?.success && Array.isArray(resp.lines) && resp.lines.length) {
+      mappedLines = resp.lines.map((line) => ({
+        description: line.description,
+        accountCodes: line.accountCodes || [],
+        accounts: line.accounts || []
+      }));
+    }
+  } catch (err) {
+    console.warn(
+      `Financial note mappings unavailable for ${noteId}; using fallback descriptions:`,
+      err?.message || err
+    );
+  }
+
+  const defs = mappedLines.map((line, idx) => ({
+    id: `${noteId}-${idx}`,
+    label: line.description,
+    accountCodes: line.accountCodes || [],
+    accountNames: (line.accounts || []).map((a) => a.name || a.code || '')
+  }));
+
+  let resolved = defs.map((d) => ({
+    ...d,
+    current: 0,
+    prior: 0,
+    accountDetails: []
+  }));
+
+  try {
+    resolved = await resolveCustomNoteRows(defs, periods);
+  } catch (err) {
+    console.warn(
+      `Could not resolve Combined TB amounts for ${noteId} mappings:`,
+      err?.message || err
+    );
+  }
+
+  const rows = mappedLines.map((line, idx) => {
+    const hit = resolved[idx] || {};
+    const backendAccounts = line.accounts || [];
+    const details = hit.accountDetails || [];
+    const accounts =
+      details.length > 0
+        ? details.map((d, i) => ({
+            code: d.code || backendAccounts[i]?.code || '',
+            name: d.name || backendAccounts[i]?.name || d.code || '',
+            currentAmount: d.currentAmount,
+            currentSide: d.currentSide,
+            priorAmount: d.priorAmount,
+            priorSide: d.priorSide
+          }))
+        : (line.accountCodes || []).map((code, i) => ({
+            code,
+            name: backendAccounts[i]?.name || code,
+            currentAmount: 0,
+            currentSide: '',
+            priorAmount: 0,
+            priorSide: ''
+          }));
+
+    return {
+      label: line.description,
+      current: Number(hit.current) || 0,
+      prior: Number(hit.prior) || 0,
+      accounts
+    };
   });
-  return rows;
+
+  return {
+    template: 'comparative',
+    rows,
+    total: sumComparative(rows)
+  };
 };
 
-/** Flatten P&L category map (or account array) into rows with label + signed balance. */
-const flattenPlAccounts = (byCategory) => {
-  if (!byCategory) return [];
-  if (Array.isArray(byCategory)) return flattenAccountList(byCategory);
-  if (typeof byCategory !== 'object') return [];
-  return flattenAccountList(Object.values(byCategory).flat());
-};
+const loadRevenueNoteTemplate = (periods) =>
+  loadMappedComparativeNote('note-3', NOTE3_REVENUE_DESCRIPTIONS, periods);
 
-const rowsFromPlBucket = (byCategory, accounts) => {
-  const fromCategory = flattenPlAccounts(byCategory);
-  return fromCategory.length ? fromCategory : flattenAccountList(accounts);
-};
-
-const flattenUnrealized = (plData) =>
-  (plData?.unrealizedCapitalGains || [])
-    .map((row) => {
-      const code = String(row.account_code || row.accountCode || '').trim();
-      const name = String(
-        row.description || row.account_name || row.accountName || 'Unrealized Capital Gain/Loss'
-      ).trim();
-      const amount = Number(row.amount) || 0;
-      return {
-        label: name,
-        amount,
-        accounts: [makeAccountRef(code, name, amount, row.balance_type || row.balanceType)]
-      };
-    })
-    .filter((row) => Math.abs(row.amount) >= 0.005);
-
-const isNote3IncomeLabel = (label) => NOTE3_INCOME_RE.test(normalizeText(label));
-
-const rowsForRevenueNote = (plData) => {
-  const revenue = rowsFromPlBucket(plData?.revenueByCategory, plData?.revenueAccounts);
-  const otherIncome = rowsFromPlBucket(plData?.otherIncomeByCategory, plData?.otherIncomeAccounts);
-  const matchedOther = otherIncome.filter((row) => isNote3IncomeLabel(row.label));
-  const unrealized = flattenUnrealized(plData);
-  const combined = [...revenue, ...matchedOther, ...unrealized];
-  if (combined.length) return combined;
-  return [...otherIncome, ...unrealized];
-};
-
-const rowsForOtherIncomeNote = (plData) => {
-  const otherIncome = rowsFromPlBucket(plData?.otherIncomeByCategory, plData?.otherIncomeAccounts);
-  const remainder = otherIncome.filter((row) => !isNote3IncomeLabel(row.label));
-  return remainder.length ? remainder : otherIncome;
-};
+const loadOtherIncomeNoteTemplate = (periods) =>
+  loadMappedComparativeNote('note-4', NOTE4_OTHER_INCOME_DESCRIPTIONS, periods);
 
 const filterExpenseRows = (plData, predicate) => {
   const byCategory = plData?.expensesByCategory || {};
@@ -591,14 +633,6 @@ const loadPlComparative = async (noteConfig, periods, portfolioId) => {
   let priorRows = [];
 
   switch (noteConfig.plSource) {
-    case 'revenue':
-      currentRows = rowsForRevenueNote(cur);
-      priorRows = rowsForRevenueNote(pri);
-      break;
-    case 'otherIncome':
-      currentRows = rowsForOtherIncomeNote(cur);
-      priorRows = rowsForOtherIncomeNote(pri);
-      break;
     case 'financeCost':
       currentRows = filterExpenseRows(cur, (c) => normalizeText(c).includes('finance'));
       priorRows = filterExpenseRows(pri, (c) => normalizeText(c).includes('finance'));
@@ -846,8 +880,8 @@ const loadFvtplEquityNote = async (periods, portfolioId) => {
 };
 
 const NOTE_LOADERS = {
-  'note-3': (p, id) => loadPlComparative({ plSource: 'revenue' }, p, id),
-  'note-4': (p, id) => loadPlComparative({ plSource: 'otherIncome' }, p, id),
+  'note-3': (p) => loadRevenueNoteTemplate(p),
+  'note-4': (p) => loadOtherIncomeNoteTemplate(p),
   'note-5': (p, id) => loadPlComparative({ plSource: 'financeCost' }, p, id),
   'note-6': (p, id) => loadPlComparative({ plSource: 'incomeTax' }, p, id),
   'note-7': (p, id) => loadPpeNoteFromSofp(p, id),

@@ -305,25 +305,36 @@ const TransactionDetailsModal = ({ transaction, onClose, onSave }) => {
 
   return (
     <div className="transaction-details-overlay" onClick={!isEditing ? onClose : undefined}>
-      <div className="transaction-details-modal" onClick={e => e.stopPropagation()}>
-        <div className="transaction-details-header">
+      <div
+        className={`transaction-details-modal ${isBuy ? 'is-buy' : 'is-sell'}`}
+        onClick={e => e.stopPropagation()}
+      >
+        <header className="transaction-details-header">
           <div className="transaction-details-title-section">
-            <div className={`transaction-details-type-badge ${transactionType.toLowerCase()}`}>
+            <span className={`transaction-details-type-badge ${transactionType.toLowerCase()}`}>
               {transactionType}
+            </span>
+            <div className="transaction-details-heading">
+              <p className="transaction-details-eyebrow">
+                Trade Capture · {isBuy ? 'Buy' : 'Sell'}
+              </p>
+              <h2 className="transaction-details-title">
+                {isEditing ? 'Edit Transaction' : 'Transaction Details'}
+              </h2>
+              {formData.deal_number ? (
+                <span className="transaction-details-deal">{formData.deal_number}</span>
+              ) : null}
             </div>
-            <h2 className="transaction-details-title">
-              {isEditing ? 'Edit Transaction' : 'Transaction Details'}
-            </h2>
           </div>
           {!isEditing && (
-            <button className="transaction-details-close" onClick={onClose}>
+            <button className="transaction-details-close" onClick={onClose} aria-label="Close">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <line x1="18" y1="6" x2="6" y2="18" />
                 <line x1="6" y1="6" x2="18" y2="18" />
               </svg>
             </button>
           )}
-        </div>
+        </header>
 
         <div className="transaction-details-body">
           {error && (

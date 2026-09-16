@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import './Styles/BuyTransactionEntry.css';
 import TransactionModal from './TransactionModal';
 import PaymentMethodModal from './PaymentMethodModal';
@@ -175,6 +175,9 @@ const BuyTransactionEntry = () => {
 
   const [showListView, setShowListView] = useState(false);
   const [showEquitySelector, setShowEquitySelector] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [notice, setNotice] = useState(null);
+  const savingRef = useRef(false);
 
   // Function to regenerate deal number
   const regenerateDealNumber = async () => {
@@ -824,15 +827,34 @@ const BuyTransactionEntry = () => {
 
   // Handle equity selection from modal
   const handleEquitySelect = (equity) => {
-    setForm(prev => ({
-      ...prev,
-      companyName: equity.name,
-      symbol: equity.symbol
-    }));
+    const companyName = equity.name || '';
+    setForm(prev => {
+      const previousAutoDescription = prev.companyName
+        ? `Purchase ${prev.companyName} shares`
+        : '';
+      const shouldFillDescription =
+        !prev.description.trim() || prev.description.trim() === previousAutoDescription;
+
+      return {
+        ...prev,
+        companyName,
+        symbol: equity.symbol,
+        description: shouldFillDescription
+          ? `Purchase ${companyName} shares`
+          : prev.description
+      };
+    });
   };
+
+  const showNotice = (type, title, message) => {
+    setNotice({ type, title, message });
+  };
+
+  const closeNotice = () => setNotice(null);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (savingRef.current) return;
 
     // Required fields validation
     const requiredFields = [
@@ -843,7 +865,11 @@ const BuyTransactionEntry = () => {
     const missingFields = requiredFields.filter(field => !form[field].toString().trim());
 
     if (missingFields.length > 0) {
-      alert(`Please fill in all required fields:\n- ${missingFields.join('\n- ')}`);
+      showNotice(
+        'error',
+        'Missing required fields',
+        `Please fill in all required fields:\n- ${missingFields.join('\n- ')}`
+      );
       return;
     }
 
@@ -860,6 +886,9 @@ const BuyTransactionEntry = () => {
       validateDateField('settlementDate', form.settlementDate); // Show error message
       return;
     }
+
+    savingRef.current = true;
+    setSaving(true);
 
     const today = getToday();
     const submitForm = {
@@ -907,18 +936,27 @@ const BuyTransactionEntry = () => {
       const result = await transactionEntryAPI.saveBuyTransaction(submitForm);
       console.log('Save transaction result:', result);
       if (result && (result.warning || result.accountingError) && !result.glPosted) {
-        alert(
-          `Buy Transaction saved (ID: ${result.transactionId || result.id}), but trade-date GL could NOT be posted.\n\nReason: ${result.accountingError || result.warning}\n\nGo to Trade Confirmation → Post Entries to post GL manually.`
+        showNotice(
+          'warning',
+          'Transaction saved',
+          `Buy transaction saved (ID: ${result.transactionId || result.id}), but trade-date GL could not be posted.\n\nReason: ${result.accountingError || result.warning}\n\nGo to Trade Confirmation → Post Entries to post GL manually.`
         );
       } else if (result && result.glPosted === false && result.message) {
-        alert(`${result.message}\n\nGo to Trade Confirmation → Post Entries to post trade-date GL.`);
+        showNotice(
+          'warning',
+          'Transaction saved',
+          `${result.message}\n\nGo to Trade Confirmation → Post Entries to post trade-date GL.`
+        );
       } else if (result && result.glPosted) {
-        alert(`Buy Transaction saved and trade-date GL posted successfully (ID: ${result.transactionId || result.id}).`);
+        showNotice(
+          'success',
+          'Transaction saved',
+          `Buy transaction saved and trade-date GL posted successfully (ID: ${result.transactionId || result.id}).`
+        );
       } else {
-        alert('Buy Transaction submitted successfully!');
+        showNotice('success', 'Transaction saved', 'Buy transaction submitted successfully.');
       }
-      handleReset();
-      // Generate new deal number for next transaction
+      await handleReset();
       const newDealNumber = await generateDealNumber();
       setForm(prev => ({ ...prev, dealNumber: newDealNumber }));
     } catch (err) {
@@ -928,7 +966,10 @@ const BuyTransactionEntry = () => {
         status: err.status,
         response: err.response
       });
-      alert(`Failed to save transaction: ${err.message || 'Unknown error'}`);
+      showNotice('error', 'Save failed', `Failed to save transaction: ${err.message || 'Unknown error'}`);
+    } finally {
+      savingRef.current = false;
+      setSaving(false);
     }
   };
 
@@ -1556,14 +1597,17 @@ const BuyTransactionEntry = () => {
                 type="button"
                 onClick={handleReset}
                 className="buy-btn buy-btn-secondary"
+                disabled={saving}
               >
                 Reset Form
               </button>
               <button
                 type="submit"
                 className="buy-btn buy-btn-primary"
+                disabled={saving}
+                aria-busy={saving}
               >
-                Save Transaction
+                {saving ? 'Saving…' : 'Save Transaction'}
               </button>
             </div>
           </form>
@@ -1595,6 +1639,28 @@ const BuyTransactionEntry = () => {
             onSelect={handleEquitySelect}
             selectedEquity={equities.find(eq => eq.name === form.companyName)}
           />
+        )}
+
+        {notice && (
+          <div className="buy-notice-overlay" onClick={closeNotice} role="presentation">
+            <div
+              className={`buy-notice-card buy-notice-card--${notice.type}`}
+              role="alertdialog"
+              aria-modal="true"
+              aria-labelledby="buy-notice-title"
+              aria-describedby="buy-notice-message"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className={`buy-notice-icon buy-notice-icon--${notice.type}`} aria-hidden>
+                {notice.type === 'error' ? '!' : notice.type === 'warning' ? '!' : '✓'}
+              </div>
+              <h3 id="buy-notice-title" className="buy-notice-title">{notice.title}</h3>
+              <p id="buy-notice-message" className="buy-notice-message">{notice.message}</p>
+              <button type="button" className="buy-btn buy-btn-primary" onClick={closeNotice}>
+                OK
+              </button>
+            </div>
+          </div>
         )}
 
       </div>
