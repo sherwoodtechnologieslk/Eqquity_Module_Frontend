@@ -156,6 +156,7 @@
 }
 
 .nts-insert-panel,
+.nts-edit-panel,
 .nts-layout-panel {
   padding: 0.75rem 0.85rem;
   background: #f1f5f9;
@@ -329,6 +330,132 @@
   padding: 0.35rem 0.85rem;
   border-bottom: 1px solid #fecaca;
   background: #fef2f2;
+}
+
+.nts-edit-panel-head {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem 0.75rem;
+  align-items: baseline;
+  margin-bottom: 0.55rem;
+}
+
+.nts-edit-panel-head strong {
+  font-size: 0.8125rem;
+  color: #0f172a;
+}
+
+.nts-edit-panel-head span {
+  font-size: 0.72rem;
+  color: #64748b;
+}
+
+.nts-edit-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 0.65rem 1rem;
+}
+
+.nts-edit-group {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.nts-edit-group--save {
+  margin-left: auto;
+}
+
+.nts-edit-group-label {
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #64748b;
+  margin-right: 0.15rem;
+}
+
+.nts-edit-btn {
+  appearance: none;
+  border: 1px solid #cbd5e1;
+  background: #ffffff;
+  color: #0f172a;
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 0.28rem 0.55rem;
+  border-radius: 4px;
+  cursor: pointer;
+  font-family: inherit;
+}
+
+.nts-edit-btn:hover:not(:disabled) {
+  border-color: #94a3b8;
+  background: #f8fafc;
+}
+
+.nts-edit-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.nts-edit-btn.is-active {
+  border-color: #334155;
+  background: #e2e8f0;
+}
+
+.nts-edit-group--history .nts-edit-group-label {
+  color: #0f766e;
+}
+
+.nts-edit-btn--history {
+  border-color: #0f766e;
+  background: #0f766e;
+  color: #ffffff;
+  font-size: 0.68rem;
+  padding: 0.18rem 0.42rem;
+}
+
+.nts-edit-btn--history:hover:not(:disabled) {
+  border-color: #0d9488;
+  background: #0d9488;
+  color: #ffffff;
+}
+
+.nts-edit-btn--history:disabled {
+  border-color: #99f6e4;
+  background: #99f6e4;
+  color: #ffffff;
+  opacity: 1;
+}
+
+.nts-edit-save {
+  appearance: none;
+  border: 1px solid #0f172a;
+  background: #0f172a;
+  color: #ffffff;
+  font-size: 0.75rem;
+  font-weight: 700;
+  padding: 0.32rem 0.85rem;
+  border-radius: 4px;
+  cursor: pointer;
+  font-family: inherit;
+}
+
+.nts-edit-save:hover:not(:disabled) {
+  background: #1e293b;
+}
+
+.nts-edit-save:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.nts-edit-hint {
+  margin: 0.55rem 0 0;
+  font-size: 0.72rem;
+  color: #64748b;
 }
 
 .nts-layout-panel {
@@ -995,6 +1122,65 @@
   font-weight: 500;
 }
 
+.nts-page .frn-sheet-fmt-bold,
+.nts-page .frn-sheet-fmt-bold.frn-sheet-edit-input {
+  font-weight: 700;
+  font-style: normal;
+}
+
+.nts-page .frn-sheet-fmt-italic,
+.nts-page .frn-sheet-fmt-italic.frn-sheet-edit-input {
+  font-weight: 500;
+  font-style: italic;
+}
+
+.nts-page .frn-sheet-fmt-normal,
+.nts-page .frn-sheet-fmt-normal.frn-sheet-edit-input {
+  font-weight: 500;
+  font-style: normal;
+}
+
+.nts-page .frn-sheet-wrap.is-edit-mode .frn-sheet-line {
+  cursor: pointer;
+}
+
+.nts-page .frn-sheet-line.is-edit-selected > td,
+.nts-page .frn-sheet-th-extra.is-edit-selected,
+.nts-page .frn-sheet-extra-cell.is-edit-selected {
+  background: #eff6ff;
+  outline: 1px solid #93c5fd;
+  outline-offset: -1px;
+}
+
+.nts-page .frn-sheet-edit-input {
+  width: 100%;
+  box-sizing: border-box;
+  border: 1px solid transparent;
+  background: transparent;
+  font: inherit;
+  font-size: inherit;
+  color: inherit;
+  padding: 0.1rem 0.2rem;
+  border-radius: 2px;
+}
+
+.nts-page .frn-sheet-edit-input:focus {
+  outline: none;
+  border-color: #94a3b8;
+  background: #ffffff;
+}
+
+.nts-page .frn-sheet-edit-input--label {
+  display: block;
+  width: 100%;
+  text-align: left;
+}
+
+.nts-page .frn-sheet-edit-input--header {
+  text-align: right;
+  font-weight: 600;
+}
+
 .nts-page .frn-sheet-custom-meta {
   font-size: 0.68rem;
   color: #64748b;
@@ -1305,6 +1491,44 @@
   font-weight: 600;
   padding-top: 0.75rem;
   background: #fff;
+}
+
+.nts-page .frn-sheet-wrap--recon {
+  margin-top: 1.25rem;
+}
+
+.nts-page .frn-sheet-heading-row td {
+  border: none;
+  padding: 0.85rem 0.5rem 0.45rem;
+}
+
+.nts-page .frn-sheet-heading-cell {
+  text-align: left;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.nts-page .frn-sheet-section-row .frn-sheet-section {
+  font-weight: 650;
+  color: #1e293b;
+}
+
+.nts-page .frn-sheet-label.is-indent-1 {
+  padding-left: 1.25rem;
+}
+
+.nts-page .frn-sheet-label.is-indent-2 {
+  padding-left: 2rem;
+}
+
+.nts-page .frn-sheet-total-line td {
+  font-weight: 650;
+  background: #f1f5f9;
+}
+
+.nts-page .frn-sheet-total-line .frn-sheet-label {
+  font-weight: 650;
 }
 
 .nts-page .frn-sheet-empty {

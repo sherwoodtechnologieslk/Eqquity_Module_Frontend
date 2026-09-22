@@ -1,4 +1,14 @@
 import React, { useState } from 'react';
+import {
+  autoRowKey,
+  customRowKey,
+  editRowKey,
+  formatClassName,
+  getLayoutCell,
+  getRowFormat,
+  isRowHidden,
+  resolveRowLabel
+} from '../../utils/noteLayoutEdit';
 
 const formatNoteAmount = (value, fractionDigits = 2) => {
   const n = Number(value);
@@ -36,7 +46,7 @@ const dash = (value) => {
 };
 
 const ppeSectionKey = (section) =>
-  String(section.accountCode || section.categoryName || '').trim();
+  String(section.categoryId || section.accountCode || section.categoryName || '').trim();
 
 const RowActions = ({
   title,
@@ -147,23 +157,118 @@ const ppeRowLabel = (section, { onViewAccounts, onRemove } = {}) => {
 
   return (
     <span className="frn-excel-label-inner">
-      {section.accountCode ? (
-        <>
-          <span className="frn-excel-code">{section.accountCode}</span>
-          <span className="frn-excel-name">{section.categoryName}</span>
-        </>
-      ) : (
-        <span className="frn-excel-name">{section.categoryName}</span>
-      )}
+      <span className="frn-excel-name">{section.categoryName}</span>
       <RowActions
         title={title}
         accounts={accounts}
         onViewAccounts={onViewAccounts}
         onRemove={onRemove}
-        removeTitle="Remove this auto-generated line"
+        removeTitle="Remove this category from the note"
       />
     </span>
   );
+};
+
+const ExtraColumnHeads = ({
+  columns = [],
+  editMode = false,
+  selectedColId = null,
+  onSelectCol,
+  onChangeColumnHeader
+}) =>
+  columns.map((col) => (
+    <th
+      key={col.id}
+      className={`frn-sheet-th-num frn-sheet-th-extra${
+        editMode && selectedColId === col.id ? ' is-edit-selected' : ''
+      }`}
+      onClick={
+        editMode && typeof onSelectCol === 'function'
+          ? (e) => {
+              e.stopPropagation();
+              onSelectCol(col.id);
+            }
+          : undefined
+      }
+    >
+      {editMode && typeof onChangeColumnHeader === 'function' ? (
+        <input
+          type="text"
+          className="frn-sheet-edit-input frn-sheet-edit-input--header"
+          value={col.header || ''}
+          placeholder="Column"
+          onChange={(e) => onChangeColumnHeader(col.id, e.target.value)}
+          onClick={(e) => e.stopPropagation()}
+        />
+      ) : (
+        <>
+          <span className="frn-sheet-period">{col.header || ''}</span>
+          {col.header ? <span className="frn-sheet-unit">LKR</span> : null}
+        </>
+      )}
+    </th>
+  ));
+
+const ExtraColumnCells = ({
+  columns = [],
+  rowKey,
+  layoutEdit,
+  editMode = false,
+  selectedColId = null,
+  onSelectCol,
+  onChangeCell,
+  formatCls = ''
+}) =>
+  columns.map((col) => {
+    const value = getLayoutCell(layoutEdit, rowKey, col.id);
+    return (
+      <td
+        key={col.id}
+        className={`frn-sheet-num frn-sheet-extra-cell${
+          editMode && selectedColId === col.id ? ' is-edit-selected' : ''
+        }`}
+        onClick={
+          editMode && typeof onSelectCol === 'function'
+            ? (e) => {
+                e.stopPropagation();
+                onSelectCol(col.id);
+              }
+            : undefined
+        }
+      >
+        {editMode && typeof onChangeCell === 'function' ? (
+          <input
+            type="text"
+            className={`frn-sheet-edit-input ${formatCls}`.trim()}
+            value={value}
+            onChange={(e) => onChangeCell(rowKey, col.id, e.target.value)}
+            onClick={(e) => e.stopPropagation()}
+          />
+        ) : (
+          <span className={formatCls}>{value || ''}</span>
+        )}
+      </td>
+    );
+  });
+
+const EditableLabel = ({
+  value,
+  formatCls,
+  editMode,
+  onChange
+}) => {
+  if (editMode && typeof onChange === 'function') {
+    return (
+      <input
+        type="text"
+        className={`frn-sheet-edit-input frn-sheet-edit-input--label ${formatCls}`.trim()}
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        onClick={(e) => e.stopPropagation()}
+      />
+    );
+  }
+  return <span className={`frn-sheet-custom-label ${formatCls}`.trim()}>{value}</span>;
 };
 
 const ComparativeTable = ({
@@ -178,6 +283,16 @@ const ComparativeTable = ({
   removedAutoKeys = [],
   extraAccountsByKey = {},
   rowSignsByKey = {},
+  layoutEdit = null,
+  editMode = false,
+  selectedRowKey = null,
+  selectedColId = null,
+  includeLayoutRows = true,
+  onSelectRow,
+  onSelectCol,
+  onChangeRowLabel,
+  onChangeCell,
+  onChangeColumnHeader,
   onRemoveCustomRow,
   onRemoveAutoRow,
   onViewAccounts,
@@ -185,8 +300,14 @@ const ComparativeTable = ({
   onToggleRowSign
 }) => {
   const removed = new Set(removedAutoKeys || []);
+  const extraColumns = layoutEdit?.extraColumns || [];
+  const colCount = 3 + extraColumns.length;
+  const emptyExtraCells = () =>
+    extraColumns.map((col) => <td key={col.id} className="frn-sheet-num" />);
+
   const autoRows = (rows || [])
     .filter((r) => !removed.has(r.label))
+    .filter((r) => !isRowHidden(layoutEdit, autoRowKey(r.label)))
     .map((row) => {
       const extras = extraAccountsByKey[row.label];
       if (!extras) return row;
@@ -197,8 +318,14 @@ const ComparativeTable = ({
         accounts: mergeAccountLists(row.accounts || [], extras.accountDetails || [])
       };
     });
-  const userRows = customRows || [];
-  const hasAnyRows = autoRows.length > 0 || userRows.length > 0;
+  const userRows = (customRows || []).filter(
+    (r) => !isRowHidden(layoutEdit, customRowKey(r.id))
+  );
+  const layoutAddedRows = includeLayoutRows
+    ? (layoutEdit?.addedRows || []).filter((r) => !isRowHidden(layoutEdit, editRowKey(r.id)))
+    : [];
+  const hasAnyRows =
+    autoRows.length > 0 || userRows.length > 0 || layoutAddedRows.length > 0;
   const autoTotal = autoRows.reduce(
     (s, r) => {
       const sign = getRowSign(rowSignsByKey, r.label);
@@ -249,20 +376,37 @@ const ComparativeTable = ({
       .map((a) => String(a.code || '').trim())
       .filter(Boolean);
 
+  const selectRow = (rowKey) => {
+    if (editMode && typeof onSelectRow === 'function') onSelectRow(rowKey);
+  };
+
+  const rowSelectedClass = (rowKey) =>
+    editMode && selectedRowKey === rowKey ? ' is-edit-selected' : '';
+
   return (
-    <div className="frn-sheet-wrap">
+    <div className={`frn-sheet-wrap${editMode ? ' is-edit-mode' : ''}`}>
       <table className="frn-sheet">
         {heading ? <caption className="frn-sheet-caption">{heading}</caption> : null}
         <colgroup>
           <col className="frn-sheet-col-label" />
           <col className="frn-sheet-col-num" />
           <col className="frn-sheet-col-num" />
+          {extraColumns.map((col) => (
+            <col key={col.id} className="frn-sheet-col-num" />
+          ))}
         </colgroup>
         <thead>
           <tr>
             <th className="frn-sheet-th-label">Description</th>
             <PeriodHead period={periods.current} />
             <PeriodHead period={periods.prior} />
+            <ExtraColumnHeads
+              columns={extraColumns}
+              editMode={editMode}
+              selectedColId={selectedColId}
+              onSelectCol={onSelectCol}
+              onChangeColumnHeader={onChangeColumnHeader}
+            />
           </tr>
         </thead>
         <tbody>
@@ -271,11 +415,12 @@ const ComparativeTable = ({
               <td className="frn-sheet-section">{sectionLabel}</td>
               <td className="frn-sheet-num" />
               <td className="frn-sheet-num" />
+              {emptyExtraCells()}
             </tr>
           ) : null}
           {totalsOnly ? null : !hasAnyRows ? (
             <tr>
-              <td colSpan={3} className="frn-sheet-empty">
+              <td colSpan={colCount} className="frn-sheet-empty">
                 {emptyLabel}
               </td>
             </tr>
@@ -284,47 +429,65 @@ const ComparativeTable = ({
               {autoRows.map((row) => {
                 const accounts = row.accounts || [{ code: '', name: row.label }];
                 const sign = getRowSign(rowSignsByKey, row.label);
+                const rowKey = autoRowKey(row.label);
+                const fmt = getRowFormat(layoutEdit, rowKey);
+                const formatCls = formatClassName(fmt);
+                const label = resolveRowLabel(layoutEdit, rowKey, row.label);
                 return (
                   <tr
                     key={`auto-${row.label}`}
-                    className={`frn-sheet-line${sign < 0 ? ' is-negative-contrib' : ''}`}
+                    className={`frn-sheet-line${sign < 0 ? ' is-negative-contrib' : ''}${rowSelectedClass(
+                      rowKey
+                    )}`}
+                    onClick={() => selectRow(rowKey)}
                   >
                     <td className="frn-sheet-label">
-                      <span className="frn-sheet-custom-label">{row.label}</span>
-                      {accounts.length ? (
+                      <EditableLabel
+                        value={label}
+                        formatCls={formatCls}
+                        editMode={editMode}
+                        onChange={
+                          typeof onChangeRowLabel === 'function'
+                            ? (next) => onChangeRowLabel(rowKey, next)
+                            : undefined
+                        }
+                      />
+                      {!editMode && accounts.length ? (
                         <span className="frn-sheet-custom-meta">
                           {accounts.length} account
                           {accounts.length === 1 ? '' : 's'}
                         </span>
                       ) : null}
-                      <RowActions
-                        title={row.label}
-                        accounts={accounts}
-                        rowSign={sign}
-                        onToggleRowSign={
-                          typeof onToggleRowSign === 'function'
-                            ? () => onToggleRowSign(row.label)
-                            : undefined
-                        }
-                        onViewAccounts={onViewAccounts}
-                        onAddAccounts={
-                          typeof onAddAccounts === 'function'
-                            ? () =>
-                                onAddAccounts({
-                                  kind: 'auto',
-                                  rowKey: row.label,
-                                  title: row.label,
-                                  existingCodes: existingCodesFromAccounts(accounts)
-                                })
-                            : undefined
-                        }
-                        onRemove={
-                          typeof onRemoveAutoRow === 'function'
-                            ? () => onRemoveAutoRow(row.label)
-                            : undefined
-                        }
-                        removeTitle="Remove this auto-generated line"
-                      />
+                      {!editMode ? (
+                        <RowActions
+                          title={row.label}
+                          accounts={accounts}
+                          rowSign={sign}
+                          onToggleRowSign={
+                            typeof onToggleRowSign === 'function'
+                              ? () => onToggleRowSign(row.label)
+                              : undefined
+                          }
+                          onViewAccounts={onViewAccounts}
+                          onAddAccounts={
+                            typeof onAddAccounts === 'function'
+                              ? () =>
+                                  onAddAccounts({
+                                    kind: 'auto',
+                                    rowKey: row.label,
+                                    title: row.label,
+                                    existingCodes: existingCodesFromAccounts(accounts)
+                                  })
+                              : undefined
+                          }
+                          onRemove={
+                            typeof onRemoveAutoRow === 'function'
+                              ? () => onRemoveAutoRow(row.label)
+                              : undefined
+                          }
+                          removeTitle="Remove this auto-generated line"
+                        />
+                      ) : null}
                     </td>
                     <td className="frn-sheet-num">
                       {formatSheetAmount(signedContribution(row.current, sign))}
@@ -332,6 +495,16 @@ const ComparativeTable = ({
                     <td className="frn-sheet-num">
                       {formatSheetAmount(signedContribution(row.prior, sign))}
                     </td>
+                    <ExtraColumnCells
+                      columns={extraColumns}
+                      rowKey={rowKey}
+                      layoutEdit={layoutEdit}
+                      editMode={editMode}
+                      selectedColId={selectedColId}
+                      onSelectCol={onSelectCol}
+                      onChangeCell={onChangeCell}
+                      formatCls={formatCls}
+                    />
                   </tr>
                 );
               })}
@@ -339,16 +512,30 @@ const ComparativeTable = ({
                 const accounts = accountsForCustom(row);
                 const signKey = customSignKey(row.id);
                 const sign = getRowSign(rowSignsByKey, signKey);
+                const rowKey = customRowKey(row.id);
+                const fmt = getRowFormat(layoutEdit, rowKey);
+                const formatCls = formatClassName(fmt);
+                const label = resolveRowLabel(layoutEdit, rowKey, row.label);
                 return (
                   <tr
                     key={`custom-${row.id}`}
                     className={`frn-sheet-line frn-sheet-line--custom${
                       sign < 0 ? ' is-negative-contrib' : ''
-                    }`}
+                    }${rowSelectedClass(rowKey)}`}
+                    onClick={() => selectRow(rowKey)}
                   >
                     <td className="frn-sheet-label">
-                      <span className="frn-sheet-custom-label">{row.label}</span>
-                      {accounts.length ? (
+                      <EditableLabel
+                        value={label}
+                        formatCls={formatCls}
+                        editMode={editMode}
+                        onChange={
+                          typeof onChangeRowLabel === 'function'
+                            ? (next) => onChangeRowLabel(rowKey, next)
+                            : undefined
+                        }
+                      />
+                      {!editMode && accounts.length ? (
                         <span className="frn-sheet-custom-meta">
                           {accounts.length} account
                           {accounts.length === 1 ? '' : 's'}
@@ -358,39 +545,41 @@ const ComparativeTable = ({
                             : ''}
                         </span>
                       ) : null}
-                      <RowActions
-                        title={row.label}
-                        accounts={accounts}
-                        rowSign={sign}
-                        onToggleRowSign={
-                          typeof onToggleRowSign === 'function'
-                            ? () => onToggleRowSign(signKey)
-                            : undefined
-                        }
-                        onViewAccounts={onViewAccounts}
-                        onAddAccounts={
-                          typeof onAddAccounts === 'function'
-                            ? () =>
-                                onAddAccounts({
-                                  kind: 'custom',
-                                  rowKey: row.id,
-                                  title: row.label,
-                                  existingCodes: [
-                                    ...new Set([
-                                      ...(row.accountCodes || []),
-                                      ...existingCodesFromAccounts(accounts)
-                                    ])
-                                  ]
-                                })
-                            : undefined
-                        }
-                        onRemove={
-                          typeof onRemoveCustomRow === 'function'
-                            ? () => onRemoveCustomRow(row.id)
-                            : undefined
-                        }
-                        removeTitle="Remove this description"
-                      />
+                      {!editMode ? (
+                        <RowActions
+                          title={row.label}
+                          accounts={accounts}
+                          rowSign={sign}
+                          onToggleRowSign={
+                            typeof onToggleRowSign === 'function'
+                              ? () => onToggleRowSign(signKey)
+                              : undefined
+                          }
+                          onViewAccounts={onViewAccounts}
+                          onAddAccounts={
+                            typeof onAddAccounts === 'function'
+                              ? () =>
+                                  onAddAccounts({
+                                    kind: 'custom',
+                                    rowKey: row.id,
+                                    title: row.label,
+                                    existingCodes: [
+                                      ...new Set([
+                                        ...(row.accountCodes || []),
+                                        ...existingCodesFromAccounts(accounts)
+                                      ])
+                                    ]
+                                  })
+                              : undefined
+                          }
+                          onRemove={
+                            typeof onRemoveCustomRow === 'function'
+                              ? () => onRemoveCustomRow(row.id)
+                              : undefined
+                          }
+                          removeTitle="Remove this description"
+                        />
+                      ) : null}
                     </td>
                     <td className="frn-sheet-num">
                       {formatSheetAmount(signedContribution(row.current, sign))}
@@ -398,6 +587,55 @@ const ComparativeTable = ({
                     <td className="frn-sheet-num">
                       {formatSheetAmount(signedContribution(row.prior, sign))}
                     </td>
+                    <ExtraColumnCells
+                      columns={extraColumns}
+                      rowKey={rowKey}
+                      layoutEdit={layoutEdit}
+                      editMode={editMode}
+                      selectedColId={selectedColId}
+                      onSelectCol={onSelectCol}
+                      onChangeCell={onChangeCell}
+                      formatCls={formatCls}
+                    />
+                  </tr>
+                );
+              })}
+              {layoutAddedRows.map((row) => {
+                const rowKey = editRowKey(row.id);
+                const fmt = getRowFormat(layoutEdit, rowKey) || row.format || 'normal';
+                const formatCls = formatClassName(fmt);
+                const label =
+                  resolveRowLabel(layoutEdit, rowKey, row.label) || row.label || '';
+                return (
+                  <tr
+                    key={`edit-${row.id}`}
+                    className={`frn-sheet-line frn-sheet-line--edit${rowSelectedClass(rowKey)}`}
+                    onClick={() => selectRow(rowKey)}
+                  >
+                    <td className="frn-sheet-label">
+                      <EditableLabel
+                        value={label}
+                        formatCls={formatCls}
+                        editMode={editMode}
+                        onChange={
+                          typeof onChangeRowLabel === 'function'
+                            ? (next) => onChangeRowLabel(rowKey, next)
+                            : undefined
+                        }
+                      />
+                    </td>
+                    <td className="frn-sheet-num" />
+                    <td className="frn-sheet-num" />
+                    <ExtraColumnCells
+                      columns={extraColumns}
+                      rowKey={rowKey}
+                      layoutEdit={layoutEdit}
+                      editMode={editMode}
+                      selectedColId={selectedColId}
+                      onSelectCol={onSelectCol}
+                      onChangeCell={onChangeCell}
+                      formatCls={formatCls}
+                    />
                   </tr>
                 );
               })}
@@ -411,6 +649,7 @@ const ComparativeTable = ({
             <td className="frn-sheet-num">
               <span>{formatSheetAmount(combinedTotal.prior)}</span>
             </td>
+            {emptyExtraCells()}
           </tr>
         </tbody>
       </table>
@@ -601,7 +840,7 @@ const PpeNote = ({
           {visibleSections.length === 0 ? (
             <tr>
               <td colSpan={5} className="frn-excel-empty">
-                No fixed assets in the register. Add assets under Fixed Assets.
+                No PPE categories configured. Add categories under Fixed Assets.
               </td>
             </tr>
           ) : (
@@ -743,6 +982,15 @@ const CashNote = ({
   removedAutoKeys = [],
   extraAccountsByKey = {},
   rowSignsByKey = {},
+  layoutEdit = null,
+  editMode = false,
+  selectedRowKey = null,
+  selectedColId = null,
+  onSelectRow,
+  onSelectCol,
+  onChangeRowLabel,
+  onChangeCell,
+  onChangeColumnHeader,
   onRemoveCustomRow,
   onRemoveAutoRow,
   onViewAccounts,
@@ -789,26 +1037,36 @@ const CashNote = ({
     removedAutoKeys,
     extraAccountsByKey,
     rowSignsByKey,
+    layoutEdit,
+    editMode,
+    selectedRowKey,
+    selectedColId,
+    onSelectRow,
+    onSelectCol,
+    onChangeRowLabel,
+    onChangeCell,
+    onChangeColumnHeader,
     onRemoveAutoRow,
     onViewAccounts,
     onAddAccounts,
     onToggleRowSign
   };
 
-  const renderBlock = (title, list, blockTotal) => (
+  const renderBlock = (title, list, blockTotal, includeLayoutRows = false) => (
     <ComparativeTable
       periods={periods}
       rows={list}
       total={blockTotal}
       heading={title}
       emptyLabel="-"
+      includeLayoutRows={includeLayoutRows}
       {...shared}
     />
   );
 
   return (
     <>
-      {renderBlock('12.1 Favourable balance', favorable, favTotal)}
+      {renderBlock('12.1 Favourable balance', favorable, favTotal, true)}
       {unfavorable.length > 0
         ? renderBlock('12.2 Unfavourable balance', unfavorable, unfavTotal)
         : null}
@@ -820,6 +1078,16 @@ const CashNote = ({
           heading="User descriptions"
           customRows={customRows}
           rowSignsByKey={rowSignsByKey}
+          layoutEdit={layoutEdit}
+          editMode={editMode}
+          selectedRowKey={selectedRowKey}
+          selectedColId={selectedColId}
+          includeLayoutRows={false}
+          onSelectRow={onSelectRow}
+          onSelectCol={onSelectCol}
+          onChangeRowLabel={onChangeRowLabel}
+          onChangeCell={onChangeCell}
+          onChangeColumnHeader={onChangeColumnHeader}
           onRemoveCustomRow={onRemoveCustomRow}
           onViewAccounts={onViewAccounts}
           onAddAccounts={onAddAccounts}
@@ -841,6 +1109,285 @@ const normalizeCashNegative = (label) =>
   String(label || '')
     .toLowerCase()
     .includes('overdraft');
+
+const IncomeTaxNote = ({
+  periods,
+  rows = [],
+  customRows = [],
+  removedAutoKeys = [],
+  extraAccountsByKey = {},
+  rowSignsByKey = {},
+  layoutEdit = null,
+  editMode = false,
+  selectedRowKey = null,
+  selectedColId = null,
+  onSelectRow,
+  onSelectCol,
+  onChangeRowLabel,
+  onChangeCell,
+  onChangeColumnHeader,
+  onRemoveCustomRow,
+  onRemoveAutoRow,
+  onViewAccounts,
+  onAddAccounts,
+  onToggleRowSign
+}) => {
+  const removed = new Set(removedAutoKeys || []);
+  const extraColumns = layoutEdit?.extraColumns || [];
+  const colCount = 3 + extraColumns.length;
+  const emptyExtraCells = () =>
+    extraColumns.map((col) => <td key={col.id} className="frn-sheet-num" />);
+  const existingCodesFromAccounts = (accounts) =>
+    (accounts || [])
+      .map((a) => String(a.code || '').trim())
+      .filter(Boolean);
+
+  const visibleRows = (rows || [])
+    .filter((r) => {
+      if (r.type === 'heading' || r.type === 'section') return true;
+      const key = r.id || r.label;
+      if (removed.has(key)) return false;
+      return !isRowHidden(layoutEdit, autoRowKey(key));
+    })
+    .map((row) => {
+      if (row.type === 'heading' || row.type === 'section') return row;
+      const key = row.id || row.label;
+      const extras = extraAccountsByKey[key];
+      if (!extras) return row;
+      return {
+        ...row,
+        current: (Number(row.current) || 0) + (Number(extras.current) || 0),
+        prior: (Number(row.prior) || 0) + (Number(extras.prior) || 0),
+        accounts: mergeAccountLists(row.accounts || [], extras.accountDetails || [])
+      };
+    });
+
+  const summaryRows = visibleRows.filter((r) => r.block !== 'reconciliation');
+  const reconRows = visibleRows.filter((r) => r.block === 'reconciliation');
+  const layoutAddedRows = (layoutEdit?.addedRows || []).filter(
+    (r) => !isRowHidden(layoutEdit, editRowKey(r.id))
+  );
+
+  const selectRow = (rowKey) => {
+    if (editMode && typeof onSelectRow === 'function') onSelectRow(rowKey);
+  };
+
+  const rowSelectedClass = (rowKey) =>
+    editMode && selectedRowKey === rowKey ? ' is-edit-selected' : '';
+
+  const renderStructuredRows = (list) =>
+    list.map((row) => {
+      const key = row.id || row.label;
+      const type = row.type || 'line';
+      const layoutKey = autoRowKey(key);
+
+      if (type === 'heading') {
+        return (
+          <tr key={key} className="frn-sheet-heading-row">
+            <td colSpan={colCount} className="frn-sheet-heading-cell">
+              {row.label}
+            </td>
+          </tr>
+        );
+      }
+
+      if (type === 'section') {
+        return (
+          <tr key={key} className="frn-sheet-section-row">
+            <td className="frn-sheet-section">{row.label}</td>
+            <td className="frn-sheet-num" />
+            <td className="frn-sheet-num" />
+            {emptyExtraCells()}
+          </tr>
+        );
+      }
+
+      const accounts = row.accounts || [];
+      const sign = getRowSign(rowSignsByKey, key);
+      const isTotalish = type === 'total' || type === 'subtotal';
+      const indentClass = row.indent ? ` is-indent-${Math.min(Number(row.indent) || 0, 2)}` : '';
+      const fmt = getRowFormat(layoutEdit, layoutKey);
+      const formatCls = formatClassName(fmt);
+      const label = resolveRowLabel(layoutEdit, layoutKey, row.label);
+
+      return (
+        <tr
+          key={key}
+          className={`frn-sheet-line${isTotalish ? ' frn-sheet-total-line' : ''}${
+            sign < 0 ? ' is-negative-contrib' : ''
+          }${rowSelectedClass(layoutKey)}`}
+          onClick={() => selectRow(layoutKey)}
+        >
+          <td className={`frn-sheet-label${indentClass}`}>
+            <EditableLabel
+              value={label}
+              formatCls={formatCls}
+              editMode={editMode}
+              onChange={
+                typeof onChangeRowLabel === 'function'
+                  ? (next) => onChangeRowLabel(layoutKey, next)
+                  : undefined
+              }
+            />
+            {!editMode && accounts.length ? (
+              <span className="frn-sheet-custom-meta">
+                {accounts.length} account
+                {accounts.length === 1 ? '' : 's'}
+              </span>
+            ) : null}
+            {!editMode ? (
+              <RowActions
+                title={row.label}
+                accounts={accounts}
+                rowSign={sign}
+                onToggleRowSign={
+                  typeof onToggleRowSign === 'function' ? () => onToggleRowSign(key) : undefined
+                }
+                onViewAccounts={onViewAccounts}
+                onAddAccounts={
+                  typeof onAddAccounts === 'function'
+                    ? () =>
+                        onAddAccounts({
+                          kind: 'auto',
+                          rowKey: key,
+                          title: row.label,
+                          existingCodes: existingCodesFromAccounts(accounts)
+                        })
+                    : undefined
+                }
+                onRemove={
+                  typeof onRemoveAutoRow === 'function' ? () => onRemoveAutoRow(key) : undefined
+                }
+                removeTitle="Remove this line"
+              />
+            ) : null}
+          </td>
+          <td className="frn-sheet-num">
+            {formatSheetAmount(signedContribution(row.current, sign))}
+          </td>
+          <td className="frn-sheet-num">
+            {formatSheetAmount(signedContribution(row.prior, sign))}
+          </td>
+          <ExtraColumnCells
+            columns={extraColumns}
+            rowKey={layoutKey}
+            layoutEdit={layoutEdit}
+            editMode={editMode}
+            selectedColId={selectedColId}
+            onSelectCol={onSelectCol}
+            onChangeCell={onChangeCell}
+            formatCls={formatCls}
+          />
+        </tr>
+      );
+    });
+
+  const renderLayoutAddedRows = () =>
+    layoutAddedRows.map((row) => {
+      const rowKey = editRowKey(row.id);
+      const fmt = getRowFormat(layoutEdit, rowKey) || row.format || 'normal';
+      const formatCls = formatClassName(fmt);
+      const label = resolveRowLabel(layoutEdit, rowKey, row.label) || row.label || '';
+      return (
+        <tr
+          key={`edit-${row.id}`}
+          className={`frn-sheet-line frn-sheet-line--edit${rowSelectedClass(rowKey)}`}
+          onClick={() => selectRow(rowKey)}
+        >
+          <td className="frn-sheet-label">
+            <EditableLabel
+              value={label}
+              formatCls={formatCls}
+              editMode={editMode}
+              onChange={
+                typeof onChangeRowLabel === 'function'
+                  ? (next) => onChangeRowLabel(rowKey, next)
+                  : undefined
+              }
+            />
+          </td>
+          <td className="frn-sheet-num" />
+          <td className="frn-sheet-num" />
+          <ExtraColumnCells
+            columns={extraColumns}
+            rowKey={rowKey}
+            layoutEdit={layoutEdit}
+            editMode={editMode}
+            selectedColId={selectedColId}
+            onSelectCol={onSelectCol}
+            onChangeCell={onChangeCell}
+            formatCls={formatCls}
+          />
+        </tr>
+      );
+    });
+
+  const sheetTable = (bodyRows, wrapClass = '', includeAddedRows = false) => (
+    <div className={`frn-sheet-wrap${editMode ? ' is-edit-mode' : ''}${wrapClass}`}>
+      <table className="frn-sheet">
+        <colgroup>
+          <col className="frn-sheet-col-label" />
+          <col className="frn-sheet-col-num" />
+          <col className="frn-sheet-col-num" />
+          {extraColumns.map((col) => (
+            <col key={col.id} className="frn-sheet-col-num" />
+          ))}
+        </colgroup>
+        <thead>
+          <tr>
+            <th className="frn-sheet-th-label">Description</th>
+            <PeriodHead period={periods.current} />
+            <PeriodHead period={periods.prior} />
+            <ExtraColumnHeads
+              columns={extraColumns}
+              editMode={editMode}
+              selectedColId={selectedColId}
+              onSelectCol={onSelectCol}
+              onChangeColumnHeader={onChangeColumnHeader}
+            />
+          </tr>
+        </thead>
+        <tbody>
+          {bodyRows}
+          {includeAddedRows ? renderLayoutAddedRows() : null}
+        </tbody>
+      </table>
+    </div>
+  );
+
+  return (
+    <>
+      {sheetTable(renderStructuredRows(summaryRows), '', true)}
+
+      {reconRows.length ? sheetTable(renderStructuredRows(reconRows), ' frn-sheet-wrap--recon') : null}
+
+      {customRows.length > 0 ? (
+        <ComparativeTable
+          periods={periods}
+          rows={[]}
+          total={{ current: 0, prior: 0 }}
+          heading="User descriptions"
+          customRows={customRows}
+          rowSignsByKey={rowSignsByKey}
+          layoutEdit={layoutEdit}
+          editMode={editMode}
+          selectedRowKey={selectedRowKey}
+          selectedColId={selectedColId}
+          includeLayoutRows={false}
+          onSelectRow={onSelectRow}
+          onSelectCol={onSelectCol}
+          onChangeRowLabel={onChangeRowLabel}
+          onChangeCell={onChangeCell}
+          onChangeColumnHeader={onChangeColumnHeader}
+          onRemoveCustomRow={onRemoveCustomRow}
+          onViewAccounts={onViewAccounts}
+          onAddAccounts={onAddAccounts}
+          onToggleRowSign={onToggleRowSign}
+        />
+      ) : null}
+    </>
+  );
+};
 
 const FvtplEquityNote = ({
   periods,
@@ -957,6 +1504,15 @@ const DisclosureNoteView = ({
   removedAutoKeys = [],
   extraAccountsByKey = {},
   rowSignsByKey = {},
+  layoutEdit = null,
+  editMode = false,
+  selectedRowKey = null,
+  selectedColId = null,
+  onSelectRow,
+  onSelectCol,
+  onChangeRowLabel,
+  onChangeCell,
+  onChangeColumnHeader,
   onRemoveCustomRow,
   onRemoveAutoRow,
   onAddAccounts,
@@ -1009,6 +1565,15 @@ const DisclosureNoteView = ({
     removedAutoKeys,
     extraAccountsByKey,
     rowSignsByKey,
+    layoutEdit,
+    editMode,
+    selectedRowKey,
+    selectedColId,
+    onSelectRow,
+    onSelectCol,
+    onChangeRowLabel,
+    onChangeCell,
+    onChangeColumnHeader,
     onRemoveCustomRow,
     onRemoveAutoRow,
     onAddAccounts,
@@ -1045,6 +1610,8 @@ const DisclosureNoteView = ({
           />
         ) : template === 'cash' ? (
           <CashNote periods={periods} rows={rows || []} {...sharedRowProps} />
+        ) : template === 'incomeTax' ? (
+          <IncomeTaxNote periods={periods} rows={rows || []} {...sharedRowProps} />
         ) : template === 'statedCapital' ? (
           <ComparativeTable
             periods={periods}
@@ -1071,6 +1638,15 @@ const DisclosureNoteView = ({
             heading="User descriptions"
             customRows={customRows}
             rowSignsByKey={rowSignsByKey}
+            layoutEdit={layoutEdit}
+            editMode={editMode}
+            selectedRowKey={selectedRowKey}
+            selectedColId={selectedColId}
+            onSelectRow={onSelectRow}
+            onSelectCol={onSelectCol}
+            onChangeRowLabel={onChangeRowLabel}
+            onChangeCell={onChangeCell}
+            onChangeColumnHeader={onChangeColumnHeader}
             onRemoveCustomRow={onRemoveCustomRow}
             onAddAccounts={onAddAccounts}
             onToggleRowSign={onToggleRowSign}

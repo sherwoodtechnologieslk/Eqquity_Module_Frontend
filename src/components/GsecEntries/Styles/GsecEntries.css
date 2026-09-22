@@ -528,6 +528,53 @@
   background: var(--paper);
 }
 
+.gsec-ext-modal--save-confirm {
+  max-width: 460px;
+}
+
+.gsec-ext-save-confirm-lead {
+  margin: 0 0 0.65rem;
+  font-size: 0.85rem;
+  line-height: 1.45;
+  color: var(--ink);
+}
+
+.gsec-ext-save-confirm-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  max-height: 220px;
+  overflow: auto;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  background: var(--wash-soft);
+}
+
+.gsec-ext-save-confirm-list li {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.55rem 0.75rem;
+  border-bottom: 1px solid var(--line);
+  font-size: 0.8rem;
+}
+
+.gsec-ext-save-confirm-list li:last-child {
+  border-bottom: none;
+}
+
+.gsec-ext-save-confirm-date {
+  font-weight: 600;
+  color: var(--ink);
+  font-variant-numeric: tabular-nums;
+}
+
+.gsec-ext-save-confirm-count {
+  color: var(--mute);
+  font-weight: 500;
+}
+
 @media (max-width: 768px) {
   .gsec-ext-page {
     padding: 0.85rem 0.65rem 1.25rem;

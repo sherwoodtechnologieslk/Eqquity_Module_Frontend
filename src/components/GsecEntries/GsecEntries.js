@@ -186,6 +186,49 @@ const GsecEntries = () => {
     loadData(1, { startDate: '', endDate: '' });
   };
 
+  const toEntryDay = (value) => {
+    if (value == null || value === '') return 'Unknown';
+    if (typeof value === 'string' && /^\d{4}-\d{2}-\d{2}/.test(value.trim())) {
+      return value.trim().slice(0, 10);
+    }
+    const d = new Date(value);
+    if (Number.isNaN(d.getTime())) return String(value);
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${y}-${m}-${day}`;
+  };
+
+  const saveSummary = React.useMemo(() => {
+    const byDate = new Map();
+    (rows || []).forEach((row) => {
+      const day = toEntryDay(row?.entry_date);
+      byDate.set(day, (byDate.get(day) || 0) + 1);
+    });
+    const groups = Array.from(byDate.entries())
+      .sort((a, b) => b[0].localeCompare(a[0]))
+      .map(([date, count]) => ({ date, count }));
+    return {
+      total: rows?.length || 0,
+      groups,
+    };
+  }, [rows]);
+
+  const [showSaveConfirm, setShowSaveConfirm] = useState(false);
+
+  const openSaveConfirm = () => {
+    if (!rows || rows.length === 0) {
+      window.alert('No rows to save. Please load data first.');
+      return;
+    }
+    setShowSaveConfirm(true);
+  };
+
+  const closeSaveConfirm = () => {
+    if (saving) return;
+    setShowSaveConfirm(false);
+  };
+
   const handleSaveToDatabase = async () => {
     if (!rows || rows.length === 0) {
       window.alert('No rows to save. Please load data first.');
@@ -196,9 +239,11 @@ const GsecEntries = () => {
       setSaving(true);
       if (shouldSubmitGsecForApproval()) {
         await gsecEntriesAPI.submitGsecEntriesForApproval(rows, { source: GSEC_SOURCES.LEDGER });
+        setShowSaveConfirm(false);
         window.alert('GSec entries submitted for checker approval. They will be posted after approval.');
       } else {
         await gsecEntriesAPI.saveLedgerEntriesToDatabase(rows);
+        setShowSaveConfirm(false);
         window.alert('GSec entries saved to database successfully.');
       }
     } catch (err) {
@@ -351,7 +396,7 @@ const GsecEntries = () => {
           <button
             type="button"
             className="gsec-ext-btn-primary"
-            onClick={handleSaveToDatabase}
+            onClick={openSaveConfirm}
             disabled={saving || loading || rows.length === 0}
           >
             {saving ? gsecSubmittingLabel() : gsecSaveButtonLabel()}
@@ -504,6 +549,87 @@ const GsecEntries = () => {
                 disabled={!specificDate || loading}
               >
                 {loading ? 'Checking…' : 'Find Missing'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showSaveConfirm && (
+        <div
+          className="gsec-ext-modal-overlay"
+          onClick={closeSaveConfirm}
+          role="presentation"
+        >
+          <div
+            className="gsec-ext-modal gsec-ext-modal--save-confirm"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="gsec-ext-save-confirm-title"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="gsec-ext-modal-header">
+              <h3 id="gsec-ext-save-confirm-title" className="gsec-ext-modal-title">
+                {shouldSubmitGsecForApproval()
+                  ? 'Confirm submit for approval'
+                  : 'Confirm save to database'}
+              </h3>
+              <button
+                type="button"
+                className="gsec-ext-modal-close"
+                onClick={closeSaveConfirm}
+                aria-label="Close"
+                disabled={saving}
+              >
+                ×
+              </button>
+            </div>
+
+            <div className="gsec-ext-modal-body">
+              <p className="gsec-ext-save-confirm-lead">
+                You are about to{' '}
+                {shouldSubmitGsecForApproval() ? 'submit' : 'save'}{' '}
+                <strong>{saveSummary.total}</strong>{' '}
+                {saveSummary.total === 1 ? 'entry' : 'entries'}
+                {shouldSubmitGsecForApproval()
+                  ? ' for checker approval.'
+                  : ' to the database.'}
+              </p>
+              <p className="gsec-ext-modal-hint">
+                Count by entry date:
+              </p>
+              <ul className="gsec-ext-save-confirm-list">
+                {saveSummary.groups.map((group) => (
+                  <li key={group.date}>
+                    <span className="gsec-ext-save-confirm-date">{group.date}</span>
+                    <span className="gsec-ext-save-confirm-count">
+                      {group.count} {group.count === 1 ? 'entry' : 'entries'}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            <div className="gsec-ext-modal-footer">
+              <button
+                type="button"
+                className="gsec-ext-btn-ghost"
+                onClick={closeSaveConfirm}
+                disabled={saving}
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                className="gsec-ext-btn-primary"
+                onClick={handleSaveToDatabase}
+                disabled={saving || saveSummary.total === 0}
+              >
+                {saving
+                  ? gsecSubmittingLabel()
+                  : shouldSubmitGsecForApproval()
+                    ? 'Confirm submit'
+                    : 'Confirm save'}
               </button>
             </div>
           </div>

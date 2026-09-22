@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import './Styles/TradeReport.css';
-import { tradeSummaryAPI, parsedTradeTransactionAPI, monthlyPortfolioUpdateAPI } from '../../services/api';
+import { parsedTradeTransactionAPI, monthlyPortfolioUpdateAPI } from '../../services/api';
+import { extractConfirmationPdfText, readTradeConfirmationPdf } from '../../utils/parseTradeConfirmationPdf';
 
 const TradeReport = () => {
   const [tradeData, setTradeData] = useState({
@@ -595,6 +596,17 @@ const TradeReport = () => {
     return transactions;
   };
 
+  const appendParsedPdfRows = (rows) => {
+    if (!rows || rows.length === 0) return;
+    setParsedData(prev => {
+      const maxId = prev.reduce((max, row) => Math.max(max, Number(row.id) || 0), 0);
+      return [
+        ...prev,
+        ...rows.map((row, index) => ({ ...row, id: maxId + index + 1 }))
+      ];
+    });
+  };
+
   const handleFileUpload = async (files) => {
     const newFiles = Array.from(files).map(file => ({
       id: Date.now() + Math.random(),
@@ -606,6 +618,10 @@ const TradeReport = () => {
     }));
     
     setUploadedFiles(prev => [...prev, ...newFiles]);
+
+    let latestTxtParsed;
+    const pdfTransactions = [];
+    let pdfExtractedBlocks = '';
     
     // Process text files immediately
     for (const fileObj of newFiles) {
@@ -619,9 +635,40 @@ const TradeReport = () => {
           // Parse transaction data
           const parsedTransactions = parseTransactionData(textContent);
           setParsedData(parsedTransactions);
+          latestTxtParsed = parsedTransactions;
         } catch (error) {
           console.error('Error reading text file:', error);
         }
+      }
+
+      const isPdfFile = fileObj.name.toLowerCase().endsWith('.pdf') || fileObj.type === 'application/pdf';
+      if (isPdfFile) {
+        try {
+          setIsExtracting(true);
+          const { text, transactions } = await readTradeConfirmationPdf(fileObj.file, fileObj.name);
+          pdfExtractedBlocks += `\n\n--- ${fileObj.name} ---\n${text}`;
+          pdfTransactions.push(...transactions);
+        } catch (error) {
+          console.error('Error reading PDF file:', error);
+          pdfExtractedBlocks += `\n\n--- ${fileObj.name} ---\n[Could not read PDF: ${error.message || 'unknown error'}]`;
+        } finally {
+          setIsExtracting(false);
+        }
+      }
+    }
+
+    if (pdfExtractedBlocks) {
+      setExtractedText(prev => prev + pdfExtractedBlocks);
+    }
+    if (pdfTransactions.length > 0) {
+      if (latestTxtParsed) {
+        const maxId = latestTxtParsed.reduce((max, row) => Math.max(max, Number(row.id) || 0), 0);
+        setParsedData([
+          ...latestTxtParsed,
+          ...pdfTransactions.map((row, index) => ({ ...row, id: maxId + index + 1 }))
+        ]);
+      } else {
+        appendParsedPdfRows(pdfTransactions);
       }
     }
   };
@@ -629,76 +676,14 @@ const TradeReport = () => {
   const extractTextFromPdf = async (fileObj) => {
     try {
       setIsExtracting(true);
-      const result = await tradeSummaryAPI.extractPdfText(fileObj.file);
-      
-      if (result.success) {
-        setExtractedText(prev => prev + `\n\n--- ${fileObj.name} ---\n${result.text}`);
-        
-        // If we have parsed data, display it in a structured format
-        if (result.parsedData && !result.parsedData.error) {
-          const structuredData = formatParsedData(result.parsedData);
-          setExtractedText(prev => prev + `\n\n=== STRUCTURED DATA ===\n${structuredData}`);
-        }
-      }
+      const text = await extractConfirmationPdfText(fileObj.file);
+      setExtractedText(prev => prev + `\n\n--- ${fileObj.name} ---\n${text}`);
     } catch (error) {
       console.error('Error extracting PDF text:', error);
-      // You could show an error message to the user here
+      setExtractedText(prev => prev + `\n\n--- ${fileObj.name} ---\n[Could not extract PDF text: ${error.message || 'unknown error'}]`);
     } finally {
       setIsExtracting(false);
     }
-  };
-
-  const formatParsedData = (parsedData) => {
-    let formatted = '';
-    
-    if (parsedData.header) {
-      formatted += 'HEADER INFORMATION:\n';
-      if (parsedData.header.brokerName) formatted += `Broker: ${parsedData.header.brokerName}\n`;
-      if (parsedData.header.address) formatted += `Address: ${parsedData.header.address}\n`;
-      if (parsedData.header.tel) formatted += `Tel: ${parsedData.header.tel}\n`;
-      if (parsedData.header.fax) formatted += `Fax: ${parsedData.header.fax}\n`;
-      if (parsedData.header.email) formatted += `Email: ${parsedData.header.email}\n`;
-      formatted += '\n';
-    }
-    
-    if (parsedData.clientInfo) {
-      formatted += 'CLIENT INFORMATION:\n';
-      if (parsedData.clientInfo.accountNo) formatted += `Account No: ${parsedData.clientInfo.accountNo}\n`;
-      if (parsedData.clientInfo.clientName) formatted += `Client Name: ${parsedData.clientInfo.clientName}\n`;
-      formatted += '\n';
-    }
-    
-    if (parsedData.metadata) {
-      formatted += 'TRADE METADATA:\n';
-      if (parsedData.metadata.tradeDate) formatted += `Trade Date: ${parsedData.metadata.tradeDate}\n`;
-      if (parsedData.metadata.settlementDate) formatted += `Settlement Date: ${parsedData.metadata.settlementDate}\n`;
-      formatted += '\n';
-    }
-    
-    if (parsedData.transactions && parsedData.transactions.length > 0) {
-      formatted += `TRANSACTIONS (${parsedData.transactions.length} found):\n`;
-      parsedData.transactions.forEach((txn, index) => {
-        formatted += `\nTransaction ${index + 1}:\n`;
-        formatted += `  Date: ${txn.tradeDate}\n`;
-        formatted += `  Contract: ${txn.contractNo}\n`;
-        formatted += `  Shares: ${txn.shares}\n`;
-        formatted += `  Price: ${txn.price}\n`;
-        formatted += `  Gross Amount: ${txn.grossAmount}\n`;
-        formatted += `  Net Amount: ${txn.netAmount}\n`;
-        formatted += `  Settlement: ${txn.settlementDate}\n`;
-      });
-      formatted += '\n';
-    }
-    
-    if (parsedData.summary) {
-      formatted += 'SUMMARY:\n';
-      if (parsedData.summary.totalShares) formatted += `Total Shares: ${parsedData.summary.totalShares}\n`;
-      if (parsedData.summary.totalGrossAmount) formatted += `Total Gross Amount: ${parsedData.summary.totalGrossAmount}\n`;
-      if (parsedData.summary.totalNetAmount) formatted += `Total Net Amount: ${parsedData.summary.totalNetAmount}\n`;
-      if (parsedData.summary.salesTotal) formatted += `Sales Total: ${parsedData.summary.salesTotal}\n`;
-    }
-    
-    return formatted;
   };
 
   const handleSubmit = () => {
@@ -841,11 +826,14 @@ const TradeReport = () => {
         file.name.toLowerCase().endsWith('.txt') || 
         file.name.toLowerCase().endsWith('.text')
       );
+      const pdfFiles = uploadedFiles.filter(file =>
+        file.name.toLowerCase().endsWith('.pdf') || file.type === 'application/pdf'
+      );
       
+      let allParsedData = [];
+      let allExtractedText = '';
+
       if (textFiles.length > 0) {
-        let allParsedData = [];
-        let allExtractedText = '';
-        
         for (const fileObj of textFiles) {
           try {
             const textContent = await readTextFile(fileObj.file);
@@ -858,11 +846,31 @@ const TradeReport = () => {
             console.error(`Error re-processing file ${fileObj.name}:`, error);
           }
         }
-        
+      }
+
+      if (pdfFiles.length > 0) {
+        let nextId = allParsedData.reduce((max, row) => Math.max(max, Number(row.id) || 0), 0);
+        for (const fileObj of pdfFiles) {
+          try {
+            const { text, transactions } = await readTradeConfirmationPdf(fileObj.file, fileObj.name);
+            allExtractedText += `\n\n--- ${fileObj.name} ---\n${text}`;
+            const numbered = [];
+            for (let i = 0; i < transactions.length; i += 1) {
+              numbered.push({ ...transactions[i], id: nextId + i + 1 });
+            }
+            nextId += transactions.length;
+            allParsedData = [...allParsedData, ...numbered];
+          } catch (error) {
+            console.error(`Error re-processing file ${fileObj.name}:`, error);
+          }
+        }
+      }
+
+      if (textFiles.length > 0 || pdfFiles.length > 0) {
         setExtractedText(allExtractedText);
         setParsedData(allParsedData);
-        
-        setSubmitMessage(`Successfully refreshed ${allParsedData.length} transaction records from ${textFiles.length} file(s).`);
+        const fileCount = textFiles.length + pdfFiles.length;
+        setSubmitMessage(`Successfully refreshed ${allParsedData.length} transaction records from ${fileCount} file(s).`);
         setTimeout(() => setSubmitMessage(''), 3000);
       } else {
         setSubmitMessage('No text files found to refresh. Please upload trade report files first.');
@@ -1179,7 +1187,7 @@ const TradeReport = () => {
         <div className="tr-parsed-data-section">
           <div className="tr-no-data-message">
             <h3>No Parsed Data Available</h3>
-            <p>Upload a text file to see parsed transaction data here.</p>
+            <p>Upload a text file or trade confirmation PDF to see parsed transaction data here.</p>
           </div>
         </div>
       );

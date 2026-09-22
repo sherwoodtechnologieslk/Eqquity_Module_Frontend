@@ -164,9 +164,10 @@ const TransactionView = ({ onTabChange }) => {
   const currentEntries = filteredTransactions.slice(indexOfFirst, indexOfLast);
 
   const formatCurrency = (value) =>
-    parseFloat(value || 0).toLocaleString(undefined, {
+    parseFloat(value || 0).toLocaleString('en-US', {
       minimumFractionDigits: 2,
       maximumFractionDigits: 2,
+      useGrouping: true
     });
 
   const formatDate = (dateString) => {
@@ -536,17 +537,17 @@ const TransactionView = ({ onTabChange }) => {
                     <th>Company</th>
                     <th>Portfolio</th>
                     <th>Deal Number</th>
-                    <th>Quantity</th>
-                    <th>Price</th>
-                    <th>Gross Value</th>
-                    <th>Net Value</th>
-                    <th>Avg Price/Share</th>
+                    <th className="transaction-th-num">Quantity</th>
+                    <th className="transaction-th-num">Price</th>
+                    <th className="transaction-th-num">Gross Value</th>
+                    <th className="transaction-th-num">Net Value</th>
+                    <th className="transaction-th-num">Avg Price/Share</th>
                     <th>Trade Date</th>
                     <th>Settlement Date</th>
                     <th>Broker</th>
                     <th>Contract #</th>
-                    {activeTab !== 'sell' && <th>Money Gen Cost (Daily)</th>}
-                    {activeTab !== 'buy' && <th>Capital Gain</th>}
+                    {activeTab !== 'sell' && <th className="transaction-th-num">Money Gen Cost (Daily)</th>}
+                    {activeTab !== 'buy' && <th className="transaction-th-num">Capital Gain</th>}
                   </tr>
                 </thead>
                 <tbody className="transaction-table-body">

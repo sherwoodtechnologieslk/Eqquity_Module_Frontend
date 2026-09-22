@@ -5,6 +5,13 @@ import { buildNotePeriods } from '../../utils/financialNotePeriods';
 import { loadFinancialNoteData } from '../../utils/loadFinancialNoteData';
 import { FINANCIAL_NOTES } from '../../utils/financialNotesRegistry';
 import { resolveCustomNoteRows } from '../../utils/resolveCustomNoteRows';
+import {
+  cloneNoteLayout,
+  emptyNoteLayout,
+  editRowKey,
+  newEditColId,
+  newEditRowId
+} from '../../utils/noteLayoutEdit';
 import { chartOfAccountsAPI } from '../../services/api';
 
 const todayYmd = () => new Date().toISOString().split('T')[0];
@@ -55,6 +62,15 @@ const FinancialReportingNotes = ({ context = null }) => {
   const [removedAutoKeysByNote, setRemovedAutoKeysByNote] = useState({});
   const [extraAccountsByNote, setExtraAccountsByNote] = useState({});
   const [rowSignsByNote, setRowSignsByNote] = useState({});
+  const [layoutEditsByNote, setLayoutEditsByNote] = useState({});
+  const [editDraft, setEditDraft] = useState(() => emptyNoteLayout());
+  const [editPast, setEditPast] = useState([]);
+  const [editFuture, setEditFuture] = useState([]);
+  const [editDirty, setEditDirty] = useState(false);
+  const [editSavedFlash, setEditSavedFlash] = useState(false);
+  const [hasTypingBaseline, setHasTypingBaseline] = useState(false);
+  const [selectedEditRowKey, setSelectedEditRowKey] = useState(null);
+  const [selectedEditColId, setSelectedEditColId] = useState(null);
   const [addAccountsTarget, setAddAccountsTarget] = useState(null);
   const [addAccountCodes, setAddAccountCodes] = useState([]);
   const [addCoaSearch, setAddCoaSearch] = useState('');
@@ -71,6 +87,13 @@ const FinancialReportingNotes = ({ context = null }) => {
   const loadSeqRef = useRef(0);
   const customSeqRef = useRef(0);
   const extrasSeqRef = useRef(0);
+  const editDraftRef = useRef(editDraft);
+  const typingBaselineRef = useRef(null);
+  const typingHistoryTimerRef = useRef(null);
+  const handleEditUndoRef = useRef(() => {});
+  const handleEditRedoRef = useRef(() => {});
+
+  editDraftRef.current = editDraft;
 
   useEffect(() => {
     if (context?.asOfDate) setAsOfDate(context.asOfDate);
@@ -187,6 +210,32 @@ const FinancialReportingNotes = ({ context = null }) => {
   const sessionRemovedAutoKeys = removedAutoKeysByNote[selectedNoteId] || [];
   const sessionExtraAccountsByKey = extraAccountsByNote[selectedNoteId] || {};
   const sessionRowSignsByKey = rowSignsByNote[selectedNoteId] || {};
+  const sessionLayoutEdit =
+    ribbonTab === 'edit'
+      ? editDraft
+      : layoutEditsByNote[selectedNoteId] || emptyNoteLayout();
+  const editMode = ribbonTab === 'edit';
+
+  useEffect(() => {
+    if (ribbonTab !== 'edit') return;
+    if (typingHistoryTimerRef.current) {
+      clearTimeout(typingHistoryTimerRef.current);
+      typingHistoryTimerRef.current = null;
+    }
+    typingBaselineRef.current = null;
+    const seeded = cloneNoteLayout(layoutEditsByNote[selectedNoteId]);
+    editDraftRef.current = seeded;
+    setEditDraft(seeded);
+    setEditPast([]);
+    setEditFuture([]);
+    setEditDirty(false);
+    setHasTypingBaseline(false);
+    setSelectedEditRowKey(null);
+    setSelectedEditColId(null);
+    setEditSavedFlash(false);
+    // Only re-seed when entering Edit or switching notes — not when Save updates layoutEditsByNote.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [ribbonTab, selectedNoteId]);
 
   useEffect(() => {
     const defs = customRowsByNote[selectedNoteId] || [];
@@ -650,6 +699,304 @@ const FinancialReportingNotes = ({ context = null }) => {
     });
   };
 
+  const EDIT_HISTORY_LIMIT = 50;
+
+  const clearTypingHistoryTimer = () => {
+    if (typingHistoryTimerRef.current) {
+      clearTimeout(typingHistoryTimerRef.current);
+      typingHistoryTimerRef.current = null;
+    }
+  };
+
+  const applyEditChange = (updater) => {
+    clearTypingHistoryTimer();
+    typingBaselineRef.current = null;
+    setHasTypingBaseline(false);
+    const prev = cloneNoteLayout(editDraftRef.current);
+    const next = updater(cloneNoteLayout(prev));
+    setEditPast((past) => [...past.slice(-(EDIT_HISTORY_LIMIT - 1)), prev]);
+    setEditFuture([]);
+    editDraftRef.current = next;
+    setEditDraft(next);
+    setEditDirty(true);
+    setEditSavedFlash(false);
+  };
+
+  const applyTypingChange = (updater) => {
+    if (!typingBaselineRef.current) {
+      typingBaselineRef.current = cloneNoteLayout(editDraftRef.current);
+      setHasTypingBaseline(true);
+    }
+    const next = updater(cloneNoteLayout(editDraftRef.current));
+    editDraftRef.current = next;
+    setEditDraft(next);
+    setEditDirty(true);
+    setEditSavedFlash(false);
+    clearTypingHistoryTimer();
+    typingHistoryTimerRef.current = setTimeout(() => {
+      if (typingBaselineRef.current) {
+        const baseline = typingBaselineRef.current;
+        typingBaselineRef.current = null;
+        setHasTypingBaseline(false);
+        setEditPast((past) => [...past.slice(-(EDIT_HISTORY_LIMIT - 1)), baseline]);
+        setEditFuture([]);
+      }
+      typingHistoryTimerRef.current = null;
+    }, 450);
+  };
+
+  const handleEditUndo = () => {
+    clearTypingHistoryTimer();
+    if (typingBaselineRef.current) {
+      const baseline = typingBaselineRef.current;
+      typingBaselineRef.current = null;
+      setHasTypingBaseline(false);
+      setEditFuture((future) => [
+        cloneNoteLayout(editDraftRef.current),
+        ...future.slice(0, EDIT_HISTORY_LIMIT - 1)
+      ]);
+      editDraftRef.current = baseline;
+      setEditDraft(baseline);
+      setEditDirty(true);
+      setEditSavedFlash(false);
+      return;
+    }
+    setEditPast((past) => {
+      if (!past.length) return past;
+      const previous = past[past.length - 1];
+      setEditFuture((future) => [
+        cloneNoteLayout(editDraftRef.current),
+        ...future.slice(0, EDIT_HISTORY_LIMIT - 1)
+      ]);
+      const next = cloneNoteLayout(previous);
+      editDraftRef.current = next;
+      setEditDraft(next);
+      setEditDirty(true);
+      setEditSavedFlash(false);
+      return past.slice(0, -1);
+    });
+  };
+
+  const handleEditRedo = () => {
+    clearTypingHistoryTimer();
+    typingBaselineRef.current = null;
+    setHasTypingBaseline(false);
+    setEditFuture((future) => {
+      if (!future.length) return future;
+      const upcoming = future[0];
+      setEditPast((past) => [
+        ...past.slice(-(EDIT_HISTORY_LIMIT - 1)),
+        cloneNoteLayout(editDraftRef.current)
+      ]);
+      const next = cloneNoteLayout(upcoming);
+      editDraftRef.current = next;
+      setEditDraft(next);
+      setEditDirty(true);
+      setEditSavedFlash(false);
+      return future.slice(1);
+    });
+  };
+
+  handleEditUndoRef.current = handleEditUndo;
+  handleEditRedoRef.current = handleEditRedo;
+
+  const handleEditAddRow = () => {
+    const id = newEditRowId();
+    const rowKey = editRowKey(id);
+    applyEditChange((prev) => ({
+      ...prev,
+      addedRows: [
+        ...prev.addedRows,
+        { id, label: 'New description', format: 'normal', cells: {} }
+      ],
+      formats: { ...prev.formats, [rowKey]: 'normal' }
+    }));
+    setSelectedEditRowKey(rowKey);
+  };
+
+  const handleEditRemoveRow = () => {
+    if (!selectedEditRowKey) return;
+    const rowKey = selectedEditRowKey;
+    applyEditChange((prev) => {
+      if (rowKey.startsWith('edit:')) {
+        const id = rowKey.slice(5);
+        return {
+          ...prev,
+          addedRows: prev.addedRows.filter((r) => r.id !== id),
+          formats: Object.fromEntries(
+            Object.entries(prev.formats).filter(([k]) => k !== rowKey)
+          ),
+          labelOverrides: Object.fromEntries(
+            Object.entries(prev.labelOverrides).filter(([k]) => k !== rowKey)
+          ),
+          cells: Object.fromEntries(
+            Object.entries(prev.cells).filter(([k]) => k !== rowKey)
+          ),
+          hiddenRowKeys: prev.hiddenRowKeys.filter((k) => k !== rowKey)
+        };
+      }
+      if (prev.hiddenRowKeys.includes(rowKey)) return prev;
+      return {
+        ...prev,
+        hiddenRowKeys: [...prev.hiddenRowKeys, rowKey]
+      };
+    });
+    setSelectedEditRowKey(null);
+  };
+
+  const handleEditAddColumn = () => {
+    const id = newEditColId();
+    applyEditChange((prev) => ({
+      ...prev,
+      extraColumns: [...prev.extraColumns, { id, header: '' }]
+    }));
+    setSelectedEditColId(id);
+  };
+
+  const handleEditRemoveColumn = () => {
+    applyEditChange((prev) => {
+      if (!prev.extraColumns.length) return prev;
+      const targetId =
+        selectedEditColId && prev.extraColumns.some((c) => c.id === selectedEditColId)
+          ? selectedEditColId
+          : prev.extraColumns[prev.extraColumns.length - 1].id;
+      return {
+        ...prev,
+        extraColumns: prev.extraColumns.filter((c) => c.id !== targetId),
+        cells: Object.fromEntries(
+          Object.entries(prev.cells).map(([rowKey, cols]) => [
+            rowKey,
+            Object.fromEntries(
+              Object.entries(cols || {}).filter(([colId]) => colId !== targetId)
+            )
+          ])
+        ),
+        addedRows: prev.addedRows.map((row) => ({
+          ...row,
+          cells: Object.fromEntries(
+            Object.entries(row.cells || {}).filter(([colId]) => colId !== targetId)
+          )
+        }))
+      };
+    });
+    setSelectedEditColId(null);
+  };
+
+  const handleEditSetFormat = (format) => {
+    if (!selectedEditRowKey) return;
+    const fmt = format === 'bold' || format === 'italic' ? format : 'normal';
+    applyEditChange((prev) => ({
+      ...prev,
+      formats: { ...prev.formats, [selectedEditRowKey]: fmt },
+      addedRows: prev.addedRows.map((row) =>
+        editRowKey(row.id) === selectedEditRowKey ? { ...row, format: fmt } : row
+      )
+    }));
+  };
+
+  const handleEditChangeRowLabel = (rowKey, value) => {
+    applyTypingChange((prev) => {
+      if (rowKey.startsWith('edit:')) {
+        const id = rowKey.slice(5);
+        return {
+          ...prev,
+          addedRows: prev.addedRows.map((row) =>
+            row.id === id ? { ...row, label: value } : row
+          ),
+          labelOverrides: { ...prev.labelOverrides, [rowKey]: value }
+        };
+      }
+      return {
+        ...prev,
+        labelOverrides: { ...prev.labelOverrides, [rowKey]: value }
+      };
+    });
+    if (selectedEditRowKey !== rowKey) setSelectedEditRowKey(rowKey);
+  };
+
+  const handleEditChangeCell = (rowKey, colId, value) => {
+    applyTypingChange((prev) => ({
+      ...prev,
+      cells: {
+        ...prev.cells,
+        [rowKey]: {
+          ...(prev.cells[rowKey] || {}),
+          [colId]: value
+        }
+      },
+      addedRows: prev.addedRows.map((row) =>
+        editRowKey(row.id) === rowKey
+          ? { ...row, cells: { ...(row.cells || {}), [colId]: value } }
+          : row
+      )
+    }));
+    setSelectedEditRowKey(rowKey);
+    setSelectedEditColId(colId);
+  };
+
+  const handleEditChangeColumnHeader = (colId, value) => {
+    applyTypingChange((prev) => ({
+      ...prev,
+      extraColumns: prev.extraColumns.map((col) =>
+        col.id === colId ? { ...col, header: value } : col
+      )
+    }));
+    setSelectedEditColId(colId);
+  };
+
+  const handleEditSave = () => {
+    if (!selectedNoteId) return;
+    clearTypingHistoryTimer();
+    typingBaselineRef.current = null;
+    setHasTypingBaseline(false);
+    const saved = cloneNoteLayout(editDraftRef.current);
+    setLayoutEditsByNote((prev) => ({
+      ...prev,
+      [selectedNoteId]: saved
+    }));
+    editDraftRef.current = saved;
+    setEditDraft(saved);
+    setEditPast([]);
+    setEditFuture([]);
+    setEditDirty(false);
+    setEditSavedFlash(true);
+  };
+
+  useEffect(() => {
+    if (ribbonTab !== 'edit') return undefined;
+    const onKeyDown = (e) => {
+      const key = String(e.key || '').toLowerCase();
+      const mod = e.ctrlKey || e.metaKey;
+      if (!mod) return;
+      if (key === 'z' && !e.shiftKey) {
+        e.preventDefault();
+        handleEditUndoRef.current();
+        return;
+      }
+      if (key === 'y' || (key === 'z' && e.shiftKey)) {
+        e.preventDefault();
+        handleEditRedoRef.current();
+      }
+    };
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
+  }, [ribbonTab]);
+
+  useEffect(
+    () => () => {
+      if (typingHistoryTimerRef.current) {
+        clearTimeout(typingHistoryTimerRef.current);
+      }
+    },
+    []
+  );
+
+  const canEditUndo = editPast.length > 0 || hasTypingBaseline;
+  const canEditRedo = editFuture.length > 0;
+
+  const selectedEditFormat =
+    (selectedEditRowKey && editDraft?.formats?.[selectedEditRowKey]) || 'normal';
+
   return (
     <div className="nts-page">
       <div className="nts-wrap">
@@ -702,7 +1049,7 @@ const FinancialReportingNotes = ({ context = null }) => {
               <span className="nts-excel-titlebar-text">
                 Notes to the Financial Statements
                 {selectedNote ? ` — Note ${selectedNote.number}` : ''}
-              </span>
+                </span>
             </div>
             <div className="nts-excel-ribbon" role="tablist" aria-label="Workbook ribbon">
               <button
@@ -722,6 +1069,15 @@ const FinancialReportingNotes = ({ context = null }) => {
                 onClick={() => setRibbonTab('insert')}
               >
                 Insert
+              </button>
+              <button
+                type="button"
+                role="tab"
+                aria-selected={ribbonTab === 'edit'}
+                className={`nts-excel-ribbon-item${ribbonTab === 'edit' ? ' is-active' : ''}`}
+                onClick={() => setRibbonTab('edit')}
+              >
+                Edit
               </button>
               <button
                 type="button"
@@ -789,7 +1145,7 @@ const FinancialReportingNotes = ({ context = null }) => {
                             <span className="nts-insert-coa-item-text">
                               <span className="nts-insert-coa-code">{code || '—'}</span>
                               <span className="nts-insert-coa-name">{name}</span>
-                            </span>
+                    </span>
                           </label>
                         );
                       })
@@ -805,7 +1161,7 @@ const FinancialReportingNotes = ({ context = null }) => {
                     {draftAccountCodes.length
                       ? `${draftAccountCodes.length} account(s) selected`
                       : 'Select one or more accounts'}
-                  </span>
+                    </span>
                   <button
                     type="button"
                     className="nts-insert-add"
@@ -816,6 +1172,116 @@ const FinancialReportingNotes = ({ context = null }) => {
                   </button>
                 </div>
               </div>
+                  ) : null}
+
+            {ribbonTab === 'edit' ? (
+              <div className="nts-edit-panel">
+                <div className="nts-edit-panel-head">
+                  <strong>Edit note layout</strong>
+                  <span>
+                    Session only — click Save to apply to Home and other tabs for this note.
+                  </span>
+                </div>
+                <div className="nts-edit-toolbar" role="toolbar" aria-label="Edit tools">
+                  <div className="nts-edit-group nts-edit-group--history">
+                    <span className="nts-edit-group-label">History</span>
+                <button
+                  type="button"
+                      className="nts-edit-btn nts-edit-btn--history"
+                      onClick={handleEditUndo}
+                      disabled={!canEditUndo}
+                      title="Undo (Ctrl+Z)"
+                    >
+                      Undo
+                </button>
+                <button
+                  type="button"
+                      className="nts-edit-btn nts-edit-btn--history"
+                      onClick={handleEditRedo}
+                      disabled={!canEditRedo}
+                      title="Redo (Ctrl+Y)"
+                    >
+                      Redo
+                </button>
+              </div>
+                  <div className="nts-edit-group">
+                    <span className="nts-edit-group-label">Rows</span>
+                    <button type="button" className="nts-edit-btn" onClick={handleEditAddRow}>
+                      Add row
+                    </button>
+                    <button
+                      type="button"
+                      className="nts-edit-btn"
+                      onClick={handleEditRemoveRow}
+                      disabled={!selectedEditRowKey}
+                    >
+                      Remove row
+                    </button>
+            </div>
+                  <div className="nts-edit-group">
+                    <span className="nts-edit-group-label">Columns</span>
+                    <button type="button" className="nts-edit-btn" onClick={handleEditAddColumn}>
+                      Add column
+                    </button>
+                    <button
+                      type="button"
+                      className="nts-edit-btn"
+                      onClick={handleEditRemoveColumn}
+                      disabled={!editDraft.extraColumns.length}
+                    >
+                      Remove column
+                    </button>
+              </div>
+                  <div className="nts-edit-group">
+                    <span className="nts-edit-group-label">Text</span>
+                    <button
+                      type="button"
+                      className={`nts-edit-btn${
+                        selectedEditFormat === 'bold' ? ' is-active' : ''
+                      }`}
+                      onClick={() => handleEditSetFormat('bold')}
+                      disabled={!selectedEditRowKey}
+                    >
+                      Bold
+                    </button>
+                    <button
+                      type="button"
+                      className={`nts-edit-btn${
+                        selectedEditFormat === 'normal' ? ' is-active' : ''
+                      }`}
+                      onClick={() => handleEditSetFormat('normal')}
+                      disabled={!selectedEditRowKey}
+                    >
+                      Normal
+                    </button>
+                    <button
+                      type="button"
+                      className={`nts-edit-btn${
+                        selectedEditFormat === 'italic' ? ' is-active' : ''
+                      }`}
+                      onClick={() => handleEditSetFormat('italic')}
+                      disabled={!selectedEditRowKey}
+                    >
+                      Italic
+                    </button>
+              </div>
+                  <div className="nts-edit-group nts-edit-group--save">
+                    <button
+                      type="button"
+                      className="nts-edit-save"
+                      onClick={handleEditSave}
+                      disabled={!editDirty && !editSavedFlash}
+                    >
+                      {editSavedFlash && !editDirty ? 'Saved' : 'Save'}
+                    </button>
+              </div>
+                    </div>
+                <p className="nts-edit-hint">
+                  {selectedEditRowKey
+                    ? 'Selected row — edit the description, set Bold / Normal / Italic, or Remove row. Undo/Redo: Ctrl+Z / Ctrl+Y.'
+                    : 'Click a row in the table to select it. Add columns are blank extras (period columns stay). Undo/Redo: Ctrl+Z / Ctrl+Y.'}
+                </p>
+                  </div>
             ) : null}
 
             {ribbonTab === 'pageLayout' ? (
@@ -837,7 +1303,7 @@ const FinancialReportingNotes = ({ context = null }) => {
                 >
                   Compact
                 </button>
-              </div>
+                    </div>
             ) : null}
 
             <div className="nts-excel-formula-bar">
@@ -847,23 +1313,23 @@ const FinancialReportingNotes = ({ context = null }) => {
                   ? `${selectedNote.number}. ${selectedNote.title}`
                   : ''}
               </span>
-            </div>
+                  </div>
             {customResolving ? (
               <div className="nts-resolve-banner" role="status" aria-live="polite">
                 <span className="nts-resolve-spinner" aria-hidden />
                 <div className="nts-resolve-banner-copy">
                   <strong>Loading account amounts</strong>
                   <span>Please wait while balances are loaded.</span>
-                </div>
-              </div>
+                    </div>
+                  </div>
             ) : null}
             {customResolveError ? (
               <div className="nts-resolve-error-banner" role="alert">
                 <div className="nts-resolve-error-copy">
                   <strong>Couldn’t load account amounts</strong>
                   <span>{customResolveError}</span>
-                </div>
-              </div>
+                    </div>
+                  </div>
             ) : null}
             <div
               className={`nts-excel-grid-area${
@@ -878,6 +1344,15 @@ const FinancialReportingNotes = ({ context = null }) => {
                 removedAutoKeys={sessionRemovedAutoKeys}
                 extraAccountsByKey={sessionExtraAccountsByKey}
                 rowSignsByKey={sessionRowSignsByKey}
+                layoutEdit={sessionLayoutEdit}
+                editMode={editMode}
+                selectedRowKey={selectedEditRowKey}
+                selectedColId={selectedEditColId}
+                onSelectRow={setSelectedEditRowKey}
+                onSelectCol={setSelectedEditColId}
+                onChangeRowLabel={handleEditChangeRowLabel}
+                onChangeCell={handleEditChangeCell}
+                onChangeColumnHeader={handleEditChangeColumnHeader}
                 onRemoveCustomRow={handleRemoveCustomRow}
                 onRemoveAutoRow={handleRemoveAutoRow}
                 onAddAccounts={handleOpenAddAccounts}
@@ -887,13 +1362,13 @@ const FinancialReportingNotes = ({ context = null }) => {
                   setReloadToken((n) => n + 1);
                 }}
               />
-            </div>
+                  </div>
             <div className="nts-excel-sheet-tabs">
               <span className="nts-excel-sheet-tab is-active">
                 Note {selectedNote?.number ?? ''}
               </span>
               <span className="nts-excel-sheet-tab">Contents</span>
-            </div>
+                </div>
           </div>
         ) : (
           <p className="nts-hint">Select a note tab to open its disclosure.</p>
@@ -920,7 +1395,7 @@ const FinancialReportingNotes = ({ context = null }) => {
                 >
                   Close
                 </button>
-              </div>
+          </div>
               <div className="frn-accounts-modal-body">
                 <p className="nts-insert-hint">
                   Session only — new Combined TB amounts are added to this description.
@@ -975,8 +1450,8 @@ const FinancialReportingNotes = ({ context = null }) => {
                         );
                       })
                     )}
-                  </div>
-                )}
+          </div>
+        )}
                 <div className="nts-insert-actions">
                   <span className="nts-insert-hint">
                     {addAccountCodes.length

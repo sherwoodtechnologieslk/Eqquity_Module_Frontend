@@ -6,6 +6,36 @@ import './UserProfileModal.css';
 
 const PIN_VALIDITY_SECONDS = 2 * 60;
 
+/** Derive human-readable account type + function from governance fields. */
+const resolveAccountIdentity = (user) => {
+  const kind = String(user?.account_kind || '').toLowerCase();
+  const role = String(user?.company_role || '').toLowerCase();
+
+  if (kind === 'company_member' || user?.company_id) {
+    let functionLabel = 'Company member';
+    if (role === 'admin') functionLabel = 'Admin';
+    else if (role === 'user') functionLabel = 'Normal user';
+    else if (role === 'company_owner') functionLabel = 'Company owner';
+    else if (role === 'superuser') functionLabel = 'Superuser';
+
+    return {
+      accountType: 'Company account',
+      accountTypeKey: 'company',
+      functionLabel,
+      functionKey: role || 'member',
+      companyName: user?.company?.company_name || user?.company?.name || null,
+    };
+  }
+
+  return {
+    accountType: 'Individual account',
+    accountTypeKey: 'single',
+    functionLabel: 'Account holder',
+    functionKey: 'individual',
+    companyName: null,
+  };
+};
+
 const UserProfileModal = ({ user, isOpen, onClose, onPasswordChanged, variant = 'equity' }) => {
     const [passwordForm, setPasswordForm] = useState({
         currentPassword: '',
@@ -76,6 +106,10 @@ const UserProfileModal = ({ user, isOpen, onClose, onPasswordChanged, variant = 
         user?.first_name && user?.last_name
             ? `${user.first_name} ${user.last_name}`
             : 'User Name';
+
+    const identity = resolveAccountIdentity(user);
+    const isActive =
+        user?.is_active === false || user?.is_active === 0 ? false : true;
 
     const validatePasswordForm = () => {
         const { currentPassword, newPassword, confirmPassword } = passwordForm;
@@ -212,23 +246,23 @@ const UserProfileModal = ({ user, isOpen, onClose, onPasswordChanged, variant = 
                         </svg>
                     </button>
 
-                    <div className="upm-header-meta">
-                        <span className="upm-header-eyebrow">User Profile</span>
-                        <span className="upm-header-tagline">
-                            Manage your account and security settings
-                        </span>
-                    </div>
-
                     <div className="upm-identity">
-                        <div className="upm-profile-avatar">
+                        <div className="upm-profile-avatar" aria-hidden="true">
                             {getInitials(user?.first_name, user?.last_name)}
                         </div>
                         <div className="upm-identity-text">
+                            <p className="upm-header-eyebrow">User profile</p>
                             <h2 className="upm-identity-name">{fullName}</h2>
-                            <div className="upm-identity-badges">
-                                <span className="upm-status-badge">
-                                    <span className="upm-status-dot"></span>
-                                    Active
+                            <div className="upm-identity-chips">
+                                <span className="upm-chip">{identity.accountType}</span>
+                                <span className="upm-chip">{identity.functionLabel}</span>
+                                <span
+                                    className={`upm-chip upm-chip--status${
+                                        isActive ? '' : ' upm-chip--inactive'
+                                    }`}
+                                >
+                                    <span className="upm-chip-dot" aria-hidden="true" />
+                                    {isActive ? 'Active' : 'Inactive'}
                                 </span>
                             </div>
                         </div>
@@ -236,53 +270,48 @@ const UserProfileModal = ({ user, isOpen, onClose, onPasswordChanged, variant = 
                 </div>
 
                 <div className="upm-modal-body">
-                    <div className="upm-section-heading">
-                        <h4>Account Details</h4>
-                    </div>
+                    <section className="upm-section">
+                        <h3 className="upm-section-title">Account</h3>
+                        <dl className="upm-detail-list">
+                            {identity.companyName && (
+                                <div className="upm-detail-row upm-detail-row--wide">
+                                    <dt>Company</dt>
+                                    <dd>{identity.companyName}</dd>
+                                </div>
+                            )}
+                            <div className="upm-detail-row upm-detail-row--wide">
+                                <dt>Email</dt>
+                                <dd>{user?.email || 'N/A'}</dd>
+                            </div>
+                            <div className="upm-detail-row">
+                                <dt>User ID</dt>
+                                <dd>{user?.id || 'N/A'}</dd>
+                            </div>
+                            <div className="upm-detail-row">
+                                <dt>Name</dt>
+                                <dd>
+                                    {[user?.first_name, user?.last_name].filter(Boolean).join(' ') ||
+                                        'N/A'}
+                                </dd>
+                            </div>
+                            <div className="upm-detail-row upm-detail-row--wide">
+                                <dt>Funds center</dt>
+                                <dd className="upm-detail-funds">
+                                    {user?.fundsCenter ||
+                                        'Colombo (Colombo Stock Exchange – CSE) 🇱🇰'}
+                                </dd>
+                            </div>
+                        </dl>
+                    </section>
 
-                    <div className="upm-info-grid">
-                        <div className="upm-info-cell">
-                            <span className="upm-info-label">Email Address</span>
-                            <span className="upm-info-value">
-                                {user?.email || 'N/A'}
-                            </span>
-                        </div>
-                        <div className="upm-info-cell">
-                            <span className="upm-info-label">User ID</span>
-                            <span className="upm-info-value">
-                                {user?.id || 'N/A'}
-                            </span>
-                        </div>
-                        <div className="upm-info-cell">
-                            <span className="upm-info-label">First Name</span>
-                            <span className="upm-info-value">
-                                {user?.first_name || 'N/A'}
-                            </span>
-                        </div>
-                        <div className="upm-info-cell">
-                            <span className="upm-info-label">Last Name</span>
-                            <span className="upm-info-value">
-                                {user?.last_name || 'N/A'}
-                            </span>
-                        </div>
-                        <div className="upm-info-cell upm-info-cell--wide">
-                            <span className="upm-info-label">Funds Center</span>
-                            <span className="upm-info-value upm-info-value--funds">
-                                {user?.fundsCenter ||
-                                    'Colombo (Colombo Stock Exchange – CSE) 🇱🇰'}
-                            </span>
-                        </div>
-                    </div>
-
-                    <div className="upm-section-heading upm-section-heading--spaced">
-                        <h4>Security</h4>
-                    </div>
+                    <section className="upm-section">
+                        <h3 className="upm-section-title">Change password</h3>
 
                     <form className="upm-password-form" onSubmit={handlePasswordSubmit}>
                         <p className="upm-password-hint">
                             {passwordStep === 'form'
-                                ? 'Enter your current and new password. We will email you a one-time verification code to confirm the change.'
-                                : `Enter the 6-digit code sent to ${user?.email || 'your email'}. It expires in 2 minutes.`}
+                                ? 'We will email a one-time code to confirm your new password.'
+                                : `Enter the 6-digit code sent to ${user?.email || 'your email'}. Expires in 2 minutes.`}
                         </p>
 
                         {passwordError && (
@@ -303,7 +332,7 @@ const UserProfileModal = ({ user, isOpen, onClose, onPasswordChanged, variant = 
 
                         {passwordStep === 'form' ? (
                             <div className="upm-password-grid">
-                                <label className="upm-password-field">
+                                <label className="upm-password-field upm-password-field--wide">
                                     <span>Current password</span>
                                     <input
                                         type="password"
@@ -411,6 +440,7 @@ const UserProfileModal = ({ user, isOpen, onClose, onPasswordChanged, variant = 
                             </button>
                         </div>
                     </form>
+                    </section>
                 </div>
             </div>
         </div>

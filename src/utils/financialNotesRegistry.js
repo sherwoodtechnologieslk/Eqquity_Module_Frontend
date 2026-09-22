@@ -70,8 +70,13 @@ export const FINANCIAL_NOTES = [
     }
   },
   {
-    id: 'note-8',
+    id: 'note-subsidiaries',
     number: 8,
+    title: 'Investment in subsidiaries'
+  },
+  {
+    id: 'note-8',
+    number: 9,
     title: 'Deferred tax liability',
     mappings: {
       soci: ['deferredTaxEffect'],
@@ -80,7 +85,7 @@ export const FINANCIAL_NOTES = [
   },
   {
     id: 'note-9',
-    number: 9,
+    number: 10,
     title: 'Right of use asset',
     mappings: {
       sofp: { patterns: ['right of use', 'right-of-use', 'rou asset'] }
@@ -88,7 +93,7 @@ export const FINANCIAL_NOTES = [
   },
   {
     id: 'note-10',
-    number: 10,
+    number: 11,
     title: 'Other receivables',
     mappings: {
       sofp: { patterns: ['receivable', 'prepayment', 'deposit', 'withholding tax receivable'] }
@@ -96,7 +101,7 @@ export const FINANCIAL_NOTES = [
   },
   {
     id: 'note-11',
-    number: 11,
+    number: 12,
     title: 'Financial assets at fair value through profit or loss',
     mappings: {
       soci: ['changeInFairValueOfFinancialAssets', 'changeInFairValueOfInvestmentInShares'],
@@ -116,7 +121,7 @@ export const FINANCIAL_NOTES = [
   },
   {
     id: 'note-12',
-    number: 12,
+    number: 13,
     title: 'Cash and cash equivalents',
     mappings: {
       cashFlow: ['cashAtBeginning', 'cashAtEnd', 'netIncreaseInCash'],
@@ -127,7 +132,7 @@ export const FINANCIAL_NOTES = [
   },
   {
     id: 'note-13',
-    number: 13,
+    number: 14,
     title: 'Stated capital',
     mappings: {
       sofp: { patterns: ['stated capital', 'share capital', 'ordinary share', 'issued capital'] }
@@ -135,7 +140,7 @@ export const FINANCIAL_NOTES = [
   },
   {
     id: 'note-14',
-    number: 14,
+    number: 15,
     title: 'Employee benefits liabilities',
     mappings: {
       soci: ['actuarialLossOnDefinedBenefitPlans'],
@@ -144,7 +149,7 @@ export const FINANCIAL_NOTES = [
   },
   {
     id: 'note-15',
-    number: 15,
+    number: 16,
     title: 'Lease creditor',
     mappings: {
       cashFlow: ['paymentOfLeaseLiabilities'],
@@ -153,7 +158,7 @@ export const FINANCIAL_NOTES = [
   },
   {
     id: 'note-16',
-    number: 16,
+    number: 17,
     title: 'Other payables',
     mappings: {
       cashFlow: ['tradePayables'],
@@ -164,7 +169,7 @@ export const FINANCIAL_NOTES = [
   },
   {
     id: 'note-17',
-    number: 17,
+    number: 18,
     title: 'Interest-bearing loans and borrowings',
     mappings: {
       cashFlow: ['proceedsFromBorrowings', 'repaymentOfBorrowings'],
@@ -175,7 +180,7 @@ export const FINANCIAL_NOTES = [
   },
   {
     id: 'note-18',
-    number: 18,
+    number: 19,
     title: 'Related party disclosures',
     mappings: {
       sofp: { patterns: ['related party', 'director', 'key management'] }
