@@ -247,18 +247,18 @@ const DynamicChart = ({ data }) => {
     >
       <defs>
         <linearGradient id={gradientId} x1="0%" y1="0%" x2="0%" y2="100%">
-          <stop offset="0%" stopColor="#3b82f6" stopOpacity="0.22" />
-          <stop offset="100%" stopColor="#3b82f6" stopOpacity="0.04" />
+          <stop offset="0%" stopColor="#2563eb" stopOpacity="0.18" />
+          <stop offset="70%" stopColor="#2563eb" stopOpacity="0.05" />
+          <stop offset="100%" stopColor="#2563eb" stopOpacity="0" />
         </linearGradient>
       </defs>
 
-      {/* Plot frame */}
       <rect
         x={plotLeft}
         y={plotTop}
         width={plotRight - plotLeft}
         height={plotBottom - plotTop}
-        fill="none"
+        fill="#fcfdff"
         stroke="#e2e8f0"
         strokeWidth="1"
       />
@@ -271,7 +271,7 @@ const DynamicChart = ({ data }) => {
             y1={label.y}
             x2={plotRight}
             y2={label.y}
-            stroke="#e5e7eb"
+            stroke="#f1f5f9"
             strokeWidth="1"
           />
           <text
@@ -279,10 +279,10 @@ const DynamicChart = ({ data }) => {
             y={label.y}
             textAnchor="end"
             dominantBaseline="middle"
-            fontSize="11"
+            fontSize="10"
             fontWeight="500"
-            fill="#374151"
-            style={{ fontFamily: 'system-ui, sans-serif' }}
+            fill="#64748b"
+            style={{ fontFamily: "'IBM Plex Mono', ui-monospace, monospace" }}
           >
             {label.text}
           </text>
@@ -297,7 +297,7 @@ const DynamicChart = ({ data }) => {
           y1={plotTop}
           x2={t.x}
           y2={plotBottom}
-          stroke="#f3f4f6"
+          stroke="#f8fafc"
           strokeWidth="1"
         />
       ))}
@@ -308,8 +308,8 @@ const DynamicChart = ({ data }) => {
         <path
           d={linePathD}
           fill="none"
-          stroke="#2563eb"
-          strokeWidth="2.5"
+          stroke="#1d4ed8"
+          strokeWidth="2.25"
           strokeLinejoin="round"
           strokeLinecap="round"
         />
@@ -317,7 +317,7 @@ const DynamicChart = ({ data }) => {
 
       {showPointDots
         ? plotPoints.map((pt, index) => (
-            <circle key={index} cx={pt.x} cy={pt.y} r="3.5" fill="#2563eb" stroke="#fff" strokeWidth="1" />
+            <circle key={index} cx={pt.x} cy={pt.y} r="3.25" fill="#1d4ed8" stroke="#fff" strokeWidth="1.5" />
           ))
         : null}
 
@@ -329,10 +329,10 @@ const DynamicChart = ({ data }) => {
           y={plotBottom + 20}
           textAnchor="middle"
           dominantBaseline="middle"
-          fontSize="11"
+          fontSize="10"
           fontWeight="500"
-          fill="#374151"
-          style={{ fontFamily: 'system-ui, sans-serif' }}
+          fill="#64748b"
+          style={{ fontFamily: "'IBM Plex Mono', ui-monospace, monospace" }}
         >
           {t.label}
         </text>
@@ -342,25 +342,13 @@ const DynamicChart = ({ data }) => {
         x={plotLeft - 10}
         y={plotTop - 14}
         textAnchor="start"
-        fontSize="10"
-        fontWeight="600"
-        fill="#6b7280"
-        letterSpacing="0.04em"
-        style={{ fontFamily: 'system-ui, sans-serif' }}
+        fontSize="9"
+        fontWeight="700"
+        fill="#94a3b8"
+        letterSpacing="0.08em"
+        style={{ fontFamily: 'DM Sans, Segoe UI, sans-serif' }}
       >
-        PRICE (LKR)
-      </text>
-      <text
-        x={(plotLeft + plotRight) / 2}
-        y={chartHeight - 8}
-        textAnchor="middle"
-        fontSize="10"
-        fontWeight="600"
-        fill="#6b7280"
-        letterSpacing="0.04em"
-        style={{ fontFamily: 'system-ui, sans-serif' }}
-      >
-        DATE
+        PRICE · LKR
       </text>
     </svg>
   );
@@ -455,7 +443,6 @@ const PriceAnalysisChart = ({ data }) => {
       costLinePath,
       plotPoints,
       showDots: data.length <= 28,
-      avgCostLabel: formatAxisPriceLKR(averageCost),
     };
   }, [data]);
 
@@ -481,7 +468,6 @@ const PriceAnalysisChart = ({ data }) => {
     costLinePath,
     plotPoints,
     showDots,
-    avgCostLabel,
   } = chartPayload;
 
   return (
@@ -496,8 +482,9 @@ const PriceAnalysisChart = ({ data }) => {
       >
         <defs>
           <linearGradient id={fillGradientId} x1="0%" y1="0%" x2="0%" y2="100%">
-            <stop offset="0%" stopColor="#2563eb" stopOpacity="0.2" />
-            <stop offset="100%" stopColor="#2563eb" stopOpacity="0.04" />
+            <stop offset="0%" stopColor="#2563eb" stopOpacity="0.18" />
+            <stop offset="70%" stopColor="#2563eb" stopOpacity="0.05" />
+            <stop offset="100%" stopColor="#2563eb" stopOpacity="0" />
           </linearGradient>
         </defs>
 
@@ -506,7 +493,7 @@ const PriceAnalysisChart = ({ data }) => {
           y={plotTop}
           width={plotRight - plotLeft}
           height={plotBottom - plotTop}
-          fill="none"
+          fill="#fcfdff"
           stroke="#e2e8f0"
           strokeWidth="1"
         />
@@ -518,7 +505,7 @@ const PriceAnalysisChart = ({ data }) => {
               y1={label.y}
               x2={plotRight}
               y2={label.y}
-              stroke="#e5e7eb"
+              stroke="#f1f5f9"
               strokeWidth="1"
             />
             <text
@@ -526,10 +513,10 @@ const PriceAnalysisChart = ({ data }) => {
               y={label.y}
               textAnchor="end"
               dominantBaseline="middle"
-              fontSize="11"
+              fontSize="10"
               fontWeight="500"
-              fill="#374151"
-              style={{ fontFamily: 'system-ui, sans-serif' }}
+              fill="#64748b"
+              style={{ fontFamily: "'IBM Plex Mono', ui-monospace, monospace" }}
             >
               {label.text}
             </text>
@@ -543,7 +530,7 @@ const PriceAnalysisChart = ({ data }) => {
             y1={plotTop}
             x2={t.x}
             y2={plotBottom}
-            stroke="#f3f4f6"
+            stroke="#f8fafc"
             strokeWidth="1"
           />
         ))}
@@ -553,17 +540,17 @@ const PriceAnalysisChart = ({ data }) => {
         <path
           d={costLinePath}
           fill="none"
-          stroke="#dc2626"
-          strokeWidth="2"
-          strokeDasharray="6 4"
+          stroke="#b91c1c"
+          strokeWidth="1.75"
+          strokeDasharray="5 4"
           strokeLinecap="round"
         />
 
         <path
           d={pricePath}
           fill="none"
-          stroke="#2563eb"
-          strokeWidth="2.5"
+          stroke="#1d4ed8"
+          strokeWidth="2.25"
           strokeLinejoin="round"
           strokeLinecap="round"
           className="price-line"
@@ -575,10 +562,10 @@ const PriceAnalysisChart = ({ data }) => {
                 key={index}
                 cx={pt.x}
                 cy={pt.y}
-                r="3.5"
-                fill="#2563eb"
+                r="3.25"
+                fill="#1d4ed8"
                 stroke="#fff"
-                strokeWidth="1"
+                strokeWidth="1.5"
                 className="price-point"
               />
             ))
@@ -591,10 +578,10 @@ const PriceAnalysisChart = ({ data }) => {
             y={plotBottom + 20}
             textAnchor="middle"
             dominantBaseline="middle"
-            fontSize="11"
+            fontSize="10"
             fontWeight="500"
-            fill="#374151"
-            style={{ fontFamily: 'system-ui, sans-serif' }}
+            fill="#64748b"
+            style={{ fontFamily: "'IBM Plex Mono', ui-monospace, monospace" }}
           >
             {t.label}
           </text>
@@ -604,62 +591,88 @@ const PriceAnalysisChart = ({ data }) => {
           x={plotLeft - 10}
           y={plotTop - 14}
           textAnchor="start"
-          fontSize="10"
-          fontWeight="600"
-          fill="#6b7280"
-          letterSpacing="0.04em"
-          style={{ fontFamily: 'system-ui, sans-serif' }}
+          fontSize="9"
+          fontWeight="700"
+          fill="#94a3b8"
+          letterSpacing="0.08em"
+          style={{ fontFamily: 'DM Sans, Segoe UI, sans-serif' }}
         >
-          PRICE (LKR)
-        </text>
-        <text
-          x={(plotLeft + plotRight) / 2}
-          y={chartHeight - 8}
-          textAnchor="middle"
-          fontSize="10"
-          fontWeight="600"
-          fill="#6b7280"
-          letterSpacing="0.04em"
-          style={{ fontFamily: 'system-ui, sans-serif' }}
-        >
-          DATE
+          PRICE · LKR
         </text>
       </svg>
-
-      <div className="price-chart-legend">
-        <div className="legend-item">
-          <div className="legend-color price-line-color" />
-          <span>Market price (LKR)</span>
-        </div>
-        <div className="legend-item">
-          <div className="legend-color cost-line-color" />
-          <span>Average cost {avgCostLabel}</span>
-        </div>
-      </div>
     </div>
   );
 };
 
-// High-contrast palette (cycled only if sectors > palette size).
-// Key change: we assign colors per *unique sector* (no collisions), stable via sorting sector names.
+// Equity-desk sector palette — slate/blue/teal family (distinct, not rainbow).
 const SECTOR_RR_COLORS = [
-  '#1d4ed8', // strong blue
-  '#dc2626', // strong red
-  '#16a34a', // strong green
-  '#f59e0b', // strong amber
-  '#7c3aed', // strong purple
-  '#06b6d4', // strong cyan
-  '#db2777', // strong pink
-  '#65a30d', // strong lime
-  '#ea580c', // strong orange
-  '#0f766e', // strong teal
-  '#4f46e5', // indigo
-  '#9a3412', // brown
-  '#84cc16', // bright lime
-  '#be123c', // rose
-  '#0ea5e9', // sky
-  '#9333ea', // violet
+  '#1e40af',
+  '#0369a1',
+  '#0f766e',
+  '#334155',
+  '#2563eb',
+  '#0891b2',
+  '#1d4ed8',
+  '#475569',
+  '#0284c7',
+  '#115e59',
+  '#3b82f6',
+  '#0e7490',
+  '#1e3a8a',
+  '#64748b',
+  '#0c4a6e',
+  '#164e63',
 ];
+
+const SECTOR_RR_THEME = {
+  plotFill: '#f8fafc',
+  plotStroke: '#e2e8f0',
+  grid: '#e8eef5',
+  gridSoft: '#f1f5f9',
+  axis: '#64748b',
+  axisLabel: '#475569',
+  zero: '#94a3b8',
+  line: '#0f172a',
+  focus: '#2563eb',
+  font: "'IBM Plex Mono', ui-monospace, monospace",
+  pointStroke: '#ffffff',
+};
+
+function sectorAxisLabel(name) {
+  const s = String(name || '').trim();
+  return s.length > 18 ? `${s.slice(0, 17)}…` : s;
+}
+
+function SectorAxisTick({ x, y, label }) {
+  return (
+    <text
+      x={x}
+      y={y}
+      textAnchor="end"
+      fontSize="9"
+      fill={SECTOR_RR_THEME.axis}
+      transform={`rotate(-42 ${x} ${y})`}
+      style={{ fontFamily: SECTOR_RR_THEME.font }}
+    >
+      {label}
+    </text>
+  );
+}
+
+function SectorPlotFrame({ layout }) {
+  return (
+    <rect
+      x={layout.plotLeft}
+      y={layout.plotTop}
+      width={layout.plotRight - layout.plotLeft}
+      height={layout.plotBottom - layout.plotTop}
+      fill={SECTOR_RR_THEME.plotFill}
+      stroke={SECTOR_RR_THEME.plotStroke}
+      strokeWidth="1"
+      rx="4"
+    />
+  );
+}
 
 /** Scatter: X = annualized volatility %, Y = total return % (equal-weight sector aggregates). */
 const SectorRiskReturnChart = ({ points }) => {
@@ -800,15 +813,12 @@ const SectorRiskReturnChart = ({ points }) => {
         role="img"
         aria-label="Sector risk versus return scatter chart"
       >
-        <rect
-          x={layout.plotLeft}
-          y={layout.plotTop}
-          width={layout.plotRight - layout.plotLeft}
-          height={layout.plotBottom - layout.plotTop}
-          fill="none"
-          stroke="#e2e8f0"
-          strokeWidth="1"
-        />
+        <defs>
+          <filter id="mtm-sector-point-glow" x="-50%" y="-50%" width="200%" height="200%">
+            <feDropShadow dx="0" dy="1" stdDeviation="1.4" floodColor="#0f172a" floodOpacity="0.18" />
+          </filter>
+        </defs>
+        <SectorPlotFrame layout={layout} />
 
         {layout.yTicks.map((t, i) => (
           <g key={`gy-${i}`}>
@@ -817,7 +827,7 @@ const SectorRiskReturnChart = ({ points }) => {
               y1={t.y}
               x2={layout.plotRight}
               y2={t.y}
-              stroke="#f3f4f6"
+              stroke={SECTOR_RR_THEME.grid}
               strokeWidth="1"
             />
             <text
@@ -826,8 +836,8 @@ const SectorRiskReturnChart = ({ points }) => {
               textAnchor="end"
               dominantBaseline="middle"
               fontSize="10"
-              fill="#64748b"
-              style={{ fontFamily: 'system-ui, sans-serif' }}
+              fill={SECTOR_RR_THEME.axis}
+              style={{ fontFamily: SECTOR_RR_THEME.font }}
             >
               {t.label}
             </text>
@@ -841,7 +851,7 @@ const SectorRiskReturnChart = ({ points }) => {
               y1={layout.plotTop}
               x2={t.x}
               y2={layout.plotBottom}
-              stroke="#f9fafb"
+              stroke={SECTOR_RR_THEME.gridSoft}
               strokeWidth="1"
             />
             <text
@@ -849,8 +859,8 @@ const SectorRiskReturnChart = ({ points }) => {
               y={layout.plotBottom + 22}
               textAnchor="middle"
               fontSize="10"
-              fill="#64748b"
-              style={{ fontFamily: 'system-ui, sans-serif' }}
+              fill={SECTOR_RR_THEME.axis}
+              style={{ fontFamily: SECTOR_RR_THEME.font }}
             >
               {t.label}
             </text>
@@ -863,9 +873,9 @@ const SectorRiskReturnChart = ({ points }) => {
             y1={layout.zeroY}
             x2={layout.plotRight}
             y2={layout.zeroY}
-            stroke="#94a3b8"
-            strokeWidth="1"
-            strokeDasharray="4 4"
+            stroke={SECTOR_RR_THEME.zero}
+            strokeWidth="1.25"
+            strokeDasharray="5 4"
           />
         ) : null}
         {layout.showZeroX ? (
@@ -874,9 +884,9 @@ const SectorRiskReturnChart = ({ points }) => {
             y1={layout.plotTop}
             x2={layout.zeroX}
             y2={layout.plotBottom}
-            stroke="#94a3b8"
-            strokeWidth="1"
-            strokeDasharray="4 4"
+            stroke={SECTOR_RR_THEME.zero}
+            strokeWidth="1.25"
+            strokeDasharray="5 4"
           />
         ) : null}
 
@@ -885,11 +895,12 @@ const SectorRiskReturnChart = ({ points }) => {
             key={`${n.sector}-${idx}`}
             cx={n.cx}
             cy={n.cy}
-            r="10"
+            r="9"
             fill={n.color}
-            fillOpacity="0.9"
-            stroke="#fff"
+            fillOpacity="0.92"
+            stroke={SECTOR_RR_THEME.pointStroke}
             strokeWidth="2"
+            filter="url(#mtm-sector-point-glow)"
             className="mtm-sector-scatter-point"
             style={{ cursor: 'pointer' }}
             aria-label={`${n.sector}: total return ${Number(n.returnPct).toFixed(2)} percent, annualized volatility ${Number(n.riskPct).toFixed(2)} percent`}
@@ -904,9 +915,9 @@ const SectorRiskReturnChart = ({ points }) => {
           textAnchor="middle"
           fontSize="10"
           fontWeight="600"
-          fill="#6b7280"
+          fill={SECTOR_RR_THEME.axisLabel}
           letterSpacing="0.06em"
-          style={{ fontFamily: 'system-ui, sans-serif' }}
+          style={{ fontFamily: SECTOR_RR_THEME.font }}
         >
           TOTAL RETURN (%)
         </text>
@@ -916,9 +927,9 @@ const SectorRiskReturnChart = ({ points }) => {
           textAnchor="middle"
           fontSize="10"
           fontWeight="600"
-          fill="#6b7280"
+          fill={SECTOR_RR_THEME.axisLabel}
           letterSpacing="0.06em"
-          style={{ fontFamily: 'system-ui, sans-serif' }}
+          style={{ fontFamily: SECTOR_RR_THEME.font }}
         >
           ANNUALIZED VOLATILITY (%)
         </text>
@@ -983,7 +994,7 @@ const SectorRiskReturnBarChart = ({ points }) => {
 
   const layout = React.useMemo(() => {
     if (!series.length) return null;
-    const margin = { left: 96, right: 28, top: 44, bottom: 118 };
+    const margin = { left: 96, right: 28, top: 36, bottom: 158 };
     const W = 920;
     const H = 480;
     const plotLeft = margin.left;
@@ -1056,15 +1067,7 @@ const SectorRiskReturnBarChart = ({ points }) => {
         role="img"
         aria-label="Sector total return bar chart"
       >
-        <rect
-          x={layout.plotLeft}
-          y={layout.plotTop}
-          width={layout.plotRight - layout.plotLeft}
-          height={layout.plotBottom - layout.plotTop}
-          fill="none"
-          stroke="#e2e8f0"
-          strokeWidth="1"
-        />
+        <SectorPlotFrame layout={layout} />
 
         {layout.yTicks.map((t, i) => (
           <g key={`by-${i}`}>
@@ -1073,7 +1076,7 @@ const SectorRiskReturnBarChart = ({ points }) => {
               y1={t.y}
               x2={layout.plotRight}
               y2={t.y}
-              stroke="#f3f4f6"
+              stroke={SECTOR_RR_THEME.grid}
               strokeWidth="1"
             />
             <text
@@ -1082,8 +1085,8 @@ const SectorRiskReturnBarChart = ({ points }) => {
               textAnchor="end"
               dominantBaseline="middle"
               fontSize="10"
-              fill="#64748b"
-              style={{ fontFamily: 'system-ui, sans-serif' }}
+              fill={SECTOR_RR_THEME.axis}
+              style={{ fontFamily: SECTOR_RR_THEME.font }}
             >
               {t.label}
             </text>
@@ -1096,9 +1099,9 @@ const SectorRiskReturnBarChart = ({ points }) => {
             y1={layout.zeroY}
             x2={layout.plotRight}
             y2={layout.zeroY}
-            stroke="#94a3b8"
-            strokeWidth="1"
-            strokeDasharray="4 4"
+            stroke={SECTOR_RR_THEME.zero}
+            strokeWidth="1.25"
+            strokeDasharray="5 4"
           />
         ) : null}
 
@@ -1110,10 +1113,10 @@ const SectorRiskReturnBarChart = ({ points }) => {
             width={n.w}
             height={n.h}
             fill={n.color}
-            fillOpacity="0.9"
-            stroke="#fff"
-            strokeWidth="1.5"
-            rx="4"
+            fillOpacity="0.88"
+            stroke={n.color}
+            strokeWidth="1"
+            rx="3"
             style={{ cursor: 'pointer' }}
             aria-label={`${n.sector}: total return ${Number(n.returnPct).toFixed(2)} percent`}
             onMouseEnter={(e) => moveTooltip(e, n)}
@@ -1124,17 +1127,12 @@ const SectorRiskReturnBarChart = ({ points }) => {
 
         {/* X labels */}
         {layout.nodes.map((n, i) => (
-          <text
+          <SectorAxisTick
             key={`bx-${n.sector}-${i}`}
             x={n.labelX}
-            y={layout.plotBottom + 28}
-            textAnchor="middle"
-            fontSize="10"
-            fill="#64748b"
-            style={{ fontFamily: 'system-ui, sans-serif' }}
-          >
-            {n.sector.length > 16 ? `${n.sector.slice(0, 16)}…` : n.sector}
-          </text>
+            y={layout.plotBottom + 12}
+            label={sectorAxisLabel(n.sector)}
+          />
         ))}
 
         <text
@@ -1142,9 +1140,9 @@ const SectorRiskReturnBarChart = ({ points }) => {
           textAnchor="middle"
           fontSize="10"
           fontWeight="600"
-          fill="#6b7280"
+          fill={SECTOR_RR_THEME.axisLabel}
           letterSpacing="0.06em"
-          style={{ fontFamily: 'system-ui, sans-serif' }}
+          style={{ fontFamily: SECTOR_RR_THEME.font }}
         >
           TOTAL RETURN (%)
         </text>
@@ -1196,7 +1194,7 @@ const SectorRiskReturnLineChart = ({ points }) => {
 
   const layout = React.useMemo(() => {
     if (!series.length) return null;
-    const margin = { left: 96, right: 28, top: 44, bottom: 118 };
+    const margin = { left: 96, right: 28, top: 36, bottom: 158 };
     const W = 920;
     const H = 480;
     const plotLeft = margin.left;
@@ -1268,15 +1266,7 @@ const SectorRiskReturnLineChart = ({ points }) => {
         role="img"
         aria-label="Sector total return line chart"
       >
-        <rect
-          x={layout.plotLeft}
-          y={layout.plotTop}
-          width={layout.plotRight - layout.plotLeft}
-          height={layout.plotBottom - layout.plotTop}
-          fill="none"
-          stroke="#e2e8f0"
-          strokeWidth="1"
-        />
+        <SectorPlotFrame layout={layout} />
 
         {layout.yTicks.map((t, i) => (
           <g key={`ly-${i}`}>
@@ -1285,7 +1275,7 @@ const SectorRiskReturnLineChart = ({ points }) => {
               y1={t.y}
               x2={layout.plotRight}
               y2={t.y}
-              stroke="#f3f4f6"
+              stroke={SECTOR_RR_THEME.grid}
               strokeWidth="1"
             />
             <text
@@ -1294,8 +1284,8 @@ const SectorRiskReturnLineChart = ({ points }) => {
               textAnchor="end"
               dominantBaseline="middle"
               fontSize="10"
-              fill="#64748b"
-              style={{ fontFamily: 'system-ui, sans-serif' }}
+              fill={SECTOR_RR_THEME.axis}
+              style={{ fontFamily: SECTOR_RR_THEME.font }}
             >
               {t.label}
             </text>
@@ -1308,22 +1298,29 @@ const SectorRiskReturnLineChart = ({ points }) => {
             y1={layout.zeroY}
             x2={layout.plotRight}
             y2={layout.zeroY}
-            stroke="#94a3b8"
-            strokeWidth="1"
-            strokeDasharray="4 4"
+            stroke={SECTOR_RR_THEME.zero}
+            strokeWidth="1.25"
+            strokeDasharray="5 4"
           />
         ) : null}
 
-        <path d={layout.lineD} fill="none" stroke="#334155" strokeWidth="2.5" strokeLinejoin="round" strokeLinecap="round" />
+        <path
+          d={layout.lineD}
+          fill="none"
+          stroke={SECTOR_RR_THEME.line}
+          strokeWidth="2.25"
+          strokeLinejoin="round"
+          strokeLinecap="round"
+        />
 
         {layout.nodes.map((n) => (
           <circle
             key={`pt-${n.sector}`}
             cx={n.cx}
             cy={n.cy}
-            r="8"
+            r="7"
             fill={n.color}
-            stroke="#fff"
+            stroke={SECTOR_RR_THEME.pointStroke}
             strokeWidth="2"
             style={{ cursor: 'pointer' }}
             aria-label={`${n.sector}: total return ${Number(n.returnPct).toFixed(2)} percent`}
@@ -1334,17 +1331,12 @@ const SectorRiskReturnLineChart = ({ points }) => {
         ))}
 
         {layout.nodes.map((n, i) => (
-          <text
+          <SectorAxisTick
             key={`lx-${n.sector}-${i}`}
             x={n.cx}
-            y={layout.plotBottom + 28}
-            textAnchor="middle"
-            fontSize="10"
-            fill="#64748b"
-            style={{ fontFamily: 'system-ui, sans-serif' }}
-          >
-            {n.sector.length > 16 ? `${n.sector.slice(0, 16)}…` : n.sector}
-          </text>
+            y={layout.plotBottom + 12}
+            label={sectorAxisLabel(n.sector)}
+          />
         ))}
 
         <text
@@ -1352,9 +1344,9 @@ const SectorRiskReturnLineChart = ({ points }) => {
           textAnchor="middle"
           fontSize="10"
           fontWeight="600"
-          fill="#6b7280"
+          fill={SECTOR_RR_THEME.axisLabel}
           letterSpacing="0.06em"
-          style={{ fontFamily: 'system-ui, sans-serif' }}
+          style={{ fontFamily: SECTOR_RR_THEME.font }}
         >
           TOTAL RETURN (%)
         </text>
@@ -1511,27 +1503,26 @@ const SectorRiskReturnLineTimeChart = ({ payload }) => {
         role="img"
         aria-label="Sector performance time series (multi-line)"
       >
-        <rect
-          x={layout.plotLeft}
-          y={layout.plotTop}
-          width={layout.plotRight - layout.plotLeft}
-          height={layout.plotBottom - layout.plotTop}
-          fill="none"
-          stroke="#e2e8f0"
-          strokeWidth="1"
-        />
+        <SectorPlotFrame layout={layout} />
 
         {layout.yTicks.map((t, i) => (
           <g key={`ty-${i}`}>
-            <line x1={layout.plotLeft} y1={t.y} x2={layout.plotRight} y2={t.y} stroke="#f3f4f6" strokeWidth="1" />
+            <line
+              x1={layout.plotLeft}
+              y1={t.y}
+              x2={layout.plotRight}
+              y2={t.y}
+              stroke={SECTOR_RR_THEME.grid}
+              strokeWidth="1"
+            />
             <text
               x={layout.plotLeft - 10}
               y={t.y}
               textAnchor="end"
               dominantBaseline="middle"
               fontSize="10"
-              fill="#64748b"
-              style={{ fontFamily: 'system-ui, sans-serif' }}
+              fill={SECTOR_RR_THEME.axis}
+              style={{ fontFamily: SECTOR_RR_THEME.font }}
             >
               {t.label}
             </text>
@@ -1540,14 +1531,21 @@ const SectorRiskReturnLineTimeChart = ({ payload }) => {
 
         {layout.xTicks.map((t, i) => (
           <g key={`tx-${i}`}>
-            <line x1={t.x} y1={layout.plotTop} x2={t.x} y2={layout.plotBottom} stroke="#f9fafb" strokeWidth="1" />
+            <line
+              x1={t.x}
+              y1={layout.plotTop}
+              x2={t.x}
+              y2={layout.plotBottom}
+              stroke={SECTOR_RR_THEME.gridSoft}
+              strokeWidth="1"
+            />
             <text
               x={t.x}
               y={layout.plotBottom + 22}
               textAnchor="middle"
               fontSize="10"
-              fill="#64748b"
-              style={{ fontFamily: 'system-ui, sans-serif' }}
+              fill={SECTOR_RR_THEME.axis}
+              style={{ fontFamily: SECTOR_RR_THEME.font }}
             >
               {t.label}
             </text>
@@ -1562,8 +1560,8 @@ const SectorRiskReturnLineTimeChart = ({ payload }) => {
               d={p.d}
               fill="none"
               stroke={p.color}
-              strokeWidth={active ? 2.6 : 1.4}
-              opacity={active ? 0.95 : 0.25}
+              strokeWidth={active ? 2.4 : 1.2}
+              opacity={active ? 0.95 : 0.18}
               strokeLinejoin="round"
               strokeLinecap="round"
             />
@@ -1576,9 +1574,10 @@ const SectorRiskReturnLineTimeChart = ({ payload }) => {
             y1={layout.plotTop}
             x2={focus.anchorX}
             y2={layout.plotBottom}
-            stroke="#94a3b8"
-            strokeWidth="1"
+            stroke={SECTOR_RR_THEME.focus}
+            strokeWidth="1.25"
             strokeDasharray="4 4"
+            opacity="0.7"
           />
         ) : null}
 
@@ -1587,9 +1586,9 @@ const SectorRiskReturnLineTimeChart = ({ payload }) => {
           textAnchor="middle"
           fontSize="10"
           fontWeight="600"
-          fill="#6b7280"
+          fill={SECTOR_RR_THEME.axisLabel}
           letterSpacing="0.06em"
-          style={{ fontFamily: 'system-ui, sans-serif' }}
+          style={{ fontFamily: SECTOR_RR_THEME.font }}
         >
           SECTOR INDEX (BASE 100)
         </text>
@@ -1981,6 +1980,57 @@ const MarkToMarketValuation = () => {
 
   const totals = useMemo(() => computeMtmPortfolioTotals(filteredMtmData), [filteredMtmData]);
 
+  const taxSnapshot = useMemo(() => {
+    const base = {
+      unrealizedGain: 0,
+      unrealizedPnl: 0,
+      purchaseCharges: 0,
+      salesCharges: 0,
+      stGain: 0,
+      stLoss: 0,
+      stCount: 0,
+      ltGain: 0,
+      ltLoss: 0,
+      ltCount: 0,
+      rows: []
+    };
+    if (!filteredMtmData.length) return base;
+
+    filteredMtmData.forEach((item) => {
+      const gain = Number(item.unrealizedGainLoss) || 0;
+      const pnl =
+        (Number(item.projectedSalesWithCOF) || 0) -
+        ((Number(item.costValue) || 0) + (Number(item.charges) || 0));
+      const days = Number(item.holdingDays) || 0;
+      const isLongTerm = days > 365;
+      base.unrealizedGain += gain;
+      base.unrealizedPnl += pnl;
+      base.purchaseCharges += Number(item.charges) || 0;
+      base.salesCharges += Number(item.chargesOnSales) || 0;
+      if (isLongTerm) {
+        base.ltCount += 1;
+        if (gain >= 0) base.ltGain += gain;
+        else base.ltLoss += gain;
+      } else {
+        base.stCount += 1;
+        if (gain >= 0) base.stGain += gain;
+        else base.stLoss += gain;
+      }
+      base.rows.push({
+        id: item.id,
+        companyName: item.companyName,
+        symbol: item.symbol,
+        days,
+        isLongTerm,
+        gain,
+        pnl
+      });
+    });
+
+    base.rows.sort((a, b) => Math.abs(b.gain) - Math.abs(a.gain));
+    return base;
+  }, [filteredMtmData]);
+
   const overviewMetrics = useMemo(() => {
     if (!filteredMtmData.length) {
       return {
@@ -2338,50 +2388,41 @@ const MarkToMarketValuation = () => {
           </div>
 
           <div className="mtm-summary-section">
-            <div className="mtm-summary-card">
-              <div className="mtm-summary-icon total-cost">
-              </div>
-              <div className="mtm-summary-content">
-                <h3>Total Cost Value</h3>
-                <p className="mtm-summary-amount">{formatCurrency(totals.totalCost)}</p>
-              </div>
+            <div className="mtm-summary-card mtm-summary-card--cost">
+              <span className="mtm-summary-kicker">Cost value</span>
+              <p className="mtm-summary-amount">
+                <span className="mtm-summary-ccy">LKR</span>
+                <span className="mtm-summary-fig">{formatLkrAmountParts(totals.totalCost).amount}</span>
+              </p>
             </div>
 
-            <div className="mtm-summary-card">
-              <div className="mtm-summary-icon total-market">
-              </div>
-              <div className="mtm-summary-content">
-                <h3>Total Market Value</h3>
-                <p className="mtm-summary-amount">{formatCurrency(totals.totalMarket)}</p>
-              </div>
+            <div className="mtm-summary-card mtm-summary-card--market">
+              <span className="mtm-summary-kicker">Market value</span>
+              <p className="mtm-summary-amount">
+                <span className="mtm-summary-ccy">LKR</span>
+                <span className="mtm-summary-fig">{formatLkrAmountParts(totals.totalMarket).amount}</span>
+              </p>
             </div>
 
-            <div className="mtm-summary-card">
-              <div className={`mtm-summary-icon total-gain-loss ${totals.totalGainLoss >= 0 ? 'positive' : 'negative'}`}>
-              </div>
-              <div className="mtm-summary-content">
-                <h3>Total Unrealized Capital Gain</h3>
-                <p className={`mtm-summary-amount ${totals.totalGainLoss >= 0 ? 'positive' : 'negative'}`}>
-                  {formatCurrency(totals.totalGainLoss)}
-                </p>
-                <p className="mtm-summary-percentage">
-                  {formatPercentage(totals.totalGainLossPercentage)}
-                </p>
-              </div>
+            <div className={`mtm-summary-card mtm-summary-card--gain ${totals.totalGainLoss >= 0 ? 'is-up' : 'is-down'}`}>
+              <span className="mtm-summary-kicker">Unrealized capital gain</span>
+              <p className="mtm-summary-amount">
+                <span className="mtm-summary-ccy">LKR</span>
+                <span className="mtm-summary-fig">{formatLkrAmountParts(totals.totalGainLoss).amount}</span>
+              </p>
+              <span className="mtm-summary-percentage">{formatPercentage(totals.totalGainLossPercentage)}</span>
             </div>
 
-            <div className="mtm-summary-card">
-              <div className="mtm-summary-icon last-updated">
-              </div>
-              <div className="mtm-summary-content">
-                <h3>Last Updated</h3>
-                <p className="mtm-summary-amount">
-                  {lastUpdated.toLocaleDateString()}
-                </p>
-                <p className="mtm-summary-time">
-                  {lastUpdated.toLocaleTimeString()}
-                </p>
-              </div>
+            <div className="mtm-summary-card mtm-summary-card--asof">
+              <span className="mtm-summary-kicker">Last updated</span>
+              <p className="mtm-summary-amount">
+                <span className="mtm-summary-fig">
+                  {lastUpdated.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                </span>
+              </p>
+              <span className="mtm-summary-time">
+                {lastUpdated.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })}
+              </span>
             </div>
           </div>
         </div>
@@ -2430,18 +2471,31 @@ const MarkToMarketValuation = () => {
           {/* Tab Content */}
           <div className="mtm-tab-content">
             {activeTab === 'performance' && (
-              <div className="mtm-chart-container">
+              <div className="mtm-chart-container mtm-performance-pane">
                 <div className="mtm-chart-header">
-                  <h3>
-                    {selectedCompany ? 
-                      `${companies.find(c => c.symbol === selectedCompany)?.company_name || 'Company'} Performance Trend` : 
-                      'Portfolio Value Trend'
-                    }
-                  </h3>
+                  <div className="mtm-perf-identity">
+                    {selectedCompany ? (
+                      <span className="mtm-perf-symbol">
+                        {selectedCompany.split('.')[0]}
+                      </span>
+                    ) : null}
+                    <div className="mtm-perf-identity-text">
+                      <h3>
+                        {selectedCompany
+                          ? companies.find((c) => c.symbol === selectedCompany)?.company_name || 'Company'
+                          : 'Portfolio Value Trend'}
+                      </h3>
+                      <p>
+                        {selectedCompany
+                          ? 'Last trade from market price feed'
+                          : 'Select a company to plot last trade'}
+                      </p>
+                    </div>
+                  </div>
                   <div className="mtm-chart-controls">
                     <div className="mtm-chart-control-group">
-                      <label htmlFor="companySelect">Company:</label>
-                      <select 
+                      <label htmlFor="companySelect">Company</label>
+                      <select
                         id="companySelect"
                         value={selectedCompany}
                         onChange={(e) => setSelectedCompany(e.target.value)}
@@ -2462,18 +2516,21 @@ const MarkToMarketValuation = () => {
                       </select>
                     </div>
                     <div className="mtm-chart-control-group">
-                      <label htmlFor="periodSelect">Period:</label>
-                      <select 
-                        id="periodSelect" 
-                        className="mtm-chart-period"
-                        value={selectedPeriod}
-                        onChange={(e) => setSelectedPeriod(e.target.value)}
-                      >
-                        <option value="1M">1 Month</option>
-                        <option value="3M">3 Months</option>
-                        <option value="6M">6 Months</option>
-                        <option value="1Y">1 Year</option>
-                      </select>
+                      <span className="mtm-perf-period-label" id="periodSelectLabel">
+                        Period
+                      </span>
+                      <div className="mtm-perf-period" role="group" aria-labelledby="periodSelectLabel">
+                        {['1M', '3M', '6M', '1Y'].map((period) => (
+                          <button
+                            key={period}
+                            type="button"
+                            className={`mtm-perf-period-btn${selectedPeriod === period ? ' is-active' : ''}`}
+                            onClick={() => setSelectedPeriod(period)}
+                          >
+                            {period}
+                          </button>
+                        ))}
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -2481,28 +2538,22 @@ const MarkToMarketValuation = () => {
                   {companyDataLoading ? (
                     <div className="mtm-chart-loading">
                       <div className="mtm-loading-spinner"></div>
-                      <p>Loading chart data...</p>
+                      <p>Loading last-trade series…</p>
                     </div>
                   ) : companyData.length === 0 ? (
                     <div className="mtm-chart-no-data">
-                      <p>No data available for the selected company and period</p>
+                      <p>No last-trade data for this company and period</p>
                     </div>
                   ) : (
                     <DynamicChart data={companyData} />
                   )}
                 </div>
-                
-                {/* Chart legend and stats */}
+
                 <div className="mtm-chart-footer">
                   <div className="mtm-chart-legend">
                     <div className="mtm-legend-item">
-                      <div className="mtm-legend-color" style={{backgroundColor: '#3b82f6'}}></div>
-                      <span>
-                        {selectedCompany ? 
-                          `${companies.find(c => c.symbol === selectedCompany)?.company_name || 'Company'} Last Trade Price` : 
-                          'Portfolio Value'
-                        }
-                      </span>
+                      <div className="mtm-legend-color" />
+                      <span>Last trade</span>
                     </div>
                   </div>
                   <div className="mtm-chart-stats">
@@ -2511,18 +2562,18 @@ const MarkToMarketValuation = () => {
                       return (
                         <>
                           <div className="mtm-stat-item">
-                            <span className="mtm-stat-label">Current Price:</span>
+                            <span className="mtm-stat-label">Current</span>
                             <span className="mtm-stat-value">{formatCurrency(stats.currentValue)}</span>
                           </div>
                           <div className="mtm-stat-item">
-                            <span className="mtm-stat-label">Total Return:</span>
+                            <span className="mtm-stat-label">Return</span>
                             <span className={`mtm-stat-value ${stats.totalReturn >= 0 ? 'positive' : 'negative'}`}>
                               {formatPercentage(stats.totalReturn)}
                             </span>
                           </div>
                           <div className="mtm-stat-item">
-                            <span className="mtm-stat-label">Data Points:</span>
-                            <span className="mtm-stat-value">{stats.period} days</span>
+                            <span className="mtm-stat-label">Points</span>
+                            <span className="mtm-stat-value">{stats.period}</span>
                           </div>
                         </>
                       );
@@ -2653,44 +2704,58 @@ const MarkToMarketValuation = () => {
             )}
             
             {activeTab === 'price-analysis' && (
-              <div className="mtm-price-analysis-content">
+              <div className="mtm-price-analysis-content mtm-price-analysis-pane">
                 <div className="mtm-price-analysis-toolbar">
-                  <h3 className="mtm-price-analysis-toolbar-title">Price Analysis</h3>
-                  <p className="mtm-price-analysis-toolbar-desc">
-                    Compare your average cost with market price movements (last 7 available trading days).
-                  </p>
-                  <div className="mtm-price-analysis-toolbar-company">
-                    <label htmlFor="analysisCompanySelect">Select Company:</label>
-                    <select
-                      id="analysisCompanySelect"
-                      value={selectedAnalysisCompany}
-                      onChange={(e) => setSelectedAnalysisCompany(e.target.value)}
-                      className="mtm-analysis-company-select"
-                      disabled={mtmData.length === 0}
-                    >
-                      <option value="">Select a company...</option>
-                      {mtmData.map((item, index) => (
-                        <option key={index} value={item.symbol}>
-                          {item.companyName} ({item.symbol})
-                        </option>
-                      ))}
-                    </select>
+                  <div className="mtm-perf-identity">
+                    {selectedAnalysisCompany ? (
+                      <span className="mtm-perf-symbol">
+                        {selectedAnalysisCompany.split('.')[0]}
+                      </span>
+                    ) : null}
+                    <div className="mtm-perf-identity-text">
+                      <h3>
+                        {selectedAnalysisCompany
+                          ? mtmData.find((item) => item.symbol === selectedAnalysisCompany)?.companyName ||
+                            selectedAnalysisCompany
+                          : 'Price vs cost'}
+                      </h3>
+                      <p>Last 7 trading days against your average cost</p>
+                    </div>
+                  </div>
+                  <div className="mtm-chart-controls">
+                    <div className="mtm-chart-control-group">
+                      <label htmlFor="analysisCompanySelect">Holding</label>
+                      <select
+                        id="analysisCompanySelect"
+                        value={selectedAnalysisCompany}
+                        onChange={(e) => setSelectedAnalysisCompany(e.target.value)}
+                        className="mtm-analysis-company-select"
+                        disabled={mtmData.length === 0}
+                      >
+                        <option value="">Select a holding…</option>
+                        {mtmData.map((item, index) => (
+                          <option key={index} value={item.symbol}>
+                            {item.companyName} ({item.symbol})
+                          </option>
+                        ))}
+                      </select>
+                    </div>
                   </div>
                 </div>
 
                 <div className="mtm-price-chart-container">
                   {!selectedAnalysisCompany ? (
                     <div className="mtm-chart-no-data">
-                      <p>Please choose a company</p>
+                      <p>Choose a holding from this portfolio</p>
                     </div>
                   ) : priceAnalysisLoading ? (
                     <div className="mtm-chart-loading">
                       <div className="mtm-loading-spinner"></div>
-                      <p>Loading price analysis data...</p>
+                      <p>Loading last-trade vs cost…</p>
                     </div>
                   ) : priceAnalysisData.length === 0 ? (
                     <div className="mtm-chart-no-data">
-                      <p>No data available for the selected company</p>
+                      <p>No last-trade data for this holding</p>
                     </div>
                   ) : (
                     <div className="mtm-price-chart">
@@ -2698,58 +2763,94 @@ const MarkToMarketValuation = () => {
                     </div>
                   )}
                 </div>
+
+                {selectedAnalysisCompany && priceAnalysisData.length > 0 && !priceAnalysisLoading ? (
+                  <div className="mtm-chart-footer">
+                    <div className="mtm-chart-legend">
+                      <div className="mtm-legend-item">
+                        <div className="mtm-legend-color mtm-legend-color--price" />
+                        <span>Last trade</span>
+                      </div>
+                      <div className="mtm-legend-item">
+                        <div className="mtm-legend-color mtm-legend-color--cost" />
+                        <span>Average cost</span>
+                      </div>
+                    </div>
+                    <div className="mtm-chart-stats">
+                      {(() => {
+                        const lastPrice = priceAnalysisData[priceAnalysisData.length - 1].price || 0;
+                        const averageCost = priceAnalysisData[0].averageCost || 0;
+                        const vsCost = averageCost > 0 ? ((lastPrice - averageCost) / averageCost) * 100 : 0;
+                        return (
+                          <>
+                            <div className="mtm-stat-item">
+                              <span className="mtm-stat-label">Last trade</span>
+                              <span className="mtm-stat-value">{formatCurrency(lastPrice)}</span>
+                            </div>
+                            <div className="mtm-stat-item">
+                              <span className="mtm-stat-label">Avg cost</span>
+                              <span className="mtm-stat-value">{formatCurrency(averageCost)}</span>
+                            </div>
+                            <div className="mtm-stat-item">
+                              <span className="mtm-stat-label">Vs cost</span>
+                              <span className={`mtm-stat-value ${vsCost >= 0 ? 'positive' : 'negative'}`}>
+                                {formatPercentage(vsCost)}
+                              </span>
+                            </div>
+                          </>
+                        );
+                      })()}
+                    </div>
+                  </div>
+                ) : null}
               </div>
             )}
 
             {activeTab === 'sector-risk-return' && (
-              <div className="mtm-sector-risk-return-content">
+              <div className="mtm-sector-risk-return-content mtm-sector-risk-pane">
                 <div className="mtm-sector-risk-return-toolbar">
-                  <div className="mtm-sector-risk-return-intro">
-                    <h3 className="mtm-sector-risk-return-title">Sector Risk–Return</h3>
-                    <p className="mtm-sector-risk-return-desc">
-                      Each point is an <strong>equal-weight</strong> sector aggregate from{' '}
-                      <strong>trade summary</strong> prices: Y = total return over the period, X =
-                      annualized volatility of daily returns. Symbols without sector map to{' '}
-                      <strong>Other</strong>.
-                    </p>
+                  <div className="mtm-perf-identity">
+                    <span className="mtm-perf-symbol">MKT</span>
+                    <div className="mtm-perf-identity-text">
+                      <h3>Sector risk–return</h3>
+                      <p>Equal-weight sectors from trade summaries · unmapped names go to Other</p>
+                    </div>
                   </div>
-                  <div className="mtm-sector-risk-return-controls">
-                    <label htmlFor="sectorRiskPeriodSelect">Period:</label>
-                    <select
-                      id="sectorRiskPeriodSelect"
-                      className="mtm-sector-risk-period-select"
-                      value={sectorRiskReturnPeriod}
-                      onChange={(e) => setSectorRiskReturnPeriod(e.target.value)}
-                      disabled={sectorRiskReturnLoading}
-                    >
-                      <option value="1M">1 Month</option>
-                      <option value="3M">3 Months</option>
-                      <option value="6M">6 Months</option>
-                      <option value="1Y">1 Year</option>
-                    </select>
-
-                    <div className="mtm-sector-chart-type" role="group" aria-label="Chart type">
-                      <button
-                        type="button"
-                        className={`mtm-sector-chart-type-btn ${sectorRiskReturnChartType === 'scatter' ? 'active' : ''}`}
-                        onClick={() => setSectorRiskReturnChartType('scatter')}
-                      >
-                        Scatter
-                      </button>
-                      <button
-                        type="button"
-                        className={`mtm-sector-chart-type-btn ${sectorRiskReturnChartType === 'bar' ? 'active' : ''}`}
-                        onClick={() => setSectorRiskReturnChartType('bar')}
-                      >
-                        Bar
-                      </button>
-                      <button
-                        type="button"
-                        className={`mtm-sector-chart-type-btn ${sectorRiskReturnChartType === 'line' ? 'active' : ''}`}
-                        onClick={() => setSectorRiskReturnChartType('line')}
-                      >
-                        Line (Time)
-                      </button>
+                  <div className="mtm-chart-controls">
+                    <div className="mtm-chart-control-group">
+                      <span className="mtm-perf-period-label">Period</span>
+                      <div className="mtm-perf-period" role="group" aria-label="Period">
+                        {['1M', '3M', '6M', '1Y'].map((period) => (
+                          <button
+                            key={period}
+                            type="button"
+                            className={`mtm-perf-period-btn${sectorRiskReturnPeriod === period ? ' is-active' : ''}`}
+                            onClick={() => setSectorRiskReturnPeriod(period)}
+                            disabled={sectorRiskReturnLoading}
+                          >
+                            {period}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                    <div className="mtm-chart-control-group">
+                      <span className="mtm-perf-period-label">Chart</span>
+                      <div className="mtm-perf-period" role="group" aria-label="Chart type">
+                        {[
+                          { id: 'scatter', label: 'Scatter' },
+                          { id: 'bar', label: 'Bar' },
+                          { id: 'line', label: 'Line' }
+                        ].map((chart) => (
+                          <button
+                            key={chart.id}
+                            type="button"
+                            className={`mtm-perf-period-btn${sectorRiskReturnChartType === chart.id ? ' is-active' : ''}`}
+                            onClick={() => setSectorRiskReturnChartType(chart.id)}
+                          >
+                            {chart.label}
+                          </button>
+                        ))}
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -2779,22 +2880,17 @@ const MarkToMarketValuation = () => {
                         {sectorRiskReturnTimeseriesError}
                       </div>
                     ) : sectorRiskReturnTimeseriesLoading ? (
-                      <div className="mtm-chart-loading mtm-sector-risk-return-chart-wrap">
+                      <div className="mtm-chart-loading">
                         <div className="mtm-loading-spinner" />
                         <p>Loading sector time-series…</p>
                       </div>
                     ) : !sectorRiskReturnTimeseries?.dates?.length ? (
-                      <div className="mtm-chart-no-data mtm-sector-risk-return-chart-wrap">
+                      <div className="mtm-chart-no-data">
                         <p>Not enough history to plot multi-line sector series. Try a longer period.</p>
                       </div>
                     ) : (
                       <SectorRiskReturnLineTimeChart payload={sectorRiskReturnTimeseries} />
                     )}
-                    <p className="mtm-sector-risk-return-meta">
-                      {sectorRiskReturnData.startDate} → {sectorRiskReturnData.endDate} ·{' '}
-                      {sectorRiskReturnData.symbolsWithMetrics ?? 0} symbols with valid return &amp;
-                      volatility · {sectorRiskReturnData.sectors.length} sectors
-                    </p>
                   </div>
                 ) : (
                   <div className="mtm-sector-risk-return-chart-wrap">
@@ -2805,20 +2901,154 @@ const MarkToMarketValuation = () => {
                     ) : (
                       <SectorRiskReturnLineChart points={sectorRiskReturnData.sectors} />
                     )}
-                    <p className="mtm-sector-risk-return-meta">
-                      {sectorRiskReturnData.startDate} → {sectorRiskReturnData.endDate} ·{' '}
-                      {sectorRiskReturnData.symbolsWithMetrics ?? 0} symbols with valid return &amp;
-                      volatility · {sectorRiskReturnData.sectors.length} sectors
-                    </p>
                   </div>
                 )}
+
+                {!sectorRiskReturnLoading && sectorRiskReturnData?.sectors?.length ? (
+                  <div className="mtm-chart-footer">
+                    <div className="mtm-chart-legend">
+                      <div className="mtm-legend-item">
+                        <span>
+                          {sectorRiskReturnChartType === 'scatter'
+                            ? 'X = vol · Y = total return'
+                            : sectorRiskReturnChartType === 'bar'
+                              ? 'Bars = total return by sector'
+                              : 'Lines = sector return over time'}
+                        </span>
+                      </div>
+                    </div>
+                    <div className="mtm-chart-stats">
+                      <div className="mtm-stat-item">
+                        <span className="mtm-stat-label">Window</span>
+                        <span className="mtm-stat-value mtm-stat-value--dates">
+                          {sectorRiskReturnData.startDate} → {sectorRiskReturnData.endDate}
+                        </span>
+                      </div>
+                      <div className="mtm-stat-item">
+                        <span className="mtm-stat-label">Symbols</span>
+                        <span className="mtm-stat-value">{sectorRiskReturnData.symbolsWithMetrics ?? 0}</span>
+                      </div>
+                      <div className="mtm-stat-item">
+                        <span className="mtm-stat-label">Sectors</span>
+                        <span className="mtm-stat-value">{sectorRiskReturnData.sectors.length}</span>
+                      </div>
+                    </div>
+                  </div>
+                ) : null}
               </div>
             )}
             
             {activeTab === 'tax-summary' && (
-              <div className="mtm-tax-summary-content">
-                <h3>Tax Summary</h3>
-                <p>This section will contain tax-related calculations and summaries.</p>
+              <div className="mtm-tax-summary-content mtm-tax-pane">
+                <div className="mtm-tax-toolbar">
+                  <div className="mtm-perf-identity">
+                    <span className="mtm-perf-symbol">TAX</span>
+                    <div className="mtm-perf-identity-text">
+                      <h3>Tax summary</h3>
+                      <p>
+                        Unrealized view of open holdings · short-term is 365 days or less · not a tax filing
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                {loading ? (
+                  <div className="mtm-chart-loading">
+                    <div className="mtm-loading-spinner" />
+                    <p>Loading tax snapshot…</p>
+                  </div>
+                ) : !filteredMtmData.length ? (
+                  <div className="mtm-chart-no-data">
+                    <p>No open positions to summarise. Pick a portfolio with holdings, or clear the date filter.</p>
+                  </div>
+                ) : (
+                  <>
+                    <div className="mtm-tax-kpi-grid">
+                      <div className="mtm-stat-item">
+                        <span className="mtm-stat-label">Unrealized capital gain</span>
+                        <span className={`mtm-stat-value ${taxSnapshot.unrealizedGain >= 0 ? 'positive' : 'negative'}`}>
+                          {formatCurrency(taxSnapshot.unrealizedGain)}
+                        </span>
+                      </div>
+                      <div className="mtm-stat-item">
+                        <span className="mtm-stat-label">After-fee P&amp;L</span>
+                        <span className={`mtm-stat-value ${taxSnapshot.unrealizedPnl >= 0 ? 'positive' : 'negative'}`}>
+                          {formatCurrency(taxSnapshot.unrealizedPnl)}
+                        </span>
+                      </div>
+                      <div className="mtm-stat-item">
+                        <span className="mtm-stat-label">Buy charges</span>
+                        <span className="mtm-stat-value">{formatCurrency(taxSnapshot.purchaseCharges)}</span>
+                      </div>
+                      <div className="mtm-stat-item">
+                        <span className="mtm-stat-label">Sell charges</span>
+                        <span className="mtm-stat-value">{formatCurrency(taxSnapshot.salesCharges)}</span>
+                      </div>
+                    </div>
+
+                    <div className="mtm-tax-horizon">
+                      <div className="mtm-tax-horizon-card">
+                        <span className="mtm-tax-horizon-kicker">Short-term</span>
+                        <strong>{taxSnapshot.stCount} holding{taxSnapshot.stCount === 1 ? '' : 's'}</strong>
+                        <div className="mtm-tax-horizon-row">
+                          <span>Gains</span>
+                          <span className="positive">{formatCurrency(taxSnapshot.stGain)}</span>
+                        </div>
+                        <div className="mtm-tax-horizon-row">
+                          <span>Losses</span>
+                          <span className="negative">{formatCurrency(taxSnapshot.stLoss)}</span>
+                        </div>
+                      </div>
+                      <div className="mtm-tax-horizon-card">
+                        <span className="mtm-tax-horizon-kicker">Long-term</span>
+                        <strong>{taxSnapshot.ltCount} holding{taxSnapshot.ltCount === 1 ? '' : 's'}</strong>
+                        <div className="mtm-tax-horizon-row">
+                          <span>Gains</span>
+                          <span className="positive">{formatCurrency(taxSnapshot.ltGain)}</span>
+                        </div>
+                        <div className="mtm-tax-horizon-row">
+                          <span>Losses</span>
+                          <span className="negative">{formatCurrency(taxSnapshot.ltLoss)}</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="mtm-tax-table-wrap">
+                      <table className="mtm-tax-table">
+                        <thead>
+                          <tr>
+                            <th>Company</th>
+                            <th>Symbol</th>
+                            <th>Days held</th>
+                            <th>Horizon</th>
+                            <th>Unrealized capital gain</th>
+                            <th>After-fee P&amp;L</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {taxSnapshot.rows.map((row) => (
+                            <tr key={row.id}>
+                              <td className="mtm-company-name">{row.companyName}</td>
+                              <td className="mtm-symbol">{row.symbol}</td>
+                              <td className="mtm-tax-num">{Math.round(row.days).toLocaleString()}</td>
+                              <td>
+                                <span className={`mtm-tax-chip ${row.isLongTerm ? 'is-lt' : 'is-st'}`}>
+                                  {row.isLongTerm ? 'Long-term' : 'Short-term'}
+                                </span>
+                              </td>
+                              <td className={`mtm-tax-num ${row.gain >= 0 ? 'positive' : 'negative'}`}>
+                                {formatCurrency(row.gain)}
+                              </td>
+                              <td className={`mtm-tax-num ${row.pnl >= 0 ? 'positive' : 'negative'}`}>
+                                {formatCurrency(row.pnl)}
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  </>
+                )}
               </div>
             )}
           </div>

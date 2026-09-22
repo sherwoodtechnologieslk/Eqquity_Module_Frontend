@@ -92,8 +92,47 @@
 
 .btlv-toolbar__actions {
   display: flex;
-  align-items: center;
+  align-items: flex-end;
   gap: 0.45rem;
+  flex-wrap: wrap;
+}
+
+.btlv-filter {
+  display: flex;
+  flex-direction: column;
+  gap: 0.12rem;
+}
+
+.btlv-filter__label {
+  font-size: 0.55rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #64748b;
+}
+
+.btlv-filter__select {
+  min-width: 180px;
+  max-width: 240px;
+  padding: 0.38rem 0.6rem;
+  border: 1px solid #e2e8f0;
+  border-radius: 0.4rem;
+  background: #ffffff;
+  font-size: 0.76rem;
+  font-family: inherit;
+  color: #0f172a;
+  cursor: pointer;
+}
+
+.btlv-filter__select:focus {
+  outline: none;
+  border-color: #059669;
+  box-shadow: 0 0 0 3px rgba(5, 150, 105, 0.12);
+}
+
+.btlv-filter__select:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
 }
 
 .btlv-search {
@@ -530,6 +569,8 @@
   .btlv-toolbar__actions {
     flex-wrap: wrap;
   }
+  .btlv-filter,
+  .btlv-filter__select,
   .btlv-search__input {
     width: 100%;
     max-width: none;

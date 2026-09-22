@@ -71,6 +71,7 @@ const BuyTransactionListView = ({ onBack }) => {
   const [transactions, setTransactions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
+  const [selectedPortfolio, setSelectedPortfolio] = useState('');
   const [expandedId, setExpandedId] = useState(null);
 
   const fetchTransactions = async () => {
@@ -88,11 +89,20 @@ const BuyTransactionListView = ({ onBack }) => {
     fetchTransactions();
   }, []);
 
+  const portfolios = useMemo(
+    () =>
+      [...new Set(transactions.map((tx) => tx.portfolio).filter(Boolean))].sort((a, b) =>
+        a.localeCompare(b)
+      ),
+    [transactions]
+  );
+
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
-    if (!q) return transactions;
-    return transactions.filter((tx) =>
-      [
+    return transactions.filter((tx) => {
+      if (selectedPortfolio && String(tx.portfolio || '') !== selectedPortfolio) return false;
+      if (!q) return true;
+      return [
         tx.company_name,
         tx.symbol,
         tx.portfolio,
@@ -101,9 +111,9 @@ const BuyTransactionListView = ({ onBack }) => {
         tx.contract_number
       ]
         .filter(Boolean)
-        .some((field) => String(field).toLowerCase().includes(q))
-    );
-  }, [transactions, search]);
+        .some((field) => String(field).toLowerCase().includes(q));
+    });
+  }, [transactions, search, selectedPortfolio]);
 
   const totals = useMemo(() => {
     return filtered.reduce(
@@ -187,6 +197,23 @@ const BuyTransactionListView = ({ onBack }) => {
         </div>
 
         <div className="btlv-toolbar__actions">
+          <div className="btlv-filter">
+            <label htmlFor="btlv-portfolio-filter" className="btlv-filter__label">Portfolio</label>
+            <select
+              id="btlv-portfolio-filter"
+              className="btlv-filter__select"
+              value={selectedPortfolio}
+              onChange={(e) => setSelectedPortfolio(e.target.value)}
+              disabled={loading}
+            >
+              <option value="">All Portfolios</option>
+              {portfolios.map((portfolio) => (
+                <option key={portfolio} value={portfolio}>
+                  {portfolio}
+                </option>
+              ))}
+            </select>
+          </div>
           <div className="btlv-search">
             <svg className="btlv-search__icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <circle cx="11" cy="11" r="8" />
@@ -260,11 +287,11 @@ const BuyTransactionListView = ({ onBack }) => {
             <line x1="9" y1="14" x2="15" y2="14" />
           </svg>
           <span className="btlv-state__title">
-            {search ? 'No matching transactions' : 'No transactions submitted yet'}
+            {search || selectedPortfolio ? 'No matching transactions' : 'No transactions submitted yet'}
           </span>
           <span className="btlv-state__text">
-            {search
-              ? 'Try a different company, symbol, deal number or broker.'
+            {search || selectedPortfolio
+              ? 'Try a different company, symbol, deal number, broker or portfolio.'
               : 'Submitted buy transactions will appear here.'}
           </span>
         </div>

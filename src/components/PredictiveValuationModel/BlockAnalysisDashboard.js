@@ -475,37 +475,39 @@ const BlockAnalysisDashboard = () => {
 
   return (
     <div className="block-analysis-dashboard">
-      <div className="bad-header">
+      <header className="bad-header">
+        <p className="bad-eyebrow">Predictive Valuation · PVM</p>
         <h2>Block Analysis Dashboard</h2>
         <p className="bad-subtitle">
-          Advanced block-based market structure analysis with quality scoring and narrative insights
+          Block market structure, quality score, and a narrative of the latest trend
         </p>
-      </div>
+      </header>
 
       <div className="bad-content">
-        {/* Controls */}
         <div className="bad-controls">
-          <div className="control-group">
-            <label>Select Equity</label>
+          <div className="control-group control-group--equity">
+            <label htmlFor="bad-equity">Equity</label>
             <select
+              id="bad-equity"
               value={selectedSymbol}
               onChange={(e) => setSelectedSymbol(e.target.value)}
             >
-              <option value="">-- Select Equity --</option>
+              <option value="">Select an equity…</option>
               {equities.map((eq) => (
                 <option key={eq.symbol} value={eq.symbol}>
-                  {eq.symbol} - {eq.name}
+                  {eq.symbol} — {eq.name}
                 </option>
               ))}
             </select>
           </div>
 
           <div className="control-group">
-            <label>Window Bars</label>
+            <label htmlFor="bad-window">Window bars</label>
             <input
+              id="bad-window"
               type="number"
               value={windowBars}
-              onChange={(e) => setWindowBars(parseInt(e.target.value) || 100)}
+              onChange={(e) => setWindowBars(parseInt(e.target.value, 10) || 100)}
               min="20"
               max="500"
               step="10"
@@ -513,11 +515,12 @@ const BlockAnalysisDashboard = () => {
           </div>
 
           <div className="control-group">
-            <label>Group Count</label>
+            <label htmlFor="bad-groups">Group count</label>
             <input
+              id="bad-groups"
               type="number"
               value={groupCount}
-              onChange={(e) => setGroupCount(parseInt(e.target.value) || 20)}
+              onChange={(e) => setGroupCount(parseInt(e.target.value, 10) || 20)}
               min="5"
               max="50"
               step="1"
@@ -525,68 +528,79 @@ const BlockAnalysisDashboard = () => {
           </div>
 
           <div className="control-group">
-            <label>Calculation Basis</label>
-            <select
-              value={calculationBasis}
-              onChange={(e) => setCalculationBasis(e.target.value)}
-            >
-              <option value="closed">Closed (bar[1]) - Stable</option>
-              <option value="current">Current (bar[0]) - Live</option>
-            </select>
+            <span className="control-label">Basis</span>
+            <div className="bad-basis" role="group" aria-label="Calculation basis">
+              <button
+                type="button"
+                className={`bad-basis-btn${calculationBasis === 'closed' ? ' is-active' : ''}`}
+                onClick={() => setCalculationBasis('closed')}
+              >
+                Closed
+              </button>
+              <button
+                type="button"
+                className={`bad-basis-btn${calculationBasis === 'current' ? ' is-active' : ''}`}
+                onClick={() => setCalculationBasis('current')}
+              >
+                Live
+              </button>
+            </div>
           </div>
 
-          {currentPrice && (
+          {currentPrice ? (
             <div className="control-group">
-              <label>Current Price</label>
+              <span className="control-label">Last trade</span>
               <div className="current-price-display">
-                LKR {currentPrice.toFixed(2)}
+                <span className="bad-ccy">LKR</span>
+                <span className="bad-fig">{currentPrice.toFixed(2)}</span>
               </div>
             </div>
-          )}
+          ) : null}
         </div>
 
         {loading && (
           <div className="bad-loading">
-            <p>Loading data...</p>
+            <div className="bad-spinner" />
+            <p>Loading last-trade series…</p>
           </div>
         )}
 
         {!loading && selectedSymbol && historicalData.length > 0 && (
           <>
-            {/* Quality Score & Confidence */}
             <div className="bad-quality-section">
-              <div className="quality-card">
-                <div className="quality-label">Quality Score</div>
-                <div className="quality-value" style={{
-                  color: qualityScore >= 80 ? '#10b981' : qualityScore >= 60 ? '#eab308' : '#ef4444'
-                }}>
-                  {qualityScore.toFixed(0)}/100
+              <div className={`quality-card ${qualityScore >= 80 ? 'is-high' : qualityScore >= 60 ? 'is-mid' : 'is-low'}`}>
+                <span className="quality-label">Quality score</span>
+                <div className="quality-value">
+                  {qualityScore.toFixed(0)}
+                  <span>/100</span>
                 </div>
-                <div className="quality-confidence">
-                  {qualityScore >= 80 ? 'HIGH' : qualityScore >= 60 ? 'MEDIUM' : 'LOW'} Confidence
-                </div>
+                <span className="quality-confidence">
+                  {qualityScore >= 80 ? 'High' : qualityScore >= 60 ? 'Medium' : 'Low'} confidence
+                </span>
               </div>
 
               <div className="quality-breakdown">
                 <div className="breakdown-item">
-                  <span className="breakdown-label">Angle Strength:</span>
-                  <span className="breakdown-value">{(qualityScore * 0.15).toFixed(1)}/15</span>
+                  <span className="breakdown-label">Angle</span>
+                  <span className="breakdown-value">{(qualityScore * 0.15).toFixed(1)} / 15</span>
                 </div>
                 <div className="breakdown-item">
-                  <span className="breakdown-label">Volume Consistency:</span>
-                  <span className="breakdown-value">{(qualityScore * 0.10).toFixed(1)}/10</span>
+                  <span className="breakdown-label">Volume</span>
+                  <span className="breakdown-value">{(qualityScore * 0.10).toFixed(1)} / 10</span>
                 </div>
                 <div className="breakdown-item">
-                  <span className="breakdown-label">Trend Alignment:</span>
-                  <span className="breakdown-value">{(qualityScore * 0.20).toFixed(1)}/20</span>
+                  <span className="breakdown-label">Alignment</span>
+                  <span className="breakdown-value">{(qualityScore * 0.20).toFixed(1)} / 20</span>
                 </div>
               </div>
             </div>
 
-            {/* Trend Channels */}
             {trendChannels.length > 0 && (
               <div className="bad-section">
-                <h3>Trend Channels</h3>
+                <div className="bad-section-head">
+                  <h3>Trend channels</h3>
+                  <p>Latest three detected structure legs</p>
+                </div>
                 <div className="trend-channels-grid">
                   {trendChannels.slice(0, 3).map((channel, idx) => (
                     <div key={idx} className="trend-channel-card">
@@ -595,20 +609,20 @@ const BlockAnalysisDashboard = () => {
                           {channel.type}
                         </span>
                         <span className="channel-blocks">
-                          Blocks {channel.startBlock}-{channel.endBlock}
+                          Blocks {channel.startBlock}–{channel.endBlock}
                         </span>
                       </div>
                       <div className="channel-details">
                         <div className="channel-detail-item">
-                          <span>Angle:</span>
+                          <span>Angle</span>
                           <span>{channel.angle.toFixed(1)}°</span>
                         </div>
                         <div className="channel-detail-item">
-                          <span>Upper:</span>
+                          <span>Upper</span>
                           <span>LKR {channel.upperBound.toFixed(2)}</span>
                         </div>
                         <div className="channel-detail-item">
-                          <span>Lower:</span>
+                          <span>Lower</span>
                           <span>LKR {channel.lowerBound.toFixed(2)}</span>
                         </div>
                       </div>
@@ -618,50 +632,63 @@ const BlockAnalysisDashboard = () => {
               </div>
             )}
 
-            {/* Key Levels */}
             {keyLevels.support && keyLevels.resistance && (
               <div className="bad-section">
-                <h3>Key Levels</h3>
+                <div className="bad-section-head">
+                  <h3>Key levels</h3>
+                  <p>From recent blocks · vs last trade</p>
+                </div>
                 <div className="key-levels-grid">
                   <div className="key-level-card resistance">
                     <div className="level-label">Resistance</div>
-                    <div className="level-price">LKR {keyLevels.resistance.toFixed(2)}</div>
-                    {currentPrice && (
+                    <div className="level-price">
+                      <span className="bad-ccy">LKR</span>
+                      {keyLevels.resistance.toFixed(2)}
+                    </div>
+                    {currentPrice ? (
                       <div className="level-distance">
-                        {((keyLevels.resistance - currentPrice) / currentPrice * 100).toFixed(2)}% above
+                        {(((keyLevels.resistance - currentPrice) / currentPrice) * 100).toFixed(2)}% above
                       </div>
-                    )}
+                    ) : null}
                   </div>
 
-                  {keyLevels.poc && (
+                  {keyLevels.poc ? (
                     <div className="key-level-card poc">
-                      <div className="level-label">Point of Control (POC)</div>
-                      <div className="level-price">LKR {keyLevels.poc.toFixed(2)}</div>
-                      {currentPrice && (
+                      <div className="level-label">Point of control</div>
+                      <div className="level-price">
+                        <span className="bad-ccy">LKR</span>
+                        {keyLevels.poc.toFixed(2)}
+                      </div>
+                      {currentPrice ? (
                         <div className="level-distance">
-                          {Math.abs((keyLevels.poc - currentPrice) / currentPrice * 100).toFixed(2)}% away
+                          {Math.abs(((keyLevels.poc - currentPrice) / currentPrice) * 100).toFixed(2)}% away
                         </div>
-                      )}
+                      ) : null}
                     </div>
-                  )}
+                  ) : null}
 
                   <div className="key-level-card support">
                     <div className="level-label">Support</div>
-                    <div className="level-price">LKR {keyLevels.support.toFixed(2)}</div>
-                    {currentPrice && (
+                    <div className="level-price">
+                      <span className="bad-ccy">LKR</span>
+                      {keyLevels.support.toFixed(2)}
+                    </div>
+                    {currentPrice ? (
                       <div className="level-distance">
-                        {((currentPrice - keyLevels.support) / currentPrice * 100).toFixed(2)}% above
+                        {(((currentPrice - keyLevels.support) / currentPrice) * 100).toFixed(2)}% above
                       </div>
-                    )}
+                    ) : null}
                   </div>
                 </div>
               </div>
             )}
 
-            {/* Block Analytics Table */}
             {blockAnalytics.length > 0 && (
               <div className="bad-section">
-                <h3>Block Analytics</h3>
+                <div className="bad-section-head">
+                  <h3>Block analytics</h3>
+                  <p>Most recent 10 blocks</p>
+                </div>
                 <div className="block-table-wrapper">
                   <table className="block-table">
                     <thead>
@@ -683,13 +710,13 @@ const BlockAnalysisDashboard = () => {
                         return (
                           <tr key={idx}>
                             <td>{block.blockIndex}</td>
-                            <td>LKR {block.open.toFixed(2)}</td>
-                            <td>LKR {block.high.toFixed(2)}</td>
-                            <td>LKR {block.low.toFixed(2)}</td>
+                            <td>{block.open.toFixed(2)}</td>
+                            <td>{block.high.toFixed(2)}</td>
+                            <td>{block.low.toFixed(2)}</td>
                             <td className={block.isBullish ? 'bullish' : 'bearish'}>
-                              LKR {block.close.toFixed(2)}
+                              {block.close.toFixed(2)}
                             </td>
-                            <td>LKR {block.range.toFixed(2)}</td>
+                            <td>{block.range.toFixed(2)}</td>
                             <td>{block.totalVolume.toLocaleString()}</td>
                             <td>{(block.volatility * 100).toFixed(2)}%</td>
                             <td>
@@ -706,61 +733,46 @@ const BlockAnalysisDashboard = () => {
               </div>
             )}
 
-            {/* Market Narrative */}
-            {narrative && (
+            {narrative ? (
               <div className="bad-section">
                 <div className="narrative-header">
-                  <h3>Market Narrative</h3>
+                  <div className="bad-section-head">
+                    <h3>Market narrative</h3>
+                    <p>Structure read of the latest channel</p>
+                  </div>
                   <button
+                    type="button"
                     onClick={enhanceNarrativeWithAI}
                     disabled={aiEnhancing}
                     className={`ai-enhance-btn ${aiEnhanced ? 'enhanced' : ''}`}
                     title={aiEnhanced ? 'Narrative enhanced with AI' : 'Enhance with AI insights'}
                   >
-                    {aiEnhancing ? (
-                      <>
-                        <span>🤖</span>
-                        <span>Enhancing...</span>
-                      </>
-                    ) : aiEnhanced ? (
-                      <>
-                        <span>✨</span>
-                        <span>AI Enhanced</span>
-                      </>
-                    ) : (
-                      <>
-                        <span>🤖</span>
-                        <span>Enhance with AI</span>
-                      </>
-                    )}
+                    {aiEnhancing ? 'Enhancing…' : aiEnhanced ? 'AI enhanced' : 'Enhance with AI'}
                   </button>
                 </div>
                 <div className="narrative-box">
                   <p>{narrative}</p>
-                  {aiEnhanced && (
-                    <div className="ai-enhanced-badge">
-                      <span>✨</span>
-                      <span>This narrative has been enhanced with AI-powered insights</span>
-                    </div>
-                  )}
+                  {aiEnhanced ? (
+                    <div className="ai-enhanced-badge">Narrative includes AI-powered insights</div>
+                  ) : null}
                   <div className="narrative-disclaimer">
-                    ⚠️ This analysis is for educational purposes only and does not constitute investment advice.
+                    For research only. This is not investment advice.
                   </div>
                 </div>
               </div>
-            )}
+            ) : null}
           </>
         )}
 
         {!loading && selectedSymbol && historicalData.length === 0 && (
           <div className="bad-empty">
-            <p>No historical data available for {selectedSymbol}</p>
+            <p>No historical data for {selectedSymbol}. Load more trade summaries and try again.</p>
           </div>
         )}
 
         {!loading && !selectedSymbol && (
           <div className="bad-empty">
-            <p>Please select an equity to begin analysis</p>
+            <p>Select an equity to run block analysis.</p>
           </div>
         )}
       </div>
