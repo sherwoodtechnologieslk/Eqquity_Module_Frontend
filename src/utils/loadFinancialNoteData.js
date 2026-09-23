@@ -406,12 +406,6 @@ const loadIncomeTaxNoteTemplate = async (periods) => {
   };
 };
 
-const loadRevenueNoteTemplate = (periods) =>
-  loadMappedComparativeNote('note-3', NOTE3_REVENUE_DESCRIPTIONS, periods);
-
-const loadOtherIncomeNoteTemplate = (periods) =>
-  loadMappedComparativeNote('note-4', NOTE4_OTHER_INCOME_DESCRIPTIONS, periods);
-
 const filterExpenseRows = (plData, predicate) => {
   const byCategory = plData?.expensesByCategory || {};
   const rows = [];
