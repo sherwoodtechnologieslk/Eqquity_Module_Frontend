@@ -814,34 +814,68 @@
 }
 
 .fm-form-container {
-  padding: 0;
-  border: 0;
-  background: transparent;
-  box-shadow: none;
-}
-
-.fm-form {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 0.7rem;
-  align-items: start;
-}
-
-.fm-form-section {
-  margin: 0;
-  padding: 0.9rem 1rem 1rem;
+  padding: 0.15rem 1.05rem 0;
   border: 1px solid var(--fm-line);
   background: var(--fm-paper);
   box-shadow: 0 3px 14px rgba(22, 32, 28, 0.035);
 }
 
-.wm-root .fm-container .fm-form-section {
+.wm-root .fm-container .fm-form-container {
   border-radius: 0.8rem !important;
+}
+
+.fm-form {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0 1.25rem;
+  align-items: start;
+}
+
+.fm-form-section {
+  margin: 0;
+  padding: 0.85rem 0.1rem 1rem;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.fm-form-section + .fm-form-section {
+  border-top: 0;
+}
+
+/* Full-width row: divider above Investment Details */
+.fm-form-section:nth-of-type(3) {
+  padding-top: 1rem;
+  border-top: 1px solid #edf0ed;
+  margin-top: 0.35rem;
 }
 
 .fm-form-section:nth-of-type(1),
 .fm-form-section:nth-of-type(2) {
-  min-height: 20.25rem;
+  min-height: 0;
+  padding-top: 0.95rem;
+}
+
+.fm-form-section:nth-of-type(4),
+.fm-form-section:nth-of-type(5) {
+  margin-top: 0.35rem;
+  padding-top: 1rem;
+  border-top: 0;
+}
+
+.fm-form-section:nth-of-type(4) {
+  position: relative;
+}
+
+.fm-form-section:nth-of-type(4)::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: calc(200% + 1.25rem);
+  height: 1px;
+  background: #edf0ed;
+  pointer-events: none;
 }
 
 .fm-form-section:nth-of-type(3),
@@ -875,7 +909,7 @@
 
 .fm-form-section:nth-of-type(4),
 .fm-form-section:nth-of-type(5) {
-  height: 100%;
+  align-self: stretch;
 }
 
 .fm-form-section:nth-of-type(5) .fm-form-grid {
@@ -964,22 +998,22 @@
 }
 
 .fm-form-actions {
-  position: sticky;
-  bottom: 0.6rem;
-  z-index: 5;
+  position: static;
+  z-index: 1;
   display: flex;
   justify-content: flex-end;
   gap: 0.55rem;
-  margin: 0;
-  padding: 0.65rem;
-  border: 1px solid rgba(215, 222, 217, 0.9);
-  background: rgba(255, 255, 255, 0.94);
-  box-shadow: 0 8px 24px rgba(22, 32, 28, 0.08);
-  backdrop-filter: blur(10px);
+  margin: 0.5rem -1.05rem 0;
+  padding: 0.85rem 1.05rem;
+  border: 0;
+  border-top: 1px solid var(--fm-line);
+  background: var(--fm-wash);
+  box-shadow: none;
+  backdrop-filter: none;
 }
 
 .wm-root .fm-container .fm-form-actions {
-  border-radius: 0.7rem !important;
+  border-radius: 0 0 0.8rem 0.8rem !important;
 }
 
 .fm-table-container {
@@ -1087,14 +1121,13 @@
     grid-template-columns: 1fr;
   }
 
-  .fm-form-section:nth-of-type(1),
-  .fm-form-section:nth-of-type(2) {
-    min-height: 0;
-  }
-
   .fm-form-section:nth-of-type(3),
   .fm-form-actions {
     grid-column: auto;
+  }
+
+  .fm-form-section:nth-of-type(4)::before {
+    width: 100%;
   }
 }
 

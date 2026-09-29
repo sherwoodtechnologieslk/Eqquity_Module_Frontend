@@ -76,6 +76,100 @@
   background: #fff;
 }
 
+.nts-header-right {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.55rem;
+}
+
+.nts-popout-btn {
+  padding: 0.38rem 0.7rem;
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+  background: #fff;
+  color: #1e293b;
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.nts-popout-btn:hover:not(:disabled) {
+  background: #f8fafc;
+  border-color: #94a3b8;
+}
+
+.nts-popout-btn:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+.nts-popout-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  background: rgba(15, 23, 42, 0.5);
+}
+
+.nts-popout-modal {
+  display: flex;
+  flex-direction: column;
+  width: min(100%, 1600px);
+  height: calc(100vh - 32px);
+  max-height: calc(100vh - 32px);
+  background: #f3f4f6;
+  border: 1px solid #d1d5db;
+  overflow: hidden;
+}
+
+.nts-popout-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-shrink: 0;
+  padding: 0.85rem 1.25rem;
+  background: #ffffff;
+  border-bottom: 1px solid #d1d5db;
+}
+
+.nts-popout-title {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 700;
+  color: #111827;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.nts-popout-meta {
+  margin-top: 0.2rem;
+  font-size: 0.78rem;
+  color: #6b7280;
+  font-weight: 500;
+}
+
+.nts-popout-body {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: auto;
+}
+
+.nts-popout-body .nts-page {
+  min-height: 0;
+  height: 100%;
+  padding: 0.85rem 1.25rem 1.25rem;
+}
+
+.nts-popout-body .nts-header .nts-title,
+.nts-popout-body .nts-header .nts-subtitle {
+  display: none;
+}
+
 .nts-paper {
   width: 100%;
   background: var(--nts-paper);
@@ -1145,6 +1239,7 @@
 }
 
 .nts-page .frn-sheet-line.is-edit-selected > td,
+.nts-page .frn-excel-table tr.is-edit-selected > td,
 .nts-page .frn-sheet-th-extra.is-edit-selected,
 .nts-page .frn-sheet-extra-cell.is-edit-selected {
   background: #eff6ff;
@@ -1660,6 +1755,20 @@
   background: transparent !important;
 }
 
+.nts-page .frn-excel-policy {
+  margin: 0 0 0.85rem;
+  padding: 0 0.55rem;
+  font-size: 0.78rem;
+  line-height: 1.55;
+  color: var(--nts-ink);
+}
+
+.nts-page .frn-excel-unit {
+  display: block;
+  font-weight: 600;
+  font-size: 0.68rem;
+}
+
 .nts-page .frn-excel-note-line td {
   border: 0 !important;
   padding: 0.3rem 0.55rem 0.45rem;
@@ -1684,6 +1793,20 @@
   white-space: nowrap !important;
 }
 
+.nts-page .frn-excel-table--deferred-tax .frn-excel-head--group td {
+  text-align: center;
+  font-weight: 700;
+  white-space: normal;
+}
+
+.nts-page .frn-excel-table--deferred-tax .frn-excel-label-cell {
+  white-space: normal !important;
+}
+
+.nts-page .frn-excel-label-cell.is-indent-1 {
+  padding-left: 1.35rem;
+}
+
 .nts-page .frn-excel-code {
   margin-right: 0.5rem;
   font-weight: 700;
@@ -1698,6 +1821,28 @@
   color: var(--nts-muted);
   font-style: italic;
   white-space: normal !important;
+}
+
+.nts-page .frn-excel-table .frn-sheet-th-extra,
+.nts-page .frn-excel-table .frn-sheet-extra-cell {
+  text-align: right;
+  min-width: 6.5rem;
+  overflow: visible;
+}
+
+.nts-page .frn-excel-head .frn-sheet-th-extra {
+  vertical-align: bottom;
+}
+
+.nts-page .frn-excel-table--deferred-tax .frn-excel-head--group .frn-sheet-th-extra {
+  text-align: right;
+  vertical-align: middle;
+}
+
+.nts-page .frn-excel-sheet.is-edit-mode .frn-sheet-th-extra,
+.nts-page .frn-excel-sheet.is-edit-mode .frn-sheet-extra-cell,
+.nts-page .frn-excel-sheet.is-edit-mode tbody tr:not(.frn-excel-section):not(.frn-excel-head):not(.frn-excel-spacer):not(.frn-excel-note-line):not(.frn-excel-footnote) {
+  cursor: pointer;
 }
 
 @media (max-width: 720px) {

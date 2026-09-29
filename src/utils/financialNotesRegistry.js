@@ -77,7 +77,7 @@ export const FINANCIAL_NOTES = [
   {
     id: 'note-8',
     number: 9,
-    title: 'Deferred tax liability',
+    title: 'Deferred tax asset',
     mappings: {
       soci: ['deferredTaxEffect'],
       sofp: { patterns: ['deferred tax'] }
@@ -100,8 +100,13 @@ export const FINANCIAL_NOTES = [
     }
   },
   {
-    id: 'note-11',
+    id: 'note-related-party-receivable',
     number: 12,
+    title: 'Other Receivable - Related Party'
+  },
+  {
+    id: 'note-11',
+    number: 13,
     title: 'Financial assets at fair value through profit or loss',
     mappings: {
       soci: ['changeInFairValueOfFinancialAssets', 'changeInFairValueOfInvestmentInShares'],
@@ -121,7 +126,7 @@ export const FINANCIAL_NOTES = [
   },
   {
     id: 'note-12',
-    number: 13,
+    number: 14,
     title: 'Cash and cash equivalents',
     mappings: {
       cashFlow: ['cashAtBeginning', 'cashAtEnd', 'netIncreaseInCash'],
@@ -132,7 +137,7 @@ export const FINANCIAL_NOTES = [
   },
   {
     id: 'note-13',
-    number: 14,
+    number: 15,
     title: 'Stated capital',
     mappings: {
       sofp: { patterns: ['stated capital', 'share capital', 'ordinary share', 'issued capital'] }
@@ -140,7 +145,7 @@ export const FINANCIAL_NOTES = [
   },
   {
     id: 'note-14',
-    number: 15,
+    number: 16,
     title: 'Employee benefits liabilities',
     mappings: {
       soci: ['actuarialLossOnDefinedBenefitPlans'],
@@ -149,7 +154,7 @@ export const FINANCIAL_NOTES = [
   },
   {
     id: 'note-15',
-    number: 16,
+    number: 17,
     title: 'Lease creditor',
     mappings: {
       cashFlow: ['paymentOfLeaseLiabilities'],
@@ -158,7 +163,7 @@ export const FINANCIAL_NOTES = [
   },
   {
     id: 'note-16',
-    number: 17,
+    number: 18,
     title: 'Other payables',
     mappings: {
       cashFlow: ['tradePayables'],
@@ -169,7 +174,7 @@ export const FINANCIAL_NOTES = [
   },
   {
     id: 'note-17',
-    number: 18,
+    number: 19,
     title: 'Interest-bearing loans and borrowings',
     mappings: {
       cashFlow: ['proceedsFromBorrowings', 'repaymentOfBorrowings'],
@@ -180,7 +185,7 @@ export const FINANCIAL_NOTES = [
   },
   {
     id: 'note-18',
-    number: 19,
+    number: 20,
     title: 'Related party disclosures',
     mappings: {
       sofp: { patterns: ['related party', 'director', 'key management'] }
@@ -286,7 +291,7 @@ export const notesContextKey = (ctx) => {
   ].join('|');
 };
 
-/** Full note catalog for landing index (notes 3–18). */
+/** Full note catalog for landing index (notes 3–20). */
 export const getNotesIndexGroups = () => [
   {
     source: 'ALL',

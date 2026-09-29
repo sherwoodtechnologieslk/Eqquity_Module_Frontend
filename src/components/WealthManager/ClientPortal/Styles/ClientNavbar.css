@@ -18,11 +18,21 @@
   height: 56px;
   padding: 0;
   color: #ffffff;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-  background: #064a46;
-  box-shadow: none;
+  border-bottom: 1px solid rgba(15, 23, 42, 0.14);
+  background: linear-gradient(90deg, #134e4a 0%, #0f766e 42%, #0e7490 100%);
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.12) inset,
+    0 6px 18px rgba(15, 118, 110, 0.2);
   font-family: 'DM Sans', 'Segoe UI', sans-serif;
   overflow: visible;
+}
+
+.cp-navbar:not(.cp-navbar-gateway)::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.1) 0%, transparent 55%);
+  pointer-events: none;
 }
 
 .cp-navbar.cp-navbar-gateway {
@@ -120,9 +130,10 @@
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-  background: #0c7b74;
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: linear-gradient(135deg, #0f766e 0%, #14b8a6 50%, #06b6d4 100%);
+  border: 1px solid rgba(255, 255, 255, 0.25);
   border-radius: 0.35rem;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.15);
 }
 
 .cp-navbar-gateway .cp-navbar-brand-icon {

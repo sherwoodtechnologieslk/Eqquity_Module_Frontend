@@ -1,61 +1,33 @@
 import React, { useState } from 'react';
 import './Styles/ClientBankForm.css';
 
-const sourceOfFundsOptions = [
-  'Commission Income',
-  'Contract Proceeds',
-  'Donations/Charities (Local/Foreign)',
-  'Export Proceeds',
-  'Family Remittances',
-  'Gift',
-  'Investment Proceeds/Savings',
-  'Membership Contribution',
-  'Others (Specify)',
-  'Salary/Profit Income',
-  'Sale of Property/Assets',
-  'Sales and Business Turnover'
+const FUNDS = [
+  { id: 'EIF', name: 'Equity Income Fund (EIF)' },
+  { id: 'CMT', name: 'Cash Management Trust Fund (CMT)' },
+  { id: 'SBF', name: 'Sri Lanka Bond Fund (SBF)' },
 ];
 
 const ClientBankForm = ({ onNext, onPrevious, initialData = {} }) => {
-  const [formState, setFormState] = useState({
+  const [formData, setFormData] = useState({
     bankName: initialData.bankName || '',
-    branchName: initialData.branchName || '',
-    accountType: initialData.accountType || '',
+    branch: initialData.branch || '',
     accountNumber: initialData.accountNumber || '',
-    expectedValueOfInvestment: initialData.expectedValueOfInvestment || '',
-    allowTransfer: initialData.allowTransfer || '',
-    isUSPersonFATCA: initialData.isUSPersonFATCA || ''
+    accountName: initialData.accountName || '',
+    accountType: initialData.accountType || '',
+    preferredFund: initialData.preferredFund || '',
+    initialInvestment: initialData.initialInvestment || '',
+    dividendInstruction: initialData.dividendInstruction || '',
   });
-
-  const [selectedSources, setSelectedSources] = useState(
-    Array.isArray(initialData.sourceOfFunds) ? initialData.sourceOfFunds : []
-  );
-
-  const [showJustPayInfo, setShowJustPayInfo] = useState(true);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    setFormState((prev) => ({
-      ...prev,
-      [name]: value
-    }));
-  };
-
-  const handleSourceToggle = (option) => {
-    setSelectedSources((prev) =>
-      prev.includes(option)
-        ? prev.filter((item) => item !== option)
-        : [...prev, option]
-    );
+    setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
   const handleSubmit = (e) => {
     e.preventDefault();
     if (onNext) {
-      onNext({
-        ...formState,
-        sourceOfFunds: selectedSources
-      });
+      onNext(formData);
     }
   };
 
@@ -63,15 +35,11 @@ const ClientBankForm = ({ onNext, onPrevious, initialData = {} }) => {
     <div className="cp-signup-form-container">
       <div className="cp-signup-form-wrapper">
         <div className="cp-signup-form-header">
-          <div className="cp-header-top">
-            <span className="cp-header-pill">Bank &amp; Fund Details Video Guide</span>
-          </div>
           <h1>Bank &amp; Fund Details</h1>
-          <p>Please enter your personal bank account details and funding information</p>
+          <p>Provide the bank account for subscriptions and redemptions, and choose your first fund</p>
         </div>
 
         <div className="cp-signup-form-content">
-          {/* Pro Tips Section */}
           <div className="cp-pro-tips-section">
             <div className="cp-tips-header">
               <div className="cp-tips-icon">
@@ -89,31 +57,22 @@ const ClientBankForm = ({ onNext, onPrevious, initialData = {} }) => {
               <div className="cp-tip-item">
                 <div className="cp-tip-number">01</div>
                 <div className="cp-tip-text">
-                  <h3>Personal Account Only</h3>
-                  <p>
-                    Enter your own personal bank account details. Third-party or
-                    joint accounts may require additional verification.
-                  </p>
+                  <h3>Own-name account</h3>
+                  <p>The bank account must be in the same name as the unit-trust account you are opening.</p>
                 </div>
               </div>
               <div className="cp-tip-item">
                 <div className="cp-tip-number">02</div>
                 <div className="cp-tip-text">
-                  <h3>Match Bank Statement</h3>
-                  <p>
-                    Make sure the account number and name exactly match your bank
-                    statement to avoid fund transfer issues.
-                  </p>
+                  <h3>Redemption proceeds</h3>
+                  <p>Withdrawals are paid only to this nominated account after the standard T+2 cycle.</p>
                 </div>
               </div>
               <div className="cp-tip-item">
                 <div className="cp-tip-number">03</div>
                 <div className="cp-tip-text">
-                  <h3>Funding Transparency</h3>
-                  <p>
-                    Select all applicable sources of funds to support compliance
-                    and regulatory requirements.
-                  </p>
+                  <h3>Minimum investment</h3>
+                  <p>You can start from LKR 1,000. You can add more funds later from the portal.</p>
                 </div>
               </div>
             </div>
@@ -131,21 +90,17 @@ const ClientBankForm = ({ onNext, onPrevious, initialData = {} }) => {
             </div>
           </div>
 
-          {/* Form Section */}
           <form className="cp-signup-form" onSubmit={handleSubmit}>
-            {/* Bank Details */}
             <div className="cp-form-section">
-              <p className="cp-section-helper">
-                Please enter your own personal bank account details
-              </p>
+              <h3 className="cp-section-title">Nominated bank account</h3>
 
               <div className="cp-form-group">
-                <label htmlFor="bankName">Bank Name</label>
+                <label htmlFor="bankName">Bank name</label>
                 <input
                   type="text"
                   id="bankName"
                   name="bankName"
-                  value={formState.bankName}
+                  value={formData.bankName}
                   onChange={handleInputChange}
                   className="cp-form-input"
                   required
@@ -154,12 +109,12 @@ const ClientBankForm = ({ onNext, onPrevious, initialData = {} }) => {
 
               <div className="cp-form-row">
                 <div className="cp-form-group">
-                  <label htmlFor="branchName">Branch Name</label>
+                  <label htmlFor="branch">Branch</label>
                   <input
                     type="text"
-                    id="branchName"
-                    name="branchName"
-                    value={formState.branchName}
+                    id="branch"
+                    name="branch"
+                    value={formData.branch}
                     onChange={handleInputChange}
                     className="cp-form-input"
                     required
@@ -167,11 +122,11 @@ const ClientBankForm = ({ onNext, onPrevious, initialData = {} }) => {
                 </div>
 
                 <div className="cp-form-group">
-                  <label htmlFor="accountType">Account Type</label>
+                  <label htmlFor="accountType">Account type</label>
                   <select
                     id="accountType"
                     name="accountType"
-                    value={formState.accountType}
+                    value={formData.accountType}
                     onChange={handleInputChange}
                     className="cp-form-input"
                     required
@@ -179,192 +134,98 @@ const ClientBankForm = ({ onNext, onPrevious, initialData = {} }) => {
                     <option value="">Select type</option>
                     <option value="Savings">Savings</option>
                     <option value="Current">Current</option>
-                    <option value="Other">Other</option>
                   </select>
                 </div>
               </div>
 
               <div className="cp-form-group">
-                <label htmlFor="accountNumber">Account Number</label>
+                <label htmlFor="accountName">Account name</label>
                 <input
                   type="text"
-                  id="accountNumber"
-                  name="accountNumber"
-                  value={formState.accountNumber}
+                  id="accountName"
+                  name="accountName"
+                  value={formData.accountName}
                   onChange={handleInputChange}
                   className="cp-form-input"
                   required
                 />
               </div>
 
-              {/* JustPay Info */}
-              <div className="cp-justpay-box">
-                <div className="cp-justpay-header">
-                  <span className="cp-justpay-title">JustPay verification</span>
-                  <button
-                    type="button"
-                    className="cp-justpay-toggle"
-                    onClick={() => setShowJustPayInfo((prev) => !prev)}
-                  >
-                    {showJustPayInfo ? 'Hide info' : 'More info'}
-                  </button>
-                </div>
-                {showJustPayInfo && (
-                  <div className="cp-justpay-body">
-                    <p>
-                      Verifying your bank account through JustPay may accelerate the
-                      approval process for your application.
-                    </p>
-                    <ul>
-                      <li>Internet/SMS banking needs to be enabled.</li>
-                      <li>Foreign currency accounts not allowed.</li>
-                      <li>Dormant and lease accounts not allowed.</li>
-                      <li>
-                        HNB account holders: please call HNB Customer Service to
-                        activate JustPay.
-                      </li>
-                      <li>
-                        If JustPay verification fails or is unavailable, you can use
-                        the standard process by uploading your bank statement.
-                      </li>
-                    </ul>
-                  </div>
-                )}
+              <div className="cp-form-group">
+                <label htmlFor="accountNumber">Account number</label>
+                <input
+                  type="text"
+                  id="accountNumber"
+                  name="accountNumber"
+                  value={formData.accountNumber}
+                  onChange={handleInputChange}
+                  className="cp-form-input"
+                  required
+                />
               </div>
             </div>
 
-            {/* Investment & Source of Funds */}
             <div className="cp-form-section">
+              <h3 className="cp-section-title">Initial fund</h3>
+              <p className="cp-section-helper">
+                Choose the fund you want to start with. You can subscribe to other funds after your account is active.
+              </p>
+
               <div className="cp-form-group">
-                <label htmlFor="expectedValueOfInvestment">
-                  Expected Value of Investment
-                </label>
+                <label htmlFor="preferredFund">Preferred fund</label>
                 <select
-                  id="expectedValueOfInvestment"
-                  name="expectedValueOfInvestment"
-                  value={formState.expectedValueOfInvestment}
+                  id="preferredFund"
+                  name="preferredFund"
+                  value={formData.preferredFund}
                   onChange={handleInputChange}
                   className="cp-form-input"
-                    required
-                  >
-                  <option value="">Select expected value</option>
-                  <option value="Less than Rs. 100,000">
-                    Less than Rs. 100,000
-                  </option>
-                  <option value="Rs 100,000 to Rs 500,000">
-                    Rs 100,000 to Rs 500,000
-                  </option>
-                  <option value="Rs 500,000 to Rs 1,000,000">
-                    Rs 500,000 to Rs 1,000,000
-                  </option>
-                  <option value="Rs 1,000,000 to Rs 2,000,000">
-                    Rs 1,000,000 to Rs 2,000,000
-                  </option>
-                  <option value="Rs 2,000,000 to Rs 3,000,000">
-                    Rs 2,000,000 to Rs 3,000,000
-                  </option>
-                  <option value="Rs 3,000,000 to Rs 4,000,000">
-                    Rs 3,000,000 to Rs 4,000,000
-                  </option>
-                  <option value="Rs 4,000,000 to Rs 5,000,000">
-                    Rs 4,000,000 to Rs 5,000,000
-                  </option>
+                  required
+                >
+                  <option value="">Select a fund</option>
+                  {FUNDS.map((fund) => (
+                    <option key={fund.id} value={fund.id}>
+                      {fund.name}
+                    </option>
+                  ))}
                 </select>
               </div>
 
-              <div className="cp-form-group">
-                <label className="cp-source-label">
-                  Source of Funds <span className="cp-required">*</span>{' '}
-                  <span className="cp-source-hint">
-                    (Can select multiple options)
-                  </span>
-                </label>
-                <div className="cp-source-grid">
-                  {sourceOfFundsOptions.map((option) => (
-                    <label key={option} className="cp-source-option">
-                      <input
-                        type="checkbox"
-                        checked={selectedSources.includes(option)}
-                        onChange={() => handleSourceToggle(option)}
-                      />
-                      <span>{option}</span>
-                    </label>
-                  ))}
+              <div className="cp-form-row">
+                <div className="cp-form-group">
+                  <label htmlFor="initialInvestment">Initial investment (LKR)</label>
+                  <input
+                    type="number"
+                    id="initialInvestment"
+                    name="initialInvestment"
+                    min="1000"
+                    step="100"
+                    value={formData.initialInvestment}
+                    onChange={handleInputChange}
+                    className="cp-form-input"
+                    required
+                  />
                 </div>
-              </div>
-            </div>
 
-            {/* Compliance Questions */}
-            <div className="cp-form-section">
-              <div className="cp-form-group">
-                <label className="cp-radio-label">
-                  Allow transfer of funds for settlement between Investments &amp;
-                  Securities (Equity Account) - if applicable
-                </label>
-                <div className="cp-radio-group">
-                  <label className="cp-radio-option">
-                    <input
-                      type="radio"
-                      name="allowTransfer"
-                      value="Yes"
-                      checked={formState.allowTransfer === 'Yes'}
-                      onChange={handleInputChange}
-                      required
-                    />
-                    <span>Yes</span>
-                  </label>
-                  <label className="cp-radio-option">
-                    <input
-                      type="radio"
-                      name="allowTransfer"
-                      value="No"
-                      checked={formState.allowTransfer === 'No'}
-                      onChange={handleInputChange}
-                      required
-                    />
-                    <span>No</span>
-                  </label>
-                </div>
-              </div>
-
-              <div className="cp-form-group">
-                <label className="cp-radio-label">
-                  Are you a US person under the Foreign Account Tax Compliance
-                  Act (FATCA) of the US?
-                </label>
-                <div className="cp-radio-group">
-                  <label className="cp-radio-option">
-                    <input
-                      type="radio"
-                      name="isUSPersonFATCA"
-                      value="Yes"
-                      checked={formState.isUSPersonFATCA === 'Yes'}
-                      onChange={handleInputChange}
-                      required
-                    />
-                    <span>Yes</span>
-                  </label>
-                  <label className="cp-radio-option">
-                    <input
-                      type="radio"
-                      name="isUSPersonFATCA"
-                      value="No"
-                      checked={formState.isUSPersonFATCA === 'No'}
-                      onChange={handleInputChange}
-                      required
-                    />
-                    <span>No</span>
-                  </label>
+                <div className="cp-form-group">
+                  <label htmlFor="dividendInstruction">Dividend instruction</label>
+                  <select
+                    id="dividendInstruction"
+                    name="dividendInstruction"
+                    value={formData.dividendInstruction}
+                    onChange={handleInputChange}
+                    className="cp-form-input"
+                    required
+                  >
+                    <option value="">Select instruction</option>
+                    <option value="Reinvest">Reinvest in the fund</option>
+                    <option value="Pay to bank">Pay to nominated bank</option>
+                  </select>
                 </div>
               </div>
             </div>
 
             <div className="cp-form-actions">
-              <button
-                type="button"
-                className="cp-previous-btn"
-                onClick={onPrevious}
-              >
+              <button type="button" className="cp-previous-btn" onClick={onPrevious}>
                 <svg fill="currentColor" viewBox="0 0 20 20" width="20" height="20">
                   <path
                     fillRule="evenodd"
@@ -393,4 +254,3 @@ const ClientBankForm = ({ onNext, onPrevious, initialData = {} }) => {
 };
 
 export default ClientBankForm;
-

@@ -92,7 +92,8 @@
 .wm-page-header__actions .wfp-btn,
 .wm-page-header__actions .wao-select,
 .wm-page-header__actions .wcs-select,
-.wm-page-header__actions .fc-btn {
+.wm-page-header__actions .fc-btn,
+.wm-page-header__actions .fm-btn {
   min-height: 2rem;
   padding-top: 0.32rem !important;
   padding-bottom: 0.32rem !important;

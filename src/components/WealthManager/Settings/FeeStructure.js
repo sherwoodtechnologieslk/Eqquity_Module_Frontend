@@ -1,74 +1,119 @@
-import React from 'react';
-import WealthOpsWorkbench from '../shared/WealthOpsWorkbench';
-import { FUNDS } from '../shared/wealthOpsKit';
+import React, { useEffect, useMemo, useState } from 'react';
+import WealthPageHeader from '../Layout/WealthPageHeader';
+import cisFundService from '../../../services/cisFundService';
+import cisFundConfigService, { CONFIG_DOMAINS } from '../../../services/cisFundConfigService';
+import { openFundConfiguration } from '../Fund Master/FundConfiguration';
+import '../Fund Master/Styles/FundMaster.css';
 
-const FeeStructure = () => (
-  <WealthOpsWorkbench
-    title="Fee Structure"
-    blurb="Management, trustee, custody, and performance fees applied to each fund and discretionary mandate."
-    newLabel="Add fee"
-    formTitle="New fee line"
-    initialForm={{ fundId: FUNDS[0].id, feeType: 'Management', rate: '', basis: 'AUM', notes: '' }}
-    formFields={[
-      { name: 'fundId', label: 'Fund / book', type: 'select', options: FUNDS.map((f) => ({ value: f.id, label: f.name })) },
-      { name: 'feeType', label: 'Fee', type: 'select', options: ['Management', 'Trustee', 'Custody', 'Performance', 'Exit'] },
-      { name: 'rate', label: 'Rate %', type: 'number', min: 0, step: '0.01' },
-      { name: 'basis', label: 'Basis', type: 'select', options: ['AUM', 'NAV', 'Performance hurdle'] },
-      { name: 'notes', label: 'Notes', wide: true },
-    ]}
-    estimate={(form) => {
-      const fund = FUNDS.find((f) => f.id === form.fundId) || FUNDS[0];
-      return `${fund.name} · ${form.feeType} ${form.rate || 0}% of ${form.basis}`;
-    }}
-    validateForm={(form) => ((parseFloat(form.rate) || 0) <= 0 ? 'Enter a fee rate.' : '')}
-    buildRow={(form, rows) => {
-      const fund = FUNDS.find((f) => f.id === form.fundId) || FUNDS[0];
-      return {
-        id: `FEE-${String(20 + rows.length + 1)}`,
-        fundName: fund.name,
-        feeType: form.feeType,
-        rate: parseFloat(form.rate) || 0,
-        basis: form.basis,
-        status: 'Active',
-        notes: form.notes,
-        createdBy: 'Product',
-      };
-    }}
-    seedRows={[
-      { id: 'FEE-021', fundName: 'Equity Growth Fund', feeType: 'Management', rate: 1.5, basis: 'AUM', status: 'Active', notes: '', createdBy: 'Product' },
-      { id: 'FEE-018', fundName: 'Equity Growth Fund', feeType: 'Trustee', rate: 0.15, basis: 'AUM', status: 'Active', notes: '', createdBy: 'Product' },
-      { id: 'FEE-016', fundName: 'Money Market Fund', feeType: 'Management', rate: 0.45, basis: 'AUM', status: 'Active', notes: '', createdBy: 'Product' },
-      { id: 'FEE-012', fundName: 'Balanced Income Fund', feeType: 'Exit', rate: 0.5, basis: 'NAV', status: 'Inactive', notes: 'Waived after 1 year', createdBy: 'Product' },
-    ]}
-    stats={(rows) => [
-      { k: 'Fee lines', v: rows.length, m: 'Configured', focus: true },
-      { k: 'Active', v: rows.filter((r) => r.status === 'Active').length, m: 'Accruing' },
-      { k: 'Inactive', v: rows.filter((r) => r.status === 'Inactive').length, m: 'Not charging' },
-      { k: 'Funds', v: new Set(rows.map((r) => r.fundName)).size, m: 'Covered' },
-    ]}
-    statusTabs={['All', 'Active', 'Inactive']}
-    extraFilter={{ key: 'feeType', label: 'Fee' }}
-    searchKeys={['id', 'fundName', 'feeType']}
-    columns={[
-      { key: 'id', label: 'Fee' },
-      { key: 'fundName', label: 'Fund' },
-      { key: 'feeType', label: 'Type' },
-      { key: 'rate', label: 'Rate', render: (r) => `${r.rate.toFixed(2)}%` },
-      { key: 'basis', label: 'Basis' },
-      { key: 'status', label: 'Status', badge: true },
-    ]}
-    boardTitle="Fee table"
-    detailFields={[
-      { k: 'Rate', get: (r) => `${r.rate.toFixed(2)}%` },
-      { k: 'Basis', get: (r) => r.basis },
-      { k: 'Fund', get: (r) => r.fundName },
-      { k: 'Owner', get: (r) => r.createdBy },
-    ]}
-    statusActions={{
-      Active: [{ label: 'Deactivate', status: 'Inactive', variant: 'ghost' }],
-      Inactive: [{ label: 'Activate', status: 'Active', variant: 'solid' }],
-    }}
-  />
-);
+const FeeStructure = ({ onTabChange }) => {
+  const [definitions, setDefinitions] = useState([]);
+  const [funds, setFunds] = useState([]);
+  const [fundId, setFundId] = useState('');
+  const [feeConfig, setFeeConfig] = useState(null);
+  const [message, setMessage] = useState('');
+
+  useEffect(() => {
+    Promise.all([cisFundConfigService.listFeeDefinitions(), cisFundService.listFunds()])
+      .then(([defs, fundRows]) => {
+        setDefinitions(defs);
+        setFunds(fundRows);
+        if (fundRows[0]?.id) setFundId(String(fundRows[0].id));
+      })
+      .catch((e) => setMessage(e.message));
+  }, []);
+
+  useEffect(() => {
+    if (!fundId) return;
+    cisFundConfigService
+      .getCurrent(fundId, CONFIG_DOMAINS.fee)
+      .then(setFeeConfig)
+      .catch(() => setFeeConfig(null));
+  }, [fundId]);
+
+  const fund = useMemo(() => funds.find((f) => String(f.id) === String(fundId)), [funds, fundId]);
+
+  return (
+    <div className="fm-container">
+      <WealthPageHeader
+        title="Fee Structure"
+        blurb="Managing-company fee definitions and per-fund fee configuration (not operational accrual)."
+        actions={
+          fundId ? (
+            <button
+              type="button"
+              className="fm-btn fm-btn-primary"
+              onClick={() => openFundConfiguration(onTabChange, fundId)}
+            >
+              Configure fund fees
+            </button>
+          ) : null
+        }
+      />
+      {message && <div className="fm-message fm-error">{message}</div>}
+
+      <div className="fm-form-section">
+        <h3 className="fm-section-title">Fee definitions (MC scope)</h3>
+        <table className="fm-table">
+          <thead>
+            <tr>
+              <th>Code</th>
+              <th>Name</th>
+              <th>Type</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            {definitions.map((d) => (
+              <tr key={d.id}>
+                <td>{d.feeCode}</td>
+                <td>{d.name}</td>
+                <td>{d.feeTypeName}</td>
+                <td>{d.status}</td>
+              </tr>
+            ))}
+            {definitions.length === 0 && (
+              <tr>
+                <td colSpan={4}>No fee definitions yet.</td>
+              </tr>
+            )}
+          </tbody>
+        </table>
+      </div>
+
+      <div className="fm-form-section">
+        <label className="fm-field-label">Fund fee configuration</label>
+        <select className="fm-form-select" value={fundId} onChange={(e) => setFundId(e.target.value)}>
+          {funds.map((f) => (
+            <option key={f.id} value={f.id}>
+              {f.fundCode} — {f.fundName}
+            </option>
+          ))}
+        </select>
+        {feeConfig?.header ? (
+          <table className="fm-table" style={{ marginTop: '1rem' }}>
+            <thead>
+              <tr>
+                <th>Fee</th>
+                <th>Rate</th>
+                <th>Basis</th>
+              </tr>
+            </thead>
+            <tbody>
+              {(feeConfig.feeLines || []).map((line) => (
+                <tr key={line.id}>
+                  <td>{line.feeDefinitionName || line.feeCode}</td>
+                  <td>{line.rate ?? '—'}</td>
+                  <td>{line.calculationBasisId ?? '—'}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        ) : (
+          <p className="fm-hint">No active fee configuration for {fund?.fundName || 'selected fund'}.</p>
+        )}
+      </div>
+    </div>
+  );
+};
 
 export default FeeStructure;

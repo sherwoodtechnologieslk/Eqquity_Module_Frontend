@@ -46,7 +46,9 @@ const dash = (value) => {
 };
 
 const ppeSectionKey = (section) =>
-  String(section.categoryId || section.accountCode || section.categoryName || '').trim();
+  String(
+    section.id || section.categoryId || section.accountCode || section.categoryName || ''
+  ).trim();
 
 const RowActions = ({
   title,
@@ -174,11 +176,14 @@ const ExtraColumnHeads = ({
   editMode = false,
   selectedColId = null,
   onSelectCol,
-  onChangeColumnHeader
+  onChangeColumnHeader,
+  as: Cell = 'th',
+  rowSpan
 }) =>
   columns.map((col) => (
-    <th
+    <Cell
       key={col.id}
+      rowSpan={rowSpan}
       className={`frn-sheet-th-num frn-sheet-th-extra${
         editMode && selectedColId === col.id ? ' is-edit-selected' : ''
       }`}
@@ -206,7 +211,7 @@ const ExtraColumnHeads = ({
           {col.header ? <span className="frn-sheet-unit">LKR</span> : null}
         </>
       )}
-    </th>
+    </Cell>
   ));
 
 const ExtraColumnCells = ({
@@ -250,6 +255,69 @@ const ExtraColumnCells = ({
       </td>
     );
   });
+
+const ScheduleAddedRows = ({
+  layoutEdit,
+  editMode = false,
+  selectedRowKey = null,
+  selectedColId = null,
+  onSelectRow,
+  onSelectCol,
+  onChangeRowLabel,
+  onChangeCell,
+  extraColumns = [],
+  emptyCellCount = 2,
+  rowClassName = 'frn-sheet-line frn-sheet-line--edit',
+  labelClassName = 'frn-sheet-label',
+  emptyCellClassName = 'frn-sheet-num'
+}) =>
+  (layoutEdit?.addedRows || [])
+    .filter((r) => !isRowHidden(layoutEdit, editRowKey(r.id)))
+    .map((row) => {
+      const rowKey = editRowKey(row.id);
+      const fmt = getRowFormat(layoutEdit, rowKey) || row.format || 'normal';
+      const formatCls = formatClassName(fmt);
+      const label = resolveRowLabel(layoutEdit, rowKey, row.label) || row.label || '';
+      return (
+        <tr
+          key={`edit-${row.id}`}
+          className={`${rowClassName}${
+            editMode && selectedRowKey === rowKey ? ' is-edit-selected' : ''
+          }`}
+          onClick={
+            editMode && typeof onSelectRow === 'function'
+              ? () => onSelectRow(rowKey)
+              : undefined
+          }
+        >
+          <td className={labelClassName}>
+            <EditableLabel
+              value={label}
+              formatCls={formatCls}
+              editMode={editMode}
+              onChange={
+                typeof onChangeRowLabel === 'function'
+                  ? (next) => onChangeRowLabel(rowKey, next)
+                  : undefined
+              }
+            />
+          </td>
+          {Array.from({ length: emptyCellCount }, (_, i) => (
+            <td key={`empty-${i}`} className={emptyCellClassName} />
+          ))}
+          <ExtraColumnCells
+            columns={extraColumns}
+            rowKey={rowKey}
+            layoutEdit={layoutEdit}
+            editMode={editMode}
+            selectedColId={selectedColId}
+            onSelectCol={onSelectCol}
+            onChangeCell={onChangeCell}
+            formatCls={formatCls}
+          />
+        </tr>
+      );
+    });
 
 const EditableLabel = ({
   value,
@@ -778,13 +846,89 @@ const PpeNote = ({
   sections,
   footnote75,
   removedAutoKeys = [],
+  layoutEdit = null,
+  editMode = false,
+  selectedRowKey = null,
+  selectedColId = null,
+  onSelectRow,
+  onSelectCol,
+  onChangeRowLabel,
+  onChangeCell,
+  onChangeColumnHeader,
   onRemoveAutoRow,
   onViewAccounts
 }) => {
-  const removed = new Set(removedAutoKeys || []);
-  const visibleSections = (sections || []).filter(
-    (s) => !removed.has(ppeSectionKey(s))
+  const extraColumns = layoutEdit?.extraColumns || [];
+  const ppeColSpan = 5 + extraColumns.length;
+  const extraHeads = (
+    <ExtraColumnHeads
+      columns={extraColumns}
+      editMode={editMode}
+      selectedColId={selectedColId}
+      onSelectCol={onSelectCol}
+      onChangeColumnHeader={onChangeColumnHeader}
+      as="td"
+    />
   );
+  const extraCells = (rowKey) => (
+    <ExtraColumnCells
+      columns={extraColumns}
+      rowKey={rowKey}
+      layoutEdit={layoutEdit}
+      editMode={editMode}
+      selectedColId={selectedColId}
+      onSelectCol={onSelectCol}
+      onChangeCell={onChangeCell}
+    />
+  );
+  const removed = new Set(removedAutoKeys || []);
+  const visibleSections = (sections || []).filter((s) => {
+    const key = ppeSectionKey(s);
+    return !removed.has(key) && !isRowHidden(layoutEdit, autoRowKey(key));
+  });
+  const selectRow = (rowKey) => {
+    if (editMode && typeof onSelectRow === 'function') onSelectRow(rowKey);
+  };
+  const rowSelectedClass = (rowKey) =>
+    editMode && selectedRowKey === rowKey ? ' is-edit-selected' : '';
+  const addedRowEls = (
+    <ScheduleAddedRows
+      layoutEdit={layoutEdit}
+      editMode={editMode}
+      selectedRowKey={selectedRowKey}
+      selectedColId={selectedColId}
+      onSelectRow={onSelectRow}
+      onSelectCol={onSelectCol}
+      onChangeRowLabel={onChangeRowLabel}
+      onChangeCell={onChangeCell}
+      extraColumns={extraColumns}
+      emptyCellCount={4}
+      rowClassName="frn-sheet-line frn-sheet-line--edit"
+      labelClassName="frn-excel-label-cell"
+      emptyCellClassName="frn-excel-num"
+    />
+  );
+  const renderPpeLabel = (s, actions) => {
+    const rowKey = autoRowKey(ppeSectionKey(s));
+    const fmt = getRowFormat(layoutEdit, rowKey);
+    const formatCls = formatClassName(fmt);
+    const label = resolveRowLabel(layoutEdit, rowKey, s.categoryName);
+    if (editMode) {
+      return (
+        <EditableLabel
+          value={label}
+          formatCls={formatCls}
+          editMode={!s.locked}
+          onChange={
+            !s.locked && typeof onChangeRowLabel === 'function'
+              ? (next) => onChangeRowLabel(rowKey, next)
+              : undefined
+          }
+        />
+      );
+    }
+    return ppeRowLabel({ ...s, categoryName: label }, actions);
+  };
 
   const openingHeader = `Balance As At ${periods.fyStartLabel || periods.prior.longLabel || periods.prior.label} (LKR)`;
   const closingHeader = `Balance As At ${periods.closingLabel || periods.current.longLabel || periods.current.label} (LKR)`;
@@ -811,13 +955,13 @@ const PpeNote = ({
   const sectionActions = (s) => ({
     onViewAccounts,
     onRemove:
-      typeof onRemoveAutoRow === 'function'
-        ? () => onRemoveAutoRow(ppeSectionKey(s))
-        : undefined
+      s.locked || typeof onRemoveAutoRow !== 'function'
+        ? undefined
+        : () => onRemoveAutoRow(ppeSectionKey(s))
   });
 
   return (
-    <div className="frn-excel-sheet">
+    <div className={`frn-excel-sheet${editMode ? ' is-edit-mode' : ''}`}>
       <table className="frn-excel-table">
         <colgroup>
           <col className="frn-excel-col-label" />
@@ -825,10 +969,13 @@ const PpeNote = ({
           <col className="frn-excel-col-num" />
           <col className="frn-excel-col-num" />
           <col className="frn-excel-col-num" />
+          {extraColumns.map((col) => (
+            <col key={col.id} className="frn-excel-col-num" />
+          ))}
         </colgroup>
         <tbody>
           <tr className="frn-excel-section">
-            <td colSpan={5}>7.1 At Cost</td>
+            <td colSpan={ppeColSpan}>7.1 At Cost</td>
           </tr>
           <tr className="frn-excel-head">
             <td />
@@ -836,40 +983,51 @@ const PpeNote = ({
             <td>Additions (LKR)</td>
             <td>Disposals (LKR)</td>
             <td>{closingHeader}</td>
+            {extraHeads}
           </tr>
-          {visibleSections.length === 0 ? (
+          {visibleSections.length === 0 && !(layoutEdit?.addedRows || []).length ? (
             <tr>
-              <td colSpan={5} className="frn-excel-empty">
+              <td colSpan={ppeColSpan} className="frn-excel-empty">
                 No PPE categories configured. Add categories under Fixed Assets.
               </td>
             </tr>
           ) : (
-            visibleSections.map((s) => (
-              <tr key={`cost-${ppeSectionKey(s)}`}>
-                <td className="frn-excel-label-cell">{ppeRowLabel(s, sectionActions(s))}</td>
+            visibleSections.map((s) => {
+              const rowKey = autoRowKey(ppeSectionKey(s));
+              return (
+              <tr
+                key={`cost-${ppeSectionKey(s)}`}
+                className={rowSelectedClass(rowKey)}
+                onClick={() => selectRow(rowKey)}
+              >
+                <td className="frn-excel-label-cell">{renderPpeLabel(s, sectionActions(s))}</td>
                 <td className="frn-excel-num">{dash(s.cost.opening)}</td>
                 <td className="frn-excel-num">{dash(s.cost.additions)}</td>
                 <td className="frn-excel-num">{dash(s.cost.disposals)}</td>
                 <td className="frn-excel-num">{dash(s.cost.closing)}</td>
+                {extraCells(`ppe-cost:${ppeSectionKey(s)}`)}
               </tr>
-            ))
+              );
+            })
           )}
-          {visibleSections.length > 0 ? (
+          {addedRowEls}
+          {visibleSections.length > 0 || (layoutEdit?.addedRows || []).length ? (
             <tr className="frn-excel-total">
               <td>Total assets</td>
               <td className="frn-excel-num">{dash(costTotals.opening)}</td>
               <td className="frn-excel-num">{dash(costTotals.additions)}</td>
               <td className="frn-excel-num">{dash(costTotals.disposals)}</td>
               <td className="frn-excel-num">{dash(costTotals.closing)}</td>
+              {extraCells('ppe-cost:total')}
             </tr>
           ) : null}
 
           <tr className="frn-excel-spacer">
-            <td colSpan={5} />
+            <td colSpan={ppeColSpan} />
           </tr>
 
           <tr className="frn-excel-section">
-            <td colSpan={5}>7.2 Depreciation</td>
+            <td colSpan={ppeColSpan}>7.2 Depreciation</td>
           </tr>
           <tr className="frn-excel-head">
             <td />
@@ -877,16 +1035,25 @@ const PpeNote = ({
             <td>Charge for the year (LKR)</td>
             <td>Disposals (LKR)</td>
             <td>{closingHeader}</td>
+            {extraHeads}
           </tr>
-          {visibleSections.map((s) => (
-            <tr key={`dep-${ppeSectionKey(s)}`}>
-              <td className="frn-excel-label-cell">{ppeRowLabel(s)}</td>
+          {visibleSections.map((s) => {
+            const rowKey = autoRowKey(ppeSectionKey(s));
+            return (
+            <tr
+              key={`dep-${ppeSectionKey(s)}`}
+              className={rowSelectedClass(rowKey)}
+              onClick={() => selectRow(rowKey)}
+            >
+              <td className="frn-excel-label-cell">{renderPpeLabel(s)}</td>
               <td className="frn-excel-num">{dash(s.depreciation.opening)}</td>
               <td className="frn-excel-num">{dash(s.depreciation.charge)}</td>
               <td className="frn-excel-num">{dash(s.depreciation.disposals)}</td>
               <td className="frn-excel-num">{dash(s.depreciation.closing)}</td>
+              {extraCells(`ppe-dep:${ppeSectionKey(s)}`)}
             </tr>
-          ))}
+            );
+          })}
           {visibleSections.length > 0 ? (
             <tr className="frn-excel-total">
               <td>Total depreciation</td>
@@ -894,15 +1061,16 @@ const PpeNote = ({
               <td className="frn-excel-num">{dash(depTotals.charge)}</td>
               <td className="frn-excel-num">{dash(depTotals.disposals)}</td>
               <td className="frn-excel-num">{dash(depTotals.closing)}</td>
+              {extraCells('ppe-dep:total')}
             </tr>
           ) : null}
 
           <tr className="frn-excel-spacer">
-            <td colSpan={5} />
+            <td colSpan={ppeColSpan} />
           </tr>
 
           <tr className="frn-excel-section">
-            <td colSpan={5}>7.3 Net Book Values</td>
+            <td colSpan={ppeColSpan}>7.3 Net Book Values</td>
           </tr>
           <tr className="frn-excel-head">
             <td />
@@ -910,16 +1078,25 @@ const PpeNote = ({
             <td>{nbvPriorHeader}</td>
             <td />
             <td />
+            {extraHeads}
           </tr>
-          {visibleSections.map((s) => (
-            <tr key={`nbv-${ppeSectionKey(s)}`}>
-              <td className="frn-excel-label-cell">{ppeRowLabel(s)}</td>
+          {visibleSections.map((s) => {
+            const rowKey = autoRowKey(ppeSectionKey(s));
+            return (
+            <tr
+              key={`nbv-${ppeSectionKey(s)}`}
+              className={rowSelectedClass(rowKey)}
+              onClick={() => selectRow(rowKey)}
+            >
+              <td className="frn-excel-label-cell">{renderPpeLabel(s)}</td>
               <td className="frn-excel-num">{dash(s.nbv.current)}</td>
               <td className="frn-excel-num">{dash(s.nbv.prior)}</td>
               <td />
               <td />
+              {extraCells(`ppe-nbv:${ppeSectionKey(s)}`)}
             </tr>
-          ))}
+            );
+          })}
           {visibleSections.length > 0 ? (
             <tr className="frn-excel-total">
               <td>Total Carrying Amount of Property, Plant &amp; Equipment</td>
@@ -927,18 +1104,19 @@ const PpeNote = ({
               <td className="frn-excel-num">{dash(nbvTotals.prior)}</td>
               <td />
               <td />
+              {extraCells('ppe-nbv:total')}
             </tr>
           ) : null}
 
           <tr className="frn-excel-spacer">
-            <td colSpan={5} />
+            <td colSpan={ppeColSpan} />
           </tr>
 
           <tr className="frn-excel-section">
-            <td colSpan={5}>7.4 Useful Lives</td>
+            <td colSpan={ppeColSpan}>7.4 Useful Lives</td>
           </tr>
           <tr className="frn-excel-note-line">
-            <td colSpan={5}>The useful lives of the assets are estimated as follows;</td>
+            <td colSpan={ppeColSpan}>The useful lives of the assets are estimated as follows;</td>
           </tr>
           <tr className="frn-excel-head">
             <td />
@@ -946,28 +1124,342 @@ const PpeNote = ({
             <td>{periods.prior.shortLabel || periods.prior.year}</td>
             <td />
             <td />
+            {extraHeads}
           </tr>
-          {visibleSections
-            .filter((s) => s.usefulLifeYears)
-            .map((s) => (
-              <tr key={`life-${ppeSectionKey(s)}`}>
-                <td className="frn-excel-label-cell">{ppeRowLabel(s)}</td>
-                <td className="frn-excel-num">{s.usefulLifeYears} Years</td>
-                <td className="frn-excel-num">{s.usefulLifeYears} Years</td>
+          {visibleSections.map((s) => {
+              const rowKey = autoRowKey(ppeSectionKey(s));
+              return (
+              <tr
+                key={`life-${ppeSectionKey(s)}`}
+                className={rowSelectedClass(rowKey)}
+                onClick={() => selectRow(rowKey)}
+              >
+                <td className="frn-excel-label-cell">{renderPpeLabel(s)}</td>
+                <td className="frn-excel-num">
+                  {s.usefulLifeYears ? `${s.usefulLifeYears} Years` : '-'}
+                </td>
+                <td className="frn-excel-num">
+                  {s.usefulLifeYears ? `${s.usefulLifeYears} Years` : '-'}
+                </td>
                 <td />
                 <td />
+                {extraCells(`ppe-life:${ppeSectionKey(s)}`)}
               </tr>
-            ))}
+              );
+            })}
 
           {footnote75 ? (
             <>
               <tr className="frn-excel-spacer">
-                <td colSpan={5} />
+                <td colSpan={ppeColSpan} />
               </tr>
               <tr className="frn-excel-footnote">
-                <td colSpan={5}>{footnote75}</td>
+                <td colSpan={ppeColSpan}>{footnote75}</td>
               </tr>
             </>
+          ) : null}
+        </tbody>
+      </table>
+    </div>
+  );
+};
+
+const DeferredTaxAmountCell = ({ show, value }) => (
+  <td className="frn-excel-num">{show ? dash(value) : ''}</td>
+);
+
+const DeferredTaxNote = ({
+  periods,
+  rows = [],
+  layoutEdit = null,
+  editMode = false,
+  selectedRowKey = null,
+  selectedColId = null,
+  onSelectRow,
+  onSelectCol,
+  onChangeRowLabel,
+  onChangeCell,
+  onChangeColumnHeader
+}) => {
+  const currentHead = periods.current?.shortLabel || periods.current?.label || '';
+  const priorHead = periods.prior?.shortLabel || periods.prior?.year || periods.prior?.label || '';
+  const extraColumns = layoutEdit?.extraColumns || [];
+  const dtColSpan = 7 + extraColumns.length;
+  const selectRow = (rowKey) => {
+    if (editMode && typeof onSelectRow === 'function') onSelectRow(rowKey);
+  };
+  const rowSelectedClass = (rowKey) =>
+    editMode && selectedRowKey === rowKey ? ' is-edit-selected' : '';
+  const visibleRows = (rows || []).filter((row) => {
+    if (row.type === 'section') return true;
+    return !isRowHidden(layoutEdit, autoRowKey(row.id));
+  });
+  const bodyRows = visibleRows.filter((r) => r.type !== 'total');
+  const totalRows = visibleRows.filter((r) => r.type === 'total');
+  const renderDtRow = (row) => {
+    const indent = Number(row.indent) || 0;
+    const isTotal = row.type === 'total';
+    const rowKey = autoRowKey(row.id);
+    const fmt = getRowFormat(layoutEdit, rowKey);
+    const formatCls = formatClassName(fmt);
+    const label = resolveRowLabel(layoutEdit, rowKey, row.label);
+    return (
+      <tr
+        key={row.id}
+        className={`${isTotal ? 'frn-excel-total' : ''}${rowSelectedClass(rowKey)}`.trim() || undefined}
+        onClick={() => selectRow(rowKey)}
+      >
+        <td
+          className={`frn-excel-label-cell${indent ? ` is-indent-${indent}` : ''}`}
+        >
+          {editMode ? (
+            <EditableLabel
+              value={label}
+              formatCls={formatCls}
+              editMode={!row.locked}
+              onChange={
+                !row.locked && typeof onChangeRowLabel === 'function'
+                  ? (next) => onChangeRowLabel(rowKey, next)
+                  : undefined
+              }
+            />
+          ) : (
+            <span className={`frn-excel-name ${formatCls}`.trim()}>{label}</span>
+          )}
+        </td>
+        <DeferredTaxAmountCell show={row.sofp} value={row.sofpCurrent} />
+        <DeferredTaxAmountCell show={row.sofp} value={row.sofpPrior} />
+        <DeferredTaxAmountCell show={row.soci} value={row.sociCurrent} />
+        <DeferredTaxAmountCell show={row.soci} value={row.sociPrior} />
+        <DeferredTaxAmountCell show={row.oci} value={row.ociCurrent} />
+        <DeferredTaxAmountCell show={row.oci} value={row.ociPrior} />
+        {extraCells(`dt:${row.id}`)}
+      </tr>
+    );
+  };
+  const extraHeads = (rowSpan) => (
+    <ExtraColumnHeads
+      columns={extraColumns}
+      editMode={editMode}
+      selectedColId={selectedColId}
+      onSelectCol={onSelectCol}
+      onChangeColumnHeader={onChangeColumnHeader}
+      as="td"
+      rowSpan={rowSpan}
+    />
+  );
+  const extraCells = (rowKey) => (
+    <ExtraColumnCells
+      columns={extraColumns}
+      rowKey={rowKey}
+      layoutEdit={layoutEdit}
+      editMode={editMode}
+      selectedColId={selectedColId}
+      onSelectCol={onSelectCol}
+      onChangeCell={onChangeCell}
+    />
+  );
+
+  return (
+    <div className={`frn-excel-sheet${editMode ? ' is-edit-mode' : ''}`}>
+      <table className="frn-excel-table frn-excel-table--deferred-tax">
+        <colgroup>
+          <col className="frn-excel-col-label" />
+          <col className="frn-excel-col-num" />
+          <col className="frn-excel-col-num" />
+          <col className="frn-excel-col-num" />
+          <col className="frn-excel-col-num" />
+          <col className="frn-excel-col-num" />
+          <col className="frn-excel-col-num" />
+          {extraColumns.map((col) => (
+            <col key={col.id} className="frn-excel-col-num" />
+          ))}
+        </colgroup>
+        <thead>
+          <tr className="frn-excel-head frn-excel-head--group">
+            <td />
+            <td colSpan={2}>Statement of Financial Position</td>
+            <td colSpan={2}>Statement of Comprehensive Income</td>
+            <td colSpan={2}>Other Comprehensive Income</td>
+            {extraHeads(2)}
+          </tr>
+          <tr className="frn-excel-head">
+            <td />
+            <td>{currentHead} LKR</td>
+            <td>{priorHead} LKR</td>
+            <td>{currentHead} LKR</td>
+            <td>{priorHead} LKR</td>
+            <td>{currentHead} LKR</td>
+            <td>{priorHead} LKR</td>
+          </tr>
+        </thead>
+        <tbody>
+          {bodyRows.map((row) => {
+            if (row.type === 'section') {
+              return (
+                <tr key={row.id} className="frn-excel-section">
+                  <td colSpan={dtColSpan}>{row.label}</td>
+                </tr>
+              );
+            }
+            return renderDtRow(row);
+          })}
+          <ScheduleAddedRows
+            layoutEdit={layoutEdit}
+            editMode={editMode}
+            selectedRowKey={selectedRowKey}
+            selectedColId={selectedColId}
+            onSelectRow={onSelectRow}
+            onSelectCol={onSelectCol}
+            onChangeRowLabel={onChangeRowLabel}
+            onChangeCell={onChangeCell}
+            extraColumns={extraColumns}
+            emptyCellCount={6}
+            rowClassName="frn-sheet-line frn-sheet-line--edit"
+            labelClassName="frn-excel-label-cell"
+            emptyCellClassName="frn-excel-num"
+          />
+          {totalRows.map((row) => renderDtRow(row))}
+        </tbody>
+      </table>
+    </div>
+  );
+};
+
+const RightOfUseNote = ({
+  periods,
+  rows = [],
+  intro,
+  sectionLabel,
+  footnote,
+  layoutEdit = null,
+  editMode = false,
+  selectedRowKey = null,
+  selectedColId = null,
+  onSelectRow,
+  onSelectCol,
+  onChangeRowLabel,
+  onChangeCell,
+  onChangeColumnHeader
+}) => {
+  const currentHead = periods.current?.shortLabel || periods.current?.label || '';
+  const priorHead = periods.prior?.year || periods.prior?.shortLabel || periods.prior?.label || '';
+  const extraColumns = layoutEdit?.extraColumns || [];
+  const rouColSpan = 3 + extraColumns.length;
+  const selectRow = (rowKey) => {
+    if (editMode && typeof onSelectRow === 'function') onSelectRow(rowKey);
+  };
+  const rowSelectedClass = (rowKey) =>
+    editMode && selectedRowKey === rowKey ? ' is-edit-selected' : '';
+  const visibleRows = (rows || []).filter(
+    (row) => !isRowHidden(layoutEdit, autoRowKey(row.id))
+  );
+  const bodyRows = visibleRows.filter((r) => r.type !== 'total');
+  const totalRows = visibleRows.filter((r) => r.type === 'total');
+  const extraHeads = (
+    <ExtraColumnHeads
+      columns={extraColumns}
+      editMode={editMode}
+      selectedColId={selectedColId}
+      onSelectCol={onSelectCol}
+      onChangeColumnHeader={onChangeColumnHeader}
+      as="td"
+    />
+  );
+  const extraCells = (rowKey) => (
+    <ExtraColumnCells
+      columns={extraColumns}
+      rowKey={rowKey}
+      layoutEdit={layoutEdit}
+      editMode={editMode}
+      selectedColId={selectedColId}
+      onSelectCol={onSelectCol}
+      onChangeCell={onChangeCell}
+    />
+  );
+  const renderRouRow = (row) => {
+    const isTotal = row.type === 'total';
+    const rowKey = autoRowKey(row.id);
+    const fmt = getRowFormat(layoutEdit, rowKey);
+    const formatCls = formatClassName(fmt);
+    const label = resolveRowLabel(layoutEdit, rowKey, row.label);
+    return (
+      <tr
+        key={row.id}
+        className={`${isTotal ? 'frn-excel-total' : ''}${rowSelectedClass(rowKey)}`.trim() || undefined}
+        onClick={() => selectRow(rowKey)}
+      >
+        <td className="frn-excel-label-cell">
+          {editMode ? (
+            <EditableLabel
+              value={label}
+              formatCls={formatCls}
+              editMode={!row.locked}
+              onChange={
+                !row.locked && typeof onChangeRowLabel === 'function'
+                  ? (next) => onChangeRowLabel(rowKey, next)
+                  : undefined
+              }
+            />
+          ) : (
+            <span className={`frn-excel-name ${formatCls}`.trim()}>{label}</span>
+          )}
+        </td>
+        <td className="frn-excel-num">{dash(row.current)}</td>
+        <td className="frn-excel-num">{dash(row.prior)}</td>
+        {extraCells(`rou:${row.id}`)}
+      </tr>
+    );
+  };
+
+  return (
+    <div className={`frn-excel-sheet${editMode ? ' is-edit-mode' : ''}`}>
+      {intro ? (
+        <p className="frn-excel-policy">{intro}</p>
+      ) : null}
+      <table className="frn-excel-table frn-excel-table--rou">
+        <colgroup>
+          <col className="frn-excel-col-label" />
+          <col className="frn-excel-col-num" />
+          <col className="frn-excel-col-num" />
+          {extraColumns.map((col) => (
+            <col key={col.id} className="frn-excel-col-num" />
+          ))}
+        </colgroup>
+        <tbody>
+          <tr className="frn-excel-head">
+            <td>{sectionLabel || 'Right of use Asset'}</td>
+            <td>
+              {currentHead}
+              <span className="frn-excel-unit"> LKR</span>
+            </td>
+            <td>
+              {priorHead}
+              <span className="frn-excel-unit"> LKR</span>
+            </td>
+            {extraHeads}
+          </tr>
+          {bodyRows.map((row) => renderRouRow(row))}
+          <ScheduleAddedRows
+            layoutEdit={layoutEdit}
+            editMode={editMode}
+            selectedRowKey={selectedRowKey}
+            selectedColId={selectedColId}
+            onSelectRow={onSelectRow}
+            onSelectCol={onSelectCol}
+            onChangeRowLabel={onChangeRowLabel}
+            onChangeCell={onChangeCell}
+            extraColumns={extraColumns}
+            emptyCellCount={2}
+            rowClassName="frn-sheet-line frn-sheet-line--edit"
+            labelClassName="frn-excel-label-cell"
+            emptyCellClassName="frn-excel-num"
+          />
+          {totalRows.map((row) => renderRouRow(row))}
+          {footnote ? (
+            <tr className="frn-excel-footnote">
+              <td colSpan={rouColSpan}>{footnote}</td>
+            </tr>
           ) : null}
         </tbody>
       </table>
@@ -1389,17 +1881,202 @@ const IncomeTaxNote = ({
   );
 };
 
+const FvtplHeldForTrading = ({
+  periods,
+  tradingSummary = null,
+  layoutEdit = null,
+  editMode = false,
+  selectedRowKey = null,
+  selectedColId = null,
+  onSelectRow,
+  onSelectCol,
+  onChangeRowLabel,
+  onChangeCell,
+  onChangeColumnHeader
+}) => {
+  const currentHead = periods.current?.shortLabel || periods.current?.label || '';
+  const priorHead = periods.prior?.shortLabel || periods.prior?.label || '';
+  const extraColumns = layoutEdit?.extraColumns || [];
+  const colSpan = 3 + extraColumns.length;
+  const government = tradingSummary?.government || {
+    label: 'Investment in Government Securities',
+    current: 0,
+    prior: 0
+  };
+  const equity = tradingSummary?.equity || {
+    label: 'Investment in Equity Securities',
+    current: 0,
+    prior: 0
+  };
+  const bonds = tradingSummary?.bonds || { label: 'Treasury Bonds', current: 0, prior: 0 };
+  const bills = tradingSummary?.bills || { label: 'Treasury Bills', current: 0, prior: 0 };
+  const tradingTotal = {
+    current: (Number(government.current) || 0) + (Number(equity.current) || 0),
+    prior: (Number(government.prior) || 0) + (Number(equity.prior) || 0)
+  };
+  const govtTotal = {
+    current: (Number(bonds.current) || 0) + (Number(bills.current) || 0),
+    prior: (Number(bonds.prior) || 0) + (Number(bills.prior) || 0)
+  };
+  const selectRow = (rowKey) => {
+    if (editMode && typeof onSelectRow === 'function') onSelectRow(rowKey);
+  };
+  const rowSelectedClass = (rowKey) =>
+    editMode && selectedRowKey === rowKey ? ' is-edit-selected' : '';
+  const extraHeads = (
+    <ExtraColumnHeads
+      columns={extraColumns}
+      editMode={editMode}
+      selectedColId={selectedColId}
+      onSelectCol={onSelectCol}
+      onChangeColumnHeader={onChangeColumnHeader}
+      as="td"
+    />
+  );
+  const extraCells = (rowKey) => (
+    <ExtraColumnCells
+      columns={extraColumns}
+      rowKey={rowKey}
+      layoutEdit={layoutEdit}
+      editMode={editMode}
+      selectedColId={selectedColId}
+      onSelectCol={onSelectCol}
+      onChangeCell={onChangeCell}
+    />
+  );
+  const amountRow = (id, label, current, prior, locked = true, isTotal = false) => {
+    const rowKey = autoRowKey(id);
+    const fmt = getRowFormat(layoutEdit, rowKey);
+    const formatCls = formatClassName(fmt);
+    const text = resolveRowLabel(layoutEdit, rowKey, label);
+    return (
+      <tr
+        key={id}
+        className={`${isTotal ? 'frn-excel-total' : ''}${rowSelectedClass(rowKey)}`.trim() || undefined}
+        onClick={() => selectRow(rowKey)}
+      >
+        <td className="frn-excel-label-cell">
+          {editMode ? (
+            <EditableLabel
+              value={text}
+              formatCls={formatCls}
+              editMode={!locked}
+              onChange={
+                !locked && typeof onChangeRowLabel === 'function'
+                  ? (next) => onChangeRowLabel(rowKey, next)
+                  : undefined
+              }
+            />
+          ) : (
+            <span className={`frn-excel-name ${formatCls}`.trim()}>{isTotal ? '' : text}</span>
+          )}
+        </td>
+        <td className="frn-excel-num">{dash(current)}</td>
+        <td className="frn-excel-num">{dash(prior)}</td>
+        {extraCells(`fvtpl-sum:${id}`)}
+      </tr>
+    );
+  };
+
+  return (
+    <div className={`frn-excel-sheet${editMode ? ' is-edit-mode' : ''}`}>
+      <table className="frn-excel-table frn-excel-table--fvtpl-summary">
+        <colgroup>
+          <col className="frn-excel-col-label" />
+          <col className="frn-excel-col-num" />
+          <col className="frn-excel-col-num" />
+          {extraColumns.map((col) => (
+            <col key={col.id} className="frn-excel-col-num" />
+          ))}
+        </colgroup>
+        <tbody>
+          <tr className="frn-excel-section">
+            <td colSpan={colSpan}>
+              {tradingSummary?.sectionLabel || 'Financial Assets Held for Trading'}
+            </td>
+          </tr>
+          <tr className="frn-excel-head">
+            <td />
+            <td>
+              {currentHead}
+              <span className="frn-excel-unit"> LKR</span>
+            </td>
+            <td>
+              {priorHead}
+              <span className="frn-excel-unit"> LKR</span>
+            </td>
+            {extraHeads}
+          </tr>
+          {amountRow('fvtpl-govt', government.label, government.current, government.prior)}
+          {amountRow('fvtpl-equity', equity.label, equity.current, equity.prior)}
+          {amountRow('fvtpl-trading-total', 'Total', tradingTotal.current, tradingTotal.prior, true, true)}
+          <ScheduleAddedRows
+            layoutEdit={layoutEdit}
+            editMode={editMode}
+            selectedRowKey={selectedRowKey}
+            selectedColId={selectedColId}
+            onSelectRow={onSelectRow}
+            onSelectCol={onSelectCol}
+            onChangeRowLabel={onChangeRowLabel}
+            onChangeCell={onChangeCell}
+            extraColumns={extraColumns}
+            emptyCellCount={2}
+            rowClassName="frn-sheet-line frn-sheet-line--edit"
+            labelClassName="frn-excel-label-cell"
+            emptyCellClassName="frn-excel-num"
+          />
+          <tr className="frn-excel-spacer">
+            <td colSpan={colSpan} />
+          </tr>
+          {amountRow('fvtpl-bonds', bonds.label, bonds.current, bonds.prior)}
+          {amountRow('fvtpl-bills', bills.label, bills.current, bills.prior)}
+          {amountRow('fvtpl-govt-total', 'Total', govtTotal.current, govtTotal.prior, true, true)}
+        </tbody>
+      </table>
+    </div>
+  );
+};
+
 const FvtplEquityNote = ({
   periods,
   equityRows,
   removedAutoKeys = [],
+  layoutEdit = null,
+  editMode = false,
+  selectedRowKey = null,
+  selectedColId = null,
+  onSelectRow,
+  onSelectCol,
+  onChangeRowLabel,
+  onChangeCell,
+  onChangeColumnHeader,
   onRemoveAutoRow,
   onViewAccounts
 }) => {
+  const extraColumns = layoutEdit?.extraColumns || [];
+  const fvtplColSpan = 5 + extraColumns.length;
+  const selectRow = (rowKey) => {
+    if (editMode && typeof onSelectRow === 'function') onSelectRow(rowKey);
+  };
+  const rowSelectedClass = (rowKey) =>
+    editMode && selectedRowKey === rowKey ? ' is-edit-selected' : '';
+  const extraCells = (rowKey) => (
+    <ExtraColumnCells
+      columns={extraColumns}
+      rowKey={rowKey}
+      layoutEdit={layoutEdit}
+      editMode={editMode}
+      selectedColId={selectedColId}
+      onSelectCol={onSelectCol}
+      onChangeCell={onChangeCell}
+    />
+  );
   const currentPeriod = periods.current.shortLabel || periods.current.label;
   const priorPeriod = periods.prior.shortLabel || periods.prior.label;
   const removed = new Set(removedAutoKeys || []);
-  const rows = (equityRows || []).filter((r) => !removed.has(r.label));
+  const rows = (equityRows || []).filter(
+    (r) => !removed.has(r.label) && !isRowHidden(layoutEdit, autoRowKey(r.label))
+  );
   const totals = rows.reduce(
     (s, r) => ({
       currentCost: s.currentCost + (Number(r.currentCost) || 0),
@@ -1415,7 +2092,7 @@ const FvtplEquityNote = ({
       <h3 className="frn-note-subsection-title">
         Investments in Equity Securities - Quoted
       </h3>
-      <div className="frn-sheet-wrap">
+      <div className={`frn-sheet-wrap${editMode ? ' is-edit-mode' : ''}`}>
         <table className="frn-sheet frn-sheet--fvtpl">
           <colgroup>
             <col className="frn-sheet-col-label" />
@@ -1423,6 +2100,9 @@ const FvtplEquityNote = ({
             <col className="frn-sheet-col-num" />
             <col className="frn-sheet-col-num" />
             <col className="frn-sheet-col-num" />
+            {extraColumns.map((col) => (
+              <col key={col.id} className="frn-sheet-col-num" />
+            ))}
           </colgroup>
           <thead>
             <tr>
@@ -1435,6 +2115,14 @@ const FvtplEquityNote = ({
                 {priorPeriod}
                 <span className="frn-sheet-unit">LKR</span>
               </th>
+              <ExtraColumnHeads
+                columns={extraColumns}
+                editMode={editMode}
+                selectedColId={selectedColId}
+                onSelectCol={onSelectCol}
+                onChangeColumnHeader={onChangeColumnHeader}
+                rowSpan={2}
+              />
             </tr>
             <tr>
               <th className="frn-sheet-th-num">Cost</th>
@@ -1444,36 +2132,76 @@ const FvtplEquityNote = ({
             </tr>
           </thead>
           <tbody>
-            {rows.length === 0 ? (
+            {rows.length === 0 && !(layoutEdit?.addedRows || []).length ? (
               <tr>
-                <td colSpan={5} className="frn-sheet-empty">
+                <td colSpan={fvtplColSpan} className="frn-sheet-empty">
                   No quoted equity holdings found for the selected as-at dates.
                 </td>
               </tr>
             ) : (
-              rows.map((row) => (
-                <tr key={row.label} className="frn-sheet-line">
+              rows.map((row) => {
+                const rowKey = autoRowKey(row.label);
+                const fmt = getRowFormat(layoutEdit, rowKey);
+                const formatCls = formatClassName(fmt);
+                const label = resolveRowLabel(layoutEdit, rowKey, row.label);
+                return (
+                <tr
+                  key={row.label}
+                  className={`frn-sheet-line${rowSelectedClass(rowKey)}`}
+                  onClick={() => selectRow(rowKey)}
+                >
                   <td className="frn-sheet-label">
-                    <span className="frn-sheet-custom-label">{row.label}</span>
-                    <RowActions
-                      title={row.label}
-                      accounts={row.accounts || [{ code: '', name: row.label }]}
-                      onViewAccounts={onViewAccounts}
-                      onRemove={
-                        typeof onRemoveAutoRow === 'function'
-                          ? () => onRemoveAutoRow(row.label)
-                          : undefined
-                      }
-                      removeTitle="Remove this auto-generated line"
-                    />
+                    {editMode ? (
+                      <EditableLabel
+                        value={label}
+                        formatCls={formatCls}
+                        editMode={editMode}
+                        onChange={
+                          typeof onChangeRowLabel === 'function'
+                            ? (next) => onChangeRowLabel(rowKey, next)
+                            : undefined
+                        }
+                      />
+                    ) : (
+                      <>
+                        <span className={`frn-sheet-custom-label ${formatCls}`.trim()}>
+                          {label}
+                        </span>
+                        <RowActions
+                          title={row.label}
+                          accounts={row.accounts || [{ code: '', name: row.label }]}
+                          onViewAccounts={onViewAccounts}
+                          onRemove={
+                            typeof onRemoveAutoRow === 'function'
+                              ? () => onRemoveAutoRow(row.label)
+                              : undefined
+                          }
+                          removeTitle="Remove this auto-generated line"
+                        />
+                      </>
+                    )}
                   </td>
                   <td className="frn-sheet-num">{formatSheetAmount(row.currentCost)}</td>
                   <td className="frn-sheet-num">{formatSheetAmount(row.currentMv)}</td>
                   <td className="frn-sheet-num">{formatSheetAmount(row.priorCost)}</td>
                   <td className="frn-sheet-num">{formatSheetAmount(row.priorMv)}</td>
+                  {extraCells(rowKey)}
                 </tr>
-              ))
+                );
+              })
             )}
+            <ScheduleAddedRows
+              layoutEdit={layoutEdit}
+              editMode={editMode}
+              selectedRowKey={selectedRowKey}
+              selectedColId={selectedColId}
+              onSelectRow={onSelectRow}
+              onSelectCol={onSelectCol}
+              onChangeRowLabel={onChangeRowLabel}
+              onChangeCell={onChangeCell}
+              extraColumns={extraColumns}
+              emptyCellCount={4}
+            />
             <tr className="frn-sheet-total">
               <td className="frn-sheet-label">Total</td>
               <td className="frn-sheet-num">
@@ -1488,6 +2216,7 @@ const FvtplEquityNote = ({
               <td className="frn-sheet-num">
                 <span>{formatSheetAmount(totals.priorMv)}</span>
               </td>
+              {extraCells('fvtpl:total')}
             </tr>
           </tbody>
         </table>
@@ -1554,11 +2283,16 @@ const DisclosureNoteView = ({
     total,
     sections,
     footnote75,
-    equityRows
+    equityRows,
+    tradingSummary,
+    intro,
+    sectionLabel,
+    footnote
   } = data;
   const noteTitle = `${note.number}. ${note.title.toUpperCase()}`;
   const showCustomUnderSchedule =
-    (template === 'ppe' || template === 'fvtplEquity') && customRows.length > 0;
+    (template === 'ppe' || template === 'fvtplEquity' || template === 'rightOfUse') &&
+    customRows.length > 0;
 
   const sharedRowProps = {
     customRows,
@@ -1584,7 +2318,12 @@ const DisclosureNoteView = ({
   return (
     <section
       className={`frn-note-section${
-        template === 'ppe' || template === 'fvtplEquity' ? ' frn-note-section--schedule' : ''
+        template === 'ppe' ||
+        template === 'fvtplEquity' ||
+        template === 'deferredTax' ||
+        template === 'rightOfUse'
+          ? ' frn-note-section--schedule'
+          : ''
       }`}
     >
       <header className="frn-note-section-head">
@@ -1596,22 +2335,36 @@ const DisclosureNoteView = ({
             periods={periods}
             sections={sections || []}
             footnote75={footnote75}
-            removedAutoKeys={removedAutoKeys}
-            onRemoveAutoRow={onRemoveAutoRow}
-            onViewAccounts={(payload) => setAccountsModal({ ...payload, periods })}
+            {...sharedRowProps}
           />
         ) : template === 'fvtplEquity' ? (
-          <FvtplEquityNote
-            periods={periods}
-            equityRows={equityRows}
-            removedAutoKeys={removedAutoKeys}
-            onRemoveAutoRow={onRemoveAutoRow}
-            onViewAccounts={(payload) => setAccountsModal({ ...payload, periods })}
-          />
+          <>
+            <FvtplHeldForTrading
+              periods={periods}
+              tradingSummary={tradingSummary}
+              {...sharedRowProps}
+            />
+            <FvtplEquityNote
+              periods={periods}
+              equityRows={equityRows}
+              {...sharedRowProps}
+            />
+          </>
         ) : template === 'cash' ? (
           <CashNote periods={periods} rows={rows || []} {...sharedRowProps} />
         ) : template === 'incomeTax' ? (
           <IncomeTaxNote periods={periods} rows={rows || []} {...sharedRowProps} />
+        ) : template === 'deferredTax' ? (
+          <DeferredTaxNote periods={periods} rows={rows || []} {...sharedRowProps} />
+        ) : template === 'rightOfUse' ? (
+          <RightOfUseNote
+            periods={periods}
+            rows={rows || []}
+            intro={intro}
+            sectionLabel={sectionLabel}
+            footnote={footnote}
+            {...sharedRowProps}
+          />
         ) : template === 'statedCapital' ? (
           <ComparativeTable
             periods={periods}

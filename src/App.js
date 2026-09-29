@@ -28,6 +28,7 @@ import ClientOnboarding from './components/WealthManager/ClientManagement/Client
 import KYCManagement from './components/WealthManager/ClientManagement/KYCManagement';
 import ClientPortal from './components/WealthManager/ClientPortal/ClientPortal';
 import FundMaster from './components/WealthManager/Fund Master/FundMaster';
+import FundConfiguration from './components/WealthManager/Fund Master/FundConfiguration';
 import FundCategories from './components/WealthManager/Fund Master/FundCategories';
 import FundPerfMetrics from './components/WealthManager/Fund Master/FundPerfMetrics';
 import WealthPortfolioMaster from './components/WealthManager/Portfolio Master/WealthPortfolioMaster';
@@ -377,10 +378,11 @@ function App() {
       : <PortfolioMaster/>,
     'Expense Master': <ExpenseMaster />,
     'Define Expenses': <DefineExpenses />,
-    'Fund Master': <FundMaster/>,
+    'Fund Master': <FundMaster onTabChange={handleTabChange} />,
+    'Fund Configuration': <FundConfiguration onTabChange={handleTabChange} />,
     'Fund Categories': <FundCategories/>,
     'Fund Performance Metrics': <FundPerfMetrics/>,
-    'Fund Pricing': <FundPricing />,
+    'Fund Pricing': <FundPricing onTabChange={handleTabChange} />,
     'NAV Management': <NAVManagement />,
     'Purchase/Subscription': <PurchaseSubscription />,
     'Redemption': <Redemption />,
@@ -425,12 +427,12 @@ function App() {
     'Regulatory Compliance': <RegulatoryCompliance />,
     'Risk Reports': <RiskReports />,
     'System Settings': <SystemSettings />,
-    'Fee Structure': <FeeStructure />,
+    'Fee Structure': <FeeStructure onTabChange={handleTabChange} />,
     'Commission Setup': <CommissionSetup />,
     'User Management': <UserManagement />,
     'Valuation Method': <CostingMethodSelection/>,
     'Holiday Calendar': selectedManager === 'wealth'
-      ? <WealthHolidayCalendar />
+      ? <WealthHolidayCalendar onTabChange={handleTabChange} />
       : <HolidayCalendar mode="calendar" />,
     'Holiday List': <HolidayCalendar mode="list" />,
     'Add Holiday': <HolidayCalendar mode="create" />,
