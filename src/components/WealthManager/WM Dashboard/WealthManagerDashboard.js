@@ -1,5 +1,10 @@
 import React, { useEffect, useMemo, useState } from 'react';
+import { Chart as ChartJS, ArcElement, Tooltip } from 'chart.js';
+import { Doughnut, Pie } from 'react-chartjs-2';
+import WealthPageHeader from '../Layout/WealthPageHeader';
 import './Styles/WealthManagerDashboard.css';
+
+ChartJS.register(ArcElement, Tooltip);
 
 const OPS_HEALTH = {
   score: 88,
@@ -62,11 +67,46 @@ const WeightRow = ({ label, meta, pct, color }) => (
     </span>
     <span className="wmd-weight__meta">{meta}</span>
     <span className="wmd-weight__pct">{pct}%</span>
-    <span className="wmd-weight__track" aria-hidden>
-      <b style={{ width: `${pct}%`, background: color }} />
-    </span>
   </div>
 );
+
+const ShareChart = ({ kind, items, colors, formatValue, label }) => {
+  const chartData = {
+    labels: items.map((item) => item.category),
+    datasets: [
+      {
+        data: items.map((item) => item.percentage),
+        backgroundColor: colors,
+        borderColor: '#ffffff',
+        borderWidth: 2,
+        hoverOffset: 4,
+      },
+    ],
+  };
+  const options = {
+    responsive: true,
+    maintainAspectRatio: false,
+    cutout: kind === 'doughnut' ? '64%' : 0,
+    plugins: {
+      legend: { display: false },
+      tooltip: {
+        backgroundColor: '#102824',
+        padding: 8,
+        titleFont: { family: 'DM Sans', size: 12 },
+        bodyFont: { family: 'DM Sans', size: 12 },
+        callbacks: {
+          label: (ctx) => ` ${items[ctx.dataIndex].category}: ${formatValue(items[ctx.dataIndex])}`,
+        },
+      },
+    },
+  };
+  const Chart = kind === 'doughnut' ? Doughnut : Pie;
+  return (
+    <div className={`wmd-share wmd-share--${kind}`} role="img" aria-label={label}>
+      <Chart data={chartData} options={options} />
+    </div>
+  );
+};
 
 const WealthManagerDashboard = () => {
   const [currentTime, setCurrentTime] = useState(new Date());
@@ -137,23 +177,30 @@ const WealthManagerDashboard = () => {
   const chart = useMemo(() => {
     const w = 640;
     const h = 280;
-    const left = 46;
-    const right = 16;
-    const top = 18;
-    const bottom = 28;
+    const left = 58;
+    const right = 20;
+    const top = 22;
+    const bottom = 36;
     const span = navMax - navMin || 1;
     const pts = data.navTrend.map((point, index) => {
       const x = left + (index / (data.navTrend.length - 1)) * (w - left - right);
       const y = top + (1 - (point.value - navMin) / span) * (h - top - bottom);
       return { ...point, x, y };
     });
-    const line = pts.map((point) => `${point.x},${point.y}`).join(' ');
-    const area = `${pts[0].x},${h - bottom} ${line} ${pts[pts.length - 1].x},${h - bottom}`;
+    let line = `M ${pts[0].x} ${pts[0].y}`;
+    for (let i = 0; i < pts.length - 1; i += 1) {
+      const from = pts[i];
+      const to = pts[i + 1];
+      const bend = (to.x - from.x) / 2;
+      line += ` C ${from.x + bend} ${from.y}, ${to.x - bend} ${to.y}, ${to.x} ${to.y}`;
+    }
+    const floor = h - bottom;
+    const area = `${line} L ${pts[pts.length - 1].x} ${floor} L ${pts[0].x} ${floor} Z`;
     const grid = [0, 0.5, 1].map((t) => ({
       y: top + t * (h - top - bottom),
       label: (navMax - t * span).toFixed(2),
     }));
-    return { w, h, bottom, pts, line, area, grid };
+    return { w, h, left, right, bottom, pts, line, area, grid };
   }, [data.navTrend, navMax, navMin]);
 
   const clock = currentTime.toLocaleTimeString('en-US', {
@@ -170,49 +217,48 @@ const WealthManagerDashboard = () => {
   });
 
   return (
-    <div className="wmd">
-      <header className="wmd-command">
-        <div>
-          <p className="wmd-kicker">Wealth Management</p>
-          <h1>Operations Overview</h1>
-        </div>
-        <div className="wmd-command__meta">
-          <span>Business date</span>
-          <time dateTime={currentTime.toISOString()}>
-            <strong>{businessDate}</strong>
-            {clock}
-          </time>
-          <span className="wmd-scope">Equity Growth Fund · 5 sessions</span>
-        </div>
-      </header>
-
+    <div className="wmd-page">
+      <WealthPageHeader
+        title="Operations Overview"
+        blurb="Assets, flows, dealing, investors, and operations for the current business date."
+        actions={(
+          <>
+            <time className="wmd-header-date" dateTime={currentTime.toISOString()}>
+              <span>Business date</span>
+              <strong>{businessDate}</strong>
+              <span>{clock}</span>
+            </time>
+          </>
+        )}
+      />
+      <div className="wmd">
       <section className="wmd-strip" aria-label="Business summary">
-        <div>
+        <div className="wmd-kpi wmd-kpi--lead">
           <span>Assets under management</span>
           <strong>LKR {formatLkrCompact(data.aum.total)}</strong>
           <em className="is-up">Up {data.aum.change}% MoM</em>
         </div>
-        <div>
+        <div className="wmd-kpi">
           <span>Net flow</span>
           <strong className="is-up">+{formatLkrCompact(netFlow)}</strong>
           <em>In {formatLkrCompact(data.inflows)} · Out {formatLkrCompact(data.outflows)}</em>
         </div>
-        <div>
+        <div className="wmd-kpi">
           <span>Clients</span>
           <strong>{formatNumber(data.clients.total)}</strong>
           <em>{formatNumber(data.clients.active)} active · +{data.clients.new}</em>
         </div>
-        <div>
+        <div className="wmd-kpi">
           <span>Active funds</span>
           <strong>{data.funds.active}</strong>
           <em>{data.funds.topPerformer}</em>
         </div>
-        <div>
+        <div className="wmd-kpi">
           <span>Today&apos;s deals</span>
           <strong>{formatNumber(data.transactions.today)}</strong>
           <em>LKR {formatLkrCompact(data.transactions.value)} · {data.transactions.pending} pending</em>
         </div>
-        <div>
+        <div className="wmd-kpi wmd-kpi--health">
           <span>Operations health</span>
           <strong>{OPS_HEALTH.score}<small>/100</small></strong>
           <em className="is-up">{OPS_HEALTH.status}</em>
@@ -230,36 +276,68 @@ const WealthManagerDashboard = () => {
             <svg viewBox={`0 0 ${chart.w} ${chart.h}`} preserveAspectRatio="xMidYMid meet">
               <defs>
                 <linearGradient id="wmdNavFill" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="#143f36" stopOpacity="0.18" />
+                  <stop offset="0%" stopColor="#1f6a52" stopOpacity="0.28" />
+                  <stop offset="62%" stopColor="#143f36" stopOpacity="0.08" />
                   <stop offset="100%" stopColor="#143f36" stopOpacity="0" />
                 </linearGradient>
               </defs>
-              {chart.grid.map((row) => (
+              {chart.grid.map((row, index) => (
                 <g key={row.label}>
-                  <line className="wmd-chart__grid" x1="46" x2={chart.w - 12} y1={row.y} y2={row.y} />
-                  <text className="wmd-chart__axis" x="0" y={row.y + 3}>{row.label}</text>
-                </g>
-              ))}
-              <polygon points={chart.area} fill="url(#wmdNavFill)" />
-              <polyline className="wmd-chart__line" fill="none" points={chart.line} />
-              {chart.pts.map((point, index) => (
-                <g key={point.date}>
-                  <circle
-                    className={hover === index ? 'is-hot' : ''}
-                    cx={point.x}
-                    cy={point.y}
-                    r={hover === index ? 5 : 3.5}
-                    tabIndex={0}
-                    role="button"
-                    aria-label={`${point.date} NAV ${point.value.toFixed(2)}`}
-                    onMouseEnter={() => setHover(index)}
-                    onMouseLeave={() => setHover(null)}
-                    onFocus={() => setHover(index)}
-                    onBlur={() => setHover(null)}
+                  <line
+                    className="wmd-chart__grid"
+                    x1={chart.left}
+                    x2={chart.w - chart.right}
+                    y1={row.y}
+                    y2={row.y}
                   />
-                  <text className="wmd-chart__day" x={point.x} y={chart.h - 8} textAnchor="middle">{point.date}</text>
+                  <text
+                    className={index === 0 ? 'wmd-chart__axis is-max' : 'wmd-chart__axis'}
+                    x={chart.left - 10}
+                    y={row.y}
+                    textAnchor="end"
+                    dominantBaseline="middle"
+                  >
+                    {row.label}
+                  </text>
                 </g>
               ))}
+              <line
+                className="wmd-chart__base"
+                x1={chart.left}
+                x2={chart.w - chart.right}
+                y1={chart.h - chart.bottom}
+                y2={chart.h - chart.bottom}
+              />
+              <path className="wmd-chart__area" d={chart.area} />
+              <path className="wmd-chart__line" d={chart.line} fill="none" />
+              {chart.pts.map((point, index) => {
+                const latest = index === chart.pts.length - 1;
+                return (
+                  <g key={point.date}>
+                    <circle
+                      className={[hover === index ? 'is-hot' : '', latest ? 'is-latest' : ''].filter(Boolean).join(' ')}
+                      cx={point.x}
+                      cy={point.y}
+                      r={hover === index || latest ? 5 : 3.5}
+                      tabIndex={0}
+                      role="button"
+                      aria-label={`${point.date} NAV ${point.value.toFixed(2)}`}
+                      onMouseEnter={() => setHover(index)}
+                      onMouseLeave={() => setHover(null)}
+                      onFocus={() => setHover(index)}
+                      onBlur={() => setHover(null)}
+                    />
+                    <text
+                      className={latest ? 'wmd-chart__day is-latest' : 'wmd-chart__day'}
+                      x={point.x}
+                      y={chart.h - 12}
+                      textAnchor="middle"
+                    >
+                      {point.date}
+                    </text>
+                  </g>
+                );
+              })}
             </svg>
             {hover !== null ? (
               <div
@@ -273,58 +351,75 @@ const WealthManagerDashboard = () => {
           </div>
         </Panel>
 
-        <Panel kicker="Portfolio" title="Asset allocation" note="Book mix">
-          <div className="wmd-stack" aria-hidden>
-            {data.portfolioAllocation.map((item, index) => (
-              <i key={item.category} style={{ width: `${item.percentage}%`, background: ALLOC_COLORS[index] }} />
-            ))}
-          </div>
-          <div className="wmd-weights" role="table" aria-label="Asset allocation">
-            {data.portfolioAllocation.map((item, index) => (
-              <WeightRow
-                key={item.category}
-                label={item.category}
-                meta={`LKR ${formatLkrCompact(item.value)}`}
-                pct={item.percentage}
-                color={ALLOC_COLORS[index]}
-              />
-            ))}
+        <Panel kicker="Portfolio" title="Asset allocation" note="Doughnut · book mix">
+          <div className="wmd-share-row">
+            <ShareChart
+              kind="doughnut"
+              items={data.portfolioAllocation}
+              colors={ALLOC_COLORS}
+              label="Asset allocation doughnut"
+              formatValue={(item) => `${item.percentage}% · LKR ${formatLkrCompact(item.value)}`}
+            />
+            <div className="wmd-weights" role="table" aria-label="Asset allocation">
+              {data.portfolioAllocation.map((item, index) => (
+                <WeightRow
+                  key={item.category}
+                  label={item.category}
+                  meta={`LKR ${formatLkrCompact(item.value)}`}
+                  pct={item.percentage}
+                  color={ALLOC_COLORS[index]}
+                />
+              ))}
+            </div>
           </div>
         </Panel>
       </div>
 
       <div className="wmd-mid">
-        <Panel kicker="Dealing" title="Today's dealing" note={`${formatNumber(data.transactions.today)} orders`}>
-          <div className="wmd-stack" aria-hidden>
-            {data.flowMix.map((item, index) => (
-              <i key={item.category} style={{ width: `${item.percentage}%`, background: DEAL_COLORS[index] }} />
-            ))}
-          </div>
-          <div className="wmd-deal">
-            {data.flowMix.map((item, index) => (
-              <div key={item.category}>
-                <span>
-                  <i style={{ background: DEAL_COLORS[index] }} aria-hidden />
-                  {item.category}
-                </span>
-                <strong>{item.value}</strong>
-                <em>{item.percentage}% of orders</em>
-              </div>
-            ))}
+        <Panel kicker="Dealing" title="Today's dealing" note={`Pie · ${formatNumber(data.transactions.today)} orders`}>
+          <div className="wmd-share-row wmd-share-row--deal">
+            <ShareChart
+              kind="pie"
+              items={data.flowMix}
+              colors={DEAL_COLORS}
+              label="Today's dealing pie"
+              formatValue={(item) => `${item.value} orders · ${item.percentage}%`}
+            />
+            <div className="wmd-deal">
+              {data.flowMix.map((item, index) => (
+                <div key={item.category}>
+                  <span>
+                    <i style={{ background: DEAL_COLORS[index] }} aria-hidden />
+                    {item.category}
+                  </span>
+                  <strong>{item.value}</strong>
+                  <em>{item.percentage}% of orders</em>
+                </div>
+              ))}
+            </div>
           </div>
         </Panel>
 
-        <Panel kicker="Investors" title="Investor distribution" note={`${formatNumber(data.clients.total)} clients`}>
-          <div className="wmd-weights">
-            {data.clientSegments.map((item, index) => (
-              <WeightRow
-                key={item.category}
-                label={item.category}
-                meta={formatNumber(item.value)}
-                pct={item.percentage}
-                color={SEGMENT_COLORS[index]}
-              />
-            ))}
+        <Panel kicker="Investors" title="Investor distribution" note={`Doughnut · ${formatNumber(data.clients.total)} clients`}>
+          <div className="wmd-share-row">
+            <ShareChart
+              kind="doughnut"
+              items={data.clientSegments}
+              colors={SEGMENT_COLORS}
+              label="Investor distribution doughnut"
+              formatValue={(item) => `${formatNumber(item.value)} · ${item.percentage}%`}
+            />
+            <div className="wmd-weights">
+              {data.clientSegments.map((item, index) => (
+                <WeightRow
+                  key={item.category}
+                  label={item.category}
+                  meta={formatNumber(item.value)}
+                  pct={item.percentage}
+                  color={SEGMENT_COLORS[index]}
+                />
+              ))}
+            </div>
           </div>
         </Panel>
 
@@ -422,6 +517,7 @@ const WealthManagerDashboard = () => {
             </tbody>
           </table>
         </Panel>
+      </div>
       </div>
     </div>
   );

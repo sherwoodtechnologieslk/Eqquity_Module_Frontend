@@ -896,11 +896,6 @@ const loadPpeNoteFromRegister = async (periods) => {
     0
   );
 
-  const totalAdditions = sections.reduce(
-    (sum, r) => sum + (Number(r.cost?.additions) || 0),
-    0
-  );
-
   const formatMoney = (n) =>
     new Intl.NumberFormat('en-US', {
       minimumFractionDigits: 2,
