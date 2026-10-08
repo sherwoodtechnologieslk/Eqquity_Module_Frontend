@@ -23,7 +23,7 @@ import {
   exportMtmPositionDetailsToPdf,
   exportMtmPositionDetailsToExcel
 } from '../../utils/mtmPositionDetailsExport';
-import { buildSofpExportRows, SOFP_EXPORT_HEADERS, loadSofpDataForExport } from '../../utils/sofpExport';
+import { downloadSofpExcel, downloadSofpPdf, loadSofpDataForExport } from '../../utils/sofpExport';
 import {
   exportGsecGeneralLedgerToExcel,
   exportGsecGeneralLedgerToPdf
@@ -271,24 +271,10 @@ const FinancialReportsDownloadCenter = () => {
         asOfDate: filters.asOfDate,
         portfolio: filters.portfolioId || undefined
       });
-      const body = buildSofpExportRows({ financialPositionData, netProfit });
-      const subtitlePortfolio = financialPositionData?.portfolio || portfolioLabel;
-      const subtitleAsOf = financialPositionData?.asOfDate || filters.asOfDate;
-      pdfTable({
-        title: 'Statement of Financial Position',
-        subtitle: `Portfolio: ${subtitlePortfolio}   |   As of: ${subtitleAsOf}`,
-        head: SOFP_EXPORT_HEADERS,
-        body,
-        filenameBase: `SOFP_${baseName}`,
-        tableOptions: {
-          // Prevent "DR/CR-3,349..." looking concatenated by allocating widths
-          columnStyles: {
-            0: { cellWidth: 160 }, // Section
-            1: { cellWidth: 300 }, // Transaction type
-            2: { cellWidth: 110, halign: 'right' }, // Amount
-            3: { cellWidth: 60, halign: 'center' } // DR/CR
-          }
-        }
+      downloadSofpPdf({
+        financialPositionData,
+        netProfit,
+        filenameBase: `SOFP_${baseName}`
       });
     });
 
@@ -300,8 +286,11 @@ const FinancialReportsDownloadCenter = () => {
         asOfDate: filters.asOfDate,
         portfolio: filters.portfolioId || undefined
       });
-      const rows = buildSofpExportRows({ financialPositionData, netProfit });
-      downloadCsv(`SOFP_${baseName}`, SOFP_EXPORT_HEADERS, rows);
+      downloadSofpExcel({
+        financialPositionData,
+        netProfit,
+        filenameBase: `SOFP_${baseName}`
+      });
     });
 
   const exportSociPdf = () =>

@@ -1,0 +1,49 @@
+.inv-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.75rem 1rem;
+  margin-bottom: 0.9rem;
+}
+
+.inv-grid .fm-field-group--wide {
+  grid-column: 1 / -1;
+}
+
+.inv-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.82rem;
+}
+
+.inv-table th,
+.inv-table td {
+  padding: 0.5rem 0.45rem;
+  border-bottom: 1px solid #edf0ed;
+  text-align: left;
+  vertical-align: top;
+}
+
+.inv-table th {
+  color: #5d6862;
+  font-size: 0.72rem;
+  font-weight: 700;
+}
+
+.inv-error {
+  margin: 0 0 0.75rem;
+  color: #8a2b2b;
+  font-size: 0.8rem;
+}
+
+.inv-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin: 0.4rem 0 0.8rem;
+}
+
+@media (max-width: 800px) {
+  .inv-grid {
+    grid-template-columns: 1fr;
+  }
+}

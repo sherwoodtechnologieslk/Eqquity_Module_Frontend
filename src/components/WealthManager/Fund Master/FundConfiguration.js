@@ -1,7 +1,18 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import WealthPageHeader from '../Layout/WealthPageHeader';
 import cisFundService from '../../../services/cisFundService';
 import cisFundConfigService, { CONFIG_DOMAINS } from '../../../services/cisFundConfigService';
+import {
+  CalendarEditor,
+  DealingEditor,
+  FeesEditor,
+  MandateEditor,
+  NavEditor,
+  editorFromResponse,
+  emptyDomain,
+  payloadFromEditor,
+  toDateInput,
+} from './FundConfigSections';
 import './Styles/FundMaster.css';
 
 const FUND_CONFIG_STORAGE_KEY = 'cis.config.fundId';
@@ -16,24 +27,23 @@ const SECTION_TABS = [
   { key: 'serviceProviders', label: 'Service Providers' },
 ];
 
-const DOW_LABELS = ['Sun (0)', 'Mon (1)', 'Tue (2)', 'Wed (3)', 'Thu (4)', 'Fri (5)', 'Sat (6)'];
+const ASSIGNMENT_ROLES = [
+  { value: 'FUND_MANAGER', label: 'Fund Manager' },
+  { value: 'TRUSTEE', label: 'Trustee' },
+  { value: 'CUSTODIAN', label: 'Custodian' },
+  { value: 'REGISTRAR', label: 'Registrar' },
+  { value: 'AUDITOR', label: 'Auditor' },
+  { value: 'BROKER', label: 'Broker' },
+  { value: 'BANK', label: 'Bank' },
+  { value: 'OTHER', label: 'Other' },
+];
 
-const emptyDomainBody = (section) => {
-  switch (section) {
-    case 'mandate':
-      return { assetClasses: [], rules: [] };
-    case 'dealing':
-      return { settings: {}, cutoffs: [] };
-    case 'navPricing':
-      return { settings: {}, publishedPriceTypes: [] };
-    case 'fees':
-      return { feeLines: [] };
-    case 'calendar':
-      return { weekdays: [], exceptions: [] };
-    default:
-      return {};
-  }
-};
+const roleLabel = (role) => ASSIGNMENT_ROLES.find((item) => item.value === role)?.label || role || '—';
+
+const displayDate = (value) => toDateInput(value) || '—';
+
+const activeOnly = (rows) =>
+  (rows || []).filter((row) => row.isActive !== false && row.isActive !== 0);
 
 const FundConfiguration = ({ onTabChange }) => {
   const [fundId, setFundId] = useState(() => sessionStorage.getItem(FUND_CONFIG_STORAGE_KEY) || '');
@@ -41,27 +51,49 @@ const FundConfiguration = ({ onTabChange }) => {
   const [fundProfile, setFundProfile] = useState(null);
   const [activeSection, setActiveSection] = useState('profile');
   const [message, setMessage] = useState('');
+  const [messageTone, setMessageTone] = useState('success');
   const [loading, setLoading] = useState(false);
   const [versions, setVersions] = useState([]);
-  const [draftConfigId, setDraftConfigId] = useState(null);
+  const [editorMode, setEditorMode] = useState('empty');
+  const [workingId, setWorkingId] = useState(null);
+  const [versionNumber, setVersionNumber] = useState(null);
+  const [versionStatus, setVersionStatus] = useState('');
   const [effectiveFrom, setEffectiveFrom] = useState('');
+  const [effectiveTo, setEffectiveTo] = useState('');
   const [notes, setNotes] = useState('');
+  const [domainValue, setDomainValue] = useState({});
   const [refs, setRefs] = useState({});
-  const [domainPayload, setDomainPayload] = useState({});
+  const [asOfDate, setAsOfDate] = useState('');
+  const [asOfText, setAsOfText] = useState('');
+  const [providers, setProviders] = useState([]);
+  const [assignments, setAssignments] = useState([]);
+  const [assignmentForm, setAssignmentForm] = useState({
+    serviceProviderId: '',
+    role: '',
+    effectiveFrom: '',
+    notes: '',
+  });
+  const [endDates, setEndDates] = useState({});
+  const loadGeneration = useRef(0);
 
-  const activeTabMeta = SECTION_TABS.find((t) => t.key === activeSection);
+  const activeTabMeta = SECTION_TABS.find((tab) => tab.key === activeSection);
   const domain = activeTabMeta?.domain;
+  const readOnly = editorMode === 'active' || editorMode === 'history' || loading;
+  const activeVersion = versions.find((row) => row.status === 'ACTIVE');
+
+  const notify = (text, tone = 'success') => {
+    setMessage(text);
+    setMessageTone(tone);
+  };
 
   const loadFunds = useCallback(async () => {
     const rows = await cisFundService.listFunds();
     setFunds(rows);
-    if (!fundId && rows[0]?.id) {
-      setFundId(String(rows[0].id));
-    }
+    if (!fundId && rows[0]?.id) setFundId(String(rows[0].id));
   }, [fundId]);
 
   useEffect(() => {
-    loadFunds().catch((e) => setMessage(e.message));
+    loadFunds().catch((error) => notify(error.message, 'error'));
   }, [loadFunds]);
 
   useEffect(() => {
@@ -69,13 +101,14 @@ const FundConfiguration = ({ onTabChange }) => {
   }, [fundId]);
 
   const loadProfile = useCallback(async () => {
-    if (!fundId) return;
+    if (!fundId) return null;
     const profile = await cisFundService.getFund(fundId);
     setFundProfile(profile);
+    return profile;
   }, [fundId]);
 
   const loadReferences = useCallback(async () => {
-    const r = cisFundConfigService.listReference;
+    const reference = cisFundConfigService.listReference;
     const [
       mandateRuleDimensions,
       mandateLimitTypes,
@@ -89,189 +122,631 @@ const FundConfiguration = ({ onTabChange }) => {
       assetClasses,
       feeCalculationBases,
     ] = await Promise.all([
-      r.mandateRuleDimensions(),
-      r.mandateLimitTypes(),
-      r.mandateLimitUnits(),
-      r.dealingCutoffTypes(),
-      r.roundingMethods(),
-      r.settlementConventions(),
-      r.valuationFrequencies(),
-      r.pricingMethods(),
-      r.publishedPriceTypes(),
-      r.assetClasses(),
-      r.feeCalculationBases(),
+      reference.mandateRuleDimensions(),
+      reference.mandateLimitTypes(),
+      reference.mandateLimitUnits(),
+      reference.dealingCutoffTypes(),
+      reference.roundingMethods(),
+      reference.settlementConventions(),
+      reference.valuationFrequencies(),
+      reference.pricingMethods(),
+      reference.publishedPriceTypes(),
+      reference.assetClasses(),
+      reference.feeCalculationBases(),
     ]);
-    setRefs({
-      mandateRuleDimensions,
-      mandateLimitTypes,
-      mandateLimitUnits,
-      dealingCutoffTypes,
-      roundingMethods,
-      settlementConventions,
-      valuationFrequencies,
-      pricingMethods,
-      publishedPriceTypes,
-      assetClasses,
-      feeCalculationBases,
-    });
+    setRefs((current) => ({
+      ...current,
+      mandateRuleDimensions: activeOnly(mandateRuleDimensions),
+      mandateLimitTypes: activeOnly(mandateLimitTypes),
+      mandateLimitUnits: activeOnly(mandateLimitUnits),
+      dealingCutoffTypes: activeOnly(dealingCutoffTypes),
+      roundingMethods: activeOnly(roundingMethods),
+      settlementConventions: activeOnly(settlementConventions),
+      valuationFrequencies: activeOnly(valuationFrequencies),
+      pricingMethods: activeOnly(pricingMethods),
+      publishedPriceTypes: activeOnly(publishedPriceTypes),
+      assetClasses: activeOnly(assetClasses),
+      feeCalculationBases: activeOnly(feeCalculationBases),
+    }));
   }, []);
 
-  const loadVersions = useCallback(async () => {
-    if (!fundId || !domain) return;
-    const rows = await cisFundConfigService.listVersions(fundId, domain);
-    setVersions(rows);
-    const draft = rows.find((v) => v.status === 'DRAFT');
-    setDraftConfigId(draft?.id || null);
-  }, [fundId, domain]);
-
-  const loadDomainDraft = useCallback(async () => {
-    if (!fundId || !domain) return;
-    await loadVersions();
-    const rows = await cisFundConfigService.listVersions(fundId, domain);
-    const draft = rows.find((v) => v.status === 'DRAFT');
-    if (draft) {
-      const full = await cisFundConfigService.getById(fundId, domain, draft.id);
-      setEffectiveFrom(full.header?.effectiveFrom || '');
-      setNotes(full.header?.notes || '');
-      setDomainPayload(full);
-    } else {
-      setEffectiveFrom('');
-      setNotes('');
-      setDomainPayload(emptyDomainBody(activeSection));
-    }
-  }, [fundId, domain, activeSection, loadVersions]);
+  useEffect(() => {
+    loadReferences().catch((error) => notify(error.message, 'error'));
+  }, [loadReferences]);
 
   useEffect(() => {
-    if (activeSection === 'profile') {
-      loadProfile().catch((e) => setMessage(e.message));
-    } else if (activeSection === 'serviceProviders') {
-      loadProfile().catch((e) => setMessage(e.message));
-    } else if (domain) {
-      setLoading(true);
-      Promise.all([loadReferences(), loadDomainDraft()])
-        .catch((e) => setMessage(e.message))
-        .finally(() => setLoading(false));
-    }
-  }, [activeSection, domain, loadProfile, loadReferences, loadDomainDraft]);
+    if (!fundId) return undefined;
+    let cancelled = false;
+    loadProfile()
+      .then(async (profile) => {
+        if (!profile || cancelled) return;
+        const definitions = await cisFundConfigService.listFeeDefinitions(profile.managingCompanyId);
+        if (!cancelled) setRefs((current) => ({ ...current, feeDefinitions: definitions || [] }));
+      })
+      .catch((error) => {
+        if (!cancelled) notify(error.message, 'error');
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [fundId, loadProfile]);
 
-  const buildSavePayload = () => {
-    const base = { effectiveFrom, notes };
-    if (activeSection === 'mandate') {
-      return { ...base, assetClasses: domainPayload.assetClasses || [], rules: domainPayload.rules || [] };
-    }
-    if (activeSection === 'dealing') {
-      return { ...base, settings: domainPayload.settings || {}, cutoffs: domainPayload.cutoffs || [] };
-    }
-    if (activeSection === 'navPricing') {
-      return {
-        ...base,
-        settings: domainPayload.settings || {},
-        publishedPriceTypes: domainPayload.publishedPriceTypes || [],
-      };
-    }
-    if (activeSection === 'fees') {
-      return { ...base, feeLines: domainPayload.feeLines || [] };
-    }
-    if (activeSection === 'calendar') {
-      return { ...base, weekdays: domainPayload.weekdays || [], exceptions: domainPayload.exceptions || [] };
-    }
-    return base;
+  const applyConfig = (section, config, mode) => {
+    const header = config?.header || {};
+    setEditorMode(mode);
+    setWorkingId(header.id || null);
+    setVersionNumber(header.versionNumber ?? null);
+    setVersionStatus(header.status || '');
+    setEffectiveFrom(toDateInput(header.effectiveFrom));
+    setEffectiveTo(toDateInput(header.effectiveTo));
+    setNotes(header.notes || '');
+    setDomainValue(config ? editorFromResponse(section, config) : emptyDomain(section));
   };
 
-  const handleCreateDraft = async () => {
-    if (!effectiveFrom) {
-      setMessage('Effective from date is required for a new draft.');
+  const loadDomain = useCallback(async () => {
+    if (!fundId || !domain) return;
+    const generation = ++loadGeneration.current;
+    const section = activeSection;
+    const rows = await cisFundConfigService.listVersions(fundId, domain);
+    if (generation !== loadGeneration.current) return;
+    setVersions(Array.isArray(rows) ? rows : []);
+    const draft = (rows || []).find((row) => row.status === 'DRAFT');
+    const active = (rows || []).find((row) => row.status === 'ACTIVE');
+    if (draft) {
+      const full = await cisFundConfigService.getById(fundId, domain, draft.id);
+      if (generation !== loadGeneration.current) return;
+      applyConfig(section, full, 'draft');
       return;
     }
-    try {
+    if (active) {
+      const full = await cisFundConfigService.getById(fundId, domain, active.id);
+      if (generation !== loadGeneration.current) return;
+      applyConfig(section, full, 'active');
+      return;
+    }
+    if (generation !== loadGeneration.current) return;
+    applyConfig(section, null, 'empty');
+  }, [fundId, domain, activeSection]);
+
+  const loadAssignments = useCallback(async () => {
+    if (!fundId || !fundProfile?.managingCompanyId) return;
+    const [providerRows, assignmentRows] = await Promise.all([
+      cisFundService.listServiceProviders({ managingCompanyId: fundProfile.managingCompanyId }),
+      cisFundService.listFundServiceProviders(fundId),
+    ]);
+    setProviders(providerRows || []);
+    setAssignments(assignmentRows || []);
+  }, [fundId, fundProfile]);
+
+  useEffect(() => {
+    if (!fundId) return undefined;
+    let cancelled = false;
+    setAsOfText('');
+    if (activeSection === 'profile') return undefined;
+    if (activeSection === 'serviceProviders') {
+      if (!fundProfile) return undefined;
       setLoading(true);
-      await cisFundConfigService.createDraft(fundId, domain, buildSavePayload());
-      setMessage('Draft created.');
-      await loadDomainDraft();
-    } catch (e) {
-      setMessage(e.message);
+      loadAssignments()
+        .catch((error) => {
+          if (!cancelled) notify(error.message, 'error');
+        })
+        .finally(() => {
+          if (!cancelled) setLoading(false);
+        });
+      return () => {
+        cancelled = true;
+      };
+    }
+    if (!domain) return undefined;
+    setLoading(true);
+    loadDomain()
+      .catch((error) => {
+        if (!cancelled) notify(error.message, 'error');
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [activeSection, domain, fundId, fundProfile, loadAssignments, loadDomain]);
+
+  const buildSavePayload = () => ({
+    effectiveFrom,
+    notes,
+    ...payloadFromEditor(activeSection, domainValue),
+  });
+
+  const handleStartDraft = () => {
+    loadGeneration.current += 1;
+    setEditorMode('new');
+    setWorkingId(null);
+    setVersionNumber(null);
+    setVersionStatus('DRAFT');
+    setEffectiveTo('');
+    notify('Draft started. Choose Save Draft to store it. The active version is unchanged.');
+  };
+
+  const handleDiscardNew = async () => {
+    setLoading(true);
+    try {
+      await loadDomain();
+      notify('Unsaved draft discarded.');
+    } catch (error) {
+      notify(error.message, 'error');
     } finally {
       setLoading(false);
     }
   };
 
-  const handleSaveDraft = async () => {
-    if (!draftConfigId) {
-      await handleCreateDraft();
-      return;
+  const persistDraft = async () => {
+    if (!effectiveFrom) {
+      throw new Error('Effective from is required before a draft can be saved.');
     }
+    const payload = buildSavePayload();
+    if (editorMode === 'draft' && workingId) {
+      return cisFundConfigService.updateDraft(fundId, domain, workingId, payload);
+    }
+    return cisFundConfigService.createDraft(fundId, domain, payload);
+  };
+
+  const handleSaveDraft = async () => {
     try {
       setLoading(true);
-      await cisFundConfigService.updateDraft(fundId, domain, draftConfigId, buildSavePayload());
-      setMessage('Draft saved.');
-      await loadDomainDraft();
-    } catch (e) {
-      setMessage(e.message);
+      await persistDraft();
+      notify('Draft saved.');
+      await loadDomain();
+    } catch (error) {
+      notify(error.message, 'error');
     } finally {
       setLoading(false);
     }
   };
 
   const handleActivate = async () => {
-    if (!draftConfigId) {
-      setMessage('Save a draft before activating.');
-      return;
-    }
     try {
       setLoading(true);
-      await cisFundConfigService.activate(fundId, domain, draftConfigId);
-      setMessage('Configuration activated.');
-      await loadDomainDraft();
-    } catch (e) {
-      setMessage(e.message);
+      const saved = await persistDraft();
+      const configId = saved?.header?.id || workingId;
+      if (!configId) throw new Error('Save a draft before activating.');
+      await cisFundConfigService.activate(fundId, domain, configId);
+      notify('Draft activated. It is now the active version and can no longer be edited.');
+      await loadDomain();
+    } catch (error) {
+      notify(error.message, 'error');
     } finally {
       setLoading(false);
     }
   };
 
   const handleDeleteDraft = async () => {
-    if (!draftConfigId || !window.confirm('Delete this draft version?')) return;
+    if (editorMode === 'new') {
+      await handleDiscardNew();
+      return;
+    }
+    if (!workingId || !window.confirm('Delete this draft version?')) return;
     try {
       setLoading(true);
-      await cisFundConfigService.deleteDraft(fundId, domain, draftConfigId);
-      setMessage('Draft deleted.');
-      await loadDomainDraft();
-    } catch (e) {
-      setMessage(e.message);
+      await cisFundConfigService.deleteDraft(fundId, domain, workingId);
+      notify('Draft deleted.');
+      await loadDomain();
+    } catch (error) {
+      notify(error.message, 'error');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleViewVersion = async (version) => {
+    if (version.status === 'DRAFT') {
+      await loadDomain();
+      return;
+    }
+    try {
+      setLoading(true);
+      const full = await cisFundConfigService.getById(fundId, domain, version.id);
+      const mode = version.status === 'ACTIVE' && !versions.some((row) => row.status === 'DRAFT') ? 'active' : 'history';
+      applyConfig(activeSection, full, mode);
+    } catch (error) {
+      notify(error.message, 'error');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleAsOf = async () => {
+    if (!asOfDate) {
+      notify('Choose a date to look up the version in force.', 'error');
+      return;
+    }
+    try {
+      const config = await cisFundConfigService.getAsOf(fundId, domain, asOfDate);
+      if (!config?.header) {
+        setAsOfText(`No configuration applies on ${asOfDate}.`);
+        return;
+      }
+      const header = config.header;
+      setAsOfText(
+        `As of ${asOfDate}: version ${header.versionNumber} (${header.status}), effective ${displayDate(header.effectiveFrom)} to ${displayDate(header.effectiveTo)}.`
+      );
+    } catch (error) {
+      notify(error.message, 'error');
+    }
+  };
+
+  const handleAssignProvider = async () => {
+    if (!assignmentForm.serviceProviderId || !assignmentForm.role || !assignmentForm.effectiveFrom) {
+      notify('Provider, role, and effective from are required.', 'error');
+      return;
+    }
+    try {
+      setLoading(true);
+      await cisFundConfigService.createServiceProviderAssignment(fundId, {
+        serviceProviderId: Number(assignmentForm.serviceProviderId),
+        role: assignmentForm.role,
+        effectiveFrom: assignmentForm.effectiveFrom,
+        notes: assignmentForm.notes || null,
+        isPrimary: false,
+      });
+      setAssignmentForm({ serviceProviderId: '', role: '', effectiveFrom: '', notes: '' });
+      notify('Provider assigned.');
+      await loadAssignments();
+    } catch (error) {
+      notify(error.message, 'error');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleEndAssignment = async (assignment) => {
+    const effectiveTo = endDates[assignment.id];
+    if (!effectiveTo) {
+      notify('Choose the date this assignment ends.', 'error');
+      return;
+    }
+    if (!window.confirm('End this assignment on the selected date?')) return;
+    try {
+      setLoading(true);
+      await cisFundConfigService.endServiceProviderAssignment(fundId, assignment.id, { effectiveTo });
+      notify('Assignment ended.');
+      await loadAssignments();
+    } catch (error) {
+      notify(error.message, 'error');
     } finally {
       setLoading(false);
     }
   };
 
   const selectedFund = useMemo(
-    () => funds.find((f) => String(f.id) === String(fundId)),
+    () => funds.find((fund) => String(fund.id) === String(fundId)),
     [funds, fundId]
   );
 
-  const renderVersionList = () => (
-    <div className="fm-form-section" style={{ marginTop: '1rem' }}>
-      <h4 className="fm-section-title">Versions</h4>
+  const statusBanner = () => {
+    if (editorMode === 'history') {
+      return `Viewing version ${versionNumber || '—'} (${versionStatus}). This version cannot be changed.`;
+    }
+    if (editorMode === 'draft') {
+      return `Editing draft version ${versionNumber}. The active version stays unchanged until you activate this draft.`;
+    }
+    if (editorMode === 'new') {
+      return 'Unsaved draft. Save Draft stores it. Activate saves this draft and then makes it active.';
+    }
+    if (editorMode === 'active') {
+      return `Active version ${versionNumber} is read only. Create Draft to change it without overwriting this version.`;
+    }
+    return 'No configuration version exists yet. Create Draft to start one.';
+  };
+
+  const renderProfile = () => {
+    if (!fundProfile) return <p className="fcc-empty">Select a fund to view its registry profile.</p>;
+    const fields = [
+      ['Fund Code', fundProfile.fundCode],
+      ['Fund Name', fundProfile.fundName],
+      ['Fund Category', fundProfile.categoryName],
+      ['Scheme Structure', fundProfile.schemeStructureName],
+      ['Managing Company', fundProfile.managingCompanyName],
+      ['Base Currency', fundProfile.baseCurrency],
+      ['Launch Date', displayDate(fundProfile.launchDate)],
+      ['Status', fundProfile.status],
+      ['Benchmark', fundProfile.benchmark],
+      ['Risk Rating', fundProfile.riskRating],
+      ['Distribution Frequency', fundProfile.distributionFrequency],
+      ['Dividend Policy', fundProfile.dividendPolicy],
+    ];
+    return (
+      <div className="fm-form-section">
+        <h3 className="fm-section-title">{selectedFund?.fundName || fundProfile.fundName}</h3>
+        <p className="fcc-empty">Read only. This profile comes from the CIS fund registry.</p>
+        <dl className="fcc-profile">
+          {fields.map(([label, value]) => (
+            <div key={label}>
+              <dt>{label}</dt>
+              <dd>{value || '—'}</dd>
+            </div>
+          ))}
+          <div className="fcc-profile__wide">
+            <dt>Investment Objective</dt>
+            <dd>{fundProfile.investmentObjective || '—'}</dd>
+          </div>
+          <div className="fcc-profile__wide">
+            <dt>Investment Strategy</dt>
+            <dd>{fundProfile.investmentStrategy || '—'}</dd>
+          </div>
+        </dl>
+      </div>
+    );
+  };
+
+  const renderVersionBar = () => (
+    <div className="fcc-version">
+      <p className="fcc-banner">{statusBanner()}</p>
+      <div className="fcc-version__grid">
+        <div>
+          <span>Version</span>
+          <strong>{editorMode === 'new' ? 'Not saved' : versionNumber ?? '—'}</strong>
+        </div>
+        <div>
+          <span>Status</span>
+          <strong className={`fcc-status fcc-status--${(versionStatus || 'none').toLowerCase()}`}>
+            {versionStatus || 'None'}
+          </strong>
+        </div>
+        <label>
+          Effective from
+          <input
+            className="fm-form-input"
+            type="date"
+            value={effectiveFrom}
+            disabled={readOnly}
+            onChange={(event) => setEffectiveFrom(event.target.value)}
+          />
+        </label>
+        <div>
+          <span>Effective to</span>
+          <strong>{effectiveTo || 'Open'}</strong>
+        </div>
+      </div>
+      <label className="fcc-notes">
+        Notes
+        <input
+          className="fm-form-input"
+          value={notes}
+          disabled={readOnly}
+          onChange={(event) => setNotes(event.target.value)}
+        />
+      </label>
+      {activeVersion && editorMode !== 'active' && (
+        <p className="fcc-empty">
+          Active version {activeVersion.versionNumber} is effective {displayDate(activeVersion.effectiveFrom)}
+          {' '}to {displayDate(activeVersion.effectiveTo)} and stays in force until a draft is activated.
+        </p>
+      )}
+      <div className="fm-form-actions">
+        {(editorMode === 'active' || editorMode === 'empty') && (
+          <button type="button" className="fm-btn fm-btn-secondary" onClick={handleStartDraft} disabled={loading}>
+            Create Draft
+          </button>
+        )}
+        {(editorMode === 'draft' || editorMode === 'new') && (
+          <>
+            <button type="button" className="fm-btn fm-btn-secondary" onClick={handleSaveDraft} disabled={loading}>
+              Save Draft
+            </button>
+            <button type="button" className="fm-btn fm-btn-primary" onClick={handleActivate} disabled={loading}>
+              Activate
+            </button>
+            <button type="button" className="fm-btn fm-btn-secondary" onClick={handleDeleteDraft} disabled={loading}>
+              Delete Draft
+            </button>
+          </>
+        )}
+        {editorMode === 'history' && (
+          <button type="button" className="fm-btn fm-btn-secondary" onClick={() => loadDomain()} disabled={loading}>
+            Back to working version
+          </button>
+        )}
+      </div>
+    </div>
+  );
+
+  const renderHistory = () => (
+    <div className="fcc-block">
+      <h4 className="fcc-block__title">Version history</h4>
       <table className="fm-table">
         <thead>
           <tr>
-            <th>Ver</th>
+            <th>Version</th>
             <th>Status</th>
-            <th>Effective</th>
-            <th>To</th>
+            <th>Effective from</th>
+            <th>Effective to</th>
+            <th />
           </tr>
         </thead>
         <tbody>
-          {versions.map((v) => (
-            <tr key={v.id}>
-              <td>{v.versionNumber}</td>
-              <td>{v.status}</td>
-              <td>{v.effectiveFrom}</td>
-              <td>{v.effectiveTo || '—'}</td>
+          {versions.map((version) => (
+            <tr key={version.id}>
+              <td>{version.versionNumber}</td>
+              <td>{version.status}</td>
+              <td>{displayDate(version.effectiveFrom)}</td>
+              <td>{version.effectiveTo ? displayDate(version.effectiveTo) : 'Open'}</td>
+              <td>
+                <button type="button" className="fm-action-btn fm-edit" onClick={() => handleViewVersion(version)}>
+                  View
+                </button>
+              </td>
             </tr>
           ))}
           {versions.length === 0 && (
             <tr>
-              <td colSpan={4}>No versions yet.</td>
+              <td colSpan={5}>No versions yet.</td>
+            </tr>
+          )}
+        </tbody>
+      </table>
+      <div className="fcc-asof">
+        <label>
+          As of
+          <input className="fm-form-input" type="date" value={asOfDate} onChange={(event) => setAsOfDate(event.target.value)} />
+        </label>
+        <button type="button" className="fm-btn fm-btn-secondary" onClick={handleAsOf}>
+          Look up
+        </button>
+        {asOfText && <p className="fcc-empty">{asOfText}</p>}
+      </div>
+    </div>
+  );
+
+  const renderDomain = () => {
+    if (loading && !versionStatus && editorMode === 'empty') return <p className="fcc-empty">Loading configuration…</p>;
+    return (
+      <div className="fm-form-section">
+        {renderVersionBar()}
+        {activeSection === 'mandate' && (
+          <MandateEditor value={domainValue} onChange={setDomainValue} refs={refs} disabled={readOnly} />
+        )}
+        {activeSection === 'dealing' && (
+          <DealingEditor value={domainValue} onChange={setDomainValue} refs={refs} disabled={readOnly} />
+        )}
+        {activeSection === 'navPricing' && (
+          <NavEditor value={domainValue} onChange={setDomainValue} refs={refs} disabled={readOnly} />
+        )}
+        {activeSection === 'fees' && (
+          <FeesEditor
+            value={domainValue}
+            onChange={setDomainValue}
+            refs={refs}
+            disabled={readOnly}
+            onOpenFeeStructure={() => onTabChange?.('Fee Structure')}
+          />
+        )}
+        {activeSection === 'calendar' && (
+          <CalendarEditor value={domainValue} onChange={setDomainValue} disabled={readOnly} />
+        )}
+        {renderHistory()}
+      </div>
+    );
+  };
+
+  const assignableProviders = providers.filter((provider) => String(provider.status || '').toLowerCase() === 'active');
+
+  const renderServiceProviders = () => (
+    <div className="fm-form-section">
+      <h3 className="fm-section-title">Service provider assignments</h3>
+      <p className="fcc-empty">
+        A provider can hold different roles on different funds. Ending an assignment sets its end date. It does not delete the provider.
+      </p>
+      {assignableProviders.length === 0 ? (
+        <p className="fcc-empty">
+          No service providers have been configured for this managing company.{' '}
+          <button type="button" className="fcc-link" onClick={() => onTabChange?.('Fund Master')}>
+            Open Fund Master
+          </button>
+        </p>
+      ) : (
+        <div className="fcc-card">
+          <div className="fm-form-grid">
+            <div className="fm-field-group">
+              <label className="fm-field-label">Provider</label>
+              <select
+                className="fm-form-select"
+                value={assignmentForm.serviceProviderId}
+                onChange={(event) => setAssignmentForm((form) => ({ ...form, serviceProviderId: event.target.value }))}
+              >
+                <option value="">Select…</option>
+                {assignableProviders.map((provider) => (
+                  <option key={provider.id} value={provider.id}>
+                    {provider.providerCode ? `${provider.providerCode} — ` : ''}
+                    {provider.legalName}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div className="fm-field-group">
+              <label className="fm-field-label">Role</label>
+              <select
+                className="fm-form-select"
+                value={assignmentForm.role}
+                onChange={(event) => setAssignmentForm((form) => ({ ...form, role: event.target.value }))}
+              >
+                <option value="">Select…</option>
+                {ASSIGNMENT_ROLES.map((role) => (
+                  <option key={role.value} value={role.value}>
+                    {role.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div className="fm-field-group">
+              <label className="fm-field-label">Effective from</label>
+              <input
+                className="fm-form-input"
+                type="date"
+                value={assignmentForm.effectiveFrom}
+                onChange={(event) => setAssignmentForm((form) => ({ ...form, effectiveFrom: event.target.value }))}
+              />
+            </div>
+            <div className="fm-field-group">
+              <label className="fm-field-label">Notes</label>
+              <input
+                className="fm-form-input"
+                value={assignmentForm.notes}
+                onChange={(event) => setAssignmentForm((form) => ({ ...form, notes: event.target.value }))}
+              />
+            </div>
+          </div>
+          <button type="button" className="fm-btn fm-btn-primary" onClick={handleAssignProvider} disabled={loading}>
+            Assign provider
+          </button>
+        </div>
+      )}
+      <table className="fm-table">
+        <thead>
+          <tr>
+            <th>Provider</th>
+            <th>Role</th>
+            <th>Effective from</th>
+            <th>Effective to</th>
+            <th>Status</th>
+            <th>End assignment</th>
+          </tr>
+        </thead>
+        <tbody>
+          {assignments.map((assignment) => {
+            const open = String(assignment.status || '').toUpperCase() === 'ACTIVE' && !assignment.effectiveTo;
+            return (
+              <tr key={assignment.id}>
+                <td>{assignment.legalName}</td>
+                <td>{roleLabel(assignment.role)}</td>
+                <td>{displayDate(assignment.effectiveFrom)}</td>
+                <td>{displayDate(assignment.effectiveTo)}</td>
+                <td>{assignment.status || '—'}</td>
+                <td>
+                  {open ? (
+                    <div className="fcc-end">
+                      <input
+                        className="fm-form-input"
+                        type="date"
+                        aria-label="End date"
+                        value={endDates[assignment.id] || ''}
+                        onChange={(event) =>
+                          setEndDates((current) => ({ ...current, [assignment.id]: event.target.value }))
+                        }
+                      />
+                      <button type="button" className="fm-btn fm-btn-secondary" onClick={() => handleEndAssignment(assignment)}>
+                        End
+                      </button>
+                    </div>
+                  ) : (
+                    '—'
+                  )}
+                </td>
+              </tr>
+            );
+          })}
+          {assignments.length === 0 && (
+            <tr>
+              <td colSpan={6}>No assignments for this fund.</td>
             </tr>
           )}
         </tbody>
@@ -279,324 +754,53 @@ const FundConfiguration = ({ onTabChange }) => {
     </div>
   );
 
-  const renderMandateEditor = () => (
-    <>
-      <p className="fm-hint">Define permitted asset classes and limit rules (values optional until confirmed).</p>
-      <div className="fm-form-grid">
-        <div className="fm-field-group">
-          <label className="fm-field-label">Add asset class</label>
-          <select
-            className="fm-form-select"
-            value=""
-            onChange={(e) => {
-              const id = Number(e.target.value);
-              if (!id) return;
-              setDomainPayload((p) => ({
-                ...p,
-                assetClasses: [...(p.assetClasses || []), { assetClassId: id, isPermitted: true }],
-              }));
-            }}
-          >
-            <option value="">Select…</option>
-            {(refs.assetClasses || []).map((ac) => (
-              <option key={ac.id} value={ac.id}>
-                {ac.name}
-              </option>
-            ))}
-          </select>
-        </div>
-      </div>
-      {(domainPayload.assetClasses || []).map((row, idx) => (
-        <div key={idx} className="fm-form-grid">
-          <span>Class #{row.assetClassId}</span>
-          <label>
-            <input
-              type="checkbox"
-              checked={row.isPermitted !== false}
-              onChange={(e) => {
-                const next = [...domainPayload.assetClasses];
-                next[idx] = { ...next[idx], isPermitted: e.target.checked };
-                setDomainPayload((p) => ({ ...p, assetClasses: next }));
-              }}
-            />{' '}
-            Permitted
-          </label>
-        </div>
-      ))}
-    </>
-  );
-
-  const renderDealingEditor = () => {
-    const st = domainPayload.settings || {};
-    return (
-      <>
-        <div className="fm-form-grid">
-          <div className="fm-field-group">
-            <label className="fm-field-label">Min initial investment (authoritative)</label>
-            <input
-              className="fm-form-input"
-              type="number"
-              value={st.minInitialInvestment ?? ''}
-              onChange={(e) =>
-                setDomainPayload((p) => ({
-                  ...p,
-                  settings: { ...st, minInitialInvestment: e.target.value === '' ? null : Number(e.target.value) },
-                }))
-              }
-            />
-          </div>
-          <div className="fm-field-group">
-            <label className="fm-field-label">Min additional investment</label>
-            <input
-              className="fm-form-input"
-              type="number"
-              value={st.minAdditionalInvestment ?? ''}
-              onChange={(e) =>
-                setDomainPayload((p) => ({
-                  ...p,
-                  settings: { ...st, minAdditionalInvestment: e.target.value === '' ? null : Number(e.target.value) },
-                }))
-              }
-            />
-          </div>
-        </div>
-        <div className="fm-form-grid">
-          {['subscriptionEnabled', 'redemptionEnabled', 'switchEnabled', 'unitTransferEnabled'].map((key) => (
-            <label key={key}>
-              <input
-                type="checkbox"
-                checked={!!st[key]}
-                onChange={(e) =>
-                  setDomainPayload((p) => ({
-                    ...p,
-                    settings: { ...st, [key]: e.target.checked },
-                  }))
-                }
-              />{' '}
-              {key.replace(/Enabled/, ' enabled')}
-            </label>
-          ))}
-        </div>
-      </>
-    );
-  };
-
-  const renderNavEditor = () => {
-    const st = domainPayload.settings || {};
-    return (
-      <div className="fm-form-grid">
-        <div className="fm-field-group">
-          <label className="fm-field-label">Valuation frequency</label>
-          <select
-            className="fm-form-select"
-            value={st.valuationFrequencyId || ''}
-            onChange={(e) =>
-              setDomainPayload((p) => ({
-                ...p,
-                settings: { ...st, valuationFrequencyId: e.target.value ? Number(e.target.value) : null },
-              }))
-            }
-          >
-            <option value="">—</option>
-            {(refs.valuationFrequencies || []).map((f) => (
-              <option key={f.id} value={f.id}>
-                {f.name}
-              </option>
-            ))}
-          </select>
-        </div>
-        <div className="fm-field-group">
-          <label className="fm-field-label">Pricing method</label>
-          <select
-            className="fm-form-select"
-            value={st.pricingMethodId || ''}
-            onChange={(e) =>
-              setDomainPayload((p) => ({
-                ...p,
-                settings: { ...st, pricingMethodId: e.target.value ? Number(e.target.value) : null },
-              }))
-            }
-          >
-            <option value="">—</option>
-            {(refs.pricingMethods || []).map((m) => (
-              <option key={m.id} value={m.id}>
-                {m.name}
-              </option>
-            ))}
-          </select>
-        </div>
-      </div>
-    );
-  };
-
-  const renderCalendarEditor = () => (
-    <>
-      <p className="fm-hint">Day of week: 0 = Sunday through 6 = Saturday.</p>
-      <div className="fm-form-grid">
-        {DOW_LABELS.map((label, dow) => {
-          const row = (domainPayload.weekdays || []).find((w) => w.dayOfWeek === dow) || { dayOfWeek: dow };
-          return (
-            <div key={dow} className="fm-field-group">
-              <label className="fm-field-label">{label}</label>
-              <label>
-                <input
-                  type="checkbox"
-                  checked={!!row.isDealingEligible}
-                  onChange={(e) => {
-                    const others = (domainPayload.weekdays || []).filter((w) => w.dayOfWeek !== dow);
-                    setDomainPayload((p) => ({
-                      ...p,
-                      weekdays: [...others, { ...row, dayOfWeek: dow, isDealingEligible: e.target.checked }],
-                    }));
-                  }}
-                />{' '}
-                Dealing eligible
-              </label>
-            </div>
-          );
-        })}
-      </div>
-    </>
-  );
-
-  const renderDomainEditor = () => {
-    if (loading) return <p>Loading…</p>;
-    return (
-      <>
-        <div className="fm-form-grid">
-          <div className="fm-field-group">
-            <label className="fm-field-label">Effective from *</label>
-            <input
-              className="fm-form-input"
-              type="date"
-              value={effectiveFrom || ''}
-              onChange={(e) => setEffectiveFrom(e.target.value)}
-            />
-          </div>
-          <div className="fm-field-group">
-            <label className="fm-field-label">Notes</label>
-            <input className="fm-form-input" value={notes || ''} onChange={(e) => setNotes(e.target.value)} />
-          </div>
-        </div>
-        {activeSection === 'mandate' && renderMandateEditor()}
-        {activeSection === 'dealing' && renderDealingEditor()}
-        {activeSection === 'navPricing' && renderNavEditor()}
-        {activeSection === 'calendar' && renderCalendarEditor()}
-        {activeSection === 'fees' && (
-          <p className="fm-hint">Attach fee definitions to this fund in draft mode. Manage definitions under Fee Structure.</p>
-        )}
-        <div className="fm-form-actions">
-          <button type="button" className="fm-btn fm-btn-secondary" onClick={handleSaveDraft} disabled={loading}>
-            {draftConfigId ? 'Save draft' : 'Create draft'}
-          </button>
-          <button type="button" className="fm-btn fm-btn-primary" onClick={handleActivate} disabled={loading || !draftConfigId}>
-            Activate draft
-          </button>
-          {draftConfigId && (
-            <button type="button" className="fm-btn fm-btn-secondary" onClick={handleDeleteDraft} disabled={loading}>
-              Delete draft
-            </button>
-          )}
-        </div>
-        {renderVersionList()}
-      </>
-    );
-  };
-
   return (
-    <div className="fm-container">
+    <div className="fm-container fcc">
       <WealthPageHeader
         title="Fund Configuration"
-        blurb="Versioned per-fund configuration keyed by CIS fund registry ID."
+        blurb="Versioned fund administration settings for the selected CIS fund."
         actions={
-          <>
-            <button
-              type="button"
-              className="fm-btn fm-btn-secondary"
-              onClick={() => onTabChange?.('Fund Master')}
-            >
-              Back to Fund Master
-            </button>
-          </>
+          <button type="button" className="fm-btn fm-btn-secondary" onClick={() => onTabChange?.('Fund Master')}>
+            Back to Fund Master
+          </button>
         }
       />
 
-      {message && (
-        <div
-          className={`fm-message ${
-            message.toLowerCase().includes('fail') || message.includes('required') ? 'fm-error' : 'fm-success'
-          }`}
-        >
-          {message}
-        </div>
-      )}
+      {message && <div className={`fm-message ${messageTone === 'error' ? 'fm-error' : 'fm-success'}`}>{message}</div>}
 
       <div className="fm-form-section">
-        <label className="fm-field-label">Fund (cis_fund.id)</label>
-        <select className="fm-form-select" value={fundId} onChange={(e) => setFundId(e.target.value)}>
+        <label className="fm-field-label" htmlFor="fcc-fund">
+          Fund
+        </label>
+        <select id="fcc-fund" className="fm-form-select" value={fundId} onChange={(event) => setFundId(event.target.value)}>
           <option value="">Select fund</option>
-          {funds.map((f) => (
-            <option key={f.id} value={f.id}>
-              {f.fundCode} — {f.fundName}
+          {funds.map((fund) => (
+            <option key={fund.id} value={fund.id}>
+              {fund.fundCode} — {fund.fundName}
             </option>
           ))}
         </select>
       </div>
 
-      <div className="fm-form-actions" style={{ marginBottom: '1rem' }}>
+      <div className="fcc-tabs">
         {SECTION_TABS.map((tab) => (
           <button
             key={tab.key}
             type="button"
             className={`fm-btn ${activeSection === tab.key ? 'fm-btn-primary' : 'fm-btn-secondary'}`}
-            onClick={() => setActiveSection(tab.key)}
+            onClick={() => {
+              setMessage('');
+              setActiveSection(tab.key);
+            }}
           >
             {tab.label}
           </button>
         ))}
       </div>
 
-      {activeSection === 'profile' && fundProfile && (
-        <div className="fm-form-section">
-          <h3 className="fm-section-title">{selectedFund?.fundName || 'Profile'}</h3>
-          <p>
-            <strong>Code:</strong> {fundProfile.fundCode} · <strong>Category:</strong> {fundProfile.categoryName}
-          </p>
-          <p className="fm-hint">
-            Minimum investment and fund fees are maintained under Dealing and Fees tabs (not legacy Fund Master fields).
-          </p>
-        </div>
-      )}
-
-      {activeSection === 'serviceProviders' && fundProfile && (
-        <div className="fm-form-section">
-          <h3 className="fm-section-title">Effective-dated assignments</h3>
-          <table className="fm-table">
-            <thead>
-              <tr>
-                <th>Role</th>
-                <th>Provider</th>
-                <th>From</th>
-                <th>To</th>
-                <th>Status</th>
-              </tr>
-            </thead>
-            <tbody>
-              {(fundProfile.serviceProviders || []).map((sp) => (
-                <tr key={sp.id}>
-                  <td>{sp.role}</td>
-                  <td>{sp.legalName}</td>
-                  <td>{sp.effectiveFrom}</td>
-                  <td>{sp.effectiveTo || '—'}</td>
-                  <td>{sp.status || 'ACTIVE'}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      )}
-
-      {domain && renderDomainEditor()}
+      {activeSection === 'profile' && renderProfile()}
+      {activeSection === 'serviceProviders' && renderServiceProviders()}
+      {domain && renderDomain()}
     </div>
   );
 };

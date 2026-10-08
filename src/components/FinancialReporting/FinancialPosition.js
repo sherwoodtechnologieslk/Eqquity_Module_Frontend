@@ -1,12 +1,10 @@
 import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { createPortal } from 'react-dom';
-import jsPDF from 'jspdf';
-import autoTable from 'jspdf-autotable';
 import './Styles/FinancialPosition.css';
 import { financialPositionAPI, profitLossAPI } from '../../services/api';
 import {
-  buildSofpExportRows,
-  SOFP_EXPORT_HEADERS,
+  downloadSofpExcel,
+  downloadSofpPdf,
   computeDisplayedAssetBuckets,
   resolveSofpGroups,
   deriveBalanceTypeFromBalance,
@@ -25,6 +23,7 @@ const FinancialPosition = ({ onTabChange }) => {
   const [isStatementPoppedOut, setIsStatementPoppedOut] = useState(false);
   const [showMtmData, setShowMtmData] = useState(false);
   const [showNotes, setShowNotes] = useState(false);
+  const [includeAccountsInExcel, setIncludeAccountsInExcel] = useState(false);
   // Draft filter inputs — changing these must NOT auto-reload the statement.
   const [filters, setFilters] = useState({
     asOfDate: initialAsOfDate
@@ -231,74 +230,29 @@ const FinancialPosition = ({ onTabChange }) => {
       .trim()
       .slice(0, 120) || 'export');
 
-  const downloadCsv = (filenameBase, headers, rows) => {
-    const escapeCell = (value) => {
-      const s = value == null ? '' : String(value);
-      if (/[",\r\n]/.test(s)) return `"${s.replace(/"/g, '""')}"`;
-      return s;
-    };
-    const lines = [headers.map(escapeCell).join(','), ...rows.map((r) => r.map(escapeCell).join(','))];
-    const csv = `\uFEFF${lines.join('\r\n')}`;
-    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `${filenameBase}.csv`;
-    a.click();
-    URL.revokeObjectURL(url);
+  const exportFileBase = () => {
+    const portfolioLabel = financialPositionData?.portfolio || 'All Portfolios';
+    const asOfDate = financialPositionData?.asOfDate || filters.asOfDate;
+    return `SOFP_${sanitizeFilePart(portfolioLabel)}_${sanitizeFilePart(asOfDate)}`;
   };
 
   const exportSofpPdf = () => {
-    const doc = new jsPDF({ orientation: 'landscape', unit: 'pt', format: 'a4' });
-    const portfolioLabel = financialPositionData?.portfolio || 'All Portfolios';
-    const asOfDate = financialPositionData?.asOfDate || filters.asOfDate;
-    const subtitle = `Portfolio: ${portfolioLabel}   |   As of: ${asOfDate}`;
-
-    doc.setFontSize(11);
-    doc.text('Statement of Financial Position', 40, 34);
-    doc.setFontSize(9);
-    doc.setTextColor(71, 85, 105);
-    doc.text(subtitle, 40, 50);
-    doc.setTextColor(15, 23, 42);
-
-    autoTable(doc, {
-      startY: 62,
-      theme: 'grid',
-      head: [SOFP_EXPORT_HEADERS],
-      body: buildSofpExportRows({ financialPositionData, netProfit }),
-      styles: {
-        fontSize: 7,
-        cellPadding: 3,
-        textColor: [15, 23, 42],
-        lineColor: [226, 232, 240],
-        lineWidth: 0.6
-      },
-      headStyles: {
-        fillColor: [15, 23, 42],
-        textColor: [255, 255, 255],
-        fontStyle: 'bold'
-      },
-      alternateRowStyles: {
-        fillColor: [248, 250, 252]
-      },
-      margin: { left: 40, right: 40 },
-      columnStyles: {
-        0: { cellWidth: 160 },
-        1: { cellWidth: 300 },
-        2: { cellWidth: 110, halign: 'right' },
-        3: { cellWidth: 60, halign: 'center' }
-      }
+    downloadSofpPdf({
+      financialPositionData,
+      netProfit,
+      filenameBase: exportFileBase()
     });
-
-    const base = `SOFP_${sanitizeFilePart(portfolioLabel)}_${sanitizeFilePart(asOfDate)}`;
-    doc.save(`${base}.pdf`);
   };
 
   const exportSofpExcel = () => {
-    const portfolioLabel = financialPositionData?.portfolio || 'All Portfolios';
-    const asOfDate = financialPositionData?.asOfDate || filters.asOfDate;
-    const base = `SOFP_${sanitizeFilePart(portfolioLabel)}_${sanitizeFilePart(asOfDate)}`;
-    downloadCsv(base, SOFP_EXPORT_HEADERS, buildSofpExportRows({ financialPositionData, netProfit }));
+    downloadSofpExcel({
+      financialPositionData,
+      netProfit,
+      filenameBase: includeAccountsInExcel
+        ? `${exportFileBase()}_accounts`
+        : exportFileBase(),
+      includeAccounts: includeAccountsInExcel
+    });
   };
 
   const formatDate = (dateString) => {
@@ -744,6 +698,15 @@ const FinancialPosition = ({ onTabChange }) => {
             >
               Export PDF
             </button>
+            <label className="fp-option-check fp-excel-accounts" htmlFor="fp-excel-accounts">
+              <input
+                id="fp-excel-accounts"
+                type="checkbox"
+                checked={includeAccountsInExcel}
+                onChange={(e) => setIncludeAccountsInExcel(e.target.checked)}
+              />
+              <span>Include accounts</span>
+            </label>
             <button
               type="button"
               className="fp-btn fp-btn--excel"

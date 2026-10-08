@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
+import ExcelJS from 'exceljs/dist/exceljs.min.js';
 import { trialBalanceAPI, gsecEntriesAPI } from '../../services/api';
 import AccountDetailsModal from '../EquityEntries/AccountDetailsModal';
 import './Styles/CombinedTrialBalance.css';
@@ -133,6 +134,41 @@ const IconCollapse = () => (
     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.75" d="M7.5 3.5V7.5H3.5M16.5 7.5H12.5V3.5M12.5 16.5V12.5H16.5M3.5 12.5H7.5V16.5" />
   </svg>
 );
+
+const ordinalDay = (day) => {
+  const d = Number(day);
+  const mod100 = d % 100;
+  if (mod100 >= 11 && mod100 <= 13) return `${d}th`;
+  switch (d % 10) {
+    case 1:
+      return `${d}st`;
+    case 2:
+      return `${d}nd`;
+    case 3:
+      return `${d}rd`;
+    default:
+      return `${d}th`;
+  }
+};
+
+/** "31st July 2026" from a YYYY-MM-DD value. */
+const formatAsAtDate = (ymd) => {
+  const match = String(ymd || '').trim().match(/^(\d{4})-(\d{2})-(\d{2})/);
+  if (!match) return '';
+  const date = new Date(Number(match[1]), Number(match[2]) - 1, Number(match[3]));
+  if (Number.isNaN(date.getTime())) return '';
+  const month = date.toLocaleDateString('en-GB', { month: 'long' });
+  return `${ordinalDay(date.getDate())} ${month} ${date.getFullYear()}`;
+};
+
+/** Heading for PDF and Excel. Uses the applied end date as the as-at date. */
+const trialBalanceAsAtTitle = (filters) => {
+  const end = filters?.endDate ? formatAsAtDate(filters.endDate) : '';
+  if (end) return `Trial Balance as at ${end}`;
+  const start = filters?.startDate ? formatAsAtDate(filters.startDate) : '';
+  if (start) return `Trial Balance from ${start}`;
+  return 'Trial Balance — All dates';
+};
 
 const getPeriodLabel = (filters, formatDate) => {
   if (!filters.startDate && !filters.endDate) return 'All dates';
@@ -380,21 +416,12 @@ const CombinedTrialBalance = () => {
 
     try {
       const doc = new jsPDF({ orientation: 'landscape', unit: 'pt', format: 'a4' });
+      const title = trialBalanceAsAtTitle(appliedFilters);
 
-      doc.setFontSize(11);
-      doc.text('Combined Trial Balance', 40, 34);
-
-      const periodLabel =
-        !appliedFilters.startDate && !appliedFilters.endDate
-          ? 'Period: All dates'
-          : `Period: ${
-              appliedFilters.startDate ? formatDate(appliedFilters.startDate) : 'Earliest'
-            } - ${appliedFilters.endDate ? formatDate(appliedFilters.endDate) : 'Latest'}`;
-
-      doc.setFontSize(9);
-      doc.setTextColor(71, 85, 105);
-      doc.text(periodLabel, 40, 50);
-      doc.setTextColor(15, 23, 42);
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(13);
+      doc.setTextColor(36, 59, 100);
+      doc.text(title, 40, 36);
 
       const head = [
         'Account Code',
@@ -410,8 +437,8 @@ const CombinedTrialBalance = () => {
           acc.account_code,
           acc.account_name,
           acc.account_type,
-          sides.debit > 0 ? formatCurrency(sides.debit) : '-',
-          sides.credit > 0 ? formatCurrency(sides.credit) : '-',
+          sides.debit > 0 ? formatCurrency(sides.debit) : '—',
+          sides.credit > 0 ? formatCurrency(sides.credit) : '—',
         ];
       });
 
@@ -424,22 +451,22 @@ const CombinedTrialBalance = () => {
       ];
 
       autoTable(doc, {
-        startY: 62,
-        theme: 'grid',
+        startY: 52,
+        theme: 'plain',
         head: [head],
         body,
         foot: [foot],
         showFoot: 'lastPage',
         styles: {
-          fontSize: 7,
-          cellPadding: 3,
-          textColor: [15, 23, 42],
-          lineColor: [226, 232, 240],
-          lineWidth: 0.6
+          fontSize: 8,
+          cellPadding: 4,
+          textColor: [31, 41, 55],
+          lineColor: [217, 226, 236],
+          lineWidth: 0.2
         },
         headStyles: {
-          fillColor: [15, 23, 42],
-          textColor: [255, 255, 255],
+          fillColor: [241, 245, 249],
+          textColor: [36, 59, 100],
           fontStyle: 'bold'
         },
         alternateRowStyles: {
@@ -447,13 +474,17 @@ const CombinedTrialBalance = () => {
         },
         footStyles: {
           fillColor: [241, 245, 249],
-          textColor: [15, 23, 42],
+          textColor: [31, 41, 55],
           fontStyle: 'bold'
+        },
+        columnStyles: {
+          3: { halign: 'right' },
+          4: { halign: 'right' }
         },
         margin: { left: 40, right: 40 }
       });
 
-      const dateStamp = new Date().toISOString().slice(0, 10);
+      const dateStamp = appliedFilters.endDate || new Date().toISOString().slice(0, 10);
       doc.save(`combined-trial-balance-${dateStamp}.pdf`);
     } catch (err) {
       console.error('Failed to export combined trial balance PDF:', err);
@@ -468,23 +499,90 @@ const CombinedTrialBalance = () => {
     setError('');
 
     try {
-      const resolved = resolveTrialBalanceDates(appliedFilters);
-      const blob = await trialBalanceAPI.exportCombinedTrialBalanceExcel({
-        startDate: resolved.startDate,
-        endDate: resolved.endDate,
-        source: sourceFilter,
-        search: searchTerm || undefined
+      const title = trialBalanceAsAtTitle(appliedFilters);
+      const workbook = new ExcelJS.Workbook();
+      const sheet = workbook.addWorksheet('Trial Balance', {
+        views: [{ state: 'frozen', ySplit: 3, showGridLines: false }],
+        pageSetup: { orientation: 'landscape', fitToPage: true, fitToWidth: 1, fitToHeight: 0 }
+      });
+      sheet.columns = [
+        { width: 22 },
+        { width: 46 },
+        { width: 24 },
+        { width: 18 },
+        { width: 18 }
+      ];
+
+      const paint = (row, fill, font) => {
+        for (let col = 1; col <= 5; col += 1) {
+          const cell = row.getCell(col);
+          cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: fill } };
+          cell.font = { name: 'Calibri', size: 11, ...font };
+          cell.alignment = { vertical: 'middle', horizontal: col >= 4 ? 'right' : 'left' };
+        }
+      };
+
+      const titleRow = sheet.getRow(1);
+      titleRow.height = 26;
+      sheet.mergeCells('A1:E1');
+      titleRow.getCell(1).value = title;
+      paint(titleRow, 'FFF8FAFC', { size: 14, bold: true, color: { argb: 'FF243B64' } });
+      titleRow.getCell(1).alignment = { vertical: 'middle', horizontal: 'left' };
+
+      sheet.getRow(2).height = 8;
+
+      const headerRow = sheet.getRow(3);
+      headerRow.height = 20;
+      ['Account Code', 'Account Name', 'Type / Category', 'Debit', 'Credit'].forEach((label, index) => {
+        const cell = headerRow.getCell(index + 1);
+        cell.value = label;
+        cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF1F5F9' } };
+        cell.font = { name: 'Calibri', size: 10, bold: true, color: { argb: 'FF243B64' } };
+        cell.border = { bottom: { style: 'thin', color: { argb: 'FFD9E2EC' } } };
+        cell.alignment = { vertical: 'middle', horizontal: index >= 3 ? 'right' : 'left' };
+      });
+
+      const numFmt = '#,##0.00';
+      filteredAccounts.forEach((acc, index) => {
+        const sides = getBalanceSides(acc.net_balance);
+        const row = sheet.getRow(index + 4);
+        row.height = 18;
+        const fill = index % 2 === 1 ? 'FFF8FAFC' : 'FFFFFFFF';
+        row.getCell(1).value = acc.account_code;
+        row.getCell(2).value = acc.account_name;
+        row.getCell(3).value = acc.account_type;
+        row.getCell(4).value = sides.debit > 0 ? sides.debit : null;
+        row.getCell(5).value = sides.credit > 0 ? sides.credit : null;
+        if (sides.debit > 0) row.getCell(4).numFmt = numFmt;
+        if (sides.credit > 0) row.getCell(5).numFmt = numFmt;
+        paint(row, fill, { color: { argb: 'FF1F2937' } });
+        for (let col = 1; col <= 5; col += 1) {
+          row.getCell(col).border = { bottom: { style: 'thin', color: { argb: 'FFD9E2EC' } } };
+        }
+      });
+
+      const totalRowIndex = filteredAccounts.length + 4;
+      const totalRow = sheet.getRow(totalRowIndex);
+      totalRow.height = 20;
+      totalRow.getCell(1).value = 'Totals';
+      totalRow.getCell(4).value = totals.debit;
+      totalRow.getCell(5).value = totals.credit;
+      totalRow.getCell(4).numFmt = numFmt;
+      totalRow.getCell(5).numFmt = numFmt;
+      paint(totalRow, 'FFF1F5F9', { bold: true, color: { argb: 'FF1F2937' } });
+
+      const buffer = await workbook.xlsx.writeBuffer();
+      const blob = new Blob([buffer], {
+        type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
       });
       const downloadUrl = window.URL.createObjectURL(blob);
-
       const a = document.createElement('a');
-      const dateStamp = new Date().toISOString().slice(0, 10);
+      const dateStamp = appliedFilters.endDate || new Date().toISOString().slice(0, 10);
       a.href = downloadUrl;
       a.download = `combined-trial-balance-${dateStamp}.xlsx`;
       document.body.appendChild(a);
       a.click();
       a.remove();
-
       window.URL.revokeObjectURL(downloadUrl);
     } catch (err) {
       console.error('Failed to export combined trial balance:', err);
