@@ -230,7 +230,7 @@
   box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
 }
 
-.fc-table-container {
+.fc-container .fc-table-container {
   background: var(--fc-card);
   border-radius: 0.4rem;
   box-shadow: none;
@@ -238,17 +238,17 @@
   overflow: hidden;
 }
 
-.fc-table {
+.fc-container .fc-table {
   width: 100%;
   border-collapse: collapse;
   font-size: 0.8rem;
 }
 
-.fc-table thead {
+.fc-container .fc-table thead {
   background: #fcfdff;
 }
 
-.fc-table th {
+.fc-container .fc-table th {
   padding: 0.5rem 0.65rem;
   text-align: left;
   font-weight: 700;
@@ -259,17 +259,17 @@
   border-bottom: 1px solid var(--fc-border);
 }
 
-.fc-table td {
+.fc-container .fc-table td {
   padding: 0.5rem 0.65rem;
   border-bottom: 1px solid #f1f5f9;
   color: #334155;
 }
 
-.fc-table tbody tr:hover {
+.fc-container .fc-table tbody tr:hover {
   background: #f8fafc;
 }
 
-.fc-table tbody tr:last-child td {
+.fc-container .fc-table tbody tr:last-child td {
   border-bottom: none;
 }
 
@@ -440,11 +440,11 @@
   padding: 0.85rem;
 }
 
-.fc-form-group {
+.fc-container .fc-form-group {
   margin-bottom: 0.75rem;
 }
 
-.fc-label {
+.fc-container .fc-label {
   display: block;
   margin-bottom: 0.28rem;
   font-weight: 700;
@@ -454,11 +454,11 @@
   letter-spacing: 0.06em;
 }
 
-.fc-required {
+.fc-container .fc-required {
   color: #dc2626;
 }
 
-.fc-input {
+.fc-container .fc-input {
   width: 100%;
   padding: 0.4rem 0.65rem;
   border: 1px solid var(--fc-border);
@@ -468,7 +468,7 @@
   color: var(--fc-text);
 }
 
-.fc-input:focus {
+.fc-container .fc-input:focus {
   outline: none;
   border-color: #93c5fd;
   box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);

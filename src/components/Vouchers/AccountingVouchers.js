@@ -393,17 +393,6 @@ const AccountingVouchers = ({ initialVoucherType = 'payment' }) => {
 
   return (
     <div className="av-root">
-      <header className="av-rail">
-        <div>
-          <p className="av-rail__eyebrow">Accounting</p>
-          <h1 className="av-rail__title">Vouchers</h1>
-          <p className="av-rail__blurb">
-            Create payment, receipt, journal, and contra vouchers, then review posted
-            entries from Other Transactions.
-          </p>
-        </div>
-      </header>
-
       <nav className="av-screen-tabs" aria-label="Accounting vouchers">
         <button
           type="button"

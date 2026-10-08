@@ -10,12 +10,12 @@ import './Styles/GsecEntries.css';
 
 const LEDGER_API_OPTIONS = [
   {
-    value: 'live1',
-    label: 'Live1 (10.40.80.89)',
-  },
-  {
     value: 'aws',
     label: 'Cloud API (AWS)',
+  },
+  {
+    value: 'live1',
+    label: 'Live1 (10.40.80.89)',
   },
 ];
 
@@ -24,10 +24,9 @@ const GsecEntries = () => {
   // Empty by default so initial load does NOT filter by date
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
-  // Prefer live1 while AWS upstream is intermittently unavailable
-  const [apiSource, setApiSource] = useState('live1');
+  const [apiSource, setApiSource] = useState('aws');
   const [page, setPage] = useState(1);
-  const [pageSize, setPageSize] = useState(50);
+  const [pageSize, setPageSize] = useState(20);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [rows, setRows] = useState([]);

@@ -66,6 +66,22 @@ const NOTE5_FINANCE_COST_DESCRIPTIONS = [
   'Interest on Lease'
 ];
 
+/** Locked Note 7 PPE descriptions (published note). Amounts come from the asset register. */
+const NOTE7_PPE_DESCRIPTIONS = [
+  {
+    id: 'ppe-office-computers',
+    description: 'Office Computers',
+    match: ['computer'],
+    usefulLifeYears: 4
+  },
+  {
+    id: 'ppe-office-equipment',
+    description: 'Office Equipment',
+    match: ['equipment'],
+    usefulLifeYears: 5
+  }
+];
+
 /**
  * Fixed-description comparative notes (e.g. Note 3 / 4 / 5).
  * Descriptions + optional account codes from backend; amounts from Combined TB.
@@ -162,6 +178,24 @@ const loadOtherIncomeNoteTemplate = (periods) =>
 
 const loadFinanceCostNoteTemplate = (periods) =>
   loadMappedComparativeNote('note-5', NOTE5_FINANCE_COST_DESCRIPTIONS, periods);
+
+/** Locked Note 11 Other receivables descriptions (published note). */
+const NOTE11_OTHER_RECEIVABLES_DESCRIPTIONS = [
+  'Refundable Deposit',
+  'Advances paid and other receievables',
+  'Service charges & other receivables',
+  'Other Withholding Tax Receivable'
+];
+
+const loadOtherReceivablesNoteTemplate = (periods) =>
+  loadMappedComparativeNote('note-10', NOTE11_OTHER_RECEIVABLES_DESCRIPTIONS, periods);
+
+/** Note 12 — tab only. Counterparties are user-inserted / mapped, not seeded. */
+const loadRelatedPartyReceivableNoteTemplate = async () => ({
+  template: 'comparative',
+  rows: [],
+  total: { current: 0, prior: 0 }
+});
 
 /** Fallback Note 6 structure if backend mappings unavailable. */
 const NOTE6_INCOME_TAX_FALLBACK = [
@@ -312,6 +346,111 @@ const NOTE6_INCOME_TAX_FALLBACK = [
 const isAmountLineType = (type) =>
   type === 'line' || type === 'subtotal' || type === 'total';
 
+/** Locked Note 9 Deferred tax asset structure (amounts filled later). */
+const NOTE_DEFERRED_TAX_STRUCTURE = [
+  { id: 'dt-sec-liability', label: 'Deferred Tax Liability', type: 'section' },
+  {
+    id: 'dt-fv-gain',
+    label: 'Fair Value Gain',
+    type: 'line',
+    indent: 1,
+    sofp: true,
+    soci: true,
+    oci: true
+  },
+  { id: 'dt-sec-assets', label: 'Deferred Tax Assets', type: 'section' },
+  {
+    id: 'dt-defined-benefit',
+    label: 'Defined Benefit Plans',
+    type: 'line',
+    indent: 1,
+    sofp: true,
+    soci: true,
+    oci: true
+  },
+  {
+    id: 'dt-rou',
+    label: 'Right of Use Assets',
+    type: 'line',
+    indent: 1,
+    sofp: true,
+    soci: true,
+    oci: true
+  },
+  {
+    id: 'dt-accel-dep',
+    label: 'Accelerated Depreciation for Tax Purposes',
+    type: 'line',
+    indent: 1,
+    sofp: true,
+    soci: true,
+    oci: true
+  },
+  {
+    id: 'dt-reversal',
+    label: 'Deferred Income Tax Reversal/(Expense)',
+    type: 'total',
+    sofp: false,
+    soci: true,
+    oci: true
+  },
+  {
+    id: 'dt-net',
+    label: 'Net Deferred Tax (Liability) / Assets',
+    type: 'total',
+    sofp: true,
+    soci: false,
+    oci: false
+  }
+];
+
+const emptyDeferredTaxAmounts = () => ({
+  sofpCurrent: 0,
+  sofpPrior: 0,
+  sociCurrent: 0,
+  sociPrior: 0,
+  ociCurrent: 0,
+  ociPrior: 0
+});
+
+/** Note 9 — locked descriptions only; no account mappings yet. */
+const loadDeferredTaxNoteTemplate = async () => ({
+  template: 'deferredTax',
+  rows: NOTE_DEFERRED_TAX_STRUCTURE.map((line) => ({
+    ...line,
+    ...emptyDeferredTaxAmounts(),
+    locked: true,
+    accounts: []
+  })),
+  total: { current: 0, prior: 0 }
+});
+
+/** Locked Note 10 Right of use asset structure (amounts filled later). */
+const NOTE_ROU_STRUCTURE = [
+  { id: 'rou-opening', label: 'Assets as at 01 April', type: 'line' },
+  { id: 'rou-additions', label: 'Additions', type: 'line' },
+  { id: 'rou-modifications', label: 'Impact of Lease Modifications', type: 'line' },
+  { id: 'rou-amortisation', label: 'Amortisation Charge for the year', type: 'line' },
+  { id: 'rou-closing', label: 'Assets as at 31 March', type: 'total' }
+];
+
+/** Note 10 — locked published roll-forward only; no account mappings yet. */
+const loadRouNoteTemplate = async () => ({
+  template: 'rightOfUse',
+  intro:
+    'Assets held under lease have been recognised as Right of Use Assets under SLFRS 16.',
+  sectionLabel: 'Right of use Asset',
+  footnote: 'The Right of Use Assets are amortised over the lease term.',
+  rows: NOTE_ROU_STRUCTURE.map((line) => ({
+    ...line,
+    current: 0,
+    prior: 0,
+    locked: true,
+    accounts: []
+  })),
+  total: { current: 0, prior: 0 }
+});
+
 /** Note 6 — structured Income Tax + 6.1 reconciliation (descriptions first). */
 const loadIncomeTaxNoteTemplate = async (periods) => {
   let mappedLines = NOTE6_INCOME_TAX_FALLBACK.map((line) => ({
@@ -405,6 +544,8 @@ const loadIncomeTaxNoteTemplate = async (periods) => {
     total: { current: 0, prior: 0 }
   };
 };
+
+
 
 const filterExpenseRows = (plData, predicate) => {
   const byCategory = plData?.expensesByCategory || {};
@@ -585,26 +726,41 @@ const assetOwnedAt = (asset, asOfYmd) => {
   return true;
 };
 
-const rankPpeCategory = (name) => {
-  const n = normalizeText(name);
-  if (n.includes('computer')) return 0;
-  if (n.includes('office') || n.includes('equipment')) return 1;
-  return 2;
+/** Placeholder GL codes from the Fixed Assets default seed — not real COA. */
+const PPE_SEED_GL_CODES = new Set([
+  '1-fa-computer',
+  '1-prov-computer',
+  '6-dep-computer',
+  '1-fa-equipment',
+  '1-prov-equipment',
+  '6-dep-equipment'
+]);
+
+const isSeedPlaceholderGlCode = (code) =>
+  PPE_SEED_GL_CODES.has(String(code || '').trim().toLowerCase());
+
+const findPpeCategoryForLine = (line, categories) => {
+  const want = normalizeText(line.description);
+  const exact = categories.find((c) => normalizeText(c.name) === want);
+  if (exact) return exact;
+  const tokens = line.match || [];
+  return (
+    categories.find((c) => {
+      const name = normalizeText(c.name);
+      return tokens.length > 0 && tokens.every((token) => name.includes(token));
+    }) || null
+  );
 };
 
 const loadPpeNoteFromRegister = async (periods) => {
   const openingDate = toYmd(periods.current?.startDate || periods.prior?.asOfDate);
   const closingDate = toYmd(periods.current?.asOfDate || periods.current?.endDate);
+  const priorStart = toYmd(periods.prior?.startDate);
 
-  const categories = [...(listCategories() || [])].sort((a, b) => {
-    const d = rankPpeCategory(a.name) - rankPpeCategory(b.name);
-    if (d !== 0) return d;
-    return String(a.name || '').localeCompare(String(b.name || ''));
-  });
-
+  const categories = listCategories() || [];
   const assets = (listAssets() || []).filter(isAssetActiveStatus);
 
-  const sections = categories.map((cat) => {
+  const buildSection = (line, cat) => {
     const catAssets = assets.filter((a) => a.categoryId === cat.id);
     const atOpen = catAssets.filter((a) => assetOwnedAt(a, openingDate));
     const atClose = catAssets.filter((a) => assetOwnedAt(a, closingDate));
@@ -674,43 +830,36 @@ const loadPpeNoteFromRegister = async (periods) => {
     const accounts = [];
     const costCode = String(cat.assetGlAccountCode || '').trim();
     const depCode = String(cat.accumulatedDepGlAccountCode || '').trim();
-    if (costCode) {
+    if (costCode && !isSeedPlaceholderGlCode(costCode)) {
       accounts.push({
         code: costCode,
-        name: `${cat.name} — Cost`,
+        name: `${line.description} — Cost`,
         currentAmount: absAmount(costClosing),
         currentSide: 'DR',
         priorAmount: absAmount(costOpening),
         priorSide: 'DR'
       });
     }
-    if (depCode) {
+    if (depCode && !isSeedPlaceholderGlCode(depCode)) {
       accounts.push({
         code: depCode,
-        name: `${cat.name} — Accumulated depreciation`,
+        name: `${line.description} — Accumulated depreciation`,
         currentAmount: absAmount(depClosing),
         currentSide: 'CR',
         priorAmount: absAmount(depOpening),
         priorSide: 'CR'
       });
     }
-    if (!accounts.length) {
-      accounts.push({
-        code: '',
-        name: cat.name,
-        currentAmount: absAmount(costClosing - depClosing),
-        currentSide: 'DR',
-        priorAmount: absAmount(costOpening - depOpening),
-        priorSide: 'DR'
-      });
-    }
 
+    const lifeFromCat = Number(cat.usefulLifeYears);
     return {
+      id: line.id,
+      locked: true,
       categoryId: cat.id,
-      categoryName: cat.name,
-      accountCode: costCode,
+      categoryName: line.description,
+      accountCode: costCode && !isSeedPlaceholderGlCode(costCode) ? costCode : '',
       usefulLifeYears:
-        Number(cat.usefulLifeYears) > 0 ? Number(cat.usefulLifeYears) : null,
+        lifeFromCat > 0 ? lifeFromCat : line.usefulLifeYears || null,
       accounts,
       cost: {
         opening: costOpening,
@@ -729,7 +878,18 @@ const loadPpeNoteFromRegister = async (periods) => {
         prior: costOpening - depOpening
       }
     };
-  });
+  };
+
+  const emptyCat = {
+    id: '',
+    usefulLifeYears: null,
+    assetGlAccountCode: '',
+    accumulatedDepGlAccountCode: ''
+  };
+
+  const sections = NOTE7_PPE_DESCRIPTIONS.map((line) =>
+    buildSection(line, findPpeCategoryForLine(line, categories) || emptyCat)
+  );
 
   const totalAdditions = sections.reduce(
     (sum, r) => sum + (Number(r.cost?.additions) || 0),
@@ -742,10 +902,27 @@ const loadPpeNoteFromRegister = async (periods) => {
       maximumFractionDigits: 2
     }).format(Math.abs(Number(n) || 0));
 
-  const footnote75 =
+  const priorAdditions = assets
+    .filter((a) => {
+      const purchased = toYmd(a.purchaseDate);
+      return purchased && priorStart && purchased > priorStart && purchased <= openingDate;
+    })
+    .reduce((sum, a) => sum + (Number(a.cost) || 0), 0);
+
+  const openingParts = String(openingDate || '').split('-').map(Number);
+  const priorFootnoteYear =
+    openingParts[1] === 4 && openingParts[2] === 1
+      ? openingParts[0] - 1
+      : openingParts[0] || periods.prior?.year;
+
+  let footnote75 =
     totalAdditions <= 0.005
       ? '7.5 During the financial year the Company has not acquired Property, Plant & Equipment.'
       : `7.5 During the financial year the Company acquired Property, Plant & Equipment amounting to Rs.${formatMoney(totalAdditions)}/-.`;
+
+  if (priorAdditions > 0.005) {
+    footnote75 += ` (${priorFootnoteYear} - Rs.${formatMoney(priorAdditions)}/-)`;
+  }
 
   return {
     template: 'ppe',
@@ -930,9 +1107,39 @@ const resolvePortfolioIds = async (portfolioId) => {
     .filter(Boolean);
 };
 
+const emptyFvtplAmount = () => ({ current: 0, prior: 0 });
+
+/** Published Held-for-Trading summary. Equity FV = quoted MV totals; govt lines unmapped. */
+const buildFvtplTradingSummary = (equityTotals) => ({
+  sectionLabel: 'Financial Assets Held for Trading',
+  government: {
+    label: 'Investment in Government Securities',
+    ...emptyFvtplAmount()
+  },
+  equity: {
+    label: 'Investment in Equity Securities',
+    current: Number(equityTotals?.currentMv) || 0,
+    prior: Number(equityTotals?.priorMv) || 0
+  },
+  bonds: {
+    label: 'Treasury Bonds',
+    ...emptyFvtplAmount()
+  },
+  bills: {
+    label: 'Treasury Bills',
+    ...emptyFvtplAmount()
+  }
+});
+
+const emptyEquityTotals = () => ({
+  currentCost: 0,
+  currentMv: 0,
+  priorCost: 0,
+  priorMv: 0
+});
+
 /**
- * Note 11 — Investments in Equity Securities (Quoted)
- * Cost and market value by counter for as-at and comparative dates.
+ * Note 13 — FVTPL: Held-for-Trading summary + quoted equity cost/MV schedule.
  */
 const loadFvtplEquityNote = async (periods, portfolioId) => {
   const currentAsOf = periods.current.asOfDate || periods.current.endDate;
@@ -940,15 +1147,12 @@ const loadFvtplEquityNote = async (periods, portfolioId) => {
 
   const portfolioIds = await resolvePortfolioIds(portfolioId);
   if (!portfolioIds.length) {
+    const equityTotals = emptyEquityTotals();
     return {
       template: 'fvtplEquity',
       equityRows: [],
-      equityTotals: {
-        currentCost: 0,
-        currentMv: 0,
-        priorCost: 0,
-        priorMv: 0
-      }
+      equityTotals,
+      tradingSummary: buildFvtplTradingSummary(equityTotals)
     };
   }
 
@@ -1033,7 +1237,8 @@ const loadFvtplEquityNote = async (periods, portfolioId) => {
   return {
     template: 'fvtplEquity',
     equityRows,
-    equityTotals
+    equityTotals,
+    tradingSummary: buildFvtplTradingSummary(equityTotals)
   };
 };
 
@@ -1043,27 +1248,10 @@ const NOTE_LOADERS = {
   'note-5': (p) => loadFinanceCostNoteTemplate(p),
   'note-6': (p) => loadIncomeTaxNoteTemplate(p),
   'note-7': (p) => loadPpeNoteFromRegister(p),
-  'note-8': (p, id) =>
-    loadSofpComparative(
-      { sofpPatterns: ['deferred tax'], template: 'comparative' },
-      p,
-      id
-    ),
-  'note-9': (p, id) =>
-    loadSofpComparative(
-      { sofpPatterns: ['right of use', 'right-of-use', 'rou asset'], template: 'comparative' },
-      p,
-      id
-    ),
-  'note-10': (p, id) =>
-    loadSofpComparative(
-      {
-        sofpPatterns: ['receivable', 'prepayment', 'deposit', 'withholding tax receivable'],
-        template: 'comparative'
-      },
-      p,
-      id
-    ),
+  'note-8': () => loadDeferredTaxNoteTemplate(),
+  'note-9': () => loadRouNoteTemplate(),
+  'note-10': (p) => loadOtherReceivablesNoteTemplate(p),
+  'note-related-party-receivable': (p) => loadRelatedPartyReceivableNoteTemplate(p),
   'note-11': (p, id) => loadFvtplEquityNote(p, id),
   'note-12': (p, id) =>
     loadSofpComparative(

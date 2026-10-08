@@ -24,6 +24,13 @@ const formatNumber = (value) =>
 
 const formatLkr = (value) => `LKR ${formatNumber(value || 0)}`;
 
+const MetricAmount = ({ value, className }) => (
+  <span className={className}>
+    <span className="vp-metric-ccy">LKR</span>
+    {formatNumber(value || 0)}
+  </span>
+);
+
 const formatChartAxisDate = (d) => {
   const dt = d instanceof Date ? d : new Date(d);
   if (Number.isNaN(dt.getTime())) return '';
@@ -270,6 +277,7 @@ const ViewPortfolio = () => {
       <div className="vp-root">
         <div className="vp-header">
           <div>
+            <p className="vp-eyebrow">View Portfolio</p>
             <h2 className="vp-title">Portfolio Overview – Detail</h2>
             <p className="vp-subtitle">Loading real-time portfolio data...</p>
           </div>
@@ -282,6 +290,7 @@ const ViewPortfolio = () => {
     <div className="vp-root">
       <div className="vp-header">
         <div>
+          <p className="vp-eyebrow">View Portfolio</p>
           <h2 className="vp-title">Portfolio Overview – Detail</h2>
           <p className="vp-subtitle">
             A consolidated, real-time analytic view of all equity holdings across portfolios and accounts.
@@ -309,7 +318,7 @@ const ViewPortfolio = () => {
             </svg>
             Export Summary
           </button>
-          <button className="vp-button ghost" onClick={loadData}>
+          <button className="vp-button primary" onClick={loadData}>
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <polyline points="23 4 23 10 17 10" />
               <polyline points="1 20 1 14 7 14" />
@@ -354,31 +363,35 @@ const ViewPortfolio = () => {
           <div className="vp-metrics">
             <div className="vp-metrics-hero">
               <span className="vp-metrics-hero-label">Total Market Value</span>
-              <span className="vp-metrics-hero-value">{formatLkr(summary?.totalValue || 0)}</span>
+              <MetricAmount className="vp-metrics-hero-value" value={summary?.totalValue || 0} />
               <div className="vp-metrics-hero-glow" aria-hidden="true" />
             </div>
             <div className="vp-metrics-grid">
               <div className="vp-metric vp-metric--muted">
                 <span className="vp-metric-label">Total Cost</span>
-                <span className="vp-metric-value">{formatLkr(summary?.totalCost || 0)}</span>
+                <MetricAmount className="vp-metric-value" value={summary?.totalCost || 0} />
               </div>
-              <div className="vp-metric vp-metric--positive">
+              <div className={`vp-metric ${ (summary?.unrealizedPnL ?? summary?.totalUnrealizedCapitalGain ?? summary?.totalPnL ?? 0) >= 0 ? 'vp-metric--positive' : 'vp-metric--negative' }`}>
                 <span className="vp-metric-label">Unrealized P&amp;L</span>
+                <MetricAmount
+                  className="vp-metric-value"
+                  value={summary?.unrealizedPnL ?? summary?.totalUnrealizedCapitalGain ?? summary?.totalPnL ?? 0}
+                />
+              </div>
+              <div className={`vp-metric ${ (summary?.totalPnL || 0) >= 0 ? 'vp-metric--positive' : 'vp-metric--negative' }`}>
+                <span className="vp-metric-label">Net P&amp;L</span>
+                <MetricAmount className="vp-metric-value" value={summary?.totalPnL || 0} />
+              </div>
+              <div className="vp-metric vp-metric--count">
+                <span className="vp-metric-label">No. of Holdings</span>
                 <span className="vp-metric-value">
-                  {formatLkr(summary?.unrealizedPnL ?? summary?.totalUnrealizedCapitalGain ?? summary?.totalPnL ?? 0)}
+                  {holdings.length}
+                  <span className="vp-metric-unit">positions</span>
                 </span>
               </div>
-              <div className="vp-metric vp-metric--positive">
-                <span className="vp-metric-label">Net P&amp;L</span>
-                <span className="vp-metric-value">{formatLkr(summary?.totalPnL || 0)}</span>
-              </div>
-              <div className="vp-metric">
-                <span className="vp-metric-label">No. of Holdings</span>
-                <span className="vp-metric-value">{holdings.length}</span>
-              </div>
-              <div className="vp-metric">
+              <div className={`vp-metric vp-metric--realized ${ (summary?.realizedPnL || 0) >= 0 ? 'vp-metric--positive' : 'vp-metric--negative' }`}>
                 <span className="vp-metric-label">Realized P&amp;L</span>
-                <span className="vp-metric-value">{formatLkr(summary?.realizedPnL || 0)}</span>
+                <MetricAmount className="vp-metric-value" value={summary?.realizedPnL || 0} />
               </div>
             </div>
           </div>

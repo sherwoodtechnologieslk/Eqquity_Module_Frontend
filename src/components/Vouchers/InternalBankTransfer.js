@@ -116,19 +116,6 @@ const InternalBankTransfer = ({ chartAccounts = [], chartAccountsLoading = false
 
   return (
     <div className="ibt-root">
-      <header className="ibt-rail">
-        <div className="ibt-rail__mark" aria-hidden="true">
-          BT
-        </div>
-        <div>
-          <p className="ibt-rail__eyebrow">Accounting</p>
-          <h1 className="ibt-rail__title">Internal Bank Transfer</h1>
-          <p className="ibt-rail__blurb">
-            Move funds between bank or cash accounts within the organisation.
-          </p>
-        </div>
-      </header>
-
       <nav className="ibt-screen-tabs" aria-label="Internal bank transfer">
         <button
           type="button"

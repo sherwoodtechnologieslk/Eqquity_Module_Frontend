@@ -186,6 +186,11 @@
   accent-color: #111827;
 }
 
+.fp-excel-accounts {
+  height: 26px;
+  padding: 0 2px;
+}
+
 .fp-filter-actions {
   display: flex;
   align-items: flex-end;

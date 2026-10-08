@@ -894,3 +894,44 @@
     transition: none;
   }
 }
+
+/* Institutional rail — quieter than the teal glow treatment */
+.wm-sidebar {
+  background: #102824;
+  box-shadow: none;
+}
+
+.wm-sidebar::before,
+.wm-sidebar .brand-icon::before {
+  display: none;
+}
+
+.wm-sidebar .wm-sidebar__item {
+  background: transparent;
+  border-color: transparent;
+  border-radius: 6px !important;
+  color: rgba(255, 255, 255, 0.78);
+  transition: background 160ms ease, color 160ms ease;
+}
+
+.wm-sidebar .wm-sidebar__item:hover,
+.wm-sidebar .wm-sidebar__item:focus {
+  background: rgba(255, 255, 255, 0.06);
+  border-color: transparent;
+  color: #ffffff;
+}
+
+.wm-sidebar .wm-sidebar__item:focus-visible {
+  outline: 2px solid rgba(255, 255, 255, 0.7);
+  outline-offset: -2px;
+}
+
+.wm-sidebar .wm-sidebar__item.is-active,
+.wm-sidebar .wm-sidebar__item.active,
+.wm-sidebar .wm-sidebar__item.is-active:hover,
+.wm-sidebar .wm-sidebar__item.active:hover {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: transparent;
+  box-shadow: inset 2px 0 0 #d7e4dc;
+  color: #ffffff;
+}

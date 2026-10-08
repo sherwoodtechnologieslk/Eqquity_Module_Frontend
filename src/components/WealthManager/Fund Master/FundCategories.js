@@ -1,32 +1,46 @@
-import React, { useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import WealthPageHeader from '../Layout/WealthPageHeader';
+import cisFundService from '../../../services/cisFundService';
 import './Styles/FundCategories.css';
 
-const FundCategories = () => {
-  const [form, setForm] = useState({
-    categoryCode: '',
-    categoryName: '',
-    description: '',
-    riskLevel: '',
-    typicalReturn: '',
-    typicalHorizon: '',
-    minimumInvestment: '',
-    status: 'Active',
-    regulatoryCategory: '',
-    taxTreatment: '',
-    notes: ''
-  });
+const emptyForm = () => ({
+  categoryCode: '',
+  categoryName: '',
+  description: '',
+  riskLevel: '',
+  typicalReturn: '',
+  typicalHorizon: '',
+  minimumInvestment: '',
+  status: 'Active',
+  regulatoryCategory: '',
+  taxTreatment: '',
+  notes: '',
+});
 
+const FundCategories = () => {
+  const [form, setForm] = useState(emptyForm());
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitMessage, setSubmitMessage] = useState('');
   const [showListView, setShowListView] = useState(false);
-  const [categoriesList, setCategoriesList] = useState([
-    { id: 1, categoryCode: 'EQ', categoryName: 'Equity', description: 'Funds that invest primarily in stocks', riskLevel: 'High', typicalReturn: '12-15%', typicalHorizon: '5+ years', minimumInvestment: '10000', status: 'Active', regulatoryCategory: 'Equity Fund', taxTreatment: 'Capital Gains Tax' },
-    { id: 2, categoryCode: 'FI', categoryName: 'Fixed Income', description: 'Funds that invest in bonds and fixed income securities', riskLevel: 'Low', typicalReturn: '6-8%', typicalHorizon: '2-5 years', minimumInvestment: '5000', status: 'Active', regulatoryCategory: 'Debt Fund', taxTreatment: 'Interest Income Tax' },
-    { id: 3, categoryCode: 'BL', categoryName: 'Balanced', description: 'Funds that invest in both stocks and bonds', riskLevel: 'Medium', typicalReturn: '8-12%', typicalHorizon: '3-7 years', minimumInvestment: '7500', status: 'Active', regulatoryCategory: 'Hybrid Fund', taxTreatment: 'Mixed Tax Treatment' },
-    { id: 4, categoryCode: 'MM', categoryName: 'Money Market', description: 'Funds that invest in short-term debt instruments', riskLevel: 'Very Low', typicalReturn: '4-6%', typicalHorizon: 'Less than 1 year', minimumInvestment: '1000', status: 'Active', regulatoryCategory: 'Money Market Fund', taxTreatment: 'Interest Income Tax' },
-    { id: 5, categoryCode: 'RE', categoryName: 'Real Estate', description: 'Funds that invest in real estate investment trusts (REITs)', riskLevel: 'Medium', typicalReturn: '7-10%', typicalHorizon: '5+ years', minimumInvestment: '15000', status: 'Active', regulatoryCategory: 'Real Estate Fund', taxTreatment: 'Dividend Tax' }
-  ]);
+  const [categoriesList, setCategoriesList] = useState([]);
+  const [loadingList, setLoadingList] = useState(false);
+  const [editingId, setEditingId] = useState(null);
+
+  const loadCategories = useCallback(async () => {
+    setLoadingList(true);
+    try {
+      const rows = await cisFundService.listFundCategories();
+      setCategoriesList(rows);
+    } catch (error) {
+      setSubmitMessage(error.message || 'Failed to load fund categories.');
+    } finally {
+      setLoadingList(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    loadCategories();
+  }, [loadCategories]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -34,19 +48,8 @@ const FundCategories = () => {
   };
 
   const handleReset = () => {
-    setForm({
-      categoryCode: '',
-      categoryName: '',
-      description: '',
-      riskLevel: '',
-      typicalReturn: '',
-      typicalHorizon: '',
-      minimumInvestment: '',
-      status: 'Active',
-      regulatoryCategory: '',
-      taxTreatment: '',
-      notes: ''
-    });
+    setForm(emptyForm());
+    setEditingId(null);
   };
 
   const isRequired = (fieldName) =>
@@ -67,12 +70,9 @@ const FundCategories = () => {
     }
 
     try {
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-
-      const newCategory = {
-        id: categoriesList.length + 1,
-        categoryCode: form.categoryCode,
-        categoryName: form.categoryName,
+      const payload = {
+        categoryCode: form.categoryCode.trim(),
+        categoryName: form.categoryName.trim(),
         description: form.description,
         riskLevel: form.riskLevel,
         typicalReturn: form.typicalReturn,
@@ -80,19 +80,56 @@ const FundCategories = () => {
         minimumInvestment: form.minimumInvestment,
         status: form.status,
         regulatoryCategory: form.regulatoryCategory,
-        taxTreatment: form.taxTreatment
+        taxTreatment: form.taxTreatment,
+        notes: form.notes,
       };
 
-      setCategoriesList([...categoriesList, newCategory]);
-      setSubmitMessage('Fund Category created successfully!');
+      if (editingId) {
+        await cisFundService.updateFundCategory(editingId, payload);
+        setSubmitMessage('Fund category updated successfully!');
+      } else {
+        await cisFundService.createFundCategory(payload);
+        setSubmitMessage('Fund category created successfully!');
+      }
+
+      await loadCategories();
       setTimeout(() => {
         handleReset();
         setSubmitMessage('');
       }, 2000);
     } catch (error) {
-      setSubmitMessage('Error creating fund category. Please try again.');
+      setSubmitMessage(error.message || 'Error saving fund category. Please try again.');
     } finally {
       setIsSubmitting(false);
+    }
+  };
+
+  const handleEdit = (category) => {
+    setEditingId(category.id);
+    setForm({
+      categoryCode: category.categoryCode || '',
+      categoryName: category.categoryName || '',
+      description: category.description || '',
+      riskLevel: category.riskLevel || '',
+      typicalReturn: category.typicalReturn || '',
+      typicalHorizon: category.typicalHorizon || '',
+      minimumInvestment: category.minimumInvestment || '',
+      status: category.status || 'Active',
+      regulatoryCategory: category.regulatoryCategory || '',
+      taxTreatment: category.taxTreatment || '',
+      notes: category.notes || '',
+    });
+    setShowListView(false);
+  };
+
+  const handleDelete = async (id) => {
+    if (!window.confirm('Delete this fund category? This cannot be undone.')) return;
+    try {
+      await cisFundService.deleteFundCategory(id);
+      await loadCategories();
+      setSubmitMessage('Fund category deleted.');
+    } catch (error) {
+      setSubmitMessage(error.message || 'Could not delete category.');
     }
   };
 
@@ -107,15 +144,15 @@ const FundCategories = () => {
         'Money Market Fund',
         'Real Estate Fund',
         'Index Fund',
-        'Capital Preservation Fund'
+        'Capital Preservation Fund',
       ],
       taxTreatment: [
         'Capital Gains Tax',
         'Interest Income Tax',
         'Dividend Tax',
         'Mixed Tax Treatment',
-        'Tax-Free'
-      ]
+        'Tax-Free',
+      ],
     };
     return options[fieldName] || [];
   };
@@ -184,6 +221,7 @@ const FundCategories = () => {
           onChange={handleChange}
           placeholder={`Enter ${label.toLowerCase()}`}
           className="fc-input"
+          disabled={fieldName === 'categoryCode' && editingId}
         />
       </div>
     );
@@ -210,6 +248,19 @@ const FundCategories = () => {
           }
         />
 
+        {submitMessage && (
+          <div
+            className={`fc-message${
+              submitMessage.includes('Error') || submitMessage.includes('required') || submitMessage.includes('Could not')
+                ? ' fc-message--error'
+                : ' fc-message--success'
+            }`}
+            role="status"
+          >
+            {submitMessage}
+          </div>
+        )}
+
         <div className="fc-panel fc-panel--table">
           <div className="fc-table-wrap">
             <table className="fc-table">
@@ -227,32 +278,47 @@ const FundCategories = () => {
                 </tr>
               </thead>
               <tbody>
-                {categoriesList.map((category) => (
-                  <tr key={category.id}>
-                    <td>
-                      <strong className="fc-code">{category.categoryCode}</strong>
-                    </td>
-                    <td>{category.categoryName}</td>
-                    <td className="fc-desc">{category.description}</td>
-                    <td>
-                      <span className={riskClass(category.riskLevel)}>{category.riskLevel}</span>
-                    </td>
-                    <td>{category.typicalReturn}</td>
-                    <td>{category.typicalHorizon}</td>
-                    <td>{category.minimumInvestment}</td>
-                    <td>
-                      <span className={statusClass(category.status)}>{category.status}</span>
-                    </td>
-                    <td className="fc-row-actions">
-                      <button type="button" className="fc-link-btn">
-                        Edit
-                      </button>
-                      <button type="button" className="fc-link-btn fc-link-btn--danger">
-                        Delete
-                      </button>
-                    </td>
+                {loadingList && (
+                  <tr>
+                    <td colSpan={9}>Loading categories…</td>
                   </tr>
-                ))}
+                )}
+                {!loadingList && categoriesList.length === 0 && (
+                  <tr>
+                    <td colSpan={9}>No fund categories yet. Add the first category.</td>
+                  </tr>
+                )}
+                {!loadingList &&
+                  categoriesList.map((category) => (
+                    <tr key={category.id}>
+                      <td>
+                        <strong className="fc-code">{category.categoryCode}</strong>
+                      </td>
+                      <td>{category.categoryName}</td>
+                      <td className="fc-desc">{category.description}</td>
+                      <td>
+                        <span className={riskClass(category.riskLevel)}>{category.riskLevel}</span>
+                      </td>
+                      <td>{category.typicalReturn}</td>
+                      <td>{category.typicalHorizon}</td>
+                      <td>{category.minimumInvestment}</td>
+                      <td>
+                        <span className={statusClass(category.status)}>{category.status}</span>
+                      </td>
+                      <td className="fc-row-actions">
+                        <button type="button" className="fc-link-btn" onClick={() => handleEdit(category)}>
+                          Edit
+                        </button>
+                        <button
+                          type="button"
+                          className="fc-link-btn fc-link-btn--danger"
+                          onClick={() => handleDelete(category.id)}
+                        >
+                          Delete
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
               </tbody>
             </table>
           </div>
@@ -264,7 +330,7 @@ const FundCategories = () => {
   return (
     <div className="fc">
       <WealthPageHeader
-        title="Fund Category Entry"
+        title={editingId ? 'Edit Fund Category' : 'Fund Category Entry'}
         blurb="Define category characteristics, risk expectations, and regulatory treatment."
         actions={
           <button type="button" className="fc-btn fc-btn--ghost" onClick={() => setShowListView(true)}>
@@ -286,49 +352,51 @@ const FundCategories = () => {
         </div>
       )}
 
-      <form onSubmit={handleSubmit} className="fc-form">
-        <section className="fc-panel">
-          <h2 className="fc-panel__title">Basic Information</h2>
-          <div className="fc-grid fc-grid--basic">
-            {renderField('categoryCode', form.categoryCode)}
-            {renderField('categoryName', form.categoryName)}
-            {renderField('riskLevel', form.riskLevel)}
-            {renderField('status', form.status)}
-            {renderField('description', form.description)}
-          </div>
-        </section>
+      <form onSubmit={handleSubmit} className="fc-form fc-form--entry">
+        <div className="fc-form-shell">
+          <section className="fc-section">
+            <h2 className="fc-section__title">Basic Information</h2>
+            <div className="fc-grid fc-grid--basic">
+              {renderField('categoryCode', form.categoryCode)}
+              {renderField('categoryName', form.categoryName)}
+              {renderField('riskLevel', form.riskLevel)}
+              {renderField('status', form.status)}
+              {renderField('description', form.description)}
+            </div>
+          </section>
 
-        <section className="fc-panel">
-          <h2 className="fc-panel__title">Investment Characteristics</h2>
-          <div className="fc-grid">
-            {renderField('typicalReturn', form.typicalReturn)}
-            {renderField('typicalHorizon', form.typicalHorizon)}
-            {renderField('minimumInvestment', form.minimumInvestment)}
-          </div>
-        </section>
+          <section className="fc-section">
+            <h2 className="fc-section__title">Investment Characteristics</h2>
+            <div className="fc-grid">
+              {renderField('typicalReturn', form.typicalReturn)}
+              {renderField('typicalHorizon', form.typicalHorizon)}
+              {renderField('minimumInvestment', form.minimumInvestment)}
+            </div>
+          </section>
 
-        <section className="fc-panel">
-          <h2 className="fc-panel__title">Regulatory & Tax</h2>
-          <div className="fc-grid">
-            {renderField('regulatoryCategory', form.regulatoryCategory)}
-            {renderField('taxTreatment', form.taxTreatment)}
-          </div>
-        </section>
+          <section className="fc-section">
+            <h2 className="fc-section__title">Regulatory &amp; Tax</h2>
+            <div className="fc-grid fc-grid--pair">
+              {renderField('regulatoryCategory', form.regulatoryCategory)}
+              {renderField('taxTreatment', form.taxTreatment)}
+            </div>
+          </section>
 
-        <section className="fc-panel">
-          <h2 className="fc-panel__title">Additional Notes</h2>
-          <div className="fc-grid fc-grid--single">
-            {renderField('notes', form.notes)}
-          </div>
-        </section>
+          <section className="fc-section">
+            <h2 className="fc-section__title">Additional Notes</h2>
+            <div className="fc-grid fc-grid--single">
+              {renderField('notes', form.notes)}
+            </div>
+          </section>
 
-        <div className="fc-actions">
-          <button type="button" className="fc-btn fc-btn--ghost" onClick={handleReset}>
-            Reset
-          </button>
-          <button type="submit" className="fc-btn fc-btn--primary" disabled={isSubmitting}>
-            {isSubmitting ? 'Submitting…' : 'Submit'}
-          </button>
+          <div className="fc-actions">
+            <button type="button" className="fc-btn fc-btn--ghost" onClick={handleReset}>
+              Reset
+            </button>
+            <button type="submit" className="fc-btn fc-btn--primary" disabled={isSubmitting}>
+              {isSubmitting ? 'Submitting…' : editingId ? 'Update Category' : 'Submit'}
+            </button>
+          </div>
         </div>
       </form>
     </div>

@@ -1,5 +1,6 @@
 import React from 'react';
 
+/** @deprecated Legacy mock fund catalog for pre–Phase-1 Wealth Ops screens. New CIS features must use cisFundService / CIS Fund Registry API. */
 export const FUNDS = [
   { id: 'EGF', name: 'Equity Growth Fund', category: 'Equity', nav: 25.45, currency: 'LKR' },
   { id: 'BIF', name: 'Balanced Income Fund', category: 'Balanced', nav: 18.92, currency: 'LKR' },

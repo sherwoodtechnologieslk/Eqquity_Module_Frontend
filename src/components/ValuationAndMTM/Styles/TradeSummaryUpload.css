@@ -48,64 +48,140 @@
 }
 
 .tsu-panel--upload {
-  border-color: var(--line);
+  border-color: #bfdbfe;
   background: var(--paper);
+  box-shadow: 0 1px 0 rgba(37, 99, 235, 0.04);
 }
 
 .tsu-panel--upload .tsu-panel__head {
-  align-items: center;
-  padding: 0.5rem 0.75rem;
-  background: var(--paper);
+  align-items: flex-start;
+  padding: 0.7rem 0.9rem 0.6rem;
+  background: linear-gradient(180deg, #eff6ff 0%, #ffffff 100%);
+  border-bottom: 1px solid #dbeafe;
 }
 
 .tsu-panel__eyebrow {
-  margin: 0 0 0.05rem;
-  font-size: 0.58rem;
+  margin: 0 0 0.08rem;
+  font-size: 0.55rem;
   font-weight: 700;
-  letter-spacing: 0.1em;
+  letter-spacing: 0.14em;
   text-transform: uppercase;
-  color: var(--mute);
+  color: var(--blue);
 }
 
 .tsu-panel--upload .tsu-panel__head h2 {
   margin: 0;
-  font-size: 0.82rem;
+  font-size: clamp(1.05rem, 1.6vw, 1.22rem);
   font-weight: 750;
   letter-spacing: -0.02em;
   color: var(--ink);
+  line-height: 1.15;
+}
+
+.tsu-panel--upload .tsu-link-btn {
+  height: 32px;
+  min-height: 32px;
+  padding: 0 0.85rem;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  color: #fff;
+  background: var(--blue);
+  border: 1px solid #1d4ed8;
+  border-radius: var(--radius);
+  box-shadow: none;
+}
+
+.tsu-panel--upload .tsu-link-btn:hover {
+  color: #fff;
+  background: #1d4ed8;
+  border-color: #1e40af;
 }
 
 .tsu-panel--upload .tsu-form {
-  padding: 0.55rem 0.75rem 0.65rem;
+  padding: 0.75rem 0.9rem 0.85rem;
   background: var(--paper);
-  border-top: 1px solid var(--line);
+  border-top: none;
+}
+
+.tsu-panel--upload .tsu-form__row {
+  grid-template-columns: 11.5rem minmax(0, 1fr) auto;
+  gap: 0.65rem 0.75rem;
+  align-items: end;
+}
+
+.tsu-panel--upload .tsu-label {
+  font-size: 0.58rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: #475569;
+}
+
+.tsu-panel--upload .tsu-input {
+  height: 36px;
+  min-height: 36px;
+  padding: 0 0.65rem;
+  font-size: 0.78rem;
+  font-weight: 550;
+  border-color: #cbd5e1;
+  background: #f8fafc;
+}
+
+.tsu-panel--upload .tsu-input:focus {
+  background: #fff;
+  border-color: var(--blue);
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
 }
 
 .tsu-panel--upload .tsu-drop {
-  min-height: 30px;
+  min-height: 36px;
+  padding: 0.4rem 0.7rem;
   border-width: 1px;
-  border-color: #cbd5e1;
-  background: var(--paper);
+  border-style: dashed;
+  border-color: #93c5fd;
+  background: #f8fbff;
+}
+
+.tsu-panel--upload .tsu-drop:hover,
+.tsu-panel--upload .tsu-drop--active {
+  border-color: var(--blue);
+  background: #eff6ff;
+}
+
+.tsu-panel--upload .tsu-drop--ready {
+  border-style: solid;
+  border-color: #86efac;
+  background: #f0fdf4;
 }
 
 .tsu-panel--upload .tsu-drop__hint {
-  font-size: 0.75rem;
+  font-size: 0.78rem;
+  font-weight: 500;
   color: #475569;
 }
 
 .tsu-panel--upload .tsu-submit {
-  min-height: 30px;
-  min-width: auto;
-  height: 30px;
-  padding: 0 0.75rem;
-  font-size: 0.72rem;
-  font-weight: 650;
+  min-height: 36px;
+  min-width: 6.25rem;
+  height: 36px;
+  padding: 0 1rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  color: #fff;
+  background: var(--blue);
+  border: 1px solid #1d4ed8;
   box-shadow: none;
   border-radius: var(--radius);
 }
 
-.tsu-panel--upload .tsu-label {
-  color: var(--mute);
+.tsu-panel--upload .tsu-submit:hover:not(:disabled) {
+  background: #1d4ed8;
+  border-color: #1e40af;
+}
+
+.tsu-panel--upload .tsu-progress__fill {
+  background: var(--blue);
 }
 
 .tsu-panel__head,
@@ -521,38 +597,27 @@
   overflow: auto;
 }
 
-.tsu-empty {
-  padding: 1.5rem 1rem;
-  text-align: center;
-  font-size: 0.78rem;
-  color: var(--mute);
-}
-
-.tsu-empty--error {
-  color: #b91c1c;
-}
-
 .tsu-table {
   width: 100%;
   border-collapse: collapse;
-  font-size: 0.75rem;
+  font-size: 0.72rem;
 }
 
 .tsu-table th,
 .tsu-table td {
-  padding: 0.4rem 0.7rem;
+  padding: 0.42rem 0.65rem;
   border-bottom: 1px solid #f1f5f9;
   text-align: left;
   white-space: nowrap;
 }
 
 .tsu-table th {
-  font-size: 0.62rem;
-  font-weight: 600;
+  font-size: 0.58rem;
+  font-weight: 700;
   letter-spacing: 0.05em;
   text-transform: uppercase;
   color: var(--mute);
-  background: var(--wash);
+  background: #fcfdff;
 }
 
 .tsu-table td.num,
@@ -562,26 +627,38 @@
 }
 
 .tsu-table td.symbol {
-  font-weight: 600;
+  font-weight: 700;
   color: #1e3a5f;
 }
 
 .tsu-table td.up {
   color: var(--up);
-  font-weight: 600;
+  font-weight: 700;
 }
 
 .tsu-table td.down {
   color: var(--down);
-  font-weight: 600;
+  font-weight: 700;
 }
 
 .tsu-table tbody tr:hover {
   background: #f8fafc;
 }
 
+.tsu-empty {
+  padding: 2rem 1rem;
+  text-align: center;
+  font-size: 0.78rem;
+  color: var(--mute);
+}
+
+.tsu-empty--error {
+  color: #991b1b;
+}
+
 @media (max-width: 960px) {
-  .tsu-form__row {
+  .tsu-form__row,
+  .tsu-panel--upload .tsu-form__row {
     grid-template-columns: 1fr;
   }
 
@@ -589,20 +666,12 @@
     display: none;
   }
 
-  .tsu-submit {
+  .tsu-field--action .tsu-submit {
     width: 100%;
   }
 
   .tsu-stats {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-
-  .tsu-stat:nth-child(2n) {
-    border-right: none;
-  }
-
-  .tsu-stat:nth-child(-n + 2) {
-    border-bottom: 1px solid var(--line);
+    grid-template-columns: 1fr 1fr;
   }
 }
 

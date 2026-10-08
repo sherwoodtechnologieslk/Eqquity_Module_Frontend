@@ -3740,16 +3740,6 @@ const isVoucherSettled = (voucher) => {
   return (
     <div className="other-trans-page-container">
       <div className="other-trans-content-wrapper">
-        <header className="other-trans-header-section">
-          <div className="other-trans-header-text-group">
-            <p className="other-trans-header-eyebrow">Accounting · Non-trading</p>
-            <h1 className="other-trans-main-title">Non-Trading Transactions</h1>
-            <p className="other-trans-subtitle">
-              Other income, expenses, and assets. Multi-currency supported.
-            </p>
-          </div>
-        </header>
-
         {/* Tab Navigation */}
         <div className="other-trans-tab-navigation">
           {[

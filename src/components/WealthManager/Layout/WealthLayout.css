@@ -77,7 +77,7 @@
   flex: 1;
   min-width: 0;
   padding: 1rem 1.5rem 2rem;
-  margin-top: 70px; /* navbar */
+  margin-top: 52px; /* navbar */
 }
 
 /* App.js tab wrapper — inherit shell canvas */
@@ -112,39 +112,24 @@
 
 /* Wealth navbar — Equity-style chrome in Wealth teal */
 .wm-navbar {
-  --wm-nav-list-bg: rgba(255, 255, 255, 0.12);
-  --wm-nav-list-border: rgba(255, 255, 255, 0.18);
+  --wm-nav-list-bg: transparent;
+  --wm-nav-list-border: transparent;
 
   position: fixed;
   top: 0;
   left: var(--wm-sidebar-width);
   right: 0;
-  height: 70px;
+  height: 52px;
   z-index: 120;
   padding: 0;
-  border-bottom: 1px solid rgba(15, 23, 42, 0.14);
-  background: linear-gradient(
-    90deg,
-    #134e4a 0%,
-    #0f766e 42%,
-    #0e7490 100%
-  );
-  box-shadow:
-    0 1px 0 rgba(255, 255, 255, 0.12) inset,
-    0 6px 18px rgba(15, 118, 110, 0.2);
+  border-bottom: 1px solid #e6e1d8;
+  background: #f7f4ee;
+  box-shadow: none;
   overflow: visible;
 }
 
 .wm-navbar::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(
-    180deg,
-    rgba(255, 255, 255, 0.1) 0%,
-    transparent 55%
-  );
-  pointer-events: none;
+  content: none;
 }
 
 .wm-navbar-inner {
@@ -165,37 +150,30 @@
 }
 
 .wm-navbar-brand-icon {
-  width: 2.4rem;
-  height: 2.4rem;
+  width: 1.7rem;
+  height: 1.7rem;
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-  background: linear-gradient(
-    160deg,
-    rgba(94, 234, 212, 0.55) 0%,
-    rgba(20, 184, 166, 0.45) 40%,
-    rgba(13, 148, 136, 0.55) 100%
-  );
-  border: 1px solid rgba(255, 255, 255, 0.55);
-  box-shadow:
-    0 4px 14px rgba(15, 118, 110, 0.35),
-    inset 0 1px 0 rgba(255, 255, 255, 0.5);
+  background: #123f34;
+  border: 0;
+  box-shadow: none;
 }
 
 .wm-root .wm-navbar-brand-icon {
-  border-radius: 0.75rem !important;
+  border-radius: 6px !important;
 }
 
 .wm-navbar-brand-logo {
   width: 0.95rem;
   height: 0.95rem;
-  color: #0f766e;
-  background: #ffffff;
+  color: #ffffff;
+  background: transparent;
   padding: 0.22rem 0.2rem;
   box-sizing: content-box;
   display: block;
-  box-shadow: 0 1px 3px rgba(15, 118, 110, 0.15);
+  box-shadow: none;
 }
 
 .wm-root .wm-navbar-brand-logo {
@@ -213,19 +191,20 @@
 
 .wm-navbar-pills {
   display: flex;
-  align-items: center;
-  gap: 0.25rem;
+  align-items: stretch;
+  gap: 0;
   width: max-content;
   max-width: 100%;
   min-width: 0;
+  height: 52px;
   margin: 0;
-  padding: 0.28rem 0.35rem;
-  border: 1px solid var(--wm-nav-list-border);
-  background: var(--wm-nav-list-bg);
+  padding: 0;
+  border: 0;
+  background: transparent;
   overflow-x: auto;
   overflow-y: hidden;
   scrollbar-width: thin;
-  scrollbar-color: rgba(255, 255, 255, 0.45) transparent;
+  scrollbar-color: rgba(18, 63, 52, 0.35) transparent;
 }
 
 .wm-navbar-pills::-webkit-scrollbar {
@@ -237,7 +216,7 @@
 }
 
 .wm-navbar-pills::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.4);
+  background: rgba(18, 63, 52, 0.28);
 }
 
 .wm-root .wm-navbar-pills::-webkit-scrollbar-thumb {
@@ -247,42 +226,50 @@
 .wm-navbar-empty {
   padding: 0.4rem 0.75rem;
   font-size: 0.78rem;
-  color: rgba(255, 255, 255, 0.7);
+  color: #6f6a63;
   white-space: nowrap;
 }
 
 .wm-pill {
   flex: 0 0 auto;
-  padding: 0.45rem 0.85rem;
+  height: 52px;
+  padding: 0 0.9rem;
   border: none;
+  border-bottom: 2px solid transparent;
   background: transparent;
-  color: rgba(255, 255, 255, 0.84);
+  color: #5c574f;
   font-size: 0.78rem;
   font-weight: 500;
   letter-spacing: 0.01em;
   cursor: pointer;
   white-space: nowrap;
-  transition: background 0.18s ease, color 0.18s ease, box-shadow 0.18s ease;
+  transition: color 160ms ease, border-color 160ms ease, background 160ms ease;
 }
 
 .wm-pill:hover {
-  background: rgba(255, 255, 255, 0.12);
-  color: #ffffff;
+  background: rgba(18, 63, 52, 0.04);
+  color: #123f34;
+}
+
+.wm-pill:focus-visible {
+  outline: 2px solid #123f34;
+  outline-offset: -2px;
 }
 
 .wm-pill.is-active {
-  background: #ffffff;
-  color: #0f766e;
-  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.12);
-  font-weight: 650;
+  background: transparent;
+  color: #123f34;
+  border-bottom-color: #123f34;
+  box-shadow: none;
+  font-weight: 600;
 }
 
 .wm-root .wm-navbar-pills {
-  border-radius: 999px !important;
+  border-radius: 0 !important;
 }
 
 .wm-root .wm-pill {
-  border-radius: 999px !important;
+  border-radius: 0 !important;
 }
 
 .wm-navbar-actions {
@@ -293,29 +280,30 @@
 }
 
 .wm-avatar {
-  width: 2.35rem;
-  height: 2.35rem;
+  width: 1.85rem;
+  height: 1.85rem;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  border: 1px solid rgba(255, 255, 255, 0.55);
-  background: rgba(255, 255, 255, 0.95);
-  color: #0f766e;
+  border: 1px solid #d9d3c8;
+  background: #ffffff;
+  color: #123f34;
   cursor: pointer;
-  font-size: 0.75rem;
+  font-size: 0.68rem;
   font-weight: 700;
   letter-spacing: 0.02em;
-  transition: background 0.15s ease, box-shadow 0.15s ease;
-  box-shadow: 0 2px 8px rgba(15, 118, 110, 0.25);
+  transition: background 160ms ease, border-color 160ms ease;
+  box-shadow: none;
 }
 
 .wm-root .wm-avatar {
-  border-radius: 999px !important;
+  border-radius: 6px !important;
 }
 
 .wm-avatar:hover {
-  background: #ffffff;
-  box-shadow: 0 4px 12px rgba(15, 118, 110, 0.35);
+  background: #f3f7f5;
+  border-color: #123f34;
+  box-shadow: none;
 }
 
 @media (max-width: 768px) {

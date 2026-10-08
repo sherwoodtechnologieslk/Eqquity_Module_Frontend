@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import './Styles/FinancialReportingNotes.css';
 import DisclosureNoteView from './DisclosureNoteView';
 import { buildNotePeriods } from '../../utils/financialNotePeriods';
@@ -82,6 +83,7 @@ const FinancialReportingNotes = ({ context = null }) => {
   const [coaSearch, setCoaSearch] = useState('');
   const [customResolveError, setCustomResolveError] = useState('');
   const [customResolving, setCustomResolving] = useState(false);
+  const [isNotesPoppedOut, setIsNotesPoppedOut] = useState(false);
   const tabsScrollRef = useRef(null);
   const activeTabRef = useRef(null);
   const loadSeqRef = useRef(0);
@@ -991,29 +993,54 @@ const FinancialReportingNotes = ({ context = null }) => {
     []
   );
 
+  useEffect(() => {
+    if (!isNotesPoppedOut) return undefined;
+    const onKeyDown = (event) => {
+      if (event.key === 'Escape') setIsNotesPoppedOut(false);
+    };
+    document.addEventListener('keydown', onKeyDown);
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.removeEventListener('keydown', onKeyDown);
+      document.body.style.overflow = previousOverflow;
+    };
+  }, [isNotesPoppedOut]);
+
   const canEditUndo = editPast.length > 0 || hasTypingBaseline;
   const canEditRedo = editFuture.length > 0;
 
   const selectedEditFormat =
     (selectedEditRowKey && editDraft?.formats?.[selectedEditRowKey]) || 'normal';
 
-  return (
-    <div className="nts-page">
-      <div className="nts-wrap">
-        <header className="nts-header">
-          <div>
-            <h1 className="nts-title">Notes to the Financial Statements</h1>
-            <p className="nts-subtitle">As at {periods.current.label}</p>
+                    const notesPage = (
+                      <div className="nts-page">
+                        <div className="nts-wrap">
+                          <header className="nts-header">
+                            <div>
+                              <h1 className="nts-title">Notes to the Financial Statements</h1>
+                              <p className="nts-subtitle">As at {periods.current.label}</p>
+                            </div>
+                            <div className="nts-header-right">
+                              <label className="nts-filter" htmlFor="frn-as-of">
+                                As at date
+                                <input
+                                  id="frn-as-of"
+                                  type="date"
+                                  value={asOfDate}
+                                  onChange={(e) => setAsOfDate(e.target.value)}
+                                />
+                              </label>
+                              {!isNotesPoppedOut ? (
+                                <button
+                                  type="button"
+                                  className="nts-popout-btn"
+                                  onClick={() => setIsNotesPoppedOut(true)}
+                                >
+                                  Open fullscreen
+                                </button>
+            ) : null}
           </div>
-          <label className="nts-filter" htmlFor="frn-as-of">
-            As at date
-            <input
-              id="frn-as-of"
-              type="date"
-              value={asOfDate}
-              onChange={(e) => setAsOfDate(e.target.value)}
-            />
-          </label>
         </header>
 
         <div className="nts-tabs-bar" role="tablist" aria-label="Notes contents">
@@ -1474,6 +1501,38 @@ const FinancialReportingNotes = ({ context = null }) => {
       </div>
     </div>
   );
+
+  if (isNotesPoppedOut && typeof document !== 'undefined') {
+    return createPortal(
+      <div
+        className="nts-popout-overlay"
+        role="dialog"
+        aria-modal="true"
+        aria-label="Notes to the Financial Statements"
+        onClick={() => setIsNotesPoppedOut(false)}
+      >
+        <div className="nts-popout-modal" onClick={(event) => event.stopPropagation()}>
+          <div className="nts-popout-bar">
+            <div>
+              <div className="nts-popout-title">Notes to the Financial Statements</div>
+              <div className="nts-popout-meta">As at {periods.current.label}</div>
+            </div>
+            <button
+              type="button"
+              className="nts-popout-btn"
+              onClick={() => setIsNotesPoppedOut(false)}
+            >
+              Close
+            </button>
+          </div>
+          <div className="nts-popout-body">{notesPage}</div>
+        </div>
+      </div>,
+      document.body
+    );
+  }
+
+  return notesPage;
 };
 
 export default FinancialReportingNotes;

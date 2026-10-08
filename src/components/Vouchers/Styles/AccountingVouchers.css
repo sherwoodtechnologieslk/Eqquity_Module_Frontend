@@ -40,42 +40,6 @@
   box-sizing: border-box;
 }
 
-/* ── Rail ────────────────────────────────────────────────── */
-
-.av-rail {
-  display: flex;
-  align-items: flex-start;
-  gap: 0.85rem;
-  padding: 0.05rem 0.05rem 0.55rem;
-  border-bottom: 1px solid var(--line);
-}
-
-.av-rail__eyebrow {
-  margin: 0 0 0.15rem;
-  font-size: 0.6rem;
-  font-weight: 700;
-  letter-spacing: 0.16em;
-  text-transform: uppercase;
-  color: var(--blue);
-}
-
-.av-rail__title {
-  margin: 0 0 0.15rem;
-  font-size: clamp(1.25rem, 2vw, 1.5rem);
-  font-weight: 700;
-  letter-spacing: -0.02em;
-  line-height: 1.15;
-  color: var(--ink);
-}
-
-.av-rail__blurb {
-  margin: 0;
-  max-width: 38rem;
-  font-size: 0.8rem;
-  line-height: 1.45;
-  color: var(--mute);
-}
-
 /* ── Screen tabs (compact chips) ─────────────────────────── */
 
 .av-screen-tabs {
@@ -859,10 +823,6 @@
 
   .av-line-grid {
     grid-template-columns: 1fr;
-  }
-
-  .av-rail {
-    flex-direction: column;
   }
 
   .av-actions {
