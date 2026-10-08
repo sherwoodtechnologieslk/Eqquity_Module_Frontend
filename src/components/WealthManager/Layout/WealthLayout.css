@@ -110,10 +110,10 @@
   .wm-content { padding: 1.25rem 1rem 2rem; }
 }
 
-/* Wealth navbar — Equity-style chrome in Wealth teal */
+/* Wealth navbar — Equity bar shape, Wealth green palette */
 .wm-navbar {
-  --wm-nav-list-bg: transparent;
-  --wm-nav-list-border: transparent;
+  --wm-nav-list-bg: rgba(6, 24, 20, 0.45);
+  --wm-nav-list-border: rgba(255, 255, 255, 0.32);
 
   position: fixed;
   top: 0;
@@ -122,14 +122,19 @@
   height: 52px;
   z-index: 120;
   padding: 0;
-  border-bottom: 1px solid #e6e1d8;
-  background: #f7f4ee;
-  box-shadow: none;
+  border-bottom: 1px solid rgba(167, 220, 196, 0.28);
+  background: linear-gradient(135deg, #102824 0%, #0e332c 52%, #145246 100%);
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.12) inset;
   overflow: visible;
+  font-family: 'DM Sans', 'Segoe UI', sans-serif;
 }
 
 .wm-navbar::before {
-  content: none;
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.08) 0%, transparent 55%);
+  pointer-events: none;
 }
 
 .wm-navbar-inner {
@@ -150,19 +155,19 @@
 }
 
 .wm-navbar-brand-icon {
-  width: 1.7rem;
-  height: 1.7rem;
+  width: 1.75rem;
+  height: 1.75rem;
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-  background: #123f34;
-  border: 0;
+  background: rgba(255, 255, 255, 0.18);
+  border: 1.5px solid rgba(255, 255, 255, 0.45);
   box-shadow: none;
 }
 
 .wm-root .wm-navbar-brand-icon {
-  border-radius: 6px !important;
+  border-radius: 999px !important;
 }
 
 .wm-navbar-brand-logo {
@@ -170,7 +175,7 @@
   height: 0.95rem;
   color: #ffffff;
   background: transparent;
-  padding: 0.22rem 0.2rem;
+  padding: 0;
   box-sizing: content-box;
   display: block;
   box-shadow: none;
@@ -196,7 +201,7 @@
   width: max-content;
   max-width: 100%;
   min-width: 0;
-  height: 52px;
+  height: auto;
   margin: 0;
   padding: 0;
   border: 0;
@@ -204,7 +209,10 @@
   overflow-x: auto;
   overflow-y: hidden;
   scrollbar-width: thin;
-  scrollbar-color: rgba(18, 63, 52, 0.35) transparent;
+  scrollbar-color: rgba(255, 255, 255, 0.45) transparent;
+  backdrop-filter: blur(16px) saturate(1.2);
+  -webkit-backdrop-filter: blur(16px) saturate(1.2);
+  box-shadow: 0 8px 20px rgba(6, 24, 20, 0.28);
 }
 
 .wm-navbar-pills::-webkit-scrollbar {
@@ -216,7 +224,7 @@
 }
 
 .wm-navbar-pills::-webkit-scrollbar-thumb {
-  background: rgba(18, 63, 52, 0.28);
+  background: rgba(255, 255, 255, 0.28);
 }
 
 .wm-root .wm-navbar-pills::-webkit-scrollbar-thumb {
@@ -226,42 +234,51 @@
 .wm-navbar-empty {
   padding: 0.4rem 0.75rem;
   font-size: 0.78rem;
-  color: #6f6a63;
+  color: rgba(255, 255, 255, 0.62);
   white-space: nowrap;
 }
 
 .wm-pill {
   flex: 0 0 auto;
-  height: 52px;
-  padding: 0 0.9rem;
-  border: none;
-  border-bottom: 2px solid transparent;
+  height: auto;
+  padding: 0.45rem 0.85rem;
+  border: 1px solid transparent;
   background: transparent;
-  color: #5c574f;
+  color: #ffffff;
+  font-family: inherit;
   font-size: 0.78rem;
-  font-weight: 500;
+  font-weight: 600;
   letter-spacing: 0.01em;
+  text-shadow: 0 1px 2px rgba(6, 24, 20, 0.55);
   cursor: pointer;
   white-space: nowrap;
-  transition: color 160ms ease, border-color 160ms ease, background 160ms ease;
+  transition: background 160ms ease, color 160ms ease, border-color 160ms ease, box-shadow 160ms ease;
 }
 
 .wm-pill:hover {
-  background: rgba(18, 63, 52, 0.04);
-  color: #123f34;
+  background: rgba(255, 255, 255, 0.12);
+  color: #ffffff;
+  text-shadow: none;
 }
 
 .wm-pill:focus-visible {
-  outline: 2px solid #123f34;
-  outline-offset: -2px;
+  outline: 2px solid rgba(167, 220, 196, 0.8);
+  outline-offset: 2px;
 }
 
 .wm-pill.is-active {
-  background: transparent;
-  color: #123f34;
-  border-bottom-color: #123f34;
-  box-shadow: none;
+  background: #ffffff;
+  color: #102824;
+  border-color: rgba(255, 255, 255, 0.65);
+  box-shadow: 0 1px 3px rgba(16, 40, 36, 0.16);
+  text-shadow: none;
   font-weight: 600;
+}
+
+.wm-pill.is-active:hover {
+  background: #ffffff;
+  color: #102824;
+  border-color: rgba(255, 255, 255, 0.65);
 }
 
 .wm-root .wm-navbar-pills {
@@ -280,16 +297,17 @@
 }
 
 .wm-avatar {
-  width: 1.85rem;
-  height: 1.85rem;
+  width: 2.4rem;
+  height: 2.4rem;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  border: 1px solid #d9d3c8;
-  background: #ffffff;
-  color: #123f34;
+  border: 2px solid rgba(255, 255, 255, 0.55);
+  background: rgba(255, 255, 255, 0.2);
+  color: #ffffff;
   cursor: pointer;
-  font-size: 0.68rem;
+  font-family: inherit;
+  font-size: 0.85rem;
   font-weight: 700;
   letter-spacing: 0.02em;
   transition: background 160ms ease, border-color 160ms ease;
@@ -301,8 +319,8 @@
 }
 
 .wm-avatar:hover {
-  background: #f3f7f5;
-  border-color: #123f34;
+  background: rgba(255, 255, 255, 0.28);
+  border-color: rgba(255, 255, 255, 0.7);
   box-shadow: none;
 }
 
